@@ -408,6 +408,39 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     public void CancelCopy() => _copyCts?.Cancel();
 
+    // ── Backups on a server ───────────────────────────────────────────────────
+
+    private string _pgDumpStatusText = "";
+    public string PgDumpStatusText
+    {
+        get => _pgDumpStatusText;
+        private set { this.RaiseAndSetIfChanged(ref _pgDumpStatusText, value);
+                      this.RaisePropertyChanged(nameof(HasPgDumpStatus)); }
+    }
+    public bool HasPgDumpStatus => PgDumpStatusText.Length > 0;
+
+    /// <summary>
+    /// Reports whether pg_dump can be used, so the answer is on screen before somebody presses
+    /// Back Up Now and waits for a failure.
+    ///
+    /// <para>⚠️ Not called automatically on every visit to the tab: it starts a process to read
+    /// a version number, and doing that unasked each time the settings window opens is a cost
+    /// nobody agreed to.</para>
+    /// </summary>
+    public async Task CheckPgDumpAsync()
+    {
+        PgDumpStatusText = "Looking for pg_dump…";
+        var cs = AppConfig.GetPostgresConnection();
+        if (string.IsNullOrWhiteSpace(cs))
+        {
+            PgDumpStatusText = "No PostgreSQL connection is configured yet.";
+            return;
+        }
+
+        try   { PgDumpStatusText = (await PgDumpService.ProbeAsync(cs)).Message; }
+        catch (Exception ex) { PgDumpStatusText = $"Could not check pg_dump: {ex.Message}"; }
+    }
+
     // ── Commands ──────────────────────────────────────────────────────────────
 
     public async Task BackupNowAsync()
@@ -421,7 +454,9 @@ public class DatabaseSettingsViewModel : ReactiveObject
             RefreshLastBackupText();
             StatusText = result is not null
                 ? $"Backup saved: {Path.GetFileName(result)}"
-                : "Backup failed — DB file not found.";
+                : DbEngine.IsPostgres
+                    ? "Backup failed — no PostgreSQL connection is configured."
+                    : "Backup failed — DB file not found.";
         }
         catch (Exception ex)
         {
@@ -567,7 +602,15 @@ public class DatabaseSettingsViewModel : ReactiveObject
         try
         {
             var progress = new Progress<string>(s => SizeStatusText = s);
-            var report   = await _sizeSvc.AnalyseAsync(DbPath, progress);
+
+            // ⚠️ Not the same measurement on both engines, and the summary below says so.
+            // SQLite has to estimate the sizes and can count the rows; PostgreSQL knows the sizes
+            // exactly and estimates the rows. Presenting either as simply "the numbers" would
+            // misrepresent one of them.
+            var report = DbEngine.IsPostgres
+                ? await new PostgresSizeService().AnalyseAsync(
+                      AppConfig.GetPostgresConnection() ?? "", progress)
+                : await _sizeSvc.AnalyseAsync(DbPath, progress);
 
             // Every table, including the empty ones: a table absent from the list reads as an
             // oversight, and the small ones are what make the big ones legible by comparison.
@@ -579,10 +622,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
             // counts only wholly empty pages: deleting rows mostly leaves holes inside pages that
             // are still in use, so the figure reads as "reclaimable space" while being a floor far
             // below it. Only a VACUUM can answer the question people would ask of it.
-            SizeSummaryText =
-                $"File {FormatBytes(report.FileBytes)} across {report.Tables.Count:N0} tables. " +
-                "Shares are of the space in use. Figures are measured and scaled to the file — " +
-                "good for comparing tables, not exact byte counts.";
+            SizeSummaryText = DbEngine.IsPostgres
+                ? $"Database {FormatBytes(report.FileBytes)} across {report.Tables.Count:N0} tables. "
+                  + "Sizes are exact, including index and TOAST storage. Row counts are the "
+                  + "server's own estimates, so a table written heavily since its last analyze "
+                  + "reads low."
+                : $"File {FormatBytes(report.FileBytes)} across {report.Tables.Count:N0} tables. "
+                  + "Shares are of the space in use. Figures are measured and scaled to the file "
+                  + "— good for comparing tables, not exact byte counts.";
             SizeStatusText = $"Loaded {DateTime.Now:HH:mm:ss}.";
 
             this.RaisePropertyChanged(nameof(HasTableSizes));

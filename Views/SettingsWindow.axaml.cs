@@ -86,6 +86,9 @@ public partial class SettingsWindow : Window
     private void OnCancelCopyClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _dbVm?.CancelCopy();
 
+    private void OnCheckPgDumpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.CheckPgDumpAsync();
+
     // One handler per retention section; each drives its own RetentionSectionVm.
     private DataRetentionSettingsViewModel? Retention => (DataContext as SettingsViewModel)?.RetentionVm;
 
