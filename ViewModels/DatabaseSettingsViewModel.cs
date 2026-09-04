@@ -109,15 +109,64 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     private bool _canOfferCopy;
     /// <summary>
-    /// Set only when the server answered AND its database is empty. Copying into a database that
-    /// already holds rows is not offered at all: the copy appends, so it would interleave two
-    /// sets of data rather than replace one, and there is no honest way to present that.
+    /// Set when the server answered and there is a SQLite database here to copy from. Whether the
+    /// destination is empty decides WHICH copy is offered, not whether one is offered at all
+    /// — see <see cref="DestinationTables"/>.
     /// </summary>
     public bool CanOfferCopy
     {
         get => _canOfferCopy;
-        private set => this.RaiseAndSetIfChanged(ref _canOfferCopy, value);
+        private set { this.RaiseAndSetIfChanged(ref _canOfferCopy, value);
+                      RaiseCopyButtons(); }
     }
+
+    private long _destinationTables;
+    /// <summary>
+    /// How many tables the last successful test found in schema public.
+    ///
+    /// <para>⚠️ The copy appends; it cannot merge. So a destination that already holds
+    /// tables has to be emptied first, and that is destructive in a way nothing else on this
+    /// screen is. This number decides between offering the ordinary copy and offering the one
+    /// that erases — and it is only ever set by a test, so the wording the user reads
+    /// describes a state that was observed rather than one that is assumed.</para>
+    /// </summary>
+    public long DestinationTables
+    {
+        get => _destinationTables;
+        private set { this.RaiseAndSetIfChanged(ref _destinationTables, value);
+                      this.RaisePropertyChanged(nameof(DestinationIsEmpty));
+                      this.RaisePropertyChanged(nameof(DestinationHasData));
+                      this.RaisePropertyChanged(nameof(CopyOfferText));
+                      RaiseCopyButtons(); }
+    }
+
+    public bool DestinationIsEmpty => _destinationTables == 0;
+    public bool DestinationHasData => _destinationTables > 0;
+
+    /// <summary>
+    /// Which of the two copy buttons is on screen, if either.
+    ///
+    /// <para>⚠️ Both hide while a copy runs, rather than merely disabling. A greyed-out
+    /// "Erase Server Data and Copy" sitting beside Cancel for the hour a large copy takes is an
+    /// invitation to press the wrong one, and the two do very different things.</para>
+    /// </summary>
+    public bool ShowCopyButton  => CanOfferCopy && DestinationIsEmpty && !IsCopying;
+    public bool ShowEraseButton => CanOfferCopy && DestinationHasData && !IsCopying;
+
+    private void RaiseCopyButtons()
+    {
+        this.RaisePropertyChanged(nameof(ShowCopyButton));
+        this.RaisePropertyChanged(nameof(ShowEraseButton));
+    }
+
+    /// <summary>The paragraph above the copy button, a different offer in each case.</summary>
+    public string CopyOfferText => DestinationIsEmpty
+        ? "The server database is empty. Everything in the SQLite database can be copied into it "
+          + "now. The SQLite file is only read, never changed, so this can be repeated if "
+          + "something goes wrong."
+        : $"The server database already holds {DestinationTables:N0} table(s). They can be erased "
+          + "and replaced with the contents of the SQLite database. The SQLite file is still only "
+          + "read and is not changed — but everything currently on the server is destroyed.";
 
     private double _copyPercent;
     /// <summary>
@@ -155,7 +204,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         get => _isCopying;
         private set { this.RaiseAndSetIfChanged(ref _isCopying, value);
-                      this.RaisePropertyChanged(nameof(CanTest)); }
+                      this.RaisePropertyChanged(nameof(CanTest));
+                      RaiseCopyButtons(); }
     }
 
     public bool CanTest => !IsCopying;
@@ -349,11 +399,15 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 return;
             }
 
-            TestSucceeded = true;
+            TestSucceeded     = true;
+            DestinationTables = tables;
+
+            // A copy needs somewhere to copy FROM, which means this app is still running on the
+            // SQLite file it would read. Once it is running on the server there is no source.
+            CanOfferCopy = DbEngine.IsSqlite && File.Exists(AppConfig.GetDbPath());
 
             if (tables == 0)
             {
-                CanOfferCopy   = DbEngine.IsSqlite && File.Exists(AppConfig.GetDbPath());
                 TestResultText = CanOfferCopy
                     ? $"Connected to PostgreSQL {version}. The database is empty, so the data "
                       + "already here can be copied into it."
@@ -364,7 +418,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
             {
                 TestResultText =
                     $"Connected to PostgreSQL {version}. The database already holds {tables:N0} "
-                    + "table(s), so it will be used as it is — nothing will be copied into it.";
+                    + "table(s), so it will be used as it is — nothing is copied into it "
+                    + "unless you erase it first.";
             }
         }
         catch (Exception ex)
@@ -399,7 +454,31 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (IsCopying || !CanOfferCopy) return;
 
-        if (ShowConfirmDialog is not null)
+        var wipeFirst = DestinationHasData;
+
+        if (wipeFirst)
+        {
+            // ⚠️ Typed, not clicked. Everything else on this screen is additive or
+            // undoable; this destroys rows that exist nowhere else, and a dialog that needs only
+            // a click is one stray Enter away from doing it. Fail closed when the dialog is not
+            // wired: an absent confirmation must never be read as consent.
+            if (ShowTypedConfirmDialog is null) return;
+
+            var erase = await ShowTypedConfirmDialog(
+                "Erase the server database and copy",
+                $"This PERMANENTLY DESTROYS everything in the database \"{Pg.Database}\" on "
+                + $"{Pg.Host}.\n\n"
+                + $"All {DestinationTables:N0} table(s) in schema \"public\", and every row in "
+                + "them, are dropped. This CANNOT be undone. Nothing but a backup taken "
+                + "beforehand will bring the data back, and EVE Console does not take one for "
+                + "you.\n\n"
+                + $"The data here — {AppConfig.GetDbPath()} — is then copied in. That "
+                + "SQLite file is only read and is not changed.\n\n"
+                + "Be certain this is the right database before you continue.",
+                "ERASE");
+            if (!erase) return;
+        }
+        else if (ShowConfirmDialog is not null)
         {
             var ok = await ShowConfirmDialog(
                 "Copy data to PostgreSQL",
@@ -416,6 +495,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
         CopyPercent   = 0;
         CopyTableText = "";
 
+        _copiedSoFar  = 0;
+
         // ⚠️ Constructed HERE, on the UI thread, and deliberately not inside the Task.Run
         // below. Progress<T> captures the synchronization context of wherever it is created and
         // posts callbacks back to it; built inside the background task it captures the thread
@@ -426,7 +507,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
             CopyPercent    = p.TableCount == 0 ? 0 : 100.0 * p.TableIndex / p.TableCount;
             CopyTableText  = $"table {p.TableIndex:N0} of {p.TableCount:N0}";
             CopyStatusText = $"{p.Table}: {p.RowsInTable:N0} row(s); {p.RowsTotal:N0} copied";
+            _copiedSoFar   = p.RowsTotal;
         });
+
+        // The same device for plain status lines, so the steps before the first table can say
+        // what they are doing. Declared as the interface because Progress<T>.Report is an
+        // explicit implementation and is not reachable through the concrete type.
+        IProgress<string> status = new Progress<string>(s => CopyStatusText = s);
 
         var sqlitePath = AppConfig.GetDbPath();
         // Through the same helper the app uses, so the copy talks to the server on exactly the
@@ -452,6 +539,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 // ⚠️ Built through the app's own bootstrap, not by the copy. Anything else
                 // would be a third definition of the schema, free to drift from the two that
                 // already have to be kept in step.
+                if (wipeFirst)
+                {
+                    status.Report("Erasing the destination database…");
+                    var wiped = await PostgresWipeService.WipeAsync(pgConn, _copyCts.Token);
+                    status.Report(
+                        $"Erased {wiped.Tables:N0} table(s). Building the schema…");
+                }
+
                 using (var dst = OpenPg())
                 {
                     await dst.Database.EnsureCreatedAsync(_copyCts.Token);
@@ -470,8 +565,11 @@ public class DatabaseSettingsViewModel : ReactiveObject
         }
         catch (OperationCanceledException)
         {
-            CopyStatusText = "Copy cancelled. The server database now holds a partial copy; "
-                           + "empty it before trying again.";
+            // The partial copy is left where it is rather than tidied away: it is a state the
+            // user can look at, and testing the connection again now offers to erase it.
+            CopyStatusText = $"Copy cancelled after {_copiedSoFar:N0} row(s). The server database "
+                           + "holds a partial copy — test the connection again to erase it "
+                           + "and start over.";
         }
         catch (Exception ex)
         {
@@ -485,7 +583,43 @@ public class DatabaseSettingsViewModel : ReactiveObject
         }
     }
 
-    public void CancelCopy() => _copyCts?.Cancel();
+    private long _copiedSoFar;
+
+    /// <summary>
+    /// Asks before cancelling.
+    ///
+    /// <para>⚠️ This button sits beside a progress bar that can be running for the better
+    /// part of an hour, one position away from the button that starts the copy, and pressing it
+    /// throws the whole run away: a partial copy cannot be resumed, so starting again means
+    /// erasing the destination and copying everything from the beginning. Far too much to lose to
+    /// a misclick.</para>
+    ///
+    /// <para>The copy keeps running while the question is on screen, so answering "no" costs
+    /// nothing — and a copy that finishes while the dialog is open is left alone.</para>
+    /// </summary>
+    public async Task CancelCopyAsync()
+    {
+        var cts = _copyCts;
+        if (cts is null || !IsCopying) return;
+
+        if (ShowConfirmDialog is not null)
+        {
+            var ok = await ShowConfirmDialog(
+                "Stop the copy",
+                $"Stop copying? {_copiedSoFar:N0} row(s) have been copied so far and none of it "
+                + "is kept: a partial copy cannot be resumed, so starting again means erasing the "
+                + "server database and copying everything from the beginning.\n\n"
+                + "The copy is still running while this question is open.");
+            if (!ok) return;
+        }
+
+        // ⚠️ Re-checked, because the copy may well have finished while the dialog was open.
+        // The token source is disposed the moment it does, and cancelling a disposed one throws.
+        if (!IsCopying || !ReferenceEquals(_copyCts, cts)) return;
+
+        try { cts.Cancel(); }
+        catch (ObjectDisposedException) { }
+    }
 
     // ── Backups on a server ───────────────────────────────────────────────────
 

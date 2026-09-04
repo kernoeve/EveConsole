@@ -84,7 +84,7 @@ public partial class SettingsWindow : Window
         => _ = _dbVm?.CopyToPostgresAsync();
 
     private void OnCancelCopyClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _dbVm?.CancelCopy();
+        => _ = _dbVm?.CancelCopyAsync();
 
     private void OnCheckPgDumpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.CheckPgDumpAsync();
