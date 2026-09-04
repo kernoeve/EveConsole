@@ -8,7 +8,7 @@
         CanResize="False"
         SizeToContent="Height">
 
-  <Grid RowDefinitions="*,Auto">
+  <Grid RowDefinitions="*,Auto,Auto">
 
     <TextBlock Grid.Row="0"
                x:Name="MessageText"
@@ -17,12 +17,19 @@
                FontSize="13"
                Margin="20 20 20 16" />
 
-    <Border Grid.Row="1" Background="#0d0d12" Padding="16 12">
+    <!-- Hidden unless the caller asked for a typed confirmation. -->
+    <StackPanel Grid.Row="1" x:Name="ConfirmPanel" IsVisible="False"
+                Margin="20 0 20 12" Spacing="4">
+      <TextBlock x:Name="ConfirmPrompt" Foreground="#cc7766" FontSize="12" TextWrapping="Wrap" />
+      <TextBox   x:Name="ConfirmBox" FontSize="13" />
+    </StackPanel>
+
+    <Border Grid.Row="2" Background="#0d0d12" Padding="16 12">
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Right"
                   Spacing="10">
         <Button Content="No"  Click="OnNo"  Padding="20 5" />
-        <Button Content="Yes" Click="OnYes" Padding="20 5" />
+        <Button Content="Yes" Click="OnYes" Padding="20 5" x:Name="YesButton" />
       </StackPanel>
     </Border>
 

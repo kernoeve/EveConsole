@@ -89,6 +89,9 @@ public partial class SettingsWindow : Window
     private void OnCheckPgDumpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.CheckPgDumpAsync();
 
+    private void OnRestoreDumpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.RestoreFromDumpAsync();
+
     // One handler per retention section; each drives its own RetentionSectionVm.
     private DataRetentionSettingsViewModel? Retention => (DataContext as SettingsViewModel)?.RetentionVm;
 
@@ -156,6 +159,12 @@ public partial class SettingsWindow : Window
         dbVm.ShowConfirmDialog = async (title, message) =>
         {
             var dlg = new ConfirmDialog(message) { Title = title };
+            return await dlg.ShowDialog<bool>(this);
+        };
+
+        dbVm.ShowTypedConfirmDialog = async (title, message, phrase) =>
+        {
+            var dlg = new ConfirmDialog(message, phrase) { Title = title };
             return await dlg.ShowDialog<bool>(this);
         };
 

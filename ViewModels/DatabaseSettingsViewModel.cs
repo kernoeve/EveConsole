@@ -221,6 +221,15 @@ public class DatabaseSettingsViewModel : ReactiveObject
     public Func<string, string, Task<string?>>?    ShowSaveFileDialog  { get; set; }
     public Func<string, Task<string?>>?            ShowOpenFileDialog  { get; set; }
     public Func<string, string, Task<bool>>?       ShowConfirmDialog   { get; set; }
+
+    /// <summary>
+    /// A confirmation that requires the user to type a phrase, for the destructive case.
+    ///
+    /// <para>Separate from ShowConfirmDialog rather than an extra parameter on it, so the five
+    /// ordinary confirmations in this class keep their shape and it stays obvious which one is
+    /// the dangerous action.</para>
+    /// </summary>
+    public Func<string, string, string, Task<bool>>? ShowTypedConfirmDialog { get; set; }
     public Action?                                 RequestRestart      { get; set; }
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -434,6 +443,49 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// a version number, and doing that unasked each time the settings window opens is a cost
     /// nobody agreed to.</para>
     /// </summary>
+    /// <summary>
+    /// Puts a dump back, replacing whatever the database holds now.
+    ///
+    /// <para>⚠️ The only destructive action in the app — everything else adds, updates or
+    /// moves aside. So it names the file and the database it will overwrite, and asks for the
+    /// database name to be typed rather than accepting a click. A restore is also the thing
+    /// somebody reaches for while already upset about losing data, which is exactly when a
+    /// mis-click costs the most.</para>
+    ///
+    /// <para>⚠️ It only RECORDS the request. The work happens on the next start, before
+    /// anything opens the database, because pg_restore drops every object and the connection
+    /// pool must not be holding them while it does.</para>
+    /// </summary>
+    public async Task RestoreFromDumpAsync()
+    {
+        if (ShowOpenFileDialog is null) return;
+
+        var file = await ShowOpenFileDialog("Choose a PostgreSQL dump to restore");
+        if (string.IsNullOrWhiteSpace(file)) return;
+
+        if (ShowTypedConfirmDialog is not null)
+        {
+            var ok = await ShowTypedConfirmDialog(
+                $"Replace {Pg.Database} with this backup?",
+                $"Everything now in {Pg.Database} on {Pg.Host} will be dropped and replaced by "
+                + $"{Path.GetFileName(file)}.\n\n"
+                + "This cannot be undone, and anything polled since that backup was taken is "
+                + "lost. EVE Console will restart to do it.",
+                Pg.Database);
+            if (!ok) return;
+        }
+
+        AppConfig.SetRestorePending(file);
+        StatusText = $"Restore scheduled: {Path.GetFileName(file)}. Restarting…";
+        RequestRestart?.Invoke();
+    }
+
+    /// <summary>What the last restore did, reported once the app is back.</summary>
+    public string RestoreResultText =>
+        PgRestoreService.LastResult is { Ran: true } r ? r.Message : "";
+
+    public bool HasRestoreResult => RestoreResultText.Length > 0;
+
     public async Task CheckPgDumpAsync()
     {
         PgDumpStatusText = "Looking for pg_dump…";

@@ -2689,6 +2689,26 @@
                           BorderBrush="#253525" BorderThickness="1" />
                 </Grid>
 
+                <Separator Background="#252530" Height="1" Margin="0 4 0 4" />
+
+                <!-- The one destructive action in the app, and styled as one. -->
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Restore from a backup" FontWeight="SemiBold"
+                             Foreground="#cc7766" FontSize="12" />
+                  <TextBlock FontSize="11" Foreground="#8a6a60" TextWrapping="Wrap"
+                             Text="Replaces everything in the database with the contents of a .dump file. Anything polled since that backup was taken is lost. EVE Console restarts to do it, because the restore drops every table and cannot run while the app is holding them." />
+                  <Button Content="Restore From Dump…"
+                          IsEnabled="{Binding !IsBusy}"
+                          Click="OnRestoreDumpClick"
+                          HorizontalAlignment="Left"
+                          Padding="12 5" FontSize="12"
+                          Background="#2a1a1a" Foreground="#cc7766"
+                          BorderBrush="#3a2525" BorderThickness="1" />
+                  <TextBlock Text="{Binding RestoreResultText}"
+                             IsVisible="{Binding HasRestoreResult}"
+                             Foreground="#aac8ff" FontSize="11" TextWrapping="Wrap" />
+                </StackPanel>
+
                 <TextBlock Text="{Binding StatusText}"
                            Foreground="#70ad47" FontSize="11"
                            IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"

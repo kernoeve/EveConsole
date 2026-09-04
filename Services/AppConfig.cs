@@ -227,6 +227,26 @@ public static class AppConfig
     /// database is opened — a flag living inside the file being rebuilt would be unreadable at
     /// exactly the moment it is needed.</para>
     /// </summary>
+    /// <summary>
+    /// The archive a restore should put back on the next start, or null.
+    ///
+    /// <para>Alongside the shrink and relocation flags because it is the same kind of request:
+    /// something that cannot be done while the database is open, so it is recorded and performed
+    /// before anything opens it.</para>
+    /// </summary>
+    public static string? GetRestorePending()
+    {
+        var v = Load().RestorePending;
+        return string.IsNullOrWhiteSpace(v) ? null : v;
+    }
+
+    public static void SetRestorePending(string? archivePath)
+    {
+        var c = Load();
+        c.RestorePending = string.IsNullOrWhiteSpace(archivePath) ? null : archivePath;
+        Save(c);
+    }
+
     public static bool GetShrinkPending() => Load().ShrinkPending == true;
 
     public static void SetShrinkPending(bool pending)
@@ -378,6 +398,7 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }
 }

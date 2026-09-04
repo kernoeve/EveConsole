@@ -65,6 +65,16 @@ public class App : Application
         await Task.Run(() => DatabaseRelocationService.RunIfPending(
             (pct, status) => p.Report((pct, status))));
 
+        // ⚠️ Before the integrity check and before ConfigureServices, for the reason the two
+        // above are here: a restore drops every object and recreates it, and the connection pool
+        // must not be holding the database while that happens. It also has to run before the
+        // integrity check, or a database mid-restore would be reported as damaged.
+        if (AppConfig.GetRestorePending() is not null)
+        {
+            var restore = await PgRestoreService.RunIfPendingAsync(p);
+            if (restore.Ran) p.Report((100, restore.Message));
+        }
+
         if (AppConfig.GetShrinkPending())
         {
             // A rebuild reports almost nothing of its own — VACUUM has no progress callback — so
