@@ -49,6 +49,15 @@ public class EveMailService(
     private async Task EnsureTablesAsync(AppDbContext db)
     {
         if (_tablesEnsured) return;
+
+        // ⚠️ SQLite only. All four of these tables are in the EF model, so EnsureCreated has
+        // already built them on a server — and this DDL could not run there in any case:
+        // AUTOINCREMENT is SQLite's spelling, and PostgreSQL rejects it at parse time even inside
+        // CREATE TABLE IF NOT EXISTS, so an existing table does not save it. Unguarded it threw on
+        // every mail poll: 49 failures an hour in the error log, one per character per cycle, all
+        // of them noise around a table that was already there.
+        if (DbEngine.IsPostgres) { _tablesEnsured = true; return; }
+
         await _ensureGate.WaitAsync();
         try
         {

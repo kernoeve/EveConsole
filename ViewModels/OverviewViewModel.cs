@@ -973,9 +973,16 @@ public class OverviewViewModel : ReactiveObject
             // caps a pathological volume, since the list isn't virtualized and every loaded row is
             // formatted on each refresh.
 #pragma warning disable EF1002
+            // ⚠️ "Unread if unread for anyone" needs a different function per engine.
+            // IsRead is an INTEGER on SQLite, where MIN over 0 and 1 says exactly that; on
+            // PostgreSQL it is a real boolean and min(boolean) does not exist. bool_and is the
+            // same statement in that engine's terms, and returns a boolean, which is what the
+            // entity's property expects to read back.
+            var anyUnread = DbEngine.IsPostgres ? "bool_and(\"IsRead\")" : "MIN(\"IsRead\")";
+
             var rows = await db.EsiNotifications.FromSqlRaw(
                     "SELECT MIN(\"CharacterId\") AS \"CharacterId\", \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
-                    "\"Timestamp\", MIN(\"IsRead\") AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
+                    "\"Timestamp\", " + anyUnread + " AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
                     "WHERE \"Timestamp\" >= {0} " +
                     "GROUP BY \"NotificationId\" ORDER BY \"Timestamp\" DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();

@@ -16,11 +16,20 @@ public sealed record SalesLoadResult(
 // build/market value pulled from TypePriceSnapshots (nearest day).
 internal static class SalesQuery
 {
+    // ⚠️ The two date columns are CAST to TEXT because both queries read them into a string
+    // and parse it. On SQLite that was free: dates ARE text there, and the cast is a no-op. On a
+    // server they are timestamptz, and reading one as a string throws outright — "Reading as
+    // System.String is not supported for fields having DataTypeName timestamp with time zone".
+    //
+    // Safe to parse on both because the connection pins datestyle=ISO, so PostgreSQL renders
+    // exactly the layout DateTimeOffset.TryParse expects. That is the same guarantee the monthly
+    // bucketing relies on, and it is why it is pinned in the connection string rather than left
+    // to the server's locale.
     // Market sales: one row per sell transaction. Location = station/structure; buyer = the client.
     private const string MarketSql =
         """
         SELECT t."TransactionId" AS "SaleId", t."OwnerId" AS "OwnerId", t."OwnerType" AS "OwnerType",
-               t."Date" AS DateStr, t."TypeId" AS "TypeId", t."Quantity" AS "Quantity",
+               CAST(t."Date" AS TEXT) AS DateStr, t."TypeId" AS "TypeId", t."Quantity" AS "Quantity",
                CAST(t."UnitPrice" AS REAL) AS "UnitPrice", t."ClientId" AS "BuyerId",
                t."LocationId" AS "LocationId",
                -- Which tool the location link opens. An NPC station is an entity; a player
@@ -41,7 +50,7 @@ internal static class SalesQuery
     private const string ContractSql =
         """
         SELECT c."ContractId" AS "SaleId", c."OwnerId" AS "OwnerId", c."OwnerType" AS "OwnerType",
-               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS "Price", COALESCE(c."AcceptorId", 0) AS "BuyerId",
+               CAST(c."DateCompleted" AS TEXT) AS DateStr, CAST(c."Price" AS REAL) AS "Price", COALESCE(c."AcceptorId", 0) AS "BuyerId",
                c."StartLocationId" AS "LocationId", COALESCE(c."Title", '') AS "Title",
                (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = c."StartLocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),

@@ -32,7 +32,15 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
             };
 
             var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            var now   = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fffffffzzz", CultureInfo.InvariantCulture);
+
+            // ⚠️ Passed as a DateTimeOffset, not as text. ComputedAt is a timestamptz on a
+            // server, and PostgreSQL will not implicitly read text into one inside INSERT ...
+            // SELECT: "column ComputedAt is of type timestamp with time zone but expression is of
+            // type text". It went unnoticed because SQLite keeps dates as TEXT, so a hand-built
+            // string was indistinguishable from the real thing there.
+            //
+            // Date stays a string: that column really is text in both engines, holding a day.
+            var now   = DateTimeOffset.UtcNow;
 
             // ⚠️ ON CONFLICT rather than INSERT OR REPLACE, which is SQLite's alone. Both
             // engines have understood this form since SQLite 3.24, and it says what the older

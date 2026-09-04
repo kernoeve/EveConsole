@@ -78,7 +78,7 @@ public partial class SettingsWindow : Window
         => _ = _dbVm?.TestPostgresAsync();
 
     private void OnSaveDbChoiceClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _dbVm?.SaveDatabaseChoice();
+        => _ = _dbVm?.SaveDatabaseChoiceAsync();
 
     private void OnCopyToPostgresClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.CopyToPostgresAsync();

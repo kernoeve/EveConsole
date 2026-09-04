@@ -1,13 +1,23 @@
+using System.Data.Common;
 using System.Reflection;
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
 namespace EveConsole.Services;
 
-/// <summary>How far a copy has got.</summary>
+/// <summary>
+/// How far a copy has got.
+///
+/// <para><paramref name="RowsExpected"/> is every row in the source, counted before the copy
+/// began, so a caller can show progress by row rather than by table. Progress by table is close
+/// to useless on this schema: KillMailItems alone is over half the database, so the bar would sit
+/// on one number for the better part of an hour while the copy was working perfectly.</para>
+/// </summary>
 public readonly record struct CopyProgress(
-    string Table, int TableIndex, int TableCount, long RowsInTable, long RowsTotal);
+    string Table, int TableIndex, int TableCount, long RowsInTable, long RowsTotal,
+    long RowsExpected);
 
 /// <summary>
 /// Copies every table from one engine into the other, so somebody moving to a server keeps the
@@ -46,10 +56,40 @@ public sealed class DatabaseCopyService
         CancellationToken ct)
     {
         using var probe = openDestination();
-        var tables = probe.Model.GetEntityTypes()
+        var entities = probe.Model.GetEntityTypes()
             .Where(e => e.GetTableName() is not null)
             .OrderBy(e => e.GetTableName(), StringComparer.Ordinal)
             .ToList();
+
+        using var src = openSource();
+        src.ChangeTracker.AutoDetectChangesEnabled = false;
+        await src.Database.OpenConnectionAsync(ct);
+
+        // ⚠️ ONE transaction, held open across every table, so the whole copy sees the
+        // source as it was at a single instant. Each table used to be read on its own connection,
+        // which meant the copy was a series of snapshots taken minutes or hours apart: rows the
+        // poller wrote while the copy ran could land in one table and not another, and a killmail
+        // could arrive with its attackers copied but not its items.
+        //
+        // SQLite in WAL mode gives readers exactly this for free, and does not block the writer
+        // to do it, so the poller keeps working throughout. The cost is that the WAL cannot be
+        // checkpointed while the read is open, so it grows by however much is written during the
+        // copy — a few megabytes, on the evidence of a real migration.
+        //
+        // This makes the copy CONSISTENT. It does not make it COMPLETE: anything polled after the
+        // snapshot is taken stays in the source and is not copied. Only stopping the poller can
+        // close that gap, and this deliberately does not reach into it.
+        await using var snapshot = await src.Database.BeginTransactionAsync(ct);
+        var srcTx = snapshot.GetDbTransaction();
+
+        var modelTables = entities.Select(e => e.GetTableName()!).ToHashSet(StringComparer.Ordinal);
+        var extras      = await ExtraTablesAsync(src, srcTx, modelTables, ct);
+        var total       = entities.Count + extras.Count;
+
+        // Counted up front so progress can be reported by row. Measured at 0.96 s for 68 million
+        // rows across 199 tables, which is nothing against a copy that runs for an hour, and
+        // inside the snapshot so the total agrees with what is actually copied.
+        var expected = await MeasureAsync(src, srcTx, modelTables.Concat(extras), ct);
 
         await using var pg = new NpgsqlConnection(destinationConnectionString);
         await pg.OpenAsync(ct);
@@ -58,25 +98,143 @@ public sealed class DatabaseCopyService
         var copyOne = typeof(DatabaseCopyService)
             .GetMethod(nameof(CopyTableAsync), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-        for (var i = 0; i < tables.Count; i++)
+        for (var i = 0; i < entities.Count; i++)
         {
             ct.ThrowIfCancellationRequested();
 
-            var entity = tables[i];
+            var entity = entities[i];
             var table  = entity.GetTableName()!;
 
             var task = (Task<long>)copyOne
                 .MakeGenericMethod(entity.ClrType)
-                .Invoke(null, [openSource, pg, table, progress, i, tables.Count, grand, ct])!;
+                .Invoke(null, [src, pg, table, progress, i, total, grand, expected, ct])!;
 
             var rows = await task;
             grand += rows;
 
-            progress?.Report(new CopyProgress(table, i + 1, tables.Count, rows, grand));
+            progress?.Report(new CopyProgress(table, i + 1, total, rows, grand, expected));
+        }
+
+        for (var j = 0; j < extras.Count; j++)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var table = extras[j];
+            var rows  = await CopyExtraTableAsync(src, srcTx, pg, table, ct);
+            grand += rows;
+
+            progress?.Report(new CopyProgress(
+                table, entities.Count + j + 1, total, rows, grand, expected));
         }
 
         await ResetIdentitySequencesAsync(pg, ct);
         return grand;
+    }
+
+    /// <summary>
+    /// The source's tables that the EF model knows nothing about.
+    ///
+    /// <para>⚠️ The schema is not only what the model describes. Two settings tables are
+    /// created by raw SQL during startup and have no entity type, so a loop over
+    /// Model.GetEntityTypes() cannot see them — and did not copy them. A migration therefore
+    /// looked clean while silently leaving the user's Trade Opportunities exclusions behind, and
+    /// nothing said so: the copy reported every row it wrote, and it had written them all.</para>
+    ///
+    /// <para>That was found by counting rows on both sides afterwards, not by reading the code,
+    /// which is why this now works from the SOURCE's own table list. A table added outside the
+    /// model in future is copied rather than quietly dropped.</para>
+    /// </summary>
+    private static async Task<List<string>> ExtraTablesAsync(
+        AppDbContext src, DbTransaction tx, IReadOnlySet<string> modelTables, CancellationToken ct)
+    {
+        var found = new List<string>();
+
+        await using var cmd = src.Database.GetDbConnection().CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = "SELECT name FROM sqlite_master WHERE type = 'table' "
+                        + "AND name NOT LIKE 'sqlite_%' ORDER BY name";
+
+        await using var r = await cmd.ExecuteReaderAsync(ct);
+        while (await r.ReadAsync(ct))
+        {
+            var name = r.GetString(0);
+            if (!modelTables.Contains(name)) found.Add(name);
+        }
+
+        return found;
+    }
+
+    /// <summary>Total rows across the named tables, for a progress bar that means something.</summary>
+    private static async Task<long> MeasureAsync(
+        AppDbContext src, DbTransaction tx, IEnumerable<string> tables, CancellationToken ct)
+    {
+        long total = 0;
+
+        foreach (var table in tables)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            await using var cmd = src.Database.GetDbConnection().CreateCommand();
+            cmd.Transaction = tx;
+            cmd.CommandText = $"SELECT count(*) FROM \"{table.Replace("\"", "\"\"")}\"";
+
+            total += Convert.ToInt64(await cmd.ExecuteScalarAsync(ct));
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// Copies one table that has no entity type, column for column, as the source describes it.
+    ///
+    /// <para>These are small by nature — a settings table with a single row — so this
+    /// reads the lot and inserts row by row rather than reaching for COPY. Values go across as
+    /// SQLite hands them over, which is safe here because a table outside the model is also
+    /// outside the value-converter machinery: it holds the plain scalars it appears to hold.</para>
+    /// </summary>
+    private static async Task<long> CopyExtraTableAsync(
+        AppDbContext src, DbTransaction tx, NpgsqlConnection pg, string table, CancellationToken ct)
+    {
+        var quoted  = '"' + table.Replace("\"", "\"\"") + '"';
+        var columns = new List<string>();
+        var rows    = new List<object?[]>();
+
+        await using (var read = src.Database.GetDbConnection().CreateCommand())
+        {
+            read.Transaction = tx;
+            read.CommandText = $"SELECT * FROM {quoted}";
+
+            await using var r = await read.ExecuteReaderAsync(ct);
+            for (var i = 0; i < r.FieldCount; i++) columns.Add(r.GetName(i));
+
+            while (await r.ReadAsync(ct))
+            {
+                var values = new object?[r.FieldCount];
+                for (var i = 0; i < r.FieldCount; i++)
+                    values[i] = await r.IsDBNullAsync(i, ct) ? null : r.GetValue(i);
+                rows.Add(values);
+            }
+        }
+
+        if (rows.Count == 0) return 0;
+
+        var cols = string.Join(", ", columns.Select(c => '"' + c.Replace("\"", "\"\"") + '"'));
+        var holes = string.Join(", ", columns.Select((_, i) => $"@p{i}"));
+
+        foreach (var values in rows)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            await using var write = new NpgsqlCommand(
+                $"INSERT INTO public.{quoted} ({cols}) VALUES ({holes})", pg);
+
+            for (var i = 0; i < values.Length; i++)
+                write.Parameters.AddWithValue($"p{i}", values[i] ?? DBNull.Value);
+
+            await write.ExecuteNonQueryAsync(ct);
+        }
+
+        return rows.Count;
     }
 
     /// <summary>
@@ -122,18 +280,16 @@ public sealed class DatabaseCopyService
     }
 
     private static async Task<long> CopyTableAsync<T>(
-        Func<AppDbContext> openSource,
+        AppDbContext src,
         NpgsqlConnection pg,
         string table,
         IProgress<CopyProgress>? progress,
         int index,
         int total,
         long runningTotal,
+        long expected,
         CancellationToken ct) where T : class
     {
-        using var src = openSource();
-        src.ChangeTracker.AutoDetectChangesEnabled = false;
-
         var entity = src.Model.FindEntityType(typeof(T))!;
 
         // Only real, readable columns. A shadow property has no PropertyInfo to read from, and
@@ -203,7 +359,8 @@ public sealed class DatabaseCopyService
             }
 
             if (++written % ProgressEvery == 0)
-                progress?.Report(new CopyProgress(table, index, total, written, runningTotal + written));
+                progress?.Report(new CopyProgress(
+                    table, index, total, written, runningTotal + written, expected));
         }
 
         await writer.CompleteAsync(ct);

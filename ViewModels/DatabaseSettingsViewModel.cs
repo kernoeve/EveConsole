@@ -170,13 +170,16 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     private double _copyPercent;
     /// <summary>
-    /// How far the copy has got, by table. Tables rather than rows because the total row count is
-    /// not known without counting every table first, which on a large database costs as much as
-    /// some of the copying does.
+    /// How far the copy has got, by row.
     ///
-    /// <para>⚠️ Uneven by nature: KillMailAttackers is millions of rows and AlertSettings is
-    /// one, so the bar moves in lurches. The running row count beside it is what shows progress
-    /// during a long table, and is why the bar alone would not be enough.</para>
+    /// <para>⚠️ It used to measure tables, on the reasoning that the total row count could
+    /// not be had without counting every table first, "which on a large database costs as much as
+    /// some of the copying does". That was simply wrong: counting all 199 tables, 68 million rows,
+    /// takes 0.96 seconds — nothing against a copy that runs for an hour.</para>
+    ///
+    /// <para>The cost of being wrong about it was a bar that did not move. The tables are wildly
+    /// uneven: KillMailItems alone is over half the database, so by tables the bar sat on one
+    /// number for most of the copy while everything was working perfectly.</para>
     /// </summary>
     public double CopyPercent
     {
@@ -185,7 +188,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     }
 
     private string _copyTableText = "";
-    /// <summary>"table 41 of 197", for the label beside the bar.</summary>
+    /// <summary>"12,481,003 of 68,070,892 rows", for the label beside the bar.</summary>
     public string CopyTableText
     {
         get => _copyTableText;
@@ -429,15 +432,37 @@ public class DatabaseSettingsViewModel : ReactiveObject
     }
 
     /// <summary>Stores the engine and connection, to take effect on the next start.</summary>
-    public void SaveDatabaseChoice()
+    /// <summary>
+    /// Records the engine and restarts into it.
+    ///
+    /// <para>The setting only takes effect on a start — the database is opened once, early,
+    /// and nothing reopens it — so leaving the user to restart by hand meant an application
+    /// that said it was on PostgreSQL while still reading SQLite. Doing it here removes the step
+    /// where that is possible.</para>
+    /// </summary>
+    public async Task SaveDatabaseChoiceAsync()
     {
+        var target = IsPostgres ? "PostgreSQL" : "SQLite";
+
+        if (ShowConfirmDialog is not null)
+        {
+            var ok = await ShowConfirmDialog(
+                "Save and restart",
+                $"Use {target} from now on?\n\n"
+                + "EVE Console restarts immediately, because the database is opened once at "
+                + "startup and nothing reopens it.\n\n"
+                + "This copies and deletes nothing. It changes only which database the "
+                + "application opens, and can be changed back the same way.");
+            if (!ok) return;
+        }
+
         if (IsPostgres) AppConfig.SetDbBackend(DbBackend.Postgres, Pg.ToConnectionString());
         else            AppConfig.SetDbBackend(DbBackend.Sqlite);
 
         this.RaisePropertyChanged(nameof(EngineChanged));
-        StatusText = IsPostgres
-            ? "Set to PostgreSQL. Restart EVE Console to use it."
-            : "Set to SQLite. Restart EVE Console to use it.";
+        StatusText = $"Set to {target}. Restarting…";
+        await Task.Delay(800);
+        RequestRestart?.Invoke();
     }
 
     private CancellationTokenSource? _copyCts;
@@ -504,9 +529,12 @@ public class DatabaseSettingsViewModel : ReactiveObject
         // exactly what made the Corp Activity type filter silently do nothing.
         var progress = new Progress<CopyProgress>(p =>
         {
-            CopyPercent    = p.TableCount == 0 ? 0 : 100.0 * p.TableIndex / p.TableCount;
-            CopyTableText  = $"table {p.TableIndex:N0} of {p.TableCount:N0}";
-            CopyStatusText = $"{p.Table}: {p.RowsInTable:N0} row(s); {p.RowsTotal:N0} copied";
+            CopyPercent    = p.RowsExpected == 0
+                           ? 0
+                           : Math.Min(100.0, 100.0 * p.RowsTotal / p.RowsExpected);
+            CopyTableText  = $"{p.RowsTotal:N0} of {p.RowsExpected:N0} rows";
+            CopyStatusText = $"table {p.TableIndex:N0} of {p.TableCount:N0} — {p.Table}: "
+                           + $"{p.RowsInTable:N0} row(s)";
             _copiedSoFar   = p.RowsTotal;
         });
 
