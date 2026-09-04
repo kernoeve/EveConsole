@@ -30,9 +30,8 @@ public readonly record struct CopyProgress(
 /// </summary>
 public sealed class DatabaseCopyService
 {
-    /// <summary>Rows read from the source per round trip. Large enough to keep the writer busy,
-    /// small enough that one batch of a wide table is not held in memory all at once.</summary>
-    private const int BatchSize = 5_000;
+    /// <summary>How many rows pass before the copy reports progress again.</summary>
+    private const int ProgressEvery = 5_000;
 
     /// <summary>
     /// Copies source into destination. The destination is expected to be empty; this neither
@@ -151,71 +150,60 @@ public sealed class DatabaseCopyService
         var copySql = $"COPY \"{table}\" ({columns}) FROM STDIN (FORMAT BINARY)";
 
         long written = 0;
-        var  offset  = 0;
-
-        // ⚠️ An ordered page, because Skip/Take without one is not guaranteed to be a stable
-        // window: rows could be repeated or missed between batches. The primary key is the
-        // cheapest ordering that exists on every table.
-        var key = entity.FindPrimaryKey()?.Properties.Select(p => p.Name).ToList() ?? [];
 
         await using var writer = await pg.BeginBinaryImportAsync(copySql, ct);
 
-        while (true)
+        // ⚠️ Streamed in ONE query rather than paged with Skip/Take. Offset paging makes a big
+        // table quadratic: SQLite walks every skipped row before it can return a page, so the page
+        // starting at seven million steps over seven million rows to collect five thousand.
+        // Measured on KillMailAttackers, 9.6M rows: a page costs 0.02 s at the start and 0.41 s at
+        // the end, against a flat 0.009 s streamed — about 9.2 billion row-steps to read 9.6
+        // million rows. It is invisible on a small table, and on a large one it presents as that
+        // one table mysteriously slowing down as it goes, which is how it was found.
+        //
+        // The ordering that used to be here existed only to make the pages a stable window. With
+        // no pages there is no window to keep stable, and a copy does not care what order rows
+        // arrive in. Nothing accumulates either: the read is no-tracking, so the change tracker
+        // this used to clear between pages never fills.
+        var rows = src.Set<T>().AsNoTracking().AsAsyncEnumerable();
+
+        await foreach (var row in rows.WithCancellation(ct))
         {
-            ct.ThrowIfCancellationRequested();
-
-            IQueryable<T> query = src.Set<T>().AsNoTracking();
-            foreach (var (name, n) in key.Select((k, n) => (k, n)))
-                query = n == 0
-                    ? ((IQueryable<T>)query).OrderBy(e => EF.Property<object>(e, name))
-                    : ((IOrderedQueryable<T>)query).ThenBy(e => EF.Property<object>(e, name));
-
-            var batch = await query.Skip(offset).Take(BatchSize).ToListAsync(ct);
-            if (batch.Count == 0) break;
-
-            foreach (var row in batch)
+            await writer.StartRowAsync(ct);
+            foreach (var (property, converter) in props)
             {
-                await writer.StartRowAsync(ct);
-                foreach (var (property, converter) in props)
+                var value = property.PropertyInfo!.GetValue(row);
+
+                // ⚠️ Through EF's own converter, not straight from the property. Writing
+                // the CLR value directly failed on the first enum it met — "Writing values
+                // of 'AlarmActionKind' is not supported for parameters having no NpgsqlDbType"
+                // — because the column holds an int and the property does not. Asking EF
+                // what the provider value is covers enums and every other converted type at
+                // once, rather than special-casing them one failure at a time.
+                if (converter is not null) value = converter.ConvertToProvider(value);
+
+                // See the class remarks: COPY bypasses the interceptor, so UTC is enforced here.
+                value = value switch
                 {
-                    var value = property.PropertyInfo!.GetValue(row);
+                    DateTimeOffset dto when dto.Offset != TimeSpan.Zero => dto.ToUniversalTime(),
+                    DateTime dt when dt.Kind == DateTimeKind.Local      => dt.ToUniversalTime(),
+                    DateTime dt when dt.Kind == DateTimeKind.Unspecified
+                        => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+                    _ => value,
+                };
 
-                    // ⚠️ Through EF's own converter, not straight from the property. Writing
-                    // the CLR value directly failed on the first enum it met — "Writing values
-                    // of 'AlarmActionKind' is not supported for parameters having no NpgsqlDbType"
-                    // — because the column holds an int and the property does not. Asking EF
-                    // what the provider value is covers enums and every other converted type at
-                    // once, rather than special-casing them one failure at a time.
-                    if (converter is not null) value = converter.ConvertToProvider(value);
+                // ⚠️ A belt for the braces above: an enum with no explicit converter still
+                // reaches here as an enum, and Npgsql cannot infer a type for it. Unboxing to
+                // the underlying integral type is what the column expects anyway.
+                if (value is Enum boxed)
+                    value = Convert.ChangeType(boxed, Enum.GetUnderlyingType(boxed.GetType()));
 
-                    // See the class remarks: COPY bypasses the interceptor, so UTC is enforced here.
-                    value = value switch
-                    {
-                        DateTimeOffset dto when dto.Offset != TimeSpan.Zero => dto.ToUniversalTime(),
-                        DateTime dt when dt.Kind == DateTimeKind.Local      => dt.ToUniversalTime(),
-                        DateTime dt when dt.Kind == DateTimeKind.Unspecified
-                            => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
-                        _ => value,
-                    };
-
-                    // ⚠️ A belt for the braces above: an enum with no explicit converter still
-                    // reaches here as an enum, and Npgsql cannot infer a type for it. Unboxing to
-                    // the underlying integral type is what the column expects anyway.
-                    if (value is Enum boxed)
-                        value = Convert.ChangeType(boxed, Enum.GetUnderlyingType(boxed.GetType()));
-
-                    if (value is null) await writer.WriteNullAsync(ct);
-                    else               await writer.WriteAsync(value, ct);
-                }
-                written++;
+                if (value is null) await writer.WriteNullAsync(ct);
+                else               await writer.WriteAsync(value, ct);
             }
 
-            offset += batch.Count;
-            src.ChangeTracker.Clear();
-
-            progress?.Report(new CopyProgress(table, index, total, written, runningTotal + written));
-
-            if (batch.Count < BatchSize) break;
+            if (++written % ProgressEvery == 0)
+                progress?.Report(new CopyProgress(table, index, total, written, runningTotal + written));
         }
 
         await writer.CompleteAsync(ct);
