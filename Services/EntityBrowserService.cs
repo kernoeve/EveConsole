@@ -868,9 +868,14 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                            (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimCharId" = @id) AS "Losses",
                            (SELECT COUNT(*) FROM "Characters" c WHERE c."Id" = @id)                  AS "IsOurs",
                            COALESCE((SELECT MAX(a."SecurityStatus") FROM "KillMailAttackers" a WHERE a."CharacterId" = @id), 0) AS "SecStatus",
-                           COALESCE((SELECT MAX(k."KillMailTime") FROM "KillMailDetails" k
+                           -- ⚠️ Cast to TEXT before the COALESCE. KillMailTime is a timestamptz on a
+                           -- server, so COALESCE cannot match it with '', and the row reads LastSeen
+                           -- into a string, which it also cannot do. Both ends want text. This is the
+                           -- only detail query carrying a LastSeen, which is why pilots alone failed
+                           -- while corporations and alliances loaded out of the same method.
+                           COALESCE(CAST((SELECT MAX(k."KillMailTime") FROM "KillMailDetails" k
                                      LEFT JOIN "KillMailAttackers" a ON a."KillMailId" = k."KillMailId"
-                                     WHERE a."CharacterId" = @id OR k."VictimCharId" = @id), '') AS "LastSeen"
+                                     WHERE a."CharacterId" = @id OR k."VictimCharId" = @id) AS TEXT), '') AS "LastSeen"
                     FROM (SELECT 1) x
                     LEFT JOIN "UniverseNames" u ON u."EntityId" = @id
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
