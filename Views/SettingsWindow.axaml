@@ -2514,6 +2514,19 @@
                   </StackPanel>
                 </Border>
 
+                <!-- Bar plus counter: the bar advances a table at a time and the tables are wildly
+                     uneven, so during a large one only the row count shows anything happening. -->
+                <StackPanel IsVisible="{Binding IsCopying}" Spacing="4" Margin="0 4 0 0">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <ProgressBar Grid.Column="0" Value="{Binding CopyPercent}"
+                                 Minimum="0" Maximum="100" Height="6"
+                                 Foreground="#70ad47" Background="#12121a" />
+                    <TextBlock Grid.Column="1" Text="{Binding CopyTableText}"
+                               Foreground="#888" FontSize="11" Margin="10 0 0 0"
+                               VerticalAlignment="Center" />
+                  </Grid>
+                </StackPanel>
+
                 <TextBlock Text="{Binding CopyStatusText}"
                            IsVisible="{Binding CopyStatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="#aac8ff" FontSize="11" TextWrapping="Wrap" />

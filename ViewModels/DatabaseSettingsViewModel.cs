@@ -119,6 +119,30 @@ public class DatabaseSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _canOfferCopy, value);
     }
 
+    private double _copyPercent;
+    /// <summary>
+    /// How far the copy has got, by table. Tables rather than rows because the total row count is
+    /// not known without counting every table first, which on a large database costs as much as
+    /// some of the copying does.
+    ///
+    /// <para>⚠️ Uneven by nature: KillMailAttackers is millions of rows and AlertSettings is
+    /// one, so the bar moves in lurches. The running row count beside it is what shows progress
+    /// during a long table, and is why the bar alone would not be enough.</para>
+    /// </summary>
+    public double CopyPercent
+    {
+        get => _copyPercent;
+        private set => this.RaiseAndSetIfChanged(ref _copyPercent, value);
+    }
+
+    private string _copyTableText = "";
+    /// <summary>"table 41 of 197", for the label beside the bar.</summary>
+    public string CopyTableText
+    {
+        get => _copyTableText;
+        private set => this.RaiseAndSetIfChanged(ref _copyTableText, value);
+    }
+
     private string _copyStatusText = "";
     public string CopyStatusText
     {
@@ -292,7 +316,24 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 return (await cmd.ExecuteScalarAsync())?.ToString() ?? "";
             }
 
-            var version  = await Scalar("SHOW server_version");
+            var version = await Scalar("SHOW server_version");
+
+            // ⚠️ Existence before privilege. has_schema_privilege THROWS when the schema is not
+            // there — 3F000, schema "public" does not exist — and that exception used to
+            // land in the catch below and be reported as "Could not connect", which is both wrong
+            // and unactionable: the connection was fine. Somebody who dropped the schema and did
+            // not put it back needs one statement, so say which one.
+            var hasPublic = await Scalar(
+                "SELECT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'public')");
+
+            if (!string.Equals(hasPublic, "True", StringComparison.OrdinalIgnoreCase))
+            {
+                TestResultText =
+                    $"Connected to PostgreSQL {version}, but the database has no \"public\" schema, "
+                    + "so there is nowhere to create tables. Run: CREATE SCHEMA public;";
+                return;
+            }
+
             var canCreate = await Scalar(
                 "SELECT has_schema_privilege(current_user, 'public', 'CREATE')");
             var tables = long.TryParse(await Scalar(
@@ -372,6 +413,21 @@ public class DatabaseSettingsViewModel : ReactiveObject
         _copyCts      = new CancellationTokenSource();
         CopyStatusText = "Preparing the destinationâ¦";
 
+        CopyPercent   = 0;
+        CopyTableText = "";
+
+        // ⚠️ Constructed HERE, on the UI thread, and deliberately not inside the Task.Run
+        // below. Progress<T> captures the synchronization context of wherever it is created and
+        // posts callbacks back to it; built inside the background task it captures the thread
+        // pool instead, and every update then raises PropertyChanged off the UI thread. That is
+        // exactly what made the Corp Activity type filter silently do nothing.
+        var progress = new Progress<CopyProgress>(p =>
+        {
+            CopyPercent    = p.TableCount == 0 ? 0 : 100.0 * p.TableIndex / p.TableCount;
+            CopyTableText  = $"table {p.TableIndex:N0} of {p.TableCount:N0}";
+            CopyStatusText = $"{p.Table}: {p.RowsInTable:N0} row(s); {p.RowsTotal:N0} copied";
+        });
+
         var sqlitePath = AppConfig.GetDbPath();
         // Through the same helper the app uses, so the copy talks to the server on exactly the
         // terms everything else does. It makes no difference to a binary COPY, which writes typed
@@ -383,8 +439,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
         {
             var rows = await Task.Run(async () =>
             {
+                // ⚠️ Opened READ-ONLY. Nothing in the copy writes to the source, but saying so
+                // in the connection string makes it a rule SQLite enforces rather than a property
+                // of this code that a later edit could quietly break. Somebody migrating has
+                // every reason to expect the database they are leaving to be untouched, and to be
+                // able to point back at it if the server does not suit them.
                 AppDbContext OpenSqlite() => new(new DbContextOptionsBuilder<AppDbContext>()
-                    .UseSqlite(SqliteMaintenance.ConnectionString(sqlitePath)).Options);
+                    .UseSqlite($"Data Source={sqlitePath};Mode=ReadOnly;Pooling=False").Options);
                 AppDbContext OpenPg() => new(new DbContextOptionsBuilder<AppDbContext>()
                     .UseNpgsql(pgConn).Options);
 
@@ -397,16 +458,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
                     PostgresSchema.Apply(dst, includeSeeds: false);
                 }
 
-                var progress = new Progress<CopyProgress>(p =>
-                    CopyStatusText =
-                        $"{p.Table} â {p.RowsInTable:N0} row(s); "
-                        + $"table {p.TableIndex} of {p.TableCount}, {p.RowsTotal:N0} copied");
-
                 return await DatabaseCopyService.CopyAsync(
                     OpenSqlite, OpenPg, pgConn, progress, _copyCts.Token);
             });
 
-            CopyStatusText = $"Copied {rows:N0} row(s). Save the setting and restart to use it.";
+            CopyPercent    = 100;
+            CopyTableText  = "";
+            CopyStatusText = $"Copied {rows:N0} row(s). The SQLite database is unchanged. "
+                           + "Save the setting and restart to use PostgreSQL.";
             CanOfferCopy   = false;
         }
         catch (OperationCanceledException)
