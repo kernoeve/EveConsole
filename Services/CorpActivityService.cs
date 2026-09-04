@@ -847,7 +847,11 @@ public class CorpActivityService
             LEFT JOIN "SdeTypes" t ON t."TypeId" = l."TypeId"
             WHERE l."CorporationId" = {corpId}
               AND l."LastUpdated" >= {sinceStr}
-            GROUP BY substr(CAST(l."LastUpdated" AS TEXT), 1, 10), l."CharacterId", l."TypeId"
+            -- ⚠️ t."Name" is grouped too. It is one-to-one with TypeId, so this changes
+            -- nothing, but PostgreSQL only infers that dependency from the grouped table's own
+            -- primary key and SdeTypes is not the grouped table.
+            GROUP BY substr(CAST(l."LastUpdated" AS TEXT), 1, 10), l."CharacterId", l."TypeId",
+                     t."Name"
             ORDER BY substr(CAST(l."LastUpdated" AS TEXT), 1, 10) DESC, SUM(l."Quantity") DESC
             """).ToListAsync(ct);
 

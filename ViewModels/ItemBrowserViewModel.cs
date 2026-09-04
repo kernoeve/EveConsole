@@ -1305,13 +1305,12 @@ public class ItemBrowserViewModel : ReactiveObject
         var connStr = _db.Database.GetDbConnection().ConnectionString;
         using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """
+        using var cmd = conn.Command("""
             SELECT "Date", "MarketValue", "BuildCost", "ContractPrice"
             FROM "TypePriceSnapshots"
             WHERE "TypeId" = @typeId
             ORDER BY "Date"
-            """;
+            """);
         cmd.AddWithValue("@typeId", typeId);
         using var r = cmd.ExecuteReader();
         while (r.Read())

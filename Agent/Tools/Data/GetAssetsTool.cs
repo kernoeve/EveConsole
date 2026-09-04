@@ -67,8 +67,7 @@ public sealed class GetAssetsTool : IAgentTool
         var rows = new List<object>();
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        await using var cmd = conn.Command(sql);
         cmd.AddWithValue("@char",  charFilter is null ? (object)DBNull.Value : $"%{charFilter}%");
         cmd.AddWithValue("@item",  itemFilter is null ? (object)DBNull.Value : $"%{itemFilter}%");
         cmd.AddWithValue("@loc",   locFilter  is null ? (object)DBNull.Value : $"%{locFilter}%");

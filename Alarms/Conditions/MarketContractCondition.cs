@@ -161,8 +161,7 @@ public sealed class MarketContractCondition : IAlarmCondition
         DbConnection conn, int typeId, string item, double maxPrice, int minQty,
         string? market, List<AlarmMatch> matches, CancellationToken ct)
     {
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"""
+        await using var cmd = conn.Command($"""
             SELECT o."OrderId", o."Price", o."VolumeRemain",
                    cfg."LocationName", s."Name"
             FROM "MarketRawOrders" o
@@ -173,7 +172,7 @@ public sealed class MarketContractCondition : IAlarmCondition
               {(string.IsNullOrWhiteSpace(market) ? "" : """AND upper(cfg."LocationName") LIKE upper($market)""")}
             ORDER BY o."Price"
             LIMIT {MaxOffers}
-            """;
+            """);
         cmd.AddWithValue("$type", typeId);
         cmd.AddWithValue("$price", maxPrice);
         cmd.AddWithValue("$qty", minQty);
@@ -213,8 +212,7 @@ public sealed class MarketContractCondition : IAlarmCondition
     {
         // Price is stored as text, so it is cast before any comparison or division — string
         // ordering on a number would put 9 above 10.
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"""
+        await using var cmd = conn.Command($"""
             SELECT c."ContractId", CAST(c."Price" AS DOUBLE PRECISION) AS total, i."Quantity",
                    c."DateExpired", c."Title", c."RegionId"
             FROM "EsiContracts" c
@@ -231,7 +229,7 @@ public sealed class MarketContractCondition : IAlarmCondition
                 """)}
             ORDER BY CAST(c."Price" AS DOUBLE PRECISION) / i."Quantity"
             LIMIT {MaxOffers}
-            """;
+            """);
         cmd.AddWithValue("$type", typeId);
         cmd.AddWithValue("$price", maxPrice);
         cmd.AddWithValue("$qty", minQty);

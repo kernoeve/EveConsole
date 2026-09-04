@@ -1302,7 +1302,7 @@ public class App : Application
                 try
                 {
                     legacyLpSchema = db.Database.SqlQueryRaw<int>("""
-                        SELECT COUNT(*) AS "Value" FROM sqlite_master
+                        SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM sqlite_master
                         WHERE type = 'table'
                           AND name = 'EsiLpStoreOfferItems'
                           AND sql NOT LIKE '%CorporationId%'

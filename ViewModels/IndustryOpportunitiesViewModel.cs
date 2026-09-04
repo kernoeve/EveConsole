@@ -172,8 +172,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""";
+        using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
         var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
 
         var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -183,8 +182,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             .ToList();
         if (ids.Count == 0) return;
 
-        using var nameCmd = conn.CreateCommand();
-        nameCmd.CommandText = $"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""";
+        using var nameCmd = conn.Command($"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""");
         var names = new Dictionary<int, string>();
         using (var reader = await nameCmd.ExecuteReaderAsync())
             while (await reader.ReadAsync())
@@ -201,8 +199,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """UPDATE "IndustryOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
+        using var cmd = conn.Command("""UPDATE "IndustryOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""");
         cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
@@ -266,13 +263,12 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """
+        using var cmd = conn.Command("""
             SELECT "Id", "LocationName", "Method", "LocationId"
             FROM "MarketPricingConfigs"
             WHERE "IsEnabled" = TRUE
             ORDER BY "SortOrder"
-            """;
+            """);
 
         MarketConfigs.Clear();
         using var reader = await cmd.ExecuteReaderAsync();
@@ -415,11 +411,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = CandidateSql
+        using var cmd = conn.Command(CandidateSql
             .Replace("/*EXCLUSION*/", exclusionClause)
             .Replace("/*FACTION*/", factionClause)
-            .Replace("/*BPO*/", bpoClause);
+            .Replace("/*BPO*/", bpoClause));
         cmd.AddWithValue("@configId", configId);
 
         var list = new List<Candidate>();
@@ -448,12 +443,11 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """
+        using var cmd = conn.Command("""
             SELECT DISTINCT "TypeId", "IsBuyOrder"
             FROM "MarketRawOrders"
             WHERE "ConfigId" = @configId
-            """;
+            """);
         cmd.AddWithValue("@configId", configId);
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -545,8 +539,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""";
+        using var cmd = conn.Command("""SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""");
         cmd.AddWithValue("@id", regionId);
         return (await cmd.ExecuteScalarAsync()) as string ?? $"Region {regionId}";
     }

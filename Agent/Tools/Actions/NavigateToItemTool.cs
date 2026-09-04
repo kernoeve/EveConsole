@@ -46,8 +46,7 @@ public sealed class NavigateToItemTool : IAgentTool
         var matches = new List<(int TypeId, string Name)>();
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        await using var cmd = conn.Command(sql);
         cmd.AddWithValue("@name", $"%{query}%");
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))

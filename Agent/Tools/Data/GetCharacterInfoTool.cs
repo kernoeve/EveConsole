@@ -47,8 +47,7 @@ public sealed class GetCharacterInfoTool : IAgentTool
         var rows = new List<object>();
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        await using var cmd = conn.Command(sql);
         cmd.AddWithValue("@name", nameFilter is null ? (object)DBNull.Value : $"%{nameFilter}%");
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))
@@ -88,8 +87,7 @@ public sealed class GetCharacterInfoTool : IAgentTool
                 """;
 
             var queue = new List<object>();
-            await using var cmd2 = conn.CreateCommand();
-            cmd2.CommandText = queueSql;
+            await using var cmd2 = conn.Command(queueSql);
             cmd2.AddWithValue("@name", $"%{nameFilter}%");
             await using var rdr2 = await cmd2.ExecuteReaderAsync(ct);
             while (await rdr2.ReadAsync(ct))

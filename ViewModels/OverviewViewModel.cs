@@ -834,7 +834,7 @@ public class OverviewViewModel : ReactiveObject
                 var charIdList = string.Join(",", charIds);
 #pragma warning disable EF1002
                 totalLosses = await Off(() => _db.Database.SqlQueryRaw<int>($"""
-                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
+                    SELECT CAST(COUNT(DISTINCT d."KillMailId") AS INTEGER) AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
                     """).FirstAsync());
@@ -847,7 +847,7 @@ public class OverviewViewModel : ReactiveObject
                 // IX_KillMailAttackers_CharacterId (CharacterId, KillMailId) was added — it
                 // covers this query outright, taking it under a millisecond.
                 totalKills = await Off(() => _db.Database.SqlQueryRaw<int>($"""
-                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
+                    SELECT CAST(COUNT(DISTINCT d."KillMailId") AS INTEGER) AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}'
                       AND d."VictimCharId" NOT IN ({charIdList})

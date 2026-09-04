@@ -196,24 +196,24 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         var sql = kind switch
         {
             EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance =>
-                """SELECT COUNT(*) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND "Name" LIKE @q""",
+                """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND "Name" LIKE @q""",
             EntityKind.Agent => """
-                SELECT COUNT(*) AS "Value" FROM "SdeAgents" a
+                SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeAgents" a
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
                 WHERE a."Name" LIKE @q OR COALESCE(n."Name",'') LIKE @q OR COALESCE(s."Name",'') LIKE @q
                 """,
             EntityKind.NpcCorp => """
-                SELECT COUNT(*) AS "Value" FROM "SdeNpcCorporations" n
+                SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
                 WHERE n."Name" LIKE @q OR COALESCE(f."Name",'') LIKE @q
                 """,
             EntityKind.Station => """
-                SELECT COUNT(*) AS "Value" FROM "SdeStations" s
+                SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeStations" s
                 LEFT JOIN "SdeRegions" r ON r."RegionId" = s."RegionId"
                 WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
                 """,
-            _ => """SELECT COUNT(*) AS "Value" FROM "SdeFactions" WHERE "Name" LIKE @q""",
+            _ => """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE "Name" LIKE @q""",
         };
 
         return (await db.Database.SqlQueryRaw<int>(sql,
@@ -648,7 +648,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var n = (await db.Database.SqlQueryRaw<int>(
-            """SELECT COUNT(*) AS "Value" FROM "SdeNpcCorporations" WHERE "CorporationId" = @id""",
+            """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeNpcCorporations" WHERE "CorporationId" = @id""",
             AppDb.Param("@id", corpId)).ToListAsync(ct)).FirstOrDefault();
         return n > 0;
     }

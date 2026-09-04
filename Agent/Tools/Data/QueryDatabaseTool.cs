@@ -176,8 +176,7 @@ public sealed class QueryDatabaseTool : IAgentTool
         {
             await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
+            await using var cmd = conn.Command(sql);
 
             await using var rdr = await cmd.ExecuteReaderAsync(ct);
 

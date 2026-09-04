@@ -93,8 +93,7 @@ public sealed class GetIndustryJobsTool : IAgentTool
         var rows = new List<object>();
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        await using var cmd = conn.Command(sql);
         cmd.AddWithValue("@status",     status is null ? (object)DBNull.Value : status);
         cmd.AddWithValue("@inProgress", inProgress ? 1 : 0);
         cmd.AddWithValue("@owner",      ownerFilter is null ? (object)DBNull.Value : $"%{ownerFilter}%");

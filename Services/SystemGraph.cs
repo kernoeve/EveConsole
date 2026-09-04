@@ -46,8 +46,7 @@ public sealed class SystemGraph
 
             await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = LinkSql;
+            await using var cmd = conn.Command(LinkSql);
 
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))

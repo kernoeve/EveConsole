@@ -250,9 +250,7 @@ public sealed class IntelCondition : IAlarmCondition
         {
             if (string.IsNullOrWhiteSpace(name)) continue;
 
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                """SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper($n) LIMIT 1""";
+            await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper($n) LIMIT 1""");
             cmd.AddWithValue("$n", name.Trim());
 
             var result = await cmd.ExecuteScalarAsync(ct);

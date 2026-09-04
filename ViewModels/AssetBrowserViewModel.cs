@@ -216,8 +216,7 @@ public class AssetBrowserViewModel : ReactiveObject
         Action<List<string>> setColumns,
         CancellationToken ct)
     {
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        using var cmd = conn.Command(sql);
         AddFilterParams(cmd);
 
         using var reader = await cmd.ExecuteReaderAsync(ct);
@@ -241,8 +240,7 @@ public class AssetBrowserViewModel : ReactiveObject
 
     private async Task<int> CountAsync(DbConnection conn, CancellationToken ct)
     {
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"{QueryPrefix} SELECT COUNT(*) FROM Base {BuildWhere()}";
+        using var cmd = conn.Command($"{QueryPrefix} SELECT COUNT(*) FROM Base {BuildWhere()}");
         AddFilterParams(cmd);
         return Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
     }
@@ -254,12 +252,11 @@ public class AssetBrowserViewModel : ReactiveObject
             ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
             : "ORDER BY \"Owner Name\", \"Type Name\"";
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"""
+        using var cmd = conn.Command($"""
             {QueryPrefix}
             SELECT * FROM Base {where} {order}
             LIMIT {PageSize} OFFSET {_offset}
-            """;
+            """);
         AddFilterParams(cmd);
 
         using var reader = await cmd.ExecuteReaderAsync(ct);

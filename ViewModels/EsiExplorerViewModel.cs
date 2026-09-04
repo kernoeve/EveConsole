@@ -260,11 +260,10 @@ public class EsiExplorerViewModel : ReactiveObject
             ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
             : entry.OrderBy is not null ? $"ORDER BY {entry.OrderBy}" : "";
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"""
+        using var cmd = conn.Command($"""
             SELECT * FROM "{entry.SqlTable}" {where} {order}
             LIMIT {PageSize} OFFSET {_offset}
-            """;
+            """);
         AddFilterParams(cmd);
 
         using var reader = await cmd.ExecuteReaderAsync(ct);

@@ -46,8 +46,7 @@ public sealed class SearchItemsTool : IAgentTool
         var rows = new List<object>();
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        await using var cmd = conn.Command(sql);
         cmd.AddWithValue("@q",     $"%{query}%");
         cmd.AddWithValue("@limit", limit);
         await using var rdr = await cmd.ExecuteReaderAsync(ct);

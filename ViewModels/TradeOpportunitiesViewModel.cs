@@ -151,8 +151,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     {
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""";
+        using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""");
         var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
 
         var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -162,8 +161,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             .ToList();
         if (ids.Count == 0) return;
 
-        using var nameCmd = conn.CreateCommand();
-        nameCmd.CommandText = $"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""";
+        using var nameCmd = conn.Command($"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""");
         var names = new Dictionary<int, string>();
         using (var reader = await nameCmd.ExecuteReaderAsync())
             while (await reader.ReadAsync())
@@ -180,8 +178,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
+        using var cmd = conn.Command("""UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""");
         cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
@@ -256,8 +253,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = StationsSql;
+        using var cmd = conn.Command(StationsSql);
 
         Stations.Clear();
         using var reader = await cmd.ExecuteReaderAsync();
@@ -394,9 +390,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = (SelectedMode.Kind == TradeMode.UndercutSellOrder
-            ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause);
+        using var cmd = conn.Command((SelectedMode.Kind == TradeMode.UndercutSellOrder
+            ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause));
         cmd.AddWithValue("@sourceId", sourceId);
         cmd.AddWithValue("@destId",   destId);
 

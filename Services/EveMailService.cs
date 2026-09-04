@@ -111,8 +111,7 @@ public class EveMailService(
 
         foreach (var sql in ddl)
         {
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
+            using var cmd = conn.Command(sql);
             await cmd.ExecuteNonQueryAsync();
         }
         _tablesEnsured = true;

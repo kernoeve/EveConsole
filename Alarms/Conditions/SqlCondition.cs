@@ -101,8 +101,7 @@ public sealed class SqlCondition : IAlarmCondition
 
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
+        await using var cmd = conn.Command(sql);
 
         var rows = new List<Dictionary<string, object?>>();
         await using (var r = await cmd.ExecuteReaderAsync(ct))

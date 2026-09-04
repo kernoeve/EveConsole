@@ -63,8 +63,7 @@ public sealed class GetMarketPricesTool : IAgentTool
 
         foreach (var name in names)
         {
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
+            await using var cmd = conn.Command(sql);
             cmd.AddWithValue("@name", name);
             await using var rdr = await cmd.ExecuteReaderAsync(ct);
             if (await rdr.ReadAsync(ct))
