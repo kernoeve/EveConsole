@@ -513,8 +513,13 @@ public class AssetBrowserViewModel : ReactiveObject
                     ELSE NULL
                 END AS "ISK/m³",
                 bc."TotalCost"      AS "Build Cost",
-                a."IsSingleton"     AS "Is Singleton",
-                a."IsBlueprintCopy" AS "Is Blueprint Copy",
+                -- ⚠️ Cast to INTEGER so the three UNION branches agree on a type. These two are
+                -- real booleans on a server, while the branches beside them select 0, 1 or a CASE
+                -- yielding an integer, and PostgreSQL will not union boolean with integer. Integer
+                -- is what the rest of this query already uses — BPIsCopy is a CASE returning 0 or 1
+                -- and is compared as = 1 further up.
+                CAST(a."IsSingleton"     AS INTEGER) AS "Is Singleton",
+                CAST(a."IsBlueprintCopy" AS INTEGER) AS "Is Blueprint Copy",
                 a."OwnerId"         AS "Owner Id",
                 a."RootLocationId"  AS "Root Location Id"
             FROM "EsiAssets" a
