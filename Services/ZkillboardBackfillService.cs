@@ -295,9 +295,7 @@ public sealed class ZkillboardBackfillService(
     /// instead of one row (and one AnyAsync check) at a time.</summary>
     private static async Task PreparePragmasAsync(AppDbContext db, CancellationToken ct)
     {
-        await db.Database.ExecuteSqlRawAsync("PRAGMA synchronous=NORMAL", ct);
-        await db.Database.ExecuteSqlRawAsync("PRAGMA cache_size=20000",   ct);
-        await db.Database.ExecuteSqlRawAsync("PRAGMA temp_store=MEMORY", ct);
+        await AppDb.TuneForBulkImportAsync(db.Database, ct);
     }
 
     private async Task<int> ImportDayAsync(

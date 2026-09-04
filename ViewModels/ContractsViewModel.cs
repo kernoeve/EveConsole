@@ -1103,8 +1103,10 @@ public class PublicContractsViewModel : ReactiveObject
             ps.Add(contractType);
         }
 
-        var now = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz",
-                                                 System.Globalization.CultureInfo.InvariantCulture);
+        // A real date, not a string formatted the way SQLite happens to store one. Postgres has a
+        // real timestamptz column and refuses "timestamp with time zone > text"; SQLite binds a
+        // DateTimeOffset to exactly this format anyway, so both get what they expect.
+        var now = DateTimeOffset.UtcNow;
         if (_selectedStatus == "Active")
         {
             parts.Add($"c.\"Status\" = 'outstanding' AND (c.\"DateExpired\" IS NULL OR c.\"DateExpired\" > {{{ps.Count}}})");

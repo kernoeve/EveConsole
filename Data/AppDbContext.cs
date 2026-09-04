@@ -7,42 +7,6 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    /// <summary>
-    /// Normalises every DateTimeOffset to UTC before it is written, on PostgreSQL only.
-    ///
-    /// <para>⚠️ Npgsql refuses any offset but zero: "Cannot write DateTimeOffset with
-    /// Offset=-06:00:00 to PostgreSQL type 'timestamp with time zone'". The app builds most of
-    /// its timestamps with DateTimeOffset.Now, which carries the machine's offset, so almost
-    /// every write of a date failed — including the error logger's own, which meant the
-    /// failures were not being recorded either.</para>
-    ///
-    /// <para>Nothing is lost. `timestamp with time zone` does not store an offset: it stores an
-    /// instant and normalises to UTC on the way in, so converting here does explicitly what the
-    /// column would do anyway. The difference from SQLite is on the way back — SQLite keeps
-    /// the text it was given, offset and all, while Postgres returns UTC — but both describe
-    /// the same moment, and anything displaying a time converts to local first.</para>
-    ///
-    /// <para>Applied only for Postgres so the SQLite path keeps its existing round-trip
-    /// behaviour exactly, rather than quietly changing what a decade of rows mean.</para>
-    /// </summary>
-    protected override void ConfigureConventions(ModelConfigurationBuilder builder)
-    {
-        base.ConfigureConventions(builder);
-
-        if (Services.DbEngine.IsPostgres)
-            builder.Properties<DateTimeOffset>()
-                   .HaveConversion<UtcDateTimeOffsetConverter>();
-    }
-
-    /// <summary>
-    /// Reading is the identity: Npgsql has already handed back a UTC value, and re-converting
-    /// would be a second no-op that only obscures what is happening.
-    /// </summary>
-    private sealed class UtcDateTimeOffsetConverter()
-        : Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTimeOffset, DateTimeOffset>(
-            v => v.ToUniversalTime(),
-            v => v);
-
     // ── Dynamic / user data ──────────────────────────────────────────────
     public DbSet<Character>   Characters   => Set<Character>();
     public DbSet<Corporation> Corporations => Set<Corporation>();

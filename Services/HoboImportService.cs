@@ -34,10 +34,7 @@ public class HoboImportService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL",   ct);
-        await db.Database.ExecuteSqlRawAsync("PRAGMA synchronous=NORMAL", ct);
-        await db.Database.ExecuteSqlRawAsync("PRAGMA cache_size=20000",   ct);
-        await db.Database.ExecuteSqlRawAsync("PRAGMA temp_store=MEMORY",  ct);
+        await AppDb.TuneForBulkImportAsync(db.Database, ct);
 
         Report(progress, "Preparing", "Creating Hobo schema…", 0.01);
         await EnsureHoboSchemaAsync(db, ct);

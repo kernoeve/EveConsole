@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Microsoft.EntityFrameworkCore;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using Npgsql;
@@ -27,6 +28,30 @@ public static class AppDb
         DbEngine.IsPostgres
             ? new NpgsqlConnection(AppConfig.GetPostgresConnection())
             : new SqliteConnection(SqliteMaintenance.ConnectionString(AppConfig.GetDbPath()));
+
+    /// <summary>
+    /// SQLite's bulk-import tuning, and deliberately nothing at all on a server.
+    ///
+    /// <para>⚠️ PRAGMA is not SQL PostgreSQL parses — it fails the statement with "syntax
+    /// error at or near PRAGMA" — and there is nothing to translate it into. These settings
+    /// trade durability for speed inside one process against one file; the equivalent on a
+    /// server is configuration its administrator owns, not something a client should be
+    /// reaching for mid-import.</para>
+    ///
+    /// <para>journal_mode and busy_timeout are already set per connection by
+    /// DisableForeignKeysInterceptor; synchronous, cache_size and temp_store are not, and they
+    /// matter once inserts are batched rather than done a row at a time.</para>
+    /// </summary>
+    public static async Task TuneForBulkImportAsync(
+        Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade db, CancellationToken ct)
+    {
+        if (!DbEngine.IsSqlite) return;
+
+        await db.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL",   ct);
+        await db.ExecuteSqlRawAsync("PRAGMA synchronous=NORMAL", ct);
+        await db.ExecuteSqlRawAsync("PRAGMA cache_size=20000",   ct);
+        await db.ExecuteSqlRawAsync("PRAGMA temp_store=MEMORY",  ct);
+    }
 
     /// <summary>The connection string for whichever engine is configured.</summary>
     public static string ConnectionString =>
@@ -62,7 +87,20 @@ public static class DbCommandExtensions
     {
         var p = cmd.CreateParameter();
         p.ParameterName = name;
-        p.Value = value ?? DBNull.Value;
+
+        // ⚠️ Dates are normalised to UTC here as well as in PostgresParameterInterceptor,
+        // because these commands never reach it: a connection from AppDb.Connect() is plain ADO
+        // and EF, which owns the interceptor, is not in the path at all. The two choke points
+        // together are what covers every query in the app — miss either and Npgsql rejects
+        // the write with "only offset 0 (UTC) is supported".
+        p.Value = value switch
+        {
+            null                                              => DBNull.Value,
+            DateTimeOffset dto when dto.Offset != TimeSpan.Zero => dto.ToUniversalTime(),
+            DateTime dt when dt.Kind == DateTimeKind.Local     => dt.ToUniversalTime(),
+            _                                                 => value,
+        };
+
         cmd.Parameters.Add(p);
         return cmd;
     }

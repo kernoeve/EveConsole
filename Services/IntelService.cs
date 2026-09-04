@@ -467,6 +467,9 @@ public sealed class IntelService(
     /// </summary>
     private static async Task CheckpointAsync(AppDbContext db, CancellationToken ct)
     {
+        // A write-ahead log is SQLite's; there is nothing to checkpoint on a server.
+        if (!DbEngine.IsSqlite) return;
+
         try { await db.Database.ExecuteSqlRawAsync("PRAGMA wal_checkpoint(PASSIVE)", ct); }
         catch { }
     }

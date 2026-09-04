@@ -2953,7 +2953,9 @@ public class App : Application
             // rather than a shared one. Both exist for SQLite alone: one overrides the foreign-key
             // pragma EF re-issues on every connection open, the other reports SQLITE_BUSY write
             // contention. Postgres has neither problem, and PRAGMA is not SQL it will parse.
-            services.AddDbContextFactory<AppDbContext>((_, options) => options.UseNpgsql(conn));
+            services.AddDbContextFactory<AppDbContext>((_, options) =>
+                options.UseNpgsql(conn)
+                       .AddInterceptors(new PostgresParameterInterceptor()));
         }
         else
         {

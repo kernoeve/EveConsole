@@ -78,10 +78,7 @@ public class SdeImportService
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            await db.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL",   ct);
-            await db.Database.ExecuteSqlRawAsync("PRAGMA synchronous=NORMAL", ct);
-            await db.Database.ExecuteSqlRawAsync("PRAGMA cache_size=20000",   ct);
-            await db.Database.ExecuteSqlRawAsync("PRAGMA temp_store=MEMORY",  ct);
+            await AppDb.TuneForBulkImportAsync(db.Database, ct);
 
             // Open archive and validate BEFORE touching any existing data.
             // Throws SdeCompatibilityException if required files are missing,

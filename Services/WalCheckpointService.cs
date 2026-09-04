@@ -55,6 +55,12 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
 
     public void Start()
     {
+        // ⚠️ A server has no write-ahead log of ours to drain, and PRAGMA is not SQL it
+        // parses. Guarded at Start so the timer never exists, rather than inside the pass:
+        // this ran three times a minute and would have written the same syntax error to the
+        // log every twenty seconds forever.
+        if (!DbEngine.IsSqlite) return;
+
         if (_timer is not null) return;
 
         _timer = new System.Timers.Timer(Every.TotalMilliseconds) { AutoReset = true };
@@ -66,6 +72,8 @@ public class WalCheckpointService(IDbContextFactory<AppDbContext> dbFactory, App
     /// the log open — and the next pass will get what it can.</summary>
     public async Task RunOnceAsync(CancellationToken ct = default)
     {
+        if (!DbEngine.IsSqlite) return;   // callable directly, not only from the timer
+
         // A pass that overruns its interval must not have a second one land on top of it.
         if (Interlocked.Exchange(ref _running, 1) == 1) return;
 

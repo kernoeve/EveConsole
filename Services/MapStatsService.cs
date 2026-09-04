@@ -483,29 +483,40 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
 
         // ON CONFLICT adds rather than replaces, so an old hour recovered from the archive
         // after its day was already rolled up still lands in the daily total.
-        var affected = await db.Database.ExecuteSqlAsync($"""
+        // ⚠️ Two differences in one statement, neither of them casing.
+        //
+        // SQLite's MAX takes two scalars; PostgreSQL spells that GREATEST and reserves MAX for
+        // the aggregate, so it reports "function max(integer, integer) does not exist".
+        //
+        // And a subquery in FROM must be named in PostgreSQL. SQLite is happy without, which is
+        // why an alias was never there to begin with.
+        var greatest = DbEngine.IsPostgres ? "GREATEST" : "MAX";
+
+        var rollup = $$"""
             INSERT INTO "MapSystemDailies" ("Day", "SystemId", "ShipJumps", "ShipKills", "PodKills", "NpcKills", "Hours")
             SELECT "Day", "SystemId", SUM("ShipJumps"), SUM("ShipKills"), SUM("PodKills"), SUM("NpcKills"), MAX("Hours")
             FROM (
                 SELECT SUBSTR("Bucket", 1, 10) AS "Day", "SystemId",
                        SUM("ShipJumps") AS "ShipJumps", 0 AS "ShipKills", 0 AS "PodKills", 0 AS "NpcKills",
                        COUNT(*) AS "Hours"
-                FROM "MapSystemJumps" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}
+                FROM "MapSystemJumps" WHERE SUBSTR("Bucket", 1, 10) < {0}
                 GROUP BY 1, 2
                 UNION ALL
                 SELECT SUBSTR("Bucket", 1, 10), "SystemId",
                        0, SUM("ShipKills"), SUM("PodKills"), SUM("NpcKills"), COUNT(*)
-                FROM "MapSystemKills" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}
+                FROM "MapSystemKills" WHERE SUBSTR("Bucket", 1, 10) < {0}
                 GROUP BY 1, 2
-            )
+            ) hourly
             GROUP BY "Day", "SystemId"
             ON CONFLICT("Day", "SystemId") DO UPDATE SET
                 "ShipJumps" = "MapSystemDailies"."ShipJumps" + excluded."ShipJumps",
                 "ShipKills" = "MapSystemDailies"."ShipKills" + excluded."ShipKills",
                 "PodKills"  = "MapSystemDailies"."PodKills"  + excluded."PodKills",
                 "NpcKills"  = "MapSystemDailies"."NpcKills"  + excluded."NpcKills",
-                "Hours"     = MAX("MapSystemDailies"."Hours", excluded."Hours")
-            """, ct);
+                "Hours"     = {{greatest}}("MapSystemDailies"."Hours", excluded."Hours")
+            """;
+
+        var affected = await db.Database.ExecuteSqlRawAsync(rollup, [cutoff], ct);
 
         await db.Database.ExecuteSqlAsync(
             $"""DELETE FROM "MapSystemJumps" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}""", ct);
