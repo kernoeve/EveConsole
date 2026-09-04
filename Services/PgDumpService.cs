@@ -155,20 +155,40 @@ public sealed class PgDumpService
             catch { /* an unusable PATH entry is not worth failing the search over */ }
         }
 
+        var candidates = new List<string>();
         foreach (var root in WellKnownDirectories())
         {
             try
             {
-                if (!Directory.Exists(root)) continue;
-                var hit = Directory.EnumerateFiles(root, name, SearchOption.AllDirectories)
-                                   .OrderByDescending(p => p, StringComparer.OrdinalIgnoreCase)
-                                   .FirstOrDefault();
-                if (hit is not null) return hit;   // newest version folder sorts first
+                if (Directory.Exists(root))
+                    candidates.AddRange(Directory.EnumerateFiles(root, name, SearchOption.AllDirectories));
             }
             catch { }
         }
 
-        return null;
+        // ⚠️ Ordered deliberately, not lexically. Sorting the paths as text picks PostgreSQL 9
+        // over 18, because "9" is greater than "1" as a character; and it prefers the copy inside
+        // pgAdmin's runtime folder over the one in bin, purely because "p" sorts after "b".
+        // Neither is what anyone means by "the newest pg_dump". Version is compared as a number,
+        // and bin wins ties as the canonical location.
+        return candidates
+            .OrderByDescending(VersionFromPath)
+            .ThenByDescending(p => p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}",
+                                              StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The highest whole number appearing as a path segment, which is where installers put the
+    /// major version (…/PostgreSQL/18/bin, /usr/lib/postgresql/16/bin). Zero when there is none,
+    /// so such a path sorts last rather than being discarded: it may still be a working pg_dump.
+    /// </summary>
+    private static int VersionFromPath(string path)
+    {
+        var best = 0;
+        foreach (var segment in path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            if (int.TryParse(segment, out var n) && n > best) best = n;
+        return best;
     }
 
     private static IEnumerable<string> WellKnownDirectories()
