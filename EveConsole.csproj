@@ -38,6 +38,7 @@
        system libvlc, so these are 198 MB of nothing. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 

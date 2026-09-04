@@ -93,19 +93,43 @@ public static class AppConfig
     }
 
     /// <summary>
-    /// The Postgres connection string, or null when none has been configured.
+    /// The Postgres connection string, with the password put back.
     ///
-    /// <para>⚠️ Held in plain text, in the same config.json as the window position. A
-    /// connection string normally carries a password, so this file now deserves the care of a
-    /// credentials file: it is not encrypted, and anything running as this user can read it.
-    /// Worth saying out loud in the UI that asks for it.</para>
+    /// <para>The password is stored apart from the rest and protected by the platform — DPAPI
+    /// on Windows, the desktop keyring on Linux — so config.json holds a server address and a
+    /// user name that anybody can read and edit, and nothing that is worth stealing. See
+    /// <see cref="SecretStore"/> for why that matters more since the config can live beside the
+    /// executable.</para>
+    ///
+    /// <para>⚠️ A password that cannot be decrypted comes back as none at all, which is the
+    /// expected outcome after the config is copied to another machine or another account. The app
+    /// then asks for it rather than trying to connect with a blank one and reporting an
+    /// authentication failure the user cannot act on.</para>
     /// </summary>
     public static string? GetPostgresConnection()
     {
         if (EnvConnection is { } fromEnv) return fromEnv;
-        var v = Load().PostgresConnection;
-        return string.IsNullOrWhiteSpace(v) ? null : v;
+
+        var c = Load();
+        if (string.IsNullOrWhiteSpace(c.PostgresConnection)) return null;
+
+        var password = SecretStore.Unprotect(c.PostgresPassword);
+        if (string.IsNullOrEmpty(password)) return c.PostgresConnection;
+
+        try
+        {
+            var b = new Npgsql.NpgsqlConnectionStringBuilder(c.PostgresConnection) { Password = password };
+            return b.ConnectionString;
+        }
+        catch { return c.PostgresConnection; }
     }
+
+    /// <summary>How the password is being held, for the settings screen to state.</summary>
+    public static SecretProtection PostgresPasswordProtection =>
+        SecretStore.IsProtected(Load().PostgresPassword)
+            ? SecretStore.Available
+            : SecretProtection.None;
+
     public static (int X, int Y)? GetWindowPosition()
     {
         var c = Load();
@@ -134,7 +158,28 @@ public static class AppConfig
     {
         var c = Load();
         c.DbBackend = backend == DbBackend.Postgres ? "postgres" : "sqlite";
-        if (!string.IsNullOrWhiteSpace(postgresConnection)) c.PostgresConnection = postgresConnection;
+
+        if (!string.IsNullOrWhiteSpace(postgresConnection))
+        {
+            // ⚠️ Split before storing, so the password never reaches the file even once. The
+            // connection string kept here has it removed rather than blanked, so a reader cannot
+            // tell a password-less server from one whose password is held elsewhere.
+            try
+            {
+                var b = new Npgsql.NpgsqlConnectionStringBuilder(postgresConnection);
+                var password = b.Password ?? "";
+                b.Password = null;
+
+                c.PostgresConnection = b.ConnectionString;
+                c.PostgresPassword   = SecretStore.Protect(password, "postgres");
+            }
+            catch
+            {
+                c.PostgresConnection = postgresConnection;
+                c.PostgresPassword   = null;
+            }
+        }
+
         Save(c);
     }
 
@@ -315,6 +360,12 @@ public static class AppConfig
         // database written before Postgres support, which reads back as SQLite.
         [JsonPropertyName("dbBackend")]          public string? DbBackend          { get; set; }
         [JsonPropertyName("postgresConnection")] public string? PostgresConnection { get; set; }
+
+        // ⚠️ Kept apart from the connection string and protected by the platform. A value with
+        // no "dpapi:" or "libsecret:" prefix was written before this existed, or on a machine
+        // that could not protect it; either way it is read as-is and protected the next time the
+        // user saves.
+        [JsonPropertyName("postgresPassword")]   public string? PostgresPassword   { get; set; }
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
 

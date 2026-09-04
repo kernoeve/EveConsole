@@ -136,6 +136,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     public bool CanTest => !IsCopying;
 
+    /// <summary>
+    /// How the password is actually being held. ⚠️ Read from SecretStore rather than
+    /// assumed, because "your password is protected" is a claim that must never be made when it
+    /// is not: on a machine with no keyring the value really is in the file as typed.
+    /// </summary>
+    public string PasswordProtectionText => SecretStore.Description;
+
     // ── SQLite info ───────────────────────────────────────────────────────────
 
     public string DbPath { get; private set; } = AppConfig.GetDbPath();
