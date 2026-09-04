@@ -361,7 +361,13 @@ public class AssetBrowserViewModel : ReactiveObject
                                          AND cd."CorporationId" = h."OwnerId"
                                          AND cd."DivisionType"  = 'hangar'
                                          AND h.DivFlag LIKE 'CorpSAG_'
-                                         AND cd."Division" = CAST(SUBSTR(h.DivFlag, 8) AS INTEGER)
+                                         -- ⚠️ Compared as text, so no cast can fail. This read the digit off the flag and
+                                         -- cast it to an integer, guarded by the LIKE above — but PostgreSQL does not promise
+                                         -- to evaluate a join condition left to right, so a flag like AutoFit reached the cast
+                                         -- with an empty substring: "22P02: invalid input syntax for type integer".
+                                         -- Building the flag from the division instead compares text to text and cannot throw,
+                                         -- whatever order the planner picks.
+                                         AND h.DivFlag = 'CorpSAG' || CAST(cd."Division" AS TEXT)
         ),
         JobFacilities AS (
             SELECT
@@ -550,7 +556,7 @@ public class AssetBrowserViewModel : ReactiveObject
 
             -- ── Blueprint currently in an active/paused/ready industry job ────────
             SELECT
-                CAST(-(jf."JobId" * 2)     AS INTEGER)                              AS "Item Id",
+                CAST(-(jf."JobId" * 2)     AS BIGINT)                              AS "Item Id",
                 jf."BlueprintTypeId"                                                 AS "Type Id",
                 COALESCE(bt."Name", CAST(jf."BlueprintTypeId" AS TEXT))               AS "Type Name",
                 COALESCE(bg."Name",   '')                                            AS "Group",
@@ -596,7 +602,7 @@ public class AssetBrowserViewModel : ReactiveObject
 
             -- ── Product being produced by active/paused/ready industry job ─────────
             SELECT
-                CAST(-(jf."JobId" * 2 + 1) AS INTEGER)                              AS "Item Id",
+                CAST(-(jf."JobId" * 2 + 1) AS BIGINT)                              AS "Item Id",
                 jf."ProductTypeId"                                                   AS "Type Id",
                 COALESCE(pt."Name", CAST(jf."ProductTypeId" AS TEXT))                 AS "Type Name",
                 COALESCE(pg."Name",   '')                                            AS "Group",
