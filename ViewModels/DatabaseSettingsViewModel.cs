@@ -13,7 +13,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     private readonly AppPreferencesService  _prefs;
     private readonly DatabaseBackupService  _backupSvc;
 
-    // ── Database type ─────────────────────────────────────────────────────────
+    // ââ Database type âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public const string SqliteName   = "SQLite";
     public const string PostgresName = "PostgreSQL";
@@ -43,7 +43,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     public bool EngineChanged =>
         IsPostgres != DbEngine.IsPostgres;
 
-    // ⚠️ Whether the app is reading its settings from beside the executable, shown because the
+    // â ï¸ Whether the app is reading its settings from beside the executable, shown because the
     // alternative is a user editing the file in app data and wondering why nothing changes.
     public string ConfigSourceText =>
         AppConfig.UsingPortableConfig
@@ -52,7 +52,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
             : "Settings are stored in app data. Place a config.json beside the program to give "
               + "this installation its own.";
 
-    // ── PostgreSQL connection ─────────────────────────────────────────────────
+    // ââ PostgreSQL connection âââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public PostgresSettings Pg { get; } =
         PostgresSettings.FromConnectionString(AppConfig.GetPostgresConnection());
@@ -137,13 +137,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
     public bool CanTest => !IsCopying;
 
     /// <summary>
-    /// How the password is actually being held. ⚠️ Read from SecretStore rather than
+    /// How the password is actually being held. â ï¸ Read from SecretStore rather than
     /// assumed, because "your password is protected" is a claim that must never be made when it
     /// is not: on a machine with no keyring the value really is in the file as typed.
     /// </summary>
     public string PasswordProtectionText => SecretStore.Description;
 
-    // ── SQLite info ───────────────────────────────────────────────────────────
+    // ââ SQLite info âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public string DbPath { get; private set; } = AppConfig.GetDbPath();
 
@@ -154,7 +154,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _dbFileSizeText, value);
     }
 
-    // ── Backup settings ───────────────────────────────────────────────────────
+    // ââ Backup settings âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     private bool _backupEnabled;
     public bool BackupEnabled
@@ -191,7 +191,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         }
     }
 
-    // ── Last backup info ──────────────────────────────────────────────────────
+    // ââ Last backup info ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     private string _lastBackupText = "Never";
     public string LastBackupText
@@ -200,7 +200,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _lastBackupText, value);
     }
 
-    // ── Status / busy ─────────────────────────────────────────────────────────
+    // ââ Status / busy âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     private string _statusText = "";
     public string StatusText
@@ -216,7 +216,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isBusy, value);
     }
 
-    // ── Dialog delegates (wired in code-behind) ───────────────────────────────
+    // ââ Dialog delegates (wired in code-behind) âââââââââââââââââââââââââââââââ
 
     public Func<string, string, Task<string?>>?    ShowSaveFileDialog  { get; set; }
     public Func<string, Task<string?>>?            ShowOpenFileDialog  { get; set; }
@@ -232,7 +232,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     public Func<string, string, string, Task<bool>>? ShowTypedConfirmDialog { get; set; }
     public Action?                                 RequestRestart      { get; set; }
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    // ââ Constructor âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public DatabaseSettingsViewModel(AppPreferencesService prefs, DatabaseBackupService backupSvc)
     {
@@ -256,13 +256,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
         RefreshLastBackupText();
     }
 
-    // ── PostgreSQL: test, save, copy ──────────────────────────────────────────
+    // ââ PostgreSQL: test, save, copy ââââââââââââââââââââââââââââââââââââââââââ
 
     /// <summary>
     /// Opens the connection and reports what it found, in the terms that decide what happens
     /// next: can it connect, may this user create tables, and is the database empty.
     ///
-    /// <para>⚠️ The privilege check matters as much as the connection. Since PostgreSQL 15 a
+    /// <para>â ï¸ The privilege check matters as much as the connection. Since PostgreSQL 15 a
     /// non-owner gets no CREATE on the public schema by default, so an administrator can create
     /// a database, grant "all privileges" on it, and the app still cannot make a single table.
     /// Finding that out here, by name, is the difference between a clear message and a failure
@@ -270,7 +270,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// </summary>
     public async Task TestPostgresAsync()
     {
-        TestResultText = "Connecting…";
+        TestResultText = "Connectingâ¦";
         TestSucceeded  = false;
         CanOfferCopy   = false;
 
@@ -323,7 +323,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
             {
                 TestResultText =
                     $"Connected to PostgreSQL {version}. The database already holds {tables:N0} "
-                    + "table(s), so it will be used as it is — nothing will be copied into it.";
+                    + "table(s), so it will be used as it is â nothing will be copied into it.";
             }
         }
         catch (Exception ex)
@@ -349,7 +349,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// <summary>
     /// Copies everything from the SQLite file into the empty server database.
     ///
-    /// <para>⚠️ The engine is NOT switched by this. Copying and switching are separate acts on
+    /// <para>â ï¸ The engine is NOT switched by this. Copying and switching are separate acts on
     /// purpose: a copy that half-finished and then re-pointed the app would leave the user on a
     /// partial database with no obvious way back, whereas a failed copy against an untouched
     /// SQLite file costs only the time.</para>
@@ -370,10 +370,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
         IsCopying     = true;
         _copyCts      = new CancellationTokenSource();
-        CopyStatusText = "Preparing the destination…";
+        CopyStatusText = "Preparing the destinationâ¦";
 
         var sqlitePath = AppConfig.GetDbPath();
-        var pgConn     = Pg.ToConnectionString();
+        // Through the same helper the app uses, so the copy talks to the server on exactly the
+        // terms everything else does. It makes no difference to a binary COPY, which writes typed
+        // values rather than text — but a discrepancy here is one more thing to reason about
+        // the next time something is added to this path.
+        var pgConn     = AppDb.PostgresConnectionString(Pg.ToConnectionString());
 
         try
         {
@@ -384,7 +388,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 AppDbContext OpenPg() => new(new DbContextOptionsBuilder<AppDbContext>()
                     .UseNpgsql(pgConn).Options);
 
-                // ⚠️ Built through the app's own bootstrap, not by the copy. Anything else
+                // â ï¸ Built through the app's own bootstrap, not by the copy. Anything else
                 // would be a third definition of the schema, free to drift from the two that
                 // already have to be kept in step.
                 using (var dst = OpenPg())
@@ -395,7 +399,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
                 var progress = new Progress<CopyProgress>(p =>
                     CopyStatusText =
-                        $"{p.Table} — {p.RowsInTable:N0} row(s); "
+                        $"{p.Table} â {p.RowsInTable:N0} row(s); "
                         + $"table {p.TableIndex} of {p.TableCount}, {p.RowsTotal:N0} copied");
 
                 return await DatabaseCopyService.CopyAsync(
@@ -424,7 +428,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     public void CancelCopy() => _copyCts?.Cancel();
 
-    // ── Backups on a server ───────────────────────────────────────────────────
+    // ââ Backups on a server âââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     private string _pgDumpStatusText = "";
     public string PgDumpStatusText
@@ -439,20 +443,20 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// Reports whether pg_dump can be used, so the answer is on screen before somebody presses
     /// Back Up Now and waits for a failure.
     ///
-    /// <para>⚠️ Not called automatically on every visit to the tab: it starts a process to read
+    /// <para>â ï¸ Not called automatically on every visit to the tab: it starts a process to read
     /// a version number, and doing that unasked each time the settings window opens is a cost
     /// nobody agreed to.</para>
     /// </summary>
     /// <summary>
     /// Puts a dump back, replacing whatever the database holds now.
     ///
-    /// <para>⚠️ The only destructive action in the app — everything else adds, updates or
+    /// <para>â ï¸ The only destructive action in the app â everything else adds, updates or
     /// moves aside. So it names the file and the database it will overwrite, and asks for the
     /// database name to be typed rather than accepting a click. A restore is also the thing
     /// somebody reaches for while already upset about losing data, which is exactly when a
     /// mis-click costs the most.</para>
     ///
-    /// <para>⚠️ It only RECORDS the request. The work happens on the next start, before
+    /// <para>â ï¸ It only RECORDS the request. The work happens on the next start, before
     /// anything opens the database, because pg_restore drops every object and the connection
     /// pool must not be holding them while it does.</para>
     /// </summary>
@@ -476,7 +480,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         }
 
         AppConfig.SetRestorePending(file);
-        StatusText = $"Restore scheduled: {Path.GetFileName(file)}. Restarting…";
+        StatusText = $"Restore scheduled: {Path.GetFileName(file)}. Restartingâ¦";
         RequestRestart?.Invoke();
     }
 
@@ -488,7 +492,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     public async Task CheckPgDumpAsync()
     {
-        PgDumpStatusText = "Looking for pg_dump…";
+        PgDumpStatusText = "Looking for pg_dumpâ¦";
         var cs = AppConfig.GetPostgresConnection();
         if (string.IsNullOrWhiteSpace(cs))
         {
@@ -500,13 +504,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
         catch (Exception ex) { PgDumpStatusText = $"Could not check pg_dump: {ex.Message}"; }
     }
 
-    // ── Commands ──────────────────────────────────────────────────────────────
+    // ââ Commands ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public async Task BackupNowAsync()
     {
         if (IsBusy) return;
         IsBusy = true;
-        StatusText = "Backing up…";
+        StatusText = "Backing upâ¦";
         try
         {
             var result = await _backupSvc.BackupNowAsync(DbPath);
@@ -514,8 +518,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
             StatusText = result is not null
                 ? $"Backup saved: {Path.GetFileName(result)}"
                 : DbEngine.IsPostgres
-                    ? "Backup failed — no PostgreSQL connection is configured."
-                    : "Backup failed — DB file not found.";
+                    ? "Backup failed â no PostgreSQL connection is configured."
+                    : "Backup failed â DB file not found.";
         }
         catch (Exception ex)
         {
@@ -529,7 +533,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// different name, so one operation and one button serve both. The file picker decides which
     /// it is by where the user points it.
     ///
-    /// <para>⚠️ Records the request and restarts; the move happens at startup before anything opens
+    /// <para>â ï¸ Records the request and restarts; the move happens at startup before anything opens
     /// the database. This used to call File.Copy (Move) and File.Move (Rename) here, against a
     /// database the app had open and was writing to, which silently lost everything still in the
     /// WAL. See DatabaseRelocationService.</para>
@@ -538,7 +542,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (ShowSaveFileDialog is null || ShowConfirmDialog is null) return;
 
-        var newPath = await ShowSaveFileDialog("Move or Rename Database…", Path.GetFileName(DbPath));
+        var newPath = await ShowSaveFileDialog("Move or Rename Databaseâ¦", Path.GetFileName(DbPath));
         if (newPath is null) return;
 
         if (string.Equals(newPath, DbPath, StringComparison.OrdinalIgnoreCase)) return;
@@ -560,8 +564,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (!confirmed) return;
 
         AppConfig.SetPendingRelocation(newPath);
-        StatusText = sameFolder ? "Restarting to rename the database…"
-                                : "Restarting to move the database…";
+        StatusText = sameFolder ? "Restarting to rename the databaseâ¦"
+                                : "Restarting to move the databaseâ¦";
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
@@ -570,7 +574,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (ShowOpenFileDialog is null || ShowConfirmDialog is null) return;
 
-        var newPath = await ShowOpenFileDialog("Select Existing Database…");
+        var newPath = await ShowOpenFileDialog("Select Existing Databaseâ¦");
         if (newPath is null) return;
 
         if (string.Equals(newPath, DbPath, StringComparison.OrdinalIgnoreCase)) return;
@@ -581,14 +585,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (!confirmed) return;
 
         AppConfig.SetDbPath(newPath);
-        StatusText = "Done. Restarting…";
+        StatusText = "Done. Restartingâ¦";
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
 
     /// <summary>
     /// Records the request and restarts. The work itself happens on the way back up, before
-    /// anything opens the database — see DatabaseShrinkService for why it cannot happen here.
+    /// anything opens the database â see DatabaseShrinkService for why it cannot happen here.
     /// </summary>
     public async Task ShrinkDatabaseAsync()
     {
@@ -596,7 +600,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
         var sizeText = File.Exists(DbPath) ? FormatBytes(new FileInfo(DbPath).Length) : "unknown size";
 
-        // ⚠️ One line per paragraph. The dialog wraps to its own width, so hard breaks inside a
+        // â ï¸ One line per paragraph. The dialog wraps to its own width, so hard breaks inside a
         // paragraph wrap twice and come out ragged.
         var message = string.Join("\n\n",
             "Deleting data does not make the database file smaller. SQLite keeps the freed pages and reuses them later, so the file stays at its largest size. Shrinking rebuilds it and returns that space to your drive.",
@@ -608,13 +612,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (!confirmed) return;
 
         AppConfig.SetShrinkPending(true);
-        StatusText = "Restarting to shrink the database…";
+        StatusText = "Restarting to shrink the databaseâ¦";
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
 
 
-    // ── Storage breakdown ─────────────────────────────────────────────────────
+    // ââ Storage breakdown âââââââââââââââââââââââââââââââââââââââââââââââââââââ
     //
     // On demand rather than on open: it scans, and most visits to this tab are about backups.
 
@@ -662,7 +666,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         {
             var progress = new Progress<string>(s => SizeStatusText = s);
 
-            // ⚠️ Not the same measurement on both engines, and the summary below says so.
+            // â ï¸ Not the same measurement on both engines, and the summary below says so.
             // SQLite has to estimate the sizes and can count the rows; PostgreSQL knows the sizes
             // exactly and estimates the rows. Presenting either as simply "the numbers" would
             // misrepresent one of them.
@@ -677,7 +681,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
             foreach (var t in report.Tables)
                 TableSizes.Add(new TableSizeVm(t, report.UsedBytes));
 
-            // ⚠️ Free-space-inside-the-file is deliberately NOT shown. FreeBytes is exact, but it
+            // â ï¸ Free-space-inside-the-file is deliberately NOT shown. FreeBytes is exact, but it
             // counts only wholly empty pages: deleting rows mostly leaves holes inside pages that
             // are still in use, so the figure reads as "reclaimable space" while being a floor far
             // below it. Only a VACUUM can answer the question people would ask of it.
@@ -688,7 +692,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
                   + "reads low."
                 : $"File {FormatBytes(report.FileBytes)} across {report.Tables.Count:N0} tables. "
                   + "Shares are of the space in use. Figures are measured and scaled to the file "
-                  + "— good for comparing tables, not exact byte counts.";
+                  + "â good for comparing tables, not exact byte counts.";
             SizeStatusText = $"Loaded {DateTime.Now:HH:mm:ss}.";
 
             this.RaisePropertyChanged(nameof(HasTableSizes));
@@ -699,7 +703,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         }
         finally { IsAnalysing = false; }
     }
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public void RefreshDbInfo()
     {
@@ -756,7 +760,7 @@ public sealed class TableSizeVm(TableSizeRow row, long usedBytes)
     public string Name      { get; } = row.Name;
     public string RowsText  { get; } = row.Rows.ToString("N0");
     public string TableText { get; } = Format(row.TableBytes);
-    public string IndexText { get; } = row.IndexCount == 0 ? "—" : Format(row.IndexBytes);
+    public string IndexText { get; } = row.IndexCount == 0 ? "â" : Format(row.IndexBytes);
     public string TotalText { get; } = Format(row.TableTotalBytes);
 
     public double SharePercent { get; } =
