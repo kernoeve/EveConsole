@@ -160,7 +160,7 @@ public sealed class IntelCondition : IAlarmCondition
                                DateTime At, int SystemId)>();
         await using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = $"""
+            cmd.CommandText = AppDb.CaseInsensitiveLike($"""
                 SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
                 FROM "IntelReports"
                 WHERE "ReportedAt" >= $cutoff
@@ -169,7 +169,7 @@ public sealed class IntelCondition : IAlarmCondition
                   {(skipNv ? """AND "NoVisual" = FALSE""" : "")}
                 ORDER BY "Id" DESC
                 LIMIT {MaxReports}
-                """;
+                """);
             cmd.AddWithValue("$cutoff", cutoff);
             cmd.AddWithValue("$minimum", minimum);
 
@@ -191,11 +191,11 @@ public sealed class IntelCondition : IAlarmCondition
         var pilots = new Dictionary<long, List<string>>();
         await using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = $"""
+            cmd.CommandText = AppDb.CaseInsensitiveLike($"""
                 SELECT "IntelReportId", "CharacterName", "ShipName"
                 FROM "IntelReportCharacters"
                 WHERE "IntelReportId" IN ({string.Join(",", reports.Select(x => x.Id))})
-                """;
+                """);
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
             {

@@ -214,7 +214,7 @@ public class EsiExplorerViewModel : ReactiveObject
             int total;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"""SELECT COUNT(*) FROM "{entry.SqlTable}" {BuildWhere()}""";
+                cmd.CommandText = AppDb.CaseInsensitiveLike($"""SELECT COUNT(*) FROM "{entry.SqlTable}" {BuildWhere()}""");
                 AddFilterParams(cmd);
                 total = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
             }
@@ -242,7 +242,7 @@ public class EsiExplorerViewModel : ReactiveObject
             int total;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"""SELECT COUNT(*) FROM "{_currentEntry.SqlTable}" {BuildWhere()}""";
+                cmd.CommandText = AppDb.CaseInsensitiveLike($"""SELECT COUNT(*) FROM "{_currentEntry.SqlTable}" {BuildWhere()}""");
                 AddFilterParams(cmd);
                 total = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
             }

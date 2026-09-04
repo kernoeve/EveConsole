@@ -555,7 +555,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         using var cmd = conn.CreateCommand();
 
         // Maybe LocationId is already a region id (Fuzzwork region configs).
-        cmd.CommandText = """SELECT "RegionId" FROM "SdeRegions" WHERE "RegionId" = @loc""";
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""SELECT "RegionId" FROM "SdeRegions" WHERE "RegionId" = @loc""");
         cmd.AddWithValue("@loc", cfg.LocationId);
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
@@ -563,37 +563,37 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         // NPC station: resolve via its solar system. SdeStations.RegionId is populated now
         // (by the importer, and by a startup repair for databases imported before that fix),
         // but the join is kept deliberately — it is correct whatever state the column is in.
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "SdeStations"     s
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
             WHERE s."StationId" = @sid AND s."SolarSystemId" != 0
-            """;
+            """);
         cmd.Parameters.Clear();
         cmd.AddWithValue("@sid", (int)Math.Min(cfg.LocationId, int.MaxValue));
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
         // Player structure: resolved name record already has SolarSystemId.
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "EsiStructureNames" sn
             JOIN "SdeSolarSystems"   ss ON ss."SolarSystemId" = sn."SolarSystemId"
             WHERE sn."StructureId" = @lid AND sn."SolarSystemId" != 0
-            """;
+            """);
         cmd.Parameters.Clear();
         cmd.AddWithValue("@lid", cfg.LocationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
         // Fallback: derive from any cached order at that location.
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "MarketRawOrders" o
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = o."SystemId"
             WHERE o."LocationId" = @lid AND o."SystemId" != 0
             LIMIT 1
-            """;
+            """);
         cmd.Parameters.Clear();
         cmd.AddWithValue("@lid", cfg.LocationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());

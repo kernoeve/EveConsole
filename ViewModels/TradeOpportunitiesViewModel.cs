@@ -485,36 +485,36 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         // populated now (by the importer, and by a startup repair for databases imported
         // before that fix), but the join is kept deliberately — it is correct whatever
         // state the column is in.
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "SdeStations"     s
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
             WHERE s."StationId" = @id AND s."SolarSystemId" != 0
-            """;
+            """);
         cmd.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
         // Player structure path 1: resolved name record already has SolarSystemId
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "EsiStructureNames" sn
             JOIN "SdeSolarSystems"   ss ON ss."SolarSystemId" = sn."SolarSystemId"
             WHERE sn."StructureId" = @sid AND sn."SolarSystemId" != 0
-            """;
+            """);
         cmd.Parameters.Clear();
         cmd.AddWithValue("@sid", locationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
         // Player structure path 2: derive from any cached order at that location
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "MarketRawOrders" o
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = o."SystemId"
             WHERE o."LocationId" = @lid AND o."SystemId" != 0
             LIMIT 1
-            """;
+            """);
         cmd.Parameters.Clear();
         cmd.AddWithValue("@lid", locationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());

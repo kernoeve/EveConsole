@@ -139,7 +139,7 @@ public sealed class MarketContractCondition : IAlarmCondition
         int typeId;
         await using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = """SELECT "TypeId" FROM "SdeTypes" WHERE upper("Name") = upper($n) LIMIT 1""";
+            cmd.CommandText = AppDb.CaseInsensitiveLike("""SELECT "TypeId" FROM "SdeTypes" WHERE upper("Name") = upper($n) LIMIT 1""");
             cmd.AddWithValue("$n", item.Trim());
             var found = await cmd.ExecuteScalarAsync(ct);
             if (found is null or DBNull) return [];

@@ -86,6 +86,30 @@ public static class AppDb
                 continue;
             }
 
+            // ⚠️ Comments are copied over whole, without looking inside them. An apostrophe in
+            // prose — "Which hop's flag names the corp hangar division" — is not the start of a
+            // string literal, but this read it as one, went into literal mode and never came out,
+            // so every LIKE after that comment was left alone. That is exactly what happened to
+            // the assets query: one apostrophe near the top of its CTE, and every text filter in
+            // the tool stayed case-sensitive while the rest of the application was fine.
+            if (c == '-' && i + 1 < sql.Length && sql[i + 1] == '-')
+            {
+                var eol = sql.IndexOf('\n', i);
+                if (eol < 0) { sb.Append(sql, i, sql.Length - i); break; }
+                sb.Append(sql, i, eol - i + 1);
+                i = eol;
+                continue;
+            }
+
+            if (c == '/' && i + 1 < sql.Length && sql[i + 1] == '*')
+            {
+                var end = sql.IndexOf("*/", i + 2, StringComparison.Ordinal);
+                if (end < 0) { sb.Append(sql, i, sql.Length - i); break; }
+                sb.Append(sql, i, end + 2 - i);
+                i = end + 1;
+                continue;
+            }
+
             if (c == '\'') { inLiteral = true; sb.Append(c); continue; }
 
             if ((c is 'L' or 'l')
