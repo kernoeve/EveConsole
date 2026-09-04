@@ -139,11 +139,15 @@ public sealed class DatabaseCopyService
 
         // Only real, readable columns. A shadow property has no PropertyInfo to read from, and
         // this model has none; if one appears it must be handled rather than silently skipped.
+        // Paired with the converter EF would use for each one. A property's CLR type is not
+        // always what the column holds: an enum is stored as an int, and any property with a
+        // value converter is stored as whatever that converter produces.
         var props = entity.GetProperties()
             .Where(p => p.PropertyInfo is not null)
+            .Select(p => (Property: p, Converter: p.GetTypeMapping().Converter))
             .ToList();
 
-        var columns = string.Join(", ", props.Select(p => $"\"{p.GetColumnName()}\""));
+        var columns = string.Join(", ", props.Select(p => $"\"{p.Property.GetColumnName()}\""));
         var copySql = $"COPY \"{table}\" ({columns}) FROM STDIN (FORMAT BINARY)";
 
         long written = 0;
@@ -172,9 +176,17 @@ public sealed class DatabaseCopyService
             foreach (var row in batch)
             {
                 await writer.StartRowAsync(ct);
-                foreach (var p in props)
+                foreach (var (property, converter) in props)
                 {
-                    var value = p.PropertyInfo!.GetValue(row);
+                    var value = property.PropertyInfo!.GetValue(row);
+
+                    // ⚠️ Through EF's own converter, not straight from the property. Writing
+                    // the CLR value directly failed on the first enum it met — "Writing values
+                    // of 'AlarmActionKind' is not supported for parameters having no NpgsqlDbType"
+                    // — because the column holds an int and the property does not. Asking EF
+                    // what the provider value is covers enums and every other converted type at
+                    // once, rather than special-casing them one failure at a time.
+                    if (converter is not null) value = converter.ConvertToProvider(value);
 
                     // See the class remarks: COPY bypasses the interceptor, so UTC is enforced here.
                     value = value switch
@@ -185,6 +197,12 @@ public sealed class DatabaseCopyService
                             => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
                         _ => value,
                     };
+
+                    // ⚠️ A belt for the braces above: an enum with no explicit converter still
+                    // reaches here as an enum, and Npgsql cannot infer a type for it. Unboxing to
+                    // the underlying integral type is what the column expects anyway.
+                    if (value is Enum boxed)
+                        value = Convert.ChangeType(boxed, Enum.GetUnderlyingType(boxed.GetType()));
 
                     if (value is null) await writer.WriteNullAsync(ct);
                     else               await writer.WriteAsync(value, ct);

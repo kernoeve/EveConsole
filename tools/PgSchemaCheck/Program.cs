@@ -104,6 +104,8 @@ foreach (var extra in inPostgres.Except(inSqlite).Order())
 
 if (failures == 0) Console.WriteLine("  no drift.");
 
+failures += EveConsole.Tools.PgSchemaCheck.CopyTypes.Check();
+
 // ── 3. Against a real server, when one is offered ───────────────────────────
 //
 // ⚠️ Taken from the environment rather than an argument: a connection string carries a
