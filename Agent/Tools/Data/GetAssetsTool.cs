@@ -56,9 +56,9 @@ public sealed class GetAssetsTool : IAgentTool
                 JOIN   "MarketPricingConfigs" mpc  ON mpc."Id" = mip2."ConfigId" AND mpc."IsEnabled" = TRUE
                 ORDER  BY mpc."SortOrder"
             ) mip ON mip."TypeId" = a."TypeId"
-            WHERE  (@char IS NULL OR c."Name" LIKE @char OR corp."Name" LIKE @char)
-              AND  (@item IS NULL OR st."Name" LIKE @item)
-              AND  (@loc  IS NULL OR sn."Name" LIKE @loc OR ss."Name" LIKE @loc)
+            WHERE  (CAST(@char AS TEXT) IS NULL OR c."Name" LIKE @char OR corp."Name" LIKE @char)
+              AND  (CAST(@item AS TEXT) IS NULL OR st."Name" LIKE @item)
+              AND  (CAST(@loc AS TEXT)  IS NULL OR sn."Name" LIKE @loc OR ss."Name" LIKE @loc)
             -- ⚠️ Every selected column is grouped, not only the ids. SQLite takes a bare column
             -- from an arbitrary row of the group; PostgreSQL rejects the statement unless the
             -- grouping key is the table's own primary key, and these names arrive through joins.

@@ -1633,7 +1633,7 @@ public class CorpActivityService
               AND CAST("Amount" AS DOUBLE PRECISION) > 0
               AND NOT ("RefType" = 'corporation_account_withdrawal'
                        AND "FirstPartyId" = "SecondPartyId")
-              AND ({type} IS NULL OR "RefType" = {type})
+              AND (CAST({type} AS TEXT) IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();
@@ -1722,7 +1722,7 @@ public class CorpActivityService
               AND CAST("Amount" AS DOUBLE PRECISION) < 0
               AND NOT ("RefType" = 'corporation_account_withdrawal'
                        AND "FirstPartyId" = "SecondPartyId")
-              AND ({type} IS NULL OR "RefType" = {type})
+              AND (CAST({type} AS TEXT) IS NULL OR "RefType" = {type})
             ORDER BY "Date" DESC
             """).ToListAsync(ct);
         var ids   = rows.Select(r => r.PartyId).Where(id => id != 0).Distinct();

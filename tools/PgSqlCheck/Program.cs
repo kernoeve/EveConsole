@@ -63,7 +63,6 @@ var checkable = candidates.Where(c => c.Unusable is null).ToList();
 var skipped   = candidates.Where(c => c.Unusable is not null).ToList();
 
 var failures  = new List<(Candidate C, string Error)>();
-var untypable = 0;
 var id        = 0;
 
 foreach (var c in checkable)
@@ -78,16 +77,17 @@ foreach (var c in checkable)
     }
     catch (PostgresException ex)
     {
-        // ⚠️ Not a finding. PostgreSQL infers a parameter's type from where it sits; a few
-        // positions give it nothing to go on, and that is a limit of checking a statement apart
-        // from its parameters rather than anything wrong with the statement.
-        if (ex.SqlState == "42P08" || ex.SqlState == "42P18"
-            || ex.MessageText.Contains("could not determine data type", StringComparison.Ordinal))
-        {
-            untypable++;
-            continue;
-        }
-
+        // ⚠️ "Could not determine data type" is a FINDING, not an artefact — the first version of
+        // this tool skipped it on the reasoning that checking a statement apart from its
+        // parameters is bound to leave some positions uninferable. That reasoning was wrong, and
+        // the code proved it: Corp Activity's income and expense tabs failed at runtime with
+        // exactly this, "42P18: could not determine data type of parameter $3", from
+        //
+        //     AND ({type} IS NULL OR "RefType" = {type})
+        //
+        // PostgreSQL has nothing to infer from in "$3 IS NULL", and the application sends that
+        // parameter with no declared type either, so what PREPARE cannot resolve here the server
+        // cannot resolve there. Skipping it hid two live bugs and six more in the agent tools.
         failures.Add((c, $"{ex.SqlState}: {ex.MessageText}"));
     }
     catch (Exception ex)
@@ -139,7 +139,6 @@ if (artefact.Count > 0)
 
 Console.WriteLine($"  statements found      : {candidates.Count}");
 Console.WriteLine($"    checked             : {checkable.Count}");
-Console.WriteLine($"    parameters untypable : {untypable}   (not findings; see the note in Program.cs)");
 Console.WriteLine($"    not checkable        : {skipped.Count}   (assembled from SQL fragments)");
 Console.WriteLine();
 Console.WriteLine(real.Count == 0

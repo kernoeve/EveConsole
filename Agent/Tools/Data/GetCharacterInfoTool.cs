@@ -40,7 +40,7 @@ public sealed class GetCharacterInfoTool : IAgentTool
             FROM   "Characters" c
             LEFT JOIN "Corporations" corp ON corp."Id" = c."CorporationId"
             LEFT JOIN "EsiWalletBalances" wb ON wb."OwnerId" = c."Id" AND wb."OwnerType" = 'character' AND wb."Division" = 0
-            WHERE  (@name IS NULL OR c."Name" LIKE @name)
+            WHERE  (CAST(@name AS TEXT) IS NULL OR c."Name" LIKE @name)
             ORDER  BY c."Name"
             """;
 

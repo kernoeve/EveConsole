@@ -81,9 +81,9 @@ public sealed class GetIndustryJobsTool : IAgentTool
             LEFT JOIN "UniverseNames" un_p   ON un_p."EntityId"   = j."ProductTypeId"
             LEFT JOIN "SdeStations"       ss_f ON ss_f."StationId"   = j."FacilityId"
             LEFT JOIN "EsiStructureNames" sn_f ON sn_f."StructureId" = j."FacilityId"
-            WHERE  (@status IS NULL OR j."Status" = @status)
+            WHERE  (CAST(@status AS TEXT) IS NULL OR j."Status" = @status)
               AND  (@inProgress = 0 OR j."Status" IN ('active', 'ready'))
-              AND  (@owner IS NULL OR c."Name" LIKE @owner OR corp."Name" LIKE @owner)
+              AND  (CAST(@owner AS TEXT) IS NULL OR c."Name" LIKE @owner OR corp."Name" LIKE @owner)
             ORDER BY
                 CASE j."Status" WHEN 'ready' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END,
                 j."EndDate"
