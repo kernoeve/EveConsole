@@ -190,7 +190,7 @@ public class GameLogViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(GameLogViewerViewModel), "Load", ex);
-            StatusText = "Error loading game log.";
+            StatusText = AppErrorLogger.Line("Error loading game log", ex);
         }
         finally { _isLoading = false; }
     }

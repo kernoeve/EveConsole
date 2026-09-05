@@ -562,7 +562,7 @@ public class WalletViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("WalletViewModel", "LoadAsync", ex);
-            StatusText = "Error loading wallet data.";
+            StatusText = AppErrorLogger.Line("Error loading wallet data", ex);
         }
         finally { IsLoading = false; }
 

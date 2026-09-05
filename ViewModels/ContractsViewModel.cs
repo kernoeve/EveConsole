@@ -777,7 +777,7 @@ public class OwnedContractsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("OwnedContractsViewModel", "LoadAsync", ex);
-            StatusText = "Error loading contracts.";
+            StatusText = AppErrorLogger.Line("Error loading contracts", ex);
         }
         finally { IsLoading = false; }
     }
@@ -1072,7 +1072,7 @@ public class PublicContractsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("PublicContractsViewModel", "InitAsync", ex);
-            StatusText = "Error initialising public contracts.";
+            StatusText = AppErrorLogger.Line("Error initialising public contracts", ex);
         }
     }
 
@@ -1224,7 +1224,7 @@ public class PublicContractsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("PublicContractsViewModel", "ReloadPageAsync", ex);
-            StatusText = "Error loading public contracts.";
+            StatusText = AppErrorLogger.Line("Error loading public contracts", ex);
         }
         finally { IsLoading = false; }
     }

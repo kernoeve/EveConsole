@@ -1178,7 +1178,7 @@
 
             <TabItem Header="SUMMARY">
               <Grid>
-                <TextBlock Text="No mining data — ensure Corp Mining Observers polling is enabled."
+                <TextBlock Text="No mining data for this period. If a step failed, the status line above says so."
                            FontSize="11" Foreground="#444455" FontStyle="Italic"
                            IsVisible="{Binding !HasMiningData}"
                            VerticalAlignment="Center" HorizontalAlignment="Center" />

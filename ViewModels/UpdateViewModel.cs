@@ -168,7 +168,7 @@ public class UpdateViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("UpdateViewModel", "Check", ex);
-            StatusText = "Update check failed.";
+            StatusText = AppErrorLogger.Line("Update check failed", ex);
         }
     }
 
@@ -194,7 +194,7 @@ public class UpdateViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("UpdateViewModel", "Install", ex);
-            StatusText = "Update failed.";
+            StatusText = AppErrorLogger.Line("Update failed", ex);
             IsBusy = false;
         }
     }

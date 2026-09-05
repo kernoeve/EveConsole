@@ -259,7 +259,7 @@ public class NotificationsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("NotificationsViewModel", "InitAsync", ex);
-            StatusText = "Error initialising notifications.";
+            StatusText = AppErrorLogger.Line("Error initialising notifications", ex);
         }
     }
 
@@ -376,7 +376,7 @@ public class NotificationsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("NotificationsViewModel", "ReloadPageAsync", ex);
-            StatusText = "Error loading notifications.";
+            StatusText = AppErrorLogger.Line("Error loading notifications", ex);
         }
         finally { IsLoading = false; }
     }

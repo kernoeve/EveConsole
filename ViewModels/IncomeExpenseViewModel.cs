@@ -185,7 +185,7 @@ public class IncomeExpenseViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("IncomeExpenseViewModel", "Load", ex);
-            StatusText = "Error loading data.";
+            StatusText = AppErrorLogger.Line("Error loading data", ex);
         }
         finally { IsLoading = false; }
     }

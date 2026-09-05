@@ -101,7 +101,7 @@ public class ErrorLogViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("ErrorLogViewModel", "Load", ex);
-            StatusText = "Error loading log.";
+            StatusText = AppErrorLogger.Line("Error loading log", ex);
         }
         finally { _isLoading = false; }
     }

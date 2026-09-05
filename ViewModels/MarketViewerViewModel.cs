@@ -345,7 +345,7 @@ public class MarketViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("MarketViewerViewModel", "InitAsync", ex);
-            StatusText = "Error initialising market viewer.";
+            StatusText = AppErrorLogger.Line("Error initialising market viewer", ex);
         }
     }
 
@@ -477,7 +477,7 @@ public class MarketViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("MarketViewerViewModel", "LoadSummary", ex);
-            StatusText = "Error loading summary.";
+            StatusText = AppErrorLogger.Line("Error loading summary", ex);
         }
         finally { IsLoading = false; }
     }
@@ -601,7 +601,7 @@ public class MarketViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("MarketViewerViewModel", "LoadByMarketGroup", ex);
-            StatusText = "Error loading by-market-group data.";
+            StatusText = AppErrorLogger.Line("Error loading by-market-group data", ex);
         }
         finally { IsLoading = false; }
     }
@@ -665,7 +665,7 @@ public class MarketViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("MarketViewerViewModel", "LoadByType", ex);
-            StatusText = "Error loading by-type data.";
+            StatusText = AppErrorLogger.Line("Error loading by-type data", ex);
         }
         finally { IsLoading = false; }
     }
@@ -708,7 +708,7 @@ public class MarketViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("MarketViewerViewModel", "LoadOrdersByType", ex);
-            StatusText = "Error loading orders-by-type data.";
+            StatusText = AppErrorLogger.Line("Error loading orders-by-type data", ex);
         }
         finally { IsLoading = false; }
     }
