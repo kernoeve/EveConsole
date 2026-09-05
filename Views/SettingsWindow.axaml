@@ -2436,6 +2436,7 @@
                      Settings showed PostgreSQL again because nothing had been written. -->
                 <Button Content="Save and Restart"
                         Click="OnSaveDbChoiceClick"
+                        IsVisible="{Binding CanSaveDbChoice}"
                         HorizontalAlignment="Left"
                         Padding="12 5" FontSize="12" Margin="0 2 0 0"
                         Background="#1a2a1a" Foreground="#70ad47"

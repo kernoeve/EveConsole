@@ -30,6 +30,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(IsSqlite));
             this.RaisePropertyChanged(nameof(IsPostgres));
             this.RaisePropertyChanged(nameof(EngineChanged));
+            this.RaisePropertyChanged(nameof(CanSaveDbChoice));
             TestResultText = "";
             CanOfferCopy   = false;
         }
@@ -42,6 +43,22 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// the only time a restart is worth offering.</summary>
     public bool EngineChanged =>
         IsPostgres != DbEngine.IsPostgres;
+
+    /// <summary>
+    /// Whether Save and Restart has anything to do, and so whether it is shown at all.
+    ///
+    /// <para>Changing the engine is the obvious case. The less obvious one is that the same
+    /// button also writes the PostgreSQL connection, so somebody already on PostgreSQL who
+    /// corrects a host or a password still needs it even though the engine has not moved.
+    /// PostgresSettings is a plain object with no change notification, so there is no way to
+    /// ask whether those boxes were edited — offering the button whenever PostgreSQL is
+    /// selected is the honest approximation.</para>
+    ///
+    /// <para>⚠️ Which leaves exactly one case where it is hidden: SQLite selected and already
+    /// running. That is right, because nothing on this panel belongs to SQLite — its file is
+    /// managed further down — so there is genuinely nothing to save.</para>
+    /// </summary>
+    public bool CanSaveDbChoice => EngineChanged || IsPostgres;
 
     // ⚠️ Whether the app is reading its settings from beside the executable, shown because the
     // alternative is a user editing the file in app data and wondering why nothing changes.
@@ -460,6 +477,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         else            AppConfig.SetDbBackend(DbBackend.Sqlite);
 
         this.RaisePropertyChanged(nameof(EngineChanged));
+        this.RaisePropertyChanged(nameof(CanSaveDbChoice));
         StatusText = $"Set to {target}. Restarting…";
         await Task.Delay(800);
         RequestRestart?.Invoke();
