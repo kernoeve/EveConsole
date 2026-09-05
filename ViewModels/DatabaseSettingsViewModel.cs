@@ -745,9 +745,27 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// ⚠️ The gate is static, not just <see cref="IsBusy"/>. A new view model is built every time
+    /// the Settings window opens, so IsBusy only ever guards the window you are looking at — and
+    /// the backup itself is not tied to the window at all. Close Settings mid-backup and it keeps
+    /// running (which is right); reopen and press Back Up and you would have started a second
+    /// pg_dump of the same database, both streaming ten gigabytes through this machine, with
+    /// nothing on screen to suggest the first was still going.
+    /// </summary>
+    private static bool _backupRunning;
+
     public async Task BackupNowAsync()
     {
         if (IsBusy) return;
+
+        if (_backupRunning)
+        {
+            StatusText = "A backup is already running — it continues even with Settings closed.";
+            return;
+        }
+
+        _backupRunning = true;
         IsBusy = true;
         StatusText = "Backing up…";
         try
@@ -764,7 +782,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         {
             StatusText = $"Backup error: {ex.Message}";
         }
-        finally { IsBusy = false; }
+        finally { IsBusy = false; _backupRunning = false; }
     }
 
     /// <summary>
