@@ -1572,6 +1572,21 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// </summary>
     private readonly List<string> _stepFailures = [];
 
+    /// <summary>
+    /// A sub-step that failed inside a step, recorded so the closing status still knows.
+    ///
+    /// <para>⚠️ The tabs that load several lists — Top 10, the 24-hour summary — catch around
+    /// each one so a single failure does not take the others with it. Sound, except that
+    /// swallowing it also hides it from RunStep, which then sees the step succeed and lets the
+    /// status say "Loaded" above an empty list. Logging alone was not enough: it put the reason
+    /// somewhere, and left the screen claiming everything was fine.</para>
+    /// </summary>
+    private void StepFailed(string what, Exception ex)
+    {
+        _errorLogger?.Log("CorpActivityViewModel", what, ex);
+        _stepFailures.Add(what);
+    }
+
     private async Task RunStep(string name, Func<Task> step)
     {
         try
@@ -2002,19 +2017,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
         try { rattingRows  = await _service.GetTopRattersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "Top10 ratters", ex); }
+        catch (Exception ex) { StepFailed("Top10 ratters", ex); }
 
         try { industryRows = await _service.GetTopIndustryAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "Top10 industry", ex); }
+        catch (Exception ex) { StepFailed("Top10 industry", ex); }
 
         try { killerRows   = await _service.GetTopKillersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "Top10 killers", ex); }
+        catch (Exception ex) { StepFailed("Top10 killers", ex); }
 
         try { minerRows    = await _service.GetTopMinersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "Top10 miners", ex); }
+        catch (Exception ex) { StepFailed("Top10 miners", ex); }
 
         try { contribRows  = await _service.GetTopProjectContributorsAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "Top10 contributors", ex); }
+        catch (Exception ex) { StepFailed("Top10 contributors", ex); }
 
         var walletIds  = rattingRows.Concat(industryRows).Concat(killerRows)
                                     .Select(r => r.CharacterId);
@@ -2248,19 +2263,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<Activity24hKillRow>   kills    = [];
 
         try { summary  = await _service.Get24hSummaryAsync(corpId, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "24h summary", ex); }
+        catch (Exception ex) { StepFailed("24h summary", ex); }
 
         try { ratters  = await _service.Get24hTopRattersAsync(corpId,  excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "24h ratters", ex); }
+        catch (Exception ex) { StepFailed("24h ratters", ex); }
 
         try { industry = await _service.Get24hTopIndustryAsync(corpId, excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "24h industry", ex); }
+        catch (Exception ex) { StepFailed("24h industry", ex); }
 
         try { miners   = await _service.Get24hTopMinersAsync(corpId,   excludeIds, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "24h miners", ex); }
+        catch (Exception ex) { StepFailed("24h miners", ex); }
 
         try { kills    = await _service.Get24hKillsAsync(corpId, ct); }
-        catch (Exception ex) { _errorLogger?.Log("CorpActivityViewModel", "24h kills", ex); }
+        catch (Exception ex) { StepFailed("24h kills", ex); }
 
         Activity24hPlayerCountText = summary.PlayerCount.ToString("N0");
         Activity24hIncomeText      = FormatIskStatic(summary.TotalIncome);
