@@ -935,7 +935,9 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         List<Models.SalePosting> rows;
         try   { rows = await _sales.LoadPostingsAsync(); }
-        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "postings", ex); return; }
+        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "postings", ex);
+            StatusText = AppErrorLogger.Line("Error loading postings", ex);
+            return; }
 
         foreach (var p in rows)
             if (Postings.All(x => x.Id != p.Id)) Postings.Add(new PostingChoice(p.Id, p.Name));

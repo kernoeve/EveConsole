@@ -523,7 +523,11 @@ public class WalletViewModel : ReactiveObject
             _selectedOwner = options[0];
             this.RaisePropertyChanged(nameof(SelectedOwner));
         }
-        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "InitAsync", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("WalletViewModel", "InitAsync", ex);
+            StatusText = AppErrorLogger.Line("Error preparing the wallet view", ex);
+        }
 
         _initialized = true;
         await LoadAsync();
@@ -658,7 +662,11 @@ public class WalletViewModel : ReactiveObject
             JournalRows.Clear();
             foreach (var r in entries) JournalRows.Add(new WalletJournalRowVm(r, names, divMap));
         }
-        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadJournalPageAsync", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("WalletViewModel", "LoadJournalPageAsync", ex);
+            StatusText = AppErrorLogger.Line("Error loading the journal", ex);
+        }
     }
 
     // Treats a picked calendar date as UTC midnight — a DateTimeOffset with a zero offset can't be
@@ -762,7 +770,11 @@ public class WalletViewModel : ReactiveObject
             foreach (var r in rows)
                 TransactionRows.Add(new WalletTransactionRowVm(r, typeNames, ownerNames, locationNames, divMap));
         }
-        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadTxnPageAsync", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("WalletViewModel", "LoadTxnPageAsync", ex);
+            StatusText = AppErrorLogger.Line("Error loading transactions", ex);
+        }
     }
 
     // Base row set (owner + period), deduplicated across owners so a shared TransactionId shows once.
