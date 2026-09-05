@@ -321,7 +321,15 @@ public sealed class IntelService(
 
             return $"Intel: up to date — {total:N0} sightings, newest {newest.Replace('T', ' ').TrimEnd('Z')}";
         }
-        catch { return "Intel: up to date"; }
+        catch (Exception ex)
+        {
+            // ⚠️ Not "up to date". The count did not come back, so whether the intel is
+            // current is exactly what is not known -- and saying it is, is the same false
+            // reassurance the mining tab gave when it blamed a polling setting for a broken
+            // query. Say the status could not be read, and log why.
+            errorLogger.Log(nameof(IntelService), "status", ex);
+            return "Intel: status unavailable";
+        }
     }
 
     // ── Writing ──────────────────────────────────────────────────────────────
