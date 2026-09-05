@@ -608,7 +608,10 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             JOIN "SdeStations" s ON s."StationId" = o."LocationId"
             LEFT JOIN "SdeTypes" t ON t."TypeId" = o."TypeId"
             WHERE s."CorporationId" = @id
-            GROUP BY o."IsBuyOrder", o."TypeId"
+            -- ⚠️ t."Name" is grouped too: it is selected through a join, and PostgreSQL infers a
+            -- functional dependency only from the grouped table's own primary key. One-to-one
+            -- with TypeId, so no result changes.
+            GROUP BY o."IsBuyOrder", o."TypeId", t."Name"
             ORDER BY "Item"
             """, AppDb.Param("@id", corpId)).ToListAsync(ct);
     }

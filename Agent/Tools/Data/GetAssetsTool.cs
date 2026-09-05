@@ -59,7 +59,13 @@ public sealed class GetAssetsTool : IAgentTool
             WHERE  (@char IS NULL OR c."Name" LIKE @char OR corp."Name" LIKE @char)
               AND  (@item IS NULL OR st."Name" LIKE @item)
               AND  (@loc  IS NULL OR sn."Name" LIKE @loc OR ss."Name" LIKE @loc)
-            GROUP BY a."TypeId", a."RootLocationId", a."OwnerId", a."OwnerType"
+            -- ⚠️ Every selected column is grouped, not only the ids. SQLite takes a bare column
+            -- from an arbitrary row of the group; PostgreSQL rejects the statement unless the
+            -- grouping key is the table's own primary key, and these names arrive through joins.
+            -- Each is one-to-one with an id already in the key, so this changes no result — it
+            -- states what SQLite was quietly assuming.
+            GROUP BY a."TypeId", a."RootLocationId", a."OwnerId", a."OwnerType",
+                     st."Name", sn."Name", ss."Name", c."Name", corp."Name", mip."Midpoint"
             ORDER BY estimated_value DESC, quantity DESC
             LIMIT @limit
             """;
