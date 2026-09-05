@@ -73,8 +73,12 @@ public sealed class DatabaseCopyService
         //
         // SQLite in WAL mode gives readers exactly this for free, and does not block the writer
         // to do it, so the poller keeps working throughout. The cost is that the WAL cannot be
-        // checkpointed while the read is open, so it grows by however much is written during the
-        // copy — a few megabytes, on the evidence of a real migration.
+        // checkpointed while the read is open, so it grows by everything written during the copy.
+        //
+        // Measured on a 4.7 GB database: 475 MB, which WalCheckpointService notices and warns
+        // about. It is reclaimed at the next checkpoint once the read closes, so it costs disk
+        // for the length of the copy and nothing after. An earlier version of this comment
+        // guessed "a few megabytes" and was wrong by two orders of magnitude.
         //
         // This makes the copy CONSISTENT. It does not make it COMPLETE: anything polled after the
         // snapshot is taken stays in the source and is not copied. Only stopping the poller can
