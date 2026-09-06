@@ -140,10 +140,9 @@
                  close to unreadable as printed. -->
             <TextBlock FontSize="11" VerticalAlignment="Center"
                        IsVisible="{Binding DbIsPostgres}">
-              <TextBlock.Inlines>
-                <Run Text="Postgre" Foreground="#9aa0aa" />
-                <Run Text="SQL"     Foreground="#5590be" />
-              </TextBlock.Inlines>
+              <!-- ⚠️ On one line deliberately. A newline and indent between the two Run tags is
+                   content, not layout, and renders as "Postgre SQL". -->
+              <TextBlock.Inlines><Run Text="Postgre" Foreground="#9aa0aa" /><Run Text="SQL" Foreground="#5590be" /></TextBlock.Inlines>
             </TextBlock>
 
             <TextBlock Text="SQLite" FontSize="11" Foreground="#4fa8dc"
