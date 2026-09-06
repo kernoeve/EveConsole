@@ -30,6 +30,24 @@ public class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        try { await StartupAsync(); }
+        catch (Exception ex) when (AppRuntime.IsHeadless)
+        {
+            // ⚠️ Loud and fatal, because the alternative is what this replaced: a worker whose
+            // startup threw, whose splash does not exist to show it, and which then sat in its
+            // dispatcher loop forever looking perfectly alive. A service manager cannot tell that
+            // apart from a healthy one, so it never restarts it and nobody is told anything.
+            Console.Error.WriteLine($"EVE Console {AppVersion.Display} failed to start.");
+            for (var e = ex; e is not null; e = e.InnerException)
+                Console.Error.WriteLine($"  {e.GetType().Name}: {e.Message.Split('\n')[0].TrimEnd()}");
+
+            Console.Error.Flush();
+            Environment.Exit(1);
+        }
+    }
+
+    private async Task StartupAsync()
+    {
         // ── Splash and pending shrink, before anything else ────────────────────
         //
         // ⚠️ Order matters and cost two failed attempts to get right. The shrink rebuilds the
@@ -2948,16 +2966,56 @@ public class App : Application
         // that must happen before the user can sensibly use the window now happens first, and the
         // progress bar reports it, so the splash is honest about the wait instead of the main
         // window being dishonest about being ready.
-        p.Report((84, "Preparing tools…"));
-        var mainVm = Services.GetRequiredService<MainWindowViewModel>();
-
-        p.Report((88, "Starting background services…"));
         // Serialises the lease transitions below, and remembers which way the last one went.
         // Declared here rather than beside them because a local has to be assigned before the
         // call that reaches it, and StartBackgroundServices runs above where it is written.
         var leaderGate    = new SemaphoreSlim(1, 1);
         var leaderRunning = false;
 
+        // ── Headless: no window, and none of the machinery for one ─────────────
+        //
+        // ⚠️ Diverges HERE and not earlier. Everything above — config, the schema, the lease, the
+        // version check — is identical for a worker and a desktop client, and a second copy of it
+        // would be a second thing to keep in step. What a worker must not do is build the view
+        // model tree: it is every tool's state, several timers, and a chunk of memory, all for a
+        // window nobody is going to open.
+        if (AppRuntime.IsHeadless)
+        {
+            StartBackgroundServices();
+
+            var db     = DbEngine.IsPostgres ? "PostgreSQL" : "SQLite";
+            var holder = Services.GetRequiredService<WorkerLease>().IsHolder;
+
+            // Said once, then silence unless something breaks. These four lines are what somebody
+            // reads in journalctl to answer "is it up, and is it the one doing the work?" — the
+            // first question anybody asks of a service, and one a completely quiet start leaves
+            // unanswered.
+            Console.WriteLine($"EVE Console {AppVersion.Display} — headless worker");
+            Console.WriteLine($"  database   {db}{(DbEngine.IsPostgres ? "" : $"  {AppConfig.GetDbPath()}")}");
+            Console.WriteLine($"  background {(holder ? "this process holds the lease" : "held by another client — waiting to take over")}");
+            Console.WriteLine($"  logs       {LogSummary()}");
+
+            // ⚠️ Named, loudly, because headless on SQLite is almost always a mistake and a silent
+            // one. Multiple clients are what this mode exists for and SQLite cannot have them: this
+            // process takes the file exclusively, so the desktop client will refuse to start for as
+            // long as it runs — while it quietly does all the background work, retention sweeps
+            // included, against whatever file that path points at. Said here because "database
+            // SQLite" on its own does not read as a warning to somebody who expected PostgreSQL.
+            if (!DbEngine.IsPostgres)
+            {
+                Console.WriteLine();
+                Console.WriteLine("  ⚠ SQLite holds the database exclusively. The desktop client cannot start");
+                Console.WriteLine("    while this worker runs, and this worker is doing all background work");
+                Console.WriteLine("    against the file above. Headless is meant for PostgreSQL.");
+            }
+
+            return;
+        }
+
+        p.Report((84, "Preparing tools…"));
+        var mainVm = Services.GetRequiredService<MainWindowViewModel>();
+
+        p.Report((88, "Starting background services…"));
         StartBackgroundServices();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
@@ -3200,6 +3258,28 @@ public class App : Application
         {
             try { start(); }
             catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
+        }
+
+        /// <summary>
+        /// What this machine will actually read, for the headless banner.
+        ///
+        /// <para>⚠️ Resolved, not the raw setting. A worker started against the wrong mount has an
+        /// empty list, and saying so on the one line somebody reads beats it importing nothing in
+        /// silence — which looks identical to a quiet evening.</para>
+        /// </summary>
+        string LogSummary()
+        {
+            try
+            {
+                var monitoring = Services.GetRequiredService<MonitoringSettings>();
+                var game = monitoring.GameLogEnabled ? monitoring.ResolveDirectories().Count     : 0;
+                var chat = monitoring.ChatEnabled    ? monitoring.ResolveChatDirectories().Count : 0;
+
+                return game == 0 && chat == 0
+                    ? "none — this worker imports no logs"
+                    : $"{game} game, {chat} chat";
+            }
+            catch (Exception ex) { return $"could not be read: {AppErrorLogger.Line("", ex)}"; }
         }
     }
 
