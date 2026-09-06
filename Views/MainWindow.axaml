@@ -86,11 +86,13 @@
                                  at column 100 of 220) with the white ground made transparent,
                                  since the banner is drawn for a white page and this bar is not. -->
             <Image Source="avares://EveConsole/Assets/sqlite.png"
-                   Width="13" Height="13" VerticalAlignment="Center"
+                   Width="16" Height="16" VerticalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
                    IsVisible="{Binding !DbIsPostgres}" />
 
             <Image Source="avares://EveConsole/Assets/postgresql.png"
-                   Width="13" Height="13" VerticalAlignment="Center"
+                   Width="16" Height="16" VerticalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
                    IsVisible="{Binding DbIsPostgres}" />
 
             <!-- ⚠️ Each wordmark's own colour treatment, lifted in lightness but not shifted in

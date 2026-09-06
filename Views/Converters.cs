@@ -3,7 +3,10 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using EveConsole.Agent;
+using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
 
@@ -182,5 +185,30 @@ public class PathGeometryConverter : IValueConverter
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
+/// The engine name to its logo, so the Database Type dropdown shows the same marks the title bar
+/// does — and so both can be seen without switching engines to find out what the other looks like.
+/// </summary>
+public class DbEngineLogoConverter : IValueConverter
+{
+    public static readonly DbEngineLogoConverter Instance = new();
+
+    // ⚠️ Loaded once each. A converter runs on every item render, and decoding a PNG per pass
+    // for a two-item list would be silly.
+    private static readonly Lazy<Bitmap> Postgres = new(() => Load("postgresql.png"));
+    private static readonly Lazy<Bitmap> Sqlite   = new(() => Load("sqlite.png"));
+
+    private static Bitmap Load(string file) =>
+        new(AssetLoader.Open(new Uri($"avares://EveConsole/Assets/{file}")));
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value as string == DatabaseSettingsViewModel.PostgresName
+            ? Postgres.Value
+            : Sqlite.Value;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

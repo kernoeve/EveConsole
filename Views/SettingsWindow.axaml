@@ -12,6 +12,10 @@
         WindowStartupLocation="CenterOwner"
         Background="#0d0d12">
 
+  <Window.Resources>
+    <views:DbEngineLogoConverter x:Key="DbEngineLogo" />
+  </Window.Resources>
+
   <Window.Styles>
     <!-- Make the "Find Location" Expander header match the other form controls -->
     <Style Selector="Expander /template/ ToggleButton#PART_toggle">
@@ -2414,10 +2418,23 @@
                 <Grid ColumnDefinitions="Auto,*">
                   <TextBlock Grid.Column="0" Text="Type:" Foreground="#ccc" FontSize="12"
                              VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <!-- The same marks the title bar uses, so both can be seen side by side
+                       without switching engines to find out what the other looks like. -->
                   <ComboBox Grid.Column="1"
                             ItemsSource="{Binding DbTypes}"
                             SelectedItem="{Binding SelectedDbType}"
-                            HorizontalAlignment="Left" MinWidth="160" />
+                            HorizontalAlignment="Left" MinWidth="160">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                          <Image Width="16" Height="16" VerticalAlignment="Center"
+                                 RenderOptions.BitmapInterpolationMode="HighQuality"
+                                 Source="{Binding Converter={StaticResource DbEngineLogo}}" />
+                          <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
                 </Grid>
 
                 <TextBlock Text="{Binding ConfigSourceText}"
