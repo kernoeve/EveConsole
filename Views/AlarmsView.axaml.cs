@@ -18,6 +18,18 @@ public partial class AlarmsView : UserControl
     }
 
     /// <summary>
+    /// Silences alarms on this machine, or lets them speak again.
+    ///
+    /// <para>No confirmation. Muting loses nothing — every firing is still recorded as an alert —
+    /// and a prompt in front of somebody reaching for this during a fight would be its own kind of
+    /// failure.</para>
+    /// </summary>
+    private void OnMuteClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is AlarmsViewModel vm) vm.ToggleMute();
+    }
+
+    /// <summary>
     /// Browses for an audio file. Lives here because the picker needs a TopLevel, which the
     /// view model has no business knowing about.
     /// </summary>

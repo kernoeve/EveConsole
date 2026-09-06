@@ -81,6 +81,16 @@ public static class PostgresSchema
             "HeartbeatUtc"  TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """,
+        """
+        CREATE TABLE IF NOT EXISTS "WorkerActivity" (
+            "Key"        TEXT        NOT NULL PRIMARY KEY,
+            "Status"     TEXT        NOT NULL DEFAULT '',
+            "Running"    BOOLEAN     NOT NULL DEFAULT FALSE,
+            "LastRunUtc" TIMESTAMPTZ NULL,
+            "NextRunUtc" TIMESTAMPTZ NULL,
+            "UpdatedUtc" TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """,
     ];
 
     /// <summary>

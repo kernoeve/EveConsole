@@ -19,17 +19,20 @@ public sealed class AlarmActionRunner
     private readonly AlarmSoundService               _sounds;
     private readonly AppErrorLogger                  _errors;
     private readonly ClientSignals                   _signals;
+    private readonly AlarmMuteState                  _mute;
 
     public AlarmActionRunner(
         IDbContextFactory<AppDbContext> dbFactory,
         AlarmSoundService               sounds,
         AppErrorLogger                  errors,
-        ClientSignals                   signals)
+        ClientSignals                   signals,
+        AlarmMuteState                  mute)
     {
         _dbFactory = dbFactory;
         _sounds    = sounds;
         _errors    = errors;
         _signals   = signals;
+        _mute      = mute;
     }
 
     /// <summary>Hands the agent something to tell the user about. Set by MainWindow.</summary>
@@ -158,7 +161,7 @@ public sealed class AlarmActionRunner
         // ⚠️ Checked here, on the receiving side, and never on the worker. Muting is a fact about
         // this machine — one client can be quiet while another is not — and a worker that filtered
         // on its own setting would silence everybody's.
-        if (AppConfig.GetAlarmsMuted()) return;
+        if (_mute.Muted) return;
 
         if (s.SoundKey is not null)
         {

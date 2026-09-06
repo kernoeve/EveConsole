@@ -482,6 +482,17 @@ public class App : Application
                     """);
 
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "WorkerActivity" (
+                        "Key"        TEXT    NOT NULL CONSTRAINT "PK_WorkerActivity" PRIMARY KEY,
+                        "Status"     TEXT    NOT NULL DEFAULT '',
+                        "Running"    INTEGER NOT NULL DEFAULT 0,
+                        "LastRunUtc" TEXT    NULL,
+                        "NextRunUtc" TEXT    NULL,
+                        "UpdatedUtc" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "Corporations" (
                         "Id"                   INTEGER NOT NULL CONSTRAINT "PK_Corporations" PRIMARY KEY,
                         "Name"                 TEXT    NOT NULL,
@@ -3427,6 +3438,7 @@ public class App : Application
         services.AddSingleton<SystemGraph>();
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
             sp.GetRequiredService<SystemGraph>()));
+        services.AddSingleton<AlarmMuteState>();
         services.AddSingleton<ClientSignals>();
         services.AddSingleton<AlarmActionRunner>();
         services.AddSingleton(sp =>

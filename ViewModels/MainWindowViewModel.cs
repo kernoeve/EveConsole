@@ -83,6 +83,7 @@ public class MainWindowViewModel : ReactiveObject
     // ── Which client is doing the background work ─────────────────────────────
 
     private readonly WorkerLease    _workerLease;
+    private readonly AlarmMuteState _mute;
     private readonly DispatcherTimer _workerTimer;
 
     private string _workerOwner = "…";
@@ -189,41 +190,30 @@ public class MainWindowViewModel : ReactiveObject
 
     // ── Whether this machine stays quiet for alarms ───────────────────────────
 
-    private bool _alarmsMuted = AppConfig.GetAlarmsMuted();
     /// <summary>
     /// Silences the alarm actions that interrupt someone here — sound, dialog, and the agent
     /// speaking — without touching what gets recorded.
     ///
-    /// <para>⚠️ Saved locally, not in the database. The whole point is that one machine can be
-    /// quiet while another is not, so this cannot live beside the alarms themselves.</para>
+    /// <para>⚠️ Backed by the shared <see cref="AlarmMuteState"/>, not a field of its own. The
+    /// Alarms tool has its own button for this, and two copies would let one of them go on saying
+    /// "on" after the other muted — with the beacon un-struck and the operator believing they are
+    /// silent when they are not.</para>
     /// </summary>
     public bool AlarmsMuted
     {
-        get => _alarmsMuted;
-        set
-        {
-            if (_alarmsMuted == value) return;
-            this.RaiseAndSetIfChanged(ref _alarmsMuted, value);
-            AppConfig.SetAlarmsMuted(value);
-            this.RaisePropertyChanged(nameof(AlarmsMuteText));
-            this.RaisePropertyChanged(nameof(AlarmsMuteTip));
-        }
+        get => _mute.Muted;
+        set => _mute.Muted = value;
     }
 
-    public string AlarmsMuteText => _alarmsMuted ? "muted" : "on";
+    /// <summary>The action a click would take, for a menu item or a button that toggles.</summary>
+    public string AlarmsMuteMenuText => _mute.ToggleText;
 
-    /// <summary>
-    /// ⚠️ Says what muting does NOT do, because that is the part worth being sure of. Someone
-    /// deciding whether to silence a client during a fleet needs to know they are not also
-    /// deciding to lose the record of what happened while they were quiet.
-    /// </summary>
-    public string AlarmsMuteTip => _alarmsMuted
-        ? "Alarms are muted on this client.\n\n"
-        + "No sound, dialog or agent notification will be raised here. Alerts are still recorded, "
-        + "and other clients are unaffected.\n\nClick to unmute."
-        : "Alarms are active on this client.\n\n"
-        + "Click to mute sound, dialogs and agent notifications on this machine only. "
-        + "Alerts go on being recorded either way.";
+    private void OnMuteChanged()
+    {
+        this.RaisePropertyChanged(nameof(AlarmsMuted));
+        this.RaisePropertyChanged(nameof(AlarmsMuteMenuText));
+        RefreshAlarmsTip();
+    }
 
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
@@ -369,13 +359,31 @@ public class MainWindowViewModel : ReactiveObject
                 AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
                 AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
 
-                AlarmsTip = count switch
-                {
-                    0 => "Alarms — none armed",
-                    1 => "Alarms — 1 armed",
-                    _ => $"Alarms — {count} armed",
-                };
+                _armedCount = count;
+                RefreshAlarmsTip();
             }));
+    }
+
+    private int _armedCount;
+
+    /// <summary>
+    /// ⚠️ Armed and audible are different questions, and the tooltip answers both. Muted alarms
+    /// stay armed and go on being recorded, so the count alone would let somebody read "3 armed"
+    /// off a machine that will not make a sound about any of them.
+    /// </summary>
+    private void RefreshAlarmsTip()
+    {
+        var armed = _armedCount switch
+        {
+            0 => "Alarms — none armed",
+            1 => "Alarms — 1 armed",
+            _ => $"Alarms — {_armedCount} armed",
+        };
+
+        AlarmsTip = AlarmsMuted
+            ? armed + "\n\nMuted on this client: no sound, dialog or agent notification will be "
+                    + "raised here. Alerts are still recorded.\n\nRight-click to unmute."
+            : armed + "\n\nRight-click to mute this client.";
     }
 
     // ── My characters online (shown beside the EVE clock) ───────────────────────
@@ -673,6 +681,7 @@ public class MainWindowViewModel : ReactiveObject
         HoboImportService               hoboService,
         EsiPollingService               pollingService,
         WorkerLease                     workerLease,
+        AlarmMuteState                  alarmMute,
         ApiActivityLog                  activityLog,
         MarketPricingService            marketPricing,
         MarketLevelService              marketLevelService,
@@ -762,6 +771,9 @@ public class MainWindowViewModel : ReactiveObject
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
         _ = LoadDbEngineTipAsync();
+
+        _mute            = alarmMute;
+        alarmMute.Changed += OnMuteChanged;
 
         // Who is doing the background work, now and as it changes.
         _workerLease        = workerLease;
@@ -889,7 +901,7 @@ public class MainWindowViewModel : ReactiveObject
         UniverseVm             = new UniverseViewModel(
             universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
-        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
                                                         corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
