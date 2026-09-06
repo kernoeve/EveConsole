@@ -2930,6 +2930,13 @@ public class App : Application
         await timerSettings.LoadAsync();
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
+
+        // ⚠️ Immediately after the preferences load and before anything reads a log directory.
+        // The log setup used to live in the shared preferences; it is now this machine's own, and
+        // a client that has never had one adopts whatever was configured before the change so that
+        // nobody's directories quietly stop being watched.
+        Services.GetRequiredService<MonitoringSettings>().Migrate();
+
         var corpTop10Exclude = Services.GetRequiredService<CorpTop10ExcludeService>();
         await corpTop10Exclude.LoadAsync();
 

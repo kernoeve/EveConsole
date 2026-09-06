@@ -270,6 +270,25 @@ public static class AppConfig
         Save(c);
     }
 
+    // ── This machine's EVE log setup ──────────────────────────────────────────
+    //
+    // ⚠️ Null means "never set here", which is not the same as "set to nothing". The
+    // difference is what lets a client seed itself once from the old shared preference and
+    // never again — see MonitoringSettings. An empty string is a real answer: this machine
+    // watches no directories.
+
+    public static string? GetGameLogDirs() => Load().GameLogDirs;
+    public static string? GetChatLogDirs() => Load().ChatLogDirs;
+
+    public static void SetGameLogDirs(string? dirs) { var c = Load(); c.GameLogDirs = dirs ?? ""; Save(c); }
+    public static void SetChatLogDirs(string? dirs) { var c = Load(); c.ChatLogDirs = dirs ?? ""; Save(c); }
+
+    public static bool? GetGameLogEnabled() => Load().GameLogEnabled;
+    public static bool? GetChatLogEnabled() => Load().ChatLogEnabled;
+
+    public static void SetGameLogEnabled(bool on) { var c = Load(); c.GameLogEnabled = on; Save(c); }
+    public static void SetChatLogEnabled(bool on) { var c = Load(); c.ChatLogEnabled = on; Save(c); }
+
     public static void SetShrinkPending(bool pending)
     {
         var c = Load();
@@ -420,6 +439,19 @@ public static class AppConfig
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
         [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
+
+        // ── This machine's EVE log setup ──────────────────────────────────────
+        //
+        // ⚠️ Local, not in the shared preferences where these used to live. They name
+        // directories on a filesystem, and with several clients on one database no single
+        // list can be right for all of them: a container reading /mnt/xyz/eve cannot be handed
+        // C:\Users\Name\Documents\EVE\logs and asked to make anything of it. The enabled flags
+        // come with them, because "this machine imports logs" is the same kind of fact.
+        [JsonPropertyName("gameLogDirs")]    public string? GameLogDirs    { get; set; }
+        [JsonPropertyName("chatLogDirs")]    public string? ChatLogDirs    { get; set; }
+        [JsonPropertyName("gameLogEnabled")] public bool?   GameLogEnabled { get; set; }
+        [JsonPropertyName("chatLogEnabled")] public bool?   ChatLogEnabled { get; set; }
+
         [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }
