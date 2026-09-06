@@ -34,7 +34,10 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     /// </summary>
     public bool GameLogEnabled
     {
-        get => AppConfig.GetGameLogEnabled() ?? prefs.GetBool(KeyGameLogEnabled, true);
+        // Naming directories in the environment IS the instruction: nobody mounts a log folder
+        // into a container, points the worker at it, and means for it to sit there unread.
+        get => AppConfig.GameLogDirsFromEnv is not null
+            || (AppConfig.GetGameLogEnabled() ?? prefs.GetBool(KeyGameLogEnabled, true));
         set => AppConfig.SetGameLogEnabled(value);
     }
 
@@ -114,7 +117,12 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     /// <summary>OFF by default. Unlike game logs, this stores message content.</summary>
     public bool ChatEnabled
     {
-        get => AppConfig.GetChatLogEnabled() ?? prefs.GetBool(KeyChatEnabled, false);
+        // ⚠️ Naming chat directories in the environment switches import on, and that is safe here
+        // only because "on" has never been enough by itself: nothing is stored until a channel is
+        // explicitly named, and the channel list is shared rather than local. A headless worker
+        // told where the logs are still records nothing until somebody has chosen what to keep.
+        get => AppConfig.ChatLogDirsFromEnv is not null
+            || (AppConfig.GetChatLogEnabled() ?? prefs.GetBool(KeyChatEnabled, false));
         set => AppConfig.SetChatLogEnabled(value);
     }
 

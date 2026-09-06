@@ -277,8 +277,28 @@ public static class AppConfig
     // never again — see MonitoringSettings. An empty string is a real answer: this machine
     // watches no directories.
 
-    public static string? GetGameLogDirs() => Load().GameLogDirs;
-    public static string? GetChatLogDirs() => Load().ChatLogDirs;
+    /// <summary>
+    /// Log directories supplied by the environment, which override config.json entirely.
+    ///
+    /// <para>The same bargain as EVECONSOLE_DB_CONNECTION and for the same reason: a worker in a
+    /// container has no settings window to be configured from, and the one thing it needs told is
+    /// where the logs are mounted. Newline- or semicolon-separated, because a newline is awkward
+    /// to put in a docker-compose value.</para>
+    ///
+    /// <para>⚠️ Env wins over file, never merges — a directory list assembled from two places is
+    /// the kind of configuration that looks right and watches the wrong folder.</para>
+    /// </summary>
+    private static string? EnvDirs(string name)
+    {
+        var v = Environment.GetEnvironmentVariable(name);
+        return string.IsNullOrWhiteSpace(v) ? null : v.Replace(';', '\n');
+    }
+
+    public static string? GameLogDirsFromEnv => EnvDirs("EVECONSOLE_GAMELOG_DIRS");
+    public static string? ChatLogDirsFromEnv => EnvDirs("EVECONSOLE_CHATLOG_DIRS");
+
+    public static string? GetGameLogDirs() => GameLogDirsFromEnv ?? Load().GameLogDirs;
+    public static string? GetChatLogDirs() => ChatLogDirsFromEnv ?? Load().ChatLogDirs;
 
     public static void SetGameLogDirs(string? dirs) { var c = Load(); c.GameLogDirs = dirs ?? ""; Save(c); }
     public static void SetChatLogDirs(string? dirs) { var c = Load(); c.ChatLogDirs = dirs ?? ""; Save(c); }
