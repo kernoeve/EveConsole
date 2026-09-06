@@ -2812,11 +2812,6 @@ public class App : Application
         var corpTop10Exclude = Services.GetRequiredService<CorpTop10ExcludeService>();
         await corpTop10Exclude.LoadAsync();
 
-        // Retention sweep. Started here rather than run once: each rule tracks its own last run in
-        // preferences, so one that came due while the app was closed goes almost immediately, and
-        // one whose day is not up yet waits — including across a session left open for a week.
-        Services.GetRequiredService<DataRetentionService>().Start();
-
         // ── Everything below happens while the splash is still up ──────────────
         //
         // ⚠️ Ordering rewritten deliberately. The window used to be shown here, and the background
@@ -2829,6 +2824,12 @@ public class App : Application
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
 
         p.Report((88, "Starting background services…"));
+        // Serialises the lease transitions below, and remembers which way the last one went.
+        // Declared here rather than beside them because a local has to be assigned before the
+        // call that reaches it, and StartBackgroundServices runs above where it is written.
+        var leaderGate    = new SemaphoreSlim(1, 1);
+        var leaderRunning = false;
+
         StartBackgroundServices();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
@@ -2855,24 +2856,48 @@ public class App : Application
 
         // ── Background services ────────────────────────────────────────────────
         //
+        // Split by who ought to be running them. Anything that writes to the database without a
+        // user asking belongs to the ONE client holding the worker lease. Anything that serves
+        // this window, or reads this machine, belongs to every client.
+        //
         // Each is a loop-starter that returns immediately. Guarded individually: a service that
         // cannot start is a degraded feature, not a reason to leave the user staring at a splash
         // screen that will never go away.
         void StartBackgroundServices()
         {
-            // ⚠️ First, because everything below it will come to depend on it. Today it only
-            // reports who holds the lease; the services are still started unconditionally, which
-            // is correct for now because SingleInstance still admits exactly one client.
-            Start("worker lease",       () => Services.GetRequiredService<WorkerLease>().Start());
-            Start("ESI polling",        () => polling?.Start());
-            Start("market pricing",     () => marketPricing?.Start());
-            Start("market history",     () => marketHistory?.Start());
-            Start("contracts",          () => contracts?.Start());
-            Start("LP store",           () => lpStore?.Start());
+            StartPerClientServices();
+
+            // ⚠️ Subscribed before Start, never after. On SQLite the lease is settled inside
+            // Start — it raises Gained before returning — so a handler added afterwards would
+            // miss the only edge it is ever going to get, and this client would run nothing.
+            var lease = Services.GetRequiredService<WorkerLease>();
+            lease.Gained += () => _ = LeaderTransitionAsync(true);
+            lease.Lost   += () => _ = LeaderTransitionAsync(false);
+
+            Start("worker lease", () => lease.Start());
+        }
+
+        // ── Every client runs these ────────────────────────────────────────────
+        void StartPerClientServices()
+        {
+            // Started early and independently: everything else consults its verdict, and each
+            // client needs its own answer for its own header.
+            Start("server status",      () => Services.GetRequiredService<EveServerStatusService>().Start());
+
+            // ⚠️ Host-bound rather than leader-only. These read EVE's log directories on THIS
+            // machine, which a worker on another host cannot see — a headless worker in a
+            // container would import nothing, and nobody would be told why. MonitoringSettings
+            // does accept a UNC path, so aiming a worker at a share is possible, but local is the
+            // default and the common case.
+            Start("game logs",          () => gameLogs?.Start());
+            Start("chat logs",          () => chatLogs?.Start());
 
             // ⚠️ Force Now on the Timers tab only reset the polling loop's schedule, which does
             // nothing for any of these — each runs on its own timer and never consults it. So each
             // says here how to run itself now, against the same key its row uses.
+            //
+            // Registered in every client rather than only the worker: this is a button a person
+            // presses, and what the lease governs is work nobody asked for.
             Start("force-now hooks", () =>
             {
                 var force = Services.GetRequiredService<TimerForceService>();
@@ -2890,17 +2915,32 @@ public class App : Application
                 if (lpStore is not null)
                     force.Register("lpstore.offers",   ct => lpStore.SweepAsync(ct));
             });
+
+            // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
+            // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
+            // Belongs to whichever process holds the file, which is this one or none.
+            Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
+
+            // Diagnostic only, and the error log is the sole place it reports — so when the switch
+            // is off it is not started at all, which also drops its half-second heartbeat.
+            if (PerfDiagnostics.UiStalls)
+                Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
+        }
+
+        // ── Only the client holding the lease runs these ───────────────────────
+        void StartLeaderServices()
+        {
+            Start("ESI polling",        () => polling?.Start());
+            Start("market pricing",     () => marketPricing?.Start());
+            Start("market history",     () => marketHistory?.Start());
+            Start("contracts",          () => contracts?.Start());
+            Start("LP store",           () => lpStore?.Start());
             Start("database backup",    () => Services.GetRequiredService<DatabaseBackupService>().Start());
-            Start("game logs",          () => gameLogs?.Start());
-            Start("chat logs",          () => chatLogs?.Start());
             Start("zKillboard polling", () => zkbPolling?.Start());
             Start("zKillboard firehose",() => zkbFirehose?.Start());
             Start("zKillboard backfill",() => zkbBackfill?.Start());
             Start("zKillboard posting", () => zkbPost?.Start());
             Start("name backfill",      () => Services.GetRequiredService<EntityNameBackfillService>().Start());
-
-            // Started early and independently: everything else consults its verdict.
-            Start("server status",      () => Services.GetRequiredService<EveServerStatusService>().Start());
 
             // Map statistics for the Universe tool. Both loops write rows keyed by CCP's hour
             // bucket, so the archive catch-up and the live poller cannot collide even when they
@@ -2908,7 +2948,6 @@ public class App : Application
             Start("map stats backfill", () => Services.GetRequiredService<MapStatsBackfillService>().Start());
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
 
-            // Cheap when idle: the loop only touches the database for alarms whose interval is up.
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
@@ -2916,26 +2955,95 @@ public class App : Application
             // and has been switched on, and never replies to mail older than that moment.
             Start("store mail",         () => Services.GetRequiredService<StoreMailService>().Start());
 
+            // Cheap when idle: the loop only touches the database for alarms whose interval is up.
+            //
+            // ⚠️ Leader-only even though alarms are user-facing. Both readers show alerts from
+            // their own rows without joining to an alarm, so a client that is not the worker still
+            // displays everything the worker raises — while each condition is evaluated once, in
+            // one place, instead of once per open window.
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
-            // Anything scheduled that came due while the app was closed fires on this first
+            // Anything scheduled that came due while no client was the worker fires on this first
             // pass, which is why it starts here rather than waiting for the tool to be opened.
             Start("scheduler",          () => Services.GetRequiredService<SchedulerService>().Start());
 
-            // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
-            // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
-            Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
+            // Each rule tracks its own last run in preferences, so one that came due while nothing
+            // held the lease goes almost immediately, and one whose day is not up waits.
+            Start("retention sweep",    () => Services.GetRequiredService<DataRetentionService>().Start());
+        }
 
-            // Diagnostic only, and the error log is the sole place it reports — so when the switch
-            // is off it is not started at all, which also drops its half-second heartbeat.
-            if (PerfDiagnostics.UiStalls)
-                Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
-
-            void Start(string name, Action start)
+        async Task StopLeaderServicesAsync()
+        {
+            // Each guarded on its own rather than through the aggregate WhenAll would throw: a
+            // service that will not stop must not keep the others running, because whatever
+            // happens here this client has already stopped being the worker.
+            //
+            // ⚠️ Takes the service, not its StopAsync. A method group cannot be null-conditioned,
+            // and the optional ones genuinely are null when their feature is switched off.
+            async Task Halt<T>(string name, T? svc, Func<T, Task> stop) where T : class
             {
-                try { start(); }
-                catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
+                if (svc is null) return;
+                try { await stop(svc); }
+                catch (Exception ex) { errorLogger.Log("WorkerLease", $"stopping {name}", ex); }
             }
+
+            Task Sync(string name, Action stop)
+            {
+                try { stop(); }
+                catch (Exception ex) { errorLogger.Log("WorkerLease", $"stopping {name}", ex); }
+                return Task.CompletedTask;
+            }
+
+            await Task.WhenAll(
+                Halt("ESI polling",         polling,       s => s.StopAsync()),
+                Halt("market pricing",      marketPricing, s => s.StopAsync()),
+                Halt("market history",      marketHistory, s => s.StopAsync()),
+                Halt("contracts",           contracts,     s => s.StopAsync()),
+                Halt("LP store",            lpStore,       s => s.StopAsync()),
+                Halt("zKillboard polling",  zkbPolling,    s => s.StopAsync()),
+                Halt("zKillboard firehose", zkbFirehose,   s => s.StopAsync()),
+                Halt("zKillboard backfill", zkbBackfill,   s => s.StopAsync()),
+                Halt("zKillboard posting",  zkbPost,       s => s.StopAsync()),
+
+                Halt("database backup",     Services.GetRequiredService<DatabaseBackupService>(),     s => s.StopAsync()),
+                Halt("name backfill",       Services.GetRequiredService<EntityNameBackfillService>(), s => s.StopAsync()),
+                Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
+                Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
+                Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
+                Halt("alarms",              Services.GetRequiredService<AlarmService>(),              s => s.StopAsync()),
+                Halt("retention sweep",     Services.GetRequiredService<DataRetentionService>(),      s => s.StopAsync()),
+
+                Sync("map stats backfill",  () => Services.GetRequiredService<MapStatsBackfillService>().Stop()),
+                Sync("scheduler",           () => Services.GetRequiredService<SchedulerService>().Stop()));
+        }
+
+        // ⚠️ Serialised, and idempotent. Gained and Lost arrive from the lease's own loop, and a
+        // lost-then-regained pair a tick apart would otherwise have one transition's stops racing
+        // the next one's starts — leaving services stopped that ought to be running, with nothing
+        // on screen to say so. The state check makes a repeated edge free rather than something
+        // that starts a second copy of everything.
+        async Task LeaderTransitionAsync(bool hold)
+        {
+            await leaderGate.WaitAsync();
+            try
+            {
+                if (hold == leaderRunning) return;
+                leaderRunning = hold;
+
+                if (hold) StartLeaderServices();
+                else      await StopLeaderServicesAsync();
+            }
+            catch (Exception ex)
+            {
+                errorLogger.Log("WorkerLease", hold ? "starting background work" : "stopping background work", ex);
+            }
+            finally { leaderGate.Release(); }
+        }
+
+        void Start(string name, Action start)
+        {
+            try { start(); }
+            catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
         }
     }
 
