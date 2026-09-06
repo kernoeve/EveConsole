@@ -474,7 +474,7 @@ public class OrderTrackerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("OrderTrackerViewModel", "Load", ex);
-            StatusText = "Error loading orders.";
+            StatusText = AppErrorLogger.Line("Error loading orders", ex);
         }
         finally { _loading = false; }
     }
@@ -610,7 +610,7 @@ public class OrderTrackerViewModel : ReactiveObject
 
             await LoadAsync();
         }
-        catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Add", ex); StatusText = "Error adding order."; }
+        catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Add", ex); StatusText = AppErrorLogger.Line("Error adding order", ex); }
     }
 
     private async Task EditAsync()
@@ -654,7 +654,7 @@ public class OrderTrackerViewModel : ReactiveObject
 
             await LoadAsync();
         }
-        catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Edit", ex); StatusText = "Error saving order."; }
+        catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Edit", ex); StatusText = AppErrorLogger.Line("Error saving order", ex); }
     }
 
 
@@ -680,7 +680,7 @@ public class OrderTrackerViewModel : ReactiveObject
             if (o is not null) { db.TrackedOrders.Remove(o); await db.SaveChangesAsync(); }
             await LoadAsync();
         }
-        catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Delete", ex); StatusText = "Error deleting order."; }
+        catch (Exception ex) { _errorLogger.Log("OrderTrackerViewModel", "Delete", ex); StatusText = AppErrorLogger.Line("Error deleting order", ex); }
     }
 
     // Type search for the add/edit dialog.

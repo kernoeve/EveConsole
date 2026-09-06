@@ -87,7 +87,7 @@ public class ContractItemRowVm
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
         KindColor = it.IsIncluded ? "#5cb85c" : "#d9877a";
-        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"Type {it.TypeId}";
+        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
         Quantity  = it.Quantity.ToString("N0");
 
@@ -340,7 +340,7 @@ public class ContractRowVm
         SearchText = string.Join(" ",
             new[] { c.Title ?? "" }.Concat(items.Select(Name))).ToLowerInvariant();
 
-        string Name(ContractItem i) => typeNames.TryGetValue(i.TypeId, out var n) ? n : $"Type {i.TypeId}";
+        string Name(ContractItem i) => typeNames.TryGetValue(i.TypeId, out var n) ? n : $"\"Type\" {i.TypeId}";
     }
 }
 
@@ -557,8 +557,8 @@ public class ContractNameResolver
                 foreach (var f in fresh.GroupBy(x => x.EntityId).Select(g => g.First()))
                     await db.Database.ExecuteSqlInterpolatedAsync(
                         $"""
-                         INSERT OR IGNORE INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
-                         VALUES ({f.EntityId}, {f.Name}, {f.Category}, {DateTimeOffset.UtcNow:o})
+                         INSERT INTO "UniverseNames" ("EntityId", "Name", "Category", "PulledAt")
+                         VALUES ({f.EntityId}, {f.Name}, {f.Category}, {DateTimeOffset.UtcNow:o}) ON CONFLICT DO NOTHING
                          """);
             }
             catch (Exception ex) { _errorLogger.Log("ContractNameResolver", "PersistMoons", ex); }
@@ -777,7 +777,7 @@ public class OwnedContractsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("OwnedContractsViewModel", "LoadAsync", ex);
-            StatusText = "Error loading contracts.";
+            StatusText = AppErrorLogger.Line("Error loading contracts", ex);
         }
         finally { IsLoading = false; }
     }
@@ -864,20 +864,20 @@ public class PublicContractsViewModel : ReactiveObject
     // Matches the Contents column: the title if any, else the first item's type name (included
     // items first, then by record). The subquery is a PK-indexed seek per row, so it's cheap.
     private const string ContentsSortExpr =
-        "COALESCE(NULLIF(TRIM(c.Title), ''), " +
-        "(SELECT t.Name FROM EsiContractItems i JOIN SdeTypes t ON t.TypeId = i.TypeId " +
-        "WHERE i.ContractId = c.ContractId ORDER BY i.IsIncluded DESC, i.RecordId LIMIT 1), '')";
+        "COALESCE(NULLIF(TRIM(c.\"Title\"), ''), " +
+        "(SELECT t.\"Name\" FROM \"EsiContractItems\" i JOIN \"SdeTypes\" t ON t.\"TypeId\" = i.\"TypeId\" " +
+        "WHERE i.\"ContractId\" = c.\"ContractId\" ORDER BY i.\"IsIncluded\" DESC, i.\"RecordId\" LIMIT 1), '')";
 
     // Sort is server-side (whole table), driven by this combo — the grid's own column sort would
     // only reorder the current page, which is the confusing behaviour we're replacing.
     public IReadOnlyList<ContractSortOption> SortOptions { get; } =
     [
-        new("Price: low → high",  "CAST(c.Price AS REAL) ASC, c.ContractId DESC"),
-        new("Price: high → low",  "CAST(c.Price AS REAL) DESC, c.ContractId DESC"),
-        new("Newest first",       "c.DateIssued DESC"),
-        new("Oldest first",       "c.DateIssued ASC"),
-        new("Reward: high → low", "CAST(c.Reward AS REAL) DESC, c.ContractId DESC"),
-        new("Volume: high → low", "CAST(c.Volume AS REAL) DESC, c.ContractId DESC"),
+        new("Price: low → high",  "CAST(c.\"Price\" AS DOUBLE PRECISION) ASC, c.\"ContractId\" DESC"),
+        new("Price: high → low",  "CAST(c.\"Price\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
+        new("Newest first",       "c.\"DateIssued\" DESC"),
+        new("Oldest first",       "c.\"DateIssued\" ASC"),
+        new("Reward: high → low", "CAST(c.\"Reward\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
+        new("Volume: high → low", "CAST(c.\"Volume\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
         new("Contents (A → Z)",   ContentsSortExpr + " ASC, c.ContractId DESC"),
     ];
 
@@ -1072,7 +1072,7 @@ public class PublicContractsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("PublicContractsViewModel", "InitAsync", ex);
-            StatusText = "Error initialising public contracts.";
+            StatusText = AppErrorLogger.Line("Error initialising public contracts", ex);
         }
     }
 
@@ -1081,12 +1081,12 @@ public class PublicContractsViewModel : ReactiveObject
     // list of the selected root's descendant market-group ids, inlined as safe integer literals.
     private (string Where, object[] Parameters) BuildFilter()
     {
-        var parts = new List<string> { "c.OwnerType = 'public'" };
+        var parts = new List<string> { "c.\"OwnerType\" = 'public'" };
         var ps    = new List<object>();
 
         if (_selectedRegion?.RegionId is int rid)
         {
-            parts.Add($"c.RegionId = {{{ps.Count}}}");
+            parts.Add($"c.\"RegionId\" = {{{ps.Count}}}");
             ps.Add(rid);
         }
 
@@ -1099,28 +1099,30 @@ public class PublicContractsViewModel : ReactiveObject
         };
         if (contractType is not null)
         {
-            parts.Add($"c.Type = {{{ps.Count}}}");
+            parts.Add($"c.\"Type\" = {{{ps.Count}}}");
             ps.Add(contractType);
         }
 
-        var now = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.FFFFFFFzzz",
-                                                 System.Globalization.CultureInfo.InvariantCulture);
+        // A real date, not a string formatted the way SQLite happens to store one. Postgres has a
+        // real timestamptz column and refuses "timestamp with time zone > text"; SQLite binds a
+        // DateTimeOffset to exactly this format anyway, so both get what they expect.
+        var now = DateTimeOffset.UtcNow;
         if (_selectedStatus == "Active")
         {
-            parts.Add($"c.Status = 'outstanding' AND (c.DateExpired IS NULL OR c.DateExpired > {{{ps.Count}}})");
+            parts.Add($"c.\"Status\" = 'outstanding' AND (c.\"DateExpired\" IS NULL OR c.\"DateExpired\" > {{{ps.Count}}})");
             ps.Add(now);
         }
         else if (_selectedStatus == "Historical")
         {
-            parts.Add($"NOT (c.Status = 'outstanding' AND (c.DateExpired IS NULL OR c.DateExpired > {{{ps.Count}}}))");
+            parts.Add($"NOT (c.\"Status\" = 'outstanding' AND (c.\"DateExpired\" IS NULL OR c.\"DateExpired\" > {{{ps.Count}}}))");
             ps.Add(now);
         }
 
         var typeF = _typeFilter.Trim();
         if (typeF.Length > 0)
         {
-            parts.Add($"EXISTS (SELECT 1 FROM EsiContractItems i JOIN SdeTypes t ON t.TypeId = i.TypeId "
-                    + $"WHERE i.ContractId = c.ContractId AND t.Name LIKE {{{ps.Count}}})");
+            parts.Add($"EXISTS (SELECT 1 FROM \"EsiContractItems\" i JOIN \"SdeTypes\" t ON t.\"TypeId\" = i.\"TypeId\" "
+                    + $"WHERE i.\"ContractId\" = c.\"ContractId\" AND t.\"Name\" LIKE {{{ps.Count}}})");
             ps.Add($"%{typeF}%");
         }
 
@@ -1129,8 +1131,8 @@ public class PublicContractsViewModel : ReactiveObject
         {
             var ids = DescendantGroupIds(rootId);
             if (ids.Count > 0)
-                parts.Add($"EXISTS (SELECT 1 FROM EsiContractItems i JOIN SdeTypes t ON t.TypeId = i.TypeId "
-                        + $"WHERE i.ContractId = c.ContractId AND t.MarketGroupId IN ({string.Join(",", ids)}))");
+                parts.Add($"EXISTS (SELECT 1 FROM \"EsiContractItems\" i JOIN \"SdeTypes\" t ON t.\"TypeId\" = i.\"TypeId\" "
+                        + $"WHERE i.\"ContractId\" = c.\"ContractId\" AND t.\"MarketGroupId\" IN ({string.Join(",", ids)}))");
         }
 
         return (string.Join(" AND ", parts), ps.ToArray());
@@ -1168,7 +1170,7 @@ public class PublicContractsViewModel : ReactiveObject
 #pragma warning disable EF1002
             // Count of the WHOLE filtered set (no ORDER BY/LIMIT so EF can wrap it in COUNT).
             int total = await db.EsiContracts
-                .FromSqlRaw($"SELECT * FROM EsiContracts AS c WHERE {where}", ps)
+                .FromSqlRaw($"SELECT * FROM \"EsiContracts\" AS c WHERE {where}", ps)
                 .AsNoTracking().CountAsync();
             TotalCount = total;
 
@@ -1180,7 +1182,7 @@ public class PublicContractsViewModel : ReactiveObject
             var contracts = total == 0
                 ? new List<ContractRecord>()
                 : await db.EsiContracts.FromSqlRaw(
-                        $"SELECT * FROM EsiContracts AS c WHERE {where} " +
+                        $"SELECT * FROM \"EsiContracts\" AS c WHERE {where} " +
                         $"ORDER BY {_selectedSort.Sql} LIMIT {PageSize} OFFSET {offset}", ps)
                     .AsNoTracking().ToListAsync();
 #pragma warning restore EF1002
@@ -1222,7 +1224,7 @@ public class PublicContractsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("PublicContractsViewModel", "ReloadPageAsync", ex);
-            StatusText = "Error loading public contracts.";
+            StatusText = AppErrorLogger.Line("Error loading public contracts", ex);
         }
         finally { IsLoading = false; }
     }

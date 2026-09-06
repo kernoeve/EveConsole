@@ -140,7 +140,7 @@ public class ChatLogViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(ChatLogViewerViewModel), "LoadChannels", ex);
-            ChannelStatus = "Error loading channels.";
+            ChannelStatus = AppErrorLogger.Line("Error loading channels", ex);
         }
         finally { _isLoadingChannels = false; }
     }
@@ -208,7 +208,7 @@ public class ChatLogViewerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(ChatLogViewerViewModel), "LoadMessages", ex);
-            StatusText = "Error loading messages.";
+            StatusText = AppErrorLogger.Line("Error loading messages", ex);
         }
         finally { _isLoadingMessages = false; }
     }

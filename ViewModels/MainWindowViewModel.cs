@@ -21,6 +21,63 @@ public class MainWindowViewModel : ReactiveObject
     public CharacterViewModel             CharacterVm            { get; }
     public SdeViewModel                   SdeVm                  { get; }
     public UpdateViewModel                UpdateVm               { get; }
+
+    // ── Which database this window is talking to ──────────────────────────────
+
+    /// <summary>"PostgreSQL" or "SQLite", for the title bar.</summary>
+    public string DbEngineLabel => DbEngine.DisplayName;
+
+    /// <summary>Drives the icon's colour, so the two are told apart before the word is read.</summary>
+    public bool DbIsPostgres => DbEngine.IsPostgres;
+
+    private string _dbEngineTip = "";
+    /// <summary>
+    /// Where the data actually lives, on hover.
+    ///
+    /// <para>⚠️ Filled once, in the background, and not recomputed. The SQLite figure is a file
+    /// length and the PostgreSQL one is a single pg_database_size call, so neither is expensive —
+    /// but a tooltip is no reason to touch the database every time a pointer crosses it, and a
+    /// size that is minutes old answers the question just as well.</para>
+    /// </summary>
+    public string DbEngineTip
+    {
+        get => _dbEngineTip;
+        private set => this.RaiseAndSetIfChanged(ref _dbEngineTip, value);
+    }
+
+    private async Task LoadDbEngineTipAsync()
+    {
+        try
+        {
+            if (DbEngine.IsPostgres)
+            {
+                var cs = AppConfig.GetPostgresConnection() ?? "";
+                var b  = new Npgsql.NpgsqlConnectionStringBuilder(cs);
+
+                await using var conn = new Npgsql.NpgsqlConnection(AppDb.PostgresConnectionString(cs));
+                await conn.OpenAsync();
+                await using var cmd = new Npgsql.NpgsqlCommand(
+                    "SELECT pg_size_pretty(pg_database_size(current_database()))", conn);
+                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? "unknown";
+
+                DbEngineTip = $"PostgreSQL on {b.Host}\nDatabase: {b.Database}\nSize: {size}";
+            }
+            else
+            {
+                var path = AppConfig.GetDbPath();
+                var size = File.Exists(path)
+                    ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
+                    : "file not found";
+                DbEngineTip = $"SQLite\n{path}\nSize: {size}";
+            }
+        }
+        catch (Exception ex)
+        {
+            // The label still names the engine; only the detail is missing.
+            DbEngineTip = $"{DbEngine.DisplayName} — could not read details: "
+                        + ex.Message.Split('\n')[0];
+        }
+    }
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
@@ -554,6 +611,9 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
+
+        // Not awaited: the engine name is right immediately, and only the hover detail is late.
+        _ = LoadDbEngineTipAsync();
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
                                                      intelService, monitoringSettings, entityNames, alarmService, orderFulfilment, lpStoreService);
@@ -572,7 +632,7 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);

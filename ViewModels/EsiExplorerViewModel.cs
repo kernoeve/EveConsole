@@ -1,7 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Data.Common;
+using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -57,8 +59,8 @@ public class EsiExplorerViewModel : ReactiveObject
 
     public List<TableEntry> AllTables { get; } = [
         new("Wallet Balances",     "EsiWalletBalances"),
-        new("Wallet Journal",      "EsiWalletJournal",      "Date DESC"),
-        new("Wallet Transactions", "EsiWalletTransactions", "Date DESC"),
+        new("Wallet Journal",      "EsiWalletJournal",      "\"Date\" DESC"),
+        new("Wallet Transactions", "EsiWalletTransactions", "\"Date\" DESC"),
         new("Skills",              "EsiSkills"),
         new("Skill Queue",         "EsiSkillQueue",         "QueuePosition"),
         new("Attributes",          "EsiCharacterAttributes"),
@@ -69,14 +71,14 @@ public class EsiExplorerViewModel : ReactiveObject
         new("Implants",            "EsiImplants"),
         new("Assets",              "EsiAssets"),
         new("Blueprints",          "EsiBlueprints"),
-        new("Industry Jobs",       "EsiIndustryJobs",       "StartDate DESC"),
-        new("Market Orders",       "EsiMarketOrders",       "Issued DESC"),
-        new("Contracts",           "EsiContracts",          "DateIssued DESC"),
+        new("Industry Jobs",       "EsiIndustryJobs",       "\"StartDate\" DESC"),
+        new("Market Orders",       "EsiMarketOrders",       "\"Issued\" DESC"),
+        new("Contracts",           "EsiContracts",          "\"DateIssued\" DESC"),
         new("Contacts",            "EsiContacts"),
         new("Kill Mails",          "EsiKillMailRefs"),
         new("Standings",           "EsiStandings"),
-        new("Mining",              "EsiMining",             "Date DESC"),
-        new("Notifications",       "EsiNotifications",      "Timestamp DESC"),
+        new("Mining",              "EsiMining",             "\"Date\" DESC"),
+        new("Notifications",       "EsiNotifications",      "\"Timestamp\" DESC"),
         new("Planetary Colonies",  "EsiPlanetaryColonies"),
         new("Agent Research",      "EsiAgentResearch"),
         new("Loyalty Points",      "EsiLoyaltyPoints"),
@@ -93,7 +95,7 @@ public class EsiExplorerViewModel : ReactiveObject
         new("Corp Structures",     "EsiCorpStructures"),
         new("Corp Starbases",      "EsiCorpStarbases"),
         new("Corp Facilities",     "EsiCorpFacilities"),
-        new("API Call Records",    "EsiCallRecords",        "LastCalledAt DESC"),
+        new("API Call Records",    "EsiCallRecords",        "\"LastCalledAt\" DESC"),
     ];
 
     // ── Reactive state ───────────────────────────────────────────────────────
@@ -206,13 +208,13 @@ public class EsiExplorerViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
 
             int total;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"""SELECT COUNT(*) FROM "{entry.SqlTable}" {BuildWhere()}""";
+                cmd.CommandText = AppDb.CaseInsensitiveLike($"""SELECT COUNT(*) FROM "{entry.SqlTable}" {BuildWhere()}""");
                 AddFilterParams(cmd);
                 total = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
             }
@@ -234,13 +236,13 @@ public class EsiExplorerViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
 
             int total;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"""SELECT COUNT(*) FROM "{_currentEntry.SqlTable}" {BuildWhere()}""";
+                cmd.CommandText = AppDb.CaseInsensitiveLike($"""SELECT COUNT(*) FROM "{_currentEntry.SqlTable}" {BuildWhere()}""");
                 AddFilterParams(cmd);
                 total = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
             }
@@ -251,18 +253,17 @@ public class EsiExplorerViewModel : ReactiveObject
         catch (Exception ex) { StatusText = $"Error: {ex.Message}"; }
     }
 
-    private async Task AppendPageAsync(SqliteConnection conn, TableEntry entry, int total, CancellationToken ct)
+    private async Task AppendPageAsync(DbConnection conn, TableEntry entry, int total, CancellationToken ct)
     {
         var where = BuildWhere();
         var order = _sortColumn is not null
             ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
             : entry.OrderBy is not null ? $"ORDER BY {entry.OrderBy}" : "";
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"""
+        using var cmd = conn.Command($"""
             SELECT * FROM "{entry.SqlTable}" {where} {order}
             LIMIT {PageSize} OFFSET {_offset}
-            """;
+            """);
         AddFilterParams(cmd);
 
         using var reader = await cmd.ExecuteReaderAsync(ct);
@@ -307,13 +308,13 @@ public class EsiExplorerViewModel : ReactiveObject
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
-    private void AddFilterParams(SqliteCommand cmd)
+    private void AddFilterParams(DbCommand cmd)
     {
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
             var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.Parameters.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", val);
         }
     }
 }

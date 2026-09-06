@@ -719,6 +719,7 @@ public class StoresViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(StoresViewModel), nameof(LoadSelectedAsync), ex);
+            Status = AppErrorLogger.Line("Error loading the selected store", ex);
         }
     }
 

@@ -291,8 +291,11 @@ public class DataRetentionService
     /// stored offsets are uniformly +00:00. A mixed-offset column could not be compared this way.
     /// </para>
     /// </summary>
-    private static string TimestampCutoff(int days)
-        => DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+    // ⚠️ The value, not a rendering of it. These columns are real DateTimeOffsets, which are
+    // TEXT on SQLite but timestamptz on a server, where text will not compare against one.
+    // IsoCutoff below is deliberately still a string: the columns IT serves really are text.
+    private static DateTimeOffset TimestampCutoff(int days)
+        => DateTimeOffset.UtcNow.AddDays(-days);
 
     /// <summary>
     /// A cutoff for the app's own ISO-8601 string columns — ChatMessage and GameLogEvent store

@@ -446,16 +446,16 @@ public class MarketPricingService
         // and holds the write lock for the duration. The insert beside it was already careful; the
         // delete in front of it undid the benefit.
         //
-        // Raw SQL with a rowid subquery rather than Take(): LIMIT inside ExecuteDelete is not
-        // something to find out about at runtime, and this is exactly what SQLite wants anyway.
+        // Raw SQL with a row-address subquery rather than Take(): LIMIT inside ExecuteDelete is
+        // not something to find out about at runtime.
         // ConfigId leads IX_MarketRawOrders_TypeId, so each pass is an index scan, not a table one.
         const int deleteBatch = 20_000;
         while (true)
         {
             var removed = await db.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM "MarketRawOrders" WHERE rowid IN (
-                    SELECT rowid FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
+                $$"""
+                DELETE FROM "MarketRawOrders" WHERE {{AppDb.RowId}} IN (
+                    SELECT {{AppDb.RowId}} FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
 
@@ -558,9 +558,9 @@ public class MarketPricingService
         while (true)
         {
             var removed = await db.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM "MarketItemPrices" WHERE rowid IN (
-                    SELECT rowid FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
+                $$"""
+                DELETE FROM "MarketItemPrices" WHERE {{AppDb.RowId}} IN (
+                    SELECT {{AppDb.RowId}} FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
 
@@ -651,19 +651,22 @@ public class MarketPricingService
         // Build cost × markup is the initial price; types with no build cost get 0.
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
-            INSERT INTO MarketItemPrices (ConfigId, TypeId, BuyPrice, SellPrice, Midpoint, FetchedAt, FromMarketData)
-            SELECT {configId}, t.TypeId,
-                COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
-                COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
-                COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
+            INSERT INTO "MarketItemPrices" ("ConfigId", "TypeId", "BuyPrice", "SellPrice", "Midpoint", "FetchedAt", "FromMarketData")
+            SELECT {configId}, t."TypeId",
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
                 {fetched},
-                0
-            FROM SdeTypes t
-            LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId AND bc.Bought = 0
-            WHERE t.Published = 1
+                -- ⚠️ FALSE, not 0. FromMarketData is a real boolean on PostgreSQL and an
+                -- integer only on SQLite, which accepts either spelling; this is the one both
+                -- understand. These rows are build-cost estimates, never market-backed.
+                FALSE
+            FROM "SdeTypes" t
+            LEFT JOIN "BuildCosts" bc ON bc."TypeId" = t."TypeId" AND bc."Bought" = FALSE
+            WHERE t."Published" = TRUE
               AND NOT EXISTS (
-                  SELECT 1 FROM MarketItemPrices p
-                  WHERE p.ConfigId = {configId} AND p.TypeId = t.TypeId
+                  SELECT 1 FROM "MarketItemPrices" p
+                  WHERE p."ConfigId" = {configId} AND p."TypeId" = t."TypeId"
               )
             """, ct);
 
@@ -674,26 +677,26 @@ public class MarketPricingService
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
             WITH costs AS (
-                SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
-                FROM BuildCosts
-                WHERE Bought = 0
+                SELECT "TypeId", CAST("TotalCost" AS DOUBLE PRECISION) * {markup} AS EffSell
+                FROM "BuildCosts"
+                WHERE "Bought" = FALSE
             )
-            UPDATE MarketItemPrices
-            SET SellPrice = COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0),
-                BuyPrice  = CASE
-                    WHEN MarketItemPrices.BuyPrice > 0 THEN MarketItemPrices.BuyPrice
-                    ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0)
+            UPDATE "MarketItemPrices"
+            SET "SellPrice" = COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0),
+                "BuyPrice"  = CASE
+                    WHEN "MarketItemPrices"."BuyPrice" > 0 THEN "MarketItemPrices"."BuyPrice"
+                    ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0)
                     END,
-                Midpoint  = (
+                "Midpoint"  = (
                     CASE
-                        WHEN MarketItemPrices.BuyPrice > 0 THEN MarketItemPrices.BuyPrice
-                        ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0)
+                        WHEN "MarketItemPrices"."BuyPrice" > 0 THEN "MarketItemPrices"."BuyPrice"
+                        ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0)
                     END
-                    + COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0)
+                    + COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0)
                 ) / 2.0,
-                FetchedAt = {fetched}
-            WHERE ConfigId = {configId}
-              AND SellPrice = 0
+                "FetchedAt" = {fetched}
+            WHERE "ConfigId" = {configId}
+              AND "SellPrice" = 0
             """, ct);
 
         // Step 3 — refresh stale build-cost-derived rows. Only rows with FromMarketData = 0
@@ -703,20 +706,20 @@ public class MarketPricingService
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
             WITH costs AS (
-                SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
-                FROM BuildCosts
-                WHERE Bought = 0
+                SELECT "TypeId", CAST("TotalCost" AS DOUBLE PRECISION) * {markup} AS EffSell
+                FROM "BuildCosts"
+                WHERE "Bought" = FALSE
             )
-            UPDATE MarketItemPrices
-            SET SellPrice = c.EffSell,
-                BuyPrice  = c.EffSell,
-                Midpoint  = c.EffSell,
-                FetchedAt = {fetched}
+            UPDATE "MarketItemPrices"
+            SET "SellPrice" = c.EffSell,
+                "BuyPrice"  = c.EffSell,
+                "Midpoint"  = c.EffSell,
+                "FetchedAt" = {fetched}
             FROM costs c
-            WHERE MarketItemPrices.ConfigId      = {configId}
-              AND MarketItemPrices.TypeId         = c.TypeId
-              AND MarketItemPrices.FromMarketData = 0
-              AND MarketItemPrices.SellPrice     != c.EffSell
+            WHERE "MarketItemPrices"."ConfigId"      = {configId}
+              AND "MarketItemPrices"."TypeId"         = c."TypeId"
+              AND "MarketItemPrices"."FromMarketData" = FALSE
+              AND "MarketItemPrices"."SellPrice"     != c.EffSell
             """, ct);
 
         // Step 4 — price anything that sells on contracts rather than the market from contract

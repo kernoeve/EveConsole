@@ -718,6 +718,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public bool AutoRefreshEnabled { get; set; }
 
     private readonly CorpActivityService     _service;
+    private readonly AppErrorLogger?     _errorLogger;
     private readonly CorpTop10ExcludeService _excludeSvc;
     private readonly CorpReportTitles         _titles;
     private CancellationTokenSource          _top10Cts = new();
@@ -1301,13 +1302,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                                  CorpTop10ExcludeService? excludeSvc = null,
                                  CorpReportTitles? titles = null,
                                  SlackService? slack = null,
-                                 ExportFormatSettings? exportFormat = null)
+                                 ExportFormatSettings? exportFormat = null,
+                                 AppErrorLogger? errorLogger = null)
     {
         _service      = service;
         _excludeSvc   = excludeSvc!;
         _titles       = titles!;
         _slack        = slack;
         _exportFormat = exportFormat;
+
+        // ⚠️ Added because this view model had none. Fifteen of its catch blocks traced to
+        // Debug.WriteLine, which reaches nobody outside a debugger, so every failure on this
+        // screen was invisible in the error log as well as on the screen itself.
+        _errorLogger  = errorLogger;
         Corps         = corps;
 
         // Restored before any dropdown binds, so the saved choice is what the user sees.
@@ -1496,6 +1503,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (IsLoading || SelectedCorp is null) return;
         IsLoading = true;
+        _stepFailures.Clear();
         var corpId     = (long)SelectedCorp.Id;
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
@@ -1517,7 +1525,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             await RunStep("expense by type", () => LoadExpenseByTypeAsync(corpId, ct));
             await RunStep("24h activity",    () => Load24hActivityAsync(corpId, ct));
 
-            Status = $"Loaded — {SelectedCorp.Name}";
+            Status = LoadedStatus(SelectedCorp.Name);
         }
         finally
         {
@@ -1530,6 +1538,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (IsLoading || SelectedCorp is null) return;
         IsLoading = true;
+        _stepFailures.Clear();
         var corpId     = (long)SelectedCorp.Id;
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
@@ -1545,12 +1554,37 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             await RunStep("mining",  () => LoadMiningLedgerAsync(corpId, ct));
             await RunStep("24h activity", () => Load24hActivityAsync(corpId, ct));
 
-            Status = $"Loaded — {SelectedCorp.Name}";
+            Status = LoadedStatus(SelectedCorp.Name);
         }
         finally
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Which steps failed during the current load.
+    ///
+    /// <para>⚠️ Collected rather than only announced. Each step set Status on its way past, and
+    /// the line after the last step set it to "Loaded — &lt;corp&gt;" unconditionally, so a failed
+    /// tab ended up with an empty grid beneath a status line saying everything had loaded. That
+    /// is what made a broken mining query read as a configuration problem.</para>
+    /// </summary>
+    private readonly List<string> _stepFailures = [];
+
+    /// <summary>
+    /// A sub-step that failed inside a step, recorded so the closing status still knows.
+    ///
+    /// <para>⚠️ The tabs that load several lists — Top 10, the 24-hour summary — catch around
+    /// each one so a single failure does not take the others with it. Sound, except that
+    /// swallowing it also hides it from RunStep, which then sees the step succeed and lets the
+    /// status say "Loaded" above an empty list. Logging alone was not enough: it put the reason
+    /// somewhere, and left the screen claiming everything was fine.</para>
+    /// </summary>
+    private void StepFailed(string what, Exception ex)
+    {
+        _errorLogger?.Log("CorpActivityViewModel", what, ex);
+        _stepFailures.Add(what);
     }
 
     private async Task RunStep(string name, Func<Task> step)
@@ -1562,10 +1596,18 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] {name} step failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", $"{name} step", ex);
+            _stepFailures.Add(name);
             Status = $"Warning: {name} failed — {ex.Message}";
         }
     }
+
+    /// <summary>The closing status, which has to survive the steps that went wrong.</summary>
+    private string LoadedStatus(string corpName) =>
+        _stepFailures.Count == 0
+            ? $"Loaded — {corpName}"
+            : $"Loaded — {corpName}, but {string.Join(", ", _stepFailures)} failed. "
+              + "See the Error Log for the reason.";
 
     private async Task ReloadTabSafeAsync(string name, Func<Task> load)
     {
@@ -1577,7 +1619,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] period reload {name} failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", $"period reload {name}", ex);
             Status = $"Warning: {name} reload failed — {ex.Message}";
         }
     }
@@ -1783,7 +1825,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         catch (OperationCanceledException) { /* month switched again — discard */ }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] Monthly summary failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", "Monthly summary", ex);
             SummaryLines.Clear();
         }
         finally { IsSummaryLoading = false; }
@@ -1957,7 +1999,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         catch (OperationCanceledException) { /* user switched month again — discard */ }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] Top 10 switch failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", "Top 10 switch", ex);
         }
         finally
         {
@@ -1975,19 +2017,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
         try { rattingRows  = await _service.GetTopRattersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] ratters failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 ratters", ex); }
 
         try { industryRows = await _service.GetTopIndustryAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] industry failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 industry", ex); }
 
         try { killerRows   = await _service.GetTopKillersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] killers failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 killers", ex); }
 
         try { minerRows    = await _service.GetTopMinersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] miners failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 miners", ex); }
 
         try { contribRows  = await _service.GetTopProjectContributorsAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] contributors failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 contributors", ex); }
 
         var walletIds  = rattingRows.Concat(industryRows).Concat(killerRows)
                                     .Select(r => r.CharacterId);
@@ -2221,19 +2263,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<Activity24hKillRow>   kills    = [];
 
         try { summary  = await _service.Get24hSummaryAsync(corpId, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] summary failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h summary", ex); }
 
         try { ratters  = await _service.Get24hTopRattersAsync(corpId,  excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] ratters failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h ratters", ex); }
 
         try { industry = await _service.Get24hTopIndustryAsync(corpId, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] industry failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h industry", ex); }
 
         try { miners   = await _service.Get24hTopMinersAsync(corpId,   excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] miners failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h miners", ex); }
 
         try { kills    = await _service.Get24hKillsAsync(corpId, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] kills failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h kills", ex); }
 
         Activity24hPlayerCountText = summary.PlayerCount.ToString("N0");
         Activity24hIncomeText      = FormatIskStatic(summary.TotalIncome);
@@ -2805,7 +2847,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Maintain] load failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", "Maintain load", ex);
             Status = $"MAINTAIN load failed: {ex.Message}";
         }
         finally { IsLoadingMaintain = false; }

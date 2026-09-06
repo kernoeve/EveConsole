@@ -529,6 +529,7 @@ public class EsiClient
                 // Off Content rather than the response headers: Expires is a content header, and
                 // response.Headers does not carry it.
                 Expires            = response.Content.Headers.Expires,
+                ETag               = headers.ETag?.Tag,
                 Error              = error,
             };
         }
@@ -750,6 +751,7 @@ public class EsiClient
                 // and response.Headers does not carry it. Missing here, every corporation
                 // endpoint lost its cache expiry and fell back to a fixed interval.
                 Expires            = response.Content.Headers.Expires,
+                ETag               = headers.ETag?.Tag,
                 Error              = error,
             };
         }

@@ -597,6 +597,22 @@ public class OverviewViewModel : ReactiveObject
     }
     private bool _loadPending;
 
+    /// <summary>
+    /// Panels that did not load, kept so the header can say so.
+    ///
+    /// <para>⚠️ The Overview is a grid of independent panels, so each catches its own failure
+    /// rather than taking the others down with it. That part is right. What was missing was any
+    /// sign on screen that a panel is empty because it broke rather than because there is
+    /// nothing to show — the header read "Loaded in 340 ms" either way.</para>
+    /// </summary>
+    private readonly List<string> _panelFailures = [];
+
+    private void PanelFailed(string panel, Exception ex)
+    {
+        _errorLogger.Log("OverviewViewModel", panel, ex);
+        _panelFailures.Add(panel);
+    }
+
     public async Task LoadAsync()
     {
         // If a load is already running, mark that another is needed and let the current run
@@ -648,6 +664,7 @@ public class OverviewViewModel : ReactiveObject
         // builds. The per-section timings this used to log to the error log are gone — they had
         // served their purpose (664 database contexts building tooltips nobody had opened) and
         // were filling the log on every refresh.
+        _panelFailures.Clear();
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
         // Section timing, reinstated but quiet: only a slow section is logged, so this cannot
@@ -750,10 +767,10 @@ public class OverviewViewModel : ReactiveObject
                 var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
                     $"""
                     SELECT
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 0 THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "SellTotal",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 0 THEN 1 ELSE 0 END), 0)                                          AS "SellCount",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN "Quantity" * CAST("UnitPrice" AS REAL) ELSE 0.0 END), 0.0) AS "BuyTotal",
-                        COALESCE(SUM(CASE WHEN "IsBuy" = 1 THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
+                        COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "SellTotal",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN 1 ELSE 0 END), 0)                                          AS "SellCount",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "BuyTotal",
+                        COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     """
@@ -834,7 +851,7 @@ public class OverviewViewModel : ReactiveObject
                 var charIdList = string.Join(",", charIds);
 #pragma warning disable EF1002
                 totalLosses = await Off(() => _db.Database.SqlQueryRaw<int>($"""
-                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
+                    SELECT CAST(COUNT(DISTINCT d."KillMailId") AS INTEGER) AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}' AND d."VictimCharId" IN ({charIdList})
                     """).FirstAsync());
@@ -847,7 +864,7 @@ public class OverviewViewModel : ReactiveObject
                 // IX_KillMailAttackers_CharacterId (CharacterId, KillMailId) was added — it
                 // covers this query outright, taking it under a millisecond.
                 totalKills = await Off(() => _db.Database.SqlQueryRaw<int>($"""
-                    SELECT COUNT(DISTINCT d."KillMailId") AS "Value"
+                    SELECT CAST(COUNT(DISTINCT d."KillMailId") AS INTEGER) AS "Value"
                     FROM "KillMailDetails" d
                     WHERE d."KillMailTime" >= '{cutoffStr}'
                       AND d."VictimCharId" NOT IN ({charIdList})
@@ -898,7 +915,7 @@ public class OverviewViewModel : ReactiveObject
             {
                 var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
                     $"""
-                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                     FROM "EsiWalletJournal"
                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                     GROUP BY "RefType"
@@ -933,6 +950,8 @@ public class OverviewViewModel : ReactiveObject
 
             Step("done");   // closes out the last section so it is timed like the rest
             LoadStatus = $"Loaded in {sw.ElapsedMilliseconds:N0} ms — {owners.Count} owner(s), period: {_selectedPeriod.Label}";
+            if (_panelFailures.Count > 0)
+                LoadStatus += $" — {string.Join(", ", _panelFailures)} failed, see the Error Log";
         }
         catch (Exception ex)
         {
@@ -973,11 +992,20 @@ public class OverviewViewModel : ReactiveObject
             // caps a pathological volume, since the list isn't virtualized and every loaded row is
             // formatted on each refresh.
 #pragma warning disable EF1002
+            // ⚠️ "Unread if unread for anyone" needs a different function per engine.
+            // IsRead is an INTEGER on SQLite, where MIN over 0 and 1 says exactly that; on
+            // PostgreSQL it is a real boolean and min(boolean) does not exist. bool_and is the
+            // same statement in that engine's terms, and returns a boolean, which is what the
+            // entity's property expects to read back.
+            var anyUnread = AppDb.AllTrue("\"IsRead\"");
+
             var rows = await db.EsiNotifications.FromSqlRaw(
-                    "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, SenderType, " +
-                    "Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
-                    "WHERE Timestamp >= {0} " +
-                    "GROUP BY NotificationId ORDER BY Timestamp DESC LIMIT 1000", cutoff)
+                    "SELECT MIN(\"CharacterId\") AS \"CharacterId\", \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
+                    "\"Timestamp\", " + anyUnread + " AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
+                    "WHERE \"Timestamp\" >= {0} " +
+                    "GROUP BY \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
+                    "\"Timestamp\", \"Text\" " +
+                    "ORDER BY \"Timestamp\" DESC LIMIT 1000", cutoff)
                 .AsNoTracking().ToListAsync();
 
             // Nothing new? Then neither the formatting below nor the collection rebuild that
@@ -990,7 +1018,7 @@ public class OverviewViewModel : ReactiveObject
             var recipients = ids.Count == 0
                 ? new List<(long NotificationId, long CharacterId)>()
                 : (await db.EsiNotifications.FromSqlRaw(
-                        $"SELECT * FROM EsiNotifications WHERE NotificationId IN ({string.Join(",", ids)})")
+                        $"SELECT * FROM \"EsiNotifications\" WHERE \"NotificationId\" IN ({string.Join(",", ids)})")
                     .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
                   .Select(x => (x.NotificationId, x.CharacterId)).ToList();
 #pragma warning restore EF1002
@@ -1140,7 +1168,7 @@ public class OverviewViewModel : ReactiveObject
 
         List<CorpActivityService.Activity24hKillRow> rows;
         try { rows = await _corpActivity.GetPersonalKillsForPeriodAsync(charIds, days); }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadPersonalKills", ex); return; }
+        catch (Exception ex) { PanelFailed("LoadPersonalKills", ex); return; }
 
         int kills  = rows.Count(r => !r.IsLoss);
         int losses = rows.Count(r => r.IsLoss);
@@ -1206,7 +1234,7 @@ public class OverviewViewModel : ReactiveObject
             HasStandingProjects = StandingProjects.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingProjects));
         }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingProjects", ex); }
+        catch (Exception ex) { PanelFailed("LoadStandingProjects", ex); }
     }
 
     // ── Standing buy orders ───────────────────────────────────────────────────
@@ -1263,7 +1291,7 @@ public class OverviewViewModel : ReactiveObject
             HasOrders = Orders.Count > 0;
             this.RaisePropertyChanged(nameof(NoOrders));
         }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadOrders", ex); }
+        catch (Exception ex) { PanelFailed("LoadOrders", ex); }
     }
 
     private async Task LoadStandingBuyOrdersAsync()
@@ -1302,7 +1330,7 @@ public class OverviewViewModel : ReactiveObject
             HasStandingBuyOrders = StandingBuyOrders.Count > 0;
             this.RaisePropertyChanged(nameof(NoStandingBuyOrders));
         }
-        catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "LoadStandingBuyOrders", ex); }
+        catch (Exception ex) { PanelFailed("LoadStandingBuyOrders", ex); }
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
@@ -1494,8 +1522,8 @@ public class OverviewViewModel : ReactiveObject
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                     {
                         await _db.Database.ExecuteSqlInterpolatedAsync($"""
-                            INSERT OR IGNORE INTO "DismissedAlerts" ("CharacterId","NotificationId")
-                            VALUES ({charId},{notifId})
+                            INSERT INTO "DismissedAlerts" ("CharacterId","NotificationId")
+                            VALUES ({charId},{notifId}) ON CONFLICT DO NOTHING
                             """);
                         var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
                         if (toRemove is not null)
@@ -1616,7 +1644,7 @@ public class OverviewViewModel : ReactiveObject
                 DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                 {
                     await _db.Database.ExecuteSqlInterpolatedAsync($"""
-                        UPDATE "AlarmAlerts" SET "Dismissed" = 1, "DismissedAt" = {DateTimeOffset.UtcNow}
+                        UPDATE "AlarmAlerts" SET "Dismissed" = TRUE, "DismissedAt" = {DateTimeOffset.UtcNow}
                         WHERE "Id" = {alertId}
                         """);
                     var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));

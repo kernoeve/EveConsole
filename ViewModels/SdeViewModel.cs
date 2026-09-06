@@ -28,6 +28,29 @@ public class SdeViewModel : ReactiveObject
     public string LatestBuild     { get => _latestBuild;     private set => this.RaiseAndSetIfChanged(ref _latestBuild,     value); }
     public bool   UpdateAvailable { get => _updateAvailable; private set => this.RaiseAndSetIfChanged(ref _updateAvailable, value); }
 
+    /// <summary>
+    /// The loaded build, short enough for the title bar: "SDE 2831234".
+    ///
+    /// <para>The Settings tab shows the release date beside the number, which earns its room
+    /// there and does not here — the bar answers "which SDE am I on", not "when was it cut".</para>
+    /// </summary>
+    private int _loadedBuildNumber;
+    public string SdeShortText =>
+        _loadedBuildNumber > 0 ? $"SDE {_loadedBuildNumber}" : "SDE not imported";
+
+    /// <summary>
+    /// Whether the comparison against CCP's feed actually completed.
+    ///
+    /// <para>⚠️ Not the same as "no update available", and the difference matters. When the feed
+    /// cannot be reached, LatestBuild becomes "unavailable" and UpdateAvailable stays false — so
+    /// a failed check and a current SDE look identical from the outside. Saying "up to date" off
+    /// that would be claiming something nobody verified, which is what IntelService used to do
+    /// when it answered "Intel: up to date" from its catch block. With nothing checked the bar
+    /// shows neither state.</para>
+    /// </summary>
+    private bool _sdeChecked;
+    public bool SdeUpToDate => _sdeChecked && !UpdateAvailable && _loadedBuildNumber > 0;
+
     // ── Hoboleaks state ───────────────────────────────────────────────────
     private string _hoboStatusText  = "Not imported";
     private double _hoboFraction    = 0;
@@ -84,6 +107,10 @@ public class SdeViewModel : ReactiveObject
 
             var stored = await _db.SdeBuildInfos.FindAsync(1);
             UpdateAvailable = stored is null || stored.BuildNumber != latest.BuildNumber;
+
+            // Only here, where a real build number came back and was compared against ours.
+            _sdeChecked = true;
+            this.RaisePropertyChanged(nameof(SdeUpToDate));
         }
         catch (Exception ex)
         {
@@ -97,6 +124,9 @@ public class SdeViewModel : ReactiveObject
         LoadedBuild = info is null
             ? "not imported"
             : FormatBuild(info.BuildNumber, info.ReleaseDate);
+
+        _loadedBuildNumber = info?.BuildNumber ?? 0;
+        this.RaisePropertyChanged(nameof(SdeShortText));
     }
 
     private async Task LoadHoboInfoAsync()

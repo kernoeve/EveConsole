@@ -41,6 +41,63 @@ public static class SingleInstance
     /// </summary>
     private static FileStream? _lockFile;
 
+    /// <summary>
+    /// The same guarantee on a server, where there is no file to hold.
+    ///
+    /// <para>A PostgreSQL advisory lock is the exact analogue: it is scoped to the database, it
+    /// is held for the life of the session that took it, and the server drops it when that
+    /// session ends however it ends. So it keeps the rule this class is built on — the lock
+    /// belongs to the database being protected, not to the machine — which a lock file cannot
+    /// do once the database is somewhere else entirely. Two clients on different machines
+    /// pointed at one server exclude each other; two pointed at different servers do not.</para>
+    ///
+    /// <para>⚠️ Held on its own connection, kept open deliberately. Returning it to the pool
+    /// would end the session and silently drop the lock.</para>
+    ///
+    /// <para>⚠️ This currently stops a second client outright, matching the SQLite behaviour.
+    /// The intended end state is different: additional clients run and read, and only ONE of
+    /// them polls. That is the lease work, and when it lands this becomes a lock on the poller
+    /// rather than on the application.</para>
+    /// </summary>
+    private static Npgsql.NpgsqlConnection? _pgLock;
+
+    /// <summary>
+    /// Arbitrary, and only has to be stable and unlikely to collide with another application
+    /// using advisory locks in the same database.
+    /// </summary>
+    private const long AdvisoryLockKey = 0x4556_4543_4F4E_5301;   // "EVECONS" + 1
+
+    private static bool TryTakePostgresLock()
+    {
+        try
+        {
+            var cs = AppConfig.GetPostgresConnection();
+            if (string.IsNullOrWhiteSpace(cs)) return true;   // App reports the misconfiguration
+
+            var conn = new Npgsql.NpgsqlConnection(cs);
+            conn.Open();
+
+            using var cmd = new Npgsql.NpgsqlCommand("SELECT pg_try_advisory_lock(@k)", conn);
+            cmd.Parameters.AddWithValue("k", AdvisoryLockKey);
+
+            if (cmd.ExecuteScalar() is true)
+            {
+                _pgLock = conn;       // kept open: closing it releases the lock
+                return true;
+            }
+
+            conn.Dispose();
+            return false;             // somebody else has it: exactly what this is for
+        }
+        catch
+        {
+            // ⚠️ A server we cannot reach at all lets the app start, on purpose. It will fail
+            // a moment later at EnsureCreated with an error that says what is actually wrong,
+            // which is far more use than exiting silently from the single-instance check.
+            return true;
+        }
+    }
+
     private static bool TryTakeLockFile()
     {
         try
@@ -108,6 +165,16 @@ public static class SingleInstance
         var replacing = args.Any(a =>
             string.Equals(a, RestartingArgument, StringComparison.OrdinalIgnoreCase));
 
+        // ⚠️ On a server the lock lives in the database and the local mutex is meaningless
+        // — the other instance may not even be on this machine, which is also why there may
+        // be no window here to focus.
+        if (DbEngine.IsPostgres)
+        {
+            if (TryTakePostgresLock()) return true;
+            FocusExistingWindow();
+            return false;
+        }
+
         // ⚠️ The file lock first, because it is the one that holds on every platform. The
         // mutex stays: it is proven on Windows and costs nothing, and two agreeing guards are
         // cheaper than deciding which single one to trust.
@@ -156,6 +223,12 @@ public static class SingleInstance
         // The replacement is already running and waiting on this handle.
         try { _lockFile?.Dispose(); } catch { }
         _lockFile = null;
+
+        // Closing the session is what frees an advisory lock; there is nothing to unlock
+        // separately, and unlocking before closing would only widen the gap where neither
+        // process holds it.
+        try { _pgLock?.Dispose(); } catch { }
+        _pgLock = null;
     }
 
     /// <summary>

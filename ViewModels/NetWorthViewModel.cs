@@ -262,18 +262,19 @@ public class NetWorthViewModel : ReactiveObject
         var (fromDate, toDate) = GetDateRange();
 
         await using var db   = await _dbFactory.CreateDbContextAsync();
-        var conn = (SqliteConnection)db.Database.GetDbConnection();
+        // ⚠️ See NetWorthService: the connection is an NpgsqlConnection on a server, and
+        // nothing here needs the derived type.
+        var conn = db.Database.GetDbConnection();
         if (conn.State != System.Data.ConnectionState.Open)
             await conn.OpenAsync();
 
         var sql = owner.IsPersonal ? PersonalSql : CorpSql;
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@fromDate", fromDate);
-        cmd.Parameters.AddWithValue("@toDate",   toDate);
+        using var cmd = conn.Command(sql);
+        cmd.AddWithValue("@fromDate", fromDate);
+        cmd.AddWithValue("@toDate",   toDate);
         if (!owner.IsPersonal)
-            cmd.Parameters.AddWithValue("@corpId", owner.CorpId!.Value);
+            cmd.AddWithValue("@corpId", owner.CorpId!.Value);
 
         using var reader = await cmd.ExecuteReaderAsync();
         var rows = new List<DayRow>();
@@ -421,21 +422,21 @@ public class NetWorthViewModel : ReactiveObject
 
     private const string PersonalSql = """
         SELECT n."Date",
-               ROUND(SUM(n."AssetValue"),         2),
-               ROUND(SUM(n."IndustryJobValue"),   2),
-               ROUND(SUM(n."WalletBalance"),       2),
-               ROUND(SUM(n."SellOrderValue"),      2),
-               ROUND(SUM(n."BuyOrderEscrow"),      2),
-               ROUND(SUM(n."ContractCollateral"),  2),
-               ROUND(SUM(n."ContractValue"),        2),
-               ROUND(SUM(n."Total"),               2),
+               ROUND(CAST(SUM(n."AssetValue") AS NUMERIC),         2),
+               ROUND(CAST(SUM(n."IndustryJobValue") AS NUMERIC),   2),
+               ROUND(CAST(SUM(n."WalletBalance") AS NUMERIC),       2),
+               ROUND(CAST(SUM(n."SellOrderValue") AS NUMERIC),      2),
+               ROUND(CAST(SUM(n."BuyOrderEscrow") AS NUMERIC),      2),
+               ROUND(CAST(SUM(n."ContractCollateral") AS NUMERIC),  2),
+               ROUND(CAST(SUM(n."ContractValue") AS NUMERIC),        2),
+               ROUND(CAST(SUM(n."Total") AS NUMERIC),               2),
                COUNT(*)
         FROM "NetWorthSnapshots" n
         WHERE n."Date" >= @fromDate AND n."Date" <= @toDate
           AND NOT (
               n."OwnerType" = 'corporation'
               AND n."OwnerId" IN (
-                  SELECT CAST("Id" AS INTEGER) FROM "Corporations" WHERE "IsPersonal" = 0
+                  SELECT CAST("Id" AS BIGINT) FROM "Corporations" WHERE "IsPersonal" = FALSE
               )
           )
         GROUP BY n."Date"
@@ -444,14 +445,14 @@ public class NetWorthViewModel : ReactiveObject
 
     private const string CorpSql = """
         SELECT "Date",
-               ROUND("AssetValue",         2),
-               ROUND("IndustryJobValue",   2),
-               ROUND("WalletBalance",       2),
-               ROUND("SellOrderValue",      2),
-               ROUND("BuyOrderEscrow",      2),
-               ROUND("ContractCollateral",  2),
-               ROUND("ContractValue",        2),
-               ROUND("Total",               2)
+               ROUND(CAST("AssetValue" AS NUMERIC),         2),
+               ROUND(CAST("IndustryJobValue" AS NUMERIC),   2),
+               ROUND(CAST("WalletBalance" AS NUMERIC),       2),
+               ROUND(CAST("SellOrderValue" AS NUMERIC),      2),
+               ROUND(CAST("BuyOrderEscrow" AS NUMERIC),      2),
+               ROUND(CAST("ContractCollateral" AS NUMERIC),  2),
+               ROUND(CAST("ContractValue" AS NUMERIC),        2),
+               ROUND(CAST("Total" AS NUMERIC),               2)
         FROM "NetWorthSnapshots"
         WHERE "OwnerId" = @corpId AND "OwnerType" = 'corporation'
           AND "Date" >= @fromDate AND "Date" <= @toDate

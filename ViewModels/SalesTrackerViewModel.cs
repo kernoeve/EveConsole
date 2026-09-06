@@ -509,7 +509,7 @@ public class SalesTrackerViewModel : ReactiveObject
                     // INSERT OR IGNORE: marking something already marked is not an error, and
                     // a selection can legitimately contain a mix.
                     await db.Database.ExecuteSqlAsync(
-                        $"""INSERT OR IGNORE INTO "SaleExclusions" ("Kind","SaleId","MarkedAt") VALUES ({kind},{saleId},{DateTimeOffset.UtcNow})""");
+                        $"""INSERT INTO "SaleExclusions" ("Kind","SaleId","MarkedAt") VALUES ({kind},{saleId},{DateTimeOffset.UtcNow}) ON CONFLICT DO NOTHING""");
                 }
                 else
                 {
@@ -806,7 +806,7 @@ public class SalesTrackerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("SalesTrackerViewModel", "Load", ex);
-            StatusText = "Error loading sales.";
+            StatusText = AppErrorLogger.Line("Error loading sales", ex);
         }
         finally { IsLoading = false; }
     }

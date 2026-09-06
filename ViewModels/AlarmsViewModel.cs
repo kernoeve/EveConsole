@@ -535,7 +535,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             await db.Database.ExecuteSqlRawAsync(
-                """UPDATE "AlarmAlerts" SET "Dismissed" = 1, "DismissedAt" = {0} WHERE "Id" = {1}""",
+                """UPDATE "AlarmAlerts" SET "Dismissed" = TRUE, "DismissedAt" = {0} WHERE "Id" = {1}""",
                 DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "+00:00",
                 id);
         });

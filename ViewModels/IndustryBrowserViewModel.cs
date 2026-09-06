@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Data.Common;
+using EveConsole.Data;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -234,32 +236,32 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
             conds.Add("\"Status\" = @status");
         if (!string.IsNullOrEmpty(search))
-            conds.Add("(\"Blueprint\" LIKE @search OR \"Product\" LIKE @search)");
+            conds.Add("(Blueprint LIKE @search OR Product LIKE @search)");
         if (startedFrom.HasValue)
-            conds.Add("\"Start Date\" >= @startedFrom");
+            conds.Add("Start Date >= @startedFrom");
         if (startedThru.HasValue)
-            conds.Add("\"Start Date\" < @startedThru");
+            conds.Add("Start Date < @startedThru");
         if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
             conds.Add("\"Owner\" = @owner");
 
         var where = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
 
-        using var conn = new SqliteConnection(_connectionString);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = new SqliteCommand(BuildSql(where), conn);
+        using var cmd = conn.Command(BuildSql(where));
 
         if (!string.IsNullOrEmpty(activity) && activity != "All Activities")
-            cmd.Parameters.AddWithValue("@activity", activity);
+            cmd.AddWithValue("@activity", activity);
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
-            cmd.Parameters.AddWithValue("@status", status);
+            cmd.AddWithValue("@status", status);
         if (!string.IsNullOrEmpty(search))
-            cmd.Parameters.AddWithValue("@search", $"%{search}%");
+            cmd.AddWithValue("@search", $"%{search}%");
         if (startedFrom.HasValue)
-            cmd.Parameters.AddWithValue("@startedFrom", startedFrom.Value.UtcDateTime.ToString("O"));
+            cmd.AddWithValue("@startedFrom", startedFrom.Value.UtcDateTime.ToString("O"));
         if (startedThru.HasValue)
-            cmd.Parameters.AddWithValue("@startedThru", startedThru.Value.UtcDateTime.AddDays(1).ToString("O"));
+            cmd.AddWithValue("@startedThru", startedThru.Value.UtcDateTime.AddDays(1).ToString("O"));
         if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
-            cmd.Parameters.AddWithValue("@owner", owner);
+            cmd.AddWithValue("@owner", owner);
 
         ct.ThrowIfCancellationRequested();
 
@@ -357,15 +359,15 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     private void EnsureSchema()
     {
-        using var conn = new SqliteConnection(_connectionString);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = new SqliteCommand("""
-            CREATE TABLE IF NOT EXISTS UniverseNames (
-                EntityId INTEGER PRIMARY KEY,
-                Name     TEXT    NOT NULL DEFAULT '',
-                Category TEXT    NOT NULL DEFAULT ''
+        using var cmd = conn.Command("""
+            CREATE TABLE IF NOT EXISTS "UniverseNames" (
+                "EntityId" INTEGER PRIMARY KEY,
+                "Name"     TEXT    NOT NULL DEFAULT '',
+                "Category" TEXT    NOT NULL DEFAULT ''
             )
-            """, conn);
+            """);
         cmd.ExecuteNonQuery();
     }
 
@@ -373,14 +375,14 @@ public class IndustryBrowserViewModel : ReactiveObject
     {
         var toResolve = new List<long>();
 
-        using (var conn = new SqliteConnection(_connectionString))
+        using (var conn = AppDb.Connect())
         {
             conn.Open();
             foreach (var id in ids.Distinct())
             {
-                using var chk = new SqliteCommand(
-                    "SELECT 1 FROM UniverseNames WHERE EntityId=@id LIMIT 1", conn);
-                chk.Parameters.AddWithValue("@id", id);
+                using var chk = conn.Command(
+                    "SELECT 1 FROM \"UniverseNames\" WHERE \"EntityId\"=@id LIMIT 1");
+                chk.AddWithValue("@id", id);
                 if (chk.ExecuteScalar() is null) toResolve.Add(id);
             }
         }
@@ -405,18 +407,21 @@ public class IndustryBrowserViewModel : ReactiveObject
                 var entries = JsonSerializer.Deserialize<List<UniverseNameEntry>>(raw);
                 if (entries is null || entries.Count == 0) continue;
 
-                using var conn = new SqliteConnection(_connectionString);
+                using var conn = AppDb.Connect();
                 conn.Open();
                 using var tx = conn.BeginTransaction();
                 foreach (var e in entries)
                 {
-                    using var ins = new SqliteCommand("""
-                        INSERT OR REPLACE INTO UniverseNames (EntityId, Name, Category)
+                    using var ins = conn.Command("""
+                        INSERT INTO "UniverseNames" ("EntityId", "Name", "Category")
                         VALUES (@id, @name, @cat)
-                        """, conn, tx);
-                    ins.Parameters.AddWithValue("@id",   e.Id);
-                    ins.Parameters.AddWithValue("@name", e.Name);
-                    ins.Parameters.AddWithValue("@cat",  e.Category);
+                        ON CONFLICT ("EntityId") DO UPDATE SET
+                            "Name"     = excluded."Name",
+                            "Category" = excluded."Category"
+                        """, tx);
+                    ins.AddWithValue("@id",   e.Id);
+                    ins.AddWithValue("@name", e.Name);
+                    ins.AddWithValue("@cat",  e.Category);
                     ins.ExecuteNonQuery();
                     anyStored = true;
                 }
@@ -438,15 +443,15 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     private List<string> LoadOwnerOptions()
     {
-        using var conn = new SqliteConnection(_connectionString);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = new SqliteCommand("""
-            SELECT DISTINCT COALESCE(ch.Name, co.Name, CAST(j.OwnerId AS TEXT)) AS Owner
-            FROM EsiIndustryJobs j
-            LEFT JOIN Characters   ch ON ch.Id = j.OwnerId AND j.OwnerType = 'character'
-            LEFT JOIN Corporations co ON co.Id  = j.OwnerId AND j.OwnerType = 'corporation'
+        using var cmd = conn.Command("""
+            SELECT DISTINCT COALESCE(ch."Name", co."Name", CAST(j."OwnerId" AS TEXT)) AS Owner
+            FROM "EsiIndustryJobs" j
+            LEFT JOIN "Characters"   ch ON ch."Id" = j."OwnerId" AND j."OwnerType" = 'character'
+            LEFT JOIN "Corporations" co ON co."Id"  = j."OwnerId" AND j."OwnerType" = 'corporation'
             ORDER BY Owner
-            """, conn);
+            """);
 
         var list = new List<string> { "All Owners" };
         using var r = cmd.ExecuteReader();
@@ -508,8 +513,8 @@ public class IndustryBrowserViewModel : ReactiveObject
     private static string BuildSql(string where) => $"""
         WITH Base AS (
             SELECT
-                j.JobId                                                                       AS "Job Id",
-                CASE j.ActivityId
+                j."JobId"                                                                       AS "Job Id",
+                CASE j."ActivityId"
                     WHEN 1  THEN 'Manufacturing'
                     WHEN 3  THEN 'TE Research'
                     WHEN 4  THEN 'ME Research'
@@ -518,96 +523,96 @@ public class IndustryBrowserViewModel : ReactiveObject
                     WHEN 8  THEN 'Invention'
                     WHEN 9  THEN 'Reactions'
                     WHEN 11 THEN 'Reactions'
-                    ELSE CAST(j.ActivityId AS TEXT)
+                    ELSE CAST(j."ActivityId" AS TEXT)
                 END                                                                           AS "Activity",
-                COALESCE(bp.Name, CAST(j.BlueprintTypeId AS TEXT))                           AS "Blueprint",
-                COALESCE(prod.Name, un_prod.Name, CAST(j.ProductTypeId AS TEXT), '')         AS "Product",
-                j.Runs                                                                        AS "Runs",
-                j.LicensedRuns                                                                AS "Max Runs",
-                j.SuccessfulRuns                                                              AS "Successful Runs",
+                COALESCE(bp."Name", CAST(j."BlueprintTypeId" AS TEXT))                           AS "Blueprint",
+                COALESCE(prod."Name", un_prod."Name", CAST(j."ProductTypeId" AS TEXT), '')         AS "Product",
+                j."Runs"                                                                        AS "Runs",
+                j."LicensedRuns"                                                                AS "Max Runs",
+                j."SuccessfulRuns"                                                              AS "Successful Runs",
                 -- Items produced = qty per run × runs (from SDE blueprint products)
                 CASE
-                    WHEN j.ActivityId IN (1, 9, 11) THEN
+                    WHEN j."ActivityId" IN (1, 9, 11) THEN
                         COALESCE((
-                            SELECT p2.Quantity FROM SdeBlueprintProducts p2
-                            WHERE p2.TypeId = j.BlueprintTypeId
-                              AND p2.Activity = CASE j.ActivityId
+                            SELECT p2."Quantity" FROM "SdeBlueprintProducts" p2
+                            WHERE p2."TypeId" = j."BlueprintTypeId"
+                              AND p2."Activity" = CASE j."ActivityId"
                                   WHEN 1  THEN 'manufacturing'
                                   WHEN 9  THEN 'reaction'
                                   WHEN 11 THEN 'reaction'
                               END
-                              AND (j.ProductTypeId IS NULL OR p2.ProductTypeId = j.ProductTypeId)
+                              AND (j."ProductTypeId" IS NULL OR p2."ProductTypeId" = j."ProductTypeId")
                             LIMIT 1
-                        ), 1) * j.Runs
-                    WHEN j.ActivityId IN (5, 8) THEN j.Runs
+                        ), 1) * j."Runs"
+                    WHEN j."ActivityId" IN (5, 8) THEN j."Runs"
                     ELSE NULL
                 END                                                                           AS "Items Produced",
-                COALESCE(NULLIF(sn.Name, ''), st.Name, CAST(j.FacilityId AS TEXT))          AS "Facility",
-                COALESCE(ss_st.Name, ss_sn.Name)                                             AS "Solar System",
-                ROUND(COALESCE(ss_st.Security, ss_sn.Security, 0.0), 1)                     AS "Security",
-                COALESCE(r_st.Name,  r_sn.Name)                                              AS "Region",
-                COALESCE(ch_inst.Name, un_inst.Name, CAST(j.InstallerId AS TEXT))            AS "Installer",
-                COALESCE(ch_own.Name, co.Name, CAST(j.OwnerId AS TEXT))                      AS "Owner",
-                j.Cost                                                                        AS "Cost",
-                j.Status                                                                      AS "Status",
-                j.StartDate                                                                   AS "Start Date",
-                j.EndDate                                                                     AS "End Date",
-                j.EndDate                                                                     AS "End Date Raw",
-                j.CompletedDate                                                               AS "Completed Date",
-                j.StartDate                                                                   AS "Created",
+                COALESCE(NULLIF(sn."Name", ''), st."Name", CAST(j."FacilityId" AS TEXT))          AS "Facility",
+                COALESCE(ss_st."Name", ss_sn."Name")                                             AS "Solar System",
+                ROUND(CAST(COALESCE(ss_st."Security", ss_sn."Security", 0.0) AS NUMERIC), 1)                     AS "Security",
+                COALESCE(r_st."Name",  r_sn."Name")                                              AS "Region",
+                COALESCE(ch_inst."Name", un_inst."Name", CAST(j."InstallerId" AS TEXT))            AS "Installer",
+                COALESCE(ch_own."Name", co."Name", CAST(j."OwnerId" AS TEXT))                      AS "Owner",
+                j."Cost"                                                                        AS "Cost",
+                j."Status"                                                                      AS "Status",
+                j."StartDate"                                                                   AS "Start Date",
+                j."EndDate"                                                                     AS "End Date",
+                j."EndDate"                                                                     AS "End Date Raw",
+                j."CompletedDate"                                                               AS "Completed Date",
+                j."StartDate"                                                                   AS "Created",
                 -- Actual completion if delivered, otherwise the projected end date (active jobs)
-                COALESCE(j.CompletedDate, j.EndDate)                                           AS "Completed",
+                COALESCE(j."CompletedDate", j."EndDate")                                           AS "Completed",
                 -- Hidden: detail panel only
-                j.BlueprintTypeId                                                             AS "Blueprint Type Id",
-                COALESCE(j.ProductTypeId, 0)                                                 AS "Product Type Id",
-                COALESCE(st.StationTypeId, cs.TypeId)                                        AS "Facility Type Id",
-                COALESCE(bl.MaterialEfficiency, 0)                                           AS "ME",
-                COALESCE(bl.TimeEfficiency, 0)                                               AS "TE",
-                COALESCE(ch_comp.Name, '')                                                   AS "Completed By",
-                j.ActivityId                                                                  AS "Activity Id",
-                j.Probability                                                                 AS "Probability",
-                j.OwnerId                                                                     AS "Owner Id",
-                j.OwnerType                                                                   AS "Owner Type",
+                j."BlueprintTypeId"                                                             AS "Blueprint Type Id",
+                COALESCE(j."ProductTypeId", 0)                                                 AS "Product Type Id",
+                COALESCE(st."StationTypeId", cs."TypeId")                                        AS "Facility Type Id",
+                COALESCE(bl."MaterialEfficiency", 0)                                           AS "ME",
+                COALESCE(bl."TimeEfficiency", 0)                                               AS "TE",
+                COALESCE(ch_comp."Name", '')                                                   AS "Completed By",
+                j."ActivityId"                                                                  AS "Activity Id",
+                j."Probability"                                                                 AS "Probability",
+                j."OwnerId"                                                                     AS "Owner Id",
+                j."OwnerType"                                                                   AS "Owner Type",
                 -- Hidden: what the names in the grid and the detail panel open.
-                j.InstallerId                                                                 AS "Installer Id",
-                j.FacilityId                                                                  AS "Facility Id",
+                j."InstallerId"                                                                 AS "Installer Id",
+                j."FacilityId"                                                                  AS "Facility Id",
                 -- Only an NPC station is named by SdeStations, which is also what decides whether
                 -- the facility link opens the entity browser or the Structure Browser.
-                CASE WHEN st.StationId IS NULL THEN 0 ELSE 1 END                              AS "Facility Is Station",
-                COALESCE(ss_st.SolarSystemId, ss_sn.SolarSystemId, 0)                         AS "Solar System Id",
-                COALESCE(r_st.RegionId, r_sn.RegionId, 0)                                     AS "Region Id"
-            FROM EsiIndustryJobs j
-            LEFT JOIN Characters       ch_inst  ON ch_inst.Id        = j.InstallerId
-            LEFT JOIN UniverseNames    un_inst  ON un_inst.EntityId   = j.InstallerId
-            LEFT JOIN UniverseNames    un_prod  ON un_prod.EntityId   = j.ProductTypeId
-            LEFT JOIN Characters       ch_own   ON ch_own.Id          = j.OwnerId  AND j.OwnerType = 'character'
-            LEFT JOIN Corporations     co       ON co.Id               = j.OwnerId  AND j.OwnerType = 'corporation'
-            LEFT JOIN SdeTypes         bp       ON bp.TypeId           = j.BlueprintTypeId
-            LEFT JOIN SdeTypes         prod     ON prod.TypeId         = j.ProductTypeId
-            LEFT JOIN SdeStations      st       ON st.StationId        = j.FacilityId
-            LEFT JOIN EsiStructureNames sn      ON sn.StructureId      = j.FacilityId
-            LEFT JOIN SdeSolarSystems  ss_st    ON ss_st.SolarSystemId = st.SolarSystemId
-            LEFT JOIN SdeSolarSystems  ss_sn    ON ss_sn.SolarSystemId = sn.SolarSystemId
-            LEFT JOIN SdeRegions       r_st     ON r_st.RegionId       = COALESCE(st.RegionId, ss_st.RegionId)
-            LEFT JOIN SdeRegions       r_sn     ON r_sn.RegionId       = ss_sn.RegionId
-            LEFT JOIN EsiBlueprints    bl       ON bl.ItemId           = j.BlueprintId
-                                               AND bl.OwnerId          = j.OwnerId
-                                               AND bl.OwnerType        = j.OwnerType
-            LEFT JOIN Characters       ch_comp  ON ch_comp.Id          = j.CompletedCharacterId
-            LEFT JOIN (SELECT DISTINCT StructureId, TypeId FROM EsiCorpStructures) cs
-                                                ON cs.StructureId      = j.FacilityId
+                CASE WHEN st."StationId" IS NULL THEN 0 ELSE 1 END                              AS "Facility Is Station",
+                COALESCE(ss_st."SolarSystemId", ss_sn."SolarSystemId", 0)                         AS "Solar System Id",
+                COALESCE(r_st."RegionId", r_sn."RegionId", 0)                                     AS "Region Id"
+            FROM "EsiIndustryJobs" j
+            LEFT JOIN "Characters"       ch_inst  ON ch_inst."Id"        = j."InstallerId"
+            LEFT JOIN "UniverseNames"    un_inst  ON un_inst."EntityId"   = j."InstallerId"
+            LEFT JOIN "UniverseNames"    un_prod  ON un_prod."EntityId"   = j."ProductTypeId"
+            LEFT JOIN "Characters"       ch_own   ON ch_own."Id"          = j."OwnerId"  AND j."OwnerType" = 'character'
+            LEFT JOIN "Corporations"     co       ON co."Id"               = j."OwnerId"  AND j."OwnerType" = 'corporation'
+            LEFT JOIN "SdeTypes"         bp       ON bp."TypeId"           = j."BlueprintTypeId"
+            LEFT JOIN "SdeTypes"         prod     ON prod."TypeId"         = j."ProductTypeId"
+            LEFT JOIN "SdeStations"      st       ON st."StationId"        = j."FacilityId"
+            LEFT JOIN "EsiStructureNames" sn      ON sn."StructureId"      = j."FacilityId"
+            LEFT JOIN "SdeSolarSystems"  ss_st    ON ss_st."SolarSystemId" = st."SolarSystemId"
+            LEFT JOIN "SdeSolarSystems"  ss_sn    ON ss_sn."SolarSystemId" = sn."SolarSystemId"
+            LEFT JOIN "SdeRegions"       r_st     ON r_st."RegionId"       = COALESCE(st."RegionId", ss_st."RegionId")
+            LEFT JOIN "SdeRegions"       r_sn     ON r_sn."RegionId"       = ss_sn."RegionId"
+            LEFT JOIN "EsiBlueprints"    bl       ON bl."ItemId"           = j."BlueprintId"
+                                               AND bl."OwnerId"          = j."OwnerId"
+                                               AND bl."OwnerType"        = j."OwnerType"
+            LEFT JOIN "Characters"       ch_comp  ON ch_comp."Id"          = j."CompletedCharacterId"
+            LEFT JOIN (SELECT DISTINCT "StructureId", "TypeId" FROM "EsiCorpStructures") cs
+                                                ON cs."StructureId"      = j."FacilityId"
         )
         SELECT Base.*,
-            CAST(bc."TotalCost" AS REAL) * Base."Items Produced"                          AS "Build Cost",
+            CAST(bc."TotalCost" AS DOUBLE PRECISION) * Base."Items Produced"                          AS "Build Cost",
             -- Copying (5) / invention (8) output blueprint COPIES, valued from contracts (the
             -- ContractPrices effective price); everything else uses the market price of the product.
             CASE WHEN Base."Activity Id" IN (5, 8) THEN
                 (CASE
-                    WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
-                    WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
-                    WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
-                         THEN CAST(cp."Avg30Best" AS REAL)
-                    ELSE CAST(cp."BestPrice" AS REAL)
+                    WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                    WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS DOUBLE PRECISION)
+                    WHEN CAST(cp."BestPrice" AS DOUBLE PRECISION) > 1.5 * CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                         THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                    ELSE CAST(cp."BestPrice" AS DOUBLE PRECISION)
                  END) * Base."Items Produced"
             ELSE
                 (CASE COALESCE(mds."AssetValuePriceType", 'Midpoint')

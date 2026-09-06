@@ -75,17 +75,16 @@ public sealed class ManageAlarmsTool : IAgentTool
          Do not filter the query to "since the last time I checked" — the alarm handles that.
          Write a query for the current state, bounded by a sensible recent window.
 
-         Mind the two date formats (see query_database for the detail): log tables store
-         2026-08-05T02:05:55Z and need strftime('%Y-%m-%dT%H:%M:%SZ',…), everything else stores
-         2026-08-05 01:26:22+00:00 and needs datetime(…). Getting it wrong widens the window to
-         the whole day silently, which on an alarm means firing constantly.
+         The database is {{AgentSqlDialect.Name}}; see query_database for how dates and
+         identifiers work on it. Getting a date comparison wrong widens the window silently,
+         which on an alarm means firing constantly.
 
          WORKED EXAMPLES
          "Tell me when one of my characters jumps a gate":
            condition_type "sql", poll_seconds 60, condition:
              {"sql":"SELECT Id, OccurredAt, CharacterName, FromSystem, ToSystem
-                     FROM GameLogEvents WHERE Kind='movement.jumped'
-                       AND OccurredAt >= strftime('%Y-%m-%dT%H:%M:%SZ','now','-1 hours')
+                     FROM "GameLogEvents" WHERE "Kind"='movement.jumped'
+                       AND {{AgentSqlDialect.RecentLogRows("\"OccurredAt\"", 1)}}
                      ORDER BY Id DESC LIMIT 20",
               "key_column":"Id"}
            actions: [{"kind":"agent_notify"}]
@@ -94,10 +93,10 @@ public sealed class ManageAlarmsTool : IAgentTool
            condition_type "sql", poll_seconds 60, condition:
              {"sql":"SELECT s.CharacterId || ':' || s.LastLogin AS Id, c.Name AS Character,
                             t.Name AS Ship, s.LastLogin
-                     FROM CharacterStatuses s
-                     JOIN Characters c ON c.Id = s.CharacterId
-                     LEFT JOIN SdeTypes t ON t.TypeId = s.ShipTypeId
-                     WHERE s.Online = 1",
+                     FROM "CharacterStatuses" s
+                     JOIN "Characters" c ON c."Id" = s."CharacterId"
+                     LEFT JOIN "SdeTypes" t ON t."TypeId" = s."ShipTypeId"
+                     WHERE {{AgentSqlDialect.IsTrue("s.\"Online\"")}}",
               "key_column":"Id"}
            actions: [{"kind":"agent_notify"}]
            (CharacterStatuses holds current state only, so the key pairs the character with

@@ -118,9 +118,9 @@ public class NotificationsViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> SortOptions { get; } =
     [
-        new("Date: newest first", "Timestamp DESC"),
-        new("Date: oldest first", "Timestamp ASC"),
-        new("Type (A → Z)",       "Type ASC, Timestamp DESC"),
+        new("Date: newest first", "\"Timestamp\" DESC"),
+        new("Date: oldest first", "\"Timestamp\" ASC"),
+        new("Type (A → Z)",       "\"Type\" ASC, \"Timestamp\" DESC"),
     ];
     private GridSortOption _selectedSort;
     public GridSortOption SelectedSort
@@ -259,7 +259,7 @@ public class NotificationsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("NotificationsViewModel", "InitAsync", ex);
-            StatusText = "Error initialising notifications.";
+            StatusText = AppErrorLogger.Line("Error initialising notifications", ex);
         }
     }
 
@@ -269,10 +269,10 @@ public class NotificationsViewModel : ReactiveObject
         var ps    = new List<object>();
 
         if (_selectedCharacter?.Id is long cid)
-        { parts.Add($"CharacterId = {{{ps.Count}}}"); ps.Add(cid); }
+        { parts.Add($"\"CharacterId\" = {{{ps.Count}}}"); ps.Add(cid); }
 
         if (_selectedType is { Length: > 0 } t && t != "All types")
-        { parts.Add($"Type = {{{ps.Count}}}"); ps.Add(t); }
+        { parts.Add($"\"Type\" = {{{ps.Count}}}"); ps.Add(t); }
 
         var senderType = _selectedSenderType switch
         {
@@ -281,12 +281,12 @@ public class NotificationsViewModel : ReactiveObject
             _             => null,
         };
         if (senderType is not null)
-        { parts.Add($"SenderType = {{{ps.Count}}}"); ps.Add(senderType); }
+        { parts.Add($"\"SenderType\" = {{{ps.Count}}}"); ps.Add(senderType); }
 
         if (_fromDate is DateTime fd)
-        { parts.Add($"Timestamp >= {{{ps.Count}}}"); ps.Add(UtcMidnight(fd)); }
+        { parts.Add($"\"Timestamp\" >= {{{ps.Count}}}"); ps.Add(UtcMidnight(fd)); }
         if (_thruDate is DateTime td)
-        { parts.Add($"Timestamp < {{{ps.Count}}}"); ps.Add(UtcMidnight(td.AddDays(1))); }
+        { parts.Add($"\"Timestamp\" < {{{ps.Count}}}"); ps.Add(UtcMidnight(td.AddDays(1))); }
 
         return (string.Join(" AND ", parts), ps.ToArray());
     }
@@ -305,18 +305,18 @@ public class NotificationsViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             var (baseWhere, ps) = BuildFilter();
-            string where = baseWhere + (_showUnreadOnly ? " AND IsRead = 0" : "");
+            string where = baseWhere + (_showUnreadOnly ? " AND \"IsRead\" = FALSE" : "");
 
             // The same notification is delivered to multiple characters; the grid shows one row per
             // NotificationId, so counts and paging are over DISTINCT NotificationId.
 #pragma warning disable EF1002
             // Unread count = distinct notifications with any unread recipient (ignores the toggle).
             UnreadCount = await db.EsiNotifications
-                .FromSqlRaw($"SELECT * FROM EsiNotifications WHERE {baseWhere} AND IsRead = 0", ps)
+                .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {baseWhere} AND \"IsRead\" = FALSE", ps)
                 .AsNoTracking().Select(n => n.NotificationId).Distinct().CountAsync();
 
             Pager.TotalCount = await db.EsiNotifications
-                .FromSqlRaw($"SELECT * FROM EsiNotifications WHERE {where}", ps)
+                .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {where}", ps)
                 .AsNoTracking().Select(n => n.NotificationId).Distinct().CountAsync();
             Pager.ClampToRange();
 
@@ -324,10 +324,21 @@ public class NotificationsViewModel : ReactiveObject
             // recipients); IsRead is MIN so the group reads as unread if any recipient is unread.
             var rows = Pager.TotalCount == 0
                 ? new List<CharacterNotification>()
+            // ⚠️ Every selected column is either aggregated or grouped. SQLite allows a
+            // bare column beside a GROUP BY and picks it from an arbitrary row in the group;
+            // PostgreSQL rejects it outright unless the grouping key is the table's primary key,
+            // and NotificationId is not — a notification has one row per recipient.
+            //
+            // Adding them to the key rather than wrapping them in an aggregate is not a
+            // workaround: they are genuinely identical across a notification's rows, because it
+            // is one notification delivered to several characters. Only CharacterId and IsRead
+            // actually vary, and those two are the ones that stay aggregated.
                 : await db.EsiNotifications.FromSqlRaw(
-                        "SELECT MIN(CharacterId) AS CharacterId, NotificationId, Type, SenderId, " +
-                        "SenderType, Timestamp, MIN(IsRead) AS IsRead, Text FROM EsiNotifications " +
-                        $"WHERE {where} GROUP BY NotificationId " +
+                        "SELECT MIN(\"CharacterId\") AS \"CharacterId\", \"NotificationId\", \"Type\", \"SenderId\", " +
+                        "\"SenderType\", \"Timestamp\", " + AppDb.AllTrue("\"IsRead\"") + " AS \"IsRead\", \"Text\" FROM \"EsiNotifications\" " +
+                        $"WHERE {where} " +
+                        "GROUP BY \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
+                        "\"Timestamp\", \"Text\" " +
                         $"ORDER BY {_selectedSort.Sql} LIMIT {GridPager.PageSize} OFFSET {Pager.Offset}", ps)
                     .AsNoTracking().ToListAsync();
 
@@ -337,8 +348,8 @@ public class NotificationsViewModel : ReactiveObject
             var recipients = pageIds.Count == 0
                 ? new List<(long NotificationId, long CharacterId)>()
                 : (await db.EsiNotifications.FromSqlRaw(
-                        $"SELECT * FROM EsiNotifications WHERE {baseWhere} " +
-                        $"AND NotificationId IN ({string.Join(",", pageIds)})", ps)
+                        $"SELECT * FROM \"EsiNotifications\" WHERE {baseWhere} " +
+                        $"AND \"NotificationId\" IN ({string.Join(",", pageIds)})", ps)
                     .AsNoTracking().Select(n => new { n.NotificationId, n.CharacterId }).ToListAsync())
                   .Select(x => (x.NotificationId, x.CharacterId)).ToList();
 #pragma warning restore EF1002
@@ -365,7 +376,7 @@ public class NotificationsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("NotificationsViewModel", "ReloadPageAsync", ex);
-            StatusText = "Error loading notifications.";
+            StatusText = AppErrorLogger.Line("Error loading notifications", ex);
         }
         finally { IsLoading = false; }
     }

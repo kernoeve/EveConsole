@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -43,28 +44,27 @@ public sealed class GetMarketPricesTool : IAgentTool
         if (names.Count == 0) return "No item names provided.";
 
         const string sql = """
-            SELECT st.Name,
-                   pc.LocationName AS source,
-                   mip.BuyPrice,
-                   mip.SellPrice,
-                   mip.Midpoint
-            FROM   SdeTypes          st
-            JOIN   MarketItemPrices  mip ON mip.TypeId   = st.TypeId
-            JOIN   MarketPricingConfigs pc ON pc.Id = mip.ConfigId AND pc.IsEnabled = 1
-            WHERE  st.Name LIKE @name
-            ORDER  BY pc.SortOrder
+            SELECT st."Name",
+                   pc."LocationName" AS source,
+                   mip."BuyPrice",
+                   mip."SellPrice",
+                   mip."Midpoint"
+            FROM   "SdeTypes"          st
+            JOIN   "MarketItemPrices"  mip ON mip."TypeId"   = st."TypeId"
+            JOIN   "MarketPricingConfigs" pc ON pc."Id" = mip."ConfigId" AND pc."IsEnabled" = TRUE
+            WHERE  st."Name" LIKE @name
+            ORDER  BY pc."SortOrder"
             LIMIT  5
             """;
 
         var results = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
 
         foreach (var name in names)
         {
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue("@name", name);
+            await using var cmd = conn.Command(sql);
+            cmd.AddWithValue("@name", name);
             await using var rdr = await cmd.ExecuteReaderAsync(ct);
             if (await rdr.ReadAsync(ct))
             {

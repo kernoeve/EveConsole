@@ -19,6 +19,14 @@ public class ApiCallRecord
     /// attempt is an hour later, so the worst case is close to twice the cache.</para>
     /// </summary>
     public DateTimeOffset? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// The ETag from the last response, sent back as If-None-Match.
+    ///
+    /// <para>Survives a restart deliberately: without it the first cycle after each launch is a
+    /// full download of everything, which is the case revalidation exists to avoid.</para>
+    /// </summary>
+    public string? ETag { get; set; }
 }
 
 // ── Single-row-per-character ─────────────────────────────────────────────────

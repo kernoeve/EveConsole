@@ -49,6 +49,77 @@
                   Cursor="Hand"
                   ToolTip.Tip="Open the release page on GitHub"
                   Click="OnReleaseLinkClick" />
+
+          <!-- Which SDE is loaded, and a way to act on it when a newer one exists. The link
+               appears only when there is something to do, so the bar stays quiet the rest of
+               the time. Both values come from SdeViewModel, which already checks CCP's build
+               feed on startup for the Settings tab. -->
+          <TextBlock Text="{Binding SdeVm.SdeShortText}"
+                     FontSize="11" Foreground="#666677"
+                     VerticalAlignment="Center" Margin="10 0 0 0"
+                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat='Static Data Export: {0}'}" />
+
+          <!-- ⚠️ Bound to SdeUpToDate, not to the absence of an update. If CCP's feed cannot be
+               reached the comparison never runs and UpdateAvailable stays false, so keying off
+               that would say "up to date" about a build nobody checked. When the check did not
+               complete the bar shows neither state. -->
+          <TextBlock Text="up to date"
+                     IsVisible="{Binding SdeVm.SdeUpToDate}"
+                     FontSize="11" Foreground="#5a7a5a"
+                     VerticalAlignment="Center" Margin="6 0 0 0"
+                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest from CCP is {0}'}" />
+
+          <Button x:Name="SdeUpdateLinkButton"
+                  IsVisible="{Binding SdeVm.UpdateAvailable}"
+                  Content="update available"
+                  Background="Transparent" BorderThickness="0" Padding="6 1"
+                  FontSize="11" Foreground="#5588aa"
+                  VerticalAlignment="Center"
+                  Cursor="Hand"
+                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest is {0} — open the SDE settings'}"
+                  Click="OnSdeUpdateLinkClick" />
+
+          <!-- Which database this window is talking to. The icon carries it before the word is
+               read; the hover says where the data actually lives. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Background="Transparent"
+                      ToolTip.Tip="{Binding DbEngineTip}">
+
+            <!-- The projects' own artwork, the same way the Slack mark on the Corp Activity
+                 buttons is theirs. PostgreSQL's trademark policy permits this to say that
+                 software works with it, provided no affiliation is implied; the attribution it
+                 asks for is on the Settings Database tab. SQLite publishes no logo policy, only
+                 a public-domain dedication covering code and documentation.
+
+                 postgresql.png  the 3-colour Slonik, from wiki.postgresql.org, resized only.
+                 sqlite.png      sqlite.org's banner, cropped to the mark (its wordmark begins
+                                 at column 100 of 220) with the white ground made transparent,
+                                 since the banner is drawn for a white page and this bar is not. -->
+            <Image Source="avares://EveConsole/Assets/sqlite.png"
+                   Width="16" Height="16" VerticalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                   IsVisible="{Binding !DbIsPostgres}" />
+
+            <Image Source="avares://EveConsole/Assets/postgresql.png"
+                   Width="16" Height="16" VerticalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                   IsVisible="{Binding DbIsPostgres}" />
+
+            <!-- ⚠️ Each wordmark's own colour treatment, lifted in lightness but not shifted in
+                 hue. Their palettes are chosen for a white page: PostgreSQL's #336791 and
+                 SQLite's #003B57 both fall to roughly 2:1 contrast on this bar and would be
+                 close to unreadable as printed. -->
+            <TextBlock FontSize="11" VerticalAlignment="Center"
+                       IsVisible="{Binding DbIsPostgres}">
+              <!-- ⚠️ On one line deliberately. A newline and indent between the two Run tags is
+                   content, not layout, and renders as "Postgre SQL". -->
+              <TextBlock.Inlines><Run Text="Postgre" Foreground="#9aa0aa" /><Run Text="SQL" Foreground="#5590be" /></TextBlock.Inlines>
+            </TextBlock>
+
+            <TextBlock Text="SQLite" FontSize="11" Foreground="#4fa8dc"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding !DbIsPostgres}" />
+          </StackPanel>
         </StackPanel>
 
         <!-- Eve Time clock -->

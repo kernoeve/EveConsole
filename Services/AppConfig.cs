@@ -21,7 +21,30 @@ public static class AppConfig
     // models, etc.) share the single app data directory rather than hard-coding the folder name.
     public static string AppDataDir => Path.Combine(LocalAppData, AppFolder);
 
-    private static string ConfigPath => Path.Combine(AppDataDir, "config.json");
+    /// <summary>
+    /// A config.json sitting beside the executable, which takes precedence over the one in app
+    /// data when it exists.
+    ///
+    /// <para>It lets two builds on one machine point at different databases: a development copy
+    /// aimed at a server, and an ordinary install still on its SQLite file, without either
+    /// disturbing the other's settings.</para>
+    ///
+    /// <para>⚠️ Only the CONFIG moves. Everything else that lives in app data — the agent's
+    /// settings, voice models, sound cache — stays there, because those are the user's and
+    /// not the installation's. A portable config is about which database this executable opens,
+    /// not about making the whole app relocatable.</para>
+    ///
+    /// <para>⚠️ Presence is what selects it, so an installation directory that is not writable
+    /// simply never has one. Nothing creates this file automatically; a person puts it there.</para>
+    /// </summary>
+    public static string PortableConfigPath =>
+        Path.Combine(AppContext.BaseDirectory, "config.json");
+
+    /// <summary>True when settings are being read from beside the executable.</summary>
+    public static bool UsingPortableConfig => File.Exists(PortableConfigPath);
+
+    private static string ConfigPath =>
+        UsingPortableConfig ? PortableConfigPath : Path.Combine(AppDataDir, "config.json");
 
     private static readonly JsonSerializerOptions JsonOpts =
         new() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
@@ -31,6 +54,82 @@ public static class AppConfig
     // ── Read ─────────────────────────────────────────────────────────────────
 
     public static string GetDbPath()       => Load().DbPath ?? DefaultDbPath;
+
+    /// <summary>
+    /// Which engine to open. SQLite unless the user has explicitly pointed the app at a server,
+    /// so every existing installation keeps opening the file it always has.
+    /// </summary>
+    public static DbBackend GetDbBackend()
+    {
+        // A connection string in the environment is itself the instruction: nobody sets one and
+        // means to go on using the file.
+        if (EnvConnection is not null) return DbBackend.Postgres;
+
+        return string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
+            ? DbBackend.Postgres
+            : DbBackend.Sqlite;
+    }
+
+    /// <summary>
+    /// A connection string supplied by the environment, which overrides config.json entirely.
+    ///
+    /// <para>Two reasons it exists. It lets a developer point a build at a test server without
+    /// editing the config the running copy is using — re-pointing that file would send the
+    /// real app somewhere else mid-session. And a poller running in a container has no config
+    /// file to edit and no user to edit it; the environment is how such a thing is configured.
+    /// The standalone poller is a planned split, so this is the shape it will need.</para>
+    ///
+    /// <para>⚠️ Env wins over file, never merges. A half-applied override — the server from
+    /// one place and the credentials from another — is the kind of configuration that appears
+    /// to work and connects somewhere nobody intended.</para>
+    /// </summary>
+    private static string? EnvConnection
+    {
+        get
+        {
+            var v = Environment.GetEnvironmentVariable("EVECONSOLE_DB_CONNECTION");
+            return string.IsNullOrWhiteSpace(v) ? null : v;
+        }
+    }
+
+    /// <summary>
+    /// The Postgres connection string, with the password put back.
+    ///
+    /// <para>The password is stored apart from the rest and protected by the platform — DPAPI
+    /// on Windows, the desktop keyring on Linux — so config.json holds a server address and a
+    /// user name that anybody can read and edit, and nothing that is worth stealing. See
+    /// <see cref="SecretStore"/> for why that matters more since the config can live beside the
+    /// executable.</para>
+    ///
+    /// <para>⚠️ A password that cannot be decrypted comes back as none at all, which is the
+    /// expected outcome after the config is copied to another machine or another account. The app
+    /// then asks for it rather than trying to connect with a blank one and reporting an
+    /// authentication failure the user cannot act on.</para>
+    /// </summary>
+    public static string? GetPostgresConnection()
+    {
+        if (EnvConnection is { } fromEnv) return fromEnv;
+
+        var c = Load();
+        if (string.IsNullOrWhiteSpace(c.PostgresConnection)) return null;
+
+        var password = SecretStore.Unprotect(c.PostgresPassword);
+        if (string.IsNullOrEmpty(password)) return c.PostgresConnection;
+
+        try
+        {
+            var b = new Npgsql.NpgsqlConnectionStringBuilder(c.PostgresConnection) { Password = password };
+            return b.ConnectionString;
+        }
+        catch { return c.PostgresConnection; }
+    }
+
+    /// <summary>How the password is being held, for the settings screen to state.</summary>
+    public static SecretProtection PostgresPasswordProtection =>
+        SecretStore.IsProtected(Load().PostgresPassword)
+            ? SecretStore.Available
+            : SecretProtection.None;
+
     public static (int X, int Y)? GetWindowPosition()
     {
         var c = Load();
@@ -44,6 +143,43 @@ public static class AppConfig
     {
         var c = Load();
         c.DbPath = path;
+        Save(c);
+    }
+
+    /// <summary>
+    /// Points the app at an engine. Takes effect on the next start, because the context factory
+    /// is built from it once.
+    ///
+    /// <para>⚠️ The Postgres connection string is kept when switching back to SQLite rather
+    /// than cleared. Somebody trying the file database again should not have to retype a server
+    /// address and password to go back.</para>
+    /// </summary>
+    public static void SetDbBackend(DbBackend backend, string? postgresConnection = null)
+    {
+        var c = Load();
+        c.DbBackend = backend == DbBackend.Postgres ? "postgres" : "sqlite";
+
+        if (!string.IsNullOrWhiteSpace(postgresConnection))
+        {
+            // ⚠️ Split before storing, so the password never reaches the file even once. The
+            // connection string kept here has it removed rather than blanked, so a reader cannot
+            // tell a password-less server from one whose password is held elsewhere.
+            try
+            {
+                var b = new Npgsql.NpgsqlConnectionStringBuilder(postgresConnection);
+                var password = b.Password ?? "";
+                b.Password = null;
+
+                c.PostgresConnection = b.ConnectionString;
+                c.PostgresPassword   = SecretStore.Protect(password, "postgres");
+            }
+            catch
+            {
+                c.PostgresConnection = postgresConnection;
+                c.PostgresPassword   = null;
+            }
+        }
+
         Save(c);
     }
 
@@ -91,6 +227,26 @@ public static class AppConfig
     /// database is opened — a flag living inside the file being rebuilt would be unreadable at
     /// exactly the moment it is needed.</para>
     /// </summary>
+    /// <summary>
+    /// The archive a restore should put back on the next start, or null.
+    ///
+    /// <para>Alongside the shrink and relocation flags because it is the same kind of request:
+    /// something that cannot be done while the database is open, so it is recorded and performed
+    /// before anything opens it.</para>
+    /// </summary>
+    public static string? GetRestorePending()
+    {
+        var v = Load().RestorePending;
+        return string.IsNullOrWhiteSpace(v) ? null : v;
+    }
+
+    public static void SetRestorePending(string? archivePath)
+    {
+        var c = Load();
+        c.RestorePending = string.IsNullOrWhiteSpace(archivePath) ? null : archivePath;
+        Save(c);
+    }
+
     public static bool GetShrinkPending() => Load().ShrinkPending == true;
 
     public static void SetShrinkPending(bool pending)
@@ -207,13 +363,29 @@ public static class AppConfig
 
     private static void Save(ConfigData data)
     {
-        Directory.CreateDirectory(AppDataDir);
-        File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, JsonOpts));
+        // The directory of whichever file is in use — writing to app data while reading from
+        // beside the executable would silently discard every change the user made.
+        var path = ConfigPath;
+        var dir  = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+
+        File.WriteAllText(path, JsonSerializer.Serialize(data, JsonOpts));
     }
 
     private sealed class ConfigData
     {
         [JsonPropertyName("dbPath")]  public string? DbPath  { get; set; }
+
+        // Which engine, and how to reach it when that engine is a server. Absent on every
+        // database written before Postgres support, which reads back as SQLite.
+        [JsonPropertyName("dbBackend")]          public string? DbBackend          { get; set; }
+        [JsonPropertyName("postgresConnection")] public string? PostgresConnection { get; set; }
+
+        // ⚠️ Kept apart from the connection string and protected by the platform. A value with
+        // no "dpapi:" or "libsecret:" prefix was written before this existed, or on a machine
+        // that could not protect it; either way it is read as-is and protected the next time the
+        // user saves.
+        [JsonPropertyName("postgresPassword")]   public string? PostgresPassword   { get; set; }
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
 
@@ -226,6 +398,7 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }
 }

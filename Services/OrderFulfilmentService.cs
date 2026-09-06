@@ -381,7 +381,10 @@ public class OrderFulfilmentService(
         //
         // Both columns hold EF's own ISO text ("2026-08-18 23:09:15+00:00"), which sorts
         // lexicographically, so a "yyyy-MM-dd HH:mm:ss" cutoff compares correctly against it.
-        var placed = order.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        // ⚠️ A DateTimeOffset, not a string. DateIssued is a timestamptz on a server and
+        // "operator does not exist: timestamp with time zone > text" is what comparing it to one
+        // gets. On SQLite the provider renders it to the same text this used to build by hand.
+        var placed = order.CreatedAt.ToUniversalTime();
 
         // Ids come from our own tables, so they are embedded rather than parameterised — a list of
         // longs cannot carry anything but digits.
@@ -405,7 +408,7 @@ public class OrderFulfilmentService(
               AND c."AssigneeId" = {0}
               AND c."DateIssued" > {1}
               AND ({{string.Join(" OR ", tests)}})
-              AND i."TypeId" = {2} AND i."IsIncluded" = 1 AND i."Quantity" >= {3}
+              AND i."TypeId" = {2} AND i."IsIncluded" = TRUE AND i."Quantity" >= {3}
             GROUP BY c."ContractId"
             ORDER BY c."ContractId"
             """;

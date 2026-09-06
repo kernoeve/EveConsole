@@ -1122,7 +1122,7 @@ public class ItemBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"LoadPriceHistoryAsync error: {ex}");
+            Status = AppErrorLogger.Line("Price history", ex);
             HistoryIsEmpty = true;
         }
         finally { IsLoadingHistory = false; }
@@ -1145,7 +1145,7 @@ public class ItemBrowserViewModel : ReactiveObject
         try { BuildHistoryChart(filtered); }
         catch (Exception chartEx)
         {
-            System.Diagnostics.Debug.WriteLine($"BuildHistoryChart error: {chartEx}");
+            Status = AppErrorLogger.Line("Price history chart", chartEx);
             HistorySeries = [];
             HistoryXAxes  = [];
             HistoryYAxes  = [];
@@ -1287,9 +1287,11 @@ public class ItemBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"LoadDerivedHistoryAsync error: {ex}");
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                // Set inside the callback, not outside it: this runs off the UI thread, and
+                // Status is bound.
+                Status = AppErrorLogger.Line("Derived history", ex);
                 _allDerivedRows = [];
                 ApplyDerivedPeriodFilter();
             });
@@ -1303,16 +1305,15 @@ public class ItemBrowserViewModel : ReactiveObject
     {
         var rows = new List<DerivedRow>();
         var connStr = _db.Database.GetDbConnection().ConnectionString;
-        using var conn = new SqliteConnection(connStr);
+        using var conn = AppDb.Connect();
         conn.Open();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """
+        using var cmd = conn.Command("""
             SELECT "Date", "MarketValue", "BuildCost", "ContractPrice"
             FROM "TypePriceSnapshots"
             WHERE "TypeId" = @typeId
             ORDER BY "Date"
-            """;
-        cmd.Parameters.AddWithValue("@typeId", typeId);
+            """);
+        cmd.AddWithValue("@typeId", typeId);
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
@@ -1339,7 +1340,7 @@ public class ItemBrowserViewModel : ReactiveObject
         try { BuildDerivedChart(filtered); }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"BuildDerivedChart error: {ex}");
+            Status = AppErrorLogger.Line("Derived chart", ex);
             DerivedSeries = [];
             DerivedXAxes  = [];
             DerivedYAxes  = [];

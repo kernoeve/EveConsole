@@ -448,19 +448,24 @@ public sealed class AlarmService : ReactiveObject
     /// </summary>
     private static async Task PruneSeenKeysAsync(AppDbContext db, DateTimeOffset now, CancellationToken ct)
     {
-        // Must match EF Core's on-disk shape for DateTimeOffset (space separator, trailing
-        // offset). An ISO "o" string sorts above every stored value because 'T' > ' ', which
-        // would make this comparison true for every row and empty the ledger — at which point
-        // every alarm re-announces everything it has ever seen.
-        var cutoff = (now - SeenKeyRetention).ToUniversalTime()
-            .ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "+00:00";
+        // ⚠️ A DateTimeOffset, not a string shaped like one. FirstSeenAt is a timestamptz
+        // on a server and PostgreSQL will not compare one against text at all: "operator does not
+        // exist: timestamp with time zone < text".
+        //
+        // The string this replaced existed to match EF Core's on-disk shape for SQLite (space
+        // separator, trailing offset), because an ISO "o" string sorts above every stored value
+        // there — 'T' > ' ' — which made the comparison true for every row and emptied
+        // the ledger, at which point every alarm re-announced everything it had ever seen. Handing
+        // the provider a real DateTimeOffset gets that shape from the provider itself on SQLite,
+        // and a typed comparison on PostgreSQL, so neither engine is being guessed at.
+        var cutoff = (now - SeenKeyRetention).ToUniversalTime();
         await db.Database.ExecuteSqlRawAsync(
             """DELETE FROM "AlarmSeenKeys" WHERE "FirstSeenAt" < {0}""", [cutoff], ct);
 
         await db.Database.ExecuteSqlRawAsync($"""
-            DELETE FROM "AlarmSeenKeys" WHERE rowid IN (
-              SELECT rowid FROM (
-                SELECT rowid, ROW_NUMBER() OVER (PARTITION BY "AlarmId" ORDER BY "FirstSeenAt" DESC) AS rn
+            DELETE FROM "AlarmSeenKeys" WHERE {AppDb.RowId} IN (
+              SELECT {AppDb.RowId} FROM (
+                SELECT {AppDb.RowId}, ROW_NUMBER() OVER (PARTITION BY "AlarmId" ORDER BY "FirstSeenAt" DESC) AS rn
                 FROM "AlarmSeenKeys")
               WHERE rn > {MaxSeenKeysPerAlarm})
             """, ct);

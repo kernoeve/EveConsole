@@ -92,8 +92,7 @@ try
         var line    = src[..m.Index].Count(c => c == '\n') + 1;
         var guarded = inTry[m.Index];
 
-        using var cmd = cn.CreateCommand();
-        cmd.CommandText = sql;
+        using var cmd = cn.Command(sql);
         try
         {
             var rows = cmd.ExecuteNonQuery();
@@ -104,8 +103,7 @@ try
             if (Regex.IsMatch(sql, @"^\s*INSERT", RegexOptions.IgnoreCase) && rows == 0)
             {
                 var table = Regex.Match(sql, @"INTO\s+""?(\w+)""?").Groups[1].Value;
-                using var chk = cn.CreateCommand();
-                chk.CommandText = $"SELECT COUNT(*) FROM \"{table}\"";
+                using var chk = cn.Command($"SELECT COUNT(*) FROM \"{table}\"");
                 if (Convert.ToInt64(chk.ExecuteScalar()) == 0)
                 {
                     failures.Add($"  SILENT  App.axaml.cs:{line}  {table}: inserted 0 rows and the table is still empty");
