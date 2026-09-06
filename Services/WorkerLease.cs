@@ -73,6 +73,14 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             return;
         }
 
+        // ⚠️ The lock is already held, by this process. SingleInstance takes this very key at
+        // startup to keep a second client out, and an advisory lock belongs to the session that
+        // took it — so opening a new connection and asking for it would be this process losing a
+        // race with itself, on the silent path that means "somebody else has it". Adopt that
+        // session rather than contending with it. Null on a server that could not be reached,
+        // which correctly sends us round the contending path instead.
+        _lock = SingleInstance.TakePostgresLock();
+
         _cts = new CancellationTokenSource();
         _ = RunLoopAsync(_cts.Token);
     }
@@ -176,42 +184,63 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
         var cs = AppConfig.GetPostgresConnection();
         if (string.IsNullOrWhiteSpace(cs)) return;   // App reports the misconfiguration
 
-        NpgsqlConnection? conn = null;
+        // Not already ours — from SingleInstance's handover, or from a previous tick that took
+        // the lock but could not finish claiming it.
+        if (_lock is null)
+        {
+            NpgsqlConnection? conn = null;
+            try
+            {
+                // ⚠️ Unpooled and kept open for the life of the lease. An advisory lock belongs to
+                // the session that took it, so returning this connection to the pool would end that
+                // session and drop the lock while this process still believed it held one.
+                var b = new NpgsqlConnectionStringBuilder(AppDb.PostgresConnectionString(cs)) { Pooling = false };
+                conn = new NpgsqlConnection(b.ConnectionString);
+                await conn.OpenAsync(ct);
+
+                await using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT pg_try_advisory_lock(@k)";
+                    cmd.Parameters.AddWithValue("k", AdvisoryLockKey);
+                    if (await cmd.ExecuteScalarAsync(ct) is not true)
+                    {
+                        await conn.DisposeAsync();   // somebody else has it: nothing wrong happened
+                        return;
+                    }
+                }
+
+                _lock = conn;
+                conn  = null;                        // owned by the lease now, not by this method
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                // Unreachable, refused, wrong credentials — all the same answer: not the holder.
+                if (conn is not null) { try { await conn.DisposeAsync(); } catch { } }
+                errorLogger.Log("WorkerLease", "acquiring the lease", ex);
+                return;
+            }
+        }
+
+        // The lock is ours. Say who we are before claiming to be anyone.
         try
         {
-            // ⚠️ Unpooled and kept open for the life of the lease. An advisory lock belongs to the
-            // session that took it, so returning this connection to the pool would end that
-            // session and drop the lock while this process still believed it held one.
-            var b = new NpgsqlConnectionStringBuilder(AppDb.PostgresConnectionString(cs)) { Pooling = false };
-            conn = new NpgsqlConnection(b.ConnectionString);
-            await conn.OpenAsync(ct);
-
-            await using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = "SELECT pg_try_advisory_lock(@k)";
-                cmd.Parameters.AddWithValue("k", AdvisoryLockKey);
-                if (await cmd.ExecuteScalarAsync(ct) is not true)
-                {
-                    await conn.DisposeAsync();       // somebody else has it: nothing wrong happened
-                    return;
-                }
-            }
-
-            _lock     = conn;
-            conn      = null;                        // owned by the lease now, not by this method
             _takenUtc = DateTimeOffset.UtcNow;
             await ClaimAsync(ct);
-
-            IsHolder = true;
-            Gained?.Invoke();
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            // Unreachable, refused, wrong credentials — all the same answer: not the holder.
-            if (conn is not null) { try { await conn.DisposeAsync(); } catch { } }
-            errorLogger.Log("WorkerLease", "acquiring the lease", ex);
+            // ⚠️ Keep the lock. We hold it, and releasing here would let a second client in;
+            // worse, the next tick would open a fresh session and ask for a key this process
+            // never let go of, which answers false forever. Retried on the next tick instead,
+            // through the branch above that sees _lock is already set.
+            errorLogger.Log("WorkerLease", "recording the lease holder", ex);
+            return;
         }
+
+        IsHolder = true;
+        Gained?.Invoke();
     }
 
     /// <summary>Records who took it, so other clients can see what version is writing.</summary>

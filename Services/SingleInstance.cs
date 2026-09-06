@@ -98,6 +98,27 @@ public static class SingleInstance
         }
     }
 
+
+    /// <summary>
+    /// Hands the advisory-lock session to <see cref="WorkerLease"/>, which is what now wants it.
+    ///
+    /// <para>⚠️ A transfer, not a copy. The lock belongs to this ONE session, so a lease that
+    /// opened its own connection and asked for the same key would be this process losing a race
+    /// with itself — <c>pg_try_advisory_lock</c> would answer false, on the ordinary "somebody
+    /// else has it" path, and report nothing. Clearing the field here is what keeps
+    /// <see cref="Release"/> from disposing a connection it no longer owns.</para>
+    ///
+    /// <para>Null when there was nothing to take: SQLite, or a server that could not be reached —
+    /// which is why the lease treats a null as "go and contend properly" rather than as
+    /// "you are the holder".</para>
+    /// </summary>
+    public static Npgsql.NpgsqlConnection? TakePostgresLock()
+    {
+        var conn = _pgLock;
+        _pgLock  = null;
+        return conn;
+    }
+
     private static bool TryTakeLockFile()
     {
         try
