@@ -77,6 +77,44 @@ public class PollingSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _serviceOtherCopy, value);
     }
 
+    private string _serviceDatabase = "";
+    /// <summary>Which database the service will connect to. Host and name only.</summary>
+    public string ServiceDatabase
+    {
+        get => _serviceDatabase;
+        private set => this.RaiseAndSetIfChanged(ref _serviceDatabase, value);
+    }
+
+    private bool _serviceOtherDatabase;
+    /// <summary>Installed, but connecting somewhere other than this client does.</summary>
+    public bool ServiceOtherDatabase
+    {
+        get => _serviceOtherDatabase;
+        private set => this.RaiseAndSetIfChanged(ref _serviceOtherDatabase, value);
+    }
+
+    private bool _serviceNeedsUpdate;
+    /// <summary>Either mismatch. One button fixes both, because one action rewrites both.</summary>
+    public bool ServiceNeedsUpdate
+    {
+        get => _serviceNeedsUpdate;
+        private set => this.RaiseAndSetIfChanged(ref _serviceNeedsUpdate, value);
+    }
+
+    /// <summary>
+    /// What is out of step, in the order somebody would want to read it.
+    ///
+    /// <para>⚠️ The database first when both are wrong. A service running the wrong executable is
+    /// confusing; a service polling the wrong database is doing real work in a place nobody is
+    /// watching, and is the reason to act now rather than later.</para>
+    /// </summary>
+    public string ServiceUpdateReason =>
+        _serviceOtherDatabase && _serviceOtherCopy
+            ? "This service is connected to a different database than this client, and it runs a different copy of EVE Console. It is doing background work somewhere you are not looking."
+      : _serviceOtherDatabase
+            ? "This service is connected to a different database than this client. Your database settings changed after it was installed; it is still working against the old one."
+      :       "This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.";
+
     /// <summary>Points the existing service at this copy and restarts it.</summary>
     public async Task RepointServiceAsync()
     {
@@ -118,6 +156,16 @@ public class PollingSettingsViewModel : ReactiveObject
         ServiceExePath      = status is null ? "" : WindowsServiceControl.InstalledExePath() ?? "unknown";
         ServiceIsThisCopy   = status is not null && WindowsServiceControl.PointsAtThisCopy();
         ServiceOtherCopy    = status is not null && !ServiceIsThisCopy;
+
+        // ⚠️ And which DATABASE, which is the one that goes wrong quietly. The service reads a copy
+        // of the connection taken when it was installed; changing the database here does not
+        // rewrite it, because that file needs elevation to touch. So a client repointed at a new
+        // server leaves the service polling the old one — background work continuing against a
+        // database nobody is looking at, while the new one has no worker at all.
+        ServiceDatabase       = status is null ? "" : MachineConfig.DescribeConnection() ?? "not configured";
+        ServiceOtherDatabase  = status is not null && !MachineConfig.MatchesConnection(AppConfig.GetPostgresConnection());
+        ServiceNeedsUpdate    = ServiceOtherCopy || ServiceOtherDatabase;
+        this.RaisePropertyChanged(nameof(ServiceUpdateReason));
         ServiceStatus    = status switch
         {
             null                                                  => "Not installed",

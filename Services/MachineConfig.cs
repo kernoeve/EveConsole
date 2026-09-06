@@ -72,6 +72,44 @@ public static class MachineConfig
     public static string? GetChatLogDirs() => Read()?.ChatLogDirs;
 
     /// <summary>
+    /// Which database the service is pointed at, in words fit for a settings page.
+    ///
+    /// <para>⚠️ Host and database only, never the password — this is displayed. The stored value is
+    /// readable by anything on the machine as it is; there is no reason for the app to also put it
+    /// on screen.</para>
+    /// </summary>
+    public static string? DescribeConnection()
+    {
+        var connection = GetConnection();
+        if (connection is null) return null;
+
+        try
+        {
+            var b = new Npgsql.NpgsqlConnectionStringBuilder(connection);
+            return $"{b.Database} on {b.Host}";
+        }
+        catch { return "unreadable"; }
+    }
+
+    /// <summary>
+    /// Whether the service would connect to the same place this client does.
+    ///
+    /// <para>⚠️ The whole string, password included, because a changed password matters as much as
+    /// a changed host: the service would fail to connect, and <c>sc failure</c> would restart it
+    /// into the same failure until somebody read the log. Both sides are produced by the same
+    /// AppConfig call, so they are byte-identical while in step.</para>
+    ///
+    /// <para>True when there is nothing installed to disagree with.</para>
+    /// </summary>
+    public static bool MatchesConnection(string? current)
+    {
+        var stored = GetConnection();
+        if (stored is null) return true;
+
+        return string.Equals(stored, current, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Writes what the service will need. ⚠️ Requires elevation — ProgramData is not writable by
     /// an ordinary account — so this is called from the elevated half of installation, never from
     /// the running app.

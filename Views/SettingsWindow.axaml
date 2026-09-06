@@ -1032,18 +1032,29 @@
                 <!-- Which executable the service actually launches. Shown whenever one is
                      installed, not only when it is wrong: "running" means nothing until you know
                      which copy is running. -->
-                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding PollingVm.ServiceInstalled}">
-                  <TextBlock Grid.Column="0" Text="Runs:" Foreground="#ccc" FontSize="12"
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
+                      IsVisible="{Binding PollingVm.ServiceInstalled}">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Runs:" Foreground="#ccc" FontSize="12"
                              VerticalAlignment="Top" Margin="0 0 10 0" />
-                  <TextBlock Grid.Column="1" Text="{Binding PollingVm.ServiceExePath}"
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PollingVm.ServiceExePath}"
+                             Foreground="#666677" FontSize="11" TextWrapping="Wrap" />
+
+                  <!-- Which database, because that is the mismatch that costs something. -->
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Database:" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Top" Margin="0 2 10 0" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PollingVm.ServiceDatabase}"
                              Foreground="#666677" FontSize="11" TextWrapping="Wrap" />
                 </Grid>
 
                 <Border Background="#2a1f14" BorderBrush="#5a4020" BorderThickness="1"
                         CornerRadius="3" Padding="8 6"
-                        IsVisible="{Binding PollingVm.ServiceOtherCopy}">
-                  <TextBlock FontSize="11" Foreground="#c8884a" TextWrapping="Wrap"
-                             Text="⚠ This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings and database, which may not be this one's. Point it at this copy, or remove it from here and add it again from the copy you want." />
+                        IsVisible="{Binding PollingVm.ServiceNeedsUpdate}">
+                  <StackPanel Spacing="4">
+                    <TextBlock FontSize="11" Foreground="#c8884a" TextWrapping="Wrap"
+                               Text="{Binding PollingVm.ServiceUpdateReason}" />
+                    <TextBlock FontSize="11" Foreground="#9a8a6a" TextWrapping="Wrap"
+                               Text="Updating rewrites both what it runs and what it connects to, then restarts it. Changing the database here cannot do that on its own — writing the service's copy needs administrator approval." />
+                  </StackPanel>
                 </Border>
 
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0"
@@ -1052,9 +1063,9 @@
                           Click="OnServiceInstallClick"
                           IsVisible="{Binding !PollingVm.ServiceInstalled}" />
 
-                  <Button x:Name="ServiceRepointButton" Content="Point at this copy"
+                  <Button x:Name="ServiceRepointButton" Content="Update service"
                           Click="OnServiceRepointClick"
-                          IsVisible="{Binding PollingVm.ServiceOtherCopy}" />
+                          IsVisible="{Binding PollingVm.ServiceNeedsUpdate}" />
 
                   <Button x:Name="ServiceStartButton" Content="Start"
                           Click="OnServiceStartClick"
