@@ -34,11 +34,13 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
-  <!-- LibVLC's Windows binaries, and only for a Windows target. On Linux LibVLCSharp loads the
-       system libvlc, so these are 198 MB of nothing. -->
+  <!-- LibVLC's Windows binaries, and only for a Windows target. On Linux LibVLCSharp loads
+       the system libvlc, so these are 198 MB of nothing.
+
+       ⚠️ A package belongs here only if the code using it is compiled out on other targets.
+       A runtime guard is not enough — OperatingSystem.IsWindows() still leaves the type
+       referenced, and the compiler wants the assembly on every target. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
@@ -64,8 +66,23 @@
     <!-- HTTP / JSON -->
     <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
 
+    <!-- DPAPI, for SecretStore's Windows key protection.
+
+         ⚠️ Referenced on every target, not only Windows. The API throws
+         PlatformNotSupportedException elsewhere and SecretStore gates every call on
+         OperatingSystem.IsWindows(), but that is a runtime guard: it does not remove the
+         compile-time reference. Conditioned on IsWindowsTarget it only reached linux-x64
+         transitively, through some other package's dependencies, and vanished the moment
+         the graph shifted — 4 CS0103s in SecretStore.cs. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+
     <!-- SQLite / EF Core -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <!-- ⚠️ Unconditioned, and must stay that way. Npgsql is cross-platform and everything
+         using it — AppDb, DatabaseCopyService, PgDump/PgRestore, SingleInstance — compiles on every
+         target. Sitting in the Windows-only group above, it took the linux-x64 build down with
+         12 CS0246s while the Windows build stayed green. -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
