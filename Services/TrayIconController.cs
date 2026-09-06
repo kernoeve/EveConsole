@@ -85,22 +85,7 @@ public sealed class TrayIconController
     }
 
     /// <summary>Starts a tray process now, so ticking the box does something visible today.</summary>
-    public static string? LaunchNow()
-    {
-        try
-        {
-            // ⚠️ RelaunchPath, not ProcessPath. Under an AppImage the latter is the binary inside
-            // the temporary mount, and starting that directly skips the AppImage's own runtime —
-            // it would come up without the environment its bundled libraries are found through.
-            if (AppLauncher.RelaunchPath is not { } exe) return "Could not determine this application's path.";
-
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, Program.TrayArgument)
-            { UseShellExecute = true });
-
-            return null;
-        }
-        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
-    }
+    public static string? LaunchNow() => AppLauncher.Start(Program.TrayArgument);
 
     public void Show()
     {

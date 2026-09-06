@@ -196,22 +196,22 @@ public partial class SettingsWindow : Window
 
         dbVm.RequestRestart = () =>
         {
-            var exe = Process.GetCurrentProcess().MainModule?.FileName;
-            if (exe is not null)
-            {
-                // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This
-                // process is still alive for a moment after Process.Start, so without the release
-                // the new instance sees the lock held, focuses this window and exits — and then
-                // this one exits too, leaving nothing running. The argument makes the newcomer
-                // wait for the handover rather than treat it as a rival.
-                SingleInstance.Release();
-                Process.Start(new ProcessStartInfo(exe)
-                {
-                    UseShellExecute = true,
-                    Arguments       = SingleInstance.RestartingArgument,
-                });
-            }
-            Environment.Exit(0);
+            // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This process
+            // is still alive for a moment after Process.Start, so without the release the new
+            // instance sees the lock held, focuses this window and exits — and then this one exits
+            // too, leaving nothing running. The argument makes the newcomer wait for the handover
+            // rather than treat it as a rival.
+            SingleInstance.Release();
+
+            // ⚠️ Through AppLauncher rather than MainModule.FileName, which under an AppImage names
+            // the binary inside a temporary mount: starting that directly skips the AppImage's own
+            // runtime, and the replacement comes up without the environment its bundled libraries
+            // are found through.
+            AppLauncher.Start(SingleInstance.RestartingArgument);
+
+            // ⚠️ Not Environment.Exit: on Linux that ran libc's atexit handlers from the UI thread
+            // and did not come back, leaving a client that ignored SIGTERM too. See AppLauncher.
+            AppLauncher.ExitNow();
         };
     }
 }

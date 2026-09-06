@@ -41,6 +41,62 @@ public static class AppLauncher
         }
     }
 
+    /// <summary>
+    /// Starts another copy of this application. Returns what went wrong, or null.
+    ///
+    /// <para>⚠️ UseShellExecute only on Windows. On Linux it hands the path to xdg-open, which
+    /// consults the desktop's file associations for what to do with the file — it may run it, it
+    /// may open it in an editor, and for an AppImage it may offer to unpack it. Starting our own
+    /// binary is not a job for the file manager.</para>
+    /// </summary>
+    public static string? Start(params string[] arguments)
+    {
+        try
+        {
+            if (RelaunchPath is not { } exe) return "Could not determine this application's path.";
+
+            var psi = new System.Diagnostics.ProcessStartInfo(exe)
+            {
+                UseShellExecute = OperatingSystem.IsWindows(),
+            };
+
+            foreach (var a in arguments)
+                if (!string.IsNullOrWhiteSpace(a)) psi.ArgumentList.Add(a);
+
+            System.Diagnostics.Process.Start(psi);
+            return null;
+        }
+        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+    }
+
+    /// <summary>
+    /// Ends this process now, without running the shutdown path.
+    ///
+    /// <para>⚠️ Not <c>Environment.Exit</c> off Windows, and that is not caution — it is a hang
+    /// that was observed. Environment.Exit calls libc's <c>exit()</c>, which runs the atexit
+    /// handlers registered by every native library loaded into the process: X11, Skia, HarfBuzz,
+    /// libvlc. Called from the UI thread with the windowing loop still on the stack, one of those
+    /// does not return — and the process then ignores SIGTERM as well, because the runtime is
+    /// already inside shutdown and never dispatches the signal, so only SIGKILL clears it. That is
+    /// what "Save and Restart" did on Linux: the replacement came up fine and the old client had to
+    /// be killed by hand.</para>
+    ///
+    /// <para>Nothing is lost by skipping it. Every setting written on these paths is a synchronous
+    /// file write that has already returned, the log writers open and close per line, and a restart
+    /// has never closed SQLite's connections cleanly — <see cref="SqliteMaintenance.Checkpoint"/>
+    /// exists precisely because the write-ahead log is expected to survive an abrupt exit.</para>
+    ///
+    /// <para>The exit code is not preserved off Windows: a process that kills itself reports the
+    /// signal instead. Nothing reads ours.</para>
+    /// </summary>
+    public static void ExitNow(int code = 0)
+    {
+        if (OperatingSystem.IsWindows()) { Environment.Exit(code); return; }
+
+        try { System.Diagnostics.Process.GetCurrentProcess().Kill(); }
+        catch { Environment.Exit(code); }   // nothing better left to try
+    }
+
     /// <summary>Whether this copy is running from an AppImage, for wording that has to differ.</summary>
     public static bool IsAppImage
     {

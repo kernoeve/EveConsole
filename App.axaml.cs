@@ -411,12 +411,10 @@ public class App : Application
                 {
                     try
                     {
-                        // RelaunchPath rather than ProcessPath: under an AppImage this process runs
-                        // out of a temporary mount, and the copy to start is the .AppImage file the
-                        // user actually launched.
-                        if (EveConsole.Services.AppLauncher.RelaunchPath is { } exe)
-                            System.Diagnostics.Process.Start(
-                                new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
+                        // Through AppLauncher: under an AppImage this process runs out of a temporary
+                        // mount, so the copy to start is the .AppImage file the user actually launched —
+                        // and on Linux UseShellExecute would hand it to xdg-open rather than run it.
+                        EveConsole.Services.AppLauncher.Start();
                     }
                     catch (Exception ex) { errorLogger.Log("Tray", "opening the application", ex); }
                 };
