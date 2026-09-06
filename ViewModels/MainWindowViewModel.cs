@@ -6,6 +6,7 @@ using EveConsole.Agent;
 using EveConsole.Data;
 using EveConsole.Api;
 using EveConsole.Auth;
+using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -78,6 +79,114 @@ public class MainWindowViewModel : ReactiveObject
                         + ex.Message.Split('\n')[0];
         }
     }
+
+    // ── Which client is doing the background work ─────────────────────────────
+
+    private readonly WorkerLease    _workerLease;
+    private readonly DispatcherTimer _workerTimer;
+
+    private string _workerOwner = "…";
+    /// <summary>
+    /// Who holds the lease, in as few words as the bar has room for: <c>this client</c>, the
+    /// other client's host name, or <c>none</c>.
+    /// </summary>
+    public string WorkerOwner
+    {
+        get => _workerOwner;
+        private set => this.RaiseAndSetIfChanged(ref _workerOwner, value);
+    }
+
+    private WorkerOwnership _workerState = WorkerOwnership.Unknown;
+    /// <summary>Drives the colour, so "nobody is polling" reads before the word does.</summary>
+    public WorkerOwnership WorkerState
+    {
+        get => _workerState;
+        private set => this.RaiseAndSetIfChanged(ref _workerState, value);
+    }
+
+    private string _workerTip = "Checking which client is doing the background work…";
+    /// <summary>Host, pid and version of the holder, on hover.</summary>
+    public string WorkerTip
+    {
+        get => _workerTip;
+        private set => this.RaiseAndSetIfChanged(ref _workerTip, value);
+    }
+
+    /// <summary>⚠️ The lease raises its events from its own loop, never the UI thread.</summary>
+    private void OnLeaseChanged() => Dispatcher.UIThread.Post(() => _ = RefreshWorkerAsync());
+
+    /// <summary>
+    /// Re-reads who holds the lease.
+    ///
+    /// <para>⚠️ Polled as well as event-driven. Gained and Lost describe THIS process, which is
+    /// only half the question — another client taking over, or dying, changes the answer with
+    /// nothing here to notice it.</para>
+    /// </summary>
+    private async Task RefreshWorkerAsync()
+    {
+        // One process, no contest, nothing to report but itself.
+        if (!DbEngine.IsPostgres)
+        {
+            WorkerOwner = "this client";
+            WorkerState = WorkerOwnership.Mine;
+            WorkerTip   = "Background processes run in this client.\n\n"
+                        + $"Host: {Environment.MachineName}\n"
+                        + $"PID: {Environment.ProcessId}\n"
+                        + $"Version: {AppVersion.Number}\n\n"
+                        + "SQLite allows one client at a time, so there is nothing to hand over to.";
+            return;
+        }
+
+        var s = await WorkerLease.ReadStatusAsync();
+
+        // ⚠️ IsHolder decides "mine", not a host name match. Two clients on one machine report the
+        // same host, and just after a handover the row can still name the previous holder — the
+        // lock is the only thing that actually knows.
+        if (_workerLease.IsHolder)
+        {
+            WorkerOwner = "this client";
+            WorkerState = WorkerOwnership.Mine;
+            WorkerTip   = s is null
+                ? "Background processes run in this client."
+                : Describe("Background processes run in this client.", s);
+            return;
+        }
+
+        if (s is null)
+        {
+            WorkerOwner = "none";
+            WorkerState = WorkerOwnership.None;
+            WorkerTip   = "No client has claimed the background work.\n\n"
+                        + "ESI polling, build costs and backups are not running.";
+            return;
+        }
+
+        if (!WorkerLease.IsLive(s))
+        {
+            WorkerOwner = "none";
+            WorkerState = WorkerOwnership.None;
+            WorkerTip   = Describe("Nothing is doing the background work — this is the last client that did.", s);
+            return;
+        }
+
+        WorkerOwner = s.HostName;
+        WorkerState = WorkerOwnership.Other;
+        WorkerTip   = Describe("Background processes run in another client.", s);
+    }
+
+    private static string Describe(string headline, BackgroundWorkerStatus s) =>
+        $"{headline}\n\n"
+      + $"Host: {s.HostName}{(s.Headless ? "  (headless)" : "")}\n"
+      + $"PID: {s.ProcessId}\n"
+      + $"Version: {s.Version}\n"
+      + $"Since: {s.LeaseTakenUtc.ToLocalTime():yyyy-MM-dd HH:mm}\n"
+      + $"Last heartbeat: {Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc)}";
+
+    private static string Ago(TimeSpan t) =>
+        t < TimeSpan.FromMinutes(1) ? $"{Math.Max(0, (int)t.TotalSeconds)}s ago"
+      : t < TimeSpan.FromHours(1)   ? $"{(int)t.TotalMinutes} min ago"
+      :                               $"{(int)t.TotalHours} h ago";
+
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
@@ -525,6 +634,7 @@ public class MainWindowViewModel : ReactiveObject
         SdeImportService                sdeService,
         HoboImportService               hoboService,
         EsiPollingService               pollingService,
+        WorkerLease                     workerLease,
         ApiActivityLog                  activityLog,
         MarketPricingService            marketPricing,
         MarketLevelService              marketLevelService,
@@ -614,6 +724,18 @@ public class MainWindowViewModel : ReactiveObject
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
         _ = LoadDbEngineTipAsync();
+
+        // Who is doing the background work, now and as it changes.
+        _workerLease        = workerLease;
+        workerLease.Gained += OnLeaseChanged;
+        workerLease.Lost   += OnLeaseChanged;
+        _ = RefreshWorkerAsync();
+
+        // ⚠️ Polled as well as event-driven, at the lease's own tick, because the events say
+        // nothing about what another client did.
+        _workerTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _workerTimer.Tick += (_, _) => _ = RefreshWorkerAsync();
+        _workerTimer.Start();
         ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
                                                      zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
                                                      intelService, monitoringSettings, entityNames, alarmService, orderFulfilment, lpStoreService);
@@ -953,4 +1075,15 @@ public class MainWindowViewModel : ReactiveObject
 
     public Task ForceResolveNamesAsync() =>
         _pollingService.ForceResolveStructureNamesAsync();
+}
+
+/// <summary>Who is doing the background work, as far as the title bar cares.</summary>
+public enum WorkerOwnership
+{
+    /// <summary>Not yet read. Shown as neither running nor missing — saying "none" before
+    /// looking would raise an alarm about a worker that is very likely fine.</summary>
+    Unknown,
+    Mine,
+    Other,
+    None,
 }

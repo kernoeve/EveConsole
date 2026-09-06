@@ -308,6 +308,13 @@ public class App : Application
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
+
+                // ⚠️ After the pollers, never before. Releasing first would invite another
+                // client to start polling while this one is still finishing a pass, which is
+                // precisely the overlap the lease exists to prevent. The server would drop the
+                // lock on exit anyway; doing it here is what makes a handover take a tick
+                // instead of however long the OS takes to notice the process is gone.
+                Services.GetRequiredService<WorkerLease>().Stop();
                 desktop.Shutdown();
             };
         }
@@ -2853,6 +2860,10 @@ public class App : Application
         // screen that will never go away.
         void StartBackgroundServices()
         {
+            // ⚠️ First, because everything below it will come to depend on it. Today it only
+            // reports who holds the lease; the services are still started unconditionally, which
+            // is correct for now because SingleInstance still admits exactly one client.
+            Start("worker lease",       () => Services.GetRequiredService<WorkerLease>().Start());
             Start("ESI polling",        () => polling?.Start());
             Start("market pricing",     () => marketPricing?.Start());
             Start("market history",     () => marketHistory?.Start());
