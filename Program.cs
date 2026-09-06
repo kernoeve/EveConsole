@@ -44,6 +44,12 @@ class Program
                 Environment.Exit(WindowsServiceControl.RunUninstall());
                 return;
             }
+
+            if (args.Any(a => string.Equals(a, WindowsServiceControl.RepointArgument, StringComparison.OrdinalIgnoreCase)))
+            {
+                Environment.Exit(WindowsServiceControl.RunRepoint());
+                return;
+            }
         }
 
         var asService = args.Any(a => string.Equals(a, ServiceArgument, StringComparison.OrdinalIgnoreCase));

@@ -75,6 +75,9 @@ public partial class SettingsWindow : Window
     private void OnServiceRemoveClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = PollingVm?.UninstallServiceAsync();
 
+    private void OnServiceRepointClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.RepointServiceAsync();
+
     private void OnServiceStartClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = PollingVm?.SetServiceRunningAsync(true);
 

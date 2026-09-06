@@ -54,6 +54,46 @@ public class PollingSettingsViewModel : ReactiveObject
 
     public bool ServiceIdle => !_serviceBusy;
 
+    private string _serviceExePath = "";
+    /// <summary>The executable the service control manager will launch.</summary>
+    public string ServiceExePath
+    {
+        get => _serviceExePath;
+        private set => this.RaiseAndSetIfChanged(ref _serviceExePath, value);
+    }
+
+    private bool _serviceIsThisCopy;
+    public bool ServiceIsThisCopy
+    {
+        get => _serviceIsThisCopy;
+        private set => this.RaiseAndSetIfChanged(ref _serviceIsThisCopy, value);
+    }
+
+    private bool _serviceOtherCopy;
+    /// <summary>Installed, but running a different copy of EVE Console than this one.</summary>
+    public bool ServiceOtherCopy
+    {
+        get => _serviceOtherCopy;
+        private set => this.RaiseAndSetIfChanged(ref _serviceOtherCopy, value);
+    }
+
+    /// <summary>Points the existing service at this copy and restarts it.</summary>
+    public async Task RepointServiceAsync()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        ServiceBusy   = true;
+        ServiceStatus = "Repointing — approve the Windows prompt…";
+
+        var error = await Task.Run(WindowsServiceControl.Repoint);
+
+        ServiceBusy = false;
+        RefreshServiceState();
+
+        if (error is not null && error != "Cancelled.")
+            ServiceStatus = $"Repoint failed — {error}";
+    }
+
     /// <summary>
     /// Re-reads the service's state.
     ///
@@ -69,6 +109,15 @@ public class PollingSettingsViewModel : ReactiveObject
 
         ServiceInstalled = status is not null;
         ServiceRunning   = status == System.ServiceProcess.ServiceControllerStatus.Running;
+
+        // ⚠️ Which executable, not merely whether one is installed. A service installed from a
+        // development build keeps running that build after a release copy is installed beside it,
+        // and the release copy would otherwise report the background work as its own. It is not:
+        // different executable, and — since the machine config is one file per computer — quite
+        // possibly a different database.
+        ServiceExePath      = status is null ? "" : WindowsServiceControl.InstalledExePath() ?? "unknown";
+        ServiceIsThisCopy   = status is not null && WindowsServiceControl.PointsAtThisCopy();
+        ServiceOtherCopy    = status is not null && !ServiceIsThisCopy;
         ServiceStatus    = status switch
         {
             null                                                  => "Not installed",

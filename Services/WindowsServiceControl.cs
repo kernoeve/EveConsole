@@ -23,6 +23,7 @@ public static class WindowsServiceControl
     /// app can ask itself to do something with a full token, not to be typed.</summary>
     public const string InstallArgument   = "--install-service";
     public const string UninstallArgument = "--uninstall-service";
+    public const string RepointArgument   = "--repoint-service";
 
     public static bool IsSupported => OperatingSystem.IsWindows();
 
@@ -44,6 +45,69 @@ public static class WindowsServiceControl
     }
 
     public static bool IsInstalled() => OperatingSystem.IsWindows() && Status() is not null;
+
+    /// <summary>
+    /// The executable the service control manager will actually launch, or null if not installed.
+    ///
+    /// <para>⚠️ Worth asking, because the answer is baked in at install time and never moves on its
+    /// own. A service installed from a development build goes on running that build after a release
+    /// copy is installed beside it — and the release copy, seeing only that a service exists, would
+    /// report it as running its own background work. It is not. They are different executables,
+    /// and quite possibly different databases.</para>
+    ///
+    /// <para>Read from the registry rather than parsed out of <c>sc qc</c>, whose field names are
+    /// localised: on a non-English Windows that parsing silently finds nothing.</para>
+    /// </summary>
+    [SupportedOSPlatform("windows")]
+    public static string? InstalledExePath()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                $@"SYSTEM\CurrentControlSet\Services\{WindowsServiceHost.ServiceName}");
+
+            if (key?.GetValue("ImagePath") is not string image || image.Length == 0) return null;
+
+            // Stored as: "C:\path\EveConsole.exe" --service
+            image = image.Trim();
+            if (image.StartsWith('"'))
+            {
+                var end = image.IndexOf('"', 1);
+                return end > 1 ? image[1..end] : null;
+            }
+
+            var space = image.IndexOf(' ');
+            return space > 0 ? image[..space] : image;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>Whether the installed service runs THIS copy of the application.</summary>
+    [SupportedOSPlatform("windows")]
+    public static bool PointsAtThisCopy()
+    {
+        var installed = InstalledExePath();
+        var mine      = Environment.ProcessPath;
+
+        if (installed is null || mine is null) return false;
+
+        try
+        {
+            return string.Equals(Path.GetFullPath(installed), Path.GetFullPath(mine),
+                                 StringComparison.OrdinalIgnoreCase);
+        }
+        catch { return false; }
+    }
+
+    /// <summary>
+    /// Points the existing service at this copy, and rewrites what it reads.
+    ///
+    /// <para>⚠️ Both halves, always. The machine config is one file per computer, so a service
+    /// repointed at this executable while still reading the other copy's connection string would
+    /// run this build against that build's database — which is a worse outcome than the mismatch it
+    /// was fixing, and a silent one.</para>
+    /// </summary>
+    public static string? Repoint() => Elevate(RepointArgument);
 
     // ── Elevated half ─────────────────────────────────────────────────────────
 
@@ -120,6 +184,44 @@ public static class WindowsServiceControl
             Sc($"failure {WindowsServiceHost.ServiceName} reset= 86400 actions= restart/15000/restart/60000//0");
 
             GrantStartStop();
+            return 0;
+        }
+        catch (Exception ex) { return Fail(ex.Message); }
+    }
+
+    /// <summary>The elevated half of <see cref="Repoint"/>.</summary>
+    [SupportedOSPlatform("windows")]
+    public static int RunRepoint()
+    {
+        try
+        {
+            var connection = AppConfig.GetPostgresConnection();
+            if (string.IsNullOrWhiteSpace(connection))
+                return Fail("No PostgreSQL connection is configured. The service has nothing to connect to.");
+
+            MachineConfig.Write(connection, AppConfig.GetGameLogDirs(), AppConfig.GetChatLogDirs());
+
+            var exe = Environment.ProcessPath!;
+            var configured = Sc($"config {WindowsServiceHost.ServiceName} "
+                              + $"binPath= \"\\\"{exe}\\\" {Program.ServiceArgument}\"");
+            if (configured != 0) return Fail($"sc config failed ({configured}).");
+
+            // ⚠️ Restarted, because sc config changes what will be launched NEXT time. A running
+            // service goes on being the old executable until it stops, so leaving it up would
+            // report success while changing nothing anybody can observe.
+            try
+            {
+                using var sc = new ServiceController(WindowsServiceHost.ServiceName);
+                if (sc.Status != ServiceControllerStatus.Stopped)
+                {
+                    sc.Stop();
+                    sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(30));
+                    sc.Start();
+                    sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(30));
+                }
+            }
+            catch (Exception ex) { return Fail($"Repointed, but restarting it failed: {ex.Message}"); }
+
             return 0;
         }
         catch (Exception ex) { return Fail(ex.Message); }

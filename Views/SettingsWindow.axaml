@@ -1029,11 +1029,32 @@
                              TextWrapping="Wrap" />
                 </Grid>
 
+                <!-- Which executable the service actually launches. Shown whenever one is
+                     installed, not only when it is wrong: "running" means nothing until you know
+                     which copy is running. -->
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding PollingVm.ServiceInstalled}">
+                  <TextBlock Grid.Column="0" Text="Runs:" Foreground="#ccc" FontSize="12"
+                             VerticalAlignment="Top" Margin="0 0 10 0" />
+                  <TextBlock Grid.Column="1" Text="{Binding PollingVm.ServiceExePath}"
+                             Foreground="#666677" FontSize="11" TextWrapping="Wrap" />
+                </Grid>
+
+                <Border Background="#2a1f14" BorderBrush="#5a4020" BorderThickness="1"
+                        CornerRadius="3" Padding="8 6"
+                        IsVisible="{Binding PollingVm.ServiceOtherCopy}">
+                  <TextBlock FontSize="11" Foreground="#c8884a" TextWrapping="Wrap"
+                             Text="⚠ This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings and database, which may not be this one's. Point it at this copy, or remove it from here and add it again from the copy you want." />
+                </Border>
+
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0"
                             IsEnabled="{Binding PollingVm.ServiceIdle}">
                   <Button x:Name="ServiceInstallButton" Content="Install service"
                           Click="OnServiceInstallClick"
                           IsVisible="{Binding !PollingVm.ServiceInstalled}" />
+
+                  <Button x:Name="ServiceRepointButton" Content="Point at this copy"
+                          Click="OnServiceRepointClick"
+                          IsVisible="{Binding PollingVm.ServiceOtherCopy}" />
 
                   <Button x:Name="ServiceStartButton" Content="Start"
                           Click="OnServiceStartClick"
