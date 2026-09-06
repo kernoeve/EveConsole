@@ -178,11 +178,11 @@ public class StructureBrowserViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _showUnknown, value);
             ApplyFilters();
-            _ = _prefs.SetBoolAsync(ShowUnknownKey, value);
+            UiState.SetBool(UiState.StructuresShowUnknown, value);
         }
     }
 
-    private const string ShowUnknownKey = "structures.show_unknown";
+    // Local: a filter toggle on this screen, not a setting about the structures.
 
     // ── Selected structure (the viewer below the list) ───────────────────────
 
@@ -683,7 +683,7 @@ public class StructureBrowserViewModel : ReactiveObject
 
         // Straight to the backing field: the setter persists, and going through it here would
         // write the stored value back over itself on every startup.
-        _showUnknown = _prefs.GetBool(ShowUnknownKey, false);
+        _showUnknown = UiState.GetBool(UiState.StructuresShowUnknown, false, _prefs);
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         ResolveCommand = ReactiveCommand.CreateFromTask(ResolveAsync);

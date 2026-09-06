@@ -310,6 +310,31 @@ public static class AppConfig
         Save(c);
     }
 
+    // ── UI state ──────────────────────────────────────────────────────────────
+    //
+    // A plain key/value bag for the small remembered-view settings: which overlay was showing,
+    // which period was chosen, what was left collapsed. Prefer it over new typed fields — the point
+    // is that adding a remembered control costs a key and nothing else. The typed members above
+    // (the window's geometry, the Overview layout) predate it and are left alone.
+    //
+    // Read through the UiState class rather than these directly: it does the one-time seeding from
+    // the shared preference the setting is moving out of.
+
+    public static string? GetUiState(string key)
+        => Load().UiState is { } bag && bag.TryGetValue(key, out var v) ? v : null;
+
+    public static void SetUiState(string key, string? value)
+    {
+        var c   = Load();
+        var bag = c.UiState ?? new Dictionary<string, string>(StringComparer.Ordinal);
+
+        if (value is null) bag.Remove(key);
+        else               bag[key] = value;
+
+        c.UiState = bag.Count > 0 ? bag : null;   // absent rather than empty — keeps the file tidy
+        Save(c);
+    }
+
     // ── This machine's EVE log setup ──────────────────────────────────────────
     //
     // ⚠️ Null means "never set here", which is not the same as "set to nothing". The
@@ -509,6 +534,10 @@ public static class AppConfig
         // for the same reason: it describes this screen, not the data, and a rearrangement made on
         // a wide desktop should not follow the user onto a laptop.
         [JsonPropertyName("overviewLayout")] public string? OverviewLayout { get; set; }
+
+        // The rest of the remembered view settings, by key. Same reasoning, no new field per
+        // setting — see the UiState class.
+        [JsonPropertyName("uiState")] public Dictionary<string, string>? UiState { get; set; }
 
         // ── This machine's EVE log setup ──────────────────────────────────────
         //

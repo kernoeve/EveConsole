@@ -348,8 +348,7 @@ public class OverviewViewModel : ReactiveObject
     private bool _isLoading;
     public bool IsLoading { get => _isLoading; private set => this.RaiseAndSetIfChanged(ref _isLoading, value); }
 
-    private const string PeriodPrefKey = "overview.period_hours";
-    private readonly AppPreferencesService? _prefs;
+    // Local: the period this screen is showing is a view choice, not a shared setting.
     private readonly CorpActivityService?     _corpActivity;
     private readonly StandingBuyOrderService?  _standingBuyOrders;
     private readonly IndyFacilityCheckService? _indyFacilityCheck;
@@ -475,7 +474,6 @@ public class OverviewViewModel : ReactiveObject
         _alertSettings  = alertSettings;
         _errorLogger    = errorLogger;
         _newsService    = newsService;
-        _prefs          = prefs;
         _corpActivity   = corpActivity;
         _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
@@ -484,15 +482,14 @@ public class OverviewViewModel : ReactiveObject
             _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
         // Restore saved period, defaulting to 30 days
-        var savedHours  = prefs?.GetLong(PeriodPrefKey, 720) ?? 720;
+        var savedHours  = UiState.GetLong(UiState.OverviewPeriodHours, 720, prefs);
         _selectedPeriod = Periods.FirstOrDefault(p => p.Hours == (int)savedHours) ?? Periods[2];
 
         this.WhenAnyValue(x => x.SelectedPeriod)
             .Skip(1)
             .Subscribe(p =>
             {
-                if (_prefs is not null)
-                    _ = _prefs.SetLongAsync(PeriodPrefKey, p.Hours);
+                UiState.SetLong(UiState.OverviewPeriodHours, p.Hours);
                 SaleListingBuild?.SetPeriodDays(CurrentPeriodDays);
                 SaleListingMarket?.SetPeriodDays(CurrentPeriodDays);
                 IncomeExpense?.SetPeriodDays(CurrentPeriodDays);
