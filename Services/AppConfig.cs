@@ -288,6 +288,28 @@ public static class AppConfig
         Save(c);
     }
 
+    /// <summary>
+    /// How the Overview screen's sections are arranged, as the layout's own JSON.
+    ///
+    /// <para>⚠️ Local, and per client, for the same reason the window's size and position are: it
+    /// is how one person's screen is laid out, not part of the data. With several clients on one
+    /// PostgreSQL database it lived in the shared preference table, so rearranging the sections on
+    /// one machine silently rearranged them on every other — including a laptop with room for far
+    /// fewer columns than the desktop that made the change.</para>
+    ///
+    /// <para>Null means "never set here", which is not "set to nothing". That distinction is what
+    /// lets a client seed itself once from the old shared preference, so nobody's screen changes
+    /// for the upgrade.</para>
+    /// </summary>
+    public static string? GetOverviewLayout() => Load().OverviewLayout;
+
+    public static void SetOverviewLayout(string? json)
+    {
+        var c = Load();
+        c.OverviewLayout = string.IsNullOrWhiteSpace(json) ? null : json;
+        Save(c);
+    }
+
     // ── This machine's EVE log setup ──────────────────────────────────────────
     //
     // ⚠️ Null means "never set here", which is not the same as "set to nothing". The
@@ -482,6 +504,11 @@ public static class AppConfig
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
         [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
+
+        // How this client's Overview sections are arranged. Beside the window geometry above and
+        // for the same reason: it describes this screen, not the data, and a rearrangement made on
+        // a wide desktop should not follow the user onto a laptop.
+        [JsonPropertyName("overviewLayout")] public string? OverviewLayout { get; set; }
 
         // ── This machine's EVE log setup ──────────────────────────────────────
         //

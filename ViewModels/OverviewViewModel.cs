@@ -392,9 +392,42 @@ public class OverviewViewModel : ReactiveObject
     private int CurrentPeriodDays => Math.Max(1, SelectedPeriod.Hours / 24);
 
     // ── Customizable section layout ─────────────────────────────────────────────
+    //
+    // ⚠️ Kept in config.json, not the preference table, and that is the point of this block. The
+    // table is IN the database, so with several clients sharing one PostgreSQL server the
+    // arrangement of somebody's Overview had become a shared setting: rearranging the sections on
+    // the desktop rearranged them on the laptop too, which has room for fewer columns and was never
+    // asked. It describes a screen, not the data — the same reasoning as the window's size and
+    // position, which already live in that file.
+    //
+    // The old key is still read once, when nothing has been saved locally, so an installation
+    // upgrading into this keeps the layout it had rather than reverting to the default. The row
+    // itself is left alone: other clients on the same database may not have upgraded yet.
     private const string LayoutPrefKey = "overview.layout";
     private OverviewLayout _layout = OverviewLayout.Default();
     public OverviewLayout Layout => _layout;
+
+    /// <summary>
+    /// This client's layout: its own if it has one, otherwise the shared row it is replacing.
+    ///
+    /// <para>⚠️ Seeded into the local file on the way past, rather than left to fall back every
+    /// time. Falling back for ever would mean a client that never customises goes on picking up
+    /// whatever ANOTHER machine last saved — which is the behaviour being fixed, just deferred.</para>
+    /// </summary>
+    private static OverviewLayout LoadLayout(AppPreferencesService? prefs)
+    {
+        if (AppConfig.GetOverviewLayout() is { Length: > 0 } local)
+            return OverviewLayout.FromJsonOrDefault(local);
+
+        var shared = prefs?.Get(LayoutPrefKey);
+        if (!string.IsNullOrWhiteSpace(shared))
+        {
+            try { AppConfig.SetOverviewLayout(shared); } catch { /* read-only config; fall back each run */ }
+            return OverviewLayout.FromJsonOrDefault(shared);
+        }
+
+        return OverviewLayout.Default();
+    }
 
     /// <summary>
     /// Whether a section is actually on the Overview grid.
@@ -410,15 +443,22 @@ public class OverviewViewModel : ReactiveObject
     // Raised when the layout changes; the view rebuilds its section grid in response.
     public event Action? LayoutChanged;
 
-    public async Task ApplyLayoutAsync(OverviewLayout layout)
+    public Task ApplyLayoutAsync(OverviewLayout layout)
     {
         _layout = layout;
-        if (_prefs is not null)
-            await _prefs.SetAsync(LayoutPrefKey, layout.ToJson());
+
+        // ⚠️ Local only. Writing the shared row as well would keep imposing this machine's
+        // arrangement on every other client, which is exactly what moving it here was for.
+        AppConfig.SetOverviewLayout(layout.ToJson());
+
         LayoutChanged?.Invoke();
         // A newly-added section (e.g. Personal Killmails) needs its data loaded now rather
         // than waiting for the next refresh tick.
         _ = LoadAsync();
+
+        // Nothing left to await: the write is to a file, not the database. Still a Task, because
+        // the callers await it and the signature is not worth churning for that.
+        return Task.CompletedTask;
     }
 
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
@@ -439,7 +479,7 @@ public class OverviewViewModel : ReactiveObject
         _corpActivity   = corpActivity;
         _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
-        _layout         = OverviewLayout.FromJsonOrDefault(prefs?.Get(LayoutPrefKey));
+        _layout         = LoadLayout(prefs);
         if (dbFactory is not null && esi is not null)
             _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
