@@ -186,6 +186,9 @@ public class AppDbContext : DbContext
     public DbSet<SdeSkinType>           SdeSkinTypes           => Set<SdeSkinType>();
     public DbSet<SdeSkinLicense>        SdeSkinLicenses        => Set<SdeSkinLicense>();
 
+    // ── Which client is doing the background work ────────────────────────────
+    public DbSet<BackgroundWorkerStatus> BackgroundWorkerStatuses => Set<BackgroundWorkerStatus>();
+
     // ── Hoboleaks complementary data ─────────────────────────────────────────
     public DbSet<HoboBuildInfo>          HoboBuildInfos          => Set<HoboBuildInfo>();
     public DbSet<HoboBlueprint>          HoboBlueprints          => Set<HoboBlueprint>();
@@ -546,6 +549,12 @@ public class AppDbContext : DbContext
         // ── Market Levels ────────────────────────────────────────────────
         mb.Entity<MarketLevelGroup>(e => { e.HasKey(x => x.Id); });
         mb.Entity<MarketLevelItem>(e =>  { e.HasKey(x => x.Id); });
+
+        // ── Which client is doing the background work — single row, always Id = 1 ──
+
+        mb.Entity<BackgroundWorkerStatus>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever(); });
 
         // ── Hoboleaks tables ─────────────────────────────────────────────
 

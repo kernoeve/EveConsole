@@ -48,8 +48,13 @@ public static class PostgresSchema
     }
 
     /// <summary>
-    /// The only two tables that are not entities. Both are single-row settings the UI writes
-    /// directly with ADO, never through EF, which is why the model has never known about them.
+    /// Tables <c>EnsureCreated</c> will not add.
+    ///
+    /// <para>It builds a schema only into an empty database, so anything introduced after a
+    /// database first existed has to be spelled out here. Two of these are not entities at all —
+    /// single-row settings the UI writes directly with ADO, which the model has never known
+    /// about. The third is an ordinary entity that simply arrived later, and needs saying for
+    /// exactly the same reason.</para>
     /// </summary>
     private static readonly string[] Tables =
     [
@@ -63,6 +68,17 @@ public static class PostgresSchema
         CREATE TABLE IF NOT EXISTS "IndustryOpportunitiesSettings" (
             "Id"                     INTEGER NOT NULL PRIMARY KEY,
             "ExcludedMarketGroupIds" TEXT    NOT NULL DEFAULT ''
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "BackgroundWorkerStatus" (
+            "Id"            INTEGER     NOT NULL PRIMARY KEY,
+            "Version"       TEXT        NOT NULL DEFAULT '',
+            "HostName"      TEXT        NOT NULL DEFAULT '',
+            "ProcessId"     INTEGER     NOT NULL DEFAULT 0,
+            "Headless"      BOOLEAN     NOT NULL DEFAULT FALSE,
+            "LeaseTakenUtc" TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "HeartbeatUtc"  TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """,
     ];

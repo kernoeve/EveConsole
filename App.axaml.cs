@@ -355,6 +355,18 @@ public class App : Application
                     """);
 
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "BackgroundWorkerStatus" (
+                        "Id"            INTEGER NOT NULL CONSTRAINT "PK_BackgroundWorkerStatus" PRIMARY KEY,
+                        "Version"       TEXT    NOT NULL DEFAULT '',
+                        "HostName"      TEXT    NOT NULL DEFAULT '',
+                        "ProcessId"     INTEGER NOT NULL DEFAULT 0,
+                        "Headless"      INTEGER NOT NULL DEFAULT 0,
+                        "LeaseTakenUtc" TEXT    NOT NULL DEFAULT '',
+                        "HeartbeatUtc"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "Corporations" (
                         "Id"                   INTEGER NOT NULL CONSTRAINT "PK_Corporations" PRIMARY KEY,
                         "Name"                 TEXT    NOT NULL,
@@ -3056,6 +3068,10 @@ public class App : Application
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
+
+        // Decides whether this process does background work at all. Registered beside the
+        // services it gates, though nothing resolves it until startup wires the lease events.
+        services.AddSingleton<WorkerLease>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<TypePriceHistoryService>();
