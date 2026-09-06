@@ -489,6 +489,7 @@ public class App : Application
                         "Running"    INTEGER NOT NULL DEFAULT 0,
                         "LastRunUtc" TEXT    NULL,
                         "NextRunUtc" TEXT    NULL,
+                        "Count"      INTEGER NULL,
                         "UpdatedUtc" TEXT    NOT NULL DEFAULT ''
                     )
                     """);
@@ -3471,11 +3472,24 @@ public class App : Application
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
             sp.GetRequiredService<AppErrorLogger>(),
             sp.GetRequiredService<ClientSignals>(),
+            sp.GetRequiredService<ApiActivityLog>(),
+            sp.GetRequiredService<WorkerLease>(),
             () =>
             {
-                var order = sp.GetRequiredService<OrderFulfilmentService>();
+                var order   = sp.GetRequiredService<OrderFulfilmentService>();
+                var polling = sp.GetRequiredService<EsiPollingService>();
+                var alarms  = sp.GetRequiredService<AlarmService>();
                 return
                 [
+                    new WorkerActivity { Key    = WorkerActivityService.Polling,
+                                         Status = polling.StatusText },
+                    new WorkerActivity { Key        = WorkerActivityService.Structures,
+                                         Status     = polling.StructureSweepSummary,
+                                         Running    = polling.StructureSweepRunning,
+                                         LastRunUtc = polling.StructureSweepAt,
+                                         NextRunUtc = polling.StructureSweepNextAt },
+                    new WorkerActivity { Key    = WorkerActivityService.PublicStructs,
+                                         Status = polling.PublicStructureSummary },
                     new WorkerActivity { Key     = WorkerActivityService.MarketHistory,
                                          Running = sp.GetRequiredService<MarketHistoryService>().IsSweeping },
                     new WorkerActivity { Key    = WorkerActivityService.ZkbPolling,
@@ -3490,8 +3504,11 @@ public class App : Application
                                          Status = sp.GetRequiredService<EntityNameBackfillService>().StatusText },
                     new WorkerActivity { Key    = WorkerActivityService.LpStore,
                                          Status = sp.GetRequiredService<LpStoreService>().StatusText },
-                    new WorkerActivity { Key    = WorkerActivityService.Alarms,
-                                         Status = sp.GetRequiredService<AlarmService>().StatusText },
+                    new WorkerActivity { Key        = WorkerActivityService.Alarms,
+                                         Status     = alarms.StatusText,
+                                         Count      = alarms.ArmedCount,
+                                         LastRunUtc = alarms.LastFireAt,
+                                         NextRunUtc = alarms.NextDueAt },
                     new WorkerActivity { Key        = WorkerActivityService.OrderFulfilment,
                                          Status     = order.StatusText,
                                          LastRunUtc = order.LastRunAt == default ? null : order.LastRunAt,

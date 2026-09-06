@@ -1035,9 +1035,23 @@ public class MainWindowViewModel : ReactiveObject
         StartOnlineCharactersWatch(dbFactory);
         BindAlarmLight(alarmService);
 
+        // ⚠️ Two sources, because only one of them is ever right. On the client holding the lease
+        // this process really is polling and its own status is the truth; on any other the poller
+        // is stopped, so its local text would read "Polling: Not started" about a client that is
+        // polling away perfectly well on another machine.
         _pollingService
             .WhenAnyValue(p => p.StatusText)
-            .Subscribe(t => PollingStatusText = t);
+            .Subscribe(t => { if (_workerLease.IsHolder) PollingStatusText = t; });
+
+        workerActivity.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            if (_workerLease.IsHolder) return;
+
+            PollingStatusText = workerActivity.Get(WorkerActivityService.Polling)?.Status
+                                is { Length: > 0 } status
+                ? status
+                : "Polling: on another client";
+        });
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.
         Observable.Interval(TimeSpan.FromSeconds(3))

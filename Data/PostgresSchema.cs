@@ -88,8 +88,14 @@ public static class PostgresSchema
             "Running"    BOOLEAN     NOT NULL DEFAULT FALSE,
             "LastRunUtc" TIMESTAMPTZ NULL,
             "NextRunUtc" TIMESTAMPTZ NULL,
+            "Count"      INTEGER     NULL,
             "UpdatedUtc" TIMESTAMPTZ NOT NULL DEFAULT now()
         )
+        """,
+        // Count arrived after the table did, within this same unreleased branch — so a database
+        // that already has the table needs it added rather than created.
+        """
+        ALTER TABLE "WorkerActivity" ADD COLUMN IF NOT EXISTS "Count" INTEGER NULL
         """,
     ];
 

@@ -139,16 +139,56 @@ public class ApiActivityLog
         // The queue yields oldest first; inserting each at the front in that order leaves the
         // newest at index 0, which is the order the window shows. Each shift is bounded by
         // MaxEntries, so a burst costs a bounded number of moves rather than a growing one.
-        var added = 0;
+        var batch = new List<ActivityEntry>();
         while (_newEntries.TryDequeue(out var entry))
         {
             Entries.Insert(0, entry);
-            added++;
+            batch.Add(entry);
         }
 
-        if (added == 0) return;
+        if (batch.Count == 0) return;
 
         while (Entries.Count > MaxEntries)
             Entries.RemoveAt(Entries.Count - 1);
+
+        // ⚠️ Raised after the collection has settled, so a handler that looks at Entries sees what
+        // the window sees. Fires on every client; only the one holding the lease has a listener,
+        // because only it is making calls worth relaying.
+        Flushed?.Invoke(batch);
+    }
+
+    /// <summary>
+    /// The calls just added, oldest first. Used to relay this client's ESI traffic to the windows
+    /// on clients that are not making any of their own.
+    /// </summary>
+    public event Action<IReadOnlyList<ActivityEntry>>? Flushed;
+
+    /// <summary>
+    /// Adds calls another client made.
+    ///
+    /// <para>⚠️ Into the same collection as local ones, deliberately. This is the window's buffer,
+    /// not a record of what this process did — and a client that is not the worker makes no ESI
+    /// calls of its own, so there is nothing here for them to be confused with.</para>
+    /// </summary>
+    public void Ingest(IReadOnlyList<ActivityEntry> entries)
+    {
+        if (entries.Count == 0) return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var e in entries) Entries.Insert(0, e);
+            while (Entries.Count > MaxEntries) Entries.RemoveAt(Entries.Count - 1);
+        }, DispatcherPriority.Background);
+    }
+
+    /// <summary>Replaces the in-flight list with another client's. Whole, because it is a snapshot
+    /// of what is happening right now rather than a stream of things that happened.</summary>
+    public void ReplaceInFlight(IReadOnlyList<InFlightCall> calls)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            InFlightCalls.Clear();
+            foreach (var c in calls) InFlightCalls.Add(c);
+        }, DispatcherPriority.Background);
     }
 }

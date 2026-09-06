@@ -179,6 +179,9 @@ public class ApiActivityViewModel : ReactiveObject
     private bool RelayRunning(string key, Func<bool> local)
         => _lease.IsHolder ? local() : _activity.Get(key)?.Running ?? false;
 
+    private int RelayCount(string key, Func<int> local)
+        => _lease.IsHolder ? local() : _activity.Get(key)?.Count ?? 0;
+
     private DateTimeOffset? RelayTime(string key, Func<DateTimeOffset?> local, bool next)
     {
         if (_lease.IsHolder) return local();
@@ -389,28 +392,29 @@ public class ApiActivityViewModel : ReactiveObject
         // Structures. The work is a side task of the polling loop rather than a declared
         // endpoint, so without this it appears in neither the call schedule nor the activity log
         // except during the brief bursts when it is actually resolving.
-        StructureState = _polling.StructureSweepRunning
+        StructureState = RelayRunning(WorkerActivityService.Structures, () => _polling.StructureSweepRunning)
             ? "● Sweeping — resolving structures now"
             : "● Watching — sweeps hourly, public list daily";
 
-        StructureSweepText = _polling.StructureSweepAt is { } at
+        StructureSweepText = RelayTime(WorkerActivityService.Structures, () => _polling.StructureSweepAt, next: false) is { } at
             ? $"{at.ToLocalTime():yyyy-MM-dd HH:mm:ss}"
             : "not yet this session";
 
-        var next = _polling.StructureSweepNextAt;
+        var next = RelayTime(WorkerActivityService.Structures, () => _polling.StructureSweepNextAt, next: true) ?? DateTimeOffset.UtcNow;
         StructureNextText = next <= DateTimeOffset.UtcNow
             ? "due now"
             : $"{next.ToLocalTime():HH:mm:ss} ({(next - DateTimeOffset.UtcNow).TotalMinutes:N0} min)";
 
-        StructureCountsText   = _polling.StructureSweepSummary;
-        PublicStructureText   = _polling.PublicStructureSummary;
-        StructureSweepRunning = _polling.StructureSweepRunning;
+        StructureCountsText   = Relay(WorkerActivityService.Structures, () => _polling.StructureSweepSummary);
+        PublicStructureText   = Relay(WorkerActivityService.PublicStructs, () => _polling.PublicStructureSummary);
+        StructureSweepRunning = RelayRunning(WorkerActivityService.Structures, () => _polling.StructureSweepRunning);
 
         // Alarms. Nothing is defined out of the box, so "no alarms" is the normal resting
         // state rather than a fault.
-        AlarmState = _alarms.ArmedCount == 0
+        var armed = RelayCount(WorkerActivityService.Alarms, () => _alarms.ArmedCount);
+        AlarmState = armed == 0
             ? "○ No alarms armed — create one in the Alarms tool"
-            : $"● Watching {_alarms.ArmedCount} alarm(s)";
+            : $"● Watching {armed} alarm(s)";
 
         OrderFulfilState = Relay(WorkerActivityService.OrderFulfilment, () => _orderFulfilment.StatusText);
         OrderFulfilLast  = RelayTime(WorkerActivityService.OrderFulfilment,
@@ -423,10 +427,10 @@ public class ApiActivityViewModel : ReactiveObject
             : "—";
 
         AlarmDetail   = Relay(WorkerActivityService.Alarms, () => _alarms.StatusText);
-        AlarmNextText = _alarms.NextDueAt is { } due
+        AlarmNextText = RelayTime(WorkerActivityService.Alarms, () => _alarms.NextDueAt, next: true) is { } due
             ? due.ToLocalTime().ToString("HH:mm:ss")
             : "—";
-        AlarmLastFireText = _alarms.LastFireAt is { } fired
+        AlarmLastFireText = RelayTime(WorkerActivityService.Alarms, () => _alarms.LastFireAt, next: false) is { } fired
             ? fired.ToLocalTime().ToString("d MMM HH:mm:ss")
             : "Nothing has fired this session";
     }

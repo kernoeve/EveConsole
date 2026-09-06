@@ -33,6 +33,15 @@ public class WorkerActivity
     public DateTimeOffset? NextRunUtc { get; set; }
 
     /// <summary>
+    /// Whatever the loop counts, when it counts something — armed alarms, structures resolved.
+    ///
+    /// <para>Here rather than folded into <see cref="Status"/> because the window composes its own
+    /// wording around the number, and a relayed sentence would have to be parsed back apart to be
+    /// used the way the local value is.</para>
+    /// </summary>
+    public int? Count { get; set; }
+
+    /// <summary>
     /// ⚠️ When this row was last written, not when the loop last ran. Its age is how a reader
     /// tells a loop that is genuinely idle from a worker that died holding the pen.
     /// </summary>

@@ -28,6 +28,9 @@ public sealed class WorkerActivityService
 {
     // ⚠️ Publisher and readers match on these, so they are constants in one place rather than
     // strings written twice. A typo would not fail — it would silently show a blank row forever.
+    public const string Polling         = "esi.polling";
+    public const string Structures      = "esi.structures";
+    public const string PublicStructs   = "esi.structures.public";
     public const string MarketHistory   = "market.history";
     public const string ZkbPolling      = "zkb.polling";
     public const string ZkbFirehose     = "zkb.firehose";
@@ -41,6 +44,18 @@ public sealed class WorkerActivityService
     /// <summary>Discriminator on the wire, so a client can tell these from an alarm.</summary>
     private const string SignalKind = "activity";
 
+    /// <summary>The ESI call log, which is a stream rather than a set of states.</summary>
+    private const string LogKind = "activity-log";
+
+    /// <summary>
+    /// ⚠️ How many calls one signal may carry. The payload has a hard 8000-byte limit and a poll
+    /// can finish dozens of calls in the same instant, so a burst is trimmed to the newest of them
+    /// rather than being dropped whole for being too large. What was trimmed is said out loud in
+    /// the feed — see the synthetic entry below — because a diagnostic readout that quietly omits
+    /// things is worse than one that admits a gap.
+    /// </summary>
+    private const int MaxRelayedCalls = 50;
+
     /// <summary>
     /// How often the worker looks at its own loops.
     ///
@@ -53,6 +68,8 @@ public sealed class WorkerActivityService
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errors;
     private readonly ClientSignals                   _signals;
+    private readonly ApiActivityLog                  _log;
+    private readonly WorkerLease                     _lease;
     private readonly Func<IReadOnlyList<WorkerActivity>> _sample;
 
     private Task?                    _loop;
@@ -78,11 +95,15 @@ public sealed class WorkerActivityService
         IDbContextFactory<AppDbContext>       dbFactory,
         AppErrorLogger                        errors,
         ClientSignals                         signals,
+        ApiActivityLog                        log,
+        WorkerLease                           lease,
         Func<IReadOnlyList<WorkerActivity>>   sample)
     {
         _dbFactory = dbFactory;
         _errors    = errors;
         _signals   = signals;
+        _log       = log;
+        _lease     = lease;
         _sample    = sample;
     }
 
@@ -91,6 +112,10 @@ public sealed class WorkerActivityService
     public void Start(CancellationToken outerCt = default)
     {
         if (_loop is not null) return;
+
+        // ⚠️ Subscribed only while this client is the worker. Every client's log raises this, and a
+        // client that relayed its own empty feed would overwrite the worker's on everyone else.
+        _log.Flushed += OnCallsLogged;
 
         _cts = CancellationTokenSource.CreateLinkedTokenSource(outerCt);
         var ct = _cts.Token;
@@ -106,6 +131,10 @@ public sealed class WorkerActivityService
                 catch (OperationCanceledException) { return; }
                 catch (Exception ex) { _errors.Log(nameof(WorkerActivityService), "publishing", ex); }
 
+                try { await PublishCallsAsync(ct); }
+                catch (OperationCanceledException) { return; }
+                catch (Exception ex) { _errors.Log(nameof(WorkerActivityService), "relaying calls", ex); }
+
                 try { await Task.Delay(Cadence, ct); }
                 catch (OperationCanceledException) { return; }
             }
@@ -114,6 +143,9 @@ public sealed class WorkerActivityService
 
     public async Task StopAsync()
     {
+        _log.Flushed -= OnCallsLogged;
+        lock (_pending) _pending.Clear();
+
         if (_cts is null) return;
         await _cts.CancelAsync();
         if (_loop is not null)
@@ -141,7 +173,7 @@ public sealed class WorkerActivityService
             // Compared on the fields a reader can see, deliberately not including UpdatedUtc —
             // stamping the time into the comparison would make every pass look like a change and
             // turn a quiet system into one write per row per second.
-            var fingerprint = $"{r.Status}{r.Running}{r.LastRunUtc:O}{r.NextRunUtc:O}";
+            var fingerprint = $"{r.Status}{r.Running}{r.LastRunUtc:O}{r.NextRunUtc:O}|{r.Count}";
             if (_lastSent.TryGetValue(r.Key, out var was) && was == fingerprint) continue;
 
             _lastSent[r.Key] = fingerprint;
@@ -170,6 +202,50 @@ public sealed class WorkerActivityService
             }
         }
         await db.SaveChangesAsync(ct);
+    }
+
+    // ── Relaying the ESI call log ─────────────────────────────────────────────
+
+    private readonly List<ActivityEntry> _pending = [];
+
+    private void OnCallsLogged(IReadOnlyList<ActivityEntry> batch)
+    {
+        lock (_pending) _pending.AddRange(batch);
+    }
+
+    /// <summary>
+    /// Sends the calls made since the last pass, and the ones still in flight.
+    ///
+    /// <para>⚠️ In flight goes every time there is anything to send, not only when it changes: it
+    /// is a snapshot of "right now" rather than a stream, so a client that missed one update would
+    /// otherwise show a call as still running long after it finished.</para>
+    /// </summary>
+    private async Task PublishCallsAsync(CancellationToken ct)
+    {
+        List<ActivityEntry> batch;
+        lock (_pending)
+        {
+            if (_pending.Count == 0) return;
+            batch = [.. _pending];
+            _pending.Clear();
+        }
+
+        var dropped = batch.Count - MaxRelayedCalls;
+        if (dropped > 0)
+        {
+            // Newest kept: in a burst the last calls are the ones that explain what is happening
+            // now. The gap is stated rather than left to be inferred from a jump in timestamps.
+            batch = [.. batch.Skip(dropped)];
+            batch.Insert(0, new ActivityEntry(
+                DateTimeOffset.UtcNow, "—", $"({dropped} more calls not relayed)", true, 0, null));
+        }
+
+        await _signals.PublishAsync(JsonSerializer.Serialize(new CallsPayload
+        {
+            Kind     = LogKind,
+            Calls    = batch,
+            InFlight = [.. _log.InFlightCalls],
+        }), ct);
     }
 
     // ── Reading, on every client ──────────────────────────────────────────────
@@ -204,11 +280,34 @@ public sealed class WorkerActivityService
     /// </summary>
     public bool TryApplySignal(string payload)
     {
-        SignalPayload? p;
-        try { p = JsonSerializer.Deserialize<SignalPayload>(payload); }
+        string kind;
+        try { kind = JsonSerializer.Deserialize<KindOnly>(payload)?.Kind ?? ""; }
         catch { return false; }
 
-        if (p is null || p.Kind != SignalKind || p.Rows is null) return false;
+        if (kind != SignalKind && kind != LogKind) return false;
+
+        // ⚠️ Claimed but not applied on the client that sent it. PostgreSQL delivers a notification
+        // back to the sending session — which is exactly what keeps the alarm path uniform — but
+        // the worker already has these calls in its own log, and ingesting them again would show
+        // every one of them twice.
+        if (_lease.IsHolder) return true;
+
+        if (kind == LogKind)
+        {
+            CallsPayload? calls;
+            try { calls = JsonSerializer.Deserialize<CallsPayload>(payload); }
+            catch { return true; }
+
+            if (calls?.Calls    is { Count: > 0 }) _log.Ingest(calls.Calls);
+            if (calls?.InFlight is not null)       _log.ReplaceInFlight(calls.InFlight);
+            return true;
+        }
+
+        SignalPayload? p;
+        try { p = JsonSerializer.Deserialize<SignalPayload>(payload); }
+        catch { return true; }
+
+        if (p?.Rows is null) return true;
 
         lock (_board)
         {
@@ -228,5 +327,18 @@ public sealed class WorkerActivityService
     {
         public string                Kind { get; set; } = "";
         public IReadOnlyList<WorkerActivity>? Rows { get; set; }
+    }
+
+    /// <summary>Reads the discriminator alone, so the kind is known before the shape is chosen.</summary>
+    private sealed class KindOnly
+    {
+        public string Kind { get; set; } = "";
+    }
+
+    private sealed class CallsPayload
+    {
+        public string Kind { get; set; } = "";
+        public List<ActivityEntry>? Calls    { get; set; }
+        public List<InFlightCall>?  InFlight { get; set; }
     }
 }
