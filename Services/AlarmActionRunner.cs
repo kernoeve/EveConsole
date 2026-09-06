@@ -18,15 +18,18 @@ public sealed class AlarmActionRunner
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AlarmSoundService               _sounds;
     private readonly AppErrorLogger                  _errors;
+    private readonly ClientSignals                   _signals;
 
     public AlarmActionRunner(
         IDbContextFactory<AppDbContext> dbFactory,
         AlarmSoundService               sounds,
-        AppErrorLogger                  errors)
+        AppErrorLogger                  errors,
+        ClientSignals                   signals)
     {
         _dbFactory = dbFactory;
         _sounds    = sounds;
         _errors    = errors;
+        _signals   = signals;
     }
 
     /// <summary>Hands the agent something to tell the user about. Set by MainWindow.</summary>
@@ -38,6 +41,15 @@ public sealed class AlarmActionRunner
     /// <summary>True when the agent is configured well enough for AgentNotify to reach the user.</summary>
     public Func<bool>? AgentAvailable { get; set; }
 
+    /// <summary>
+    /// Turns a firing into its effects. Runs on the client holding the worker lease.
+    ///
+    /// <para>⚠️ Only the Alert action happens here. The other three — a sound, a dialog, the agent
+    /// speaking — happen at a person's machine, and the worker may be headless or on a server in
+    /// another room. So it does the one thing that is a database write, resolves the wording for
+    /// the rest while it still has the matches in hand, and publishes. Every client, this one
+    /// included, then performs whatever it is willing to.</para>
+    /// </summary>
     /// <param name="defaults">
     /// Title and body supplied by the condition, used wherever the user has not written their
     /// own. Resolved by the caller, which is what holds the registry.
@@ -50,6 +62,12 @@ public sealed class AlarmActionRunner
         (string Title, string Body)  defaults,
         CancellationToken            ct = default)
     {
+        var signal = new AlarmSignal { AlarmId = alarm.Id, Name = alarm.Name };
+
+        // Whether anything other than the agent was asked for. Decides, below, if silence from the
+        // agent would lose the firing altogether.
+        var somethingElse = false;
+
         foreach (var action in actions)
         {
             if (ct.IsCancellationRequested) break;
@@ -62,20 +80,27 @@ public sealed class AlarmActionRunner
             {
                 switch (action.Kind)
                 {
-                    case AlarmActionKind.Sound:
-                        await RunSoundAsync(cfg, ct);
-                        break;
-
-                    case AlarmActionKind.AgentNotify:
-                        await RunAgentNotifyAsync(alarm, evt, matches, cfg, ct);
-                        break;
-
                     case AlarmActionKind.Alert:
+                        // A row, so it reaches every client whether or not it was listening,
+                        // muted, or even running.
                         await RunAlertAsync(alarm, evt, cfg, defaults, ct);
+                        somethingElse = true;
+                        break;
+
+                    case AlarmActionKind.Sound:
+                        signal.SoundKey    = Str(cfg, "sound")  ?? AlarmSoundService.DefaultKey;
+                        signal.SoundVolume = Int(cfg, "volume") ?? 100;
+                        somethingElse      = true;
                         break;
 
                     case AlarmActionKind.Dialog:
-                        RunDialog(alarm, evt, cfg, defaults);
+                        signal.DialogTitle = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
+                        signal.DialogBody  = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
+                        somethingElse      = true;
+                        break;
+
+                    case AlarmActionKind.AgentNotify:
+                        signal.AgentText = ComposeAgentPrompt(alarm, evt, matches, cfg);
                         break;
                 }
             }
@@ -86,17 +111,82 @@ public sealed class AlarmActionRunner
                 _errors.Log("AlarmActionRunner", $"{action.Kind} for alarm {alarm.Id}", ex);
             }
         }
+
+        if (signal.AgentText is not null && !somethingElse)
+        {
+            signal.AgentOnly     = true;
+            signal.FallbackTitle = alarm.Name;
+            signal.FallbackBody  = evt.Summary
+                                 + "\n\n(The agent is not configured, so this was recorded as an alert.)";
+        }
+
+        // ⚠️ The fallback is decided here rather than by each client, and only by a worker that
+        // cannot speak it itself. Left to the clients, every one of them without an agent would
+        // write its own copy of the same alert. This keeps a single client behaving exactly as it
+        // did before — it is both worker and speaker, so it asks itself — while a headless worker
+        // errs towards recording a warning that may also get spoken elsewhere. An extra row in a
+        // list you can dismiss is the right way to be wrong about this.
+        if (signal.AgentOnly && !CanSpeak())
+        {
+            await WriteAlertAsync(alarm, evt, signal.FallbackTitle!, signal.FallbackBody!, ct);
+            return;
+        }
+
+        if (signal.SoundKey is null && signal.DialogTitle is null && signal.AgentText is null) return;
+
+        await _signals.PublishAsync(JsonSerializer.Serialize(signal), ct);
     }
 
-    private async Task RunSoundAsync(JsonElement cfg, CancellationToken ct)
+    /// <summary>
+    /// Performs the parts of a firing that belong to this machine.
+    ///
+    /// <para>Reached from <see cref="ClientSignals"/>, on every client including the worker's own
+    /// — which is why nothing here asks whether this process raised the alarm.</para>
+    /// </summary>
+    public async Task HandleSignalAsync(string payload, CancellationToken ct = default)
     {
-        var key    = Str(cfg, "sound") ?? AlarmSoundService.DefaultKey;
-        var volume = Int(cfg, "volume") ?? 100;
-        await _sounds.PlayAsync(key, volume, ct);
+        AlarmSignal? s;
+        try { s = JsonSerializer.Deserialize<AlarmSignal>(payload); }
+        catch (Exception ex)
+        {
+            _errors.Log("AlarmActionRunner", "reading an alarm signal", ex);
+            return;
+        }
+
+        if (s is null || s.Kind != AlarmSignal.SignalKind) return;
+
+        // ⚠️ Checked here, on the receiving side, and never on the worker. Muting is a fact about
+        // this machine — one client can be quiet while another is not — and a worker that filtered
+        // on its own setting would silence everybody's.
+        if (AppConfig.GetAlarmsMuted()) return;
+
+        if (s.SoundKey is not null)
+        {
+            try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"sound for alarm {s.AlarmId}", ex); }
+        }
+
+        if (s.DialogTitle is not null && ShowDialogCallback is { } show)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { show(s.DialogTitle, s.DialogBody ?? ""); }
+                catch { /* a closed window is not an error */ }
+            });
+        }
+
+        if (s.AgentText is not null && CanSpeak())
+        {
+            try { await NotifyAgentCallback!(s.AgentText); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"agent notify for alarm {s.AlarmId}", ex); }
+        }
     }
 
-    private async Task RunAgentNotifyAsync(
-        Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg, CancellationToken ct)
+    /// <summary>Whether this process can actually get the agent to say something.</summary>
+    private bool CanSpeak() => NotifyAgentCallback is not null && AgentAvailable?.Invoke() != false;
+
+    private string ComposeAgentPrompt(
+        Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg)
     {
         var extra = Str(cfg, "instruction");
 
@@ -133,16 +223,7 @@ public sealed class AlarmActionRunner
              {(string.IsNullOrWhiteSpace(extra) ? "" : $"\nStanding instruction from the capsuleer for this alarm: {extra}")}
              """;
 
-        if (NotifyAgentCallback is { } notify && AgentAvailable?.Invoke() != false)
-        {
-            await notify(message);
-            return;
-        }
-
-        // No agent to speak through — fall back to a persistent alert rather than firing into
-        // the void, since this action is usually the *only* one on an agent-created alarm.
-        await WriteAlertAsync(alarm, evt, alarm.Name,
-            evt.Summary + "\n\n(The agent is not configured, so this was recorded as an alert.)", ct);
+        return message;
     }
 
     private Task RunAlertAsync(
@@ -167,19 +248,6 @@ public sealed class AlarmActionRunner
             Body         = body,
         });
         await db.SaveChangesAsync(ct);
-    }
-
-    private void RunDialog(Alarm alarm, AlarmEvent evt, JsonElement cfg, (string Title, string Body) defaults)
-    {
-        if (ShowDialogCallback is not { } show) return;
-
-        var title   = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
-        var message = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            try { show(title, message); } catch { /* a closed window is not an error */ }
-        });
     }
 
     /// <summary>

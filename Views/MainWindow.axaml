@@ -137,6 +137,25 @@
                        Foreground="{Binding WorkerState,
                                     Converter={x:Static views:WorkerStateBrushConverter.Instance}}" />
           </StackPanel>
+
+          <!-- Whether this machine will make a noise about alarms. Shown always rather than only
+               when muted: a client that has been silent since Tuesday looks exactly like one with
+               nothing to report, and that is the difference worth seeing. Click to toggle — mute
+               is a thing people reach for mid-fleet, so it should not be three windows deep. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Background="Transparent"
+                      ToolTip.Tip="{Binding AlarmsMuteTip}">
+            <TextBlock Text="Alarms:" FontSize="11" Foreground="#666677"
+                       VerticalAlignment="Center" />
+            <Button x:Name="AlarmMuteButton"
+                    Content="{Binding AlarmsMuteText}"
+                    Background="Transparent" BorderThickness="0" Padding="0"
+                    FontSize="11" Cursor="Hand"
+                    VerticalAlignment="Center"
+                    Foreground="{Binding AlarmsMuted,
+                                 Converter={x:Static views:AlarmMuteBrushConverter.Instance}}"
+                    Click="OnAlarmMuteClick" />
+          </StackPanel>
         </StackPanel>
 
         <!-- Eve Time clock -->

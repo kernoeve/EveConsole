@@ -187,6 +187,44 @@ public class MainWindowViewModel : ReactiveObject
       : t < TimeSpan.FromHours(1)   ? $"{(int)t.TotalMinutes} min ago"
       :                               $"{(int)t.TotalHours} h ago";
 
+    // ── Whether this machine stays quiet for alarms ───────────────────────────
+
+    private bool _alarmsMuted = AppConfig.GetAlarmsMuted();
+    /// <summary>
+    /// Silences the alarm actions that interrupt someone here — sound, dialog, and the agent
+    /// speaking — without touching what gets recorded.
+    ///
+    /// <para>⚠️ Saved locally, not in the database. The whole point is that one machine can be
+    /// quiet while another is not, so this cannot live beside the alarms themselves.</para>
+    /// </summary>
+    public bool AlarmsMuted
+    {
+        get => _alarmsMuted;
+        set
+        {
+            if (_alarmsMuted == value) return;
+            this.RaiseAndSetIfChanged(ref _alarmsMuted, value);
+            AppConfig.SetAlarmsMuted(value);
+            this.RaisePropertyChanged(nameof(AlarmsMuteText));
+            this.RaisePropertyChanged(nameof(AlarmsMuteTip));
+        }
+    }
+
+    public string AlarmsMuteText => _alarmsMuted ? "muted" : "on";
+
+    /// <summary>
+    /// ⚠️ Says what muting does NOT do, because that is the part worth being sure of. Someone
+    /// deciding whether to silence a client during a fleet needs to know they are not also
+    /// deciding to lose the record of what happened while they were quiet.
+    /// </summary>
+    public string AlarmsMuteTip => _alarmsMuted
+        ? "Alarms are muted on this client.\n\n"
+        + "No sound, dialog or agent notification will be raised here. Alerts are still recorded, "
+        + "and other clients are unaffected.\n\nClick to unmute."
+        : "Alarms are active on this client.\n\n"
+        + "Click to mute sound, dialogs and agent notifications on this machine only. "
+        + "Alerts go on being recorded either way.";
+
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }

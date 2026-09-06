@@ -242,3 +242,24 @@ public class WorkerStateBrushConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Whether this client will make a noise about alarms, as a colour.
+///
+/// <para>Muted takes the same amber as a missing worker, because it is the same kind of fact: a
+/// thing that is supposed to happen is not going to. Green for active rather than the bar's
+/// ordinary grey — this one is worth being able to confirm at a glance mid-fleet, and grey would
+/// read as "off" to anyone scanning quickly.</para>
+/// </summary>
+public class AlarmMuteBrushConverter : IValueConverter
+{
+    public static readonly AlarmMuteBrushConverter Instance = new();
+    private static readonly IBrush Muted  = new SolidColorBrush(Color.Parse("#c8884a"));
+    private static readonly IBrush Active = new SolidColorBrush(Color.Parse("#5a9a6a"));
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is true ? Muted : Active;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

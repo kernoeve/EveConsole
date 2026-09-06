@@ -249,6 +249,27 @@ public static class AppConfig
 
     public static bool GetShrinkPending() => Load().ShrinkPending == true;
 
+    /// <summary>
+    /// Whether this client stays quiet for the alarm actions that happen live — sound, dialog and
+    /// the agent speaking.
+    ///
+    /// <para>⚠️ Deliberately NOT the Alert action. Muting silences what interrupts a person at
+    /// this machine; it does not stop the worker recording what happened, so a muted client still
+    /// has the whole history waiting when its owner looks. Silencing the record instead would
+    /// make "quiet for an hour" mean "blind about that hour", which is not what anybody means.</para>
+    ///
+    /// <para>Local, and per client. The point is that one machine can be quiet while another is
+    /// not, so this cannot live in the shared database with the alarms themselves.</para>
+    /// </summary>
+    public static bool GetAlarmsMuted() => Load().AlarmsMuted == true;
+
+    public static void SetAlarmsMuted(bool muted)
+    {
+        var c = Load();
+        c.AlarmsMuted = muted ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
     public static void SetShrinkPending(bool pending)
     {
         var c = Load();
@@ -398,6 +419,7 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
         [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }

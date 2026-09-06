@@ -315,6 +315,7 @@ public class App : Application
                 // lock on exit anyway; doing it here is what makes a handover take a tick
                 // instead of however long the OS takes to notice the process is gone.
                 Services.GetRequiredService<WorkerLease>().Stop();
+                Services.GetRequiredService<ClientSignals>().Stop();
                 desktop.Shutdown();
             };
         }
@@ -2884,6 +2885,18 @@ public class App : Application
             // client needs its own answer for its own header.
             Start("server status",      () => Services.GetRequiredService<EveServerStatusService>().Start());
 
+            // ⚠️ Every client listens, the worker's own included. Three of the four alarm actions
+            // have to happen at a person's machine — a sound, a dialog, the agent speaking — so the
+            // worker resolves the wording and pushes; each client then performs the ones it is
+            // willing to. Subscribed before Start so nothing can arrive unheard.
+            Start("client signals", () =>
+            {
+                var signals = Services.GetRequiredService<ClientSignals>();
+                var alarms  = Services.GetRequiredService<AlarmActionRunner>();
+                signals.Received += payload => _ = alarms.HandleSignalAsync(payload);
+                signals.Start();
+            });
+
             // ⚠️ Host-bound rather than leader-only. These read EVE's log directories on THIS
             // machine, which a worker on another host cannot see — a headless worker in a
             // container would import nothing, and nobody would be told why. MonitoringSettings
@@ -3307,6 +3320,7 @@ public class App : Application
         services.AddSingleton<SystemGraph>();
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
             sp.GetRequiredService<SystemGraph>()));
+        services.AddSingleton<ClientSignals>();
         services.AddSingleton<AlarmActionRunner>();
         services.AddSingleton(sp =>
         {
