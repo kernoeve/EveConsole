@@ -411,7 +411,10 @@ public class App : Application
                 {
                     try
                     {
-                        if (Environment.ProcessPath is { } exe)
+                        // RelaunchPath rather than ProcessPath: under an AppImage this process runs
+                        // out of a temporary mount, and the copy to start is the .AppImage file the
+                        // user actually launched.
+                        if (EveConsole.Services.AppLauncher.RelaunchPath is { } exe)
                             System.Diagnostics.Process.Start(
                                 new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
                     }

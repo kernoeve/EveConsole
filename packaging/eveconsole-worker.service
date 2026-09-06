@@ -49,6 +49,23 @@ EnvironmentFile=/etc/eveconsole.env
 # Environment=EVECONSOLE_GAMELOG_DIRS=/mnt/eve/Gamelogs
 # Environment=EVECONSOLE_CHATLOG_DIRS=/mnt/eve/Chatlogs
 
+# ⚠️ The tarball layout. Extract EveConsole-linux-x64.tar.gz to /opt/eveconsole and this is the
+# real binary at a real path.
+#
+# For the AppImage, point ExecStart at the .AppImage file itself and add its extract-and-run
+# flag:
+#
+#   ExecStart=/opt/eveconsole/EveConsole.AppImage --appimage-extract-and-run --headless
+#
+# ⚠️ That flag is not optional here. An AppImage normally mounts itself with FUSE, which a
+# system service often cannot do — no /dev/fuse in the unit's namespace, or no fusermount
+# permitted — and it then exits before reaching any of our code, so the journal shows a mount
+# failure rather than anything about EVE Console. Extracting sidesteps FUSE entirely.
+#
+# Whichever you use, keep the filename stable. An AppImage downloaded again under a new
+# version-stamped name leaves this unit starting the OLD one, which still exists and still
+# runs — so the worker comes up on the previous version and every desktop client then fails
+# its version check against a database nobody knowingly touched.
 WorkingDirectory=/opt/eveconsole
 ExecStart=/opt/eveconsole/EveConsole --headless
 

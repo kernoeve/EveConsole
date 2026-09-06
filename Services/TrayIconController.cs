@@ -50,12 +50,14 @@ public sealed class TrayIconController
     private const string RunName    = "EveConsoleTray";
 
     /// <summary>
-    /// ⚠️ HKEY_CURRENT_USER, which needs no elevation and is exactly right here: a tray icon is
-    /// per-person and per-session. The machine-wide equivalent would ask for administrator
-    /// approval to add an icon to one user's notification area, and would put it in everyone's.
+    /// ⚠️ HKEY_CURRENT_USER on Windows, and <c>~/.config/autostart</c> on Linux — both per-person
+    /// and per-session, which is exactly what a tray icon is. The machine-wide equivalents would
+    /// ask for administrator approval to add an icon to one user's notification area, and would put
+    /// it in everyone's.
     /// </summary>
     public static bool StartsAtLogon()
     {
+        if (OperatingSystem.IsLinux()) return LinuxAutostart.StartsAtLogin();
         if (!OperatingSystem.IsWindows()) return false;
 
         try
@@ -68,6 +70,7 @@ public sealed class TrayIconController
 
     public static void SetStartsAtLogon(bool on)
     {
+        if (OperatingSystem.IsLinux()) { LinuxAutostart.SetStartsAtLogin(on); return; }
         if (!OperatingSystem.IsWindows()) return;
 
         using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKeyPath);
@@ -77,7 +80,7 @@ public sealed class TrayIconController
 
         // ⚠️ Quoted. Program Files has a space in it, and an unquoted path there is read as a
         // command plus arguments — Windows would try to run "C:\Program" and report nothing.
-        if (Environment.ProcessPath is { } exe)
+        if (AppLauncher.RelaunchPath is { } exe)
             key.SetValue(RunName, $"\"{exe}\" {Program.TrayArgument}");
     }
 
@@ -86,7 +89,10 @@ public sealed class TrayIconController
     {
         try
         {
-            if (Environment.ProcessPath is not { } exe) return "Could not determine this application's path.";
+            // ⚠️ RelaunchPath, not ProcessPath. Under an AppImage the latter is the binary inside
+            // the temporary mount, and starting that directly skips the AppImage's own runtime —
+            // it would come up without the environment its bundled libraries are found through.
+            if (AppLauncher.RelaunchPath is not { } exe) return "Could not determine this application's path.";
 
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, Program.TrayArgument)
             { UseShellExecute = true });
