@@ -30,6 +30,11 @@ public partial class SettingsWindow : Window
 
         if (DataContext is not SettingsViewModel vm) return;
 
+        // ⚠️ Read every time the window opens, not once at construction. The service can be started,
+        // stopped or removed from services.msc while this window is closed, and a stale switch is
+        // one that lies about a thing the user is about to act on.
+        vm.PollingVm.RefreshServiceState();
+
         var scopeHandler = vm.CharacterVm.ScopeSelectionInteraction.RegisterHandler(async ctx =>
         {
             var dialog = new ScopeSelectionDialog(ctx.Input) { DataContext = vm.CharacterVm };
@@ -57,6 +62,24 @@ public partial class SettingsWindow : Window
     }
 
     private DatabaseSettingsViewModel? _dbVm;
+
+    // ── Windows service ───────────────────────────────────────────────────────
+    //
+    // The view model owns the work and the reporting; these only say which verb was asked for.
+
+    private PollingSettingsViewModel? PollingVm => (DataContext as SettingsViewModel)?.PollingVm;
+
+    private void OnServiceInstallClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.InstallServiceAsync();
+
+    private void OnServiceRemoveClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.UninstallServiceAsync();
+
+    private void OnServiceStartClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.SetServiceRunningAsync(true);
+
+    private void OnServiceStopClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.SetServiceRunningAsync(false);
 
     private void OnRelocateDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.RelocateDatabaseAsync();
