@@ -35,10 +35,14 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>
     /// Where the data actually lives, on hover.
     ///
-    /// <para>⚠️ Filled once, in the background, and not recomputed. The SQLite figure is a file
-    /// length and the PostgreSQL one is a single pg_database_size call, so neither is expensive —
-    /// but a tooltip is no reason to touch the database every time a pointer crosses it, and a
-    /// size that is minutes old answers the question just as well.</para>
+    /// <para>⚠️ Refreshed every ten minutes, not filled once. The size is the part worth hovering
+    /// for and it is the part that moves — an import, a copy, a month of polling — so a figure fixed
+    /// at startup goes on quoting what the database was when the window opened, which on a client
+    /// left running for days is simply wrong.</para>
+    ///
+    /// <para>Still not on hover: a tooltip is no reason to touch the database every time a pointer
+    /// crosses it. Ten minutes is often enough to never be far out and rare enough to cost nothing
+    /// — the SQLite figure is a file length, the PostgreSQL one a single pg_database_size call.</para>
     /// </summary>
     public string DbEngineTip
     {
@@ -791,6 +795,12 @@ public class MainWindowViewModel : ReactiveObject
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
         _ = LoadDbEngineTipAsync();
+
+        // And kept current, because the size in it grows. See DbEngineTip for why ten minutes
+        // rather than on hover.
+        Observable.Interval(TimeSpan.FromMinutes(10))
+            .ObserveOnUi("Db.TipRefresh")
+            .Subscribe(tick => { _ = LoadDbEngineTipAsync(); });
 
         _mute            = alarmMute;
         alarmMute.Changed += OnMuteChanged;

@@ -1,4 +1,5 @@
 using System.Reactive;
+using System.Reactive.Linq;
 using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -100,6 +101,31 @@ public class SdeViewModel : ReactiveObject
             await LoadStoredBuildAsync();
             await LoadHoboInfoAsync();
 
+            await CheckLatestAsync();
+
+            // ⚠️ And again, hourly. The title bar's "update available" link is how somebody learns
+            // a new SDE exists, and this application is left running for days at a time — a
+            // startup-only check would go on saying "up to date" about a build superseded on
+            // Tuesday. The app's own update badge re-checks hourly for exactly this reason; this is
+            // the same argument about the indicator sitting next to it.
+            //
+            // Hourly to match that neighbour rather than invent a second cadence. An SDE lands
+            // about weekly and the feed is a small JSON, so this asks far more often than it needs
+            // to — the right way round for something whose failure is staying quiet.
+            Observable.Interval(TimeSpan.FromHours(1))
+                .ObserveOnUi("Sde.AutoCheck")
+                .Subscribe(tick => { _ = CheckLatestAsync(); });
+        }
+        catch (Exception ex)
+        {
+            LatestBuild = $"error: {ex.Message}";
+        }
+    }
+
+    private async Task CheckLatestAsync()
+    {
+        try
+        {
             var latest = await _sde.GetLatestBuildInfoAsync();
             if (latest is null) { LatestBuild = "unavailable"; return; }
 
@@ -114,7 +140,10 @@ public class SdeViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            LatestBuild = $"error: {ex.Message}";
+            // ⚠️ Leaves _sdeChecked alone. A re-check that could not reach the feed must not undo a
+            // comparison that already succeeded, and must not let the bar claim "up to date" about
+            // something nobody managed to look at.
+            LatestBuild = $"error: {ex.Message.Split('\n')[0]}";
         }
     }
 
