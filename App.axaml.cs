@@ -8,6 +8,7 @@ using EveConsole.Views;
 using EveConsole.ViewModels;
 using EveConsole.Auth;
 using EveConsole.Api;
+using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
 using LiveChartsCore;
@@ -3009,9 +3010,18 @@ public class App : Application
             // willing to. Subscribed before Start so nothing can arrive unheard.
             Start("client signals", () =>
             {
-                var signals = Services.GetRequiredService<ClientSignals>();
-                var alarms  = Services.GetRequiredService<AlarmActionRunner>();
-                signals.Received += payload => _ = alarms.HandleSignalAsync(payload);
+                var signals  = Services.GetRequiredService<ClientSignals>();
+                var alarms   = Services.GetRequiredService<AlarmActionRunner>();
+                var activity = Services.GetRequiredService<WorkerActivityService>();
+
+                // ⚠️ Activity first, and it says whether the payload was its own. Both kinds arrive
+                // on one channel, and each handler ignores what is not addressed to it — so the
+                // alarm path is only reached by something that really is an alarm.
+                signals.Received += payload =>
+                {
+                    if (activity.TryApplySignal(payload)) return;
+                    _ = alarms.HandleSignalAsync(payload);
+                };
                 signals.Start();
             });
 
@@ -3101,6 +3111,11 @@ public class App : Application
             // Each rule tracks its own last run in preferences, so one that came due while nothing
             // held the lease goes almost immediately, and one whose day is not up waits.
             Start("retention sweep",    () => Services.GetRequiredService<DataRetentionService>().Start());
+
+            // ⚠️ Last, so the first snapshot describes loops that have already started rather than
+            // a set of them that all look stopped. It relays what the loops above say about
+            // themselves to the monitoring windows on every other client.
+            Start("activity board",     () => Services.GetRequiredService<WorkerActivityService>().Start());
         }
 
         async Task StopLeaderServicesAsync()
@@ -3143,6 +3158,8 @@ public class App : Application
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
                 Halt("alarms",              Services.GetRequiredService<AlarmService>(),              s => s.StopAsync()),
                 Halt("retention sweep",     Services.GetRequiredService<DataRetentionService>(),      s => s.StopAsync()),
+
+                Halt("activity board",      Services.GetRequiredService<WorkerActivityService>(),      s => s.StopAsync()),
 
                 Sync("map stats backfill",  () => Services.GetRequiredService<MapStatsBackfillService>().Stop()),
                 Sync("scheduler",           () => Services.GetRequiredService<SchedulerService>().Stop()));
@@ -3441,6 +3458,46 @@ public class App : Application
         services.AddSingleton<AlarmMuteState>();
         services.AddSingleton<ClientSignals>();
         services.AddSingleton<AlarmActionRunner>();
+
+        // What each leader-only loop is doing, relayed to the other clients' monitoring windows.
+        //
+        // ⚠️ The sampler resolves lazily, inside the lambda. Resolving these at registration time
+        // would reach into a container that is still being built, and several of them are
+        // themselves produced by factories.
+        //
+        // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
+        // every client runs its own and the local status is the true one.
+        services.AddSingleton(sp => new WorkerActivityService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<AppErrorLogger>(),
+            sp.GetRequiredService<ClientSignals>(),
+            () =>
+            {
+                var order = sp.GetRequiredService<OrderFulfilmentService>();
+                return
+                [
+                    new WorkerActivity { Key     = WorkerActivityService.MarketHistory,
+                                         Running = sp.GetRequiredService<MarketHistoryService>().IsSweeping },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbPolling,
+                                         Status = sp.GetRequiredService<ZkillboardPollingService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbFirehose,
+                                         Status = sp.GetRequiredService<ZkillboardFirehoseService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbBackfill,
+                                         Status = sp.GetRequiredService<ZkillboardBackfillService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbPost,
+                                         Status = sp.GetRequiredService<ZkillboardPostService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.NameCache,
+                                         Status = sp.GetRequiredService<EntityNameBackfillService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.LpStore,
+                                         Status = sp.GetRequiredService<LpStoreService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.Alarms,
+                                         Status = sp.GetRequiredService<AlarmService>().StatusText },
+                    new WorkerActivity { Key        = WorkerActivityService.OrderFulfilment,
+                                         Status     = order.StatusText,
+                                         LastRunUtc = order.LastRunAt == default ? null : order.LastRunAt,
+                                         NextRunUtc = order.NextRunAt == default ? null : order.NextRunAt },
+                ];
+            }));
         services.AddSingleton(sp =>
         {
             var factory = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();

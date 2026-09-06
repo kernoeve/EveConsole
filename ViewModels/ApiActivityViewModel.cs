@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
+using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
@@ -152,13 +153,49 @@ public class ApiActivityViewModel : ReactiveObject
         }
     }
 
+    // ── Loops that may be running in a different client ───────────────────────
+
+    private readonly WorkerActivityService _activity;
+    private readonly WorkerLease           _lease;
+
+    /// <summary>
+    /// What a leader-only loop is doing: this process's own value while it holds the lease, and
+    /// otherwise whatever the client that does hold it has published.
+    ///
+    /// <para>⚠️ Keyed on the lease, not on whether a board row happens to exist. On a client that
+    /// is not the worker these services are stopped, so the local value is not merely stale — it
+    /// is the state of a loop that is not running, which reads as "Idle" and is indistinguishable
+    /// from one that has broken.</para>
+    /// </summary>
+    private string Relay(string key, Func<string> local)
+    {
+        if (_lease.IsHolder) return local();
+
+        return _activity.Get(key)?.Status is { Length: > 0 } status
+            ? status
+            : "○ Nothing reported yet by the client running the background processes";
+    }
+
+    private bool RelayRunning(string key, Func<bool> local)
+        => _lease.IsHolder ? local() : _activity.Get(key)?.Running ?? false;
+
+    private DateTimeOffset? RelayTime(string key, Func<DateTimeOffset?> local, bool next)
+    {
+        if (_lease.IsHolder) return local();
+
+        var row = _activity.Get(key);
+        return next ? row?.NextRunUtc : row?.LastRunUtc;
+    }
+
     public ApiActivityViewModel(
-        ApiActivityLog       log,
-        IServiceScopeFactory scopeFactory,
-        EsiPollingService    polling,
-        TimerSettingsService timerSettings,
-        MarketHistoryService history,
-        ContractsService     contracts,
+        ApiActivityLog        log,
+        IServiceScopeFactory  scopeFactory,
+        EsiPollingService     polling,
+        TimerSettingsService  timerSettings,
+        MarketHistoryService  history,
+        ContractsService      contracts,
+        WorkerActivityService activity,
+        WorkerLease           lease,
         ZkillboardSettings        zkbSettings,
         ZkillboardPollingService  zkbPolling,
         ZkillboardFirehoseService zkbFirehose,
@@ -189,6 +226,21 @@ public class ApiActivityViewModel : ReactiveObject
         _nameCache     = nameCache;
         _alarms        = alarms;
         _orderFulfilment = orderFulfilment;
+        _activity      = activity;
+        _lease         = lease;
+
+        // ⚠️ Pushed, not polled. The worker signals whenever one of its loops says something new,
+        // so a window on a client that is not the worker keeps pace with one that is — about a
+        // millisecond behind rather than however long a poll interval happened to be.
+        activity.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            SyncBackgroundProcesses();
+            SyncHistorySweep();
+        });
+
+        // And read once, because a window opened after the last change has no signal coming: the
+        // channel has no replay, which is exactly why the board is also a table.
+        _ = activity.LoadAsync();
 
         // Fire-and-forget: the sweep reports its own progress through StructureSweepRunning and
         // the summary lines, so the command does not need to await it to keep the UI honest.
@@ -307,9 +359,10 @@ public class ApiActivityViewModel : ReactiveObject
                 : "● My characters & corp — live capture via interval poll";
 
         ZkbScopeText     = allScope ? "All kills (universe-wide)" : "My characters & corp";
-        ZkbLiveDetail    = allScope ? _zkbFirehose.StatusText : _zkbPolling.StatusText;
-        ZkbBackfillDetail = _zkbBackfill.StatusText;
-        ZkbPostDetail    = _zkbSettings.PostEnabled ? _zkbPost.StatusText : "○ Off — not submitting kills to zKillboard";
+        ZkbLiveDetail    = allScope ? Relay(WorkerActivityService.ZkbFirehose, () => _zkbFirehose.StatusText)
+                                 : Relay(WorkerActivityService.ZkbPolling,  () => _zkbPolling.StatusText);
+        ZkbBackfillDetail = Relay(WorkerActivityService.ZkbBackfill, () => _zkbBackfill.StatusText);
+        ZkbPostDetail    = _zkbSettings.PostEnabled ? Relay(WorkerActivityService.ZkbPost, () => _zkbPost.StatusText) : "○ Off — not submitting kills to zKillboard";
         ZkbCoverageText  = _zkbSettings.LastFullDay is { } d
             ? $"Daily dumps imported through {d:yyyy-MM-dd}"
             : "No daily dump imported yet";
@@ -331,7 +384,7 @@ public class ApiActivityViewModel : ReactiveObject
             ? $"{_intel.Backlog:N0} message(s) still to consider"
             : "Caught up";
 
-        NameCacheState = _nameCache.StatusText;
+        NameCacheState = Relay(WorkerActivityService.NameCache, () => _nameCache.StatusText);
 
         // Structures. The work is a side task of the polling loop rather than a declared
         // endpoint, so without this it appears in neither the call schedule nor the activity log
@@ -359,15 +412,17 @@ public class ApiActivityViewModel : ReactiveObject
             ? "○ No alarms armed — create one in the Alarms tool"
             : $"● Watching {_alarms.ArmedCount} alarm(s)";
 
-        OrderFulfilState = _orderFulfilment.StatusText;
-        OrderFulfilLast  = _orderFulfilment.LastRunAt is { } ran
+        OrderFulfilState = Relay(WorkerActivityService.OrderFulfilment, () => _orderFulfilment.StatusText);
+        OrderFulfilLast  = RelayTime(WorkerActivityService.OrderFulfilment,
+                                     () => _orderFulfilment.LastRunAt, next: false) is { } ran
             ? ran.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
             : "Never";
-        OrderFulfilNext  = _orderFulfilment.NextRunAt is { } nextRun
+        OrderFulfilNext  = RelayTime(WorkerActivityService.OrderFulfilment,
+                                     () => _orderFulfilment.NextRunAt, next: true) is { } nextRun
             ? nextRun.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
             : "—";
 
-        AlarmDetail   = _alarms.StatusText;
+        AlarmDetail   = Relay(WorkerActivityService.Alarms, () => _alarms.StatusText);
         AlarmNextText = _alarms.NextDueAt is { } due
             ? due.ToLocalTime().ToString("HH:mm:ss")
             : "—";
@@ -440,7 +495,7 @@ public class ApiActivityViewModel : ReactiveObject
         LpStoreLastText     = s.LastCheckedAt is { } t
             ? t.ToLocalTime().ToString("d MMM HH:mm:ss")
             : "never";
-        LpStoreDetail       = _lpStore.StatusText;
+        LpStoreDetail       = Relay(WorkerActivityService.LpStore, () => _lpStore.StatusText);
 
         // The first pass is the one worth watching: until it finishes, an item with no LP
         // tab is indistinguishable from one that simply has not been fetched yet.
@@ -482,7 +537,7 @@ public class ApiActivityViewModel : ReactiveObject
             HistoryRegions.Remove(row);
 
         int totalQueue = snap.Sum(s => s.Queue);
-        HistoryState = _history.IsSweeping
+        HistoryState = RelayRunning(WorkerActivityService.MarketHistory, () => _history.IsSweeping)
             ? $"● Running — {totalQueue:N0} item{(totalQueue == 1 ? "" : "s")} queued"
             : totalQueue > 0
                 ? $"○ Idle — {totalQueue:N0} item{(totalQueue == 1 ? "" : "s")} queued for next sweep"
