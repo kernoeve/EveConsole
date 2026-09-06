@@ -189,6 +189,12 @@ public sealed class WorkerActivityService
                 existing.Running    = r.Running;
                 existing.LastRunUtc = r.LastRunUtc;
                 existing.NextRunUtc = r.NextRunUtc;
+
+                // ⚠️ Count was missing here and nowhere else. A new row carried it, an updated row
+                // did not — so every board that had ever been written kept a null count forever,
+                // while the signal alongside it carried the real number. Found from the table, not
+                // from the code: the alarms row read "1 armed" in its status and null in its count.
+                existing.Count      = r.Count;
                 existing.UpdatedUtc = r.UpdatedUtc;
             }
         }

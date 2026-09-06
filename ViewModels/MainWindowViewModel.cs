@@ -347,21 +347,40 @@ public class MainWindowViewModel : ReactiveObject
     /// The light follows the alarm loop's own armed count, which it republishes on every tick,
     /// so this needs no timer of its own and no query.
     /// </summary>
-    private void BindAlarmLight(AlarmService alarms)
+    /// <summary>
+    /// Lights the beacon from whichever client is actually evaluating alarms.
+    ///
+    /// <para>⚠️ Not from the local service. Alarms are leader-only, so on a client that is not the
+    /// worker AlarmService is never started and its ArmedCount stays nought — the beacon went dark
+    /// and the badge vanished while the Alarms tab, which relays the worker, correctly said one was
+    /// armed. Two readouts of the same fact, disagreeing, and the more prominent one wrong.</para>
+    /// </summary>
+    private void SetAlarmLight(int count) => Dispatcher.UIThread.Post(() =>
     {
+        ActiveAlarmCount = count;
+        HasActiveAlarms  = count > 0;
+
+        AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
+        AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
+        AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
+
+        _armedCount = count;
+        RefreshAlarmsTip();
+    });
+
+    private void BindAlarmLight(AlarmService alarms, WorkerActivityService activity)
+    {
+        // This client's own service — right only while this client is the worker.
         alarms.WhenAnyValue(x => x.ArmedCount)
-            .Subscribe(count => Dispatcher.UIThread.Post(() =>
-            {
-                ActiveAlarmCount = count;
-                HasActiveAlarms  = count > 0;
+            .Subscribe(count => { if (_workerLease.IsHolder) SetAlarmLight(count); });
 
-                AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
-                AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
-                AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
-
-                _armedCount = count;
-                RefreshAlarmsTip();
-            }));
+        // And the worker's, for when it is somebody else. Pushed on the same signal the Alarms tab
+        // uses, so the beacon and the tab cannot disagree about how many are armed.
+        activity.Changed += () =>
+        {
+            if (_workerLease.IsHolder) return;
+            if (activity.Get(WorkerActivityService.Alarms)?.Count is { } armed) SetAlarmLight(armed);
+        };
     }
 
     private int _armedCount;
@@ -1033,7 +1052,7 @@ public class MainWindowViewModel : ReactiveObject
 
         StartEveTimeClock();
         StartOnlineCharactersWatch(dbFactory);
-        BindAlarmLight(alarmService);
+        BindAlarmLight(alarmService, workerActivity);
 
         // ⚠️ Two sources, because only one of them is ever right. On the client holding the lease
         // this process really is polling and its own status is the truth; on any other the poller
