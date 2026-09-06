@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using System.Runtime.InteropServices;
 using EveConsole.Services;
 using Velopack;
 
@@ -36,6 +37,23 @@ class Program
     }
 
     /// <summary>
+    /// Borrows the console of whoever launched us.
+    ///
+    /// <para>⚠️ Windows only, and not optional there. The project is a WinExe, which is what keeps
+    /// a console window from flashing up behind the desktop app — but it also means the process
+    /// starts with no console at all, so every Console.Write goes nowhere. A worker run from a
+    /// terminal printed absolutely nothing until this was added, which is precisely the silence
+    /// the startup banner exists to break.</para>
+    ///
+    /// <para>Failure is normal and ignored: a service or a scheduled task has no parent console to
+    /// attach to. Linux needs none of this — stdout is already there.</para>
+    /// </summary>
+    [DllImport("kernel32.dll")]
+    private static extern bool AttachConsole(int processId);
+
+    private const int AttachParentProcess = -1;
+
+    /// <summary>
     /// Starts the application with no windows and runs until told to stop.
     ///
     /// <para>⚠️ Avalonia is still set up, and the dispatcher still runs. It is tempting to treat
@@ -49,23 +67,6 @@ class Program
     /// and the shutdown handler are already guarded on a classic desktop lifetime, so they skip on
     /// their own rather than needing a second startup written for this mode.</para>
     /// </summary>
-    /// <summary>
-    /// Borrows the console of whoever launched us.
-    ///
-    /// <para>⚠️ Windows only, and not optional there. The project is a WinExe, which is what keeps
-    /// a console window from flashing up behind the desktop app — but it also means the process
-    /// starts with no console at all, so every Console.Write goes nowhere. A worker run from a
-    /// terminal printed absolutely nothing until this was added, which is precisely the silence
-    /// the startup banner exists to break.</para>
-    ///
-    /// <para>Failure is normal and ignored: a service or a scheduled task has no parent console to
-    /// attach to. Linux needs none of this — stdout is already there.</para>
-    /// </summary>
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    private static extern bool AttachConsole(int processId);
-
-    private const int AttachParentProcess = -1;
-
     private static void RunHeadless(string[] args)
     {
         if (OperatingSystem.IsWindows())
@@ -75,18 +76,24 @@ class Program
 
         using var stopping = new CancellationTokenSource();
 
-        // ⚠️ Both signals. Ctrl+C is how somebody runs it in a terminal to see what it does;
-        // SIGTERM is how every service manager and container runtime asks a process to stop, and a
-        // worker that ignored it would be killed instead — dropping its lease the slow way, so the
-        // next client waits out the socket rather than taking over on its next tick.
-        Console.CancelKeyPress += (_, e) =>
+        // ⚠️ Handled through PosixSignalRegistration rather than ProcessExit or the load context's
+        // Unloading event. Those fire while .NET is already tearing the process down, which leaves
+        // the clean release below racing the runtime — and losing it means the lease goes when the
+        // socket finally closes instead of now, so the next client waits out the server's timeout
+        // rather than taking over on its next tick. Cancel = true here says the shutdown is ours to
+        // run; nothing kills the process until we return from the loop.
+        //
+        // SIGTERM is what systemd, Docker and every other supervisor send. SIGINT is Ctrl+C, which
+        // is how somebody runs it in a terminal to watch what it does. Both mean the same thing.
+        void OnSignal(PosixSignalContext context)
         {
-            e.Cancel = true;              // ours to handle: stop cleanly rather than being killed
+            context.Cancel = true;
             Console.WriteLine("Stopping…");
             stopping.Cancel();
-        };
+        }
 
-        System.Runtime.Loader.AssemblyLoadContext.Default.Unloading += _ => stopping.Cancel();
+        using var sigterm = PosixSignalRegistration.Create(PosixSignal.SIGTERM, OnSignal);
+        using var sigint  = PosixSignalRegistration.Create(PosixSignal.SIGINT,  OnSignal);
 
         Dispatcher.UIThread.MainLoop(stopping.Token);
 

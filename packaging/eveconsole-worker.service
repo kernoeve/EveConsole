@@ -1,0 +1,71 @@
+# EVE Console — background worker (systemd unit)
+#
+# Runs the background processes with no window: ESI polling, market pricing, contracts,
+# zKillboard, alarms, the scheduler, retention and backups. Exactly one client among those
+# sharing a database does this work; the rest read. If a desktop client already holds the
+# lease this worker waits and takes over the moment that client exits.
+#
+#   sudo cp eveconsole-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now eveconsole-worker
+#   journalctl -u eveconsole-worker -f
+#
+# ⚠️ PostgreSQL only. On SQLite the database file is held exclusively, so a worker running as
+# a service means the desktop client cannot start at all — the app says so on stdout when it
+# finds itself in that position.
+
+[Unit]
+Description=EVE Console background worker
+Documentation=https://docs.eveconsole.com
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+# ⚠️ Run as a real user, not root or a system account. Two reasons, and both bite silently.
+# The data directory is ~/.local/share/EveConsole, so the wrong user reads a different (empty)
+# one and imports nothing. And if you ever configure this through the desktop app instead of
+# the environment below, the password is kept in that user's login keyring — which no other
+# account can open.
+User=eve
+Group=eve
+
+# ⚠️ Supply the connection string here rather than relying on saved settings. The saved password
+# is stored through libsecret, which needs a keyring unlocked by a login session; a daemon has
+# no session and would find nothing. Put the real value in an environment file so it is not
+# world-readable in the unit:
+#
+#   sudo install -m 600 -o root -g root /dev/null /etc/eveconsole.env
+#   sudo tee /etc/eveconsole.env >/dev/null <<'EOF'
+#   EVECONSOLE_DB_CONNECTION=Host=db.example;Database=eveconsole;Username=eveconsole;Password=…
+#   EOF
+EnvironmentFile=/etc/eveconsole.env
+
+# Where this machine's EVE logs are mounted, if any. Naming them switches import on. Leave both
+# out on a host that has no EVE client — log import is host-bound, so a worker with nothing
+# mounted simply imports nothing while the desktop clients go on reading their own.
+#
+# Environment=EVECONSOLE_GAMELOG_DIRS=/mnt/eve/Gamelogs
+# Environment=EVECONSOLE_CHATLOG_DIRS=/mnt/eve/Chatlogs
+
+WorkingDirectory=/opt/eveconsole
+ExecStart=/opt/eveconsole/EveConsole --headless
+
+# ⚠️ SIGTERM, and give it time to answer. The worker handles the signal itself and releases its
+# lease on the way out, which is what lets another client pick the work up on its next tick
+# rather than waiting for the server to notice a dropped socket. Killing it skips that.
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# ⚠️ on-failure, not always. A version mismatch against the database is a deliberate, fatal exit
+# — the schema belongs to a different build and this one must not run against it. Restarting
+# would turn a clear one-line failure into a loop that buries it.
+Restart=on-failure
+RestartSec=15
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
