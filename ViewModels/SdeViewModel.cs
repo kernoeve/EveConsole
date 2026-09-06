@@ -28,6 +28,16 @@ public class SdeViewModel : ReactiveObject
     public string LatestBuild     { get => _latestBuild;     private set => this.RaiseAndSetIfChanged(ref _latestBuild,     value); }
     public bool   UpdateAvailable { get => _updateAvailable; private set => this.RaiseAndSetIfChanged(ref _updateAvailable, value); }
 
+    /// <summary>
+    /// The loaded build, short enough for the title bar: "SDE 2831234".
+    ///
+    /// <para>The Settings tab shows the release date beside the number, which earns its room
+    /// there and does not here — the bar answers "which SDE am I on", not "when was it cut".</para>
+    /// </summary>
+    private int _loadedBuildNumber;
+    public string SdeShortText =>
+        _loadedBuildNumber > 0 ? $"SDE {_loadedBuildNumber}" : "SDE not imported";
+
     // ── Hoboleaks state ───────────────────────────────────────────────────
     private string _hoboStatusText  = "Not imported";
     private double _hoboFraction    = 0;
@@ -97,6 +107,9 @@ public class SdeViewModel : ReactiveObject
         LoadedBuild = info is null
             ? "not imported"
             : FormatBuild(info.BuildNumber, info.ReleaseDate);
+
+        _loadedBuildNumber = info?.BuildNumber ?? 0;
+        this.RaisePropertyChanged(nameof(SdeShortText));
     }
 
     private async Task LoadHoboInfoAsync()

@@ -49,6 +49,50 @@
                   Cursor="Hand"
                   ToolTip.Tip="Open the release page on GitHub"
                   Click="OnReleaseLinkClick" />
+
+          <!-- Which SDE is loaded, and a way to act on it when a newer one exists. The link
+               appears only when there is something to do, so the bar stays quiet the rest of
+               the time. Both values come from SdeViewModel, which already checks CCP's build
+               feed on startup for the Settings tab. -->
+          <TextBlock Text="{Binding SdeVm.SdeShortText}"
+                     FontSize="11" Foreground="#666677"
+                     VerticalAlignment="Center" Margin="10 0 0 0"
+                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat='Static Data Export: {0}'}" />
+
+          <Button x:Name="SdeUpdateLinkButton"
+                  IsVisible="{Binding SdeVm.UpdateAvailable}"
+                  Content="update available"
+                  Background="Transparent" BorderThickness="0" Padding="6 1"
+                  FontSize="11" Foreground="#5588aa"
+                  VerticalAlignment="Center"
+                  Cursor="Hand"
+                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest is {0} — open the SDE settings'}"
+                  Click="OnSdeUpdateLinkClick" />
+
+          <!-- Which database this window is talking to. The icon carries it before the word is
+               read; the hover says where the data actually lives. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Background="Transparent"
+                      ToolTip.Tip="{Binding DbEngineTip}">
+
+            <!-- A database cylinder, drawn rather than bundled: shipping either project's logo
+                 would mean shipping their trademark, and this says the same thing. -->
+            <Canvas Width="11" Height="13" VerticalAlignment="Center">
+              <Canvas.Styles>
+                <Style Selector="Path.pg"><Setter Property="Fill" Value="#4a7fa8" /></Style>
+                <Style Selector="Path.sqlite"><Setter Property="Fill" Value="#7a8fa0" /></Style>
+              </Canvas.Styles>
+              <Path Classes.pg="{Binding DbIsPostgres}" Classes.sqlite="{Binding !DbIsPostgres}"
+                    Data="M 0.5,3 A 5,2.4 0 0 1 10.5,3 L 10.5,10 A 5,2.4 0 0 1 0.5,10 Z" />
+              <Path Fill="#0d0d12" Opacity="0.45"
+                    Data="M 0.5,6.4 A 5,2.4 0 0 0 10.5,6.4 A 5,2.4 0 0 0 0.5,6.4 Z" />
+              <Path Classes.pg="{Binding DbIsPostgres}" Classes.sqlite="{Binding !DbIsPostgres}"
+                    Data="M 0.5,3 A 5,2.4 0 0 1 10.5,3 A 5,2.4 0 0 1 0.5,3 Z" />
+            </Canvas>
+
+            <TextBlock Text="{Binding DbEngineLabel}"
+                       FontSize="11" Foreground="#666677" VerticalAlignment="Center" />
+          </StackPanel>
         </StackPanel>
 
         <!-- Eve Time clock -->
