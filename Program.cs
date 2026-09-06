@@ -94,7 +94,16 @@ class Program
         else if (headless)
             RunHeadless(args);
         else
+        {
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+
+            // A backstop for the exits that do not pass through App's ShutdownRequested handler —
+            // the version gate, the tray process, a lifetime shut down from somewhere else. Same
+            // reason as there: off Windows, letting a fully started Avalonia process unwind races
+            // its own D-Bus teardown, and the loser is an unhandled TaskCanceledException that
+            // aborts the process with SIGABRT. See AppLauncher.ExitNow.
+            if (!OperatingSystem.IsWindows()) AppLauncher.ExitNow();
+        }
     }
 
     /// <summary>

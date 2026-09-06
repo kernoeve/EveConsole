@@ -361,7 +361,20 @@ public class App : Application
                 // instead of however long the OS takes to notice the process is gone.
                 Services.GetRequiredService<WorkerLease>().Stop();
                 Services.GetRequiredService<ClientSignals>().Stop();
+
+                // Closes every window synchronously — which is what saves the window geometry —
+                // and then ends the dispatcher loop.
                 desktop.Shutdown();
+
+                // ⚠️ And off Windows the process stops HERE, before Avalonia unwinds its platform.
+                // That teardown disposes the D-Bus connection it keeps for the tray and the desktop
+                // portal, and the disconnect notice is marshalled to the dispatcher with a
+                // SYNCHRONOUS Send — which the dispatcher, already shutting down, answers with a
+                // cancelled operation. It lands on a thread pool thread as an unhandled
+                // TaskCanceledException and aborts the process with SIGABRT, after everything above
+                // has already finished: the lease released, the pollers stopped, the geometry saved.
+                // Nothing in that sequence is ours to fix, so the choice is simply not to enter it.
+                if (!OperatingSystem.IsWindows()) AppLauncher.ExitNow();
             };
         }
 

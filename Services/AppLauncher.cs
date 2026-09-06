@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace EveConsole.Services;
 
 /// <summary>
@@ -86,16 +88,43 @@ public static class AppLauncher
     /// has never closed SQLite's connections cleanly — <see cref="SqliteMaintenance.Checkpoint"/>
     /// exists precisely because the write-ahead log is expected to survive an abrupt exit.</para>
     ///
-    /// <para>The exit code is not preserved off Windows: a process that kills itself reports the
-    /// signal instead. Nothing reads ours.</para>
+    /// <para>The same abruptness is what makes it the right end for a normal exit on Linux too.
+    /// Avalonia keeps a D-Bus connection for the tray and the desktop portal, and tearing it down
+    /// marshals a disconnect notice to the dispatcher with a SYNCHRONOUS Send — which a dispatcher
+    /// already shutting down answers with a cancelled operation. That surfaces on a thread pool
+    /// thread as an unhandled TaskCanceledException and aborts the process with SIGABRT, long after
+    /// every piece of real work has finished. There is nothing to fix in that teardown from here;
+    /// there is only the choice not to enter it.</para>
     /// </summary>
     public static void ExitNow(int code = 0)
     {
         if (OperatingSystem.IsWindows()) { Environment.Exit(code); return; }
 
+        // ⚠️ _exit, not exit. exit() is what runs the atexit handlers; _exit is the raw syscall —
+        // no handlers, no flushing, nothing left that can wedge or throw.
+        //
+        // ⚠️ Resolved through the main program handle rather than DllImport("libc"). The runtime's
+        // name probing looks for "libc.so", which on glibc is a linker script rather than a shared
+        // object, so binding by name can fail on exactly the systems this exists for. The main
+        // program handle sees every symbol already loaded into the process, libc's included.
+        try
+        {
+            if (NativeLibrary.TryGetExport(NativeLibrary.GetMainProgramHandle(), "_exit", out var fn))
+            {
+                Marshal.GetDelegateForFunctionPointer<ExitFunction>(fn)(code);
+                return;   // not reached
+            }
+        }
+        catch { /* fall through to the blunter forms below */ }
+
+        // No _exit to be had. A signal to ourselves is just as immediate; it costs the exit code,
+        // which becomes 137, and nothing here reads ours.
         try { System.Diagnostics.Process.GetCurrentProcess().Kill(); }
         catch { Environment.Exit(code); }   // nothing better left to try
     }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void ExitFunction(int code);
 
     /// <summary>Whether this copy is running from an AppImage, for wording that has to differ.</summary>
     public static bool IsAppImage
