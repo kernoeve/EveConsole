@@ -17,7 +17,7 @@ public class MarketPricingService
     private readonly AppErrorLogger       _errorLogger;
     private readonly TimerSettingsService _timerSettings;
 
-    private CancellationTokenSource _cts      = new();
+    private CancellationTokenSource? _cts;
     private Task?                   _loopTask;
 
     private static readonly JsonSerializerOptions _jsonOpts = new()
@@ -48,13 +48,28 @@ public class MarketPricingService
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-    public void Start() { _loopTask = Task.Run(() => RunLoopAsync(_cts.Token)); }
+    public void Start()
+    {
+        if (_loopTask is not null) return;
+        _cts      = new CancellationTokenSource();
+        _loopTask = Task.Run(() => RunLoopAsync(_cts.Token));
+    }
 
     public async Task StopAsync()
     {
-        _cts.Cancel();
-        if (_loopTask != null)
+        if (_cts is null) return;
+        await _cts.CancelAsync();
+        if (_loopTask is not null)
             try { await _loopTask; } catch (OperationCanceledException) { }
+
+        // ⚠️ Cleared, not merely cancelled. A CancellationTokenSource stays cancelled once it
+        // has been, so restarting onto the same one hands the loop a token that is already dead:
+        // it returns on its first await and never runs again. Stop used to be called only on the
+        // way out, where that could not matter. The worker lease can be lost and regained, so it
+        // has to be an undoable thing now.
+        _cts.Dispose();
+        _cts      = null;
+        _loopTask = null;
     }
 
     private async Task RunLoopAsync(CancellationToken ct)

@@ -29,7 +29,7 @@ public class LpStoreService : ReactiveObject
     private readonly AppErrorLogger                  _errorLogger;
     private readonly TimerSettingsService            _timerSettings;
 
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _cts;
     private Task? _loop;
 
     /// <summary>Public endpoint, no token bucket — paced only to stay polite (~7/sec).</summary>
@@ -82,13 +82,27 @@ public class LpStoreService : ReactiveObject
             LastCheckedAt:  await db.EsiLpStoreCorps.MaxAsync(c => (DateTime?)c.LastCheckedAt, ct));
     }
 
-    public void Start() =>
+    public void Start()
+    {
+        if (_loop is not null) return;
+        _cts  = new CancellationTokenSource();
         _loop = Task.Run(() => RunLoopAsync("lpstore.offers", 86400, SweepAsync, _cts.Token));
+    }
 
     public async Task StopAsync()
     {
+        if (_cts is null) return;
         await _cts.CancelAsync();
         if (_loop is not null) try { await _loop; } catch (OperationCanceledException) { }
+
+        // ⚠️ Cleared, not merely cancelled. A CancellationTokenSource stays cancelled once it
+        // has been, so restarting onto the same one hands the loop a token that is already dead:
+        // it returns on its first await and never runs again. Stop used to be called only on the
+        // way out, where that could not matter. The worker lease can be lost and regained, so it
+        // has to be an undoable thing now.
+        _cts.Dispose();
+        _cts  = null;
+        _loop = null;
     }
 
     private async Task RunLoopAsync(string timerKey, int defaultSeconds,

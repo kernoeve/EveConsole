@@ -39,7 +39,7 @@ public sealed class AlarmService : ReactiveObject
     private readonly AlarmActionRunner               _actions;
     private readonly AppErrorLogger                  _errors;
 
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _cts;
     private Task?          _loop;
     private DateTimeOffset _lastPrune = DateTimeOffset.MinValue;
 
@@ -96,13 +96,28 @@ public sealed class AlarmService : ReactiveObject
     /// <summary>Raised after any firing so open views can refresh without polling the database.</summary>
     public event Action? Fired;
 
-    public void Start() => _loop ??= Task.Run(() => RunAsync(_cts.Token));
+    public void Start()
+    {
+        if (_loop is not null) return;
+        _cts  = new CancellationTokenSource();
+        _loop = Task.Run(() => RunAsync(_cts.Token));
+    }
 
     public async Task StopAsync()
     {
+        if (_cts is null) return;
         await _cts.CancelAsync();
         if (_loop is not null)
             try { await _loop; } catch (OperationCanceledException) { }
+
+        // ⚠️ Cleared, not merely cancelled. A CancellationTokenSource stays cancelled once it
+        // has been, so restarting onto the same one hands the loop a token that is already dead:
+        // it returns on its first await and never runs again. Stop used to be called only on the
+        // way out, where that could not matter. The worker lease can be lost and regained, so it
+        // has to be an undoable thing now.
+        _cts.Dispose();
+        _cts  = null;
+        _loop = null;
     }
 
     /// <summary>

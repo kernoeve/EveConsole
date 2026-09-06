@@ -18,7 +18,7 @@ public class ContractsService : ReactiveObject
     private readonly AppErrorLogger                  _errorLogger;
     private readonly TimerSettingsService            _timerSettings;
 
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _cts;
     private Task? _publicLoop;
     private Task? _itemsLoop;
     private Task? _pricingLoop;
@@ -108,6 +108,9 @@ public class ContractsService : ReactiveObject
 
     public void Start()
     {
+        if (_publicLoop is not null) return;
+
+        _cts         = new CancellationTokenSource();
         _publicLoop  = Task.Run(() => RunLoopAsync("contract.public",  3600, SweepPublicContractsAsync, _cts.Token));
         _itemsLoop   = Task.Run(() => RunLoopAsync("contract.items",    600, SweepContractItemsAsync,   _cts.Token));
         _pricingLoop = Task.Run(() => RunLoopAsync("contract.pricing", 1800, RecomputePricingAsync,     _cts.Token));
@@ -115,9 +118,21 @@ public class ContractsService : ReactiveObject
 
     public async Task StopAsync()
     {
+        if (_cts is null) return;
         await _cts.CancelAsync();
         foreach (var t in new[] { _publicLoop, _itemsLoop, _pricingLoop })
             if (t is not null) try { await t; } catch (OperationCanceledException) { }
+
+        // ⚠️ Cleared, not merely cancelled. A CancellationTokenSource stays cancelled once it
+        // has been, so restarting onto the same one hands all three loops a token that is already
+        // dead: each returns on its first await and never runs again. Stop used to be called only
+        // on the way out, where that could not matter. The worker lease can be lost and regained,
+        // so it has to be an undoable thing now.
+        _cts.Dispose();
+        _cts         = null;
+        _publicLoop  = null;
+        _itemsLoop   = null;
+        _pricingLoop = null;
     }
 
     private async Task RunLoopAsync(string timerKey, int defaultSeconds, Func<CancellationToken, Task> sweep, CancellationToken ct)
