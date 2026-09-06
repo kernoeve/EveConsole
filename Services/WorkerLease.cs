@@ -63,9 +63,37 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
     /// </summary>
     public event Action? Lost;
 
+    /// <summary>
+    /// One attempt at the lease, awaited.
+    ///
+    /// <para>For startup, which has to know the answer before it can decide anything else. Owning
+    /// the background work is what carries the right to change the schema — bringing the schema up
+    /// IS the start of background processing — so this question comes before the database is
+    /// touched, not after.</para>
+    /// </summary>
+    public async Task<bool> AcquireAsync(CancellationToken ct = default)
+    {
+        // One candidate, so no contest, and nothing to ask.
+        if (!DbEngine.IsPostgres)
+        {
+            IsHolder = true;
+            return true;
+        }
+
+        _lock ??= AdoptProcessLock();
+        await ContendAsync(ct);
+        return IsHolder;
+    }
+
+    /// <summary>
+    /// Begins holding and defending the lease, and announces where things already stand.
+    ///
+    /// <para>Any client that reaches this point is version-matched to the database — startup
+    /// refuses to go on otherwise — so a client that takes over later is safe to do so: the schema
+    /// it inherits is one its own build would have written.</para>
+    /// </summary>
     public void Start()
     {
-        // One candidate, so no contest. Announce it and run nothing.
         if (!DbEngine.IsPostgres)
         {
             IsHolder = true;
@@ -73,17 +101,26 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             return;
         }
 
-        // ⚠️ The lock is already held, by this process. SingleInstance takes this very key at
-        // startup to keep a second client out, and an advisory lock belongs to the session that
-        // took it — so opening a new connection and asking for it would be this process losing a
-        // race with itself, on the silent path that means "somebody else has it". Adopt that
-        // session rather than contending with it. Null on a server that could not be reached,
-        // which correctly sends us round the contending path instead.
-        _lock = SingleInstance.TakePostgresLock();
+        _lock ??= AdoptProcessLock();
+
+        // ⚠️ Re-announced, because AcquireAsync almost certainly settled this already and it did so
+        // before anything had subscribed. Without this the client that IS the worker would sit
+        // there having quietly won, running none of the work it won the right to do.
+        if (IsHolder) Gained?.Invoke();
 
         _cts = new CancellationTokenSource();
         _ = RunLoopAsync(_cts.Token);
     }
+
+    /// <summary>
+    /// ⚠️ The lock is already held, by this process. SingleInstance takes this very key at startup
+    /// to keep a second client out, and an advisory lock belongs to the session that took it — so
+    /// opening a new connection and asking for it would be this process losing a race with itself,
+    /// on the silent path that means "somebody else has it". Adopt that session rather than
+    /// contending with it. Null on a server that could not be reached, which correctly sends us
+    /// round the contending path instead.
+    /// </summary>
+    private static NpgsqlConnection? AdoptProcessLock() => SingleInstance.TakePostgresLock();
 
     /// <summary>
     /// Releases the lease so another client can take it without waiting for a tick.

@@ -320,49 +320,99 @@ public class App : Application
             };
         }
 
-        // ── Is the background work being done by a different build? ────────────
+        // ── Who owns the background work, and therefore the schema? ────────────
         //
-        // ⚠️ Asked before the schema is touched, and the ordering is the whole point. The client
-        // holding the lease is writing to this database with ITS build's idea of the schema, and
-        // this one is about to migrate — so an older worker beside a newer client means altering
-        // the schema underneath a process that is still running against the old one. Nothing would
-        // notice: the worker goes on polling and goes on writing, into columns that have moved.
+        // ⚠️ Bringing the schema up IS the start of background processing, so the right to do it
+        // belongs to whichever client holds the worker lease — not to whoever happened to start
+        // first. Asked here, before the database is touched, because everything after it depends
+        // on the answer.
+        var lease = Services.GetRequiredService<WorkerLease>();
+
+        // ⚠️ Read BEFORE the lease is taken, and the order is not cosmetic. Taking the lease stamps
+        // this build's version into that same row — so reading afterwards would hand every leader
+        // its own version back and the "database is ahead" check below could never once fire.
         //
-        // So the answer is more than a warning. Whichever way the operator answers, this client
-        // leaves the schema alone while a worker on another build is alive.
-        var skipSchema = false;
-        var liveWorker = await WorkerLease.ReadStatusAsync();
-        if (liveWorker is not null
-            && WorkerLease.IsLive(liveWorker)
-            && liveWorker.Version != AppVersion.Number)
+        // ⚠️ The RECORDED version, not a live worker's. It names the last build that owned the
+        // background processing, which is the build the schema was made by, and that is still the
+        // right answer when nothing is running now. It is, in effect, the database's own version.
+        var dbVersion = (await WorkerLease.ReadStatusAsync())?.Version;
+
+        var ownsSchema = await lease.AcquireAsync();
+        var skipSchema = !ownsSchema;
+
+        // ⚠️ What counts as fatal depends on whether anybody else is already running the
+        // background processes, because that is what decides whether this client may move the
+        // schema at all.
+        //
+        // Nothing running, so this client took the lease: only a database AHEAD of this build is
+        // fatal. It carries schema changes this build knows nothing about, and migrating never
+        // moves a schema backwards. A database BEHIND it is the upgrade — this client applies its
+        // changes and stamps its own version — and that path must stay open or a database can
+        // never move forward at all.
+        //
+        // Somebody else is running them, so this client may not touch the schema: then ANY
+        // mismatch is fatal, in both directions. Behind the database is the case above. Ahead of
+        // it is just as bad and far more likely — a build normally ships with schema changes, none
+        // of them have been made, and this client cannot make them.
         {
-            skipSchema = true;
+            // Parsed separately rather than in one &&: short-circuiting would leave the second out
+            // parameter unassigned, and both are read below.
+            Version.TryParse(dbVersion ?? "", out var dbV);
+            Version.TryParse(AppVersion.Number, out var appV);
 
-            var proceed = true;
-            if (splash is not null)
+            var fatal = dbV is not null && appV is not null
+                     && (skipSchema
+                            ? dbVersion != AppVersion.Number   // not ours to fix, either way
+                            : dbV > appV);                     // ours to upgrade, but never to undo
+
+            if (fatal)
             {
-                splash.ReportProgress(0, "Waiting — another client is on a different version");
-                proceed = await new ConfirmDialog(
+                // ⚠️ Fatal, with nothing to click past. Neither direction fails loudly if it is
+                // allowed to run — both fail as scattered features quietly not working, which
+                // costs far more to diagnose than not starting does.
+                var why = dbV > appV
+                    ? $"""
+                       A newer build has already changed this database in ways this one knows nothing about, and schema changes only ever move forward.
+
+                       Update this client to {dbVersion} or later.
+                       """
+                    : $"""
+                       Another client is running the background processes on {dbVersion}, and only that client may change the schema. The changes this build expects have not been made, so much of it would not work.
+
+                       Update the client running the background processes to {AppVersion.Number}, or close it and start this one first so that it takes over and applies them.
+                       """;
+
+                var message =
                     $"""
-                     Another client is doing the background work on a different version.
+                     This database is at version {dbVersion}, and this client is {AppVersion.Number}.
 
-                         {liveWorker.HostName}, pid {liveWorker.ProcessId} — version {liveWorker.Version}
-                         this client — version {AppVersion.Number}
+                     {why}
+                     """;
 
-                     It is writing to this database with its own idea of the schema, so this client
-                     will leave the schema alone for as long as it is running. Anything this build
-                     expects that the other one has never created will not be there.
+                errorLogger.Log("Startup",
+                    dbV > appV ? "database is ahead of this build" : "background processes are on an older build",
+                    new InvalidOperationException(
+                        $"database is at {dbVersion}, this client is {AppVersion.Number}"));
 
-                     Continue anyway?
-                     """).ShowDialog<bool>(splash);
-            }
+                if (splash is not null)
+                {
+                    splash.ReportProgress(0, "Stopping — version mismatch");
+                    await new FatalDialog("This build does not match the database", message)
+                        .ShowDialog(splash);
 
-            if (!proceed)
-            {
-                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime declined)
-                    declined.Shutdown();
+                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
+                        stopping.Shutdown();
+                    else
+                        Environment.Exit(1);
+                }
                 else
-                    Environment.Exit(0);
+                {
+                    // Headless, or anything else with nowhere to draw. ⚠️ A non-zero code, so a
+                    // service manager sees a failed start rather than a clean one.
+                    Console.Error.WriteLine(message);
+                    Environment.Exit(1);
+                }
+
                 return;
             }
         }
@@ -373,15 +423,12 @@ public class App : Application
         p.Report((5, "Initializing database…"));
         // Ensure the database is created / migrated
         //
-        // ⚠️ One client at a time, on PostgreSQL. Several clients can now be pointed at one
-        // database and nothing stops them starting together — after a host reboots, say — and two
-        // of them running this concurrently is two sessions issuing overlapping DDL against the
-        // same tables. Whoever arrives first does the work; the rest wait out a handful of
-        // statements that, on any database but a brand-new one, find everything already there.
-        //
-        // Deliberately not the worker lease: the first client to start has to bring the schema up
-        // whether or not it ends up being the one doing the background work. See MigrationLock.
-        using (MigrationLock.Acquire())
+        // ⚠️ Only the client holding the worker lease reaches here with skipSchema false, and that
+        // is the whole of the concurrency story. Bringing the schema up IS the start of background
+        // processing, so the lease already serialises it: several clients can be pointed at one
+        // database and start together — after a host reboots, say — and exactly one of them holds
+        // the right to issue DDL. The rest have already checked the recorded version, found it
+        // matches, and leave the schema alone.
         using (var scope = Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
