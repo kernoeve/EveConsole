@@ -240,15 +240,15 @@ public class PollingSettingsViewModel : ReactiveObject
 
         string? error;
 
-        if (OperatingSystem.IsLinux() && SystemdServiceControl.IsSupported)
+        if (OperatingSystem.IsLinux())
         {
             ServiceStatus = "Changing startup…";
-            error = await Task.Run(() => SystemdServiceControl.SetStartsAtLogin(automatic));
+            error = await SystemdSetStartsAtLoginAsync(automatic);
         }
         else if (OperatingSystem.IsWindows())
         {
             ServiceStatus = "Changing startup — approve the Windows prompt…";
-            error = await Task.Run(() => WindowsServiceControl.SetStartsWithWindows(automatic));
+            error = await WindowsSetStartsWithWindowsAsync(automatic);
         }
         else { ServiceBusy = false; return; }
 
@@ -266,7 +266,7 @@ public class PollingSettingsViewModel : ReactiveObject
 
         string? error;
 
-        if (OperatingSystem.IsLinux() && SystemdServiceControl.IsSupported)
+        if (OperatingSystem.IsLinux())
         {
             ServiceStatus = "Repointing…";
             error = await Task.Run(SystemdServiceControl.Repoint);
@@ -397,7 +397,7 @@ public class PollingSettingsViewModel : ReactiveObject
 
         string? error;
 
-        if (OperatingSystem.IsLinux() && SystemdServiceControl.IsSupported)
+        if (OperatingSystem.IsLinux())
         {
             // `systemctl enable --now` installs and starts in one step, so there is nothing to
             // start afterwards.
@@ -405,8 +405,7 @@ public class PollingSettingsViewModel : ReactiveObject
         }
         else if (OperatingSystem.IsWindows())
         {
-            error = await Task.Run(WindowsServiceControl.Install);
-            if (error is null) await Task.Run(() => WindowsServiceControl.StartService());
+            error = await WindowsInstallAsync();
         }
         else { ServiceBusy = false; return; }
 
@@ -424,10 +423,8 @@ public class PollingSettingsViewModel : ReactiveObject
 
         string? error;
 
-        if (OperatingSystem.IsLinux() && SystemdServiceControl.IsSupported)
-            error = await Task.Run(SystemdServiceControl.Uninstall);
-        else if (OperatingSystem.IsWindows())
-            error = await Task.Run(WindowsServiceControl.Uninstall);
+        if (OperatingSystem.IsLinux())        error = await Task.Run(SystemdServiceControl.Uninstall);
+        else if (OperatingSystem.IsWindows()) error = await Task.Run(WindowsServiceControl.Uninstall);
         else { ServiceBusy = false; return; }
 
         ServiceBusy = false;
@@ -442,11 +439,9 @@ public class PollingSettingsViewModel : ReactiveObject
         ServiceBusy   = true;
         ServiceStatus = run ? "Starting…" : "Stopping…";
 
-        string? error;
-
-        if (OperatingSystem.IsLinux() && SystemdServiceControl.IsSupported)
+        if (OperatingSystem.IsLinux())
         {
-            error = await Task.Run(() => run ? SystemdServiceControl.Start() : SystemdServiceControl.Stop());
+            var systemdError = await SystemdSetRunningAsync(run);
 
             ServiceBusy = false;
             RefreshServiceState();
@@ -454,17 +449,15 @@ public class PollingSettingsViewModel : ReactiveObject
             // ⚠️ The journal, not just the exit status. systemctl reports that starting failed and
             // says nothing about why; the reason is always one command away and never in front of
             // the person who needs it.
-            if (error is not null)
-                ServiceStatus = $"{(run ? "Start" : "Stop")} failed — {error}\n\n{SystemdServiceControl.RecentLog()}";
+            if (systemdError is not null)
+                ServiceStatus = $"{(run ? "Start" : "Stop")} failed — {systemdError}\n\n{SystemdServiceControl.RecentLog()}";
 
             return;
         }
 
         if (!OperatingSystem.IsWindows()) { ServiceBusy = false; return; }
 
-        error = await Task.Run(() => run
-            ? WindowsServiceControl.StartService()
-            : WindowsServiceControl.StopService());
+        var error = await WindowsSetRunningAsync(run);
 
         ServiceBusy = false;
         RefreshServiceState();
@@ -477,6 +470,45 @@ public class PollingSettingsViewModel : ReactiveObject
                 ? "Windows refused — this account was not granted permission to start or stop it. Remove and re-add the service."
                 : $"{(run ? "Start" : "Stop")} failed — {error}";
     }
+
+    // ── Doing the work, one method per platform ───────────────────────────────
+    //
+    // ⚠️ These exist for the platform analyser, and they earn their keep rather than silencing it.
+    // A guard like `if (OperatingSystem.IsWindows())` establishes the platform for statements in
+    // that block but does NOT follow into a lambda body, so `Task.Run(() => Something.Windows())`
+    // inside a perfectly guarded branch is still reported as an unguarded call — and the warning is
+    // indistinguishable from the ones that mean something. Declaring the platform on the method
+    // makes its whole body, lambdas included, that platform's, which is simply what is true.
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private static async Task<string?> WindowsInstallAsync()
+    {
+        var error = await Task.Run(WindowsServiceControl.Install);
+
+        // Started for them: installing a service and leaving it stopped is a switch that did half
+        // of what it said. A failure to start is not reported here — the refreshed status says it.
+        if (error is null) await Task.Run(() => WindowsServiceControl.StartService());
+
+        return error;
+    }
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private static Task<string?> WindowsSetRunningAsync(bool run) => Task.Run(() => run
+        ? WindowsServiceControl.StartService()
+        : WindowsServiceControl.StopService());
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private static Task<string?> WindowsSetStartsWithWindowsAsync(bool automatic) =>
+        Task.Run(() => WindowsServiceControl.SetStartsWithWindows(automatic));
+
+    [System.Runtime.Versioning.SupportedOSPlatform("linux")]
+    private static Task<string?> SystemdSetRunningAsync(bool run) => Task.Run(() => run
+        ? SystemdServiceControl.Start()
+        : SystemdServiceControl.Stop());
+
+    [System.Runtime.Versioning.SupportedOSPlatform("linux")]
+    private static Task<string?> SystemdSetStartsAtLoginAsync(bool on) =>
+        Task.Run(() => SystemdServiceControl.SetStartsAtLogin(on));
 
     public ObservableCollection<CharacterOption> StructureNameChars { get; } = [];
 

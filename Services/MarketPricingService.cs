@@ -467,12 +467,18 @@ public class MarketPricingService
         const int deleteBatch = 20_000;
         while (true)
         {
+            // ⚠️ EF1002 suppressed, not worked around. The only interpolated part is AppDb.RowId —
+            // the engine's row-address identifier, "rowid" on SQLite and "ctid" on PostgreSQL. An
+            // identifier cannot be a parameter, and this one never comes from input. Both actual
+            // values go through {0} and {1} in the args array, which is where values belong.
+#pragma warning disable EF1002 // the interpolated part is an engine identifier, never input
             var removed = await db.Database.ExecuteSqlRawAsync(
                 $$"""
                 DELETE FROM "MarketRawOrders" WHERE {{AppDb.RowId}} IN (
                     SELECT {{AppDb.RowId}} FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
+#pragma warning restore EF1002
 
             if (removed < deleteBatch) break;
             await BreatheAsync(ct);   // a real gap, so a polling write can actually get in
@@ -572,12 +578,16 @@ public class MarketPricingService
         const int deleteBatch = 20_000;
         while (true)
         {
+            // Same suppression, same reason as the orders delete above: an engine identifier, not a
+            // value. The values are {0} and {1}.
+#pragma warning disable EF1002 // the interpolated part is an engine identifier, never input
             var removed = await db.Database.ExecuteSqlRawAsync(
                 $$"""
                 DELETE FROM "MarketItemPrices" WHERE {{AppDb.RowId}} IN (
                     SELECT {{AppDb.RowId}} FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
+#pragma warning restore EF1002
 
             if (removed < deleteBatch) break;
             await BreatheAsync(ct);

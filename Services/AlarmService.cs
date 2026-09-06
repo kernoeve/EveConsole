@@ -477,6 +477,12 @@ public sealed class AlarmService : ReactiveObject
         await db.Database.ExecuteSqlRawAsync(
             """DELETE FROM "AlarmSeenKeys" WHERE "FirstSeenAt" < {0}""", [cutoff], ct);
 
+        // ⚠️ EF1002 suppressed rather than worked around, and only because of what is interpolated:
+        // AppDb.RowId is the engine's row-address identifier ("rowid" or "ctid") and
+        // MaxSeenKeysPerAlarm is a compile-time const. An identifier cannot be a parameter — that
+        // is a SQL rule, not an EF one — and neither value can come from input. Contrast the
+        // statement above, whose value goes through a {0} parameter, as any value must.
+#pragma warning disable EF1002 // interpolated parts are an engine identifier and a const, never input
         await db.Database.ExecuteSqlRawAsync($"""
             DELETE FROM "AlarmSeenKeys" WHERE {AppDb.RowId} IN (
               SELECT {AppDb.RowId} FROM (
@@ -484,6 +490,7 @@ public sealed class AlarmService : ReactiveObject
                 FROM "AlarmSeenKeys")
               WHERE rn > {MaxSeenKeysPerAlarm})
             """, ct);
+#pragma warning restore EF1002
     }
 
     private static string Relative(DateTimeOffset? at, DateTimeOffset now)

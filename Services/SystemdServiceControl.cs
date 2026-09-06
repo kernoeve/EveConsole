@@ -18,7 +18,6 @@ namespace EveConsole.Services;
 /// there is a system unit in packaging/, which takes its connection string from an environment file
 /// precisely because it cannot ask the keyring for one.</para>
 /// </summary>
-[SupportedOSPlatform("linux")]
 public static class SystemdServiceControl
 {
     public const string UnitName = "eveconsole-worker.service";
@@ -28,14 +27,18 @@ public static class SystemdServiceControl
     private static string UnitDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config", "systemd", "user");
 
+    [SupportedOSPlatform("linux")]
     public static string UnitPath => Path.Combine(UnitDirectory, UnitName);
 
+    [SupportedOSPlatform("linux")]
     public static bool IsInstalled() => OperatingSystem.IsLinux() && File.Exists(UnitPath);
 
     /// <summary>Whether systemd will start it at the next login.</summary>
+    [SupportedOSPlatform("linux")]
     public static bool StartsAtLogin() =>
         IsInstalled() && Systemctl("is-enabled", UnitName).Output.StartsWith("enabled", StringComparison.Ordinal);
 
+    [SupportedOSPlatform("linux")]
     public static bool IsRunning() =>
         IsInstalled() && Systemctl("is-active", UnitName).Output.StartsWith("active", StringComparison.Ordinal);
 
@@ -46,6 +49,7 @@ public static class SystemdServiceControl
     /// edited by hand, and survives the application being moved or replaced — the only honest
     /// answer to "what will start at your next login" is the one written down.</para>
     /// </summary>
+    [SupportedOSPlatform("linux")]
     public static string? InstalledExePath()
     {
         try
@@ -77,12 +81,14 @@ public static class SystemdServiceControl
     }
 
     /// <summary>Whether the installed unit runs this copy of the application.</summary>
+    [SupportedOSPlatform("linux")]
     public static bool PointsAtThisCopy() =>
         IsInstalled() && AppLauncher.SameFile(InstalledExePath(), AppLauncher.RelaunchPath);
 
     /// <summary>
     /// Writes the unit, reloads systemd, enables it and starts it. Returns what went wrong, or null.
     /// </summary>
+    [SupportedOSPlatform("linux")]
     public static string? Install()
     {
         try
@@ -103,6 +109,7 @@ public static class SystemdServiceControl
         catch (Exception ex) { return ex.Message.Split('\n')[0]; }
     }
 
+    [SupportedOSPlatform("linux")]
     public static string? Uninstall()
     {
         try
@@ -129,6 +136,7 @@ public static class SystemdServiceControl
     /// background worker comes up on the previous version and the version gate stops the desktop
     /// client with a mismatch nobody can account for.</para>
     /// </summary>
+    [SupportedOSPlatform("linux")]
     public static string? Repoint()
     {
         try
@@ -159,12 +167,14 @@ public static class SystemdServiceControl
         catch (Exception ex) { return ex.Message.Split('\n')[0]; }
     }
 
+    [SupportedOSPlatform("linux")]
     public static string? Start()
     {
         var r = Systemctl("start", UnitName);
         return r.ExitCode == 0 ? null : r.Output;
     }
 
+    [SupportedOSPlatform("linux")]
     public static string? Stop()
     {
         var r = Systemctl("stop", UnitName);
@@ -172,6 +182,7 @@ public static class SystemdServiceControl
     }
 
     /// <summary>Turns "start at login" on or off without stopping or starting it now.</summary>
+    [SupportedOSPlatform("linux")]
     public static string? SetStartsAtLogin(bool enabled)
     {
         var r = Systemctl(enabled ? "enable" : "disable", UnitName);
@@ -179,6 +190,7 @@ public static class SystemdServiceControl
     }
 
     /// <summary>The last few journal lines, for a settings page to show when something is wrong.</summary>
+    [SupportedOSPlatform("linux")]
     public static string RecentLog()
     {
         try

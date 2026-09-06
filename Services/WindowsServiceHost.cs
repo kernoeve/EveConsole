@@ -19,8 +19,15 @@ namespace EveConsole.Services;
 [SupportedOSPlatform("windows")]
 public sealed class WindowsServiceHost : ServiceBase
 {
-    /// <summary>What the SCM knows it as. Shared with the installer, so the two cannot drift.</summary>
-    public const string ServiceName = "EveConsoleWorker";
+    /// <summary>
+    /// What the SCM knows it as. Shared with the installer, so the two cannot drift.
+    ///
+    /// <para>⚠️ Called Name, not ServiceName, and it has to be: ServiceBase already has an
+    /// instance property of that name, and a const hiding it would mean an unqualified
+    /// <c>ServiceName</c> inside this class silently referred to the constant rather than to what
+    /// the SCM was actually told.</para>
+    /// </summary>
+    public const string Name = "EveConsoleWorker";
     public const string DisplayName = "EVE Console background worker";
 
     private readonly Func<CancellationToken, int> _run;
@@ -34,7 +41,7 @@ public sealed class WindowsServiceHost : ServiceBase
     public WindowsServiceHost(Func<CancellationToken, int> run)
     {
         _run                       = run;
-        base.ServiceName           = ServiceName;
+        base.ServiceName           = Name;
         CanShutdown                = true;
         CanStop                    = true;
         AutoLog                    = true;   // start/stop land in the Windows event log for free

@@ -479,9 +479,12 @@ public class DatabaseSettingsViewModel : ReactiveObject
         // rewrites that on its own. Saving a database change and restarting only this client
         // leaves a service still working against the previous database — which is the failure
         // that shows no symptom on either side.
+        // ⚠️ The OperatingSystem.IsWindows() checks below are redundant at runtime — this is only
+        // ever true on Windows — but they are what tells the platform analyser so, and without
+        // them every call in these two blocks is reported as unguarded.
         var serviceInstalled = OperatingSystem.IsWindows() && WindowsServiceControl.IsInstalled();
 
-        if (serviceInstalled && !IsPostgres)
+        if (OperatingSystem.IsWindows() && serviceInstalled && !IsPostgres)
         {
             // Switching to SQLite: the service cannot follow. Only one process may hold a SQLite
             // file, so a running worker would stop this client opening it at all — and left alone
@@ -516,7 +519,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (IsPostgres) AppConfig.SetDbBackend(DbBackend.Postgres, Pg.ToConnectionString());
         else            AppConfig.SetDbBackend(DbBackend.Sqlite);
 
-        if (serviceInstalled && IsPostgres)
+        if (OperatingSystem.IsWindows() && serviceInstalled && IsPostgres)
         {
             // ⚠️ After the config is written, not before. The elevated step reads the connection
             // back through AppConfig, so it has to be the new one by then.

@@ -35,7 +35,7 @@ public static class WindowsServiceControl
     {
         try
         {
-            using var sc = new ServiceController(WindowsServiceHost.ServiceName);
+            using var sc = new ServiceController(WindowsServiceHost.Name);
             return sc.Status;
         }
         catch
@@ -66,7 +66,7 @@ public static class WindowsServiceControl
         try
         {
             using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
-                $@"SYSTEM\CurrentControlSet\Services\{WindowsServiceHost.ServiceName}");
+                $@"SYSTEM\CurrentControlSet\Services\{WindowsServiceHost.Name}");
 
             if (key?.GetValue("ImagePath") is not string image || image.Length == 0) return null;
 
@@ -100,7 +100,7 @@ public static class WindowsServiceControl
         try
         {
             using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
-                $@"SYSTEM\CurrentControlSet\Services\{WindowsServiceHost.ServiceName}");
+                $@"SYSTEM\CurrentControlSet\Services\{WindowsServiceHost.Name}");
 
             return key?.GetValue("Start") is int start ? start == 2 : null;
         }
@@ -124,7 +124,7 @@ public static class WindowsServiceControl
     {
         try
         {
-            var code = Sc($"config {WindowsServiceHost.ServiceName} start= {(automatic ? "auto" : "demand")}");
+            var code = Sc($"config {WindowsServiceHost.Name} start= {(automatic ? "auto" : "demand")}");
             return code == 0 ? 0 : Fail($"sc config start= failed ({code}).");
         }
         catch (Exception ex) { return Fail(ex.Message); }
@@ -235,15 +235,15 @@ public static class WindowsServiceControl
             MachineConfig.Write(connection, AppConfig.GetGameLogDirs(), AppConfig.GetChatLogDirs());
 
             var exe = Environment.ProcessPath!;
-            var create = Sc($"create {WindowsServiceHost.ServiceName} binPath= \"\\\"{exe}\\\" {Program.ServiceArgument}\" "
+            var create = Sc($"create {WindowsServiceHost.Name} binPath= \"\\\"{exe}\\\" {Program.ServiceArgument}\" "
                           + $"start= auto obj= LocalSystem DisplayName= \"{WindowsServiceHost.DisplayName}\"");
             if (create != 0) return Fail($"sc create failed ({create}).");
 
-            Sc($"description {WindowsServiceHost.ServiceName} \"Runs EVE Console's background processing: ESI polling, pricing, alarms and backups.\"");
+            Sc($"description {WindowsServiceHost.Name} \"Runs EVE Console's background processing: ESI polling, pricing, alarms and backups.\"");
 
             // Come back from a crash, but not from a deliberate exit. A version mismatch against the
             // database is a fatal, correct refusal to run; restarting it would loop.
-            Sc($"failure {WindowsServiceHost.ServiceName} reset= 86400 actions= restart/15000/restart/60000//0");
+            Sc($"failure {WindowsServiceHost.Name} reset= 86400 actions= restart/15000/restart/60000//0");
 
             GrantStartStop();
             return 0;
@@ -264,7 +264,7 @@ public static class WindowsServiceControl
             MachineConfig.Write(connection, AppConfig.GetGameLogDirs(), AppConfig.GetChatLogDirs());
 
             var exe = Environment.ProcessPath!;
-            var configured = Sc($"config {WindowsServiceHost.ServiceName} "
+            var configured = Sc($"config {WindowsServiceHost.Name} "
                               + $"binPath= \"\\\"{exe}\\\" {Program.ServiceArgument}\"");
             if (configured != 0) return Fail($"sc config failed ({configured}).");
 
@@ -273,7 +273,7 @@ public static class WindowsServiceControl
             // report success while changing nothing anybody can observe.
             try
             {
-                using var sc = new ServiceController(WindowsServiceHost.ServiceName);
+                using var sc = new ServiceController(WindowsServiceHost.Name);
                 if (sc.Status != ServiceControllerStatus.Stopped)
                 {
                     sc.Stop();
@@ -298,7 +298,7 @@ public static class WindowsServiceControl
             // there until the process exits, which looks to the settings page like nothing happened.
             try
             {
-                using var sc = new ServiceController(WindowsServiceHost.ServiceName);
+                using var sc = new ServiceController(WindowsServiceHost.Name);
                 if (sc.Status != ServiceControllerStatus.Stopped)
                 {
                     sc.Stop();
@@ -307,7 +307,7 @@ public static class WindowsServiceControl
             }
             catch { /* not installed, or already stopping */ }
 
-            Sc($"delete {WindowsServiceHost.ServiceName}");
+            Sc($"delete {WindowsServiceHost.Name}");
 
             // The credential goes with it. Leaving a machine-scoped copy of a password behind after
             // the thing that needed it is gone would be the worst kind of tidy-up to skip.
@@ -332,7 +332,7 @@ public static class WindowsServiceControl
     {
         try
         {
-            var current = ScOutput($"sdshow {WindowsServiceHost.ServiceName}").Trim();
+            var current = ScOutput($"sdshow {WindowsServiceHost.Name}").Trim();
             if (!current.StartsWith("D:", StringComparison.Ordinal)) return;
 
             // RP start, WP stop, CR user-defined control, for Interactive Users.
@@ -345,7 +345,7 @@ public static class WindowsServiceControl
                 ? current[..audit] + ace + current[audit..]
                 : current + ace;
 
-            Sc($"sdset {WindowsServiceHost.ServiceName} \"{updated}\"");
+            Sc($"sdset {WindowsServiceHost.Name} \"{updated}\"");
         }
         catch { /* the service still works; start and stop will just ask for elevation */ }
     }
@@ -357,7 +357,7 @@ public static class WindowsServiceControl
     {
         try
         {
-            using var sc = new ServiceController(WindowsServiceHost.ServiceName);
+            using var sc = new ServiceController(WindowsServiceHost.Name);
             if (sc.Status == ServiceControllerStatus.Running) return null;
 
             sc.Start();
@@ -372,7 +372,7 @@ public static class WindowsServiceControl
     {
         try
         {
-            using var sc = new ServiceController(WindowsServiceHost.ServiceName);
+            using var sc = new ServiceController(WindowsServiceHost.Name);
             if (sc.Status == ServiceControllerStatus.Stopped) return null;
 
             sc.Stop();
