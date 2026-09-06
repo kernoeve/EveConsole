@@ -12,6 +12,13 @@ class Program
     /// <summary>Run the background work with no window. See <see cref="RunHeadless"/>.</summary>
     public const string HeadlessArgument = "--headless";
 
+    /// <summary>
+    /// Run under the Windows service control manager. Implies headless, and additionally sends the
+    /// app to <see cref="MachineConfig"/> for its database — a service is LocalSystem and has never
+    /// seen the profile the desktop app saves into.
+    /// </summary>
+    public const string ServiceArgument = "--service";
+
     // Avalonia requires this to remain synchronous — don't add async here
     [STAThread]
     public static void Main(string[] args)
@@ -20,8 +27,31 @@ class Program
         // with special args and exit before the UI starts).
         VelopackApp.Build().Run();
 
-        var headless = args.Any(a => string.Equals(a, HeadlessArgument, StringComparison.OrdinalIgnoreCase));
-        if (headless) AppRuntime.MarkHeadless();
+        // ⚠️ Before everything else, and it exits. This is the elevated copy of ourselves, asked to
+        // do the one thing an ordinary token cannot: create or delete a service and write a
+        // machine-scoped credential. It must not take the single-instance lock, build a container
+        // or open a database — its whole job is a handful of sc.exe calls and a file.
+        if (OperatingSystem.IsWindows())
+        {
+            if (args.Any(a => string.Equals(a, WindowsServiceControl.InstallArgument, StringComparison.OrdinalIgnoreCase)))
+            {
+                Environment.Exit(WindowsServiceControl.RunInstall());
+                return;
+            }
+
+            if (args.Any(a => string.Equals(a, WindowsServiceControl.UninstallArgument, StringComparison.OrdinalIgnoreCase)))
+            {
+                Environment.Exit(WindowsServiceControl.RunUninstall());
+                return;
+            }
+        }
+
+        var asService = args.Any(a => string.Equals(a, ServiceArgument, StringComparison.OrdinalIgnoreCase));
+        var headless  = asService
+                     || args.Any(a => string.Equals(a, HeadlessArgument, StringComparison.OrdinalIgnoreCase));
+
+        if (asService)     AppRuntime.MarkService();
+        else if (headless) AppRuntime.MarkHeadless();
 
         // One instance per user, and only where that means anything: on SQLite. A worker and a
         // desktop client on one machine are two clients of one PostgreSQL database, which is the
@@ -32,8 +62,25 @@ class Program
         // config or database is read.
         AppConfig.MigrateLegacyDataIfNeeded();
 
-        if (headless) RunHeadless(args);
-        else          BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        if (asService && OperatingSystem.IsWindows())
+            System.ServiceProcess.ServiceBase.Run(new WindowsServiceHost(RunWorker));
+        else if (headless)
+            RunHeadless(args);
+        else
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
+
+    /// <summary>
+    /// Sets Avalonia up and runs the dispatcher until the token is cancelled, then releases the
+    /// lease. The whole of the worker, shared by <c>--headless</c> and the Windows service so the
+    /// two cannot come to mean different things.
+    /// </summary>
+    private static int RunWorker(CancellationToken stopping)
+    {
+        BuildAvaloniaApp().SetupWithoutStarting();
+        Dispatcher.UIThread.MainLoop(stopping);
+        Shutdown();
+        return 0;
     }
 
     /// <summary>
@@ -72,8 +119,6 @@ class Program
         if (OperatingSystem.IsWindows())
             try { AttachConsole(AttachParentProcess); } catch { /* no console to borrow */ }
 
-        BuildAvaloniaApp().SetupWithoutStarting();
-
         using var stopping = new CancellationTokenSource();
 
         // ⚠️ Handled through PosixSignalRegistration rather than ProcessExit or the load context's
@@ -95,11 +140,9 @@ class Program
         using var sigterm = PosixSignalRegistration.Create(PosixSignal.SIGTERM, OnSignal);
         using var sigint  = PosixSignalRegistration.Create(PosixSignal.SIGINT,  OnSignal);
 
-        Dispatcher.UIThread.MainLoop(stopping.Token);
-
-        // The lease is released explicitly rather than left to the socket closing, so whichever
+        // The lease is released on the way out rather than left to the socket closing, so whichever
         // client takes over does so on its next tick instead of waiting for the server to notice.
-        Shutdown();
+        RunWorker(stopping.Token);
     }
 
     private static void Shutdown()

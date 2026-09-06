@@ -65,6 +65,10 @@ public static class AppConfig
         // means to go on using the file.
         if (EnvConnection is not null) return DbBackend.Postgres;
 
+        // A service is installed from a client already pointed at a server, and the installer
+        // writes that connection alongside it. Nothing else would be worth running as a service.
+        if (AppRuntime.IsService && MachineConfig.GetConnection() is not null) return DbBackend.Postgres;
+
         return string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
             ? DbBackend.Postgres
             : DbBackend.Sqlite;
@@ -109,6 +113,11 @@ public static class AppConfig
     public static string? GetPostgresConnection()
     {
         if (EnvConnection is { } fromEnv) return fromEnv;
+
+        // ⚠️ A service looks here and stops. It runs as LocalSystem, so the config file below
+        // belongs to a profile it has never seen and holds a password protected for an account it
+        // is not — reading on past this point would find nothing and report the wrong reason.
+        if (AppRuntime.IsService && MachineConfig.GetConnection() is { } fromMachine) return fromMachine;
 
         var c = Load();
         if (string.IsNullOrWhiteSpace(c.PostgresConnection)) return null;
@@ -297,8 +306,13 @@ public static class AppConfig
     public static string? GameLogDirsFromEnv => EnvDirs("EVECONSOLE_GAMELOG_DIRS");
     public static string? ChatLogDirsFromEnv => EnvDirs("EVECONSOLE_CHATLOG_DIRS");
 
-    public static string? GetGameLogDirs() => GameLogDirsFromEnv ?? Load().GameLogDirs;
-    public static string? GetChatLogDirs() => ChatLogDirsFromEnv ?? Load().ChatLogDirs;
+    // ⚠️ A service reads the machine config, for the same reason it does for the connection: its
+    // profile is not the one the desktop app saved anything into.
+    public static string? GetGameLogDirs() =>
+        GameLogDirsFromEnv ?? (AppRuntime.IsService ? MachineConfig.GetGameLogDirs() : Load().GameLogDirs);
+
+    public static string? GetChatLogDirs() =>
+        ChatLogDirsFromEnv ?? (AppRuntime.IsService ? MachineConfig.GetChatLogDirs() : Load().ChatLogDirs);
 
     public static void SetGameLogDirs(string? dirs) { var c = Load(); c.GameLogDirs = dirs ?? ""; Save(c); }
     public static void SetChatLogDirs(string? dirs) { var c = Load(); c.ChatLogDirs = dirs ?? ""; Save(c); }

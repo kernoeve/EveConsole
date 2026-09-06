@@ -20,4 +20,22 @@ public static class AppRuntime
 
     /// <summary>Set once, from the command line. Ignored afterwards.</summary>
     public static void MarkHeadless() => IsHeadless = true;
+
+    /// <summary>
+    /// True when running under the Windows service control manager.
+    ///
+    /// <para>⚠️ Narrower than <see cref="IsHeadless"/>, which it implies. A service runs as
+    /// LocalSystem: a different account, a different profile, and therefore a different
+    /// %LOCALAPPDATA% — so it cannot read the settings the desktop app saved, and could not
+    /// decrypt the password in them if it could. That is why this exists as its own fact rather
+    /// than being folded into headless: it is what makes the app look somewhere else entirely for
+    /// its database. See <see cref="MachineConfig"/>.</para>
+    /// </summary>
+    public static bool IsService { get; private set; }
+
+    public static void MarkService()
+    {
+        IsService  = true;
+        IsHeadless = true;   // a service has nowhere to draw either
+    }
 }
