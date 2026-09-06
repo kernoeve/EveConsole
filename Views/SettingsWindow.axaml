@@ -2441,6 +2441,13 @@
                         Padding="12 5" FontSize="12" Margin="0 2 0 0"
                         Background="#1a2a1a" Foreground="#70ad47"
                         BorderBrush="#253525" BorderThickness="1" />
+
+                <!-- The line PostgreSQL's trademark policy asks for wherever their marks are
+                     shown. It sits here rather than on the title bar tooltip so it is somewhere
+                     stable and readable, without crowding a hover. -->
+                <TextBlock FontSize="10" Foreground="#55555f" TextWrapping="Wrap"
+                           Margin="0 8 0 0"
+                           Text="Postgres, PostgreSQL and the Slonik Logo are trademarks or registered trademarks of the PostgreSQL Community Association of Canada, and used with their permission." />
               </StackPanel>
             </StackPanel>
           </Border>

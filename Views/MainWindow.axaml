@@ -75,23 +75,80 @@
                       Margin="10 0 0 0" Background="Transparent"
                       ToolTip.Tip="{Binding DbEngineTip}">
 
-            <!-- A database cylinder, drawn rather than bundled: shipping either project's logo
-                 would mean shipping their trademark, and this says the same thing. -->
-            <Canvas Width="11" Height="13" VerticalAlignment="Center">
-              <Canvas.Styles>
-                <Style Selector="Path.pg"><Setter Property="Fill" Value="#4a7fa8" /></Style>
-                <Style Selector="Path.sqlite"><Setter Property="Fill" Value="#7a8fa0" /></Style>
-              </Canvas.Styles>
-              <Path Classes.pg="{Binding DbIsPostgres}" Classes.sqlite="{Binding !DbIsPostgres}"
-                    Data="M 0.5,3 A 5,2.4 0 0 1 10.5,3 L 10.5,10 A 5,2.4 0 0 1 0.5,10 Z" />
-              <Path Fill="#0d0d12" Opacity="0.45"
-                    Data="M 0.5,6.4 A 5,2.4 0 0 0 10.5,6.4 A 5,2.4 0 0 0 0.5,6.4 Z" />
-              <Path Classes.pg="{Binding DbIsPostgres}" Classes.sqlite="{Binding !DbIsPostgres}"
-                    Data="M 0.5,3 A 5,2.4 0 0 1 10.5,3 A 5,2.4 0 0 1 0.5,3 Z" />
-            </Canvas>
+            <!-- Drawn inline in each project's colours, the same way the Slack mark on the Corp
+                 Activity buttons is. PostgreSQL's policy allows the name and Slonik to say that
+                 software works with it, provided no affiliation is implied; the attribution they
+                 ask for is on the Settings Database tab. SQLite publishes no logo policy, but the
+                 feather-on-a-card mark is what the project uses everywhere.
 
-            <TextBlock Text="{Binding DbEngineLabel}"
-                       FontSize="11" Foreground="#666677" VerticalAlignment="Center" />
+                 ⚠️ These are hand-drawn approximations, not the projects' own path data. -->
+
+            <!-- SQLite: the feather over its blue card. -->
+            <Viewbox Width="13" Height="13" VerticalAlignment="Center"
+                     IsVisible="{Binding !DbIsPostgres}">
+              <Canvas Width="24" Height="24">
+                <Rectangle Canvas.Left="1.5" Canvas.Top="5" Width="10.5" Height="15.5"
+                           RadiusX="1.4" RadiusY="1.4">
+                  <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                      <GradientStop Offset="0" Color="#4FBDEF" />
+                      <GradientStop Offset="1" Color="#0F7FC8" />
+                    </LinearGradientBrush>
+                  </Rectangle.Fill>
+                </Rectangle>
+                <Path Fill="#003B57"
+                      Data="M 16.2,2.4 C 19.6,6.6 18.4,13.2 13.9,16.9 C 11.9,18.6 9.9,19.5 8.3,20
+                            C 10.9,14.6 13.5,8.5 16.2,2.4 Z" />
+                <Path Stroke="#003B57" StrokeThickness="1.2" StrokeLineCap="Round"
+                      Data="M 9.4,18.8 L 7.1,22.6" />
+                <Path Stroke="#FFFFFF" StrokeThickness="0.6" Opacity="0.8"
+                      Data="M 16.2,2.4 C 13.5,8.5 10.9,14.6 8.3,20" />
+              </Canvas>
+            </Viewbox>
+
+            <!-- PostgreSQL: the Slonik elephant head. -->
+            <Viewbox Width="13" Height="13" VerticalAlignment="Center"
+                     IsVisible="{Binding DbIsPostgres}">
+              <Canvas Width="24" Height="24">
+                <!-- Front-facing: two ears flanking the face, trunk down the middle, tusks out. -->
+                <Path Fill="#336791"
+                      Data="M 12,2.6 C 15.1,2.6 17.7,3.1 19.6,4.6 C 21.9,6.3 22.6,9.3 21.8,12.4
+                            C 21.2,15.1 19.7,17 18,17.6 C 17.2,17.9 16.5,17.8 16,17.4
+                            L 15.5,19 C 15.1,20.9 13.9,22 12,22 C 10.1,22 8.9,20.9 8.5,19
+                            L 8,17.4 C 7.5,17.8 6.8,17.9 6,17.6 C 4.3,17 2.8,15.1 2.2,12.4
+                            C 1.4,9.3 2.1,6.3 4.4,4.6 C 6.3,3.1 8.9,2.6 12,2.6 Z" />
+
+                <!-- The white lines that separate each ear from the face, and the eyes. -->
+                <Path Stroke="#FFFFFF" StrokeThickness="0.85" StrokeLineCap="Round"
+                      Data="M 9.3,4.4 C 7.4,6.6 6.9,10.4 7.8,14.2 C 8.1,15.7 8.6,16.7 9.3,17.2" />
+                <Path Stroke="#FFFFFF" StrokeThickness="0.85" StrokeLineCap="Round"
+                      Data="M 14.7,4.4 C 16.6,6.6 17.1,10.4 16.2,14.2 C 15.9,15.7 15.4,16.7 14.7,17.2" />
+                <Ellipse Canvas.Left="9.0" Canvas.Top="9.1" Width="1.7" Height="1.1" Fill="#FFFFFF" />
+                <Ellipse Canvas.Left="13.3" Canvas.Top="9.1" Width="1.7" Height="1.1" Fill="#FFFFFF" />
+
+                <!-- Tusks, curving away from the trunk. -->
+                <Path Stroke="#FFFFFF" StrokeThickness="0.85" StrokeLineCap="Round"
+                      Data="M 9.6,16.6 C 8.4,18.2 7.1,18.7 5.9,18.4" />
+                <Path Stroke="#FFFFFF" StrokeThickness="0.85" StrokeLineCap="Round"
+                      Data="M 14.4,16.6 C 15.6,18.2 16.9,18.7 18.1,18.4" />
+              </Canvas>
+            </Viewbox>
+
+            <!-- ⚠️ Each wordmark's own colour treatment, lifted in lightness but not shifted in
+                 hue. Their palettes are chosen for a white page: PostgreSQL's #336791 and
+                 SQLite's #003B57 both fall to roughly 2:1 contrast on this bar and would be
+                 close to unreadable as printed. -->
+            <TextBlock FontSize="11" VerticalAlignment="Center"
+                       IsVisible="{Binding DbIsPostgres}">
+              <TextBlock.Inlines>
+                <Run Text="Postgre" Foreground="#9aa0aa" />
+                <Run Text="SQL"     Foreground="#5590be" />
+              </TextBlock.Inlines>
+            </TextBlock>
+
+            <TextBlock Text="SQLite" FontSize="11" Foreground="#4fa8dc"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding !DbIsPostgres}" />
           </StackPanel>
         </StackPanel>
 
