@@ -37,6 +37,16 @@ public sealed class ClientSignals(AppErrorLogger errors)
     /// </summary>
     private const int MaxPayloadBytes = 7900;
 
+    /// <summary>
+    /// Whether a payload is small enough to send.
+    ///
+    /// <para>⚠️ Exposed so callers can trim to fit rather than discovering the limit by being
+    /// refused. A publisher that builds a batch, is rejected, and drops the whole thing has lost
+    /// exactly the data the batch existed to carry.</para>
+    /// </summary>
+    public static bool Fits(string payload) =>
+        System.Text.Encoding.UTF8.GetByteCount(payload) <= MaxPayloadBytes;
+
     private NpgsqlConnection?        _listener;
     private CancellationTokenSource? _cts;
 

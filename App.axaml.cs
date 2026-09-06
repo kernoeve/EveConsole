@@ -2990,10 +2990,19 @@ public class App : Application
             // reads in journalctl to answer "is it up, and is it the one doing the work?" — the
             // first question anybody asks of a service, and one a completely quiet start leaves
             // unanswered.
+            var leaseState = holder
+                ? "this process holds the lease"
+                : "held by another client — contending every 30s until it is free";
+
             Console.WriteLine($"EVE Console {AppVersion.Display} — headless worker");
             Console.WriteLine($"  database   {db}{(DbEngine.IsPostgres ? "" : $"  {AppConfig.GetDbPath()}")}");
-            Console.WriteLine($"  background {(holder ? "this process holds the lease" : "held by another client — waiting to take over")}");
+            Console.WriteLine($"  background {leaseState}");
             Console.WriteLine($"  logs       {LogSummary()}");
+
+            // ⚠️ And to a file, for the one case where the console goes nowhere. A service has no
+            // console at all, so everything above vanishes; without this it is alive, connected and
+            // completely silent, which is indistinguishable from working.
+            ServiceLog.Write($"started — {AppVersion.Display}, {db}, {leaseState}, logs: {LogSummary()}");
 
             // ⚠️ Named, loudly, because headless on SQLite is almost always a mistake and a silent
             // one. Multiple clients are what this mode exists for and SQLite cannot have them: this
@@ -3243,6 +3252,12 @@ public class App : Application
             {
                 if (hold == leaderRunning) return;
                 leaderRunning = hold;
+
+                // The only two events a worker has worth reporting, and the pair somebody watching
+                // a service actually wants: did it get the work, and did it lose it.
+                ServiceLog.Write(hold
+                    ? "took the lease — starting background work"
+                    : "lost the lease — stopping background work");
 
                 if (hold) StartLeaderServices();
                 else      await StopLeaderServicesAsync();

@@ -48,15 +48,6 @@ public sealed class WorkerActivityService
     private const string LogKind = "activity-log";
 
     /// <summary>
-    /// ⚠️ How many calls one signal may carry. The payload has a hard 8000-byte limit and a poll
-    /// can finish dozens of calls in the same instant, so a burst is trimmed to the newest of them
-    /// rather than being dropped whole for being too large. What was trimmed is said out loud in
-    /// the feed — see the synthetic entry below — because a diagnostic readout that quietly omits
-    /// things is worse than one that admits a gap.
-    /// </summary>
-    private const int MaxRelayedCalls = 50;
-
-    /// <summary>
     /// How often the worker looks at its own loops.
     ///
     /// <para>A second, because this is the delay a non-worker client sees and the whole point is
@@ -230,22 +221,39 @@ public sealed class WorkerActivityService
             _pending.Clear();
         }
 
-        var dropped = batch.Count - MaxRelayedCalls;
-        if (dropped > 0)
+        var inFlight = _log.InFlightCalls.ToList();
+
+        // ⚠️ Trimmed until the SERIALISED payload fits, not to a fixed number of entries. Counting
+        // was the first attempt and it was wrong: an entry carries an owner name, an endpoint and
+        // possibly an error, so fifty came to 14 KB against a 7,900-byte limit — and the oversized
+        // batch was then dropped whole, which is the opposite of what a cap is for. Now the oldest
+        // go until the rest fit, and the gap is stated in the feed rather than left to be inferred
+        // from a jump in timestamps.
+        var    dropped = 0;
+        string payload;
+
+        while (true)
         {
-            // Newest kept: in a burst the last calls are the ones that explain what is happening
-            // now. The gap is stated rather than left to be inferred from a jump in timestamps.
-            batch = [.. batch.Skip(dropped)];
-            batch.Insert(0, new ActivityEntry(
-                DateTimeOffset.UtcNow, "—", $"({dropped} more calls not relayed)", true, 0, null));
+            var toSend = batch.Skip(dropped).ToList();
+            if (dropped > 0)
+                toSend.Insert(0, new ActivityEntry(
+                    DateTimeOffset.UtcNow, "—", $"({dropped} more calls not relayed)", true, 0, null));
+
+            payload = JsonSerializer.Serialize(new CallsPayload
+            {
+                Kind     = LogKind,
+                Calls    = toSend,
+                InFlight = inFlight,
+            });
+
+            if (ClientSignals.Fits(payload) || dropped >= batch.Count) break;
+
+            // Halve what remains rather than shedding one at a time: a burst can be hundreds, and
+            // re-serialising the whole list per entry would cost more than the relay is worth.
+            dropped = Math.Max(dropped + 1, (dropped + batch.Count) / 2);
         }
 
-        await _signals.PublishAsync(JsonSerializer.Serialize(new CallsPayload
-        {
-            Kind     = LogKind,
-            Calls    = batch,
-            InFlight = [.. _log.InFlightCalls],
-        }), ct);
+        await _signals.PublishAsync(payload, ct);
     }
 
     // ── Reading, on every client ──────────────────────────────────────────────
