@@ -479,14 +479,19 @@ public class DatabaseSettingsViewModel : ReactiveObject
         // rewrites that on its own. Saving a database change and restarting only this client
         // leaves a service still working against the previous database — which is the failure
         // that shows no symptom on either side.
-        // ⚠️ The OperatingSystem.IsWindows() checks below are redundant at runtime — this is only
-        // ever true on Windows — but they are what tells the platform analyser so, and without
-        // them every call in these two blocks is reported as unguarded.
-        var serviceInstalled = OperatingSystem.IsWindows() && WindowsServiceControl.IsInstalled();
+        // ⚠️ The OperatingSystem checks below are redundant at runtime — each flag is only ever
+        // true on its own platform — but they are what tells the platform analyser so, and without
+        // them every call in these blocks is reported as unguarded.
+        //
+        // ⚠️ Both mechanisms, not just the Windows one. A systemd user unit is every bit as capable
+        // of taking a SQLite file for itself, and leaving it out meant a Linux client could switch
+        // to SQLite and then simply fail to start, with the worker that caused it invisible.
+        var windowsService = OperatingSystem.IsWindows() && WindowsServiceControl.IsInstalled();
+        var systemdUnit    = OperatingSystem.IsLinux()   && SystemdServiceControl.IsInstalled();
 
-        if (OperatingSystem.IsWindows() && serviceInstalled && !IsPostgres)
+        if (!IsPostgres && (windowsService || systemdUnit))
         {
-            // Switching to SQLite: the service cannot follow. Only one process may hold a SQLite
+            // Switching to SQLite: the worker cannot follow. Only one process may hold a SQLite
             // file, so a running worker would stop this client opening it at all — and left alone
             // it would go on polling the PostgreSQL database being abandoned here.
             //
@@ -496,14 +501,21 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 var ok = await ShowConfirmDialog(
                     "Background service",
                     "The background service is installed and cannot run against SQLite.\n\n"
-                  + "It will be stopped, and set not to start with Windows, before the change is "
-                  + "saved. Windows will ask for administrator approval.\n\n"
+                  + (windowsService
+                        ? "It will be stopped, and set not to start with Windows, before the change "
+                        + "is saved. Windows will ask for administrator approval.\n\n"
+                        : "It will be stopped, and set not to start at login, before the change is "
+                        + "saved. The unit is kept, so switching back to PostgreSQL only needs it "
+                        + "started again.\n\n")
                   + "Leaving it running would keep it working against the PostgreSQL database you "
                   + "are moving away from.\n\nContinue?");
                 if (!ok) return;
             }
 
-            var stopError = WindowsServiceControl.StopAndDisable();
+            var stopError = OperatingSystem.IsWindows()
+                ? WindowsServiceControl.StopAndDisable()
+                : OperatingSystem.IsLinux() ? SystemdServiceControl.StopAndDisable() : null;
+
             if (stopError is not null)
             {
                 // ⚠️ Nothing has been written yet, so stopping here really does abort. Carrying on
@@ -519,7 +531,10 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (IsPostgres) AppConfig.SetDbBackend(DbBackend.Postgres, Pg.ToConnectionString());
         else            AppConfig.SetDbBackend(DbBackend.Sqlite);
 
-        if (OperatingSystem.IsWindows() && serviceInstalled && IsPostgres)
+        // ⚠️ Windows only, and correctly so: the service keeps its own copy of the connection taken
+        // at install time, which nothing rewrites on its own. A systemd user unit reads this same
+        // settings file as this client, so there is nothing to bring back into step.
+        if (OperatingSystem.IsWindows() && windowsService && IsPostgres)
         {
             // ⚠️ After the config is written, not before. The elevated step reads the connection
             // back through AppConfig, so it has to be the new one by then.

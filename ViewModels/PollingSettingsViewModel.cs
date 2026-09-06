@@ -78,8 +78,36 @@ public class PollingSettingsViewModel : ReactiveObject
     public bool ServiceInstalled
     {
         get => _serviceInstalled;
-        private set => this.RaiseAndSetIfChanged(ref _serviceInstalled, value);
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _serviceInstalled, value);
+            this.RaisePropertyChanged(nameof(ServiceStrandedOnSqlite));
+        }
     }
+
+    /// <summary>
+    /// Whether a background service may be installed at all.
+    ///
+    /// <para>⚠️ A gate, not advice. This section has always said "requires PostgreSQL" and then let
+    /// the button be pressed anyway — which installs a worker that takes the SQLite file for itself
+    /// and stops this application opening it at all. Saying so and permitting it is worse than
+    /// either doing on its own.</para>
+    ///
+    /// <para>Install only. Remove and Stop stay available whatever the engine, because the state
+    /// this prevents is reachable by switching engines after the fact, and getting out of it is the
+    /// whole point of those two buttons.</para>
+    /// </summary>
+    public bool ServiceAvailable => DbEngine.IsPostgres;
+
+    /// <summary>
+    /// A service installed while this client is on SQLite: reachable by switching engines after
+    /// installing, and broken in both directions once it is.
+    /// </summary>
+    public bool ServiceStrandedOnSqlite => _serviceInstalled && !DbEngine.IsPostgres;
+
+    public string ServiceDatabaseNote => DbEngine.IsPostgres
+        ? "Requires PostgreSQL, which this client is using — the worker and every client share the one server."
+        : "Unavailable: this client is on SQLite. The database file is held by one process at a time, so a worker would stop this application starting at all. Switch to PostgreSQL on the Database tab first.";
 
     private bool _serviceRunning;
     public bool ServiceRunning
@@ -392,6 +420,15 @@ public class PollingSettingsViewModel : ReactiveObject
     /// </summary>
     public async Task InstallServiceAsync()
     {
+        // ⚠️ Checked here as well as on the button. The button being disabled is what somebody sees;
+        // this is what makes it true — and the two can drift, because the engine is read at startup
+        // while a settings window can be open across a database change.
+        if (!ServiceAvailable)
+        {
+            ServiceStatus = "Not installed — a background service cannot run against SQLite.";
+            return;
+        }
+
         ServiceBusy   = true;
         ServiceStatus = ServiceIsSystemd ? "Installing…" : "Installing — approve the Windows prompt…";
 

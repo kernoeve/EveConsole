@@ -1021,7 +1021,17 @@
                            Text="{Binding PollingVm.ServiceIntro}" />
 
                 <TextBlock FontSize="11" Foreground="#c8884a" TextWrapping="Wrap"
-                           Text="Requires PostgreSQL. On SQLite the database file is held by one process at a time, so a service would stop this app from starting at all." />
+                           Text="{Binding PollingVm.ServiceDatabaseNote}" />
+
+                <!-- ⚠️ Reachable by switching to SQLite after installing, and broken once it is: the
+                     worker holds the file and this application cannot open it. Said here rather
+                     than left to be discovered as an app that will not start. -->
+                <Border Background="#2a1414" BorderBrush="#5a2020" BorderThickness="1"
+                        CornerRadius="3" Padding="8 6"
+                        IsVisible="{Binding PollingVm.ServiceStrandedOnSqlite}">
+                  <TextBlock FontSize="11" Foreground="#d08080" TextWrapping="Wrap"
+                             Text="A background service is installed while this client is on SQLite. Only one process may hold a SQLite file, so whichever starts first locks the other out. Stop and remove it, or switch this client to PostgreSQL." />
+                </Border>
 
                 <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
                   <TextBlock Grid.Column="0" Text="Status:" Foreground="#ccc" FontSize="12"
@@ -1067,9 +1077,14 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0"
                             IsEnabled="{Binding PollingVm.ServiceIdle}">
+                  <!-- Disabled rather than hidden on SQLite: the note above says why it cannot be
+                       used, and a button that vanishes leaves that explanation pointing at
+                       nothing. Remove and Stop stay enabled either way — they are how you get out
+                       of the state this prevents you entering. -->
                   <Button x:Name="ServiceInstallButton" Content="{Binding PollingVm.ServiceInstallButtonText}"
                           Click="OnServiceInstallClick"
-                          IsVisible="{Binding !PollingVm.ServiceInstalled}" />
+                          IsVisible="{Binding !PollingVm.ServiceInstalled}"
+                          IsEnabled="{Binding PollingVm.ServiceAvailable}" />
 
                   <Button x:Name="ServiceRepointButton" Content="{Binding PollingVm.ServiceRepointButtonText}"
                           Click="OnServiceRepointClick"

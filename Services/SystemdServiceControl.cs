@@ -181,6 +181,26 @@ public static class SystemdServiceControl
         return r.ExitCode == 0 ? null : r.Output;
     }
 
+    /// <summary>
+    /// Stops it and takes it out of the login sequence, leaving the unit file where it is.
+    ///
+    /// <para>For when this client moves to SQLite, where only one process may hold the database
+    /// file — whichever of the two starts first locks the other out. Not removed, because the unit
+    /// is still correct and will be wanted again the moment the client goes back to PostgreSQL.</para>
+    /// </summary>
+    [SupportedOSPlatform("linux")]
+    public static string? StopAndDisable()
+    {
+        if (!IsInstalled()) return null;
+
+        // Both attempted, and the stop's failure reported in preference: a unit left running is the
+        // one that locks the file, whereas one left enabled only does so at the next login.
+        var stopped  = Stop();
+        var disabled = SetStartsAtLogin(false);
+
+        return stopped ?? disabled;
+    }
+
     /// <summary>Turns "start at login" on or off without stopping or starting it now.</summary>
     [SupportedOSPlatform("linux")]
     public static string? SetStartsAtLogin(bool enabled)
