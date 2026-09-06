@@ -38,6 +38,19 @@ public class SdeViewModel : ReactiveObject
     public string SdeShortText =>
         _loadedBuildNumber > 0 ? $"SDE {_loadedBuildNumber}" : "SDE not imported";
 
+    /// <summary>
+    /// Whether the comparison against CCP's feed actually completed.
+    ///
+    /// <para>⚠️ Not the same as "no update available", and the difference matters. When the feed
+    /// cannot be reached, LatestBuild becomes "unavailable" and UpdateAvailable stays false — so
+    /// a failed check and a current SDE look identical from the outside. Saying "up to date" off
+    /// that would be claiming something nobody verified, which is what IntelService used to do
+    /// when it answered "Intel: up to date" from its catch block. With nothing checked the bar
+    /// shows neither state.</para>
+    /// </summary>
+    private bool _sdeChecked;
+    public bool SdeUpToDate => _sdeChecked && !UpdateAvailable && _loadedBuildNumber > 0;
+
     // ── Hoboleaks state ───────────────────────────────────────────────────
     private string _hoboStatusText  = "Not imported";
     private double _hoboFraction    = 0;
@@ -94,6 +107,10 @@ public class SdeViewModel : ReactiveObject
 
             var stored = await _db.SdeBuildInfos.FindAsync(1);
             UpdateAvailable = stored is null || stored.BuildNumber != latest.BuildNumber;
+
+            // Only here, where a real build number came back and was compared against ours.
+            _sdeChecked = true;
+            this.RaisePropertyChanged(nameof(SdeUpToDate));
         }
         catch (Exception ex)
         {

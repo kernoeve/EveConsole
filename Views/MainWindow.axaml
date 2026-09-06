@@ -59,6 +59,16 @@
                      VerticalAlignment="Center" Margin="10 0 0 0"
                      ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat='Static Data Export: {0}'}" />
 
+          <!-- ⚠️ Bound to SdeUpToDate, not to the absence of an update. If CCP's feed cannot be
+               reached the comparison never runs and UpdateAvailable stays false, so keying off
+               that would say "up to date" about a build nobody checked. When the check did not
+               complete the bar shows neither state. -->
+          <TextBlock Text="up to date"
+                     IsVisible="{Binding SdeVm.SdeUpToDate}"
+                     FontSize="11" Foreground="#5a7a5a"
+                     VerticalAlignment="Center" Margin="6 0 0 0"
+                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest from CCP is {0}'}" />
+
           <Button x:Name="SdeUpdateLinkButton"
                   IsVisible="{Binding SdeVm.UpdateAvailable}"
                   Content="update available"
