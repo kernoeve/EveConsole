@@ -15,8 +15,9 @@ namespace EveConsole.Services;
 /// precisely when somebody wants to know whether the worker is still going.</para>
 ///
 /// <para>It reads: the worker row from the database, changes pushed over <see cref="ClientSignals"/>.
-/// It also performs alarm actions, because with the work in a service and no window open there is
-/// otherwise nowhere for a sound to happen.</para>
+/// ⚠️ It does NOT handle alarms. Closing the desktop client is how somebody turns notifications
+/// off, and a tray icon that went on sounding them would have taken that decision away from
+/// them.</para>
 ///
 /// <para>Off by default. An icon nobody asked for is clutter, and this one is only useful to
 /// somebody who has a worker to keep an eye on.</para>
@@ -25,22 +26,20 @@ public sealed class TrayIconController
 {
     private readonly WorkerLease           _lease;
     private readonly WorkerActivityService _activity;
-    private readonly AlarmMuteState        _mute;
 
     private TrayIcon?       _icon;
     private DispatcherTimer? _poll;
 
-    /// <summary>Brings the main window back. Set by the window, which is the only thing that can.</summary>
+    /// <summary>Starts a fresh EVE Console client. There is no window of ours to bring back.</summary>
     public Action? ShowWindow { get; set; }
 
-    /// <summary>Ends the application, the way the window's close would.</summary>
+    /// <summary>Ends this tray process. ⚠️ Not the background work — that belongs to the worker.</summary>
     public Action? Quit { get; set; }
 
-    public TrayIconController(WorkerLease lease, WorkerActivityService activity, AlarmMuteState mute)
+    public TrayIconController(WorkerLease lease, WorkerActivityService activity)
     {
         _lease    = lease;
         _activity = activity;
-        _mute     = mute;
     }
 
     public bool IsVisible => _icon is not null;
@@ -115,7 +114,6 @@ public sealed class TrayIconController
             // single Clicked, which is close enough and less fiddly than nothing.
             _icon.Clicked += (_, _) => ShowWindow?.Invoke();
 
-            _mute.Changed    += Refresh;
             _activity.Changed += Refresh;
 
             // ⚠️ Polled as well. The lease's own events describe THIS process, and the whole point
@@ -137,7 +135,6 @@ public sealed class TrayIconController
 
     public void Hide()
     {
-        _mute.Changed     -= Refresh;
         _activity.Changed -= Refresh;
 
         _poll?.Stop();
@@ -150,18 +147,34 @@ public sealed class TrayIconController
         _icon = null;
     }
 
+    /// <summary>
+    /// Opens the Background Processes window. Set by whoever can build one.
+    ///
+    /// <para>The reason to have this on the menu at all: it is the whole monitoring view, and
+    /// wanting it is not the same as wanting the application.</para>
+    /// </summary>
+    public Action? ShowBackgroundProcesses { get; set; }
+
+    /// <summary>
+    /// ⚠️ Built fresh on each open rather than once. NativeMenu is small, and a menu assembled at
+    /// construction would keep whatever the first pass decided.
+    /// </summary>
     private NativeMenu BuildMenu()
     {
+        var monitor = new NativeMenuItem("Background Processes");
+        monitor.Click += (_, _) => ShowBackgroundProcesses?.Invoke();
+
         var open = new NativeMenuItem("Open EVE Console");
         open.Click += (_, _) => ShowWindow?.Invoke();
-
-        var mute = new NativeMenuItem(_mute.ToggleText);
-        mute.Click += (_, _) => _mute.Toggle();
 
         var quit = new NativeMenuItem("Exit");
         quit.Click += (_, _) => Quit?.Invoke();
 
-        return [open, new NativeMenuItemSeparator(), mute, new NativeMenuItemSeparator(), quit];
+        // ⚠️ No mute here, and no alarms anywhere in this process. Closing the desktop client is
+        // how somebody turns notifications off; a tray icon that went on sounding them would have
+        // taken that decision away, and a mute control would only be needed by a thing that made
+        // noise. Exit ends this icon, not the background work — that belongs to the worker.
+        return [monitor, open, new NativeMenuItemSeparator(), quit];
     }
 
     private void Refresh() => _ = RefreshAsync();
@@ -172,9 +185,8 @@ public sealed class TrayIconController
     /// draws — on a slow link a tooltip would stall the whole window, which is the fault this
     /// application already keeps a stall monitor to catch.
     ///
-    /// <para>Both events that reach here are raised from background loops — the activity signal
-    /// from its listener, the mute from whichever control changed it — so the marshalling is
-    /// needed regardless of where the read happens.</para>
+    /// <para>The activity signal that reaches here is raised from its listener, not the UI thread,
+    /// so the marshalling is needed regardless of where the read happens.</para>
     /// </summary>
     private async Task RefreshAsync()
     {
@@ -192,9 +204,7 @@ public sealed class TrayIconController
                 : "Background work: nothing is running it";
         }
 
-        var tip = _mute.Muted
-            ? $"EVE Console\n{worker}\nAlarms muted on this machine"
-            : $"EVE Console\n{worker}";
+        var tip = $"EVE Console\n{worker}";
 
         Dispatcher.UIThread.Post(() =>
         {

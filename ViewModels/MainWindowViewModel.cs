@@ -705,6 +705,7 @@ public class MainWindowViewModel : ReactiveObject
         EsiPollingService               pollingService,
         WorkerLease                     workerLease,
         WorkerActivityService           workerActivity,
+        ApiActivityViewModel            activityVm,
         AlarmMuteState                  alarmMute,
         ApiActivityLog                  activityLog,
         MarketPricingService            marketPricing,
@@ -816,10 +817,7 @@ public class MainWindowViewModel : ReactiveObject
         _workerTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
         _workerTimer.Tick += (_, _) => _ = RefreshWorkerAsync();
         _workerTimer.Start();
-        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
-                                                     workerActivity, workerLease,
-                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames, alarmService, orderFulfilment, lpStoreService);
+        ActivityVm        = activityVm;
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
             characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);

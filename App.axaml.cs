@@ -376,20 +376,34 @@ public class App : Application
         {
             Start("client signals", () =>
             {
-                var signals = Services.GetRequiredService<ClientSignals>();
-                var alarms  = Services.GetRequiredService<AlarmActionRunner>();
+                var signals  = Services.GetRequiredService<ClientSignals>();
+                var activity = Services.GetRequiredService<WorkerActivityService>();
 
-                // ⚠️ Alarm actions DO run here, and that is most of why this process is worth
-                // having. With the work in a service and no window open, a sound or an agent
-                // notification has nowhere to happen; this one is in the session and can. Muting
-                // still applies — the runner checks it on the receiving side.
-                signals.Received += payload => _ = alarms.HandleSignalAsync(payload);
+                // ⚠️ The activity board only. Alarm signals reach this process and are deliberately
+                // dropped: closing the desktop client is how somebody turns notifications off, and
+                // a tray icon that went on sounding them would have taken that decision away. What
+                // this listens for is what the Background Processes window needs to stay live.
+                signals.Received += payload => activity.TryApplySignal(payload);
                 signals.Start();
             });
 
             Start("tray icon", () =>
             {
                 var tray = Services.GetRequiredService<TrayIconController>();
+
+                // The monitoring view without the application around it — the reason somebody
+                // would leave this icon running at all.
+                tray.ShowBackgroundProcesses = () =>
+                {
+                    try
+                    {
+                        var window = new Views.ApiActivityWindow
+                        { DataContext = Services.GetRequiredService<ApiActivityViewModel>() };
+                        window.Show();
+                        window.Activate();
+                    }
+                    catch (Exception ex) { errorLogger.Log("Tray", "opening background processes", ex); }
+                };
 
                 // No window of our own to restore, so "Open EVE Console" starts a copy — which is
                 // what somebody clicking it means by it.
@@ -3638,6 +3652,7 @@ public class App : Application
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
             sp.GetRequiredService<SystemGraph>()));
         services.AddSingleton<AlarmMuteState>();
+        services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();
         services.AddSingleton<ClientSignals>();
         services.AddSingleton<AlarmActionRunner>();
