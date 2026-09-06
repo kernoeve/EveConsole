@@ -50,6 +50,18 @@ class Program
                 Environment.Exit(WindowsServiceControl.RunRepoint());
                 return;
             }
+
+            if (args.Any(a => string.Equals(a, WindowsServiceControl.AutoStartArgument, StringComparison.OrdinalIgnoreCase)))
+            {
+                Environment.Exit(WindowsServiceControl.RunSetStartType(automatic: true));
+                return;
+            }
+
+            if (args.Any(a => string.Equals(a, WindowsServiceControl.ManualArgument, StringComparison.OrdinalIgnoreCase)))
+            {
+                Environment.Exit(WindowsServiceControl.RunSetStartType(automatic: false));
+                return;
+            }
         }
 
         var asService = args.Any(a => string.Equals(a, ServiceArgument, StringComparison.OrdinalIgnoreCase));

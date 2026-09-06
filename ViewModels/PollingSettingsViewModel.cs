@@ -115,6 +115,43 @@ public class PollingSettingsViewModel : ReactiveObject
             ? "This service is connected to a different database than this client. Your database settings changed after it was installed; it is still working against the old one."
       :       "This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.";
 
+    private bool _startsWithWindows;
+    /// <summary>
+    /// Whether Windows starts the service by itself at boot.
+    ///
+    /// <para>⚠️ Setting it asks for administrator approval, because changing a service's
+    /// configuration is a right this account is deliberately not granted at install time — it
+    /// would allow rewriting what Windows runs as LocalSystem at boot.</para>
+    /// </summary>
+    public bool StartsWithWindows
+    {
+        get => _startsWithWindows;
+        set
+        {
+            if (_startsWithWindows == value) return;
+            _ = SetStartsWithWindowsAsync(value);
+        }
+    }
+
+    /// <summary>Stopped, but Windows will start it again anyway — the case worth saying out loud.</summary>
+    public bool ServiceReturnsAtBoot => ServiceInstalled && !ServiceRunning && _startsWithWindows;
+
+    private async Task SetStartsWithWindowsAsync(bool automatic)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        ServiceBusy   = true;
+        ServiceStatus = "Changing startup — approve the Windows prompt…";
+
+        var error = await Task.Run(() => WindowsServiceControl.SetStartsWithWindows(automatic));
+
+        ServiceBusy = false;
+        RefreshServiceState();
+
+        if (error is not null && error != "Cancelled.")
+            ServiceStatus = $"Could not change startup — {error}";
+    }
+
     /// <summary>Points the existing service at this copy and restarts it.</summary>
     public async Task RepointServiceAsync()
     {
@@ -162,6 +199,13 @@ public class PollingSettingsViewModel : ReactiveObject
         // rewrite it, because that file needs elevation to touch. So a client repointed at a new
         // server leaves the service polling the old one — background work continuing against a
         // database nobody is looking at, while the new one has no worker at all.
+        // ⚠️ Whether Windows brings it back by itself. Stopping does not change this, so a service
+        // stopped from here returns at the next reboot — which is a surprise unless it is said,
+        // and cannot be changed by Stop because reconfiguring a service needs elevation.
+        _startsWithWindows  = status is not null && WindowsServiceControl.StartsWithWindows() == true;
+        this.RaisePropertyChanged(nameof(StartsWithWindows));
+        this.RaisePropertyChanged(nameof(ServiceReturnsAtBoot));
+
         ServiceDatabase       = status is null ? "" : MachineConfig.DescribeConnection() ?? "not configured";
         ServiceOtherDatabase  = status is not null && !MachineConfig.MatchesConnection(AppConfig.GetPostgresConnection());
         ServiceNeedsUpdate    = ServiceOtherCopy || ServiceOtherDatabase;

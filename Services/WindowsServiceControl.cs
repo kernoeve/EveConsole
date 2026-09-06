@@ -24,6 +24,8 @@ public static class WindowsServiceControl
     public const string InstallArgument   = "--install-service";
     public const string UninstallArgument = "--uninstall-service";
     public const string RepointArgument   = "--repoint-service";
+    public const string AutoStartArgument = "--service-autostart";
+    public const string ManualArgument    = "--service-manual";
 
     public static bool IsSupported => OperatingSystem.IsWindows();
 
@@ -81,6 +83,66 @@ public static class WindowsServiceControl
         }
         catch { return null; }
     }
+
+    /// <summary>
+    /// Whether Windows will start the service by itself at boot.
+    ///
+    /// <para>⚠️ Worth showing, because stopping a service does not change it. A service stopped
+    /// from this window is back at the next reboot, which is a surprise if nobody said so — and
+    /// changing it is not something Stop can do quietly: it needs elevation.</para>
+    ///
+    /// <para>Null when not installed. Read from the registry: 2 is automatic, 3 manual, 4
+    /// disabled.</para>
+    /// </summary>
+    [SupportedOSPlatform("windows")]
+    public static bool? StartsWithWindows()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                $@"SYSTEM\CurrentControlSet\Services\{WindowsServiceHost.ServiceName}");
+
+            return key?.GetValue("Start") is int start ? start == 2 : null;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// Turns automatic start on or off. Elevated, and deliberately so.
+    ///
+    /// <para>⚠️ Changing a service's configuration is SERVICE_CHANGE_CONFIG, and that right is NOT
+    /// granted to the user at install time — on purpose. It would let anything running as this
+    /// account rewrite binPath and have Windows run it as LocalSystem at boot, which is a
+    /// privilege escalation dressed as a convenience. Start and stop are safe to hand over;
+    /// reconfiguring is not.</para>
+    /// </summary>
+    public static string? SetStartsWithWindows(bool automatic)
+        => Elevate(automatic ? AutoStartArgument : ManualArgument);
+
+    [SupportedOSPlatform("windows")]
+    public static int RunSetStartType(bool automatic)
+    {
+        try
+        {
+            var code = Sc($"config {WindowsServiceHost.ServiceName} start= {(automatic ? "auto" : "demand")}");
+            return code == 0 ? 0 : Fail($"sc config start= failed ({code}).");
+        }
+        catch (Exception ex) { return Fail(ex.Message); }
+    }
+
+    /// <summary>
+    /// Stops the service and stops it coming back at boot.
+    ///
+    /// <para>Both, because either alone leaves the wrong thing true. For switching this client to
+    /// SQLite: a worker merely stopped is back after the next reboot, polling a PostgreSQL
+    /// database nobody is reading any more; a worker merely set to manual goes on running now.</para>
+    ///
+    /// <para>Stopping needs no elevation, changing the start type does — so this is one prompt,
+    /// not two.</para>
+    /// </summary>
+    [SupportedOSPlatform("windows")]
+    public static string? StopAndDisable()
+        => StopService() ?? SetStartsWithWindows(false);
 
     /// <summary>Whether the installed service runs THIS copy of the application.</summary>
     [SupportedOSPlatform("windows")]

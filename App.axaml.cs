@@ -241,11 +241,22 @@ public class App : Application
         ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        // ⚠️ NOT conditioned on a desktop lifetime, and that was a real bug for as long as it was.
+        // Everything below is background work — the services themselves, the chat-log hook that
+        // feeds intel and alarms, token refresh, and the build-cost and price-history recalcs — and
+        // a headless worker or Windows service has no lifetime at all. Guarded, every one of these
+        // locals stayed null there, so StartLeaderServices ran `polling?.Start()` against nothing
+        // and the worker held the lease while doing absolutely no work. It reported itself
+        // perfectly healthy the whole time, because everything it was asked to start was null.
+        //
+        // Only the two genuinely desktop-shaped statements are conditioned now, where they occur.
         {
-            // Keep the app alive via OnLastWindowClose while only the splash is open.
-            // We switch back to OnMainWindowClose once the main window is shown.
-            desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startupLifetime)
+            {
+                // Keep the app alive via OnLastWindowClose while only the splash is open.
+                // We switch back to OnMainWindowClose once the main window is shown.
+                startupLifetime.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
+            }
 
             polling       = Services.GetRequiredService<EsiPollingService>();
             marketPricing = Services.GetRequiredService<MarketPricingService>();
@@ -315,7 +326,10 @@ public class App : Application
             contracts.AfterPricing += ct => typePriceHistory.RecalculateAsync(ct);
             contracts.AfterPricing += ct => lpValues.RecalculateAsync(ct);
 
-            desktop.ShutdownRequested += async (_, e) =>
+            // Desktop only: a worker has no lifetime to hang this on, and stops through its own
+            // signal handler instead — see Program.RunHeadless and WindowsServiceHost.
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                desktop.ShutdownRequested += async (_, e) =>
             {
                 e.Cancel = true;
                 var tasks = new List<Task>();
