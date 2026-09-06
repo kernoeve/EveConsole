@@ -320,15 +320,75 @@ public class App : Application
             };
         }
 
+        // ── Is the background work being done by a different build? ────────────
+        //
+        // ⚠️ Asked before the schema is touched, and the ordering is the whole point. The client
+        // holding the lease is writing to this database with ITS build's idea of the schema, and
+        // this one is about to migrate — so an older worker beside a newer client means altering
+        // the schema underneath a process that is still running against the old one. Nothing would
+        // notice: the worker goes on polling and goes on writing, into columns that have moved.
+        //
+        // So the answer is more than a warning. Whichever way the operator answers, this client
+        // leaves the schema alone while a worker on another build is alive.
+        var skipSchema = false;
+        var liveWorker = await WorkerLease.ReadStatusAsync();
+        if (liveWorker is not null
+            && WorkerLease.IsLive(liveWorker)
+            && liveWorker.Version != AppVersion.Number)
+        {
+            skipSchema = true;
+
+            var proceed = true;
+            if (splash is not null)
+            {
+                splash.ReportProgress(0, "Waiting — another client is on a different version");
+                proceed = await new ConfirmDialog(
+                    $"""
+                     Another client is doing the background work on a different version.
+
+                         {liveWorker.HostName}, pid {liveWorker.ProcessId} — version {liveWorker.Version}
+                         this client — version {AppVersion.Number}
+
+                     It is writing to this database with its own idea of the schema, so this client
+                     will leave the schema alone for as long as it is running. Anything this build
+                     expects that the other one has never created will not be there.
+
+                     Continue anyway?
+                     """).ShowDialog<bool>(splash);
+            }
+
+            if (!proceed)
+            {
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime declined)
+                    declined.Shutdown();
+                else
+                    Environment.Exit(0);
+                return;
+            }
+        }
+
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
         await Task.Run(() =>
         {
         p.Report((5, "Initializing database…"));
         // Ensure the database is created / migrated
+        //
+        // ⚠️ One client at a time, on PostgreSQL. Several clients can now be pointed at one
+        // database and nothing stops them starting together — after a host reboots, say — and two
+        // of them running this concurrently is two sessions issuing overlapping DDL against the
+        // same tables. Whoever arrives first does the work; the rest wait out a handful of
+        // statements that, on any database but a brand-new one, find everything already there.
+        //
+        // Deliberately not the worker lease: the first client to start has to bring the schema up
+        // whether or not it ends up being the one doing the background work. See MigrationLock.
+        using (MigrationLock.Acquire())
         using (var scope = Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
+
+            // skipSchema can only be true on PostgreSQL — it takes a second live client to set it
+            // — so the SQLite patch below needs no guard of its own.
+            if (!skipSchema) db.Database.EnsureCreated();
 
             // ⚠️ Everything below belongs to SQLite alone, and is skipped wholesale on a
             // server. Of its 158 CREATE TABLE statements 156 duplicate a table EnsureCreated has
@@ -341,7 +401,7 @@ public class App : Application
             // the seed rows — lives in PostgresSchema, in that engine's spelling.
             if (DbEngine.IsPostgres)
             {
-                PostgresSchema.Apply(db, p);
+                if (!skipSchema) PostgresSchema.Apply(db, p);
             }
             else
             {
