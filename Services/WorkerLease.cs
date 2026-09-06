@@ -35,13 +35,14 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
     private static readonly TimeSpan Tick = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// The same key <see cref="SingleInstance"/> used when it locked the whole application.
+    /// The key <see cref="SingleInstance"/> used when it locked the whole application, kept rather
+    /// than replaced.
     ///
-    /// <para>Deliberately not a new one. Reusing it means an old build, which takes this lock to
-    /// forbid a second client outright, still excludes a new build from becoming the worker — so
-    /// during an upgrade window the old client keeps polling alone rather than both of them
-    /// polling. A fresh key would have made the two versions invisible to each other, which is the
-    /// one outcome nobody wants.</para>
+    /// <para>An older build takes this lock to forbid a second client outright. Keeping the key
+    /// means such a build still excludes a newer one from becoming the worker, so during a mixed
+    /// window the old client goes on polling alone instead of both of them polling. A fresh key
+    /// would have made the two versions invisible to each other, which is the one outcome nobody
+    /// wants — and the version check at startup now refuses that pairing anyway.</para>
     /// </summary>
     private const long AdvisoryLockKey = 0x4556_4543_4F4E_5301;   // "EVECONS" + 1
 
@@ -80,7 +81,6 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             return true;
         }
 
-        _lock ??= AdoptProcessLock();
         await ContendAsync(ct);
         return IsHolder;
     }
@@ -101,8 +101,6 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             return;
         }
 
-        _lock ??= AdoptProcessLock();
-
         // ⚠️ Re-announced, because AcquireAsync almost certainly settled this already and it did so
         // before anything had subscribed. Without this the client that IS the worker would sit
         // there having quietly won, running none of the work it won the right to do.
@@ -111,16 +109,6 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
         _cts = new CancellationTokenSource();
         _ = RunLoopAsync(_cts.Token);
     }
-
-    /// <summary>
-    /// ⚠️ The lock is already held, by this process. SingleInstance takes this very key at startup
-    /// to keep a second client out, and an advisory lock belongs to the session that took it — so
-    /// opening a new connection and asking for it would be this process losing a race with itself,
-    /// on the silent path that means "somebody else has it". Adopt that session rather than
-    /// contending with it. Null on a server that could not be reached, which correctly sends us
-    /// round the contending path instead.
-    /// </summary>
-    private static NpgsqlConnection? AdoptProcessLock() => SingleInstance.TakePostgresLock();
 
     /// <summary>
     /// Releases the lease so another client can take it without waiting for a tick.
