@@ -123,6 +123,12 @@ public static class SingleInstance
         // lease's job, not this one's.
         if (DbEngine.IsPostgres) return true;
 
+        // ⚠️ And the tray never takes the lock, on either engine. It starts at logon, before anybody
+        // opens the application — so on SQLite it would take the file lock first and then refuse the
+        // real client, which is a tray icon locking somebody out of their own database. It writes
+        // nothing and holds nothing open; there is nothing here for it to protect.
+        if (AppRuntime.IsTray) return true;
+
         // ⚠️ The file lock first, because it is the one that holds on every platform. The
         // mutex stays: it is proven on Windows and costs nothing, and two agreeing guards are
         // cheaper than deciding which single one to trust.

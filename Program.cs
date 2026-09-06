@@ -19,6 +19,12 @@ class Program
     /// </summary>
     public const string ServiceArgument = "--service";
 
+    /// <summary>
+    /// A notification-area icon in the user's session and nothing else. Started at logon so there
+    /// is something to look at while the worker runs as a service, which cannot draw at all.
+    /// </summary>
+    public const string TrayArgument = "--tray";
+
     // Avalonia requires this to remain synchronous — don't add async here
     [STAThread]
     public static void Main(string[] args)
@@ -63,6 +69,9 @@ class Program
                 return;
             }
         }
+
+        var asTray = args.Any(a => string.Equals(a, TrayArgument, StringComparison.OrdinalIgnoreCase));
+        if (asTray) AppRuntime.MarkTray();
 
         var asService = args.Any(a => string.Equals(a, ServiceArgument, StringComparison.OrdinalIgnoreCase));
         var headless  = asService

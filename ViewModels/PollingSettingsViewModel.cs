@@ -115,6 +115,49 @@ public class PollingSettingsViewModel : ReactiveObject
             ? "This service is connected to a different database than this client. Your database settings changed after it was installed; it is still working against the old one."
       :       "This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.";
 
+    // ── The notification-area icon ────────────────────────────────────────────
+
+    private bool _trayAtLogon = TrayIconController.StartsAtLogon();
+
+    /// <summary>
+    /// Whether a tray icon starts with this user's session.
+    ///
+    /// <para>⚠️ A separate process, not part of this window. The client doing the background work
+    /// may be a service, which cannot draw anything at all — and putting the icon in this
+    /// application would mean it disappeared exactly when somebody wanted it, which is while the
+    /// application is closed.</para>
+    /// </summary>
+    public bool TrayAtLogon
+    {
+        get => _trayAtLogon;
+        set
+        {
+            if (_trayAtLogon == value) return;
+            this.RaiseAndSetIfChanged(ref _trayAtLogon, value);
+
+            try
+            {
+                TrayIconController.SetStartsAtLogon(value);
+
+                // Ticking a box should do something today, not next time they log in.
+                TrayStatus = value
+                    ? TrayIconController.LaunchNow() is { } error
+                        ? $"Registered for next logon, but could not start it now — {error}"
+                        : "Running, and will start with Windows."
+                    : "Will not start with Windows. Any icon already showing stays until you choose "
+                    + "Exit on it, or log off.";
+            }
+            catch (Exception ex) { TrayStatus = $"Could not change it — {ex.Message.Split('\n')[0]}"; }
+        }
+    }
+
+    private string _trayStatus = "";
+    public string TrayStatus
+    {
+        get => _trayStatus;
+        private set => this.RaiseAndSetIfChanged(ref _trayStatus, value);
+    }
+
     private bool _startsWithWindows;
     /// <summary>
     /// Whether Windows starts the service by itself at boot.

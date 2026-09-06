@@ -38,4 +38,20 @@ public static class AppRuntime
         IsService  = true;
         IsHeadless = true;   // a service has nowhere to draw either
     }
+
+    /// <summary>
+    /// True when started with <c>--tray</c>: a notification-area icon and nothing else.
+    ///
+    /// <para>⚠️ A reader, and deliberately never a worker. It exists because the process doing the
+    /// background work cannot draw — a Windows service runs in session 0, which has no interactive
+    /// desktop — so somebody logged in has no way to see what it is doing without opening the whole
+    /// application. This one lives in their session and reports.</para>
+    ///
+    /// <para>It must not contend for the lease. A tray process that quietly became the worker
+    /// because the service was down would be doing all the background work from an icon, which is
+    /// the last place anybody would look for it.</para>
+    /// </summary>
+    public static bool IsTray { get; private set; }
+
+    public static void MarkTray() => IsTray = true;
 }

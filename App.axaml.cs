@@ -62,7 +62,17 @@ public class App : Application
         // the user to launch a second copy — which is the one thing that must not happen while
         // the file is being replaced.
         SplashWindow? splash = null;
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
+
+        // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
+        // process shows an icon and waits; a progress window flashing up at logon for something the
+        // user did not launch would be the most annoying possible way to start.
+        if (AppRuntime.IsTray && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayStartup)
+        {
+            // Nothing else keeps this process alive — there is no window, and OnLastWindowClose
+            // would end it the moment startup finished.
+            trayStartup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+        }
+        else if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
         {
             // Kept alive by the splash until the main window takes over.
             startup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
@@ -241,6 +251,8 @@ public class App : Application
         ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
 
+        // The tray reports; it does not work. Nothing below it is wanted there.
+        if (!AppRuntime.IsTray)
         // ⚠️ NOT conditioned on a desktop lifetime, and that was a real bug for as long as it was.
         // Everything below is background work — the services themselves, the chat-log hook that
         // feeds intel and alarms, token refresh, and the build-cost and price-history recalcs — and
@@ -351,6 +363,59 @@ public class App : Application
                 Services.GetRequiredService<ClientSignals>().Stop();
                 desktop.Shutdown();
             };
+        }
+
+        // ── Tray: an icon in somebody's session, and nothing else ──────────────
+        //
+        // ⚠️ Returns before the lease is touched, and that is the whole point. This process exists
+        // to report on the worker and must never become one: a tray icon that quietly picked up
+        // the background work because the service happened to be down would be running all of it
+        // from the one place nobody would think to look — and would keep the real worker out when
+        // it came back. It does not own the schema either, so it returns before that too.
+        if (AppRuntime.IsTray)
+        {
+            Start("client signals", () =>
+            {
+                var signals = Services.GetRequiredService<ClientSignals>();
+                var alarms  = Services.GetRequiredService<AlarmActionRunner>();
+
+                // ⚠️ Alarm actions DO run here, and that is most of why this process is worth
+                // having. With the work in a service and no window open, a sound or an agent
+                // notification has nowhere to happen; this one is in the session and can. Muting
+                // still applies — the runner checks it on the receiving side.
+                signals.Received += payload => _ = alarms.HandleSignalAsync(payload);
+                signals.Start();
+            });
+
+            Start("tray icon", () =>
+            {
+                var tray = Services.GetRequiredService<TrayIconController>();
+
+                // No window of our own to restore, so "Open EVE Console" starts a copy — which is
+                // what somebody clicking it means by it.
+                tray.ShowWindow = () =>
+                {
+                    try
+                    {
+                        if (Environment.ProcessPath is { } exe)
+                            System.Diagnostics.Process.Start(
+                                new System.Diagnostics.ProcessStartInfo(exe) { UseShellExecute = true });
+                    }
+                    catch (Exception ex) { errorLogger.Log("Tray", "opening the application", ex); }
+                };
+
+                tray.Quit = () =>
+                {
+                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayLifetime)
+                        trayLifetime.Shutdown();
+                    else
+                        Environment.Exit(0);
+                };
+
+                tray.Show();
+            });
+
+            return;
         }
 
         // ── Who owns the background work, and therefore the schema? ────────────
@@ -3573,6 +3638,7 @@ public class App : Application
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
             sp.GetRequiredService<SystemGraph>()));
         services.AddSingleton<AlarmMuteState>();
+        services.AddSingleton<TrayIconController>();
         services.AddSingleton<ClientSignals>();
         services.AddSingleton<AlarmActionRunner>();
 

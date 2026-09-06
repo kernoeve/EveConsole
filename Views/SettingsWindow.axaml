@@ -1084,6 +1084,22 @@
 
                 <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
                            Text="Installing and removing ask for administrator approval once; starting and stopping afterwards do not. The service runs as LocalSystem, so a copy of the database connection is written to C:\ProgramData\EveConsole for it to read — that copy can be decrypted by anything running on this computer, unlike the one saved for your account. Removing the service deletes it." />
+
+                <Rectangle Height="1" Fill="#252530" Margin="0 6" />
+
+                <!-- The tray icon is a separate process, and has to be: a service runs in session 0
+                     with no desktop and cannot draw, and an icon inside this window would vanish
+                     exactly when somebody wants it — while the application is closed. -->
+                <CheckBox IsChecked="{Binding PollingVm.TrayAtLogon}"
+                          Content="Show a notification-area icon, starting with Windows"
+                          FontSize="12" Foreground="#ccc" />
+
+                <TextBlock FontSize="11" Foreground="#888" TextWrapping="Wrap" Margin="0 -2 0 0"
+                           Text="A small separate process that shows which client is doing the background work, lets you mute alarms, and plays alarm sounds while EVE Console itself is closed. It never does the background work — it reports on whoever is." />
+
+                <TextBlock Text="{Binding PollingVm.TrayStatus}" FontSize="11" Foreground="#9aa0aa"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding PollingVm.TrayStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
               </StackPanel>
             </StackPanel>
           </Border>

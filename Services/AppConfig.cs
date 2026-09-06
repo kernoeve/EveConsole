@@ -272,6 +272,15 @@ public static class AppConfig
     /// </summary>
     public static bool GetAlarmsMuted() => Load().AlarmsMuted == true;
 
+    public static bool GetShowTrayIcon() => Load().ShowTrayIcon == true;
+
+    public static void SetShowTrayIcon(bool show)
+    {
+        var c = Load();
+        c.ShowTrayIcon = show ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
     public static void SetAlarmsMuted(bool muted)
     {
         var c = Load();
@@ -485,6 +494,10 @@ public static class AppConfig
         [JsonPropertyName("chatLogDirs")]    public string? ChatLogDirs    { get; set; }
         [JsonPropertyName("gameLogEnabled")] public bool?   GameLogEnabled { get; set; }
         [JsonPropertyName("chatLogEnabled")] public bool?   ChatLogEnabled { get; set; }
+
+        // Per client, like the alarm mute: whether THIS window puts an icon in the tray is a
+        // fact about this desktop, not about the data.
+        [JsonPropertyName("showTrayIcon")]  public bool? ShowTrayIcon { get; set; }
 
         [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
