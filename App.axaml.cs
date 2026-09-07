@@ -3360,6 +3360,13 @@ public class App : Application
                 if (hold == leaderRunning) return;
                 leaderRunning = hold;
 
+                // ⚠️ Before anything else on the way IN. Until this moment the in-flight list was
+                // the previous worker's, relayed here whole; those calls belong to a process that
+                // has just stopped being the worker, nothing in this one can ever complete them,
+                // and from here on this client is the one BROADCASTING that list. Left alone they
+                // become ghosts every client sees, ageing forever. See ApiActivityLog.
+                if (hold) Services.GetRequiredService<ApiActivityLog>().ResetInFlightToOwn();
+
                 // The only two events a worker has worth reporting, and the pair somebody watching
                 // a service actually wants: did it get the work, and did it lose it.
                 var leaseNews = hold

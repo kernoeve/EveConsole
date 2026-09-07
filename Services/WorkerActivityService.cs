@@ -217,17 +217,29 @@ public sealed class WorkerActivityService
     /// is a snapshot of "right now" rather than a stream, so a client that missed one update would
     /// otherwise show a call as still running long after it finished.</para>
     /// </summary>
+    /// <summary>The in-flight ids last sent, so a list that has emptied still gets one more send.</summary>
+    private string _lastInFlightKey = "";
+
     private async Task PublishCallsAsync(CancellationToken ct)
     {
+        var inFlight    = _log.InFlightCalls.ToList();
+        var inFlightKey = string.Join(",", inFlight.Select(c => c.Id));
+
         List<ActivityEntry> batch;
         lock (_pending)
         {
-            if (_pending.Count == 0) return;
+            // ⚠️ Not simply "nothing completed, nothing to say". The in-flight snapshot rides along
+            // with the completed batch, so gating on the batch alone meant a follower's In Progress
+            // panel only ever updated when something FINISHED — and a call that is cancelled rather
+            // than completed enqueues no entry at all, so the last thing to leave the worker's list
+            // could sit on every other client's screen indefinitely.
+            if (_pending.Count == 0 && inFlightKey == _lastInFlightKey) return;
+
             batch = [.. _pending];
             _pending.Clear();
         }
 
-        var inFlight = _log.InFlightCalls.ToList();
+        _lastInFlightKey = inFlightKey;
 
         // ⚠️ Trimmed until the SERIALISED payload fits, not to a fixed number of entries. Counting
         // was the first attempt and it was wrong: an entry carries an owner name, an endpoint and

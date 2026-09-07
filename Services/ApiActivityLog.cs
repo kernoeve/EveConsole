@@ -191,4 +191,30 @@ public class ApiActivityLog
             foreach (var c in calls) InFlightCalls.Add(c);
         }, DispatcherPriority.Background);
     }
+
+    /// <summary>
+    /// Throws away another client's in-flight snapshot, keeping only this process's own calls.
+    ///
+    /// <para>⚠️ Called when this client TAKES the worker lease, and it has to be. Until that moment
+    /// this list was somebody else's, written whole by <see cref="ReplaceInFlight"/> — and the
+    /// entries in it belong to a process that has just stopped being the worker. Nothing here will
+    /// ever remove them: they have no handle in this process, so no completion can arrive for them,
+    /// and the relay that used to overwrite the list stops the moment this client becomes the one
+    /// sending it. Worse, the new worker then RE-BROADCASTS the ghosts as its own, so every client
+    /// shows calls that ended before the handover, ageing forever.</para>
+    ///
+    /// <para>Seen as a market refresh apparently running for ten minutes — longer than Jita — beside
+    /// a dozen character calls apparently stuck, every one of them timestamped in the last few
+    /// seconds before the lease changed hands.</para>
+    /// </summary>
+    public void ResetInFlightToOwn()
+    {
+        var mine = _inFlight.Values.ToList();
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            InFlightCalls.Clear();
+            foreach (var c in mine) InFlightCalls.Add(c);
+        }, DispatcherPriority.Background);
+    }
 }

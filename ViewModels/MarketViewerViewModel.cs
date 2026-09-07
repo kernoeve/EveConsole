@@ -306,8 +306,13 @@ public class MarketViewerViewModel : ReactiveObject
         _ = InitAsync();
     }
 
+    // ⚠️ Invariant culture: this goes into raw SQL as a literal, and a culture-formatted date is
+    // how the Overview's killmail panel broke on Linux — see CorpActivityService.SqlCutoffLiteral.
+    // Date-only here, so no AM/PM to catch it, but the same class of fault and the same cost.
     private string? Cutoff() =>
-        _selectedPeriod.Days is int d ? DateTime.UtcNow.AddDays(-d).ToString("yyyy-MM-dd") : null;
+        _selectedPeriod.Days is int d
+            ? DateTime.UtcNow.AddDays(-d).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+            : null;
 
     private Task LoadActiveAsync() => SelectedTab switch
     {
