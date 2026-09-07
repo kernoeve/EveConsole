@@ -11,12 +11,12 @@ public class OtherSettingsViewModel : ReactiveObject
 {
     /// <summary>Sentinel entry in the dropdown; anything not matching a preset selects it
     /// and reveals the free-text box.</summary>
-    public const string CustomOption = "Custom URL…";
+    public const string CustomOption = "Custom URLâ¦";
 
     private readonly UiLinkSettings _settings;
     private bool _loading = true;
 
-    // ── Appearance ────────────────────────────────────────────────────────────
+    // ââ Appearance ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     public IReadOnlyList<ThemeChoice> Themes { get; } = ThemeService.All;
 
@@ -36,9 +36,20 @@ public class OtherSettingsViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedTheme, value);
-            if (value is not null) ThemeService.Apply(value.Key);
+            if (value is not null && value.Key != ThemeService.Current) ThemeService.Apply(value.Key);
         }
     }
+
+    /// <summary>
+    /// Follows the theme when it is changed somewhere else — the label on the title bar picks the
+    /// same themes, and a combo still naming the old one is just wrong.
+    ///
+    /// <para>⚠️ Assigning the property is what updates it, and the setter re-applies. The guard
+    /// above is on the KEY rather than a flag, so arriving at the theme already on is a no-op
+    /// however it got here.</para>
+    /// </summary>
+    private void OnThemeChanged() =>
+        SelectedTheme = ThemeService.All.FirstOrDefault(t => t.Key == ThemeService.Current);
 
     public string[] EveTimeSiteOptions { get; } =
     [
@@ -50,6 +61,8 @@ public class OtherSettingsViewModel : ReactiveObject
     public OtherSettingsViewModel(UiLinkSettings settings)
     {
         _settings = settings;
+
+        ThemeService.Changed += OnThemeChanged;
 
         var stored = settings.EveTimeUrl;
         var isPreset = stored == UiLinkSettings.EveOnlineTimeUrl

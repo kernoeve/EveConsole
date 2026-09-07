@@ -47,6 +47,18 @@ public static class ThemeService
 
     public static string Current { get; private set; } = DefaultKey;
 
+    /// <summary>
+    /// Raised after a theme has been applied.
+    ///
+    /// <para>⚠️ There are two pickers now — the Settings window and the label on the title bar —
+    /// and each has to follow the other. Without this, changing the theme from the bar left the
+    /// Settings combo naming the theme that used to be on.</para>
+    ///
+    /// <para>Subscribers are static-rooted, so anything that lives shorter than the application
+    /// must unsubscribe. Both current subscribers outlive it.</para>
+    /// </summary>
+    public static event Action? Changed;
+
     /// <summary>Reads the saved choice and puts it on. Called once, before the first window.</summary>
     public static void ApplySaved()
     {
@@ -70,6 +82,8 @@ public static class ThemeService
         ChartPaint.Restyle();
 
         UiState.Set(UiState.Theme, choice.Key);
+
+        Changed?.Invoke();
     }
 
     private static ThemeChoice? Find(string key) =>

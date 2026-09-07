@@ -497,6 +497,39 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
     }
 
+    /// <summary>
+    /// The theme menu, built fresh each time it opens.
+    ///
+    /// <para>Built here rather than declared in the markup because the CHECK has to be right: the
+    /// theme can be changed from the Settings window too, and a menu assembled once would go on
+    /// ticking whatever was on when it was made.</para>
+    /// </summary>
+    private void OnThemeClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control anchor) return;
+
+        var menu = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedRight };
+
+        foreach (var choice in ThemeService.All)
+        {
+            var item = new MenuItem
+            {
+                Header     = choice.Name,
+                ToggleType = MenuItemToggleType.Radio,
+                IsChecked  = choice.Key == ThemeService.Current,
+            };
+
+            // Captured, not read off the sender: a MenuItem's Click gives back the item, and
+            // recovering the key from its header would break the moment one was renamed.
+            var key = choice.Key;
+            item.Click += (_, _) => ThemeService.Apply(key);
+
+            menu.Items.Add(item);
+        }
+
+        menu.ShowAt(anchor);
+    }
+
     private void OnSchedulerClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("scheduler");
