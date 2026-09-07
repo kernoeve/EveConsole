@@ -34,14 +34,16 @@ public static class ThemeService
         new("pink-light",  "Pink (light)", AppThemes.PinkLight),
         new("beige-dark",  "Beige (dark)", AppThemes.BeigeDark),
         new("beige-light", "Beige (light)",AppThemes.BeigeLight),
-
-        new("system",      "Follow the desktop", ThemeVariant.Default),
     ];
 
     /// <summary>
-    /// ⚠️ Dark, not "follow the desktop". This application has only ever been dark, so defaulting
-    /// to the desktop's setting would turn it white for everyone whose desktop is light — an
-    /// upgrade that changes how the app looks without being asked to.
+    /// ⚠️ Dark. This application has only ever been dark, so anything else would change how it
+    /// looks for everyone on upgrade, without being asked to.
+    ///
+    /// <para>⚠️ Also where an UNKNOWN key lands, which is what retires a theme safely. There was a
+    /// "Follow the desktop" entry, and it could only ever have followed two of the eight: the
+    /// desktop says light or dark and has no opinion about blue, pink or beige, so choosing it
+    /// silently discarded the tint. Anyone still holding "system" arrives here.</para>
     /// </summary>
     public const string DefaultKey = "dark";
 
