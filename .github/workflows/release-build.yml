@@ -58,6 +58,9 @@ jobs:
         continue-on-error: true
         run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }}
 
+      # --icon is for Setup.exe and Update.exe, which otherwise carry Velopack's own. The app's
+      # own shortcut takes its icon from the executable, which already has one through
+      # ApplicationIcon in the csproj.
       - name: Pack Velopack release
         run: >
           vpk pack
@@ -66,6 +69,7 @@ jobs:
           --packVersion ${{ steps.version.outputs.version }}
           --packDir publish
           --mainExe EveConsole.exe
+          --icon Assets\ec.ico
 
       - name: Upload to GitHub release
         run: >
@@ -173,6 +177,12 @@ jobs:
         continue-on-error: true
         run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }}
 
+      # ⚠️ --icon, or the AppImage gets Velopack's placeholder — an upside-down triangle, which is
+      # what shipped until somebody ran one and noticed. Nothing carries it implicitly here: the
+      # Windows build has its icon compiled into the executable through ApplicationIcon and there
+      # is no equivalent on Linux, so the packer has to be handed one. logo_mark rather than logo,
+      # because the full logo has the "EVE Console" wordmark across it and that is illegible at 32
+      # pixels.
       - name: Pack Velopack release
         run: >
           vpk pack
@@ -181,6 +191,7 @@ jobs:
           --packVersion ${{ needs.build.outputs.version }}
           --packDir publish-linux
           --mainExe EveConsole
+          --icon Assets/logo_mark.png
 
       - name: Upload to the existing GitHub release
         run: >

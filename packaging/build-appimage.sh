@@ -127,13 +127,19 @@ tar -czf "EveConsole-linux-x64.tar.gz" -C publish-linux .
 # ⚠️ No `vpk download github` here, deliberately. The release workflow pulls the previous release
 # first so it can build a delta against it; doing that locally would produce a package that only
 # makes sense next to a release this build is not part of. Without it, vpk builds a full one.
+# ⚠️ --icon, or the AppImage gets Velopack's placeholder — an upside-down triangle, which is what
+# shipped until somebody ran one and noticed. Nothing carries it implicitly on Linux: the Windows
+# build has the icon compiled into the executable through ApplicationIcon, and there is no
+# equivalent here, so the packer has to be handed one. logo_mark rather than logo: the full logo
+# has the "EVE Console" wordmark across it, which is illegible at 32 pixels.
 echo "== Packing the AppImage"
 vpk pack \
   --packId EveConsole \
   --packTitle "EVE Console" \
   --packVersion "$VERSION" \
   --packDir publish-linux \
-  --mainExe EveConsole
+  --mainExe EveConsole \
+  --icon Assets/logo_mark.png
 
 echo
 echo "== Done"
