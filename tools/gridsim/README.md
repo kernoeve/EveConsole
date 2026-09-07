@@ -68,15 +68,32 @@ drift, stuck, reverse and clamping. That is `Views/ScrollEstimates.cs`.
 
 ## ⚠️ What CLEAN here does not mean
 
-It said CLEAN for a candidate that then corrupted the real grid: rows vanished, the grid locked,
-and the window stopped laying out entirely — a blank Overview tab, not just a blank list.
+The first version of this rig said CLEAN for a candidate that then corrupted the real grid: rows
+vanished, the grid locked, and the window stopped laying out entirely — a blank Overview tab, not
+just a blank list.
 
-The rig drives the grid with a fixed number of dispatcher passes per step. It therefore does not
-model continuous layout, re-entrant `LayoutUpdated`, or a person holding the wheel down, and those
-are exactly the conditions under which writing `NegVerticalOffset` and calling `UpdateDisplayedRows`
-from outside the owning layout pass falls apart. Two crashes of that same class are in the rejected
-list above; a third arrangement passing here was never evidence that it survives a real event loop.
+It has since been rebuilt to drive **real input** (`MouseWheel`, and a real press-drag-release on
+the scrollbar thumb) through **real layout passes** (`ForceRenderTimerTick`, not a fixed count of
+`RunJobs`), with burst mode for holding the wheel down while the grid is behind, and invariants that
+a live grid must keep: every claimed slot names a row, that row's index matches, `NegVerticalOffset`
+sits inside its row, and the displayed rows cover the viewport. Exceptions thrown inside a layout
+pass are counted rather than allowed to end the run.
 
-So: this rig is trustworthy about **arithmetic** — extents, estimates, where a step lands. It says
-nothing about **lifecycle safety**. Anything that writes to `DisplayData`, or that runs from a
-layout callback, has to be proven somewhere else before it goes near the app.
+**It still scores the takeover at zero faults.** So the rebuild did not fix the rig's blind spot; it
+established that the blind spot cannot be closed from here. The difference between this rig and the
+app — six grids in tabs, a `DataGridCollectionView`, refreshes that renumber every row, resizes — is
+where the failure lives, and reproducing all of it is a bigger job than the fault is worth.
+
+⚠️ **The standing rule that follows: nothing that writes to `DisplayData`, or that relocates the
+displayed set from a layout callback, ships — whatever this rig says.** `+ takeover [REJ]` stays in
+the list to keep scoring zero, as a reminder that a green line here is not a safety argument.
+
+## Candidates measured
+
+| candidate | verdict |
+| --- | --- |
+| `stock Avalonia` | catastrophic — nine wheel ticks cross a 5055px list, `RowHeightEstimate` negative on every step |
+| `estimates pinned` | **shipped.** Fixes the extent: `badEst` 40 → 0, `clamp` 20 → 0. Leaves the landing fault |
+| `+ takeover [REJ]` | scores clean here, destroyed the app. Permanently rejected |
+| `whenSelected` | `VisibleWhenSelected` skips Avalonia's large-jump shortcut. Measured: no better than pinned, in any mode |
+| `uniform drawers` | a fixed-height drawer scrolling inside. Measured: **worse** — 13 reverse steps against 3. The look that was rejected would not have fixed this either |
