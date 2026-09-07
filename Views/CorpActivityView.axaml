@@ -424,10 +424,14 @@
 
       <!-- ══ Monthly Activity ═══════════════════════════════════════ -->
       <TabItem Header="MONTHLY ACTIVITY">
-        <Grid RowDefinitions="*,Auto,240,Auto,240" Margin="0">
+        <!-- ⚠️ The whole tab scrolls. Three charts at 360 plus the table is taller than most
+             screens, and a Grid would have silently squeezed the rows to fit instead. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid RowDefinitions="Auto,Auto,360,Auto,360,Auto,360" Margin="0">
 
-          <!-- Activity grid -->
-          <DataGrid Grid.Row="0"
+          <!-- Activity grid. Auto-sized so a corp with three months does not leave two thirds
+               of the panel empty, capped so twelve months cannot push the charts off screen. -->
+          <DataGrid Grid.Row="0" MaxHeight="340"
                     ItemsSource="{Binding MonthlyActivityRows}"
                     AutoGenerateColumns="False"
                     IsReadOnly="True"
@@ -458,6 +462,7 @@
               <DataGridTextColumn Header="UNITS MINED"   Binding="{Binding UnitsMinedText}"   SortMemberPath="UnitsMinedRaw"    Width="100" />
               <DataGridTextColumn Header="KILLS"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
               <DataGridTextColumn Header="LOSSES"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
+              <DataGridTextColumn Header="ISK EFF"        Binding="{Binding IskEffText}"        SortMemberPath="IskEffRaw"        Width="75"  />
               <DataGridTextColumn Header="PLAYERS ACTIVE" Binding="{Binding PlayersActiveText}" SortMemberPath="PlayersActiveRaw" Width="110" />
             </DataGrid.Columns>
           </DataGrid>
@@ -469,10 +474,9 @@
                        FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
           </Border>
 
-          <!-- ISK line chart -->
           <lvc:CartesianChart Grid.Row="2"
                               Series="{Binding MonthlyIskSeries}"
-                              XAxes="{Binding MonthlyXAxes}"
+                              XAxes="{Binding MonthlyIskXAxes}"
                               YAxes="{Binding MonthlyIskYAxes}"
                               LegendPosition="Top"
                               TooltipPosition="Top"
@@ -480,18 +484,35 @@
                               Background="Transparent"
                               Margin="4 0 4 4" />
 
-          <!-- Count trends header -->
+          <!-- Kills and losses header -->
           <Border Grid.Row="3" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-            <TextBlock Text="ACTIVITY TRENDS (kills/losses — left axis; units mined — right axis)"
+            <TextBlock Text="KILLS / LOSSES (counts — left axis; ISK efficiency — right axis)"
                        FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
           </Border>
 
-          <!-- Activity count line chart (YAxes[0]=kills/losses, YAxes[1]=units mined) -->
+          <!-- YAxes[0] = kill and loss counts, YAxes[1] = ISK efficiency pinned to 0-100% -->
           <lvc:CartesianChart Grid.Row="4"
-                              Series="{Binding MonthlyCountSeries}"
-                              XAxes="{Binding MonthlyXAxes}"
-                              YAxes="{Binding MonthlyCountAndMineYAxes}"
+                              Series="{Binding MonthlyKillSeries}"
+                              XAxes="{Binding MonthlyKillXAxes}"
+                              YAxes="{Binding MonthlyKillYAxes}"
+                              LegendPosition="Top"
+                              TooltipPosition="Top"
+                              EasingFunction="{x:Null}"
+                              Background="Transparent"
+                              Margin="4 0 4 4" />
+
+          <!-- Mining header -->
+          <Border Grid.Row="5" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+            <TextBlock Text="MINING (units)"
+                       FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
+          </Border>
+
+          <lvc:CartesianChart Grid.Row="6"
+                              Series="{Binding MonthlyMineSeries}"
+                              XAxes="{Binding MonthlyMineXAxes}"
+                              YAxes="{Binding MonthlyMineYAxes}"
                               LegendPosition="Top"
                               TooltipPosition="Top"
                               EasingFunction="{x:Null}"
@@ -499,6 +520,7 @@
                               Margin="4 0 4 4" />
 
         </Grid>
+        </ScrollViewer>
       </TabItem>
 
       <!-- ══ Income ══════════════════════════════════════════════════ -->

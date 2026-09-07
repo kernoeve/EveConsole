@@ -134,6 +134,7 @@ public sealed class MonthlyActivityRowVm
     public string KillsText          { get; }
     public string LossesText         { get; }
     public string PlayersActiveText  { get; }
+    public string IskEffText         { get; }
     public decimal TotalIncomeRaw  { get; }
     public decimal TotalExpenseRaw { get; }
     public decimal RattingTaxRaw   { get; }
@@ -143,6 +144,13 @@ public sealed class MonthlyActivityRowVm
     public int    KillsRaw         { get; }
     public int    LossesRaw        { get; }
     public int    PlayersActiveRaw { get; }
+
+    /// <summary>
+    /// ⚠️ -1 when the month has no answer, not 0. This is what the column sorts on, and a
+    /// month with no fighting sorted among the 0% ones would put "we lost everything" and
+    /// "nothing happened" side by side.
+    /// </summary>
+    public double IskEffRaw        { get; }
 
     public MonthlyActivityRowVm(MonthlyActivityRow r)
     {
@@ -165,6 +173,8 @@ public sealed class MonthlyActivityRowVm
         KillsText         = r.Kills.ToString("N0");
         LossesText        = r.Losses.ToString("N0");
         PlayersActiveText = r.PlayersActive > 0 ? r.PlayersActive.ToString("N0") : "—";
+        IskEffRaw         = r.IskEfficiency ?? -1;
+        IskEffText        = r.IskEfficiency is double e ? $"{e:F1}%" : "—";
     }
 
     private static string FmtIsk(decimal v)
@@ -941,14 +951,26 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     private IEnumerable<ISeries> _monthlyIskSeries = [];
     public IEnumerable<ISeries> MonthlyIskSeries { get => _monthlyIskSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyIskSeries, value); }
-    private IEnumerable<ISeries> _monthlyCountSeries = [];
-    public IEnumerable<ISeries> MonthlyCountSeries { get => _monthlyCountSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyCountSeries, value); }
-    private Axis[] _monthlyXAxes = [];
-    public Axis[] MonthlyXAxes   { get => _monthlyXAxes;  private set => this.RaiseAndSetIfChanged(ref _monthlyXAxes,  value); }
+    private IEnumerable<ISeries> _monthlyKillSeries = [];
+    public IEnumerable<ISeries> MonthlyKillSeries { get => _monthlyKillSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyKillSeries, value); }
+    private IEnumerable<ISeries> _monthlyMineSeries = [];
+    public IEnumerable<ISeries> MonthlyMineSeries { get => _monthlyMineSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyMineSeries, value); }
+
+    // ⚠️ One X axis EACH, though all three plot the same twelve months. An axis owns its paints,
+    // and a Paint carries drawing state tied to the canvas it is used on — see ChartPaint.
+    // Sharing one axis object across three CartesianChart controls would share those.
+    private Axis[] _monthlyIskXAxes = [];
+    public Axis[] MonthlyIskXAxes  { get => _monthlyIskXAxes;  private set => this.RaiseAndSetIfChanged(ref _monthlyIskXAxes,  value); }
+    private Axis[] _monthlyKillXAxes = [];
+    public Axis[] MonthlyKillXAxes { get => _monthlyKillXAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyKillXAxes, value); }
+    private Axis[] _monthlyMineXAxes = [];
+    public Axis[] MonthlyMineXAxes { get => _monthlyMineXAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyMineXAxes, value); }
     private Axis[] _monthlyIskYAxes = [];
     public Axis[] MonthlyIskYAxes   { get => _monthlyIskYAxes;  private set => this.RaiseAndSetIfChanged(ref _monthlyIskYAxes,  value); }
-    private Axis[] _monthlyCountAndMineYAxes = [];
-    public Axis[] MonthlyCountAndMineYAxes { get => _monthlyCountAndMineYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyCountAndMineYAxes, value); }
+    private Axis[] _monthlyKillYAxes = [];
+    public Axis[] MonthlyKillYAxes  { get => _monthlyKillYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyKillYAxes, value); }
+    private Axis[] _monthlyMineYAxes = [];
+    public Axis[] MonthlyMineYAxes  { get => _monthlyMineYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyMineYAxes, value); }
 
     private bool _hasMonthlyData;
     public bool HasMonthlyData
@@ -2452,26 +2474,58 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>
-    /// Binds the two monthly trend charts.
+    /// Binds the three monthly trend charts.
     ///
     /// <para>⚠️ What they PLOT lives in CorpTrendChartReport, not here. A scheduled post draws
     /// the same series to a PNG, and a chart that disagreed with the screen it is named after
     /// would be worse than no chart at all.</para>
     ///
-    /// <para>Both charts share one X axis: they are the same twelve months, and two axis objects
-    /// would be two things to keep saying the same thing.</para>
+    /// <para>All three share one X axis: they are the same twelve months, and three axis objects
+    /// would be three things to keep saying the same thing.</para>
     /// </summary>
     private void BuildMonthlyCharts(List<MonthlyActivityRow> rows)
     {
-        var isk      = CorpTrendChartReport.IskTrends(rows);
-        var activity = CorpTrendChartReport.ActivityTrends(rows);
+        var isk   = CorpTrendChartReport.IskTrends(rows);
+        var kills = CorpTrendChartReport.KillTrends(rows);
+        var mined = CorpTrendChartReport.MiningTrends(rows);
 
         MonthlyIskSeries = isk?.Series ?? [];
-        MonthlyXAxes     = isk?.XAxes  ?? [];
-        MonthlyIskYAxes  = isk?.YAxes  ?? [];
+        MonthlyIskXAxes  = Chrome(isk?.XAxes);
+        MonthlyIskYAxes  = Chrome(isk?.YAxes);
 
-        MonthlyCountSeries       = activity?.Series ?? [];
-        MonthlyCountAndMineYAxes = activity?.YAxes  ?? [];
+        MonthlyKillSeries = kills?.Series ?? [];
+        MonthlyKillXAxes  = Chrome(kills?.XAxes);
+        MonthlyKillYAxes  = Chrome(kills?.YAxes);
+
+        MonthlyMineSeries = mined?.Series ?? [];
+        MonthlyMineXAxes  = Chrome(mined?.XAxes);
+        MonthlyMineYAxes  = Chrome(mined?.YAxes);
+    }
+
+    /// <summary>
+    /// Repaints an axis for the screen, leaving what it plots alone.
+    ///
+    /// <para>⚠️ CorpTrendChartReport draws for a PNG posted to Slack, so its axes carry fixed dark
+    /// greys — right on that canvas, and dark-on-light here the moment somebody picks a light
+    /// theme. Only the chrome is touched: the series colours are data, and they are the same on
+    /// screen as in the post.</para>
+    ///
+    /// <para>⚠️ Going through ChartPaint is also what REGISTERS these paints, which is the only
+    /// way ChartPaint.Restyle() can find them again when the theme changes later.</para>
+    /// </summary>
+    private static Axis[] Chrome(Axis[]? axes)
+    {
+        foreach (var axis in axes ?? [])
+        {
+            if (axis.LabelsPaint is not null) axis.LabelsPaint = ChartPaint.Labels;
+
+            // A transparent separator is a deliberate "draw nothing" on a secondary axis, so that
+            // it does not lay a second grid over the first one's. Repainting it would undo that.
+            if (axis.SeparatorsPaint is SolidColorPaint { Color.Alpha: > 0 })
+                axis.SeparatorsPaint = ChartPaint.Separators;
+        }
+
+        return axes ?? [];
     }
 
     private async Task LoadProjectsAsync(long corpId, CancellationToken ct)

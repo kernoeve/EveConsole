@@ -77,7 +77,22 @@ public sealed record MonthlyActivityRow(
     long    UnitsMined,
     int     Kills,
     int     Losses,
-    int     PlayersActive);
+    int     PlayersActive,
+
+    // ⚠️ Valued, not counted, and therefore only as good as the price data behind it —
+    // KillmailValuation needs an asset-value config, and returns nothing without one. A month
+    // with kills but no valuation reads as 0/0, which IskEfficiency deliberately reports as
+    // "no answer" rather than as 0%.
+    decimal IskDestroyed,
+    decimal IskLost)
+{
+    /// <summary>Destroyed as a share of everything that changed hands, the way killboards
+    /// report it. Null when nothing was destroyed either way: both 0% and 100% would be a
+    /// claim about a month that saw no fighting.</summary>
+    public double? IskEfficiency =>
+        IskDestroyed + IskLost <= 0 ? null
+        : (double)(IskDestroyed / (IskDestroyed + IskLost)) * 100.0;
+}
 
 // ⚠️ These override ToString to the bare name. They are handed straight to AutoCompleteBox,
 // which has no ItemTemplate on these pickers and so renders whatever ToString gives it — and,
@@ -611,6 +626,44 @@ public class CorpActivityService
         var miningByMonth = miningRows.ToDictionary(r => r.Month, r => r.Count);
         var killsByMonth  = killMonths.ToDictionary(r => r.Month);
 
+        // ISK destroyed and lost per month.
+        //
+        // ⚠️ SELECT DISTINCT rather than a GROUP BY, because the join to EsiKillMailRefs can
+        // match a killmail more than once — one row per owner that holds it — and a duplicated
+        // kill would be valued twice. Corp-owned mails only, matching the counts above.
+        //
+        // ⚠️ One valuation call for the whole lookback, not one per month. ValueKillsAsync reads
+        // the market config and prices every hull it is given in one pass; twelve calls would be
+        // twelve of those, for the same answer.
+        var killIskRows = await db.Database.SqlQuery<MonthKillIskRaw>($"""
+            SELECT DISTINCT
+                   substr(CAST(d."KillMailTime" AS TEXT), 1, 7) AS "Month",
+                   d."KillMailId", d."VictimShipTypeId",
+                   CASE WHEN d."VictimCorpId" = {corpId} THEN 1 ELSE 0 END AS "IsLoss"
+            FROM "KillMailDetails" d
+            JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
+                AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
+            WHERE d."KillMailTime" >= {cutoff}
+            """).ToListAsync(ct);
+
+        var iskByMonth = new Dictionary<string, (decimal Destroyed, decimal Lost)>();
+
+        if (killIskRows.Count > 0)
+        {
+            var values = await KillmailValuation.ValueKillsAsync(
+                db,
+                killIskRows.DistinctBy(k => k.KillMailId)
+                           .ToDictionary(k => k.KillMailId, k => k.VictimShipTypeId),
+                ct);
+
+            iskByMonth = killIskRows
+                .GroupBy(k => k.Month)
+                .ToDictionary(
+                    g => g.Key,
+                    g => ((decimal)g.Where(k => k.IsLoss == 0).Sum(k => values.GetValueOrDefault(k.KillMailId)),
+                          (decimal)g.Where(k => k.IsLoss == 1).Sum(k => values.GetValueOrDefault(k.KillMailId))));
+        }
+
         // Distinct active players per month.
         //
         // Deliberately as broad as the stored data allows: any dated activity attributable
@@ -709,11 +762,14 @@ public class CorpActivityService
             var kills   = killsByMonth.TryGetValue(m, out var kb) ? kb.Kills  : 0;
             var loss    = killsByMonth.TryGetValue(m, out var lb) ? lb.Losses : 0;
             var players = playersByMonth.GetValueOrDefault(m);
-            var w = walletMonths.FirstOrDefault(ww => ww.Month == m);
+            var w    = walletMonths.FirstOrDefault(ww => ww.Month == m);
+            var isk  = iskByMonth.GetValueOrDefault(m);
             return w is not null
                 ? new MonthlyActivityRow(m, w.TotalIncome, w.TotalExpense,
-                    w.RattingTax, w.IndustryTax, w.ProjectPayouts, mine, kills, loss, players)
-                : new MonthlyActivityRow(m, 0, 0, 0, 0, 0, mine, kills, loss, players);
+                    w.RattingTax, w.IndustryTax, w.ProjectPayouts, mine, kills, loss, players,
+                    isk.Destroyed, isk.Lost)
+                : new MonthlyActivityRow(m, 0, 0, 0, 0, 0, mine, kills, loss, players,
+                    isk.Destroyed, isk.Lost);
         }).ToList();
     }
 
@@ -1145,7 +1201,6 @@ public class CorpActivityService
 
         async Task<MonthFigures> Build(string monthKey, DateTimeOffset monthStart)
         {
-            var (destroyed, lost) = await GetMonthKillIskAsync(corpId, monthStart, ct);
             var miningValue       = await GetMonthMiningValueAsync(corpId, monthStart, ct);
             var kills             = killMonths.FirstOrDefault(k => k.Month == monthKey);
             var act               = activity.FirstOrDefault(a => a.Month == monthKey);
@@ -1154,7 +1209,12 @@ public class CorpActivityService
             return new MonthFigures(
                 walletMonths.FirstOrDefault(w => w.Month == monthKey),
                 kills?.Kills  ?? 0, kills?.Losses ?? 0,
-                destroyed, lost,
+
+                // ⚠️ Taken from the monthly-activity rows, not valued again here. The same figure
+                // is on the Monthly Activity tab, and two valuations of one month would be two
+                // numbers for the same thing the first time either query changed. Those rows are
+                // priced in one pass over the whole lookback, so this is also the cheaper answer.
+                act?.IskDestroyed ?? 0m, act?.IskLost ?? 0m,
                 act?.UnitsMined    ?? 0, miningValue,
                 act?.PlayersActive ?? 0,
                 proj.Created, proj.CreatedValue, proj.Completed, proj.CompletedValue);
@@ -1214,49 +1274,6 @@ public class CorpActivityService
         public double Value { get; set; }
     }
 
-    /// <summary>
-    /// ISK destroyed vs lost for the month. A kill counts as a loss when the victim belonged to
-    /// this corp.
-    ///
-    /// <para>⚠️ The valuation is no longer summed in SQL. It was, for a good reason — a busy month
-    /// runs to thousands of kills and only the totals are wanted — but that SQL priced blueprint
-    /// COPIES at the original's market price, because a copy is only distinguishable per item, by
-    /// its Singleton flag, against a blueprint list the SDE has to be asked for. That is not
-    /// expressible in the one statement, which is exactly how the two versions drifted. Now SQL
-    /// selects only what identifies each kill, and <see cref="KillmailValuation"/> prices them —
-    /// the same code the Killmail Browser and the 24-hour lists use.</para>
-    ///
-    /// <para>Cost of the change: the item rows for a month's kills are read rather than aggregated
-    /// in place. Bounded by the month, and the alternative is a total nobody can reconcile against
-    /// the kill it came from.</para>
-    /// </summary>
-    private async Task<(decimal Destroyed, decimal Lost)> GetMonthKillIskAsync(
-        long corpId, DateTimeOffset from, CancellationToken ct)
-    {
-        using var db = _dbFactory.CreateDbContext();
-        var fromStr  = SqlCutoff(from);
-        var toStr    = SqlCutoff(from.AddMonths(1));
-
-        var kills = await db.Database.SqlQuery<MonthKillRaw>($"""
-            SELECT d."KillMailId", d."VictimShipTypeId",
-                   CASE WHEN d."VictimCorpId" = {corpId} THEN 1 ELSE 0 END AS "IsLoss"
-            FROM "KillMailDetails" d
-            JOIN "EsiKillMailRefs" r ON r."KillMailId" = d."KillMailId"
-                AND r."OwnerId" = {corpId} AND r."OwnerType" = 'corporation'
-            WHERE d."KillMailTime" >= {fromStr} AND d."KillMailTime" < {toStr}
-            GROUP BY d."KillMailId"
-            """).ToListAsync(ct);
-
-        if (kills.Count == 0) return (0m, 0m);
-
-        var values = await KillmailValuation.ValueKillsAsync(
-            db, kills.ToDictionary(k => k.KillMailId, k => k.VictimShipTypeId), ct);
-
-        var destroyed = kills.Where(k => k.IsLoss == 0).Sum(k => values.GetValueOrDefault(k.KillMailId));
-        var lost      = kills.Where(k => k.IsLoss == 1).Sum(k => values.GetValueOrDefault(k.KillMailId));
-        return ((decimal)destroyed, (decimal)lost);
-    }
-
     /// <summary>Reprocessed value of everything mined that month, priced from the same
     /// reprocessing values the Mining Ledger uses.
     ///
@@ -1280,11 +1297,12 @@ public class CorpActivityService
         return (decimal)(rows.FirstOrDefault()?.Value ?? 0.0);
     }
 
-    private sealed class MonthKillRaw
+    private sealed class MonthKillIskRaw
     {
-        public int KillMailId       { get; set; }
-        public int VictimShipTypeId { get; set; }
-        public int IsLoss           { get; set; }
+        public string Month            { get; set; } = "";
+        public int    KillMailId       { get; set; }
+        public int    VictimShipTypeId { get; set; }
+        public int    IsLoss           { get; set; }
     }
 
     private sealed class MonthValueRaw
