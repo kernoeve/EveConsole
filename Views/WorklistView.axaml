@@ -259,9 +259,15 @@
            up its figures. -->
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:WorklistRowVm">
-          <Border Margin="70 0 0 8" Padding="12 8"
+          <!-- ⚠️ BOUNDED, and that is not only about tidiness. A DataGrid measures rows as it
+               virtualises them, and details tall enough to exceed the viewport make scrolling BACK
+               up re-measure something bigger than the space it is being fitted into — which is the
+               stick-and-flicker on the wheel. A cap plus an inner scroller means every expanded
+               row has a height the grid can settle on. -->
+          <Border Margin="70 0 0 8" Padding="12 8" MaxHeight="320"
                   Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="8">
 
               <!-- ⚠️ What put the task on the list, above the detail of it. On a job or a purchase
@@ -354,6 +360,7 @@
 
             </Grid>
             </StackPanel>
+            </ScrollViewer>
           </Border>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

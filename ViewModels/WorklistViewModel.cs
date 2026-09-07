@@ -286,7 +286,11 @@ public class WorklistRowVm : ReactiveObject
     /// <summary>The stopped jobs waiting on something this haul carries.</summary>
     private IReadOnlyList<WorklistWaitingJobVm>? _waiting;
     public IReadOnlyList<WorklistWaitingJobVm> WaitingJobs =>
-        _waiting ??= [.. _item.WaitingJobs.Select(w => new WorklistWaitingJobVm(w))];
+        _waiting ??= [.. _item.WaitingJobs
+            // Same item, same verdict, one line. Several jobs can be behind one print, and the
+            // reader wants to know what is waiting and how much of it, not to count rows.
+            .GroupBy(w => (w.TypeId, w.StatusText))
+            .Select(g => new WorklistWaitingJobVm(g.First(), g.Count()))];
     public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
 
     /// <summary>Whether the row has anything to open. Not hauls only any more: a job lists what
@@ -665,14 +669,21 @@ public sealed class ItemShortageRowVm : ReactiveObject
 public sealed class WorklistWaitingJobVm : ReactiveObject
 {
     private readonly WorklistWaitingJob _w;
+    private readonly int _count;
 
-    public WorklistWaitingJobVm(WorklistWaitingJob w)
+    public WorklistWaitingJobVm(WorklistWaitingJob w, int count = 1)
     {
-        _w = w;
+        _w     = w;
+        _count = count;
         _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b);
     }
 
-    public string TypeName    => _w.TypeName;
+    /// <summary>
+    /// ⚠️ The product and a count, not one line per job. Twenty Fullerides jobs queued behind the
+    /// same print listed twenty identical rows saying the same thing — a wall of text that told
+    /// the reader nothing the first line had not, and made the expanded row taller than the grid.
+    /// </summary>
+    public string TypeName => _count > 1 ? $"{_w.TypeName} × {_count:N0}" : _w.TypeName;
     public string StatusText  => _w.StatusText;
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
