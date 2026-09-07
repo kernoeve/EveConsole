@@ -383,11 +383,15 @@
 
           <!-- Tab strip -->
           <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}">
+            <!-- ⚠️ Horizontal scrolling is DISABLED below, and that is what makes the wrapping
+                 work rather than merely permitting it: a WrapPanel inside a scroller that offers
+                 horizontal scrolling is measured with infinite width, so it never meets an edge to
+                 wrap at and lays every tab out on one line regardless. -->
             <ListBox x:Name="TabStrip"
                      ItemsSource="{Binding OpenTabs}"
                      SelectedItem="{Binding SelectedTab}"
                      Background="Transparent" BorderThickness="0" Padding="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled">
               <ListBox.Styles>
                 <!-- Descendant selectors must be outside ControlTheme -->
@@ -422,9 +426,13 @@
                   </Style>
                 </ControlTheme>
               </ListBox.ItemContainerTheme>
+<!-- Tabs wrap onto a second row rather than scrolling. The strip was a horizontal
+                   StackPanel in a scroller, so opening more tabs than fit put a scrollbar across
+                   the bottom of them — which covers the tabs it exists to reach. The row is Auto
+                   height, so the strip grows and the content below simply starts lower. -->
               <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" />
+                  <WrapPanel Orientation="Horizontal" />
                 </ItemsPanelTemplate>
               </ListBox.ItemsPanel>
               <ListBox.ItemTemplate>
