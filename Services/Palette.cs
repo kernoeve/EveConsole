@@ -67,6 +67,10 @@ public static class Palette
     public static IBrush WarnSurface     => Brush("WarnSurfaceBrush");
     public static IBrush InfoSurface     => Brush("InfoSurfaceBrush");
 
+    /// <summary>Translucent plates for the maps: label boxes and tooltips over a starfield.</summary>
+    public static IBrush SurfaceOverlay       => Brush("SurfaceOverlayBrush");
+    public static IBrush SurfaceOverlayStrong => Brush("SurfaceOverlayStrongBrush");
+
     /// <summary>
     /// The colour behind a token, for the drawing code that needs a Color rather than a Brush.
     ///

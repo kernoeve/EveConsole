@@ -90,6 +90,13 @@
       <Color x:Key="BadSurface">#3a1e1e</Color>
       <Color x:Key="WarnSurface">#33260f</Color>
       <Color x:Key="InfoSurface">#22323c</Color>
+
+      <!-- ⚠️ Translucent, and therefore its own token rather than an alpha applied to another.
+           A brush follows the palette by having its Colour re-resolved, and there is nowhere in
+           that to fold an alpha in — so the map label plates and tooltips, which must let the
+           starfield through, need the transparency written into the colour itself. -->
+      <Color x:Key="SurfaceOverlay">#cc1b1b25</Color>      <!-- label plates on the maps  -->
+      <Color x:Key="SurfaceOverlayStrong">#f0161620</Color> <!-- tooltips, which must read  -->
     </ResourceDictionary>
 
     <!-- ═══ LIGHT ═════════════════════════════════════════════════════════════
@@ -164,6 +171,10 @@
       <Color x:Key="BadSurface">#fadedd</Color>
       <Color x:Key="WarnSurface">#faecd4</Color>
       <Color x:Key="InfoSurface">#dcecf2</Color>
+
+      <!-- The same two, pale. A plate on a light map hides the starfield the other way up. -->
+      <Color x:Key="SurfaceOverlay">#e0eeecf2</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f2f6f5f8</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>
@@ -208,5 +219,7 @@
   <SolidColorBrush x:Key="BadSurfaceBrush"       Color="{DynamicResource BadSurface}" />
   <SolidColorBrush x:Key="WarnSurfaceBrush"      Color="{DynamicResource WarnSurface}" />
   <SolidColorBrush x:Key="InfoSurfaceBrush"      Color="{DynamicResource InfoSurface}" />
+  <SolidColorBrush x:Key="SurfaceOverlayBrush"       Color="{DynamicResource SurfaceOverlay}" />
+  <SolidColorBrush x:Key="SurfaceOverlayStrongBrush" Color="{DynamicResource SurfaceOverlayStrong}" />
 
 </ResourceDictionary>

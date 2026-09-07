@@ -122,7 +122,7 @@ public class MapCanvas : Control
     private static IPen   HoverPen      => _hoverPen ??= new Pen(Palette.Info, 1.5);
     private static IBrush LabelBrush    => Palette.TextSecondary;
     private static IBrush BadgeBrush    => Palette.Accent;
-    private static readonly IBrush TipBackBrush  = new ImmutableSolidColorBrush(Color.Parse("#e6141420"));
+    private static IBrush TipBackBrush  => Palette.SurfaceOverlayStrong;
     private static IPen   TipPen        => _tipPen ??= new Pen(Palette.BorderDefault, 1);
     private static IBrush TipTextBrush  => Palette.TextPrimary;
     private static readonly Color  DefaultFill   = Color.Parse("#6a6a80");

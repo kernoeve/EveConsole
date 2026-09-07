@@ -179,7 +179,7 @@ public class JumpMapCanvas : Control
 
     private static IBrush LabelBrush  => Palette.TextPrimary;
     private static IBrush CaptionBrush => Palette.TextMuted;
-    private static readonly IBrush PlateBrush  = new ImmutableSolidColorBrush(Color.Parse("#cc12121a"));
+    private static IBrush PlateBrush => Palette.SurfaceOverlay;
     private static IBrush HintBrush   => Palette.TextFaint;
 
     private static IPen   LinkPen      => _linkPen ??= new Pen(Palette.BorderSubtle, 1);
@@ -187,11 +187,11 @@ public class JumpMapCanvas : Control
     private static readonly IPen   CandidatePen  = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#2f7d55")), 1);
     private static IBrush DotLabelBrush => Palette.TextMuted;
 
-    private static readonly IBrush TipBackBrush = new ImmutableSolidColorBrush(Color.Parse("#f00e0e16"));
+    private static IBrush TipBackBrush => Palette.SurfaceOverlayStrong;
     private static IPen   TipPen       => _tipPen ??= new Pen(Palette.BorderDefault, 1);
-    private static readonly IBrush TipTitle     = new ImmutableSolidColorBrush(Color.Parse("#e8e8f2"));
-    private static readonly IBrush TipBody      = new ImmutableSolidColorBrush(Color.Parse("#9aa8b6"));
-    private static readonly IBrush TipCost      = new ImmutableSolidColorBrush(Color.Parse("#c8a84b"));
+    private static IBrush TipTitle     => Palette.TextBright;
+    private static IBrush TipBody      => Palette.TextMuted;
+    private static IBrush TipCost      => Palette.Accent;
 
     private static readonly Typeface Face     = Typeface.Default;
     private static readonly Typeface BoldFace =

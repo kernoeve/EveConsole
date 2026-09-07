@@ -2290,7 +2290,7 @@
                                  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="8 1 0 1" />
                       <TextBlock Grid.Column="1" Text="{Binding Value}"
                                  IsVisible="{Binding IsValue}"
-                                 Foreground="{Binding ValueColor}"
+                                 Foreground="{Binding ValueBrush}"
                                  FontSize="11" HorizontalAlignment="Right" Margin="0 1" />
                       <TextBlock Grid.Column="2" Text="{Binding Change}"
                                  IsVisible="{Binding IsValue}"

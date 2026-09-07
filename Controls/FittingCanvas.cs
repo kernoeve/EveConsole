@@ -122,10 +122,10 @@ public class FittingCanvas : Control
     private static readonly IBrush ServiceFill = new ImmutableSolidColorBrush(Color.Parse("#6b6440"));
 
     private static IBrush LabelBrush => Palette.TextMuted;
-    private static readonly IBrush TipBack    = new ImmutableSolidColorBrush(Color.Parse("#f00e0e16"));
+    private static IBrush TipBack    => Palette.SurfaceOverlayStrong;
     private static readonly IPen   TipPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a4a58")), 1);
-    private static readonly IBrush TipTitle   = new ImmutableSolidColorBrush(Color.Parse("#e8e8f2"));
-    private static readonly IBrush TipBody    = new ImmutableSolidColorBrush(Color.Parse("#9aa8b6"));
+    private static IBrush TipTitle   => Palette.TextBright;
+    private static IBrush TipBody    => Palette.TextMuted;
 
     private static readonly Typeface Face = Typeface.Default;
     private static readonly Typeface BoldFace =
