@@ -38,14 +38,15 @@ public sealed record Step(
 
 public sealed record Result(
     string Label, int Steps, bool Arrived, double ExtentErr, double Drift,
-    int Stuck, int Clamped, int BadEst)
+    int Stuck, int Clamped, int BadEst, double MaxJump, double Ask, int Reverse)
 {
     public int Faults => (Arrived ? 0 : 1) + (ExtentErr > 200 ? 1 : 0) + (Drift > 200 ? 1 : 0)
-                       + (Stuck > 0 ? 1 : 0) + (Clamped > 0 ? 1 : 0) + (BadEst > 0 ? 1 : 0);
+                       + (Stuck > 0 ? 1 : 0) + (Clamped > 0 ? 1 : 0) + (BadEst > 0 ? 1 : 0)
+                       + (MaxJump > Ask * 1.5 + 1 ? 1 : 0) + (Reverse > 0 ? 1 : 0);
 
     public override string ToString() =>
         $"  {Label,-20} steps={Steps,-4} arrived={Arrived,-5} extentErr={ExtentErr,7:F0} " +
-        $"drift={Drift,7:F0} stuck={Stuck,-4} clamped={Clamped,-4} badEst={BadEst,-4} faults={Faults}";
+        $"drift={Drift,7:F0} stuck={Stuck,-3} clamp={Clamped,-3} badEst={BadEst,-3} jump={MaxJump,6:F0} rev={Reverse,-3} faults={Faults}";
 }
 
 public class App : Application
@@ -159,68 +160,126 @@ public static class Program
 
     // ── The fix under test ───────────────────────────────────────────────────
 
-    private sealed class Fix(DataGrid grid)
+    private sealed class Fix(DataGrid grid, List<Row> model)
     {
-        public bool Pin      { get; init; }
-        public bool FixStale { get; init; }
+        public bool Pin       { get; init; }
+        public bool Reconcile { get; init; }
 
-        public static int Pushed;
+        private readonly Dictionary<int, double> _heights = [];
 
-        private readonly Dictionary<string, double> _drawers = [];
-        private readonly HashSet<DataGridRow>       _hooked  = [];
+        /// <summary>Heights seen once. A height is only trusted after two passes agree on it.</summary>
+        private readonly Dictionary<int, double> _seen = [];
+        private double _meanBody = 22, _meanDrawer;
 
         /// <summary>
-        /// A recycled row reports the PREVIOUS item's drawer height until an ARRANGE pass has run:
-        /// DataGridDetailsPresenter.MeasureOverride returns ContentHeight verbatim, and ContentHeight
-        /// is only refreshed from DataGridRow.ArrangeOverride. The scroll walk measures rows
-        /// synchronously, so it lands on a height belonging to a different row.
+        /// Our own offset, moved only by what was asked for.
+        ///
+        /// ⚠️ Not read back from the grid. Its _verticalOffset is overwritten by its own walk --
+        /// reaching the first row sets it to NegVerticalOffset outright -- so a 50px ask that the
+        /// walk mishandled comes back as a 111px move, and reading it means inheriting the error
+        /// this exists to avoid.
         /// </summary>
-        public void OnRowLoading(DataGridRow row)
-        {
-            if (!FixStale) return;
+        private double _offset = -1;
 
-            if (_hooked.Add(row)) row.DataContextChanged += (_, _) => Push(row);
-            Push(row);
+        public void OnRowLoading(DataGridRow row) { }
+
+        /// <summary>What a scroll asked for, recorded before the grid gets to interpret it.</summary>
+        public void Request(double pixels)
+        {
+            if (!Reconcile) return;
+            if (_offset < 0) _offset = D(Peek(grid, "_verticalOffset"));
+
+            var cells = D(Peek(grid, "CellsEstimatedHeight"));
+            _offset = Math.Clamp(_offset + pixels, 0, Math.Max(0, Total() - cells));
+
+
         }
 
-        private void Push(DataGridRow row)
+        /// <summary>Best height for a row: measured where it has been seen, averaged where not.</summary>
+        private double Height(int index) =>
+            _heights.TryGetValue(index, out var h)
+                ? h
+                : _meanBody + (index < model.Count && model[index].IsOpen ? _meanDrawer : 0);
+
+        private double Total()
         {
-            if (row.DataContext is not Row item) return;
+            var total = 0.0;
+            for (var i = 0; i < model.Count; i++) total += Height(i);
+            return total;
+        }
 
-            // The grid restores this in its own LoadingRow handler, which runs AFTER DataContextChanged,
-            // so at this point the flag still belongs to the row that was here before.
-            if (row.AreDetailsVisible != item.IsOpen) row.AreDetailsVisible = item.IsOpen;
-            if (!item.IsOpen) return;
+        /// <summary>
+        /// Scrolls by a number of pixels, positioning the view directly.
+        ///
+        /// ⚠️ This replaces Avalonia's own conversion from pixels to a position rather than
+        /// correcting it afterwards. That conversion walks rows and measures each one on the way
+        /// past, and a row measured while it is OFF screen reports the height of whichever row was
+        /// recycled into it -- slot 3 read 1231, row 7's height, when it is 842. Correcting the
+        /// landing after the fact leaves a visible two-step wobble as the error damps out; not
+        /// making it in the first place leaves nothing to damp.
+        /// </summary>
+        public void ScrollBy(double pixels)
+        {
+            var cells = D(Peek(grid, "CellsEstimatedHeight"));
+            var max   = Math.Max(0, Total() - cells);
+            var at    = Math.Clamp(D(Peek(grid, "_verticalOffset")) + pixels, 0, max);
 
-            var presenter = row.GetVisualDescendants().OfType<DataGridDetailsPresenter>().FirstOrDefault();
-            if (presenter is null) return;
+            Poke(grid, "_verticalOffset", at);
+            Place(at);
+        }
 
-            double want;
-            if (_drawers.TryGetValue(item.Key, out var known))
+        /// <summary>Puts the view where a given offset says it should be.</summary>
+        private void Place(double target)
+        {
+            // ⚠️ Clamped, and written back. The grid accumulates the offset from whatever each scroll
+            // asked for and lets it run past the end -- it sat 43px beyond the maximum after a drag
+            // to the bottom, which is a scrollbar value that disagrees with the offset for ever.
+            var cells0 = D(Peek(grid, "CellsEstimatedHeight"));
+            var max0   = Math.Max(0, Total() - cells0);
+
+            target  = Math.Clamp(target, 0, max0);
+            _offset = target;
+            if (Math.Abs(D(Peek(grid, "_verticalOffset")) - target) > 0.5)
+                Poke(grid, "_verticalOffset", target);
+
+            var slot = 0;
+            var acc  = 0.0;
+            while (slot < model.Count - 1 && acc + Height(slot) <= target) { acc += Height(slot); slot++; }
+
+            var neg     = Math.Max(0, target - acc);
+            var display = Peek(grid, "DisplayData")!;
+
+            Poke(grid, "NegVerticalOffset", neg);
+
+            // ⚠️ Only when the FIRST ROW changes, and defensively. UpdateDisplayedRows expects to be
+            // called from inside a layout pass; asking it to rebuild the displayed set from outside
+            // one can leave DisplayData inconsistent with its own list. A part-scroll within the
+            // same row needs no rebuild anyway -- the arrange picks it up from NegVerticalOffset.
+            if (I(Peek(display, "FirstScrollingSlot")) != slot)
             {
-                want = known;
+                try
+                {
+                    grid.GetType().GetMethod("UpdateDisplayedRows", Any)!
+                        .Invoke(grid, [slot, D(Peek(grid, "CellsEstimatedHeight"))]);
+                }
+                catch { /* the layout pass will sort it out */ }
             }
-            else if (presenter.GetVisualChildren().OfType<Control>().FirstOrDefault() is { } content)
-            {
-                content.Measure(Size.Infinity);
-                want = content.DesiredSize.Height;
-            }
-            else return;
 
-            if (Math.Abs(presenter.ContentHeight - want) < 0.5) return;
+            Bar(target);
+        }
 
-            presenter.ContentHeight = want;
+        /// <summary>The extent, summed from measured heights rather than multiplied out from two
+        /// scalars over rows the grid has never seen.</summary>
+        private void Bar(double at)
+        {
+            if (Peek(grid, "_vScrollBar") is not { } bar) return;
 
-            // The scroll walk reads DesiredSize, which only a Measure refreshes -- InvalidateMeasure
-            // merely schedules one, and the walk is synchronous.
-            row.InvalidateMeasure();
-            presenter.InvalidateMeasure();
-            row.Measure(Size.Infinity);
+            var cells = D(Peek(grid, "CellsEstimatedHeight"));
+            var max   = Math.Max(0, Total() - cells);
 
-            // ⚠️ The row caches the same figure privately and ArrangeOverride writes it back over
-            // ContentHeight, so both have to move or the next arrange undoes this.
-            Poke(row, "_detailsDesiredHeight", want);
-            Pushed++;
+            Poke(bar, "Maximum", max);
+            Poke(bar, "ViewportSize", cells);
+            Poke(bar, "Value", Math.Clamp(at, 0, max));
         }
 
         public void Apply()
@@ -230,37 +289,104 @@ public static class Program
 
             foreach (var row in grid.GetVisualDescendants().OfType<DataGridRow>())
             {
-                if (row.DataContext is not Row item || row.Bounds.Height <= 1) continue;
+                if (row.DataContext is not Row || row.Bounds.Height <= 1 || row.Index < 0) continue;
 
                 var presenter = row.AreDetailsVisible
                     ? row.GetVisualDescendants().OfType<DataGridDetailsPresenter>().FirstOrDefault()
                     : null;
 
                 var drawer = presenter is { Bounds.Height: > 1 } ? presenter.Bounds.Height : 0;
-                if (drawer > 0) { drawers.Add(drawer); _drawers[item.Key] = drawer; }
+                if (drawer > 0) drawers.Add(drawer);
 
                 var body = row.Bounds.Height - drawer;
                 if (body > 1) bodies.Add(body);
+
+                // ⚠️ A height is only recorded once TWO passes agree on it, and only while the row is
+                // settled -- its arranged bounds and its measured size matching. A recycled row can
+                // be consistently wrong for a pass, reporting the height of whichever row was in it
+                // before, and one bad sample poisons the table for good: row 0 went into it at 1231,
+                // row 7 height, against its real 1292, and every later step across that boundary
+                // moved 111px for a 50px ask.
+                if (Math.Abs(row.DesiredSize.Height - row.Bounds.Height) >= 0.5) continue;
+
+                var h = row.Bounds.Height;
+                if (_seen.TryGetValue(row.Index, out var once) && Math.Abs(once - h) < 0.5)
+                    _heights[row.Index] = h;
+
+                _seen[row.Index] = h;
             }
 
-            if (!Pin || bodies.Count == 0) return;
+            if (bodies.Count == 0) return;
 
-            Poke(grid, "RowHeightEstimate", bodies.Average());
-            Poke(grid, "RowDetailsHeightEstimate", drawers.Count > 0 ? drawers.Average() : 0d);
-            Poke(grid, "_lastEstimatedRow", int.MaxValue);
+            _meanBody   = bodies.Average();
+            _meanDrawer = drawers.Count > 0 ? drawers.Average() : 0;
+
+            if (Pin)
+            {
+                Poke(grid, "RowHeightEstimate", _meanBody);
+                Poke(grid, "RowDetailsHeightEstimate", _meanDrawer);
+                Poke(grid, "_lastEstimatedRow", int.MaxValue);
+            }
+
+            if (!Reconcile) return;
+
+            var mine = _offset;
+            var theirs = D(Peek(grid, "_verticalOffset"));
+
+            // ⚠️ Ours only while the two are CLOSE. The grid loses a little of the offset whenever
+            // its walk reaches the first row -- it assigns NegVerticalOffset outright -- so a 50px
+            // ask came back as a 111px move. But it also relocates wholesale (snapping to the
+            // bottom, resetting to the top), and overriding those would mean moving the displayed
+            // set a long way from outside a layout pass, which corrupts DisplayData. So small
+            // disagreements are ours to correct and large ones are the grid relocating: resync.
+            var span = _meanBody + _meanDrawer;
+            if (mine < 0 || Math.Abs(mine - theirs) > span) mine = theirs;
+
+            Place(mine);
         }
     }
 
     // ── Driving and measuring ────────────────────────────────────────────────
 
+    // ⚠️ Ends with Apply, not with a layout pass. The grid rewrites the scrollbar maximum from
+    // its own arithmetic on every layout, so a pass that finishes with RunJobs leaves the wrong
+    // figure standing.
     private static void Pump(Fix fix, int passes = 3)
     {
         for (var i = 0; i < passes; i++)
         {
             Dispatcher.UIThread.RunJobs();
             fix.Apply();
-            Dispatcher.UIThread.RunJobs();
         }
+    }
+
+    /// <summary>
+    /// The elements the grid is ACTUALLY displaying, read out of DisplayData rather than off the
+    /// visual tree: recycled rows linger in the tree holding stale Index values, and reading those
+    /// hides the very discrepancy being looked for. Desired size is what the scroll walk uses;
+    /// bounds are what was drawn. They should agree.
+    /// </summary>
+    private static string Displayed(DataGrid grid)
+    {
+        var display = Peek(grid, "DisplayData")!;
+        var first   = I(Peek(display, "FirstScrollingSlot"));
+        var last    = I(Peek(display, "LastScrollingSlot"));
+        if (first < 0 || last < first) return "";
+
+        var get   = display.GetType().GetMethod("GetDisplayedElement", Any);
+        var parts = new List<string>();
+
+        for (var slot = first; slot <= last; slot++)
+        {
+            if (get?.Invoke(display, [slot]) is not Control c) continue;
+
+            var open  = c is DataGridRow { AreDetailsVisible: true } ? "*" : "";
+            var want  = c.DesiredSize.Height;
+            var have  = c.Bounds.Height;
+            var flag  = Math.Abs(want - have) > 1 ? "!" : "";
+            parts.Add($"{slot}{open}:{want:F0}/{have:F0}{flag}");
+        }
+        return string.Join(" ", parts);
     }
 
     private static Step Read(DataGrid grid, List<Row> rows)
@@ -279,9 +405,7 @@ public static class Program
             bar is null ? 0 : D(Peek(bar, "Value")),
             D(Peek(grid, "RowHeightEstimate")), D(Peek(grid, "RowDetailsHeightEstimate")),
             above + neg,
-            string.Join(" ", grid.GetVisualDescendants().OfType<DataGridRow>()
-                .Where(r => r.IsVisible).OrderBy(r => r.Index)
-                .Select(r => r.Index + (r.AreDetailsVisible ? "*" : "") + ":" + r.Bounds.Height.ToString("F0"))));
+            Displayed(grid));
     }
 
     /// <summary>Positive scrolls up: UpdateScroll turns delta.Y into -delta.Y of offset.</summary>
@@ -303,8 +427,8 @@ public static class Program
     {
         var rows  = BuildRows();
         var truth = rows.Sum(r => r.TrueHeight);
-        var grid  = BuildGrid(rows, stale);
-        var fix   = new Fix(grid) { Pin = pin, FixStale = stale };
+        var grid  = BuildGrid(rows, false);
+        var fix   = new Fix(grid, rows) { Pin = pin, Reconcile = stale };
         grid.LoadingRow += (_, e) => fix.OnRowLoading(e.Row);
 
         var window = new Window { Width = 900, Height = Viewport, Content = grid };
@@ -312,13 +436,14 @@ public static class Program
         Pump(fix, 8);
 
         // Down to the bottom the way a person gets there.
-        for (var i = 0; i < 500; i++) { Wheel(grid, -step); Pump(fix, 2); }
+        for (var i = 0; i < 500; i++) { Wheel(grid, -step); fix.Request(step); Pump(fix, 2); }
 
         var steps = new List<Step> { Read(grid, rows) };
 
         for (var i = 0; i < 500; i++)
         {
             if (mode == "wheel") Wheel(grid, step); else Drag(grid, -step);
+            fix.Request(-step);
             Pump(fix, 2);
 
             var s = Read(grid, rows);
@@ -331,6 +456,16 @@ public static class Program
                 Console.WriteLine($"      off={s.Offset,8:F0} neg={s.Neg,7:F0} first={s.First,3} " +
                                   $"true={s.TrueAbove,8:F0} sbMax={s.SbMax,8:F0} sbVal={s.SbVal,8:F0} " +
                                   $"rowEst={s.RowEst,7:F1} detEst={s.DetEst,7:F1} | {s.Rows}");
+
+        // A step that moves the view the WRONG WAY is what a person sees as the flicker.
+        var jump    = 0.0;
+        var reverse = 0;
+        for (var i = 1; i < steps.Count - 1; i++)
+        {
+            var moved = steps[i].TrueAbove - steps[i - 1].TrueAbove;
+            jump = Math.Max(jump, Math.Abs(moved));
+            if (moved > 0.5) reverse++;
+        }
 
         var stuck = 0;
         for (var i = 1; i < steps.Count; i++)
@@ -346,7 +481,8 @@ public static class Program
             steps.Max(s => Math.Abs(s.Offset - s.TrueAbove)),
             stuck,
             steps.Count(s => Math.Abs(s.SbVal - s.Offset) > 1),
-            steps.Count(s => s.RowEst < 1));
+            steps.Count(s => s.RowEst < 1),
+            jump, step, reverse);
     }
 
     public static int Main(string[] args)
@@ -366,17 +502,22 @@ public static class Program
         foreach (var (mode, step) in new[] { ("wheel", 50.0), ("drag", 50.0), ("drag", 600.0) })
         {
             Console.WriteLine($"{mode} {step:F0}px:");
-            foreach (var (label, pin, stale) in new[] { ("stock Avalonia", false, false), ("estimates pinned", true, false), ("pinned + bound drawer", true, true), ("bound drawer only", false, true) })
+            foreach (var (label, pin, stale) in new[] { ("stock Avalonia", false, false), ("estimates pinned", true, false), ("pinned + reconciled", true, true), ("reconciled only", false, true) })
             {
                 var r = Run(label, pin, stale, mode, step, trace);
                 Console.WriteLine(r);
-                faults += r.Faults;
+
+                // Only the candidate is graded. The other three are controls and are SUPPOSED to
+                // fail -- they are what the fix is being measured against.
+                if (pin && stale) faults += r.Faults;
             }
             Console.WriteLine();
         }
 
-        Console.WriteLine("stale pushes = " + Fix.Pushed);
-        Console.WriteLine("total faults = " + faults);
+
+        Console.WriteLine(faults == 0
+            ? "CLEAN - the candidate has no faults in any mode."
+            : "FAULTS = " + faults + " in the candidate.");
         return faults == 0 ? 0 : 1;
     }
 }
