@@ -1078,15 +1078,26 @@ public class BuildCostService
 
         using var handle = _log.StartCall(defaultPark.Name, "build.costs");
         var now     = DateTime.UtcNow;
+        // ⚠️ Rounded HERE, once, not wherever a column happens to show it. A chain cost is a
+        // division carried through however many tiers the item has — 277493.49010615459901787151515
+        // for a rig — and every screen reading the table would otherwise have to remember to trim
+        // it, which the asset grid did not. ISK is quoted to two places in game; the stored figure
+        // now says the same.
+        //
+        // Away from zero rather than the default banker's rounding: a cost is money, and a half
+        // ISK that sometimes rounds down and sometimes up is harder to reconcile than one that
+        // always rounds the same way.
+        static decimal Isk(decimal v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
+
         var results = productMap.Keys
             .Where(tid => unitCosts.ContainsKey(tid))
             .Select(tid => new BuildCost
             {
                 TypeId       = tid,
                 TypeName     = typeNames.TryGetValue(tid, out var n) ? n : "",
-                TotalCost    = unitCosts[tid],
-                MaterialCost = rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m,
-                JobCost      = totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m,
+                TotalCost    = Isk(unitCosts[tid]),
+                MaterialCost = Isk(rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m),
+                JobCost      = Isk(totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m),
                 BuildSeconds = buildSeconds.TryGetValue(tid, out var bs) ? bs : 0.0,
                 Bought       = boughtTypes.Contains(tid),
                 UpdatedAt    = now,

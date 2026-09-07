@@ -37,7 +37,24 @@ public record CollectionOption(int? CollectionId, string Name)
 
 public class InvCollectionRow : ReactiveObject
 {
-    public IBrush RowBackground => Palette.SurfaceBase;
+    /// <summary>
+    /// The worst shortfall among the rows this one is hiding, as a tint.
+    ///
+    /// <para>⚠️ Only while COLLAPSED. Expanded, the rows say it themselves and colouring the
+    /// header as well would double the signal; collapsed, the header is the only thing on screen
+    /// and a group that is fine looked identical to one hiding a red row.</para>
+    /// </summary>
+    public IBrush RowBackground =>
+        IsExpanded || WorstSeverity == 0 ? Palette.SurfaceBase
+      : WorstSeverity >= 2                ? Palette.BadSurface
+                                          : Palette.WarnSurface;
+
+    private int _worstSeverity;
+    public int WorstSeverity
+    {
+        get => _worstSeverity;
+        set { this.RaiseAndSetIfChanged(ref _worstSeverity, value); this.RaisePropertyChanged(nameof(RowBackground)); }
+    }
 
     public bool IsCollection => true;
     public bool IsGroup      => false;
@@ -61,6 +78,7 @@ public class InvCollectionRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpanderIcon));
+            this.RaisePropertyChanged(nameof(RowBackground));
         }
     }
     public string ExpanderIcon => IsExpanded ? "▼" : "▶";
@@ -92,7 +110,27 @@ public class InvCollectionRow : ReactiveObject
 
 public class InvGroupRow : ReactiveObject
 {
-    public IBrush RowBackground => Palette.SurfacePanelAlt;
+    /// <summary>
+    /// The worst shortfall among the rows this one is hiding, as a tint.
+    ///
+    /// <para>⚠️ Only while COLLAPSED. Expanded, the rows say it themselves and colouring the
+    /// header as well would double the signal; collapsed, the header is the only thing on screen
+    /// and a group that is fine looked identical to one hiding a red row.</para>
+    /// </summary>
+    public IBrush RowBackground =>
+        IsExpanded || WorstSeverity == 0 ? Palette.SurfacePanelAlt
+      : WorstSeverity >= 2                ? Palette.BadSurface
+                                          : Palette.WarnSurface;
+
+    /// <summary>The worst Severity among AllItems, pushed in by the view model after every
+    /// availability refresh — the items know their own state, but only the tree knows which of
+    /// them belong to whom.</summary>
+    private int _worstSeverity;
+    public int WorstSeverity
+    {
+        get => _worstSeverity;
+        set { this.RaiseAndSetIfChanged(ref _worstSeverity, value); this.RaisePropertyChanged(nameof(RowBackground)); }
+    }
 
     public bool IsCollection => false;
     public bool IsGroup      => true;
@@ -125,6 +163,7 @@ public class InvGroupRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpanderIcon));
+            this.RaisePropertyChanged(nameof(RowBackground));
         }
     }
     public string ExpanderIcon => IsExpanded ? "▼" : "▶";
@@ -360,10 +399,22 @@ public class InvItemRow : ReactiveObject
     /// shows that, and only a healthy row is banded.</para>
     /// </summary>
     public IBrush RowBackground =>
-        Diff <  0 && DiffPct <  -50 ? RowRed
-      : Diff <  0                   ? RowOrange
-      : IsAltRow                    ? RowBand
-                                    : RowClear;
+        Severity >= 2 ? RowRed
+      : Severity >= 1 ? RowOrange
+      : IsAltRow      ? RowBand
+                      : RowClear;
+
+    /// <summary>
+    /// How badly this row is short: 0 fine, 1 under target, 2 under by more than half.
+    ///
+    /// <para>The tint as a NUMBER, so a collapsed group can take the worst of the rows it is
+    /// hiding. Two places deriving the same three bands from Diff and DiffPct is how they end up
+    /// disagreeing about where amber becomes red.</para>
+    /// </summary>
+    public int Severity =>
+        Diff < 0 && DiffPct < -50 ? 2
+      : Diff < 0                  ? 1
+                                  : 0;
 
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
@@ -380,7 +431,37 @@ public class InvItemRow : ReactiveObject
         _targetQty       = item.TargetQuantity;
         _groupMultiplier = Math.Max(1, groupMultiplier);
         _svc             = svc;
+        _isBlueprint     = meta.IsBlueprint;
         DeleteCommand    = ReactiveCommand.CreateFromTask(delete);
+    }
+
+    // ── Icon ──────────────────────────────────────────────────────────────────
+
+    private readonly bool _isBlueprint;
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>
+    /// Fetches the item image, off the UI thread, once.
+    ///
+    /// <para>⚠️ /bp for a blueprint and /icon for everything else. The image server does not fall
+    /// back between them: ask for the wrong one and the row gets a blank rather than a
+    /// placeholder, which is how a grid of blueprints ends up with no pictures at all.</para>
+    /// </summary>
+    public async Task LoadIconAsync()
+    {
+        if (TypeId <= 0 || _icon is not null) return;
+
+        var variant = _isBlueprint ? "bp" : "icon";
+        var bmp = await EveImageCache.GetAsync(
+            $"https://images.evetech.net/types/{TypeId}/{variant}?size=32");
+
+        if (bmp is not null) Avalonia.Threading.Dispatcher.UIThread.Post(() => Icon = bmp);
     }
 
     public void UpdateAvailable(InvAvailability avail)
@@ -624,6 +705,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 var m = meta.GetValueOrDefault(item.TypeId,
                     new InvTypeMeta(item.TypeId.ToString(), 0, null, null));
                 var itemRow = new InvItemRow(item, m, _svc, () => DeleteItemAsync(item.Id), g.Multiplier);
+                _ = itemRow.LoadIconAsync();
                 row.AllItems.Add(itemRow);
             }
             SortItemsAlpha(row);
@@ -682,6 +764,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             var a = avail.GetValueOrDefault(itemRow.TypeId, new InvAvailability(0, 0, 0));
             itemRow.UpdateAvailable(a);
         }
+
+        RefreshRowTints();
     }
 
     // ── Fit selector helpers ──────────────────────────────────────────────────
@@ -843,6 +927,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
             var itemRow = new InvItemRow(item, meta, _svc,
                 () => DeleteItemAsync(item.Id), groupRow.Multiplier);
+            _ = itemRow.LoadIconAsync();
             groupRow.AllItems.Add(itemRow);
             added++;
         }
@@ -983,6 +1068,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             .GetValueOrDefault(result.TypeId, new InvTypeMeta(result.TypeName, 0, null, null));
         var row = new InvItemRow(item, meta, _svc,
             () => DeleteItemAsync(item.Id), groupRow.Multiplier);
+        _ = row.LoadIconAsync();
         groupRow.AllItems.Add(row);
         SortItemsAlpha(groupRow);
 
@@ -1103,8 +1189,34 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 item.IsAltRow = n++ % 2 == 1;
     }
 
+    /// <summary>
+    /// Rolls each group's worst shortfall up to it, and each collection's worst group up to that.
+    ///
+    /// <para>⚠️ Pushed rather than computed by the rows. An item knows how short it is and a group
+    /// knows which items are its own, but only here is it known which groups belong to which
+    /// collection — the collection row holds an id, not a list.</para>
+    /// </summary>
+    private void RefreshRowTints()
+    {
+        foreach (var g in _allGroups)
+            g.WorstSeverity = g.AllItems.Count == 0 ? 0 : g.AllItems.Max(i => i.Severity);
+
+        int WorstOf(int? collectionId)
+        {
+            var groups = _allGroups.Where(g => g.CollectionId == collectionId).ToList();
+            return groups.Count == 0 ? 0 : groups.Max(g => g.WorstSeverity);
+        }
+
+        foreach (var col in _allCollections)
+            col.WorstSeverity = WorstOf(col.CollectionId);
+
+        if (_defaultCollRow is not null) _defaultCollRow.WorstSeverity = WorstOf(null);
+    }
+
     private void RebuildGridRows()
     {
+        RefreshRowTints();
+
         var desired = new List<object>();
 
         void AddGroupWithItems(InvGroupRow g)

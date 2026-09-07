@@ -259,10 +259,19 @@
                      Canvas positions its direct children, and leaving them on the text would
                      stack every item name at the origin. -->
                 <Button IsVisible="{Binding IsItem}" Classes="link" Click="OnOpenItem"
-                        Canvas.Left="32" Canvas.Top="5"
+                        Canvas.Left="32" Canvas.Top="2"
                         ToolTip.Tip="Open in the Item Browser">
-                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                             FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <!-- Sized to the row rather than the source: the image is fetched at 32 and
+                         drawn at 18, so it stays sharp on a scaled display. No placeholder while
+                         it loads — an empty box that fills in reads worse than a name that gains
+                         a picture. -->
+                    <Image Source="{Binding Icon}" Width="18" Height="18"
+                           VerticalAlignment="Center" IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                               FontSize="11" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                  </StackPanel>
                 </Button>
               </Canvas>
             </DataTemplate>

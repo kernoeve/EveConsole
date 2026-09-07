@@ -19,7 +19,11 @@ public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders, lo
     public long Total => Assets + IndustryJobs + BuyOrders + Contracts;
 }
 
-public record InvTypeMeta(string Name, double Volume, double? MarketPrice, double? BuildPrice);
+/// <param name="IsBlueprint">⚠️ Which image the icon comes from. EVE's image server serves a
+/// blueprint under /bp and everything else under /icon, and asking for the wrong one gets a
+/// blank rather than a fallback.</param>
+public record InvTypeMeta(
+    string Name, double Volume, double? MarketPrice, double? BuildPrice, bool IsBlueprint = false);
 
 public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 {
@@ -546,6 +550,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             .Select(t => new { t.TypeId, t.Name, t.Volume })
             .ToListAsync(ct);
 
+        var blueprints = await BlueprintTypeIdsAsync(db, ids, ct);
+
         var buildCosts = await db.BuildCosts
             .Where(b => ids.Contains(b.TypeId))
             .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
@@ -592,7 +598,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 t.Name,
                 t.Volume,
                 MarketValue(t.TypeId),
-                buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null));
+                buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null,
+                blueprints.Contains(t.TypeId)));
     }
 
     public async Task<Dictionary<int, string>> GetTypeNamesAsync(
