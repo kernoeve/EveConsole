@@ -212,7 +212,8 @@ public class HaulPressureService(
                     from.Count == 1 ? "1 stop" : $"{from.Count:N0} stops",
                     $"short {sh.Short:N0} of {sh.Wanted:N0}, "
                   + $"{sh.Short * volumes.GetValueOrDefault(sh.TypeId):N0} m3 — from {name}"
-                  + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""));
+                  + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""),
+                    sh.TypeId);
             }));
 
             detail.AddRange(moving.Select(h => new ShortageTask(

@@ -58,7 +58,8 @@ public static class TaskChain
                     "Stopped", hop, task.TypeName, task.Title,
                     task.Readiness.ToString(),
                     $"short {sh.Short:N0} of {sh.Wanted:N0} {sh.TypeName}"
-                  + (sh.MustBuy ? "" : " (owned, but not where the job is)")));
+                  + (sh.MustBuy ? "" : " (owned, but not where the job is)"),
+                    task.TypeId));
 
                 if (task.TypeId > 0 && types.Add(task.TypeId)) queue.Enqueue((task.TypeId, hop + 1));
             }

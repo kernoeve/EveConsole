@@ -504,8 +504,27 @@ public sealed class SlotPressureRowVm(SlotPressure p)
 /// whether a buffer is the right size.</para>
 /// </summary>
 /// <summary>One line of the expanded contention row.</summary>
-public sealed class ShortageTaskRowVm(ShortageTask t)
+public sealed class ShortageTaskRowVm : ReactiveObject
 {
+    private readonly ShortageTask t;
+
+    public ShortageTaskRowVm(ShortageTask task)
+    {
+        t = task;
+        _ = ItemIcons.LoadAsync(t.TypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>⚠️ The SLOT, not the arrival. Reserved from the first measure so the picture
+    /// landing later cannot change the size of a row the grid has already sized.</summary>
+    public bool HasIcon => t.TypeId > 0;
+
     public string Title => t.Title;
     public string Why   => t.Why;
     public string State => t.State;
