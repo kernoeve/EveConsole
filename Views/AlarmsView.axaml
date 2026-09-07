@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.AlarmsView"
              x:DataType="vm:AlarmsViewModel"
              Background="#0d0d12">
@@ -37,7 +38,7 @@
     <Border Grid.Row="0" Background="#12121a" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
       <StackPanel Spacing="5">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto">
         <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Alarm" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
                 Content="Refresh" Margin="8 0 0 0" />
@@ -45,9 +46,19 @@
                    VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
         <TextBlock Grid.Column="4" Text="{Binding Service.StatusText}" FontSize="10.5"
                    Foreground="#4a4a5a" VerticalAlignment="Center" Margin="12 0 0 0" />
+
+        <!-- Muting this machine, where the alarms themselves are edited. The same state the
+             beacon's right-click menu changes — this is a second way to reach it, not a second
+             copy of it. -->
+        <Button Grid.Column="5" x:Name="MuteButton" Classes="tool"
+                Content="{Binding AlarmsMuteText}" Margin="12 0 0 0"
+                Click="OnMuteClick"
+                Foreground="{Binding AlarmsMuted,
+                             Converter={x:Static views:AlarmMuteBrushConverter.Instance}}"
+                ToolTip.Tip="Sound, dialogs and agent notifications on this machine only. Alerts go on being recorded either way, and other clients are unaffected." />
       </Grid>
-        <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
-                   FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap" Margin="1 0 0 0" />
+        <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
+                   FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
 

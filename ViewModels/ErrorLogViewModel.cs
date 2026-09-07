@@ -20,6 +20,9 @@ public class ErrorLogRowVm
     public string Message  { get; }
     public string Inner    { get; }
 
+    /// <summary>Which client wrote the row. Blank on anything logged before the columns existed.</summary>
+    public string Client   { get; }
+
     // Combined message shown in the detail pane.
     public string Detail => Inner.Length > 0 ? $"{Message}\n\nInner: {Inner}" : Message;
 
@@ -32,6 +35,12 @@ public class ErrorLogRowVm
         Context    = e.Context;
         Message    = e.Message;
         Inner      = e.InnerMessage ?? "";
+
+        // ⚠️ Host and kind together, as one column. Either alone is ambiguous: one machine can run
+        // a desktop client and the worker at once, and "headless" says nothing about where.
+        Client     = e.HostName.Length == 0 ? ""
+                   : e.Headless            ? $"{e.HostName} (worker)"
+                   :                          e.HostName;
     }
 }
 

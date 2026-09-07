@@ -186,6 +186,10 @@ public class AppDbContext : DbContext
     public DbSet<SdeSkinType>           SdeSkinTypes           => Set<SdeSkinType>();
     public DbSet<SdeSkinLicense>        SdeSkinLicenses        => Set<SdeSkinLicense>();
 
+    // ── Which client is doing the background work ────────────────────────────
+    public DbSet<BackgroundWorkerStatus> BackgroundWorkerStatuses => Set<BackgroundWorkerStatus>();
+    public DbSet<WorkerActivity>         WorkerActivities         => Set<WorkerActivity>();
+
     // ── Hoboleaks complementary data ─────────────────────────────────────────
     public DbSet<HoboBuildInfo>          HoboBuildInfos          => Set<HoboBuildInfo>();
     public DbSet<HoboBlueprint>          HoboBlueprints          => Set<HoboBlueprint>();
@@ -546,6 +550,25 @@ public class AppDbContext : DbContext
         // ── Market Levels ────────────────────────────────────────────────
         mb.Entity<MarketLevelGroup>(e => { e.HasKey(x => x.Id); });
         mb.Entity<MarketLevelItem>(e =>  { e.HasKey(x => x.Id); });
+
+        // ── Which client is doing the background work — single row, always Id = 1 ──
+
+        // ⚠️ Named explicitly. EF takes the table name from the DbSet property, which would make
+        // this "BackgroundWorkerStatuses" — while the DDL and every raw statement in WorkerLease
+        // say "BackgroundWorkerStatus". A dev database hides that completely: PostgresSchema
+        // created the singular one and the raw SQL finds it. A fresh EnsureCreated would build the
+        // plural one beside it and leave the two halves of this feature reading different tables.
+        mb.Entity<BackgroundWorkerStatus>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("BackgroundWorkerStatus"); });
+
+        // ── What each background loop is doing, for windows on the other clients ──
+
+        mb.Entity<WorkerActivity>(e => {
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).ValueGeneratedNever();
+            e.ToTable("WorkerActivity"); });
 
         // ── Hoboleaks tables ─────────────────────────────────────────────
 

@@ -8,6 +8,7 @@ using EveConsole.Views;
 using EveConsole.ViewModels;
 using EveConsole.Auth;
 using EveConsole.Api;
+using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
 using LiveChartsCore;
@@ -29,6 +30,24 @@ public class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        try { await StartupAsync(); }
+        catch (Exception ex) when (AppRuntime.IsHeadless)
+        {
+            // ⚠️ Loud and fatal, because the alternative is what this replaced: a worker whose
+            // startup threw, whose splash does not exist to show it, and which then sat in its
+            // dispatcher loop forever looking perfectly alive. A service manager cannot tell that
+            // apart from a healthy one, so it never restarts it and nobody is told anything.
+            Console.Error.WriteLine($"EVE Console {AppVersion.Display} failed to start.");
+            for (var e = ex; e is not null; e = e.InnerException)
+                Console.Error.WriteLine($"  {e.GetType().Name}: {e.Message.Split('\n')[0].TrimEnd()}");
+
+            Console.Error.Flush();
+            Environment.Exit(1);
+        }
+    }
+
+    private async Task StartupAsync()
+    {
         // ── Splash and pending shrink, before anything else ────────────────────
         //
         // ⚠️ Order matters and cost two failed attempts to get right. The shrink rebuilds the
@@ -43,7 +62,17 @@ public class App : Application
         // the user to launch a second copy — which is the one thing that must not happen while
         // the file is being replaced.
         SplashWindow? splash = null;
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
+
+        // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
+        // process shows an icon and waits; a progress window flashing up at logon for something the
+        // user did not launch would be the most annoying possible way to start.
+        if (AppRuntime.IsTray && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayStartup)
+        {
+            // Nothing else keeps this process alive — there is no window, and OnLastWindowClose
+            // would end it the moment startup finished.
+            trayStartup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+        }
+        else if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
         {
             // Kept alive by the splash until the main window takes over.
             startup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
@@ -204,9 +233,48 @@ public class App : Application
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            errorLogger.Log("TaskScheduler", "UnobservedTaskException",
-                e.Exception.Message, e.Exception.ToString());
+            // First, and unconditionally: whatever this handler decides to do about the message,
+            // the task has been dealt with.
             e.SetObserved();
+
+            var flat = e.Exception.Flatten();
+
+            // ⚠️ Dropped rather than logged, and this is the one case that earns it. Avalonia asks
+            // the session bus for the desktop's tray, global menu and portal services; a desktop
+            // that offers none of them answers ServiceUnknown, on a fire-and-forget task nobody
+            // observes. It is permanent, it is correct, and there is nothing to do about it — the
+            // application works fine without those integrations. Logging it means an error the user
+            // cannot act on, arriving forever, in the log they go to when something is actually
+            // wrong.
+            //
+            // ⚠️ Matched by name rather than by type. Tmds.DBus arrives transitively through
+            // Avalonia.FreeDesktop; referencing the type here would make this file depend on a
+            // package nothing else names, and would break the Windows build differently from the
+            // Linux one.
+            if (IsAbsentDesktopService(flat)) return;
+
+            // ⚠️ The innermost message as the headline. Every one of these arrives wrapped in the
+            // same "A Task's exception(s) were not observed…" sentence, so the log was a column of
+            // identical rows with the actual fault — a locked database, a disposed listener, a
+            // broken Rx pipeline — visible only by opening the detail on each one. The full chain
+            // is still kept beside it.
+            var cause = Innermost(flat.InnerExceptions.Count > 0 ? flat.InnerExceptions[0] : flat);
+
+            errorLogger.Log("TaskScheduler", "UnobservedTaskException",
+                $"{cause.GetType().Name}: {cause.Message.Split('\n')[0]}", e.Exception.ToString());
+
+            static Exception Innermost(Exception ex)
+            {
+                while (ex.InnerException is { } inner) ex = inner;
+                return ex;
+            }
+
+            static bool IsAbsentDesktopService(AggregateException flat) =>
+                flat.InnerExceptions.Count > 0 &&
+                flat.InnerExceptions.Select(Innermost).All(x =>
+                    x.GetType().FullName?.StartsWith("Tmds.DBus", StringComparison.Ordinal) == true &&
+                    (x.Message.Contains("ServiceUnknown",  StringComparison.Ordinal) ||
+                     x.Message.Contains("NameHasNoOwner",  StringComparison.Ordinal)));
         };
 
         EsiPollingService?    polling       = null;
@@ -222,11 +290,24 @@ public class App : Application
         ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        // The tray reports; it does not work. Nothing below it is wanted there.
+        if (!AppRuntime.IsTray)
+        // ⚠️ NOT conditioned on a desktop lifetime, and that was a real bug for as long as it was.
+        // Everything below is background work — the services themselves, the chat-log hook that
+        // feeds intel and alarms, token refresh, and the build-cost and price-history recalcs — and
+        // a headless worker or Windows service has no lifetime at all. Guarded, every one of these
+        // locals stayed null there, so StartLeaderServices ran `polling?.Start()` against nothing
+        // and the worker held the lease while doing absolutely no work. It reported itself
+        // perfectly healthy the whole time, because everything it was asked to start was null.
+        //
+        // Only the two genuinely desktop-shaped statements are conditioned now, where they occur.
         {
-            // Keep the app alive via OnLastWindowClose while only the splash is open.
-            // We switch back to OnMainWindowClose once the main window is shown.
-            desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startupLifetime)
+            {
+                // Keep the app alive via OnLastWindowClose while only the splash is open.
+                // We switch back to OnMainWindowClose once the main window is shown.
+                startupLifetime.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
+            }
 
             polling       = Services.GetRequiredService<EsiPollingService>();
             marketPricing = Services.GetRequiredService<MarketPricingService>();
@@ -296,7 +377,10 @@ public class App : Application
             contracts.AfterPricing += ct => typePriceHistory.RecalculateAsync(ct);
             contracts.AfterPricing += ct => lpValues.RecalculateAsync(ct);
 
-            desktop.ShutdownRequested += async (_, e) =>
+            // Desktop only: a worker has no lifetime to hang this on, and stops through its own
+            // signal handler instead — see Program.RunHeadless and WindowsServiceHost.
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                desktop.ShutdownRequested += async (_, e) =>
             {
                 e.Cancel = true;
                 var tasks = new List<Task>();
@@ -308,8 +392,194 @@ public class App : Application
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
                 await Task.WhenAll(tasks);
+
+                // ⚠️ After the pollers, never before. Releasing first would invite another
+                // client to start polling while this one is still finishing a pass, which is
+                // precisely the overlap the lease exists to prevent. The server would drop the
+                // lock on exit anyway; doing it here is what makes a handover take a tick
+                // instead of however long the OS takes to notice the process is gone.
+                Services.GetRequiredService<WorkerLease>().Stop();
+                Services.GetRequiredService<ClientSignals>().Stop();
+
+                // Closes every window synchronously — which is what saves the window geometry —
+                // and then ends the dispatcher loop.
                 desktop.Shutdown();
+
+                // ⚠️ And off Windows the process stops HERE, before Avalonia unwinds its platform.
+                // That teardown disposes the D-Bus connection it keeps for the tray and the desktop
+                // portal, and the disconnect notice is marshalled to the dispatcher with a
+                // SYNCHRONOUS Send — which the dispatcher, already shutting down, answers with a
+                // cancelled operation. It lands on a thread pool thread as an unhandled
+                // TaskCanceledException and aborts the process with SIGABRT, after everything above
+                // has already finished: the lease released, the pollers stopped, the geometry saved.
+                // Nothing in that sequence is ours to fix, so the choice is simply not to enter it.
+                if (!OperatingSystem.IsWindows()) AppLauncher.ExitNow();
             };
+        }
+
+        // ── Tray: an icon in somebody's session, and nothing else ──────────────
+        //
+        // ⚠️ Returns before the lease is touched, and that is the whole point. This process exists
+        // to report on the worker and must never become one: a tray icon that quietly picked up
+        // the background work because the service happened to be down would be running all of it
+        // from the one place nobody would think to look — and would keep the real worker out when
+        // it came back. It does not own the schema either, so it returns before that too.
+        if (AppRuntime.IsTray)
+        {
+            Start("client signals", () =>
+            {
+                var signals  = Services.GetRequiredService<ClientSignals>();
+                var activity = Services.GetRequiredService<WorkerActivityService>();
+
+                // ⚠️ The activity board only. Alarm signals reach this process and are deliberately
+                // dropped: closing the desktop client is how somebody turns notifications off, and
+                // a tray icon that went on sounding them would have taken that decision away. What
+                // this listens for is what the Background Processes window needs to stay live.
+                signals.Received += payload => activity.TryApplySignal(payload);
+                signals.Start();
+            });
+
+            Start("tray icon", () =>
+            {
+                var tray = Services.GetRequiredService<TrayIconController>();
+
+                // The monitoring view without the application around it — the reason somebody
+                // would leave this icon running at all.
+                tray.ShowBackgroundProcesses = () =>
+                {
+                    try
+                    {
+                        var window = new Views.ApiActivityWindow
+                        { DataContext = Services.GetRequiredService<ApiActivityViewModel>() };
+                        window.Show();
+                        window.Activate();
+                    }
+                    catch (Exception ex) { errorLogger.Log("Tray", "opening background processes", ex); }
+                };
+
+                // No window of our own to restore, so "Open EVE Console" starts a copy — which is
+                // what somebody clicking it means by it.
+                tray.ShowWindow = () =>
+                {
+                    try
+                    {
+                        // Through AppLauncher: under an AppImage this process runs out of a temporary
+                        // mount, so the copy to start is the .AppImage file the user actually launched —
+                        // and on Linux UseShellExecute would hand it to xdg-open rather than run it.
+                        EveConsole.Services.AppLauncher.Start();
+                    }
+                    catch (Exception ex) { errorLogger.Log("Tray", "opening the application", ex); }
+                };
+
+                tray.Quit = () =>
+                {
+                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayLifetime)
+                        trayLifetime.Shutdown();
+                    else
+                        Environment.Exit(0);
+                };
+
+                tray.Show();
+            });
+
+            return;
+        }
+
+        // ── Who owns the background work, and therefore the schema? ────────────
+        //
+        // ⚠️ Bringing the schema up IS the start of background processing, so the right to do it
+        // belongs to whichever client holds the worker lease — not to whoever happened to start
+        // first. Asked here, before the database is touched, because everything after it depends
+        // on the answer.
+        var lease = Services.GetRequiredService<WorkerLease>();
+
+        // ⚠️ Read BEFORE the lease is taken, and the order is not cosmetic. Taking the lease stamps
+        // this build's version into that same row — so reading afterwards would hand every leader
+        // its own version back and the "database is ahead" check below could never once fire.
+        //
+        // ⚠️ The RECORDED version, not a live worker's. It names the last build that owned the
+        // background processing, which is the build the schema was made by, and that is still the
+        // right answer when nothing is running now. It is, in effect, the database's own version.
+        var dbVersion = (await WorkerLease.ReadStatusAsync())?.Version;
+
+        var ownsSchema = await lease.AcquireAsync();
+        var skipSchema = !ownsSchema;
+
+        // ⚠️ What counts as fatal depends on whether anybody else is already running the
+        // background processes, because that is what decides whether this client may move the
+        // schema at all.
+        //
+        // Nothing running, so this client took the lease: only a database AHEAD of this build is
+        // fatal. It carries schema changes this build knows nothing about, and migrating never
+        // moves a schema backwards. A database BEHIND it is the upgrade — this client applies its
+        // changes and stamps its own version — and that path must stay open or a database can
+        // never move forward at all.
+        //
+        // Somebody else is running them, so this client may not touch the schema: then ANY
+        // mismatch is fatal, in both directions. Behind the database is the case above. Ahead of
+        // it is just as bad and far more likely — a build normally ships with schema changes, none
+        // of them have been made, and this client cannot make them.
+        {
+            // Parsed separately rather than in one &&: short-circuiting would leave the second out
+            // parameter unassigned, and both are read below.
+            Version.TryParse(dbVersion ?? "", out var dbV);
+            Version.TryParse(AppVersion.Number, out var appV);
+
+            var fatal = dbV is not null && appV is not null
+                     && (skipSchema
+                            ? dbVersion != AppVersion.Number   // not ours to fix, either way
+                            : dbV > appV);                     // ours to upgrade, but never to undo
+
+            if (fatal)
+            {
+                // ⚠️ Fatal, with nothing to click past. Neither direction fails loudly if it is
+                // allowed to run — both fail as scattered features quietly not working, which
+                // costs far more to diagnose than not starting does.
+                var why = dbV > appV
+                    ? $"""
+                       A newer build has already changed this database in ways this one knows nothing about, and schema changes only ever move forward.
+
+                       Update this client to {dbVersion} or later.
+                       """
+                    : $"""
+                       Another client is running the background processes on {dbVersion}, and only that client may change the schema. The changes this build expects have not been made, so much of it would not work.
+
+                       Update the client running the background processes to {AppVersion.Number}, or close it and start this one first so that it takes over and applies them.
+                       """;
+
+                var message =
+                    $"""
+                     This database is at version {dbVersion}, and this client is {AppVersion.Number}.
+
+                     {why}
+                     """;
+
+                errorLogger.Log("Startup",
+                    dbV > appV ? "database is ahead of this build" : "background processes are on an older build",
+                    new InvalidOperationException(
+                        $"database is at {dbVersion}, this client is {AppVersion.Number}"));
+
+                if (splash is not null)
+                {
+                    splash.ReportProgress(0, "Stopping — version mismatch");
+                    await new FatalDialog("This build does not match the database", message)
+                        .ShowDialog(splash);
+
+                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
+                        stopping.Shutdown();
+                    else
+                        Environment.Exit(1);
+                }
+                else
+                {
+                    // Headless, or anything else with nowhere to draw. ⚠️ A non-zero code, so a
+                    // service manager sees a failed start rather than a clean one.
+                    Console.Error.WriteLine(message);
+                    Environment.Exit(1);
+                }
+
+                return;
+            }
         }
 
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
@@ -317,10 +587,20 @@ public class App : Application
         {
         p.Report((5, "Initializing database…"));
         // Ensure the database is created / migrated
+        //
+        // ⚠️ Only the client holding the worker lease reaches here with skipSchema false, and that
+        // is the whole of the concurrency story. Bringing the schema up IS the start of background
+        // processing, so the lease already serialises it: several clients can be pointed at one
+        // database and start together — after a host reboots, say — and exactly one of them holds
+        // the right to issue DDL. The rest have already checked the recorded version, found it
+        // matches, and leave the schema alone.
         using (var scope = Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
+
+            // skipSchema can only be true on PostgreSQL — it takes a second live client to set it
+            // — so the SQLite patch below needs no guard of its own.
+            if (!skipSchema) db.Database.EnsureCreated();
 
             // ⚠️ Everything below belongs to SQLite alone, and is skipped wholesale on a
             // server. Of its 158 CREATE TABLE statements 156 duplicate a table EnsureCreated has
@@ -333,7 +613,7 @@ public class App : Application
             // the seed rows — lives in PostgresSchema, in that engine's spelling.
             if (DbEngine.IsPostgres)
             {
-                PostgresSchema.Apply(db, p);
+                if (!skipSchema) PostgresSchema.Apply(db, p);
             }
             else
             {
@@ -351,6 +631,30 @@ public class App : Application
                         "BuildNumber" INTEGER NOT NULL,
                         "ReleaseDate" TEXT    NOT NULL,
                         "ImportedAt"  TEXT    NOT NULL
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "BackgroundWorkerStatus" (
+                        "Id"            INTEGER NOT NULL CONSTRAINT "PK_BackgroundWorkerStatus" PRIMARY KEY,
+                        "Version"       TEXT    NOT NULL DEFAULT '',
+                        "HostName"      TEXT    NOT NULL DEFAULT '',
+                        "ProcessId"     INTEGER NOT NULL DEFAULT 0,
+                        "Headless"      INTEGER NOT NULL DEFAULT 0,
+                        "LeaseTakenUtc" TEXT    NOT NULL DEFAULT '',
+                        "HeartbeatUtc"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "WorkerActivity" (
+                        "Key"        TEXT    NOT NULL CONSTRAINT "PK_WorkerActivity" PRIMARY KEY,
+                        "Status"     TEXT    NOT NULL DEFAULT '',
+                        "Running"    INTEGER NOT NULL DEFAULT 0,
+                        "LastRunUtc" TEXT    NULL,
+                        "NextRunUtc" TEXT    NULL,
+                        "Count"      INTEGER NULL,
+                        "UpdatedUtc" TEXT    NOT NULL DEFAULT ''
                     )
                     """);
 
@@ -1945,9 +2249,17 @@ public class App : Application
                         "Source"       TEXT    NOT NULL DEFAULT '',
                         "Context"      TEXT    NOT NULL DEFAULT '',
                         "Message"      TEXT    NOT NULL DEFAULT '',
-                        "InnerMessage" TEXT
+                        "InnerMessage" TEXT,
+                        "HostName"     TEXT    NOT NULL DEFAULT '',
+                        "Headless"     INTEGER NOT NULL DEFAULT 0
                     )
                     """);
+
+                // And for a file that already has the table. Which client wrote a row stopped being
+                // obvious the moment several of them could share one log — and while SQLite has only
+                // ever had one writer, a file copied to a server keeps its history.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "HostName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "Headless" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 // ── Standing buy orders ──────────────────────────────────────────
                 // User-declared intent; the live counterpart lives in EsiMarketOrders.
@@ -2790,13 +3102,15 @@ public class App : Application
         await timerSettings.LoadAsync();
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
+
+        // ⚠️ Immediately after the preferences load and before anything reads a log directory.
+        // The log setup used to live in the shared preferences; it is now this machine's own, and
+        // a client that has never had one adopts whatever was configured before the change so that
+        // nobody's directories quietly stop being watched.
+        Services.GetRequiredService<MonitoringSettings>().Migrate();
+
         var corpTop10Exclude = Services.GetRequiredService<CorpTop10ExcludeService>();
         await corpTop10Exclude.LoadAsync();
-
-        // Retention sweep. Started here rather than run once: each rule tracks its own last run in
-        // preferences, so one that came due while the app was closed goes almost immediately, and
-        // one whose day is not up yet waits — including across a session left open for a week.
-        Services.GetRequiredService<DataRetentionService>().Start();
 
         // ── Everything below happens while the splash is still up ──────────────
         //
@@ -2806,6 +3120,61 @@ public class App : Application
         // that must happen before the user can sensibly use the window now happens first, and the
         // progress bar reports it, so the splash is honest about the wait instead of the main
         // window being dishonest about being ready.
+        // Serialises the lease transitions below, and remembers which way the last one went.
+        // Declared here rather than beside them because a local has to be assigned before the
+        // call that reaches it, and StartBackgroundServices runs above where it is written.
+        var leaderGate    = new SemaphoreSlim(1, 1);
+        var leaderRunning = false;
+
+        // ── Headless: no window, and none of the machinery for one ─────────────
+        //
+        // ⚠️ Diverges HERE and not earlier. Everything above — config, the schema, the lease, the
+        // version check — is identical for a worker and a desktop client, and a second copy of it
+        // would be a second thing to keep in step. What a worker must not do is build the view
+        // model tree: it is every tool's state, several timers, and a chunk of memory, all for a
+        // window nobody is going to open.
+        if (AppRuntime.IsHeadless)
+        {
+            StartBackgroundServices();
+
+            var db     = DbEngine.IsPostgres ? "PostgreSQL" : "SQLite";
+            var holder = Services.GetRequiredService<WorkerLease>().IsHolder;
+
+            // Said once, then silence unless something breaks. These four lines are what somebody
+            // reads in journalctl to answer "is it up, and is it the one doing the work?" — the
+            // first question anybody asks of a service, and one a completely quiet start leaves
+            // unanswered.
+            var leaseState = holder
+                ? "this process holds the lease"
+                : "held by another client — queued at the server, and granted the moment it is free";
+
+            Console.WriteLine($"EVE Console {AppVersion.Display} — headless worker");
+            Console.WriteLine($"  database   {db}{(DbEngine.IsPostgres ? "" : $"  {AppConfig.GetDbPath()}")}");
+            Console.WriteLine($"  background {leaseState}");
+            Console.WriteLine($"  logs       {LogSummary()}");
+
+            // ⚠️ And to a file, for the one case where the console goes nowhere. A service has no
+            // console at all, so everything above vanishes; without this it is alive, connected and
+            // completely silent, which is indistinguishable from working.
+            ServiceLog.Write($"started — {AppVersion.Display}, {db}, {leaseState}, logs: {LogSummary()}");
+
+            // ⚠️ Named, loudly, because headless on SQLite is almost always a mistake and a silent
+            // one. Multiple clients are what this mode exists for and SQLite cannot have them: this
+            // process takes the file exclusively, so the desktop client will refuse to start for as
+            // long as it runs — while it quietly does all the background work, retention sweeps
+            // included, against whatever file that path points at. Said here because "database
+            // SQLite" on its own does not read as a warning to somebody who expected PostgreSQL.
+            if (!DbEngine.IsPostgres)
+            {
+                Console.WriteLine();
+                Console.WriteLine("  ⚠ SQLite holds the database exclusively. The desktop client cannot start");
+                Console.WriteLine("    while this worker runs, and this worker is doing all background work");
+                Console.WriteLine("    against the file above. Headless is meant for PostgreSQL.");
+            }
+
+            return;
+        }
+
         p.Report((84, "Preparing tools…"));
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
 
@@ -2836,20 +3205,69 @@ public class App : Application
 
         // ── Background services ────────────────────────────────────────────────
         //
+        // Split by who ought to be running them. Anything that writes to the database without a
+        // user asking belongs to the ONE client holding the worker lease. Anything that serves
+        // this window, or reads this machine, belongs to every client.
+        //
         // Each is a loop-starter that returns immediately. Guarded individually: a service that
         // cannot start is a degraded feature, not a reason to leave the user staring at a splash
         // screen that will never go away.
         void StartBackgroundServices()
         {
-            Start("ESI polling",        () => polling?.Start());
-            Start("market pricing",     () => marketPricing?.Start());
-            Start("market history",     () => marketHistory?.Start());
-            Start("contracts",          () => contracts?.Start());
-            Start("LP store",           () => lpStore?.Start());
+            StartPerClientServices();
+
+            // ⚠️ Subscribed before Start, never after. On SQLite the lease is settled inside
+            // Start — it raises Gained before returning — so a handler added afterwards would
+            // miss the only edge it is ever going to get, and this client would run nothing.
+            var lease = Services.GetRequiredService<WorkerLease>();
+            lease.Gained += () => _ = LeaderTransitionAsync(true);
+            lease.Lost   += () => _ = LeaderTransitionAsync(false);
+
+            Start("worker lease", () => lease.Start());
+        }
+
+        // ── Every client runs these ────────────────────────────────────────────
+        void StartPerClientServices()
+        {
+            // Started early and independently: everything else consults its verdict, and each
+            // client needs its own answer for its own header.
+            Start("server status",      () => Services.GetRequiredService<EveServerStatusService>().Start());
+
+            // ⚠️ Every client listens, the worker's own included. Three of the four alarm actions
+            // have to happen at a person's machine — a sound, a dialog, the agent speaking — so the
+            // worker resolves the wording and pushes; each client then performs the ones it is
+            // willing to. Subscribed before Start so nothing can arrive unheard.
+            Start("client signals", () =>
+            {
+                var signals  = Services.GetRequiredService<ClientSignals>();
+                var alarms   = Services.GetRequiredService<AlarmActionRunner>();
+                var activity = Services.GetRequiredService<WorkerActivityService>();
+
+                // ⚠️ Activity first, and it says whether the payload was its own. Both kinds arrive
+                // on one channel, and each handler ignores what is not addressed to it — so the
+                // alarm path is only reached by something that really is an alarm.
+                signals.Received += payload =>
+                {
+                    if (activity.TryApplySignal(payload)) return;
+                    _ = alarms.HandleSignalAsync(payload);
+                };
+                signals.Start();
+            });
+
+            // ⚠️ Host-bound rather than leader-only. These read EVE's log directories on THIS
+            // machine, which a worker on another host cannot see — a headless worker in a
+            // container would import nothing, and nobody would be told why. MonitoringSettings
+            // does accept a UNC path, so aiming a worker at a share is possible, but local is the
+            // default and the common case.
+            Start("game logs",          () => gameLogs?.Start());
+            Start("chat logs",          () => chatLogs?.Start());
 
             // ⚠️ Force Now on the Timers tab only reset the polling loop's schedule, which does
             // nothing for any of these — each runs on its own timer and never consults it. So each
             // says here how to run itself now, against the same key its row uses.
+            //
+            // Registered in every client rather than only the worker: this is a button a person
+            // presses, and what the lease governs is work nobody asked for.
             Start("force-now hooks", () =>
             {
                 var force = Services.GetRequiredService<TimerForceService>();
@@ -2867,17 +3285,32 @@ public class App : Application
                 if (lpStore is not null)
                     force.Register("lpstore.offers",   ct => lpStore.SweepAsync(ct));
             });
+
+            // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
+            // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
+            // Belongs to whichever process holds the file, which is this one or none.
+            Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
+
+            // Diagnostic only, and the error log is the sole place it reports — so when the switch
+            // is off it is not started at all, which also drops its half-second heartbeat.
+            if (PerfDiagnostics.UiStalls)
+                Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
+        }
+
+        // ── Only the client holding the lease runs these ───────────────────────
+        void StartLeaderServices()
+        {
+            Start("ESI polling",        () => polling?.Start());
+            Start("market pricing",     () => marketPricing?.Start());
+            Start("market history",     () => marketHistory?.Start());
+            Start("contracts",          () => contracts?.Start());
+            Start("LP store",           () => lpStore?.Start());
             Start("database backup",    () => Services.GetRequiredService<DatabaseBackupService>().Start());
-            Start("game logs",          () => gameLogs?.Start());
-            Start("chat logs",          () => chatLogs?.Start());
             Start("zKillboard polling", () => zkbPolling?.Start());
             Start("zKillboard firehose",() => zkbFirehose?.Start());
             Start("zKillboard backfill",() => zkbBackfill?.Start());
             Start("zKillboard posting", () => zkbPost?.Start());
             Start("name backfill",      () => Services.GetRequiredService<EntityNameBackfillService>().Start());
-
-            // Started early and independently: everything else consults its verdict.
-            Start("server status",      () => Services.GetRequiredService<EveServerStatusService>().Start());
 
             // Map statistics for the Universe tool. Both loops write rows keyed by CCP's hour
             // bucket, so the archive catch-up and the live poller cannot collide even when they
@@ -2885,7 +3318,6 @@ public class App : Application
             Start("map stats backfill", () => Services.GetRequiredService<MapStatsBackfillService>().Start());
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
 
-            // Cheap when idle: the loop only touches the database for alarms whose interval is up.
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
@@ -2893,26 +3325,145 @@ public class App : Application
             // and has been switched on, and never replies to mail older than that moment.
             Start("store mail",         () => Services.GetRequiredService<StoreMailService>().Start());
 
+            // Cheap when idle: the loop only touches the database for alarms whose interval is up.
+            //
+            // ⚠️ Leader-only even though alarms are user-facing. Both readers show alerts from
+            // their own rows without joining to an alarm, so a client that is not the worker still
+            // displays everything the worker raises — while each condition is evaluated once, in
+            // one place, instead of once per open window.
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
 
-            // Anything scheduled that came due while the app was closed fires on this first
+            // Anything scheduled that came due while no client was the worker fires on this first
             // pass, which is why it starts here rather than waiting for the tool to be opened.
             Start("scheduler",          () => Services.GetRequiredService<SchedulerService>().Start());
 
-            // Helps SQLite's own automatic checkpoint keep the write-ahead log small, and reports
-            // when it stops draining. Never blocks: see WalCheckpointService for why that matters.
-            Start("WAL checkpoint",     () => Services.GetRequiredService<WalCheckpointService>().Start());
+            // Each rule tracks its own last run in preferences, so one that came due while nothing
+            // held the lease goes almost immediately, and one whose day is not up waits.
+            Start("retention sweep",    () => Services.GetRequiredService<DataRetentionService>().Start());
 
-            // Diagnostic only, and the error log is the sole place it reports — so when the switch
-            // is off it is not started at all, which also drops its half-second heartbeat.
-            if (PerfDiagnostics.UiStalls)
-                Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
+            // ⚠️ Last, so the first snapshot describes loops that have already started rather than
+            // a set of them that all look stopped. It relays what the loops above say about
+            // themselves to the monitoring windows on every other client.
+            Start("activity board",     () => Services.GetRequiredService<WorkerActivityService>().Start());
+        }
 
-            void Start(string name, Action start)
+        async Task StopLeaderServicesAsync()
+        {
+            // Each guarded on its own rather than through the aggregate WhenAll would throw: a
+            // service that will not stop must not keep the others running, because whatever
+            // happens here this client has already stopped being the worker.
+            //
+            // ⚠️ Takes the service, not its StopAsync. A method group cannot be null-conditioned,
+            // and the optional ones genuinely are null when their feature is switched off.
+            async Task Halt<T>(string name, T? svc, Func<T, Task> stop) where T : class
             {
-                try { start(); }
-                catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
+                if (svc is null) return;
+                try { await stop(svc); }
+                catch (Exception ex) { errorLogger.Log("WorkerLease", $"stopping {name}", ex); }
             }
+
+            Task Sync(string name, Action stop)
+            {
+                try { stop(); }
+                catch (Exception ex) { errorLogger.Log("WorkerLease", $"stopping {name}", ex); }
+                return Task.CompletedTask;
+            }
+
+            await Task.WhenAll(
+                Halt("ESI polling",         polling,       s => s.StopAsync()),
+                Halt("market pricing",      marketPricing, s => s.StopAsync()),
+                Halt("market history",      marketHistory, s => s.StopAsync()),
+                Halt("contracts",           contracts,     s => s.StopAsync()),
+                Halt("LP store",            lpStore,       s => s.StopAsync()),
+                Halt("zKillboard polling",  zkbPolling,    s => s.StopAsync()),
+                Halt("zKillboard firehose", zkbFirehose,   s => s.StopAsync()),
+                Halt("zKillboard backfill", zkbBackfill,   s => s.StopAsync()),
+                Halt("zKillboard posting",  zkbPost,       s => s.StopAsync()),
+
+                Halt("database backup",     Services.GetRequiredService<DatabaseBackupService>(),     s => s.StopAsync()),
+                Halt("name backfill",       Services.GetRequiredService<EntityNameBackfillService>(), s => s.StopAsync()),
+                Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
+                Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
+                Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
+                Halt("alarms",              Services.GetRequiredService<AlarmService>(),              s => s.StopAsync()),
+                Halt("retention sweep",     Services.GetRequiredService<DataRetentionService>(),      s => s.StopAsync()),
+
+                Halt("activity board",      Services.GetRequiredService<WorkerActivityService>(),      s => s.StopAsync()),
+
+                Sync("map stats backfill",  () => Services.GetRequiredService<MapStatsBackfillService>().Stop()),
+                Sync("scheduler",           () => Services.GetRequiredService<SchedulerService>().Stop()));
+        }
+
+        // ⚠️ Serialised, and idempotent. Gained and Lost arrive from the lease's own loop, and a
+        // lost-then-regained pair a tick apart would otherwise have one transition's stops racing
+        // the next one's starts — leaving services stopped that ought to be running, with nothing
+        // on screen to say so. The state check makes a repeated edge free rather than something
+        // that starts a second copy of everything.
+        async Task LeaderTransitionAsync(bool hold)
+        {
+            await leaderGate.WaitAsync();
+            try
+            {
+                if (hold == leaderRunning) return;
+                leaderRunning = hold;
+
+                // ⚠️ Before anything else on the way IN. Until this moment the in-flight list was
+                // the previous worker's, relayed here whole; those calls belong to a process that
+                // has just stopped being the worker, nothing in this one can ever complete them,
+                // and from here on this client is the one BROADCASTING that list. Left alone they
+                // become ghosts every client sees, ageing forever. See ApiActivityLog.
+                if (hold) Services.GetRequiredService<ApiActivityLog>().ResetInFlightToOwn();
+
+                // The only two events a worker has worth reporting, and the pair somebody watching
+                // a service actually wants: did it get the work, and did it lose it.
+                var leaseNews = hold
+                    ? "took the lease — starting background work"
+                    : "lost the lease — stopping background work";
+
+                ServiceLog.Write(leaseNews);
+
+                // ⚠️ And to the console, which for a systemd unit is the journal. The file above is
+                // for coming back to later; this is what somebody running `journalctl -f` while
+                // they close a client is watching for, and its absence is exactly what "I cannot
+                // get it to take over" looks like from outside.
+                if (AppRuntime.IsHeadless) Console.WriteLine($"EVE Console: {leaseNews}");
+
+                if (hold) StartLeaderServices();
+                else      await StopLeaderServicesAsync();
+            }
+            catch (Exception ex)
+            {
+                errorLogger.Log("WorkerLease", hold ? "starting background work" : "stopping background work", ex);
+            }
+            finally { leaderGate.Release(); }
+        }
+
+        void Start(string name, Action start)
+        {
+            try { start(); }
+            catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
+        }
+
+        /// <summary>
+        /// What this machine will actually read, for the headless banner.
+        ///
+        /// <para>⚠️ Resolved, not the raw setting. A worker started against the wrong mount has an
+        /// empty list, and saying so on the one line somebody reads beats it importing nothing in
+        /// silence — which looks identical to a quiet evening.</para>
+        /// </summary>
+        string LogSummary()
+        {
+            try
+            {
+                var monitoring = Services.GetRequiredService<MonitoringSettings>();
+                var game = monitoring.GameLogEnabled ? monitoring.ResolveDirectories().Count     : 0;
+                var chat = monitoring.ChatEnabled    ? monitoring.ResolveChatDirectories().Count : 0;
+
+                return game == 0 && chat == 0
+                    ? "none — this worker imports no logs"
+                    : $"{game} game, {chat} chat";
+            }
+            catch (Exception ex) { return $"could not be read: {AppErrorLogger.Line("", ex)}"; }
         }
     }
 
@@ -3056,6 +3607,10 @@ public class App : Application
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
+
+        // Decides whether this process does background work at all. Registered beside the
+        // services it gates, though nothing resolves it until startup wires the lease events.
+        services.AddSingleton<WorkerLease>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<TypePriceHistoryService>();
@@ -3172,7 +3727,67 @@ public class App : Application
         services.AddSingleton<SystemGraph>();
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
             sp.GetRequiredService<SystemGraph>()));
+        services.AddSingleton<AlarmMuteState>();
+        services.AddSingleton<ApiActivityViewModel>();
+        services.AddSingleton<TrayIconController>();
+        services.AddSingleton<ClientSignals>();
         services.AddSingleton<AlarmActionRunner>();
+
+        // What each leader-only loop is doing, relayed to the other clients' monitoring windows.
+        //
+        // ⚠️ The sampler resolves lazily, inside the lambda. Resolving these at registration time
+        // would reach into a container that is still being built, and several of them are
+        // themselves produced by factories.
+        //
+        // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
+        // every client runs its own and the local status is the true one.
+        services.AddSingleton(sp => new WorkerActivityService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<AppErrorLogger>(),
+            sp.GetRequiredService<ClientSignals>(),
+            sp.GetRequiredService<ApiActivityLog>(),
+            sp.GetRequiredService<WorkerLease>(),
+            () =>
+            {
+                var order   = sp.GetRequiredService<OrderFulfilmentService>();
+                var polling = sp.GetRequiredService<EsiPollingService>();
+                var alarms  = sp.GetRequiredService<AlarmService>();
+                return
+                [
+                    new WorkerActivity { Key    = WorkerActivityService.Polling,
+                                         Status = polling.StatusText },
+                    new WorkerActivity { Key        = WorkerActivityService.Structures,
+                                         Status     = polling.StructureSweepSummary,
+                                         Running    = polling.StructureSweepRunning,
+                                         LastRunUtc = polling.StructureSweepAt,
+                                         NextRunUtc = polling.StructureSweepNextAt },
+                    new WorkerActivity { Key    = WorkerActivityService.PublicStructs,
+                                         Status = polling.PublicStructureSummary },
+                    new WorkerActivity { Key     = WorkerActivityService.MarketHistory,
+                                         Running = sp.GetRequiredService<MarketHistoryService>().IsSweeping },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbPolling,
+                                         Status = sp.GetRequiredService<ZkillboardPollingService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbFirehose,
+                                         Status = sp.GetRequiredService<ZkillboardFirehoseService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbBackfill,
+                                         Status = sp.GetRequiredService<ZkillboardBackfillService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.ZkbPost,
+                                         Status = sp.GetRequiredService<ZkillboardPostService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.NameCache,
+                                         Status = sp.GetRequiredService<EntityNameBackfillService>().StatusText },
+                    new WorkerActivity { Key    = WorkerActivityService.LpStore,
+                                         Status = sp.GetRequiredService<LpStoreService>().StatusText },
+                    new WorkerActivity { Key        = WorkerActivityService.Alarms,
+                                         Status     = alarms.StatusText,
+                                         Count      = alarms.ArmedCount,
+                                         LastRunUtc = alarms.LastFireAt,
+                                         NextRunUtc = alarms.NextDueAt },
+                    new WorkerActivity { Key        = WorkerActivityService.OrderFulfilment,
+                                         Status     = order.StatusText,
+                                         LastRunUtc = order.LastRunAt == default ? null : order.LastRunAt,
+                                         NextRunUtc = order.NextRunAt == default ? null : order.NextRunAt },
+                ];
+            }));
         services.AddSingleton(sp =>
         {
             var factory = sp.GetRequiredService<IDbContextFactory<AppDbContext>>();

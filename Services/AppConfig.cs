@@ -65,6 +65,10 @@ public static class AppConfig
         // means to go on using the file.
         if (EnvConnection is not null) return DbBackend.Postgres;
 
+        // A service is installed from a client already pointed at a server, and the installer
+        // writes that connection alongside it. Nothing else would be worth running as a service.
+        if (AppRuntime.IsService && MachineConfig.GetConnection() is not null) return DbBackend.Postgres;
+
         return string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
             ? DbBackend.Postgres
             : DbBackend.Sqlite;
@@ -109,6 +113,11 @@ public static class AppConfig
     public static string? GetPostgresConnection()
     {
         if (EnvConnection is { } fromEnv) return fromEnv;
+
+        // ⚠️ A service looks here and stops. It runs as LocalSystem, so the config file below
+        // belongs to a profile it has never seen and holds a password protected for an account it
+        // is not — reading on past this point would find nothing and report the wrong reason.
+        if (AppRuntime.IsService && MachineConfig.GetConnection() is { } fromMachine) return fromMachine;
 
         var c = Load();
         if (string.IsNullOrWhiteSpace(c.PostgresConnection)) return null;
@@ -248,6 +257,127 @@ public static class AppConfig
     }
 
     public static bool GetShrinkPending() => Load().ShrinkPending == true;
+
+    /// <summary>
+    /// Whether this client stays quiet for the alarm actions that happen live — sound, dialog and
+    /// the agent speaking.
+    ///
+    /// <para>⚠️ Deliberately NOT the Alert action. Muting silences what interrupts a person at
+    /// this machine; it does not stop the worker recording what happened, so a muted client still
+    /// has the whole history waiting when its owner looks. Silencing the record instead would
+    /// make "quiet for an hour" mean "blind about that hour", which is not what anybody means.</para>
+    ///
+    /// <para>Local, and per client. The point is that one machine can be quiet while another is
+    /// not, so this cannot live in the shared database with the alarms themselves.</para>
+    /// </summary>
+    public static bool GetAlarmsMuted() => Load().AlarmsMuted == true;
+
+    public static bool GetShowTrayIcon() => Load().ShowTrayIcon == true;
+
+    public static void SetShowTrayIcon(bool show)
+    {
+        var c = Load();
+        c.ShowTrayIcon = show ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
+    public static void SetAlarmsMuted(bool muted)
+    {
+        var c = Load();
+        c.AlarmsMuted = muted ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
+    /// <summary>
+    /// How the Overview screen's sections are arranged, as the layout's own JSON.
+    ///
+    /// <para>⚠️ Local, and per client, for the same reason the window's size and position are: it
+    /// is how one person's screen is laid out, not part of the data. With several clients on one
+    /// PostgreSQL database it lived in the shared preference table, so rearranging the sections on
+    /// one machine silently rearranged them on every other — including a laptop with room for far
+    /// fewer columns than the desktop that made the change.</para>
+    ///
+    /// <para>Null means "never set here", which is not "set to nothing". That distinction is what
+    /// lets a client seed itself once from the old shared preference, so nobody's screen changes
+    /// for the upgrade.</para>
+    /// </summary>
+    public static string? GetOverviewLayout() => Load().OverviewLayout;
+
+    public static void SetOverviewLayout(string? json)
+    {
+        var c = Load();
+        c.OverviewLayout = string.IsNullOrWhiteSpace(json) ? null : json;
+        Save(c);
+    }
+
+    // ── UI state ──────────────────────────────────────────────────────────────
+    //
+    // A plain key/value bag for the small remembered-view settings: which overlay was showing,
+    // which period was chosen, what was left collapsed. Prefer it over new typed fields — the point
+    // is that adding a remembered control costs a key and nothing else. The typed members above
+    // (the window's geometry, the Overview layout) predate it and are left alone.
+    //
+    // Read through the UiState class rather than these directly: it does the one-time seeding from
+    // the shared preference the setting is moving out of.
+
+    public static string? GetUiState(string key)
+        => Load().UiState is { } bag && bag.TryGetValue(key, out var v) ? v : null;
+
+    public static void SetUiState(string key, string? value)
+    {
+        var c   = Load();
+        var bag = c.UiState ?? new Dictionary<string, string>(StringComparer.Ordinal);
+
+        if (value is null) bag.Remove(key);
+        else               bag[key] = value;
+
+        c.UiState = bag.Count > 0 ? bag : null;   // absent rather than empty — keeps the file tidy
+        Save(c);
+    }
+
+    // ── This machine's EVE log setup ──────────────────────────────────────────
+    //
+    // ⚠️ Null means "never set here", which is not the same as "set to nothing". The
+    // difference is what lets a client seed itself once from the old shared preference and
+    // never again — see MonitoringSettings. An empty string is a real answer: this machine
+    // watches no directories.
+
+    /// <summary>
+    /// Log directories supplied by the environment, which override config.json entirely.
+    ///
+    /// <para>The same bargain as EVECONSOLE_DB_CONNECTION and for the same reason: a worker in a
+    /// container has no settings window to be configured from, and the one thing it needs told is
+    /// where the logs are mounted. Newline- or semicolon-separated, because a newline is awkward
+    /// to put in a docker-compose value.</para>
+    ///
+    /// <para>⚠️ Env wins over file, never merges — a directory list assembled from two places is
+    /// the kind of configuration that looks right and watches the wrong folder.</para>
+    /// </summary>
+    private static string? EnvDirs(string name)
+    {
+        var v = Environment.GetEnvironmentVariable(name);
+        return string.IsNullOrWhiteSpace(v) ? null : v.Replace(';', '\n');
+    }
+
+    public static string? GameLogDirsFromEnv => EnvDirs("EVECONSOLE_GAMELOG_DIRS");
+    public static string? ChatLogDirsFromEnv => EnvDirs("EVECONSOLE_CHATLOG_DIRS");
+
+    // ⚠️ A service reads the machine config, for the same reason it does for the connection: its
+    // profile is not the one the desktop app saved anything into.
+    public static string? GetGameLogDirs() =>
+        GameLogDirsFromEnv ?? (AppRuntime.IsService ? MachineConfig.GetGameLogDirs() : Load().GameLogDirs);
+
+    public static string? GetChatLogDirs() =>
+        ChatLogDirsFromEnv ?? (AppRuntime.IsService ? MachineConfig.GetChatLogDirs() : Load().ChatLogDirs);
+
+    public static void SetGameLogDirs(string? dirs) { var c = Load(); c.GameLogDirs = dirs ?? ""; Save(c); }
+    public static void SetChatLogDirs(string? dirs) { var c = Load(); c.ChatLogDirs = dirs ?? ""; Save(c); }
+
+    public static bool? GetGameLogEnabled() => Load().GameLogEnabled;
+    public static bool? GetChatLogEnabled() => Load().ChatLogEnabled;
+
+    public static void SetGameLogEnabled(bool on) { var c = Load(); c.GameLogEnabled = on; Save(c); }
+    public static void SetChatLogEnabled(bool on) { var c = Load(); c.ChatLogEnabled = on; Save(c); }
 
     public static void SetShrinkPending(bool pending)
     {
@@ -398,6 +528,33 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
+
+        // How this client's Overview sections are arranged. Beside the window geometry above and
+        // for the same reason: it describes this screen, not the data, and a rearrangement made on
+        // a wide desktop should not follow the user onto a laptop.
+        [JsonPropertyName("overviewLayout")] public string? OverviewLayout { get; set; }
+
+        // The rest of the remembered view settings, by key. Same reasoning, no new field per
+        // setting — see the UiState class.
+        [JsonPropertyName("uiState")] public Dictionary<string, string>? UiState { get; set; }
+
+        // ── This machine's EVE log setup ──────────────────────────────────────
+        //
+        // ⚠️ Local, not in the shared preferences where these used to live. They name
+        // directories on a filesystem, and with several clients on one database no single
+        // list can be right for all of them: a container reading /mnt/xyz/eve cannot be handed
+        // C:\Users\Name\Documents\EVE\logs and asked to make anything of it. The enabled flags
+        // come with them, because "this machine imports logs" is the same kind of fact.
+        [JsonPropertyName("gameLogDirs")]    public string? GameLogDirs    { get; set; }
+        [JsonPropertyName("chatLogDirs")]    public string? ChatLogDirs    { get; set; }
+        [JsonPropertyName("gameLogEnabled")] public bool?   GameLogEnabled { get; set; }
+        [JsonPropertyName("chatLogEnabled")] public bool?   ChatLogEnabled { get; set; }
+
+        // Per client, like the alarm mute: whether THIS window puts an icon in the tray is a
+        // fact about this desktop, not about the data.
+        [JsonPropertyName("showTrayIcon")]  public bool? ShowTrayIcon { get; set; }
+
         [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }

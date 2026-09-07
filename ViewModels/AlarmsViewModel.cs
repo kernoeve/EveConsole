@@ -342,11 +342,32 @@ public sealed class AlarmsViewModel : ReactiveObject
     private readonly AlarmService                    _service;
     private readonly AlarmSoundService               _sounds;
 
+    // ── Muting this machine ───────────────────────────────────────────────────
+
+    private readonly AlarmMuteState _mute;
+
+    /// <summary>
+    /// ⚠️ Reads through the shared state rather than keeping a copy, so this button and the
+    /// beacon's right-click menu can never disagree about whether the machine is quiet.
+    /// </summary>
+    public bool   AlarmsMuted    => _mute.Muted;
+    public string AlarmsMuteText => _mute.ToggleText;
+
+    public void ToggleMute() => _mute.Toggle();
+
     public AlarmsViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
         AlarmService                    service,
-        AlarmSoundService               sounds)
+        AlarmSoundService               sounds,
+        AlarmMuteState                  mute)
     {
+        _mute = mute;
+        mute.Changed += () =>
+        {
+            this.RaisePropertyChanged(nameof(AlarmsMuted));
+            this.RaisePropertyChanged(nameof(AlarmsMuteText));
+        };
+
         _dbFactory = dbFactory;
         _service   = service;
         _sounds    = sounds;

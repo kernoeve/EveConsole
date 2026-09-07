@@ -1830,7 +1830,10 @@ public class CorpActivityService
     {
         if (charIds.Count == 0) return [];
         using var db = _dbFactory.CreateDbContext();
-        var cutoff = SqlCutoff(DateTimeOffset.UtcNow.AddDays(-days));
+        // ⚠️ The literal form, because this query cannot parameterise it: idList below is a list of
+        // ids inside an IN clause, which forces SqlQueryRaw — and that means the compiler formats
+        // every hole before EF ever sees the string. See SqlCutoffLiteral.
+        var cutoff = SqlCutoffLiteral(DateTimeOffset.UtcNow.AddDays(-days));
         var idList = string.Join(",", charIds);
 
 #pragma warning disable EF1002
@@ -1937,6 +1940,26 @@ public class CorpActivityService
     // Handing over the DateTimeOffset gets that same on-disk spelling from the provider on
     // SQLite and a typed comparison on PostgreSQL, so neither engine is being imitated.
     private static DateTimeOffset SqlCutoff(DateTimeOffset dt) => dt.ToUniversalTime();
+
+    /// <summary>
+    /// The same cutoff as a SQL LITERAL, for the one query here that cannot parameterise it.
+    ///
+    /// <para>⚠️ Invariant culture, and that is the whole reason this exists separately. The 45
+    /// callers above hand EF a DateTimeOffset and get a typed parameter; a raw query interpolates
+    /// it, which formats it with the CURRENT culture — and on .NET 8 with ICU 72 or newer, which is
+    /// what Linux has, the space before AM/PM is U+202F, a narrow no-break space. PostgreSQL parses
+    /// "8/8/2026 12:32:31 AM +00:00" quite happily and rejects the identical-LOOKING string with
+    /// U+202F in it, so the Overview's Personal Killmails panel failed every sixty seconds on Linux
+    /// and nowhere else, reporting an error whose offending character cannot be seen.</para>
+    ///
+    /// <para>⚠️ EF Core's SQLite storage shape — space separator, trailing offset — deliberately
+    /// not ISO 8601. SQLite compares these as text, and 'T' (0x54) sorts above ' ' (0x20), so an
+    /// "O" string is greater than every value stored and the comparison quietly matches nothing.
+    /// </para>
+    /// </summary>
+    private static string SqlCutoffLiteral(DateTimeOffset dt) =>
+        dt.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.fffffffzzz",
+                                      System.Globalization.CultureInfo.InvariantCulture);
 
     private sealed class WalletDetailRaw
     {

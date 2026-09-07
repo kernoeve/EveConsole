@@ -4,14 +4,21 @@ using System.Runtime.InteropServices;
 namespace EveConsole.Services;
 
 /// <summary>
-/// Ensures only one EVE Console runs at a time, and brings the existing one forward instead.
+/// On SQLite, ensures only one EVE Console runs at a time and brings the existing one forward
+/// instead. On PostgreSQL it does nothing at all.
 ///
-/// <para>⚠️ Two copies against one SQLite file is not merely untidy. Both would poll ESI and write
+/// <para>⚠️ Two copies against one SQLite FILE is not merely untidy. Both would poll ESI and write
 /// the results, doubling the API traffic and racing each other's inserts; and a database shrink
 /// replaces the file wholesale, so a second instance opening it mid-swap would be reading a file
 /// that is about to stop existing. The shrink is also the moment a second launch is most likely —
 /// a rebuild of a large database on a slow disk takes minutes, and a user who thinks the app has
 /// hung will start it again.</para>
+///
+/// <para>⚠️ None of that is true of a server, which is built for concurrent clients. So on
+/// PostgreSQL this refuses nothing: run ten clients, on ten machines, if you like. What must not
+/// happen twice is the background work, and <see cref="WorkerLease"/> owns that question. This
+/// class used to take an advisory lock to forbid a second client outright; that lock is now the
+/// lease, held by whichever client is doing the work rather than by whichever started first.</para>
 ///
 /// <para>Per-user rather than machine-wide (<c>Local\</c>, not <c>Global\</c>): two people logged
 /// into the same machine have separate profiles and therefore separate databases, so neither has
@@ -40,63 +47,6 @@ public static class SingleInstance
     /// exclude each other, and two pointed at the same one must.</para>
     /// </summary>
     private static FileStream? _lockFile;
-
-    /// <summary>
-    /// The same guarantee on a server, where there is no file to hold.
-    ///
-    /// <para>A PostgreSQL advisory lock is the exact analogue: it is scoped to the database, it
-    /// is held for the life of the session that took it, and the server drops it when that
-    /// session ends however it ends. So it keeps the rule this class is built on — the lock
-    /// belongs to the database being protected, not to the machine — which a lock file cannot
-    /// do once the database is somewhere else entirely. Two clients on different machines
-    /// pointed at one server exclude each other; two pointed at different servers do not.</para>
-    ///
-    /// <para>⚠️ Held on its own connection, kept open deliberately. Returning it to the pool
-    /// would end the session and silently drop the lock.</para>
-    ///
-    /// <para>⚠️ This currently stops a second client outright, matching the SQLite behaviour.
-    /// The intended end state is different: additional clients run and read, and only ONE of
-    /// them polls. That is the lease work, and when it lands this becomes a lock on the poller
-    /// rather than on the application.</para>
-    /// </summary>
-    private static Npgsql.NpgsqlConnection? _pgLock;
-
-    /// <summary>
-    /// Arbitrary, and only has to be stable and unlikely to collide with another application
-    /// using advisory locks in the same database.
-    /// </summary>
-    private const long AdvisoryLockKey = 0x4556_4543_4F4E_5301;   // "EVECONS" + 1
-
-    private static bool TryTakePostgresLock()
-    {
-        try
-        {
-            var cs = AppConfig.GetPostgresConnection();
-            if (string.IsNullOrWhiteSpace(cs)) return true;   // App reports the misconfiguration
-
-            var conn = new Npgsql.NpgsqlConnection(cs);
-            conn.Open();
-
-            using var cmd = new Npgsql.NpgsqlCommand("SELECT pg_try_advisory_lock(@k)", conn);
-            cmd.Parameters.AddWithValue("k", AdvisoryLockKey);
-
-            if (cmd.ExecuteScalar() is true)
-            {
-                _pgLock = conn;       // kept open: closing it releases the lock
-                return true;
-            }
-
-            conn.Dispose();
-            return false;             // somebody else has it: exactly what this is for
-        }
-        catch
-        {
-            // ⚠️ A server we cannot reach at all lets the app start, on purpose. It will fail
-            // a moment later at EnsureCreated with an error that says what is actually wrong,
-            // which is far more use than exiting silently from the single-instance check.
-            return true;
-        }
-    }
 
     private static bool TryTakeLockFile()
     {
@@ -165,15 +115,19 @@ public static class SingleInstance
         var replacing = args.Any(a =>
             string.Equals(a, RestartingArgument, StringComparison.OrdinalIgnoreCase));
 
-        // ⚠️ On a server the lock lives in the database and the local mutex is meaningless
-        // — the other instance may not even be on this machine, which is also why there may
-        // be no window here to focus.
-        if (DbEngine.IsPostgres)
-        {
-            if (TryTakePostgresLock()) return true;
-            FocusExistingWindow();
-            return false;
-        }
+        // ⚠️ Nothing to enforce on a server. Single instance is a SQLite rule: it exists because
+        // two processes writing one FILE is corruption, and because a shrink replaces that file
+        // wholesale underneath anyone else holding it. A PostgreSQL database has neither problem —
+        // it is built for concurrent clients — so run as many as you like, on as many machines as
+        // you like. What must not happen twice is the background work, and that is the worker
+        // lease's job, not this one's.
+        if (DbEngine.IsPostgres) return true;
+
+        // ⚠️ And the tray never takes the lock, on either engine. It starts at logon, before anybody
+        // opens the application — so on SQLite it would take the file lock first and then refuse the
+        // real client, which is a tray icon locking somebody out of their own database. It writes
+        // nothing and holds nothing open; there is nothing here for it to protect.
+        if (AppRuntime.IsTray) return true;
 
         // ⚠️ The file lock first, because it is the one that holds on every platform. The
         // mutex stays: it is proven on Windows and costs nothing, and two agreeing guards are
@@ -227,8 +181,6 @@ public static class SingleInstance
         // Closing the session is what frees an advisory lock; there is nothing to unlock
         // separately, and unlocking before closing would only widen the gap where neither
         // process holds it.
-        try { _pgLock?.Dispose(); } catch { }
-        _pgLock = null;
     }
 
     /// <summary>

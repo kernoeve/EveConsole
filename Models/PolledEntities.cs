@@ -1147,6 +1147,21 @@ public class AppErrorEntry
     public string Context     { get; set; } = "";
     public string Message     { get; set; } = "";
     public string? InnerMessage { get; set; }
+
+    /// <summary>
+    /// Which machine reported it, and whether that process had a window.
+    ///
+    /// <para>⚠️ Recorded because this log is SHARED now. With several clients on one PostgreSQL
+    /// database every one of them writes here, so "the Overview panel is failing" no longer says
+    /// whose Overview — and the same fault on the headless worker means something quite different
+    /// from the same fault in somebody's window. Two columns answer both questions.</para>
+    ///
+    /// <para>Defaulted rather than nullable so a client on an older build, whose EF does not know
+    /// these columns exist, can still insert a row.</para>
+    /// </summary>
+    public string HostName { get; set; } = "";
+
+    public bool Headless { get; set; }
 }
 
 // ── Client activity monitoring ────────────────────────────────────────────────

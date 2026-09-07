@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.FatalDialog"
+        Width="480"
+        MinWidth="380"
+        WindowStartupLocation="CenterOwner"
+        Background="#0d0d12"
+        CanResize="False"
+        SizeToContent="Height">
+
+  <!-- ⚠️ One button, and it says Close rather than OK. This window is shown for faults that end
+       the session, so there is no decision to take and nothing to agree to — offering a second
+       button would imply the app might carry on, which is exactly the impression a fatal message
+       must not give. -->
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <TextBlock Grid.Row="0"
+               x:Name="TitleText"
+               TextWrapping="Wrap"
+               Foreground="#cc7766"
+               FontSize="14"
+               FontWeight="SemiBold"
+               Margin="20 20 20 8" />
+
+    <TextBlock Grid.Row="1"
+               x:Name="MessageText"
+               TextWrapping="Wrap"
+               Foreground="#ccc"
+               FontSize="13"
+               Margin="20 0 20 16" />
+
+    <Border Grid.Row="2" Background="#0d0d12" Padding="16 12">
+      <Button Content="Close"
+              Click="OnClose"
+              Padding="20 5"
+              HorizontalAlignment="Right" />
+    </Border>
+
+  </Grid>
+</Window>

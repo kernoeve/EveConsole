@@ -568,6 +568,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "SDE");
     }
 
+    /// <summary>
+    /// Silences alarms on this machine, or lets them speak again.
+    ///
+    /// <para>No confirmation either way. Muting loses nothing — the worker goes on recording every
+    /// firing as an alert — and a prompt in front of somebody reaching for the mute button during
+    /// a fight would be its own kind of failure.</para>
+    /// </summary>
+    private void OnAlarmMuteClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.AlarmsMuted = !vm.AlarmsMuted;
+    }
+
     /// <summary>Hands the URL to the OS default browser. Guarded because a user-supplied
     /// EVE-time URL can be anything, and a malformed one must not take the app down.</summary>
     private static void OpenInBrowser(string url)

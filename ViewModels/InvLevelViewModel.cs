@@ -1177,22 +1177,22 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     // ── Expansion state ───────────────────────────────────────────────────────
     //
     // Which groups and collections are folded shut is a view preference, not data, so it lives in
-    // AppPreferences rather than the group tables. Collapsed ids are stored rather than expanded
+    // the local config rather than the group tables. Collapsed ids are stored rather than expanded
     // ones so that anything newly created — by this app or an import — starts open.
 
-    private const string CollapsedGroupsKey      = "invlevels.collapsed_groups";
-    private const string CollapsedCollectionsKey = "invlevels.collapsed_collections";
+    // ⚠️ Local, not the shared preference table: what someone left collapsed on this screen is a
+    // fact about this screen. Collapsing a group on the desktop used to collapse it on the laptop.
     private const string DefaultCollectionToken  = "default";
 
     private bool _expansionRestored;
 
     private void ApplyStoredExpansion()
     {
-        var groups = Ids(_prefs.Get(CollapsedGroupsKey) ?? "");
+        var groups = Ids(UiState.Get(UiState.CollapsedGroups, _prefs) ?? "");
         foreach (var g in _allGroups)
             g.IsExpanded = !groups.Contains(g.GroupId.ToString());
 
-        var colls = Ids(_prefs.Get(CollapsedCollectionsKey) ?? "");
+        var colls = Ids(UiState.Get(UiState.CollapsedCollections, _prefs) ?? "");
         foreach (var c in _allCollections)
             c.IsExpanded = !colls.Contains(c.CollectionId!.Value.ToString());
         if (_defaultCollRow is not null)
@@ -1217,8 +1217,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                                    .ToList();
         if (_defaultCollRow is { IsExpanded: false }) colls.Add(DefaultCollectionToken);
 
-        _ = _prefs.SetAsync(CollapsedGroupsKey, groups);
-        _ = _prefs.SetAsync(CollapsedCollectionsKey, string.Join(',', colls));
+        UiState.Set(UiState.CollapsedGroups,      groups);
+        UiState.Set(UiState.CollapsedCollections, string.Join(',', colls));
     }
 
     private static InvGroupDialogResult BuildResultFromRow(InvGroupRow row, int? multiplierOverride = null) =>

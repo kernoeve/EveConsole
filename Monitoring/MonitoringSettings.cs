@@ -34,8 +34,11 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     /// </summary>
     public bool GameLogEnabled
     {
-        get => prefs.GetBool(KeyGameLogEnabled, true);
-        set => _ = prefs.SetBoolAsync(KeyGameLogEnabled, value);
+        // Naming directories in the environment IS the instruction: nobody mounts a log folder
+        // into a container, points the worker at it, and means for it to sit there unread.
+        get => AppConfig.GameLogDirsFromEnv is not null
+            || (AppConfig.GetGameLogEnabled() ?? prefs.GetBool(KeyGameLogEnabled, true));
+        set => AppConfig.SetGameLogEnabled(value);
     }
 
     /// <summary>
@@ -44,13 +47,21 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     /// covered, with nothing installed on them.
     ///
     /// Empty means "use the auto-detected local folder".
+    ///
+    /// <para>⚠️ Per client, in the local config file. These name directories on a filesystem, and
+    /// several clients can now share one database — a container reading <c>/mnt/xyz/eve</c> and a
+    /// desktop reading <c>C:\Users\Name\Documents\EVE\logs</c> cannot both be described by one
+    /// shared list. Read <see cref="Migrate"/> for what happens to a list configured before that
+    /// was true.</para>
     /// </summary>
     public IReadOnlyList<string> GameLogDirectories
     {
-        get => (prefs.Get(KeyGameLogDirs) ?? "")
-               .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        set => _ = prefs.SetAsync(KeyGameLogDirs, value.Count == 0 ? null : string.Join('\n', value));
+        get => Split(AppConfig.GetGameLogDirs());
+        set => AppConfig.SetGameLogDirs(value.Count == 0 ? "" : string.Join('\n', value));
     }
+
+    private static string[] Split(string? value) =>
+        (value ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     /// <summary>
     /// Day window most recently chosen for a history import. Only a remembered UI
@@ -106,8 +117,13 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     /// <summary>OFF by default. Unlike game logs, this stores message content.</summary>
     public bool ChatEnabled
     {
-        get => prefs.GetBool(KeyChatEnabled, false);
-        set => _ = prefs.SetBoolAsync(KeyChatEnabled, value);
+        // ⚠️ Naming chat directories in the environment switches import on, and that is safe here
+        // only because "on" has never been enough by itself: nothing is stored until a channel is
+        // explicitly named, and the channel list is shared rather than local. A headless worker
+        // told where the logs are still records nothing until somebody has chosen what to keep.
+        get => AppConfig.ChatLogDirsFromEnv is not null
+            || (AppConfig.GetChatLogEnabled() ?? prefs.GetBool(KeyChatEnabled, false));
+        set => AppConfig.SetChatLogEnabled(value);
     }
 
     /// <summary>Channels the user has explicitly chosen to keep, newline-separated.
@@ -158,11 +174,38 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     }
 
     /// <summary>Chat log folders. Empty means the auto-detected local one.</summary>
+    /// <summary>⚠️ Per client, in the local config file — see <see cref="GameLogDirectories"/>.</summary>
     public IReadOnlyList<string> ChatDirectories
     {
-        get => (prefs.Get(KeyChatDirs) ?? "")
-               .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        set => _ = prefs.SetAsync(KeyChatDirs, value.Count == 0 ? null : string.Join('\n', value));
+        get => Split(AppConfig.GetChatLogDirs());
+        set => AppConfig.SetChatLogDirs(value.Count == 0 ? "" : string.Join('\n', value));
+    }
+
+    /// <summary>
+    /// Copies a log setup configured before these became per-client down into this machine's own
+    /// config, once.
+    ///
+    /// <para>⚠️ Keyed on "never set here", not on "set to nothing". Somebody who deliberately
+    /// clears the directory list on one client must not have the old shared list handed back to
+    /// them on the next start — which is exactly what a null-or-empty test would do.</para>
+    ///
+    /// <para>The old preference is left where it is rather than deleted. Every other client on the
+    /// database still has to make this same migration, and the one that happens to start first has
+    /// no business taking the answer away from the rest.</para>
+    /// </summary>
+    public void Migrate()
+    {
+        if (AppConfig.GetGameLogDirs() is null && prefs.Get(KeyGameLogDirs) is { } gameDirs)
+            AppConfig.SetGameLogDirs(gameDirs);
+
+        if (AppConfig.GetChatLogDirs() is null && prefs.Get(KeyChatDirs) is { } chatDirs)
+            AppConfig.SetChatLogDirs(chatDirs);
+
+        if (AppConfig.GetGameLogEnabled() is null && prefs.Get(KeyGameLogEnabled) is not null)
+            AppConfig.SetGameLogEnabled(prefs.GetBool(KeyGameLogEnabled, true));
+
+        if (AppConfig.GetChatLogEnabled() is null && prefs.Get(KeyChatEnabled) is not null)
+            AppConfig.SetChatLogEnabled(prefs.GetBool(KeyChatEnabled, false));
     }
 
     public IReadOnlyList<string> ResolveChatDirectories()

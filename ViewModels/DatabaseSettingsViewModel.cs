@@ -473,8 +473,86 @@ public class DatabaseSettingsViewModel : ReactiveObject
             if (!ok) return;
         }
 
+        // ── The background service has to be told, or it goes on doing the old thing ──
+        //
+        // ⚠️ It reads its own copy of the connection, taken when it was installed, and nothing
+        // rewrites that on its own. Saving a database change and restarting only this client
+        // leaves a service still working against the previous database — which is the failure
+        // that shows no symptom on either side.
+        // ⚠️ The OperatingSystem checks below are redundant at runtime — each flag is only ever
+        // true on its own platform — but they are what tells the platform analyser so, and without
+        // them every call in these blocks is reported as unguarded.
+        //
+        // ⚠️ Both mechanisms, not just the Windows one. A systemd user unit is every bit as capable
+        // of taking a SQLite file for itself, and leaving it out meant a Linux client could switch
+        // to SQLite and then simply fail to start, with the worker that caused it invisible.
+        var windowsService = OperatingSystem.IsWindows() && WindowsServiceControl.IsInstalled();
+        var systemdUnit    = OperatingSystem.IsLinux()   && SystemdServiceControl.IsInstalled();
+
+        if (!IsPostgres && (windowsService || systemdUnit))
+        {
+            // Switching to SQLite: the worker cannot follow. Only one process may hold a SQLite
+            // file, so a running worker would stop this client opening it at all — and left alone
+            // it would go on polling the PostgreSQL database being abandoned here.
+            //
+            // Handled BEFORE the config is written, because if this fails there is nothing to undo.
+            if (ShowConfirmDialog is not null)
+            {
+                var ok = await ShowConfirmDialog(
+                    "Background service",
+                    "The background service is installed and cannot run against SQLite.\n\n"
+                  + (windowsService
+                        ? "It will be stopped, and set not to start with Windows, before the change "
+                        + "is saved. Windows will ask for administrator approval.\n\n"
+                        : "It will be stopped, and set not to start at login, before the change is "
+                        + "saved. The unit is kept, so switching back to PostgreSQL only needs it "
+                        + "started again.\n\n")
+                  + "Leaving it running would keep it working against the PostgreSQL database you "
+                  + "are moving away from.\n\nContinue?");
+                if (!ok) return;
+            }
+
+            var stopError = OperatingSystem.IsWindows()
+                ? WindowsServiceControl.StopAndDisable()
+                : OperatingSystem.IsLinux() ? SystemdServiceControl.StopAndDisable() : null;
+
+            if (stopError is not null)
+            {
+                // ⚠️ Nothing has been written yet, so stopping here really does abort. Carrying on
+                // would leave a worker running against one database and this client opening
+                // another, which is the exact state this check exists to prevent.
+                StatusText = stopError == "Cancelled."
+                    ? "Cancelled — nothing was changed."
+                    : $"Could not stop the background service — {stopError}. Nothing was changed.";
+                return;
+            }
+        }
+
         if (IsPostgres) AppConfig.SetDbBackend(DbBackend.Postgres, Pg.ToConnectionString());
         else            AppConfig.SetDbBackend(DbBackend.Sqlite);
+
+        // ⚠️ Windows only, and correctly so: the service keeps its own copy of the connection taken
+        // at install time, which nothing rewrites on its own. A systemd user unit reads this same
+        // settings file as this client, so there is nothing to bring back into step.
+        if (OperatingSystem.IsWindows() && windowsService && IsPostgres)
+        {
+            // ⚠️ After the config is written, not before. The elevated step reads the connection
+            // back through AppConfig, so it has to be the new one by then.
+            StatusText = "Updating the background service…";
+
+            var syncError = WindowsServiceControl.Repoint();
+            if (syncError is not null)
+            {
+                // The settings are saved — that was the user's instruction and it stands. What is
+                // refused is the restart, because a client on the new database beside a service on
+                // the old one is worth stopping to look at.
+                StatusText = $"Saved, but the background service still points at the old database — {syncError}. "
+                           + "Not restarting. Update it from the Polling tab, then restart.";
+                this.RaisePropertyChanged(nameof(EngineChanged));
+                this.RaisePropertyChanged(nameof(CanSaveDbChoice));
+                return;
+            }
+        }
 
         this.RaisePropertyChanged(nameof(EngineChanged));
         this.RaisePropertyChanged(nameof(CanSaveDbChoice));

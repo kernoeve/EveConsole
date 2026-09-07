@@ -270,6 +270,13 @@ public class EsiPollingService : ReactiveObject
 
     public void Start()
     {
+        // ⚠️ Guarded. Without it a second Start overwrites _cts and abandons the first loop,
+        // still running on a token nothing holds any more: two polling loops in one process,
+        // doubling ESI traffic and racing each other\x{2019}s writes. That is the exact failure the
+        // worker lease exists to prevent, and it would have been reachable from inside a single
+        // client the moment the lease started driving Start.
+        if (_cts is not null) return;
+
         _cts         = new CancellationTokenSource();
         _pollingTask = Task.Run(() => RunPollingLoopAsync(_cts.Token));
     }
@@ -280,7 +287,8 @@ public class EsiPollingService : ReactiveObject
         await _cts.CancelAsync();
         if (_pollingTask is not null)
             try { await _pollingTask; } catch (OperationCanceledException) { }
-        _cts = null;
+        _cts         = null;
+        _pollingTask = null;
         StatusText = "Polling: Stopped";
     }
 

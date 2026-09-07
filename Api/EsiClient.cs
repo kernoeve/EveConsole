@@ -562,23 +562,45 @@ public class EsiClient
 
         var allItems = new List<T>(firstPage.Data ?? []);
         bool complete = true;
+        bool throttled = false;
+        var  latest    = firstPage;
+
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecutePublicAsync<List<T>>(path, ct, page: p);
+            latest = page;
+
             if (page.IsSuccess && page.Data is not null)
+            {
                 allItems.AddRange(page.Data);
-            else
-                complete = false;   // a page dropped — Data is now an incomplete set
+                continue;
+            }
+
+            complete = false;   // a page dropped — Data is now an incomplete set
+
+            // ⚠️ Stop rather than firing the remaining pages into the same wall. The error budget
+            // this spends is global, so a public endpoint paging into a limit takes the
+            // authenticated ones down with it.
+            if (page.StatusCode is 420 or 429) { throttled = true; break; }
         }
 
         return new EsiCallResult<List<T>>
         {
             Data       = allItems,
-            StatusCode = firstPage.StatusCode,
+            StatusCode = throttled ? latest.StatusCode : firstPage.StatusCode,
             TotalPages = firstPage.TotalPages,
             Expires    = firstPage.Expires,
             Complete   = complete,
+
+            // ⚠️ From the last page: the first page's numbers describe the budget before it was
+            // spent, which is the one reading that always looks fine.
+            RateLimitGroup     = latest.RateLimitGroup     ?? firstPage.RateLimitGroup,
+            RateLimitRemaining = latest.RateLimitRemaining ?? firstPage.RateLimitRemaining,
+            RateLimitLimit     = latest.RateLimitLimit     ?? firstPage.RateLimitLimit,
+            ErrorLimitRemain   = latest.ErrorLimitRemain   ?? firstPage.ErrorLimitRemain,
+            ErrorLimitReset    = latest.ErrorLimitReset    ?? firstPage.ErrorLimitReset,
+            RetryAfterSeconds  = latest.RetryAfterSeconds  ?? firstPage.RetryAfterSeconds,
         };
     }
 
@@ -663,28 +685,44 @@ public class EsiClient
         }
 
         var allItems = new List<T>(firstPage.Data ?? []);
-        bool complete = true;
+        bool complete  = true;
+        bool throttled = false;
+        var  latest    = firstPage;
+
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecuteAuthAsync<List<T>>(characterId, path, ct, page: p);
+            latest = page;
+
             if (page.IsSuccess && page.Data is not null)
+            {
                 allItems.AddRange(page.Data);
-            else
-                complete = false;   // a page dropped — Data is now an incomplete set
+                continue;
+            }
+
+            complete = false;   // a page dropped — Data is now an incomplete set
+
+            // ⚠️ Stop rather than firing the remaining pages into the same wall — see the corp
+            // variant below for what that cost.
+            if (page.StatusCode is 420 or 429) { throttled = true; break; }
         }
 
         return new EsiCallResult<List<T>>
         {
-            Data               = allItems,
-            StatusCode         = firstPage.StatusCode,
+            Data = allItems,
+
+            // ⚠️ The last page's rate-limit state, not the first page's: the first is the budget
+            // before any of it was spent, which is the one number guaranteed to look healthy.
+            StatusCode         = throttled ? latest.StatusCode : firstPage.StatusCode,
             TotalPages         = firstPage.TotalPages,
             Complete           = complete,
-            RateLimitGroup     = firstPage.RateLimitGroup,
-            RateLimitRemaining = firstPage.RateLimitRemaining,
-            RateLimitLimit     = firstPage.RateLimitLimit,
-            ErrorLimitRemain   = firstPage.ErrorLimitRemain,
-            ErrorLimitReset    = firstPage.ErrorLimitReset,
+            RateLimitGroup     = latest.RateLimitGroup     ?? firstPage.RateLimitGroup,
+            RateLimitRemaining = latest.RateLimitRemaining ?? firstPage.RateLimitRemaining,
+            RateLimitLimit     = latest.RateLimitLimit     ?? firstPage.RateLimitLimit,
+            ErrorLimitRemain   = latest.ErrorLimitRemain   ?? firstPage.ErrorLimitRemain,
+            ErrorLimitReset    = latest.ErrorLimitReset    ?? firstPage.ErrorLimitReset,
+            RetryAfterSeconds  = latest.RetryAfterSeconds  ?? firstPage.RetryAfterSeconds,
             Expires            = firstPage.Expires,
         };
     }
@@ -786,28 +824,49 @@ public class EsiClient
         }
 
         var allItems = new List<T>(firstPage.Data ?? []);
-        bool complete = true;
+        bool complete  = true;
+        bool throttled = false;
+        var  latest    = firstPage;   // whose rate-limit state describes where we actually are
+
         for (int p = 2; p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecuteCorpAuthAsync<List<T>>(corpId, path, ct, page: p, extraHeaders: extraHeaders);
+            latest = page;
+
             if (page.IsSuccess && page.Data is not null)
+            {
                 allItems.AddRange(page.Data);
-            else
-                complete = false;   // a page dropped — Data is now an incomplete set
+                continue;
+            }
+
+            complete = false;   // a page dropped — Data is now an incomplete set
+
+            // ⚠️ Stop, rather than firing every remaining page into the same wall. This loop used
+            // to carry on after a 429, so an endpoint with many pages — corp killmails is the
+            // worst of them — turned one refusal into one per remaining page, and every one of
+            // those spends from the error budget that all the other endpoints share.
+            if (page.StatusCode is 420 or 429) { throttled = true; break; }
         }
 
         return new EsiCallResult<List<T>>
         {
-            Data               = allItems,
-            StatusCode         = firstPage.StatusCode,
+            Data = allItems,
+
+            // ⚠️ The LAST page's rate-limit state, not the first page's. Reporting the first was
+            // reporting the budget as it stood before spending any of it — the freshest number
+            // available — so the poller's own throttle never saw the limit being approached and
+            // never held the endpoint back. A 429 on page nine was recorded as a success with
+            // plenty left.
+            StatusCode         = throttled ? latest.StatusCode : firstPage.StatusCode,
             TotalPages         = firstPage.TotalPages,
             Complete           = complete,
-            RateLimitGroup     = firstPage.RateLimitGroup,
-            RateLimitRemaining = firstPage.RateLimitRemaining,
-            RateLimitLimit     = firstPage.RateLimitLimit,
-            ErrorLimitRemain   = firstPage.ErrorLimitRemain,
-            ErrorLimitReset    = firstPage.ErrorLimitReset,
+            RateLimitGroup     = latest.RateLimitGroup     ?? firstPage.RateLimitGroup,
+            RateLimitRemaining = latest.RateLimitRemaining ?? firstPage.RateLimitRemaining,
+            RateLimitLimit     = latest.RateLimitLimit     ?? firstPage.RateLimitLimit,
+            ErrorLimitRemain   = latest.ErrorLimitRemain   ?? firstPage.ErrorLimitRemain,
+            ErrorLimitReset    = latest.ErrorLimitReset    ?? firstPage.ErrorLimitReset,
+            RetryAfterSeconds  = latest.RetryAfterSeconds  ?? firstPage.RetryAfterSeconds,
             Expires            = firstPage.Expires,
         };
     }

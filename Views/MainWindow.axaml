@@ -120,6 +120,24 @@
                        VerticalAlignment="Center"
                        IsVisible="{Binding !DbIsPostgres}" />
           </StackPanel>
+
+          <!-- Which client is doing the background work. On PostgreSQL several clients can be
+               pointed at one database and exactly one of them holds the lease, so "is anything
+               polling?" stops being answerable by the fact that a window is open. The hover says
+               where it runs, as what pid, and on which build — that last one being the point:
+               a worker on a different version is writing to this database with a different idea
+               of the schema. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Background="Transparent"
+                      ToolTip.Tip="{Binding WorkerTip}">
+            <TextBlock Text="Background:" FontSize="11" Foreground="#666677"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="{Binding WorkerOwner}" FontSize="11"
+                       VerticalAlignment="Center"
+                       Foreground="{Binding WorkerState,
+                                    Converter={x:Static views:WorkerStateBrushConverter.Instance}}" />
+          </StackPanel>
+
         </StackPanel>
 
         <!-- Eve Time clock -->
@@ -180,6 +198,16 @@
                   Padding="6 4" VerticalAlignment="Center"
                   ToolTip.Tip="{Binding AlarmsTip}"
                   Click="OnAlarmsClick">
+
+            <!-- Right-click mutes this machine. On the beacon rather than a control of its own,
+                 because that is the thing already on screen that means "alarms" — and mute is
+                 reached for mid-fight, where hunting for a second control is the failure. -->
+            <Button.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="{Binding AlarmsMuteMenuText}" Click="OnAlarmMuteClick" />
+              </ContextMenu>
+            </Button.ContextMenu>
+
             <Grid Width="29" Height="22">
               <!-- A beacon: dome on a stacked base, with light thrown off it while armed.
                    Drawn on a 24x22 canvas so the pieces line up at any size. -->
@@ -207,6 +235,16 @@
                            RadiusX="0.7" RadiusY="0.7" Fill="#23232c" />
                 <Rectangle Canvas.Left="3.0" Canvas.Top="18.7" Width="18.0" Height="2.7"
                            RadiusX="0.9" RadiusY="0.9" Fill="#16161d" />
+
+                <!-- ⚠️ Struck through while this machine is muted, and drawn last so it lies over
+                     the beacon. Muting has to be visible from across the room: a client silenced
+                     since Tuesday otherwise looks exactly like one with nothing to report, and the
+                     beacon goes on being lit either way because the alarms really are armed.
+                     Backed by a dark stroke so it reads against the lit dome as well as the housing. -->
+                <Path Data="M 3.4,20.2 L 20.6,3.4" IsVisible="{Binding AlarmsMuted}"
+                      Stroke="#12121a" StrokeThickness="3.6" StrokeLineCap="Round" />
+                <Path Data="M 3.4,20.2 L 20.6,3.4" IsVisible="{Binding AlarmsMuted}"
+                      Stroke="#c8884a" StrokeThickness="1.8" StrokeLineCap="Round" />
               </Canvas>
 
               <Border IsVisible="{Binding HasActiveAlarms}"

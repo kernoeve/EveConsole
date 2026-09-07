@@ -212,3 +212,54 @@ public class DbEngineLogoConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Which client is doing the background work, as a colour.
+///
+/// <para>⚠️ Only one of the four states is a problem, and it is the one that otherwise reads like
+/// the others: "none" means nothing is polling ESI, recalculating build costs or taking backups,
+/// and it looks exactly as calm as a host name until it is coloured differently. Unknown stays
+/// grey rather than amber — the first read has not come back yet, and alarming about a worker
+/// that is very probably fine is how an indicator teaches people to ignore it.</para>
+/// </summary>
+public class WorkerStateBrushConverter : IValueConverter
+{
+    public static readonly WorkerStateBrushConverter Instance = new();
+    private static readonly IBrush Mine    = new SolidColorBrush(Color.Parse("#5a9a6a"));
+    private static readonly IBrush Other   = new SolidColorBrush(Color.Parse("#8a8a99"));
+    private static readonly IBrush Missing = new SolidColorBrush(Color.Parse("#c8884a"));
+    private static readonly IBrush Unknown = new SolidColorBrush(Color.Parse("#666677"));
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            WorkerOwnership.Mine  => Mine,
+            WorkerOwnership.Other => Other,
+            WorkerOwnership.None  => Missing,
+            _                     => Unknown,
+        };
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Whether this client will make a noise about alarms, as a colour.
+///
+/// <para>Muted takes the same amber as a missing worker, because it is the same kind of fact: a
+/// thing that is supposed to happen is not going to. Green for active rather than the bar's
+/// ordinary grey — this one is worth being able to confirm at a glance mid-fleet, and grey would
+/// read as "off" to anyone scanning quickly.</para>
+/// </summary>
+public class AlarmMuteBrushConverter : IValueConverter
+{
+    public static readonly AlarmMuteBrushConverter Instance = new();
+    private static readonly IBrush Muted  = new SolidColorBrush(Color.Parse("#c8884a"));
+    private static readonly IBrush Active = new SolidColorBrush(Color.Parse("#5a9a6a"));
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is true ? Muted : Active;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

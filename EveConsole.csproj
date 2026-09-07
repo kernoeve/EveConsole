@@ -74,6 +74,15 @@
          compile-time reference. Conditioned on IsWindowsTarget it only reached linux-x64
          transitively, through some other package's dependencies, and vanished the moment
          the graph shifted — 4 CS0103s in SecretStore.cs. -->
+    <!-- Windows service hosting and control. Referenced on every target, like ProtectedData
+         above: the API throws PlatformNotSupportedException off Windows and every call site is
+         gated on OperatingSystem.IsWindows(), but a runtime guard does not remove the
+         compile-time reference. -->
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+    <!-- ⚠️ Declared, not left to arrive transitively. It does today, through the two packages
+         above — and ProtectedData did too, until moving one reference changed the graph and took
+         it away. A dependency the code names should be a dependency the project names. -->
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
 
     <!-- SQLite / EF Core -->

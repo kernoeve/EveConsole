@@ -144,6 +144,30 @@ public static class AppDb
     public static string AllTrue(string column) =>
         DbEngine.IsPostgres ? $"bool_and({column})" : $"MIN({column})";
 
+    /// <summary>
+    /// Whether a save failed because a unique index already held those rows.
+    ///
+    /// <para>⚠️ Not an error everywhere it happens. Several clients can now be pointed at one
+    /// database, and two of them tailing the same EVE log folder will parse the same lines and
+    /// try to write the same rows — the unique index on (SourceFile, LineNumber) is what makes
+    /// that safe rather than duplicating. The loser has nothing to fix and nothing to report: the
+    /// winner committed exactly the rows it was going to, and both read on from the new cursor
+    /// next pass. Logging it would fill the error log with the sound of the design working.</para>
+    ///
+    /// <para>Told apart by SQLSTATE on the server (23505 is unique_violation) and by result code
+    /// on SQLite (19 is SQLITE_CONSTRAINT), because the message text differs between the two and
+    /// matching on it would be a guess.</para>
+    /// </summary>
+    public static bool IsUniqueViolation(Exception? ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+        {
+            if (e is PostgresException { SqlState: "23505" }) return true;
+            if (e is Microsoft.Data.Sqlite.SqliteException { SqliteErrorCode: 19 }) return true;
+        }
+        return false;
+    }
+
     public static DbConnection Connect() =>
         DbEngine.IsPostgres
             ? new NpgsqlConnection(PostgresConnectionString(AppConfig.GetPostgresConnection() ?? ""))

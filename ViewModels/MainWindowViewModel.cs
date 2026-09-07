@@ -6,6 +6,7 @@ using EveConsole.Agent;
 using EveConsole.Data;
 using EveConsole.Api;
 using EveConsole.Auth;
+using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -34,10 +35,14 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>
     /// Where the data actually lives, on hover.
     ///
-    /// <para>⚠️ Filled once, in the background, and not recomputed. The SQLite figure is a file
-    /// length and the PostgreSQL one is a single pg_database_size call, so neither is expensive —
-    /// but a tooltip is no reason to touch the database every time a pointer crosses it, and a
-    /// size that is minutes old answers the question just as well.</para>
+    /// <para>⚠️ Refreshed every ten minutes, not filled once. The size is the part worth hovering
+    /// for and it is the part that moves — an import, a copy, a month of polling — so a figure fixed
+    /// at startup goes on quoting what the database was when the window opened, which on a client
+    /// left running for days is simply wrong.</para>
+    ///
+    /// <para>Still not on hover: a tooltip is no reason to touch the database every time a pointer
+    /// crosses it. Ten minutes is often enough to never be far out and rare enough to cost nothing
+    /// — the SQLite figure is a file length, the PostgreSQL one a single pg_database_size call.</para>
     /// </summary>
     public string DbEngineTip
     {
@@ -78,6 +83,142 @@ public class MainWindowViewModel : ReactiveObject
                         + ex.Message.Split('\n')[0];
         }
     }
+
+    // ── Which client is doing the background work ─────────────────────────────
+
+    private readonly WorkerLease    _workerLease;
+    private readonly AlarmMuteState _mute;
+    private readonly DispatcherTimer _workerTimer;
+
+    private string _workerOwner = "…";
+    /// <summary>
+    /// Who holds the lease, in as few words as the bar has room for: <c>this client</c>, the
+    /// other client's host name, or <c>none</c>.
+    /// </summary>
+    public string WorkerOwner
+    {
+        get => _workerOwner;
+        private set => this.RaiseAndSetIfChanged(ref _workerOwner, value);
+    }
+
+    private WorkerOwnership _workerState = WorkerOwnership.Unknown;
+    /// <summary>Drives the colour, so "nobody is polling" reads before the word does.</summary>
+    public WorkerOwnership WorkerState
+    {
+        get => _workerState;
+        private set => this.RaiseAndSetIfChanged(ref _workerState, value);
+    }
+
+    private string _workerTip = "Checking which client is doing the background work…";
+    /// <summary>Host, pid and version of the holder, on hover.</summary>
+    public string WorkerTip
+    {
+        get => _workerTip;
+        private set => this.RaiseAndSetIfChanged(ref _workerTip, value);
+    }
+
+    /// <summary>⚠️ The lease raises its events from its own loop, never the UI thread.</summary>
+    private void OnLeaseChanged() => Dispatcher.UIThread.Post(() => _ = RefreshWorkerAsync());
+
+    /// <summary>
+    /// Re-reads who holds the lease.
+    ///
+    /// <para>⚠️ Polled as well as event-driven. Gained and Lost describe THIS process, which is
+    /// only half the question — another client taking over, or dying, changes the answer with
+    /// nothing here to notice it.</para>
+    /// </summary>
+    private async Task RefreshWorkerAsync()
+    {
+        // One process, no contest, nothing to report but itself.
+        if (!DbEngine.IsPostgres)
+        {
+            WorkerOwner = "this client";
+            WorkerState = WorkerOwnership.Mine;
+            WorkerTip   = "Background processes run in this client.\n\n"
+                        + $"Host: {Environment.MachineName}\n"
+                        + $"PID: {Environment.ProcessId}\n"
+                        + $"Version: {AppVersion.Number}\n\n"
+                        + "SQLite allows one client at a time, so there is nothing to hand over to.";
+            return;
+        }
+
+        var s = await WorkerLease.ReadStatusAsync();
+
+        // ⚠️ IsHolder decides "mine", not a host name match. Two clients on one machine report the
+        // same host, and just after a handover the row can still name the previous holder — the
+        // lock is the only thing that actually knows.
+        if (_workerLease.IsHolder)
+        {
+            WorkerOwner = "this client";
+            WorkerState = WorkerOwnership.Mine;
+            WorkerTip   = s is null
+                ? "Background processes run in this client."
+                : Describe("Background processes run in this client.", s);
+            return;
+        }
+
+        if (s is null)
+        {
+            WorkerOwner = "none";
+            WorkerState = WorkerOwnership.None;
+            WorkerTip   = "No client has claimed the background work.\n\n"
+                        + "ESI polling, build costs and backups are not running.";
+            return;
+        }
+
+        if (!WorkerLease.IsLive(s))
+        {
+            WorkerOwner = "none";
+            WorkerState = WorkerOwnership.None;
+            WorkerTip   = Describe("Nothing is doing the background work — this is the last client that did.", s);
+            return;
+        }
+
+        WorkerOwner = s.HostName;
+        WorkerState = WorkerOwnership.Other;
+        WorkerTip   = Describe("Background processes run in another client.", s);
+    }
+
+    private static string Describe(string headline, BackgroundWorkerStatus s) =>
+        $"{headline}\n\n"
+      + $"Host: {s.HostName}{(s.Headless ? "  (headless)" : "")}\n"
+      + $"PID: {s.ProcessId}\n"
+      + $"Version: {s.Version}\n"
+      + $"Since: {s.LeaseTakenUtc.ToLocalTime():yyyy-MM-dd HH:mm}\n"
+      + $"Last heartbeat: {Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc)}";
+
+    private static string Ago(TimeSpan t) =>
+        t < TimeSpan.FromMinutes(1) ? $"{Math.Max(0, (int)t.TotalSeconds)}s ago"
+      : t < TimeSpan.FromHours(1)   ? $"{(int)t.TotalMinutes} min ago"
+      :                               $"{(int)t.TotalHours} h ago";
+
+    // ── Whether this machine stays quiet for alarms ───────────────────────────
+
+    /// <summary>
+    /// Silences the alarm actions that interrupt someone here — sound, dialog, and the agent
+    /// speaking — without touching what gets recorded.
+    ///
+    /// <para>⚠️ Backed by the shared <see cref="AlarmMuteState"/>, not a field of its own. The
+    /// Alarms tool has its own button for this, and two copies would let one of them go on saying
+    /// "on" after the other muted — with the beacon un-struck and the operator believing they are
+    /// silent when they are not.</para>
+    /// </summary>
+    public bool AlarmsMuted
+    {
+        get => _mute.Muted;
+        set => _mute.Muted = value;
+    }
+
+    /// <summary>The action a click would take, for a menu item or a button that toggles.</summary>
+    public string AlarmsMuteMenuText => _mute.ToggleText;
+
+    private void OnMuteChanged()
+    {
+        this.RaisePropertyChanged(nameof(AlarmsMuted));
+        this.RaisePropertyChanged(nameof(AlarmsMuteMenuText));
+        RefreshAlarmsTip();
+    }
+
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
@@ -210,25 +351,62 @@ public class MainWindowViewModel : ReactiveObject
     /// The light follows the alarm loop's own armed count, which it republishes on every tick,
     /// so this needs no timer of its own and no query.
     /// </summary>
-    private void BindAlarmLight(AlarmService alarms)
+    /// <summary>
+    /// Lights the beacon from whichever client is actually evaluating alarms.
+    ///
+    /// <para>⚠️ Not from the local service. Alarms are leader-only, so on a client that is not the
+    /// worker AlarmService is never started and its ArmedCount stays nought — the beacon went dark
+    /// and the badge vanished while the Alarms tab, which relays the worker, correctly said one was
+    /// armed. Two readouts of the same fact, disagreeing, and the more prominent one wrong.</para>
+    /// </summary>
+    private void SetAlarmLight(int count) => Dispatcher.UIThread.Post(() =>
     {
+        ActiveAlarmCount = count;
+        HasActiveAlarms  = count > 0;
+
+        AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
+        AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
+        AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
+
+        _armedCount = count;
+        RefreshAlarmsTip();
+    });
+
+    private void BindAlarmLight(AlarmService alarms, WorkerActivityService activity)
+    {
+        // This client's own service — right only while this client is the worker.
         alarms.WhenAnyValue(x => x.ArmedCount)
-            .Subscribe(count => Dispatcher.UIThread.Post(() =>
-            {
-                ActiveAlarmCount = count;
-                HasActiveAlarms  = count > 0;
+            .Subscribe(count => { if (_workerLease.IsHolder) SetAlarmLight(count); });
 
-                AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
-                AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
-                AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
+        // And the worker's, for when it is somebody else. Pushed on the same signal the Alarms tab
+        // uses, so the beacon and the tab cannot disagree about how many are armed.
+        activity.Changed += () =>
+        {
+            if (_workerLease.IsHolder) return;
+            if (activity.Get(WorkerActivityService.Alarms)?.Count is { } armed) SetAlarmLight(armed);
+        };
+    }
 
-                AlarmsTip = count switch
-                {
-                    0 => "Alarms — none armed",
-                    1 => "Alarms — 1 armed",
-                    _ => $"Alarms — {count} armed",
-                };
-            }));
+    private int _armedCount;
+
+    /// <summary>
+    /// ⚠️ Armed and audible are different questions, and the tooltip answers both. Muted alarms
+    /// stay armed and go on being recorded, so the count alone would let somebody read "3 armed"
+    /// off a machine that will not make a sound about any of them.
+    /// </summary>
+    private void RefreshAlarmsTip()
+    {
+        var armed = _armedCount switch
+        {
+            0 => "Alarms — none armed",
+            1 => "Alarms — 1 armed",
+            _ => $"Alarms — {_armedCount} armed",
+        };
+
+        AlarmsTip = AlarmsMuted
+            ? armed + "\n\nMuted on this client: no sound, dialog or agent notification will be "
+                    + "raised here. Alerts are still recorded.\n\nRight-click to unmute."
+            : armed + "\n\nRight-click to mute this client.";
     }
 
     // ── My characters online (shown beside the EVE clock) ───────────────────────
@@ -525,6 +703,10 @@ public class MainWindowViewModel : ReactiveObject
         SdeImportService                sdeService,
         HoboImportService               hoboService,
         EsiPollingService               pollingService,
+        WorkerLease                     workerLease,
+        WorkerActivityService           workerActivity,
+        ApiActivityViewModel            activityVm,
+        AlarmMuteState                  alarmMute,
         ApiActivityLog                  activityLog,
         MarketPricingService            marketPricing,
         MarketLevelService              marketLevelService,
@@ -614,9 +796,28 @@ public class MainWindowViewModel : ReactiveObject
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
         _ = LoadDbEngineTipAsync();
-        ActivityVm        = new ApiActivityViewModel(activityLog, scopeFactory, pollingService, timerSettings, historyService, contractsService,
-                                                     zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost,
-                                                     intelService, monitoringSettings, entityNames, alarmService, orderFulfilment, lpStoreService);
+
+        // And kept current, because the size in it grows. See DbEngineTip for why ten minutes
+        // rather than on hover.
+        Observable.Interval(TimeSpan.FromMinutes(10))
+            .ObserveOnUi("Db.TipRefresh")
+            .Subscribe(tick => { _ = LoadDbEngineTipAsync(); });
+
+        _mute            = alarmMute;
+        alarmMute.Changed += OnMuteChanged;
+
+        // Who is doing the background work, now and as it changes.
+        _workerLease        = workerLease;
+        workerLease.Gained += OnLeaseChanged;
+        workerLease.Lost   += OnLeaseChanged;
+        _ = RefreshWorkerAsync();
+
+        // ⚠️ Polled as well as event-driven, at the lease's own tick, because the events say
+        // nothing about what another client did.
+        _workerTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _workerTimer.Tick += (_, _) => _ = RefreshWorkerAsync();
+        _workerTimer.Start();
+        ActivityVm        = activityVm;
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
             characterSummaryService);
         NetWorthVm        = new NetWorthViewModel(dbFactory);
@@ -729,7 +930,7 @@ public class MainWindowViewModel : ReactiveObject
         UniverseVm             = new UniverseViewModel(
             universeMapService, mapStatsService,
             new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
-        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds);
+        AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
                                                         corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
@@ -859,11 +1060,25 @@ public class MainWindowViewModel : ReactiveObject
 
         StartEveTimeClock();
         StartOnlineCharactersWatch(dbFactory);
-        BindAlarmLight(alarmService);
+        BindAlarmLight(alarmService, workerActivity);
 
+        // ⚠️ Two sources, because only one of them is ever right. On the client holding the lease
+        // this process really is polling and its own status is the truth; on any other the poller
+        // is stopped, so its local text would read "Polling: Not started" about a client that is
+        // polling away perfectly well on another machine.
         _pollingService
             .WhenAnyValue(p => p.StatusText)
-            .Subscribe(t => PollingStatusText = t);
+            .Subscribe(t => { if (_workerLease.IsHolder) PollingStatusText = t; });
+
+        workerActivity.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            if (_workerLease.IsHolder) return;
+
+            PollingStatusText = workerActivity.Get(WorkerActivityService.Polling)?.Status
+                                is { Length: > 0 } status
+                ? status
+                : "Polling: on another client";
+        });
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.
         Observable.Interval(TimeSpan.FromSeconds(3))
@@ -953,4 +1168,15 @@ public class MainWindowViewModel : ReactiveObject
 
     public Task ForceResolveNamesAsync() =>
         _pollingService.ForceResolveStructureNamesAsync();
+}
+
+/// <summary>Who is doing the background work, as far as the title bar cares.</summary>
+public enum WorkerOwnership
+{
+    /// <summary>Not yet read. Shown as neither running nor missing — saying "none" before
+    /// looking would raise an alarm about a worker that is very likely fine.</summary>
+    Unknown,
+    Mine,
+    Other,
+    None,
 }

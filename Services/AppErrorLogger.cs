@@ -51,12 +51,38 @@ public class AppErrorLogger
                 Context      = context,
                 Message      = message,
                 InnerMessage = innerMessage,
+
+                // Who is reporting. On a shared database the log is everybody's, and a row that
+                // does not say which client wrote it sends the search to the wrong machine.
+                HostName     = Environment.MachineName,
+                Headless     = AppRuntime.IsHeadless,
             });
             await db.SaveChangesAsync();
         }
-        catch
+        catch (Exception logFailure)
         {
-            // Never let error logging crash the app
+            // ⚠️ No longer swallowed, and the reason matters. This log is a TABLE IN THE DATABASE,
+            // so the one failure it is structurally incapable of recording is "cannot reach the
+            // database" — which is the failure most worth hearing about. A headless worker that
+            // could not connect contended every thirty seconds for as long as it ran, wrote each
+            // refusal to the server that was refusing it, and from outside was indistinguishable
+            // from a worker with nothing to do.
+            //
+            // Best effort, and silent about its own failure: this is already the path where the
+            // usual place did not work.
+            try
+            {
+                var line = $"[{source}] {context}: {message}"
+                         + (innerMessage is null ? "" : $" — {innerMessage}")
+                         + $"  (not recorded: {logFailure.Message.Split('\n')[0]})";
+
+                // stderr is the journal for a systemd unit and the terminal for --headless; the
+                // file is for whoever comes looking afterwards. A desktop client gets neither and
+                // needs neither — it has a window.
+                if (AppRuntime.IsHeadless) Console.Error.WriteLine(line);
+                ServiceLog.Write(line);
+            }
+            catch { /* never let error logging crash the app */ }
         }
     }
 }

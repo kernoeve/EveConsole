@@ -1,25 +1,57 @@
 using System.IO.Compression;
-using Avalonia.Threading;
 
 namespace EveConsole.Services;
 
 public class DatabaseBackupService(AppPreferencesService prefs)
 {
-    private DispatcherTimer? _timer;
+    private Task? _loop;
+    private CancellationTokenSource? _cts;
 
-    public void Start()
+    /// <summary>
+    /// Checks hourly whether a backup is due.
+    ///
+    /// <para>⚠️ A plain task loop rather than a DispatcherTimer. A DispatcherTimer only ticks
+    /// while an Avalonia dispatcher is running, which made this the one background service that
+    /// would have gone quiet in a headless worker — and gone quiet in the worst way, since a
+    /// timer that never fires raises nothing to notice.</para>
+    ///
+    /// <para>The hour is waited before the first check, not after, which is what a
+    /// DispatcherTimer did too: starting the app is not a reason to take a backup.</para>
+    /// </summary>
+    public void Start(CancellationToken outerCt = default)
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromHours(1) };
-        _timer.Tick += async (_, _) =>
+        if (_loop is not null) return;
+
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(outerCt);
+        var ct = _cts.Token;
+
+        _loop = Task.Run(async () =>
         {
-            // ⚠️ Guarded. This is an async void handler, so an exception here — pg_dump
-            // missing, the server unreachable — would go nowhere an ordinary user could see
-            // and could take the process down rather than skipping one backup.
-            if (!IsBackupDue()) return;
-            try { await BackupNowAsync(AppConfig.GetDbPath()); }
-            catch { /* the next tick tries again; the manual button reports properly */ }
-        };
-        _timer.Start();
+            while (!ct.IsCancellationRequested)
+            {
+                try { await Task.Delay(TimeSpan.FromHours(1), ct); }
+                catch (OperationCanceledException) { return; }
+
+                // ⚠️ Guarded. pg_dump missing or the server unreachable must cost one backup,
+                // not end the loop for the rest of the session.
+                if (!IsBackupDue()) continue;
+                try { await BackupNowAsync(AppConfig.GetDbPath()); }
+                catch { /* the next pass tries again; the manual button reports properly */ }
+            }
+        }, ct);
+    }
+
+    /// <summary>Stops the check, and leaves it startable again for a regained lease.</summary>
+    public async Task StopAsync()
+    {
+        if (_cts is null) return;
+        await _cts.CancelAsync();
+        if (_loop is not null)
+            try { await _loop; } catch (OperationCanceledException) { }
+
+        _cts.Dispose();
+        _cts  = null;
+        _loop = null;
     }
 
     public const string KeyEnabled    = "db.backup.enabled";

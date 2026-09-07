@@ -551,7 +551,7 @@ public class ItemBrowserViewModel : ReactiveObject
     /// </summary>
     public const int AllSourcesId = 0;
 
-    private const string MarketSourcePrefKey = "itembrowser.market_source";
+    // Local: which market source this browser is pointed at is a view choice.
 
     private MarketConfigOption? _selectedMarketConfig;
     public MarketConfigOption? SelectedMarketConfig
@@ -560,8 +560,7 @@ public class ItemBrowserViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedMarketConfig, value);
-            if (value is not null && _prefs is not null)
-                _ = _prefs.SetAsync(MarketSourcePrefKey, value.LocationName);
+            if (value is not null) UiState.Set(UiState.MarketSource, value.LocationName);
             _ = LoadOrdersAsync();
         }
     }
@@ -1561,7 +1560,7 @@ public class ItemBrowserViewModel : ReactiveObject
             .Select(c => new MarketConfigOption { Id = c.Id, LocationName = c.LocationName, Method = c.Method })
             .ToListAsync();
 
-        var remembered = _prefs?.Get(MarketSourcePrefKey);
+        var remembered = UiState.Get(UiState.MarketSource, _prefs);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {

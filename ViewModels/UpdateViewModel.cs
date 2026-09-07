@@ -14,8 +14,10 @@ namespace EveConsole.ViewModels;
 public class UpdateViewModel : ReactiveObject
 {
     private const string RepoUrl        = "https://github.com/kernoeve/EveConsole";
-    public  const string AutoCheckKey   = "update.auto_check";
-    public  const string DeclinedKey    = "update.declined_version";
+    // ⚠️ Both local, not in the shared preference table. Whether THIS installation checks for
+    // updates, and which version it has already said no to, are facts about a machine — one client
+    // declining v1.6 used to hide the notice from every other client on the database, including
+    // ones still on 1.4 that genuinely needed it.
 
     private readonly AppPreferencesService _prefs;
     private readonly AppErrorLogger        _errorLogger;
@@ -35,7 +37,8 @@ public class UpdateViewModel : ReactiveObject
 
         var ver = Assembly.GetExecutingAssembly().GetName().Version;
         CurrentVersionText = ver is not null ? $"v{ver.Major}.{ver.Minor}.{ver.Build}" : "unknown";
-        _autoCheck = _prefs.Get(AutoCheckKey) != "0";   // default on
+        // Seeded from the shared row once: turning the check off was a deliberate choice.
+        _autoCheck = UiState.Get(UiState.UpdateAutoCheck, _prefs) != "0";   // default on
 
         CheckNowCommand     = ReactiveCommand.CreateFromTask(() => CheckAsync(auto: false));
         InstallUpdateCommand = ReactiveCommand.CreateFromTask(InstallAsync);
@@ -54,7 +57,7 @@ public class UpdateViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _autoCheck, value);
-            _ = _prefs.SetAsync(AutoCheckKey, value ? "1" : "0");
+            UiState.SetBool(UiState.UpdateAutoCheck, value);
             if (value) _ = CheckAsync(auto: false);
         }
     }
@@ -162,7 +165,10 @@ public class UpdateViewModel : ReactiveObject
             StatusText = "An update is available.";
 
             // Only nag once per version — respect a previous "Not now".
-            var declined = _prefs.Get(DeclinedKey);
+            // ⚠️ Deliberately NOT seeded from the shared row. It records a version this client is
+            // about to leave behind, and carrying it forward would suppress the first prompt the
+            // move to local storage was meant to make correct.
+            var declined = UiState.Get(UiState.UpdateDeclined);
             ShouldPrompt = declined != latest;
         }
         catch (Exception ex)
@@ -177,7 +183,7 @@ public class UpdateViewModel : ReactiveObject
     {
         ShouldPrompt = false;
         if (_pending is not null)
-            _ = _prefs.SetAsync(DeclinedKey, "v" + _pending.TargetFullRelease.Version);
+            UiState.Set(UiState.UpdateDeclined, "v" + _pending.TargetFullRelease.Version);
     }
 
     private async Task InstallAsync()

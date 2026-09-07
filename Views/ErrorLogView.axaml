@@ -55,6 +55,7 @@
               Background="#0d0d12">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Time"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
+        <DataGridTextColumn Header="Client"  Binding="{Binding Client}"   Width="150" />
         <DataGridTextColumn Header="Source"  Binding="{Binding Source}"   Width="180" />
         <DataGridTextColumn Header="Context" Binding="{Binding Context}"  Width="180" />
         <DataGridTextColumn Header="Message" Binding="{Binding Message}"  Width="*" />

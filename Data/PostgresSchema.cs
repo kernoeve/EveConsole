@@ -48,8 +48,13 @@ public static class PostgresSchema
     }
 
     /// <summary>
-    /// The only two tables that are not entities. Both are single-row settings the UI writes
-    /// directly with ADO, never through EF, which is why the model has never known about them.
+    /// Tables <c>EnsureCreated</c> will not add.
+    ///
+    /// <para>It builds a schema only into an empty database, so anything introduced after a
+    /// database first existed has to be spelled out here. Two of these are not entities at all —
+    /// single-row settings the UI writes directly with ADO, which the model has never known
+    /// about. The third is an ordinary entity that simply arrived later, and needs saying for
+    /// exactly the same reason.</para>
     /// </summary>
     private static readonly string[] Tables =
     [
@@ -64,6 +69,47 @@ public static class PostgresSchema
             "Id"                     INTEGER NOT NULL PRIMARY KEY,
             "ExcludedMarketGroupIds" TEXT    NOT NULL DEFAULT ''
         )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "BackgroundWorkerStatus" (
+            "Id"            INTEGER     NOT NULL PRIMARY KEY,
+            "Version"       TEXT        NOT NULL DEFAULT '',
+            "HostName"      TEXT        NOT NULL DEFAULT '',
+            "ProcessId"     INTEGER     NOT NULL DEFAULT 0,
+            "Headless"      BOOLEAN     NOT NULL DEFAULT FALSE,
+            "LeaseTakenUtc" TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "HeartbeatUtc"  TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "WorkerActivity" (
+            "Key"        TEXT        NOT NULL PRIMARY KEY,
+            "Status"     TEXT        NOT NULL DEFAULT '',
+            "Running"    BOOLEAN     NOT NULL DEFAULT FALSE,
+            "LastRunUtc" TIMESTAMPTZ NULL,
+            "NextRunUtc" TIMESTAMPTZ NULL,
+            "Count"      INTEGER     NULL,
+            "UpdatedUtc" TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """,
+        // Count arrived after the table did, within this same unreleased branch — so a database
+        // that already has the table needs it added rather than created.
+        """
+        ALTER TABLE "WorkerActivity" ADD COLUMN IF NOT EXISTS "Count" INTEGER NULL
+        """,
+
+        // ⚠️ AppErrorLog is built by EnsureCreated from the model, which only builds into an EMPTY
+        // database — so every install that already exists needs these two added by hand. They say
+        // which client wrote a row, which stopped being obvious the moment several of them began
+        // sharing one log.
+        //
+        // ⚠️ NOT NULL with a default rather than nullable: a client still on an older build inserts
+        // without naming these columns at all, and the default is what lets that go on working.
+        """
+        ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "HostName" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "Headless" BOOLEAN NOT NULL DEFAULT FALSE
         """,
     ];
 
