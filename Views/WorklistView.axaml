@@ -259,23 +259,14 @@
            up its figures. -->
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:WorklistRowVm">
-          <!-- ⚠️ A FIXED height, and it has to be fixed rather than capped.
-
-               Avalonia's DataGrid keeps ONE RowDetailsHeightEstimate for the whole grid — a single
-               scalar, not a height per row. Expand two rows to different heights and that number
-               is wrong for one of them, so the extent and the scroll offset are recomputed every
-               time an unrealised row comes into view. Scrolling UP is where it shows, because
-               going up realises rows the estimate has not been corrected against yet: the content
-               sticks and flickers while the scrollbar keeps moving.
-
-               Capping the height did nothing, and nor did shortening the panels — five-line
-               details flicker exactly as much as fifty-line ones, because what matters is that
-               they DIFFER, not that they are large. One height for every drawer makes that single
-               estimate exactly right, and the inner scroller carries whatever does not fit. -->
-          <Border Margin="70 0 0 8" Padding="12 8" Height="220"
+          <!-- ⚠️ No height constraint here, deliberately. Three attempts to cure the scroll
+               flicker by controlling this box all failed — a 320px cap, shorter panels, and a
+               fixed 220px drawer — which between them rule out the size of the details as the
+               cause. Leaving it natural until the mechanism is actually known beats carrying a
+               constraint that costs the look and buys nothing. -->
+          <Border Margin="70 0 0 8" Padding="12 8"
                   Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="8">
 
               <!-- ⚠️ What put the task on the list, above the detail of it. On a job or a purchase
@@ -368,7 +359,6 @@
 
             </Grid>
             </StackPanel>
-            </ScrollViewer>
           </Border>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>
