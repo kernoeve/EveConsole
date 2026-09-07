@@ -662,8 +662,13 @@ public class EsiClient
         }
     }
 
+    /// <summary>
+    /// Every page of a character endpoint. See the corporation variant for what
+    /// <paramref name="stopAfterPage"/> is for.
+    /// </summary>
     internal async Task<EsiCallResult<List<T>>> ExecuteAllPagesAsync<T>(
-        long characterId, string path, CancellationToken ct)
+        long characterId, string path, CancellationToken ct,
+        Func<List<T>, bool>? stopAfterPage = null)
     {
         var firstPage = await ExecuteAuthAsync<List<T>>(characterId, path, ct, page: 1);
         if (!firstPage.IsSuccess || firstPage.TotalPages <= 1)
@@ -689,7 +694,9 @@ public class EsiClient
         bool throttled = false;
         var  latest    = firstPage;
 
-        for (int p = 2; p <= firstPage.TotalPages; p++)
+        var stopped = stopAfterPage is not null && firstPage.Data is not null && stopAfterPage(firstPage.Data);
+
+        for (int p = 2; !stopped && p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecuteAuthAsync<List<T>>(characterId, path, ct, page: p);
@@ -698,6 +705,7 @@ public class EsiClient
             if (page.IsSuccess && page.Data is not null)
             {
                 allItems.AddRange(page.Data);
+                if (stopAfterPage is not null && stopAfterPage(page.Data)) break;
                 continue;
             }
 
@@ -800,9 +808,22 @@ public class EsiClient
         }
     }
 
+    /// <summary>
+    /// Every page of a corporation endpoint.
+    ///
+    /// <para><paramref name="stopAfterPage"/> ends the walk early when the caller can tell there is
+    /// nothing further worth having. ⚠️ Not an optimisation for its own sake: corp killmails are
+    /// returned newest first and the whole history is re-offered on every poll, so without it a
+    /// corporation with a long history re-downloaded every page every five minutes and discarded
+    /// almost all of it — which is what was spending the route's rate limit.</para>
+    ///
+    /// <para>Stopping deliberately still counts as complete. The caller asked to stop; that is not
+    /// the same as a page having failed.</para>
+    /// </summary>
     internal async Task<EsiCallResult<List<T>>> ExecuteCorpAllPagesAsync<T>(
         long corpId, string path, CancellationToken ct,
-        IReadOnlyDictionary<string, string>? extraHeaders = null)
+        IReadOnlyDictionary<string, string>? extraHeaders = null,
+        Func<List<T>, bool>? stopAfterPage = null)
     {
         var firstPage = await ExecuteCorpAuthAsync<List<T>>(corpId, path, ct, page: 1, extraHeaders: extraHeaders);
         if (!firstPage.IsSuccess || firstPage.TotalPages <= 1)
@@ -828,7 +849,10 @@ public class EsiClient
         bool throttled = false;
         var  latest    = firstPage;   // whose rate-limit state describes where we actually are
 
-        for (int p = 2; p <= firstPage.TotalPages; p++)
+        // The caller may already have everything on page one, in which case there is no walk.
+        var stopped = stopAfterPage is not null && firstPage.Data is not null && stopAfterPage(firstPage.Data);
+
+        for (int p = 2; !stopped && p <= firstPage.TotalPages; p++)
         {
             ct.ThrowIfCancellationRequested();
             var page = await ExecuteCorpAuthAsync<List<T>>(corpId, path, ct, page: p, extraHeaders: extraHeaders);
@@ -837,6 +861,7 @@ public class EsiClient
             if (page.IsSuccess && page.Data is not null)
             {
                 allItems.AddRange(page.Data);
+                if (stopAfterPage is not null && stopAfterPage(page.Data)) break;
                 continue;
             }
 

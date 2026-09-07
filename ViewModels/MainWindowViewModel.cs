@@ -593,6 +593,10 @@ public class MainWindowViewModel : ReactiveObject
             // the tab sat in the background shows nothing until something else triggers a load.
             if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
             if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
+
+            // ⚠️ The error log is NOT refreshed here. Returning to a tab already open should not
+            // re-read five thousand rows; the list is as old as the moment it was opened, and the
+            // Refresh button says so.
             return;
         }
 
@@ -654,6 +658,12 @@ public class MainWindowViewModel : ReactiveObject
         // a fresh read also picks up anything the agent created since the tab was last shown.
         if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
         if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
+
+        // ⚠️ Same reasoning, and it mattered more here. The error log used to read at application
+        // start, so opening it showed a list from whenever the app was launched — which looks
+        // current and is not. Reading on open means closing the tab and opening it again reads
+        // afresh, which is what somebody doing that is asking for.
+        if (toolId == "error_log") ErrorLogVm.Reload();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
