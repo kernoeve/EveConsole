@@ -3213,12 +3213,21 @@ public class EsiPollingService : ReactiveObject
                 .Select(c => c.EndLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
             // Industry job facilities and blueprint/output locations.
+            //
+            // ⚠️ The same self-exclusion the assets branch above uses, and for a stronger reason:
+            // a job's blueprint and output locations are CONTAINERS by nature. ESI answers with the
+            // corp office or division the prints came from and the output went to, not the
+            // structure around them — twelve of the ids reachable this way are Offices, category 3.
+            // Anything that is itself an owned item is not the structure it sits in.
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.StationId > T)
-                .Select(j => j.StationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.StationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.BlueprintLocationId > T)
-                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.OutputLocationId > T)
-                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
 
             // Market orders and wallet transactions.
             foreach (var id in await db.EsiMarketOrders.Where(o => o.LocationId > T)
@@ -3268,11 +3277,13 @@ public class EsiPollingService : ReactiveObject
 
             // Clear out anything already in the table that our assets identify as not a structure,
             // before the sync copies it into the table the user is about to curate by hand.
-            var purged = await _structureSync.PurgeNonStructuresAsync(ct);
+            var removedWhat = new List<string>();
+            var purged = await _structureSync.PurgeNonStructuresAsync(removedWhat, ct);
             if (purged > 0)
                 _errorLogger.Log(nameof(EsiPollingService), "Structure hygiene",
                     $"Removed {purged:N0} row(s) our assets identify as ships, containers or " +
-                     "asset-safety wraps rather than structures.");
+                     "asset-safety wraps rather than structures: " +
+                     (removedWhat.Count > 0 ? string.Join("; ", removedWhat) : "id not in assets"));
 
             // Copy what ESI resolved into the app's own table, which is what the Structure Browser
             // reads and edits. One direction only — nothing the user types can travel back into
