@@ -186,18 +186,8 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     /// </summary>
     private void OnRowLoading(object? sender, DataGridRowEventArgs e)
     {
-        bool? expanded = e.Row.DataContext switch
-        {
-            WorklistRowVm      w => w.IsExpanded,
-            StationNeedRowVm   n => n.IsExpanded,
-            ItemShortageRowVm  i => i.IsExpanded,
-            PrintPressureRowVm p => p.IsExpanded,
-            HaulPressureRowVm  h => h.IsExpanded,
-            _                    => null,
-        };
-
-        if (expanded is { } want && e.Row.AreDetailsVisible != want)
-            e.Row.AreDetailsVisible = want;
+        if (e.Row.DataContext is IExpandableRow row && e.Row.AreDetailsVisible != row.IsExpanded)
+            e.Row.AreDetailsVisible = row.IsExpanded;
     }
 
     private void OnManifestToggle(object? sender, RoutedEventArgs e)

@@ -14,8 +14,11 @@ namespace EveConsole.ViewModels;
 public sealed record SummaryStatVm(string Label, string Value);
 
 /// <summary>One row on the worklist.</summary>
-public class WorklistRowVm : ReactiveObject
+public class WorklistRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => Key;
+
     private readonly WorklistItem _item;
 
     /// <summary>The item behind the row, for analysis that reads the list rather than the grid.</summary>
@@ -555,8 +558,11 @@ public sealed class ShortageTaskRowVm : ReactiveObject
     };
 }
 
-public sealed class ItemShortageRowVm : ReactiveObject
+public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => s.TypeId.ToString();
+
     private readonly ItemShortage s;
 
     public ItemShortageRowVm(ItemShortage shortage)
@@ -805,8 +811,11 @@ public sealed class ObservationVm(Observation o)
 
 /// <summary>One stopped job on the Hauling tab.</summary>
 
-public sealed class HaulPressureRowVm : ReactiveObject
+public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => h.TaskKey;
+
     private readonly HaulBlock h;
 
     public HaulPressureRowVm(HaulBlock block)
@@ -876,8 +885,11 @@ public sealed class HaulPressureRowVm : ReactiveObject
     }
 }
 
-public sealed class PrintPressureRowVm : ReactiveObject
+public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => p.ProductTypeId.ToString();
+
     private readonly ItemBandwidth p;
 
     public PrintPressureRowVm(ItemBandwidth bandwidth)
@@ -1002,8 +1014,11 @@ public sealed class NeedDriverRowVm(NeedDriver d)
     public void Open()  { if (d.DriverTypeId > 0) EntityNavigator.Instance.Item(d.DriverTypeId); }
 }
 
-public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
+public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => $"{n.StationId}/{n.TypeId}";
+
     private bool _isExpanded;
 
     /// <summary>Whether the "asked for by" panel is open. Lives on the item, not the row, so the
@@ -1242,14 +1257,25 @@ public class WorklistViewModel : ReactiveObject
                 SlotPressure.Clear();
                 foreach (var s in slots) SlotPressure.Add(new SlotPressureRowVm(s));
 
+                // Built first, carried, then swapped in. Every row here is a new object, so what
+                // the reader had open is only recoverable from the OLD rows -- which is why the
+                // fill cannot start with Clear().
+                var printRows = prints.Select(p => new PrintPressureRowVm(p)).ToList();
+                var shortRows = shorts.Select(s => new ItemShortageRowVm(s)).ToList();
+                var haulRows  = hauls .Select(h => new HaulPressureRowVm(h)).ToList();
+
+                RowExpansion.Carry(PrintPressure, printRows);
+                RowExpansion.Carry(ItemShortages, shortRows);
+                RowExpansion.Carry(HaulPressures, haulRows);
+
                 PrintPressure.Clear();
-                foreach (var p in prints) PrintPressure.Add(new PrintPressureRowVm(p));
+                foreach (var p in printRows) PrintPressure.Add(p);
 
                 ItemShortages.Clear();
-                foreach (var s in shorts) ItemShortages.Add(new ItemShortageRowVm(s));
+                foreach (var s in shortRows) ItemShortages.Add(s);
 
                 HaulPressures.Clear();
-                foreach (var h in hauls) HaulPressures.Add(new HaulPressureRowVm(h));
+                foreach (var h in haulRows) HaulPressures.Add(h);
 
                 SharedTrips.Clear();
                 foreach (var t in SharedHauls.Find(hauls).Take(6)) SharedTrips.Add(t.Line);
@@ -1385,9 +1411,12 @@ public class WorklistViewModel : ReactiveObject
             var rows = await logistics.NeedsAsync();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var needRows = rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName)
+                                   .Select(r => new StationNeedRowVm(r)).ToList();
+                RowExpansion.Carry(Needs, needRows);
+
                 Needs.Clear();
-                foreach (var r in rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName))
-                    Needs.Add(new StationNeedRowVm(r));
+                foreach (var r in needRows) Needs.Add(r);
 
                 // ⚠️ Both views, explicitly. A DataGridCollectionView groups what it is holding
                 // when it is asked to, and a view whose grid has never been realised is not asked
@@ -2010,6 +2039,11 @@ public class WorklistViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                // What the reader had open, carried onto the rebuilt rows before anything binds
+                // to them. Rows are new objects every refresh, so a timed regeneration otherwise
+                // closes every drawer under somebody mid-read.
+                RowExpansion.Carry(_pool, pool);
+
                 _pool     = pool;
                 _runItems = run.AllItems.ToList();
 
