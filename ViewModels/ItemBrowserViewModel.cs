@@ -111,6 +111,12 @@ public record BlueprintMatVm(string MaterialName, int MaterialTypeId, int Quanti
 public record BlueprintVm(string BlueprintName, int BlueprintTypeId, IReadOnlyList<BlueprintMatVm> Materials);
 public record MaterialUseVm(string BlueprintName, int BlueprintTypeId, string ProductName);
 
+/// <summary>Something that yields this item when reprocessed, and how much of it comes back.</summary>
+public record ReprocessSourceVm(string SourceName, int SourceTypeId, int Quantity)
+{
+    public string QuantityText => Quantity.ToString("N0");
+}
+
 // ── Blueprint detail models ────────────────────────────────────────────────────
 
 public record BpSkillVm(string SkillName, int SkillTypeId, int Level)
@@ -236,9 +242,11 @@ public class ItemDisplayVm : ReactiveObject
     // Industry tab — when item is a regular item
     public IReadOnlyList<BlueprintVm>   ProducedBy  { get; init; } = [];
     public IReadOnlyList<MaterialUseVm> UsedIn      { get; init; } = [];
-    public bool HasProducedBy => ProducedBy.Count > 0;
-    public bool HasUsedIn    => UsedIn.Count > 0;
-    public bool HasIndustry  => HasProducedBy || HasUsedIn;
+    public IReadOnlyList<ReprocessSourceVm> ReprocessedFrom { get; init; } = [];
+    public bool HasProducedBy      => ProducedBy.Count > 0;
+    public bool HasUsedIn          => UsedIn.Count > 0;
+    public bool HasReprocessedFrom => ReprocessedFrom.Count > 0;
+    public bool HasIndustry        => HasProducedBy || HasUsedIn || HasReprocessedFrom;
 
     // Industry tab — when item is itself a blueprint / reaction formula
     public BlueprintDetailVm? BlueprintDetail { get; init; }
@@ -1444,7 +1452,7 @@ public class ItemBrowserViewModel : ReactiveObject
             var dogmaAttrs = await LoadDogmaAttrsAsync(typeId, ct);
 
             // Industry
-            var (producedBy, usedIn) = await LoadIndustryAsync(typeId, ct);
+            var (producedBy, usedIn, reprocessedFrom) = await LoadIndustryAsync(typeId, ct);
             var blueprintDetail       = await LoadBlueprintDetailAsync(typeId, ct);
 
             // Requirements (skills needed to use/build this item — any item can have these)
@@ -1517,6 +1525,7 @@ public class ItemBrowserViewModel : ReactiveObject
                 DogmaAttrs       = dogmaAttrs,
                 ProducedBy       = producedBy,
                 UsedIn           = usedIn,
+                ReprocessedFrom  = reprocessedFrom,
                 BlueprintDetail  = blueprintDetail,
                 Requirements     = requirements,
                 IsSkill          = isSkill,
@@ -1848,67 +1857,97 @@ public class ItemBrowserViewModel : ReactiveObject
             .ToList();
     }
 
-    private async Task<(IReadOnlyList<BlueprintVm>, IReadOnlyList<MaterialUseVm>)>
+    /// <summary>
+    /// The three ways this item meets industry: what makes it, what it goes into, and what it
+    /// falls out of when something else is reprocessed.
+    ///
+    /// <para>⚠️ Bulk queries, one per relationship, joined in memory. This ran a name lookup and a
+    /// product lookup PER blueprint, which was survivable only because the lists were capped at
+    /// ten and thirty. Tritanium is an input to 1,689 blueprints; uncapped, the old shape would
+    /// have been three and a half thousand round trips to draw one tab.</para>
+    ///
+    /// <para>⚠️ And the caps are gone, which is the point. "… and 23 more blueprints" is the
+    /// answer to a question nobody asked — the list is there to be searched and read, and a
+    /// truncation hides exactly the entry somebody scrolled down for.</para>
+    /// </summary>
+    private async Task<(IReadOnlyList<BlueprintVm>, IReadOnlyList<MaterialUseVm>,
+                        IReadOnlyList<ReprocessSourceVm>)>
         LoadIndustryAsync(int typeId, CancellationToken ct)
     {
-        // Blueprints that produce this item
+        // ── Blueprints that produce this item ─────────────────────────────────
         var bpIds = await _db.SdeBlueprintProducts.AsNoTracking()
             .Where(p => p.ProductTypeId == typeId && p.Activity == "manufacturing")
             .Select(p => p.TypeId)
+            .Distinct()
             .ToListAsync(ct);
 
-        var producedBy = new List<BlueprintVm>();
-        foreach (var bpId in bpIds.Take(10))
-        {
-            var bpName = await _db.SdeTypes.AsNoTracking()
-                .Where(t => t.TypeId == bpId)
-                .Select(t => t.Name)
-                .FirstOrDefaultAsync(ct) ?? $"Blueprint #{bpId}";
+        var bpNames = await _db.SdeTypes.AsNoTracking()
+            .Where(t => bpIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-            var mats = await _db.SdeBlueprintMaterials.AsNoTracking()
-                .Where(m => m.TypeId == bpId && m.Activity == "manufacturing")
+        var matsByBp = (await _db.SdeBlueprintMaterials.AsNoTracking()
+                .Where(m => bpIds.Contains(m.TypeId) && m.Activity == "manufacturing")
                 .Join(_db.SdeTypes, m => m.MaterialTypeId, t => t.TypeId,
-                      (m, t) => new { t.Name, m.MaterialTypeId, m.Quantity })
-                .OrderBy(x => x.Name)
-                .Select(x => new BlueprintMatVm(x.Name, x.MaterialTypeId, x.Quantity))
-                .ToListAsync(ct);
+                      (m, t) => new { m.TypeId, t.Name, m.MaterialTypeId, m.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<BlueprintMatVm>)[.. g.OrderBy(x => x.Name)
+                        .Select(x => new BlueprintMatVm(x.Name, x.MaterialTypeId, x.Quantity))]);
 
-            producedBy.Add(new BlueprintVm(bpName, bpId, mats));
-        }
+        var producedBy = bpIds
+            .Select(id => new BlueprintVm(
+                bpNames.GetValueOrDefault(id, $"Blueprint #{id}"), id,
+                matsByBp.GetValueOrDefault(id, [])))
+            .OrderBy(b => b.BlueprintName)
+            .ToList();
 
-        // Blueprints where this item is an input material
-        var usedInBpIds = await _db.SdeBlueprintMaterials.AsNoTracking()
+        // ── Blueprints this item is an input to ───────────────────────────────
+        var usedInIds = await _db.SdeBlueprintMaterials.AsNoTracking()
             .Where(m => m.MaterialTypeId == typeId && m.Activity == "manufacturing")
             .Select(m => m.TypeId)
             .Distinct()
-            .Take(30)
             .ToListAsync(ct);
 
-        var totalUsedIn = await _db.SdeBlueprintMaterials.AsNoTracking()
-            .Where(m => m.MaterialTypeId == typeId && m.Activity == "manufacturing")
-            .Select(m => m.TypeId)
-            .Distinct()
-            .CountAsync(ct);
+        var usedInNames = await _db.SdeTypes.AsNoTracking()
+            .Where(t => usedInIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-        var usedIn = new List<MaterialUseVm>();
-        foreach (var bpId in usedInBpIds)
-        {
-            var bpName = await _db.SdeTypes.AsNoTracking()
-                .Where(t => t.TypeId == bpId).Select(t => t.Name)
-                .FirstOrDefaultAsync(ct) ?? $"Blueprint #{bpId}";
+        var productOf = (await _db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => usedInIds.Contains(p.TypeId) && p.Activity == "manufacturing")
+                .Join(_db.SdeTypes, p => p.ProductTypeId, t => t.TypeId,
+                      (p, t) => new { p.TypeId, t.Name })
+                .ToListAsync(ct))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
 
-            var productName = await _db.SdeBlueprintProducts.AsNoTracking()
-                .Where(p => p.TypeId == bpId && p.Activity == "manufacturing")
-                .Join(_db.SdeTypes, p => p.ProductTypeId, t => t.TypeId, (p, t) => t.Name)
-                .FirstOrDefaultAsync(ct) ?? "";
+        var usedIn = usedInIds
+            .Select(id => new MaterialUseVm(
+                usedInNames.GetValueOrDefault(id, $"Blueprint #{id}"), id,
+                productOf.GetValueOrDefault(id, "")))
+            .OrderBy(u => u.BlueprintName)
+            .ToList();
 
-            usedIn.Add(new MaterialUseVm(bpName, bpId, productName));
-        }
+        // ── Reprocessing sources ──────────────────────────────────────────────
+        //
+        // ⚠️ The tab said nothing about this at all, and for a great many items it is the ONLY way
+        // they are produced: nothing on Helium Isotopes told you they come out of Clear Icicle.
+        // Read from SdeTypeMaterials, which is the yield table — reprocess the source and this
+        // item is among what comes back.
+        var reprocessedFrom = (await _db.SdeTypeMaterials.AsNoTracking()
+                .Where(m => m.MaterialTypeId == typeId)
+                .Join(_db.SdeTypes, m => m.TypeId, t => t.TypeId,
+                      (m, t) => new { t.Name, SourceTypeId = m.TypeId, m.Quantity })
+                .ToListAsync(ct))
+            .Select(x => new ReprocessSourceVm(x.Name, x.SourceTypeId, x.Quantity))
+            .OrderByDescending(x => x.Quantity)
+            .ThenBy(x => x.SourceName)
+            .ToList();
 
-        if (totalUsedIn > 30)
-            usedIn.Add(new MaterialUseVm($"… and {totalUsedIn - 30} more blueprints", 0, ""));
-
-        return (producedBy, usedIn);
+        return (producedBy, usedIn, reprocessedFrom);
     }
 
     private async Task<BlueprintDetailVm?> LoadBlueprintDetailAsync(int typeId, CancellationToken ct)

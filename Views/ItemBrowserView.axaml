@@ -595,6 +595,36 @@
                       </ItemsControl>
                     </StackPanel>
 
+                    <!-- Produced by reprocessing. For a great many items this is the ONLY way they
+                         are made: nothing on Helium Isotopes said they come out of Clear Icicle. -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedFrom}" Spacing="8">
+                      <TextBlock Text="PRODUCED BY REPROCESSING" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
+                      <TextBlock Text="Reprocessing one unit of these yields this item. The figure is the SDE's base yield, before station or structure efficiency."
+                                 FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedFrom}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ReprocessSourceVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding SourceTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding SourceName}"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding QuantityText}"
+                                         FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
                     <!-- Used In -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasUsedIn}" Spacing="8">
                       <TextBlock Text="USED IN MANUFACTURING" FontSize="10" FontWeight="SemiBold"
