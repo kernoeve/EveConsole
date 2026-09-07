@@ -8,8 +8,6 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
@@ -17,37 +15,44 @@ using EveConsole.ViewModels;
 namespace EveConsole.Views;
 
 /// <summary>
-/// Makes a DataGrid whose rows carry variable-height drawers scroll upward without fighting back.
+/// Pins a DataGrid's two scroll estimates to measured reality, so a grid with expandable rows can
+/// be scrolled upward without fighting back.
 ///
-/// <para><b>⚠️ Two faults, both in how the grid turns pixels into a position.</b> Diagnosed in
-/// <c>tools/gridsim</c>, a headless rig that drives a grid of this shape and compares what it
-/// believes against geometry known exactly. Run it after touching this file.</para>
+/// <para><b>⚠️ The DataGrid cannot price a row it has not realised</b>, so it works from two
+/// scalars — <c>RowHeightEstimate</c> and ONE <c>RowDetailsHeightEstimate</c> for every drawer in
+/// the grid — and the scrollable extent is those multiplied out over everything off screen. What
+/// makes this unfixable from the outside by tuning is HOW it derives the first:</para>
+/// <code>
+///   total  = verticalOffset - negVerticalOffset + sum(displayed row heights)
+///   total -= openRowsUpToTheViewport * RowDetailsHeightEstimate
+///   RowHeightEstimate = total / rowsSeenSoFar
+/// </code>
+/// <para>⚠️ That subtracts a GRID-WIDE mean from a LOCAL sample. Whatever single value the details
+/// estimate holds, some window of rows has drawers taller than it and some has drawers shorter,
+/// so the row estimate swings with wherever the viewport happens to be. Measured across one drag:
+/// -9.0, -4.8, 1.5, 5.6, 39.6, 132.0, 337.5 — and the extent with it, from 3230 to 18856 against a
+/// true content height of 6040. A negative row estimate means the extent SHRINKS as rows leave the
+/// viewport; an inflated one means the scrollbar maximum collapses on the next pass. Either way
+/// the offset is clamped to a maximum that has moved under it and the view is yanked back, which
+/// is the sticking and jumping, and it is why the wheel and the scrollbar both do it while the
+/// arrow keys do not — arrows walk slots exactly and never convert pixels at all.</para>
 ///
-/// <para><b>One: the extent.</b> The grid prices rows it has not realised from two scalars, and it
-/// derives the first FROM the second — <c>EdgedRowsHeightCalculated</c> sums the offset and the
-/// displayed rows, subtracts one <c>RowDetailsHeightEstimate</c> per open row, and divides. That
-/// subtracts a GRID-WIDE mean from a LOCAL sample, so whatever single value the details estimate
-/// holds, some window of rows has drawers taller than it and some shorter. Measured across one
-/// drag: -9.0, -4.8, 1.5, 5.6, 39.6, 132.0, 337.5, and the scrollbar maximum with it, 3230 to
-/// 18856 against a true 6040. No choice of constant fixes that, so neither estimate is left to the
-/// grid: both are measured off realised rows and written back, with <c>_lastEstimatedRow</c>
-/// pinned past the end so the formula can never run again.</para>
+/// <para><b>So neither estimate is left to the grid.</b> Both are measured off the rows that have
+/// been realised — body heights from the rows, drawer heights from the details presenters — and
+/// written back, with <c>_lastEstimatedRow</c> pinned past the end so the formula above can never
+/// run again and re-poison the row figure from a local sample.</para>
 ///
-/// <para><b>Two: the landing.</b> Avalonia converts a scroll by walking rows and measuring each one
-/// on the way past, and a row measured while it is OFF screen reports the height of whichever row
-/// was recycled into it — <c>SetDetailsVisibilityInternal</c> does nothing when the flag is
-/// unchanged, so a row reused from one open row to another keeps the previous drawer height. In
-/// the rig slot 3 read 1231, row 7's height, when it is 842: the walk landed 1181px into an 842px
-/// row, the guard bounced it to the next slot, the next tick put it back, and the view sat in a
-/// two-cycle while the offset drained. That is the sticking, and the jump is it breaking out.
-/// So the position is computed here instead, from measured heights, and the grid's landing is
-/// overwritten.</para>
+/// <para>What the extent then reduces to, with the two details terms cancelling:</para>
+/// <code>
+///   extent = realHeightAbove + realHeightDisplayed
+///          + meanBody * rowsBelow + meanOpenDrawer * openRowsBelow
+/// </code>
+/// <para>which is the true remaining height to within the spread of the drawers themselves —
+/// about 250px on 6040 here, where it had been thousands.</para>
 ///
-/// <para>Arrow keys were always fine, which is what separated the two paths: they walk slots and
-/// never convert pixels at all.</para>
-///
-/// <para>⚠️ Internal members, by reflection, and it degrades rather than breaks — if a future
-/// Avalonia renames one, the grid keeps its own arithmetic and nothing is worse than before.</para>
+/// <para>⚠️ Both members are internal with private setters and there is no public way in, so this
+/// is reflection. It degrades rather than breaks: if a future Avalonia renames either one, the
+/// grid keeps its own arithmetic and the scroll is no worse than it was.</para>
 /// </summary>
 public sealed class ScrollEstimates
 {
@@ -62,48 +67,36 @@ public sealed class ScrollEstimates
     private const BindingFlags Any =
         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-    private static readonly PropertyInfo? RowEstimate     = typeof(DataGrid).GetProperty("RowHeightEstimate", Any);
-    private static readonly PropertyInfo? DrawerEstimate  = typeof(DataGrid).GetProperty("RowDetailsHeightEstimate", Any);
-    private static readonly PropertyInfo? NegOffset       = typeof(DataGrid).GetProperty("NegVerticalOffset", Any);
-    private static readonly PropertyInfo? Cells           = typeof(DataGrid).GetProperty("CellsEstimatedHeight", Any);
-    private static readonly PropertyInfo? Display         = typeof(DataGrid).GetProperty("DisplayData", Any);
-    private static readonly FieldInfo?    LastEstimated   = typeof(DataGrid).GetField("_lastEstimatedRow", Any);
-    private static readonly FieldInfo?    VerticalOffset  = typeof(DataGrid).GetField("_verticalOffset", Any);
-    private static readonly FieldInfo?    VScrollBar      = typeof(DataGrid).GetField("_vScrollBar", Any);
-    private static readonly MethodInfo?   UpdateRows      = typeof(DataGrid).GetMethod("UpdateDisplayedRows", Any);
+    private static readonly PropertyInfo? RowEstimate =
+        typeof(DataGrid).GetProperty("RowHeightEstimate", Any);
 
-    private static readonly bool Usable =
-        RowEstimate?.CanWrite is true && DrawerEstimate?.CanWrite is true &&
-        NegOffset?.CanWrite is true && LastEstimated is not null &&
-        VerticalOffset is not null && VScrollBar is not null &&
-        Cells is not null && Display is not null && UpdateRows is not null;
+    private static readonly PropertyInfo? DetailsEstimate =
+        typeof(DataGrid).GetProperty("RowDetailsHeightEstimate", Any);
 
-    /// <summary>One wheel notch, matching DataGrid's own DATAGRID_mouseWheelDelta.</summary>
-    private const double Notch = 50;
+    /// <summary>
+    /// The guard field on the recomputation: <c>if (LastScrollingSlot &gt;= _lastEstimatedRow)</c>.
+    /// Pinned past any slot the grid can reach, so the row estimate stays whatever was measured.
+    /// </summary>
+    private static readonly FieldInfo? LastEstimatedRow =
+        typeof(DataGrid).GetField("_lastEstimatedRow", Any);
+
+    private static bool Usable =>
+        RowEstimate?.CanWrite is true && DetailsEstimate?.CanWrite is true && LastEstimatedRow is not null;
 
     private sealed class Hook
     {
         public INotifyCollectionChanged?            Watching;
         public NotifyCollectionChangedEventHandler? OnChanged;
-        public ScrollBar?                           Bar;
-        public bool                                 Busy;
+        public bool                                 Queued;
 
-        /// <summary>Trusted row heights, by index.</summary>
-        public readonly Dictionary<int, double> Heights = [];
+        public double AppliedRow     = -1;
+        public double AppliedDrawer  = -1;
 
-        /// <summary>Heights seen once. ⚠️ A height is only trusted after two passes agree: a
-        /// recycled row can be consistently wrong for a whole pass, and one bad sample poisons the
-        /// table for good — row 0 went in at 1231 against its real 1292, and every later step
-        /// across that boundary moved 111px for a 50px ask.</summary>
-        public readonly Dictionary<int, double> Seen = [];
+        /// <summary>Row heights WITHOUT their drawer, by row key.</summary>
+        public readonly Dictionary<string, double> Bodies = [];
 
-        public double MeanBody   = 22;
-        public double MeanDrawer;
-
-        /// <summary>Our own offset, moved only by what was asked for. ⚠️ Not simply read back:
-        /// the grid overwrites its own offset when its walk reaches the first row, assigning
-        /// NegVerticalOffset outright, so an error in the walk becomes an error in the offset.</summary>
-        public double Offset = -1;
+        /// <summary>Drawer heights, by row key.</summary>
+        public readonly Dictionary<string, double> Drawers = [];
     }
 
     private static readonly ConditionalWeakTable<DataGrid, Hook> Hooks = new();
@@ -112,18 +105,23 @@ public sealed class ScrollEstimates
     {
         TrackProperty.Changed.AddClassHandler<DataGrid>((grid, e) =>
         {
-            if (e.GetNewValue<bool>() is not true || !Usable) return;
+            if (e.GetNewValue<bool>() is not true) return;
 
             grid.PropertyChanged += (_, args) =>
             {
                 if (args.Property == DataGrid.ItemsSourceProperty) Rebind(grid);
             };
 
-            // What a scroll ASKED for, before the grid gets to interpret it.
-            grid.AddHandler(InputElement.PointerWheelChangedEvent,
-                (_, args) => Ask(grid, -args.Delta.Y * Notch), RoutingStrategies.Tunnel);
+            // Opening or closing changes which drawers are being averaged.
+            grid.RowDetailsVisibilityChanged += (_, _) => Queue(grid);
 
-            grid.LayoutUpdated += (_, _) => Pass(grid);
+            // A drawer built for the first time, or scrolled back into view: measurable now.
+            grid.LoadingRowDetails += (_, _) => Queue(grid);
+
+            // A row realised while scrolling gives another body height.
+            grid.LoadingRow += (_, _) => Queue(grid);
+
+            grid.Sorting += (_, _) => Queue(grid);
 
             Rebind(grid);
         });
@@ -136,158 +134,88 @@ public sealed class ScrollEstimates
         if (hook.Watching is not null && hook.OnChanged is not null)
             hook.Watching.CollectionChanged -= hook.OnChanged;
 
-        // ⚠️ Heights are keyed by row index, and a rebuild moves every index.
-        hook.Heights.Clear();
-        hook.Seen.Clear();
-        hook.Offset = -1;
-
         hook.Watching  = grid.ItemsSource as INotifyCollectionChanged;
-        hook.OnChanged = (_, _) => { hook.Heights.Clear(); hook.Seen.Clear(); hook.Offset = -1; };
+        hook.OnChanged = (_, _) => Queue(grid);
 
         if (hook.Watching is not null) hook.Watching.CollectionChanged += hook.OnChanged;
+
+        Queue(grid);
     }
 
-    // ── Reading and writing the grid's own numbers ───────────────────────────
-
-    private static double D(object? v) => v is double d ? d : 0;
-    private static int    I(object? v) => v is int i ? i : 0;
-
-    private static double Height(Hook hook, IList? items, int index)
-    {
-        if (hook.Heights.TryGetValue(index, out var h)) return h;
-
-        var open = items is not null && index < items.Count &&
-                   items[index] is IExpandableRow { IsExpanded: true };
-
-        return hook.MeanBody + (open ? hook.MeanDrawer : 0);
-    }
-
-    private static double Total(Hook hook, IList? items, int count)
-    {
-        var total = 0.0;
-        for (var i = 0; i < count; i++) total += Height(hook, items, i);
-        return total;
-    }
-
-    private static void Ask(DataGrid grid, double pixels)
+    private static void Queue(DataGrid grid)
     {
         var hook = Hooks.GetOrCreateValue(grid);
-        if (hook.Offset < 0) hook.Offset = D(VerticalOffset!.GetValue(grid));
+        if (hook.Queued) return;
+        hook.Queued = true;
 
-        var items = grid.ItemsSource as IList;
-        var max   = Math.Max(0, Total(hook, items, items?.Count ?? 0) - D(Cells!.GetValue(grid)));
-
-        hook.Offset = Math.Clamp(hook.Offset + pixels, 0, max);
+        // ⚠️ Background, so layout has run and there are heights to read. Several triggers fire
+        // together during one refresh; one pass per idle turn is enough.
+        Dispatcher.UIThread.Post(
+            () => { hook.Queued = false; Apply(grid); }, DispatcherPriority.Background);
     }
 
-    // ── The pass, after every layout ─────────────────────────────────────────
-
-    private static void Pass(DataGrid grid)
+    private static void Apply(DataGrid grid)
     {
+        if (!Usable || grid.GetVisualRoot() is null) return;
+
         var hook = Hooks.GetOrCreateValue(grid);
-        if (hook.Busy || grid.GetVisualRoot() is null) return;
 
-        hook.Busy = true;
-        try { Measure(grid, hook); Place(grid, hook); }
-        catch { /* never break the grid over a diagnostic correction */ }
-        finally { hook.Busy = false; }
-    }
-
-    private static void Measure(DataGrid grid, Hook hook)
-    {
-        var bodies  = new List<double>();
-        var drawers = new List<double>();
-
+        // Measure whatever is realised. A row's body is its own height less its drawer, so an open
+        // row contributes to both figures rather than being skipped.
         foreach (var row in grid.GetVisualDescendants().OfType<DataGridRow>())
         {
-            if (row.Index < 0 || row.Bounds.Height <= 1) continue;
+            if (row.DataContext is not IExpandableRow item || row.Bounds.Height <= 1) continue;
 
-            var presenter = row.AreDetailsVisible
+            var drawer = row.AreDetailsVisible
                 ? row.GetVisualDescendants().OfType<DataGridDetailsPresenter>().FirstOrDefault()
                 : null;
 
-            var drawer = presenter is { Bounds.Height: > 1 } ? presenter.Bounds.Height : 0;
-            if (drawer > 0) drawers.Add(drawer);
+            var open = drawer is { Bounds.Height: > 1 } ? drawer.Bounds.Height : 0;
+            if (open > 0) hook.Drawers[item.ExpandKey] = open;
 
-            var body = row.Bounds.Height - drawer;
-            if (body > 1) bodies.Add(body);
-
-            // Settled only: mid-recycle a row's arranged bounds and its measured size disagree.
-            if (Math.Abs(row.DesiredSize.Height - row.Bounds.Height) >= 0.5) continue;
-
-            if (hook.Seen.TryGetValue(row.Index, out var once) && Math.Abs(once - row.Bounds.Height) < 0.5)
-                hook.Heights[row.Index] = row.Bounds.Height;
-
-            hook.Seen[row.Index] = row.Bounds.Height;
+            var body = row.Bounds.Height - open;
+            if (body > 1) hook.Bodies[item.ExpandKey] = body;
         }
 
-        if (bodies.Count == 0) return;
+        if (hook.Bodies.Count == 0) return;
 
-        hook.MeanBody   = bodies.Average();
-        hook.MeanDrawer = drawers.Count > 0 ? drawers.Average() : 0;
+        // The row figure is the mean BODY, which is what the grid's own formula is trying to
+        // recover and keeps getting wrong. Bodies barely vary, so this settles at once.
+        var rows = hook.Bodies.Values.Average();
 
-        RowEstimate!.SetValue(grid, hook.MeanBody);
-        DrawerEstimate!.SetValue(grid, hook.MeanDrawer);
-        LastEstimated!.SetValue(grid, int.MaxValue);
+        // The drawer figure is the mean over the rows that are OPEN — the ones the grid will
+        // actually multiply it by. Anything open but never realised has no measurement of its own
+        // and falls back to the mean of the rest, which is the best guess available.
+        double sum = 0;
+        var    n   = 0;
+
+        foreach (var key in OpenKeys(grid.ItemsSource))
+            if (hook.Drawers.TryGetValue(key, out var h)) { sum += h; n++; }
+
+        var drawers = n > 0                     ? sum / n
+                    : hook.Drawers.Count > 0    ? hook.Drawers.Values.Average()
+                    :                             0;
+
+        var moved = Math.Abs(rows - hook.AppliedRow) >= 1 || Math.Abs(drawers - hook.AppliedDrawer) >= 1;
+
+        hook.AppliedRow    = rows;
+        hook.AppliedDrawer = drawers;
+
+        RowEstimate!.SetValue(grid, rows);
+        DetailsEstimate!.SetValue(grid, drawers);
+
+        // ⚠️ AFTER the writes, every pass. This is what stops the grid recomputing the row figure
+        // from whatever narrow window the viewport is sitting on.
+        LastEstimatedRow!.SetValue(grid, int.MaxValue);
+
+        if (moved) grid.InvalidateMeasure();
     }
 
-    private static void Place(DataGrid grid, Hook hook)
+    private static IEnumerable<string> OpenKeys(IEnumerable? items)
     {
-        var items = grid.ItemsSource as IList;
-        var count = items?.Count ?? 0;
-        if (count == 0) return;
+        if (items is null) yield break;
 
-        var cells  = D(Cells!.GetValue(grid));
-        var max    = Math.Max(0, Total(hook, items, count) - cells);
-        var theirs = D(VerticalOffset!.GetValue(grid));
-
-        // ⚠️ Ours only while the two are CLOSE. The grid loses a little of the offset whenever its
-        // walk reaches the first row; but it also relocates wholesale — snapping to the bottom,
-        // resetting to the top — and overriding THAT would mean moving the displayed set a long way
-        // from outside a layout pass, which corrupts DisplayData outright. Small disagreements are
-        // ours to correct; large ones are the grid relocating, so resync to it.
-        var span   = hook.MeanBody + hook.MeanDrawer;
-        var target = hook.Offset < 0 || Math.Abs(hook.Offset - theirs) > span ? theirs : hook.Offset;
-
-        target      = Math.Clamp(target, 0, max);
-        hook.Offset = target;
-
-        if (Math.Abs(theirs - target) > 0.5) VerticalOffset.SetValue(grid, target);
-
-        // Which row the view starts on, and how far into it, from heights that were measured.
-        var slot = 0;
-        var acc  = 0.0;
-        while (slot < count - 1 && acc + Height(hook, items, slot) <= target)
-        {
-            acc += Height(hook, items, slot);
-            slot++;
-        }
-
-        var neg     = Math.Max(0, target - acc);
-        var display = Display!.GetValue(grid);
-
-        if (display is not null)
-        {
-            if (Math.Abs(D(NegOffset!.GetValue(grid)) - neg) > 0.5) NegOffset.SetValue(grid, neg);
-
-            // ⚠️ Only when the FIRST ROW changes. UpdateDisplayedRows expects to run inside a layout
-            // pass; rebuilding the displayed set from outside one is survivable for a neighbouring
-            // slot and not for a distant one — hence the resync above, which keeps this small.
-            var first = display.GetType().GetProperty("FirstScrollingSlot", Any);
-            if (first is not null && I(first.GetValue(display)) != slot)
-                UpdateRows!.Invoke(grid, [slot, cells]);
-        }
-
-        // The extent, summed from measured heights rather than multiplied out over rows the grid
-        // has never seen. ⚠️ It rewrites this from its own arithmetic on every layout, which is why
-        // this runs in LayoutUpdated — after, not before.
-        if (VScrollBar!.GetValue(grid) is not ScrollBar bar) return;
-
-        hook.Bar = bar;
-        if (Math.Abs(bar.Maximum - max) > 0.5)      bar.Maximum      = max;
-        if (Math.Abs(bar.ViewportSize - cells) > 0.5) bar.ViewportSize = cells;
-
-        var value = Math.Clamp(target, 0, max);
-        if (Math.Abs(bar.Value - value) > 0.5) bar.Value = value;
+        foreach (var item in items)
+            if (item is IExpandableRow { IsExpanded: true } row) yield return row.ExpandKey;
     }
 }
