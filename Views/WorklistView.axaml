@@ -290,7 +290,7 @@
                              A blank beside a job reads as "not checked yet"; naming what it is
                              still short of is the difference between a promise and a fact. -->
                         <TextBlock Grid.Column="1" Text="{Binding StatusText}"
-                                   FontSize="13" MinWidth="150" TextAlignment="Right"
+                                   FontSize="13" MinWidth="176" TextAlignment="Right"
                                    Foreground="{Binding StatusColor}"
                                    ToolTip.Tip="{Binding StatusTip}"/>
                       </Grid>

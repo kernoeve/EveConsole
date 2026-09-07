@@ -99,12 +99,20 @@ public class WorklistService(
 
         PromoteUnblockingBuys(sections, all);
 
-        // Jobs stopped for want of material that exists somewhere else, by where they run.
-        // MustBuy shortfalls are excluded: no haul fixes something nobody owns.
+        // Every job stopped for want of something, by where it runs and what it wants.
+        //
+        // ⚠️ MustBuy shortfalls are INCLUDED, and the flag is not what it sounds like. It means
+        // "not enough owned in scope that other jobs have not already claimed" — so with one
+        // Obelisk owned and three Anshar jobs wanting one each, the first job is a hauling
+        // problem and the other two are marked MustBuy. Filtering them out here dropped them
+        // from the panel entirely, which is why a haul carrying an Obelisk listed one job
+        // waiting on it and not the three that are.
+        //
+        // They are all waiting on this crate. Which of them the crate actually starts is a
+        // separate question, answered per job below and shown rather than filtered on.
         var stopped = all
             .Where(x => x.LocationId > 0)
-            .SelectMany(x => x.Shortages.Where(h => !h.MustBuy)
-                              .Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
+            .SelectMany(x => x.Shortages.Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
             .GroupBy(x => x.Key)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
 
@@ -143,22 +151,26 @@ public class WorklistService(
                 // ⚠️ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
                 // The count used to be "jobs waiting on any of these items", which is a different
                 // and much larger number: a job short of three things and sent one of them stays
-                // exactly as stopped as it was. Every shortage is tested, MustBuy included — nobody
-                // owns a MustBuy item, so no haul can be carrying one, and a job with such a
-                // shortage is not restarted by any delivery at all.
+                // exactly as stopped as it was.
+                //
+                // ⚠️ A MustBuy shortage is ALWAYS outstanding, whatever the manifest says. The
+                // flag means the owned stock is already spoken for by another job, and this crate
+                // came out of that same owned stock — so a second job wanting the same hull is
+                // queued behind the first, not served by the same trip. That is a different fact
+                // from "waiting on something else too", and the row says which.
                 var waiting = touched
                     .Select(j =>
                     {
                         var outstanding = j.Shortages
-                            .Where(s => cargo.GetValueOrDefault(s.TypeId) < s.Short)
-                            .Select(s => s.TypeName)
-                            .Distinct()
+                            .Where(s => s.MustBuy || cargo.GetValueOrDefault(s.TypeId) < s.Short)
                             .ToList();
 
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName,
-                            Unblocked: outstanding.Count == 0,
-                            StillShortOf: outstanding);
+                            Unblocked:   outstanding.Count == 0,
+                            StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
+                                                         .Select(s => s.TypeName).Distinct()],
+                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
@@ -187,7 +199,7 @@ public class WorklistService(
                                 : "")
                            + (waiting.Count > freed.Count
                                 ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
-                                + "cargo but are short of other things too."
+                                + "cargo but will not start on this load."
                                 : ""),
                 };
             }

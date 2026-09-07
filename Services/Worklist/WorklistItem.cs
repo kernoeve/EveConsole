@@ -64,11 +64,15 @@ public sealed record WorklistShortage(
 /// A job short of three things is not restarted by a delivery of one of them, however much of it
 /// arrives — which is what "restarts N jobs" claimed, and what checking the jobs behind the number
 /// kept disproving.</param>
-/// <param name="StillShortOf">What it would still be waiting for once this haul lands. Empty when
-/// the haul finishes it.</param>
+/// <param name="StillShortOf">What it would go on waiting for once this haul lands, not counting
+/// anything the haul is carrying. Empty when the only thing in its way is the queue.</param>
+/// <param name="QueuedBehind">⚠️ It wants something ON this manifest and still will not start:
+/// an earlier job has already claimed that stock, and this crate came out of the same pile. A
+/// different fact from being short of something else, and the row has to say which or the reader
+/// goes looking for a missing item that is right there on the list.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
-    bool Unblocked, IReadOnlyList<string> StillShortOf)
+    bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false)
 {
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -76,20 +80,24 @@ public sealed record WorklistWaitingJob(
     /// <summary>
     /// What this delivery does for the job, in the fewest words that are true.
     ///
-    /// <para>⚠️ Both cases are stated. A tick on the ones this restarts and a blank on the rest
+    /// <para>⚠️ Every case is stated. A tick on the ones this restarts and a blank on the rest
     /// would read as "checked" and "not checked", when the blank is the more important finding:
-    /// the job is waiting on this crate AND on other things, so the trip will not start it.</para>
+    /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
-    public string StatusText => Unblocked
-        ? "starts on arrival"
-        : StillShortOf.Count == 1
-            ? "also short of 1 item"
-            : $"also short of {StillShortOf.Count:N0} items";
+    public string StatusText =>
+        Unblocked                 ? "starts on arrival"
+        : StillShortOf.Count == 0 ? "queued behind another job"
+        : StillShortOf.Count == 1 ? "also short of 1 item"
+                                  : $"also short of {StillShortOf.Count:N0} items";
 
-    public string StatusTip => Unblocked
-        ? "This haul carries everything the job is short of, so it starts when the cargo lands."
-        : "Still short of " + string.Join(", ", StillShortOf.Take(6))
-        + (StillShortOf.Count > 6 ? $", and {StillShortOf.Count - 6:N0} more." : ".");
+    public string StatusTip =>
+        Unblocked ? "This haul carries everything the job is short of, so it starts when the cargo lands."
+        : StillShortOf.Count == 0
+            ? "The job wants something on this manifest, but an earlier job has already claimed "
+            + "that stock — this load will not reach it."
+            : "Still short of " + string.Join(", ", StillShortOf.Take(6))
+            + (StillShortOf.Count > 6 ? $", and {StillShortOf.Count - 6:N0} more." : ".")
+            + (QueuedBehind ? " It is also behind another job for something on this manifest." : "");
 
     public Avalonia.Media.IBrush StatusColor =>
         Unblocked ? EveConsole.Services.Palette.Good : EveConsole.Services.Palette.TextFaint;
