@@ -265,7 +265,8 @@ public class BottleneckSummaryService
         var points = shared.Count > 0
             ? [.. shared.Take(MaxNamed).Select(h =>
                   $"{h.TypeName} to {h.StationName} — {h.Units:N0} ({h.Volume:N0} m3), "
-                + $"restarts {h.Jobs:N0} jobs")]
+                + (h.Unblocks > 0 ? $"restarts {h.Unblocks:N0} jobs"
+                                  : $"wanted by {h.Jobs:N0} jobs, none restarted by it alone"))]
             : idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
                   .Select(h => $"{h.Title} at {h.StationName} — {h.Volume:N0} m3")
                   .ToList();

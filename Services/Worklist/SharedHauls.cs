@@ -3,7 +3,12 @@ namespace EveConsole.Services.Worklist;
 /// <summary>
 /// One delivery that would restart more than one job.
 /// </summary>
-/// <param name="Jobs">Stopped jobs at that destination waiting on this item.</param>
+/// <param name="Jobs">Stopped jobs at that destination waiting on this item. ⚠️ Waiting on it —
+/// not restarted by it. Most are short of other things as well.</param>
+/// <param name="Unblocks">Of those, the ones this delivery would actually restart: the jobs whose
+/// ONLY outstanding shortage is this item. ⚠️ The distinction is the whole point of the number.
+/// A delivery wanted by six jobs of which one is short of nothing else restarts one job, and
+/// reporting six is a promise the trip cannot keep.</param>
 /// <param name="Stalled">Everything stopped behind those jobs, so a trip that looks small can
 /// still be the one worth making.</param>
 /// <param name="Raised">Whether any haul on the list already carries it there.</param>
@@ -15,13 +20,19 @@ public sealed record SharedHaul(
     long   Units,
     double Volume,
     int    Jobs,
+    int    Unblocks,
     int    Stalled,
     bool   Raised)
 {
     public string Line =>
-        $"{TypeName} to {StationName}: one delivery of {Units:N0} ({Volume:N0} m3) restarts "
-      + $"{Jobs:N0} job(s)"
-      + (Stalled > 0 ? $" and the {Stalled:N0} task(s) behind them" : "")
+        $"{TypeName} to {StationName}: one delivery of {Units:N0} ({Volume:N0} m3) "
+      + (Unblocks > 0
+            ? $"restarts {Unblocks:N0} job(s)"
+            + (Stalled > 0 ? $" and the {Stalled:N0} task(s) behind them" : "")
+            : $"is wanted by {Jobs:N0} job(s), none of which it restarts on its own")
+      + (Unblocks > 0 && Jobs > Unblocks
+            ? $" — {Jobs - Unblocks:N0} more want it and are short of other things too"
+            : "")
       + (Raised ? " — already raised." : " — nothing moving.");
 }
 
@@ -52,10 +63,26 @@ public static class SharedHauls
                 g.Sum(x => x.Want.Units),
                 g.Sum(x => x.Want.Volume),
                 g.Select(x => x.Block.TaskKey).Distinct().Count(),
-                g.Sum(x => x.Block.StalledTasks),
+
+                // ⚠️ Only the jobs this delivery finishes the waiting for. A HaulBlock lists every
+                // shortage the job has in Wants, so a job with one want is short of this and
+                // nothing else -- it starts when the crate lands. A job with three wants does not,
+                // however much of this you bring, and counting it here was the tool promising a
+                // restart it had no way to deliver.
+                g.Where(x => x.Block.Wants.Count == 1)
+                 .Select(x => x.Block.TaskKey).Distinct().Count(),
+
+                // ⚠️ Behind the jobs it actually restarts, for the same reason. Work waiting on a
+                // job that stays stopped is not freed by this trip.
+                g.Where(x => x.Block.Wants.Count == 1).Sum(x => x.Block.StalledTasks),
                 g.Any(x => x.Block.HaulTasks > 0)))
             .Where(h => h.Jobs > 1)
-            .OrderByDescending(h => h.Jobs + h.Stalled)
+
+            // Ranked by what the trip actually achieves, then by how much it is wanted. Ordering
+            // on Jobs alone put a delivery six jobs want but none can use above one that starts
+            // two immediately.
+            .OrderByDescending(h => h.Unblocks + h.Stalled)
+            .ThenByDescending(h => h.Unblocks)
             .ThenByDescending(h => h.Jobs)
             .ToList();
 
