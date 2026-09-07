@@ -1,0 +1,6 @@
+# ⚠️ These must reach Linux with LF endings, whatever the checkout they were edited in.
+# A shell script with CRLF fails as `bad interpreter: /usr/bin/env bash^M`, and a systemd
+# unit with CRLF is rejected about as unhelpfully — both only after being edited on a
+# Windows working copy, where autocrlf would otherwise convert them on the way out.
+*.sh       text eol=lf
+*.service  text eol=lf
