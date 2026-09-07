@@ -147,7 +147,7 @@ public class LogisticsGenerator(
     private async Task<List<WorklistItem>> BuildAsync(
         AppDbContext db, int parkId, CancellationToken ct)
     {
-        var (want, stock, _, ctx) = await GatherAsync(db, parkId, ct);
+        var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
         if (ctx is null) return [];
 
         var refineMoves = await RefiningMovesAsync(db, ctx, parkId, stock, ct);
@@ -165,7 +165,16 @@ public class LogisticsGenerator(
         // surplus items as bare type ids.
         var names = await NamesAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
 
-        return Tasks(moves, names, places);
+        // ⚠️ Drivers travel with the moves now. They are what the row's own tooltip means by
+        // "Jobs are waiting on this" — the builds that asked for the material — and without them
+        // the expansion could only list stopped worklist ROWS, which is a narrower set: a planned
+        // build that has not become a row of its own asked for the haul and then did not appear
+        // in the panel explaining it.
+        var driverNames = await NamesAsync(db,
+            drivers.Values.SelectMany(l => l).Select(d => d.DriverTypeId).Where(t => t > 0)
+                   .Distinct().ToList(), ct);
+
+        return Tasks(moves, names, places, drivers, driverNames);
     }
 
     /// <summary>
@@ -875,7 +884,9 @@ public class LogisticsGenerator(
     // ── Output ────────────────────────────────────────────────────────────────
 
     private List<WorklistItem> Tasks(
-        List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places)
+        List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places,
+        Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers,
+        Dictionary<int, string> driverNames)
     {
         var items = new List<WorklistItem>();
 
@@ -892,6 +903,29 @@ public class LogisticsGenerator(
 
             var from = places.GetValueOrDefault(run.Key.From, $"Location {run.Key.From}");
             var to   = places.GetValueOrDefault(run.Key.To,   $"Location {run.Key.To}");
+
+            // What asked for this cargo at the destination. The planner recorded it when the need
+            // was raised — see the note on Need — because by the time a want is a number the build
+            // that asked for it is gone, and a total cannot say who wanted it.
+            //
+            // ⚠️ Products, not worklist rows. A driver is a build the worklist is SUGGESTING; it
+            // may never have become a row of its own, which is exactly the case the expansion was
+            // silent about. WorklistService replaces any of these it can match to a real stopped
+            // job, because that one can say whether this load actually starts it.
+            var wanters = cargo
+                .SelectMany(c => drivers.GetValueOrDefault((run.Key.To, c.TypeId), []))
+                .Where(d => d.DriverTypeId > 0)
+                .GroupBy(d => d.DriverTypeId)
+                .Select(g => new WorklistWaitingJob(
+                    Key:   "",
+                    Title: driverNames.GetValueOrDefault(g.Key, $"Type {g.Key}"),
+                    TypeId:   g.Key,
+                    TypeName: driverNames.GetValueOrDefault(g.Key, $"Type {g.Key}"),
+                    Unblocked:    false,
+                    StillShortOf: [],
+                    WantsUnits:   g.Sum(d => d.Qty)))
+                .OrderByDescending(w => w.WantsUnits)
+                .ToList();
 
             items.Add(new WorklistItem
             {
@@ -913,6 +947,7 @@ public class LogisticsGenerator(
                     .Select(c => new WorklistLine(
                         c.TypeId, names.GetValueOrDefault(c.TypeId, $"Type {c.TypeId}"), c.Qty))
                     .ToList(),
+                WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,
                 TypeName     = names.GetValueOrDefault(cargo[0].TypeId, ""),
                 // A run is worth its best cargo, and that now includes whose order the cargo

@@ -72,7 +72,8 @@ public sealed record WorklistShortage(
 /// goes looking for a missing item that is right there on the list.</param>
 public sealed record WorklistWaitingJob(
     string Key, string Title, int TypeId, string TypeName,
-    bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false)
+    bool Unblocked, IReadOnlyList<string> StillShortOf, bool QueuedBehind = false,
+    long WantsUnits = 0)
 {
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -86,12 +87,23 @@ public sealed record WorklistWaitingJob(
     /// </summary>
     public string StatusText =>
         Unblocked                 ? "starts on arrival"
+        : IsPlanned               ? $"wants {WantsUnits:N0}"
         : StillShortOf.Count == 0 ? "queued behind another job"
         : StillShortOf.Count == 1 ? "also short of 1 item"
                                   : $"also short of {StillShortOf.Count:N0} items";
 
+    /// <summary>
+    /// ⚠️ A planned build rather than a stopped worklist row — the planner recorded it as the
+    /// reason for the trip, but it never became a task of its own, so nothing can be said about
+    /// whether this load starts it. Listing it anyway is the point: the row's own tooltip says
+    /// jobs are waiting on this, and these are them.
+    /// </summary>
+    public bool IsPlanned => Key.Length == 0;
+
     public string StatusTip =>
-        Unblocked ? "This haul carries everything the job is short of, so it starts when the cargo lands."
+        IsPlanned ? "A build this delivery is for. It is what the planner raised the trip for, and "
+                  + "has not been broken out into a task of its own yet."
+        : Unblocked ? "This haul carries everything the job is short of, so it starts when the cargo lands."
         : StillShortOf.Count == 0
             ? "The job wants something on this manifest, but an earlier job has already claimed "
             + "that stock — this load will not reach it."

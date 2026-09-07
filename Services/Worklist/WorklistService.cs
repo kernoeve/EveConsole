@@ -146,6 +146,10 @@ public class WorklistService(
                     .DistinctBy(j => j.Key)
                     .ToList();
 
+                // ⚠️ No longer a reason to leave the row alone. The generator has already put the
+                // planner's own drivers on it, and those are what the tooltip means by "Jobs are
+                // waiting on this" — so a haul with no matching stopped ROW still has something
+                // true to show, which is the case the panel used to be silent about.
                 if (touched.Count == 0) continue;
 
                 // ⚠️ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
@@ -179,9 +183,16 @@ public class WorklistService(
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
 
+                // ⚠️ Merged, not replaced. A stopped row is the better answer where there is one —
+                // only it can say whether this load actually starts the job — but the planner's
+                // drivers cover builds that never became a row, and dropping those is what made
+                // the panel disagree with the tooltip beside it. Matched on the product.
+                var told = waiting.Select(w => w.TypeId).ToHashSet();
+                var also = haul.WaitingJobs.Where(w => w.IsPlanned && !told.Contains(w.TypeId));
+
                 section.Items[n] = haul with
                 {
-                    WaitingJobs = waiting,
+                    WaitingJobs = [.. waiting, .. also],
                     Unblocks    = freed.Count,
 
                     // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
