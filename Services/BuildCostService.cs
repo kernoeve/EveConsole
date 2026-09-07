@@ -1104,9 +1104,21 @@ public class BuildCostService
             })
             .ToList();
 
+        // ⚠️ One transaction, or there is a moment with no costs at all. ExecuteDeleteAsync
+        // commits on its own, so between it and the insert every reader sees an empty table — and
+        // the readers here are the asset grid, the worklist purchase pass and every gap-filled
+        // price that falls back to build cost. A pass landing in that gap does not read a stale
+        // number, it reads nothing, which is the worse of the two.
+        //
+        // No extra lock time worth speaking of: the delete and the insert already ran back to
+        // back, each taking the write lock in turn. This merges them rather than adding anything.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.BuildCosts.ExecuteDeleteAsync(ct);
         db.BuildCosts.AddRange(results);
         await db.SaveChangesAsync(ct);
+
+        await tx.CommitAsync(ct);
 
         handle.Complete(true, results.Count, $"{results.Count:N0} items");
         StatusText = $"Build costs: last updated {DateTimeOffset.Now:t} ({results.Count:N0} items)";
