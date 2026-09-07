@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using System.Globalization;
 using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
@@ -28,6 +29,37 @@ public class FilterOp(string label, string sql, bool useLike = false)
     public string Sql     { get; } = sql;
     public bool   UseLike { get; } = useLike;
     public override string ToString() => Label;
+}
+
+/// <summary>
+/// Turning one typed-in filter into SQL that both engines accept.
+///
+/// <para>⚠️ The value always arrives as a string — it was typed into a box — while the column it
+/// is compared against may be bigint, double, boolean or a timestamp. SQLite does not mind, and
+/// this shape worked there for years. PostgreSQL does: filtering Location Id gave
+/// <c>42883: operator does not exist: bigint = text</c>.</para>
+///
+/// <para>Two rules, and which one applies is decided by the OPERATOR, not by guessing at the
+/// column's type from the value. Contains, Equal and their negations are text questions about
+/// what is on screen, so the column is cast to text and the comparison is textual on any column.
+/// Greater and Less are ordering questions, where text would sort 9 after 10 — those keep the
+/// column as it is and type the PARAMETER instead, so a number is bound as a number.</para>
+/// </summary>
+internal static class SqlFilter
+{
+    private static bool IsTextual(FilterOp op) => op.UseLike || op.Sql is "=" or "!=";
+
+    public static string Clause(string column, FilterOp op, int index) =>
+        IsTextual(op)
+            ? $"CAST(\"{column}\" AS TEXT) {op.Sql} @fv{index}"
+            : $"\"{column}\" {op.Sql} @fv{index}";
+
+    public static object Value(FilterOp op, string value) =>
+        op.UseLike     ? $"%{value}%"
+      : IsTextual(op)  ? value
+      : long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l) ? l
+      : double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d
+      : value;
 }
 
 public class EsiExplorerViewModel : ReactiveObject
@@ -304,7 +336,7 @@ public class EsiExplorerViewModel : ReactiveObject
     private string BuildWhere()
     {
         if (_activeFilters.Count == 0) return "";
-        var clauses = _activeFilters.Select((f, i) => $"\"{f.Column}\" {f.Op.Sql} @fv{i}");
+        var clauses = _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i));
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
@@ -313,8 +345,7 @@ public class EsiExplorerViewModel : ReactiveObject
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
-            var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", SqlFilter.Value(f.Op, f.Value));
         }
     }
 }

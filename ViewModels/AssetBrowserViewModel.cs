@@ -756,7 +756,7 @@ public class AssetBrowserViewModel : ReactiveObject
     private string BuildWhere()
     {
         if (_activeFilters.Count == 0) return "";
-        var clauses = _activeFilters.Select((f, i) => $"\"{f.Column}\" {f.Op.Sql} @fv{i}");
+        var clauses = _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i));
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
@@ -765,8 +765,7 @@ public class AssetBrowserViewModel : ReactiveObject
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
-            var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", SqlFilter.Value(f.Op, f.Value));
         }
     }
 
