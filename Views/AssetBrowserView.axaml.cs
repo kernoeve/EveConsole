@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reactive.Linq;
 using System.Text;
 using Avalonia;
@@ -8,6 +9,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
@@ -105,29 +108,91 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         }
     }
 
+    // ── Row icons ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The row's type id, or 0 where the grid has none.
+    ///
+    /// <para>⚠️ Parsed with AllowThousands. Every integer in these grids is formatted "N0" before
+    /// it reaches the row, so the id arrives as "28,851" rather than 28851 and a plain int.Parse
+    /// quietly fails on every row.</para>
+    /// </summary>
+    private static int TypeIdOf(GridRow? row) =>
+        row is not null
+        && int.TryParse(row["Type Id"], NumberStyles.Any, CultureInfo.InvariantCulture, out var id)
+        && id > 0 ? id : 0;
+
+    private static bool IsBlueprintCopy(GridRow row) => row["Is Blueprint Copy"] is "1";
+
+    /// <summary>
+    /// Fetches an item's picture and hands it to the cell.
+    ///
+    /// <para>⚠️ Three variants, and the image server does not fall back between them: /bpc for a
+    /// copy, /bp for an original, /icon for everything else. Asking for the wrong one returns
+    /// nothing at all rather than a placeholder.</para>
+    ///
+    /// <para>The blueprint variants are tried before /icon rather than decided from a category the
+    /// detailed grid does not always carry: a 404 costs one request, once, and the cache keeps the
+    /// answer either way.</para>
+    /// </summary>
+    private static async Task LoadRowIconAsync(Image target, int typeId, bool isCopy)
+    {
+        var variants = isCopy ? new[] { "bpc", "bp", "icon" } : ["icon", "bp"];
+
+        foreach (var variant in variants)
+        {
+            var bmp = await EveImageCache.GetAsync(
+                $"https://images.evetech.net/types/{typeId}/{variant}?size=32");
+
+            if (bmp is null) continue;
+            Dispatcher.UIThread.Post(() => target.Source = bmp);
+            return;
+        }
+    }
+
     private void RegenerateColumns(DataGrid grid, IReadOnlyList<string> columns, bool noHide = false)
     {
         grid.ItemsSource = null;
         grid.Columns.Clear();
 
+        // ⚠️ The row marker carries the item's own icon where there is one. It used to be a grey
+        // caret, which said only "this is a row" — true of every row, and therefore nothing. The
+        // aggregate tabs have no Type Id to draw, so they keep the caret.
         grid.Columns.Add(new DataGridTemplateColumn
         {
             Header        = "",
             Tag           = RowSelectorTag,
             IsReadOnly    = true,
-            Width         = new DataGridLength(20),
+            Width         = new DataGridLength(26),
             CanUserSort   = false,
             CanUserResize = false,
-            CellTemplate  = new FuncDataTemplate<GridRow>((_, _) =>
-                new TextBlock
+            CellTemplate  = new FuncDataTemplate<GridRow>((row, scope) =>
+            {
+                var typeId = TypeIdOf(row);
+                if (typeId <= 0)
+                    return new TextBlock
+                    {
+                        Text                = "▶",
+                        Padding             = new Thickness(2, 0),
+                        VerticalAlignment   = VerticalAlignment.Center,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        FontSize            = 9,
+                        Foreground          = Palette.TextFaint,
+                    };
+
+                var img = new Image
                 {
-                    Text                = "▶",
-                    Padding             = new Thickness(2, 0),
+                    Width               = 18,
+                    Height              = 18,
                     VerticalAlignment   = VerticalAlignment.Center,
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    FontSize            = 9,
-                    Foreground          = Brushes.Gray,
-                }),
+                };
+
+                // Fire and forget: the cache answers instantly once warm, and a row scrolled away
+                // before the fetch lands simply sets a Source nobody is looking at.
+                _ = LoadRowIconAsync(img, typeId, IsBlueprintCopy(row!));
+                return img;
+            }),
         });
 
         foreach (var col in columns)
