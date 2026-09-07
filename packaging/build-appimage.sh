@@ -75,7 +75,30 @@ export PATH="$PATH:$HOME/.dotnet/tools"
 
 # libvlc is the one thing the app cannot carry: LibVLCSharp loads the system copy. The build does
 # not need it, but a copy that runs does — said here rather than discovered as silent alarms.
-if ! ldconfig -p 2>/dev/null | grep -q 'libvlc\.so'; then
+#
+# ⚠️ Asked two ways, because asking one way got it wrong. `ldconfig -p` alone reported libvlc
+# missing on a machine that had it: ldconfig lives in /sbin on several distributions and is not on
+# an ordinary user's PATH, so the command simply was not found — and with stderr discarded, "no
+# such command" and "no such library" look identical. Its cache can also be stale. So try it
+# wherever it lives, and if that finds nothing, look for the file.
+have_libvlc() {
+  local ldc dir f
+  for ldc in ldconfig /sbin/ldconfig /usr/sbin/ldconfig; do
+    command -v "$ldc" >/dev/null 2>&1 || continue
+    "$ldc" -p 2>/dev/null | grep -q 'libvlc\.so' && return 0
+  done
+
+  for dir in /usr/lib /usr/lib64 /usr/local/lib \
+             /usr/lib/x86_64-linux-gnu /lib/x86_64-linux-gnu; do
+    for f in "$dir"/libvlc.so*; do
+      [ -e "$f" ] && return 0
+    done
+  done
+
+  return 1
+}
+
+if ! have_libvlc; then
   echo "!! libvlc was not found. The build will succeed and alarm sounds will not play."
   echo "!! Arch: pacman -S vlc     Debian/Ubuntu: apt install libvlc-dev"
   echo
