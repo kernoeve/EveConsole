@@ -154,7 +154,8 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
                 IsReadOnly  = true,
                 CanUserSort = true,
                 CellTemplate = new FuncDataTemplate<GridRow>(
-                    (_, _) => new SelectableCell(grid, captured, _selectionSvc, onClick)),
+                    (_, _) => new SelectableCell(grid, captured, _selectionSvc, onClick,
+                                                 AssetBrowserViewModel.NumericColumns.Contains(captured))),
             });
         }
 

@@ -28,6 +28,25 @@ public class AssetBrowserViewModel : ReactiveObject
         "Owner Id", "Item Id", "Type Id", "Location Id",
     ];
 
+    /// <summary>
+    /// The columns read by magnitude, which are right-justified so their digits line up.
+    ///
+    /// <para>⚠️ Ids are in here too. They are numbers and they align like numbers; that they are
+    /// labels rather than quantities does not make a ragged right edge easier to scan.</para>
+    ///
+    /// <para>⚠️ Security is NOT, despite being a number. It is one signed digit and a decimal
+    /// beside a system name, read as a property of that name rather than compared down the column
+    /// — and pushed to the right edge it separates from the thing it describes.</para>
+    /// </summary>
+    public static readonly HashSet<string> NumericColumns =
+    [
+        "Quantity", "Item Count",
+        "Value Per Unit", "Value", "Total Value", "Build Cost", "ISK/m³",
+        "Volume", "Total Volume",
+        "Owner Id", "Item Id", "Type Id", "Location Id", "Solar System Id", "Region Id",
+        "Root Location Id",
+    ];
+
     public static readonly HashSet<string> HiddenColumns =
     [
         "Owner Id", "Root Location Id",
