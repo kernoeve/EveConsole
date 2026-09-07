@@ -600,8 +600,8 @@
                     <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedFrom}" Spacing="8">
                       <TextBlock Text="PRODUCED BY REPROCESSING" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
-                      <TextBlock Text="Reprocessing one unit of these yields this item. The figure is the SDE's base yield, before station or structure efficiency."
-                                 FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                 Text="Reprocess one batch of these and this item is among what comes back. Each row is judged against its own ceiling — 90.6% for ore, ice and moon ore, 55% for everything else — so the amounts are the best case, not the SDE's 100% figures." />
                       <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedFrom}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ReprocessSourceVm">
@@ -616,8 +616,47 @@
                                            FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                            TextDecorations="Underline" />
                               </Button>
-                              <TextBlock Grid.Column="1" Text="{Binding QuantityText}"
-                                         FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                                          VerticalAlignment="Center">
+                                <TextBlock Text="{Binding BatchText}" FontSize="11"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding RateText}" FontSize="11" MinWidth="42"
+                                           TextAlignment="Right"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding YieldText}" FontSize="12" MinWidth="72"
+                                           TextAlignment="Right"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                              </StackPanel>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                    <!-- What this item yields when reprocessed. One rate for the section, because
+                         it is one item going in; the caption names it. -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedTo}" Spacing="8">
+                      <TextBlock Text="REPROCESSES TO" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                 Text="{Binding SelectedItem.RefineRateText, StringFormat='What one batch returns at {0}, the best this item can be refined at — a rigged Tatara in nullsec with the skills and implants for it. Ore, ice and moon ore top out at 90.6%; everything else is scrapmetal, where 55% is the ceiling however good the structure. Your own refine will return less.'}" />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedTo}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ReprocessOutputVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding OutputTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding OutputName}"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding YieldText}"
+                                         FontSize="12" MinWidth="72" TextAlignment="Right"
+                                         Foreground="{DynamicResource TextMutedBrush}"
                                          VerticalAlignment="Center" />
                             </Grid>
                           </DataTemplate>
