@@ -36,8 +36,12 @@ internal static class TimeRemainingHelper
         var raw = row["End Date Raw"];
         if (string.IsNullOrEmpty(raw)) return row["Time Remaining"];
 
+        // ⚠️ AssumeUniversal, not RoundtripKind. A raw date that reaches here without an offset
+        //  14 which is what Npgsql produced before the formatter was taught about DateTime  14 is UTC,
+        // because that is what this app stores. Read as local it put six hours on every job.
         if (!DateTimeOffset.TryParse(raw, null,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var end))
+                System.Globalization.DateTimeStyles.AssumeUniversal
+              | System.Globalization.DateTimeStyles.AdjustToUniversal, out var end))
             return row["Time Remaining"];
 
         var rem = end.ToUniversalTime() - DateTimeOffset.UtcNow;

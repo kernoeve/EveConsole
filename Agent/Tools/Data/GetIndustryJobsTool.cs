@@ -133,8 +133,10 @@ public sealed class GetIndustryJobsTool : IAgentTool
         if (status is "delivered" or "cancelled" or "reverted") return "Completed";
         if (status == "ready") return "Ready to deliver";
         if (endDateRaw is null) return "Unknown";
+        // Same rule as the grid: a raw date with no offset is UTC, not local.
         if (!DateTimeOffset.TryParse(endDateRaw, null,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var end))
+                System.Globalization.DateTimeStyles.AssumeUniversal
+              | System.Globalization.DateTimeStyles.AdjustToUniversal, out var end))
             return "Unknown";
         var remaining = end.ToUniversalTime() - DateTimeOffset.UtcNow;
         if (remaining.TotalSeconds <= 0) return "Ready";

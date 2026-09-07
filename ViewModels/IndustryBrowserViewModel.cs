@@ -285,8 +285,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             var jobStatus = dict.GetValueOrDefault("Status", "");
             dict["Time Remaining"] = "";
             if (dict.TryGetValue("End Date Raw", out var endRaw)
-                && DateTimeOffset.TryParse(endRaw, null,
-                    System.Globalization.DateTimeStyles.RoundtripKind, out var endDate))
+                && DateTimeOffset.TryParse(endRaw, null, UtcParse, out var endDate))
             {
                 var rem = endDate.ToUniversalTime() - DateTimeOffset.UtcNow;
                 var sl  = jobStatus.ToLowerInvariant();
@@ -345,8 +344,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (status == "ready") return 0L;
         var raw = row["End Date Raw"];
         if (string.IsNullOrEmpty(raw)) return long.MaxValue - 1;
-        if (!DateTimeOffset.TryParse(raw, null,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var end))
+        if (!DateTimeOffset.TryParse(raw, null, UtcParse, out var end))
             return long.MaxValue - 1;
         var secs = (long)(end.ToUniversalTime() - DateTimeOffset.UtcNow).TotalSeconds;
         return secs < 0 ? 0L : secs;
@@ -479,6 +477,34 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (val is decimal m)
             return m.ToString("N2");
 
+        // ⚠️ Dates BEFORE the string branch, because only one of the two engines sends them as
+        // text. SQLite stores them as TEXT and the parse below has always worked; Npgsql hands
+        // back a DateTime, which fell past every branch to val.ToString() — a culture-formatted
+        // string with no zone on it at all.
+        //
+        // That is not merely ugly. "End Date Raw" feeds the live countdown, which parses it back:
+        // with no offset the parse assumes LOCAL, so a job due at 17:48 UTC read as 17:48 local
+        // and the column said six hours remained on a job that was already done.
+        if (val is DateTime or DateTimeOffset)
+        {
+            var utc = val switch
+            {
+                DateTimeOffset o                       => o.UtcDateTime,
+                DateTime { Kind: DateTimeKind.Utc } u   => u,
+                DateTime { Kind: DateTimeKind.Local } l => l.ToUniversalTime(),
+                // Unspecified: every date this app stores is UTC, so say so rather than letting
+                // the machine's zone decide.
+                DateTime other                         => DateTime.SpecifyKind(other, DateTimeKind.Utc),
+                _                                      => default,
+            };
+
+            // Round-trippable for the raw columns — "o" on a UTC DateTime carries the Z that lets
+            // the countdown recover the zone. Everything else is for reading.
+            return col.EndsWith(" Raw", StringComparison.Ordinal)
+                ? utc.ToString("o")
+                : utc.ToString("yyyy-MM-dd HH:mm");
+        }
+
         if (val is string s)
         {
             if (col == "Cost"
@@ -487,8 +513,7 @@ public class IndustryBrowserViewModel : ReactiveObject
                 return cost.ToString("N2");
 
             if ((col is "Start Date" or "End Date" or "Completed Date" or "Created" or "Completed")
-                && DateTimeOffset.TryParse(s, null,
-                    System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
+                && DateTimeOffset.TryParse(s, null, UtcParse, out var dt))
                 return dt.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
 
             if (col == "Status" && s.Length > 0)
@@ -499,6 +524,13 @@ public class IndustryBrowserViewModel : ReactiveObject
 
         return val.ToString()!;
     }
+
+    /// <summary>⚠️ AssumeUniversal, not RoundtripKind. A string that carries an offset is
+    /// unaffected; one that does not is UTC, because that is what this app stores. Read as local
+    /// instead, a job due at 17:48 UTC looked six hours away on a machine in UTC-6.</summary>
+    private const System.Globalization.DateTimeStyles UtcParse =
+        System.Globalization.DateTimeStyles.AssumeUniversal
+      | System.Globalization.DateTimeStyles.AdjustToUniversal;
 
     private static string FormatDuration(TimeSpan ts)
     {
