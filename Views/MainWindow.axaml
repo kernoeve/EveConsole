@@ -109,12 +109,22 @@
                  hue. Their palettes are chosen for a white page: PostgreSQL's #336791 and
                  SQLite's #003B57 both fall to roughly 2:1 contrast on this bar and would be
                  close to unreadable as printed. -->
-            <TextBlock FontSize="11" VerticalAlignment="Center"
-                       IsVisible="{Binding DbIsPostgres}">
-              <!-- ⚠️ On one line deliberately. A newline and indent between the two Run tags is
-                   content, not layout, and renders as "Postgre SQL". -->
-              <TextBlock.Inlines><Run Text="Postgre" Foreground="{DynamicResource TextMutedBrush}" /><Run Text="SQL" Foreground="{DynamicResource TextDimBrush}" /></TextBlock.Inlines>
-            </TextBlock>
+            <!-- ⚠️ Two TextBlocks, not two Runs in one. A Run is not a Control and does not sit in
+                 the tree a DynamicResource is looked up through, so when these two literals became
+                 palette brushes the lookup resolved to nothing and the wordmark went invisible on
+                 every theme. Spacing 0 joins them with no gap, and being separate elements there
+                 is no newline to render as "Postgre SQL" either.
+
+                 SQL keeps its blue, through the palette's own Info rather than the #5590be it had:
+                 same hue, and it holds up on a light theme, which a colour lifted for this bar
+                 does not. -->
+            <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center"
+                        IsVisible="{Binding DbIsPostgres}">
+              <TextBlock Text="Postgre" FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="SQL" FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource InfoBrush}" />
+            </StackPanel>
 
             <TextBlock Text="SQLite" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        VerticalAlignment="Center"
