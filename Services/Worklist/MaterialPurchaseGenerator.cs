@@ -57,6 +57,25 @@ public class MaterialPurchaseGenerator(
             .Select(c => WorklistIndyCharReach.Of(c, corps))
             .ToList();
 
+        // ── Prints that are made rather than bought ───────────────────────────
+        //
+        // ⚠️ An inventable blueprint is NOT a purchase task. A missing Ark Blueprint was raised
+        // here as "BPO/BPC × 2" alongside the invention and copy jobs the invention generator
+        // raises for the same shortfall — two plans for one gap, and the wrong one first: a T2
+        // print is invented off its T1 original, not shopped for.
+        //
+        // ⚠️ Only stood down on when invention can actually run. With no scientist assigned or a
+        // park that has not said where copying and invention happen, that generator produces
+        // nothing at all — and standing down into silence would leave a blocked T2 job with no
+        // task against it whatsoever. Then buying really is the only way to get one, and the
+        // purchase row is the honest answer.
+        var canInvent = await InventionService.CanPlanAsync(
+            db, parkId, candidates.Any(c => c.Runs(IndustryPool.Science)), ct);
+
+        var inventable = canInvent
+            ? await InventionService.InventedBlueprintIdsAsync(db, ct)
+            : [];
+
         var scope = await ScopeAsync(db, ct);
         var reach = new ProductionCalculatorService.AssetReach(
             scope, await AssetExclusions.UnusableItemIdsAsync(db, ct),
@@ -152,7 +171,7 @@ public class MaterialPurchaseGenerator(
         var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
 
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls, inAssets, shelfWant,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls, inventable, inAssets, shelfWant,
                                   buyAt, buyName, alt));
 
         var onOrder = await OnOrderAsync(db, shortfalls.Select(s => s.TypeId).ToList(), ct);
@@ -191,6 +210,9 @@ public class MaterialPurchaseGenerator(
             // A blueprint is acquired, not market-ordered, so it is titled the way the print
             // tasks are — either a BPO or a copy will do, and which is the player's call.
             var isPrint = ctx.BpTypeIds.Contains(raw.TypeId);
+
+            // Invention raises this one, and raising it here as well would be two plans for one gap.
+            if (isPrint && inventable.Contains(raw.TypeId)) continue;
 
             items.Add(new WorklistItem
             {
@@ -438,7 +460,7 @@ public class MaterialPurchaseGenerator(
     private static List<WorklistItem> PrintTasks(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
-        HashSet<int> alreadyCounted, Dictionary<int, int> ownedInAssets,
+        HashSet<int> alreadyCounted, HashSet<int> inventable, Dictionary<int, int> ownedInAssets,
         Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
@@ -462,6 +484,7 @@ public class MaterialPurchaseGenerator(
         foreach (var bpTypeId in jobNeed.Keys.Concat(shelfWant.Keys).Distinct().OrderBy(id => id))
         {
             if (alreadyCounted.Contains(bpTypeId)) continue;   // the plan is already buying it
+            if (inventable.Contains(bpTypeId))     continue;   // and this one is invented, not bought
 
             // Supply from both tables. The blueprints table does not cover every structure the
             // assets table does — this corporation has 5,518 blueprint rows and none at UALX-3,
