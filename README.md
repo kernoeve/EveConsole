@@ -8,7 +8,11 @@
 
 **EVE Console** is a desktop companion app for [EVE Online](https://www.eveonline.com/), running locally on the players system.  Ultimately I run many tools for my day to date activities in Eve (i.e., Ravworks, jEveAssets, Excel, etc.), and was looking for a single tool, where all of my data stayed local, and was completely free with source.  While the tool does not do everything today, it does the things I need it to do.  There is an AI agent integrated into the application, and it was added as I needed to play around with it to get some better familiarity in agent integration for my job, so we ended up with it in this tool.  It does have access to view all of the data in the tools DB, so possibly can answer questions that the UI is not setup to do.  Agent does come with optional TTS and voice input.  Included a number of both external paid options, as well as local alternatives to provide a variety of options, and also for me to get a little exposure with each.  That all being said, it will not be active unless you actually set it up, so you can ignore it if you choose.
 
-I am currently developing and testing this on Windows, but the intent is to eventually provide builds for both Windows and Linux, which is why I ultimately went with Avalonia.  This will likely happen when I get to a point where I am okay with the functionality for the 1.0.0 release.
+Runs natively on both Windows and Linux, which is why I went with Avalonia in the first place.  Linux ships as either an AppImage that keeps itself updated, or a plain tarball you extract and run.  I develop on Windows and test on both.
+
+By default everything sits in a local SQLite file and that is all you need.  If you would rather run it against PostgreSQL you can point it at a server instead, and then you can have several clients open at once -- different machines, same data.  In that setup exactly one of them does the background work and the rest just read.  You can also run it with no window at all (`--headless`), or install it as a Windows service or a systemd user unit, so the polling keeps going when nothing is open.  None of that is required; the default is still one client and one file.
+
+There are eight UI themes -- light, dark, and blue/pink/beige in both -- picked from Settings, applied immediately, and remembered per machine.
 
 Keep in mind this application is still very green.  You are free to play around with it, but do expect issues during use.  Do not give up your old tools for this quite yet.  Needs a bit of a hardening period.
 
@@ -128,6 +132,11 @@ Keep in mind this application is still very green.  You are free to play around 
 - Database tab reports the size of every table, and can shrink, move or rename the database
 - Data retention rules for the error log, killmails, price history, game logs and chat, swept in the background at least daily
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
+- Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
+- Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
+- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, so the polling carries on when nothing is open.  Optional notification-area icon shows which client is doing the work
+- Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
+- Eight UI themes: light, dark, and blue/pink/beige in both.  Applies immediately, remembered per machine rather than per database
 
 ### Industry / Trade
 - Market Levels - Allows you to monitor a specific definable market for inventory of sell orders on a specific list of items
@@ -188,9 +197,9 @@ Keep in mind this application is still very green.  You are free to play around 
 
 ## Tech stack
 
-- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — currently built and tested on Windows (`net9.0-windows`)
+- [Avalonia UI](https://avaloniaui.net/) 11 (cross-platform XAML UI framework) — Windows and Linux, `net9.0`
 - .NET 9, [ReactiveUI](https://www.reactiveui.net/) (MVVM)
-- EF Core 9 with SQLite for local persistence
+- EF Core 9, with SQLite for local persistence or PostgreSQL for a shared one
 - [LiveChartsCore](https://livecharts.dev/) for charts
 - CCP's [ESI API](https://esi.evetech.net/ui/) for all game data, with local caching of the Static Data Export (SDE)
 
@@ -199,19 +208,27 @@ Keep in mind this application is still very green.  You are free to play around 
 ## Getting started
 
 ### Requirements
-- Windows 10/11
+- Windows 10/11, or Linux (developed against Arch; anything current should be fine)
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- On Linux only: **VLC**, which is the one thing the app cannot carry itself -- it loads the system copy for alarm sounds.  `pacman -S vlc` on Arch, `apt install libvlc-dev` on Debian/Ubuntu.  Everything else is in the build
+- PostgreSQL is optional.  Only needed if you want several clients on one database
 
 ### Build & run
 
-```powershell
+```bash
 git clone https://github.com/kernoeve/EveConsole.git
 cd EveConsole
 dotnet restore
 dotnet run
 ```
 
-On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO. Your data is stored locally in SQLite at `%LOCALAPPDATA%\EveConsole\EveConsole.db`. See the [documentation](https://docs.eveconsole.com/getting-started/) for full install and setup steps.
+If you would rather not build it, grab a release: an installer on Windows, and on Linux either the `.AppImage` (`chmod +x` it and run -- it keeps itself updated) or the tarball, which you extract anywhere and run with `./EveConsole`.
+
+On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO.
+
+Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EveConsole\EveConsole.db` on Windows or `~/.local/share/EveConsole/EveConsole.db` on Linux.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
+
+See the [documentation](https://docs.eveconsole.com/getting-started/) for full install and setup steps.
 
 ---
 
