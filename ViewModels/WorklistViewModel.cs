@@ -1113,7 +1113,16 @@ public class WorklistViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _outerTabIndex, value);
-            if (value == StationNeedsTab && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+            // Either needs tab fills the same rows — one query answers both — so opening Item
+            // Needs no longer requires a detour through Station Needs to populate it.
+            if (value is StationNeedsTab or ItemNeedsTab
+             && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+
+            if (value == ItemNeedsTab)
+            {
+                _itemNeedsSeen = true;
+                if (_itemNeedsStale) { _itemNeedsStale = false; ItemNeedsView.Refresh(); }
+            }
 
             // ⚠️ Loaded when the tab is opened, not at startup. It reads every industry job the
             // operation has ever run and the whole price history for those types, which is not
@@ -1125,7 +1134,13 @@ public class WorklistViewModel : ReactiveObject
     }
 
     private const int StationNeedsTab  = 1;
+    private const int ItemNeedsTab     = 2;
     private const int FinalProductsTab = 4;
+
+    // Whether the Item Needs tab has ever been opened, and whether its grouped view still owes a
+    // rebuild from a load that happened while it had not been.
+    private bool _itemNeedsSeen;
+    private bool _itemNeedsStale;
 
     /// <summary>Selects the Station Needs tab — what the Overview's link to it needs, so that
     /// following it lands on the report rather than on whatever tab was last open.</summary>
@@ -1191,7 +1206,14 @@ public class WorklistViewModel : ReactiveObject
                 // — so the Item Needs tab drew a flat list on first open and grouped itself only
                 // after being left and returned to, which is the grid attaching a second time.
                 NeedsView.Refresh();
-                ItemNeedsView.Refresh();
+
+                // ⚠️ Item Needs is grouped, and grouping a few thousand rows is the expensive half
+                // of this. Opening Station Needs used to pay for it, which is work on behalf of a
+                // tab nobody has looked at. It is done when that tab is first opened instead —
+                // and again on every reload after that, since by then the grid is realised and
+                // the note above applies.
+                if (_itemNeedsSeen) ItemNeedsView.Refresh();
+                else               _itemNeedsStale = true;
 
                 var stations = rows.Select(r => r.StationId).Distinct().Count();
                 var short_   = rows.Count(r => r.Shortfall > 0);

@@ -349,12 +349,44 @@ public class LogisticsGenerator(
                 .GroupBy(p => (p.TypeId, p.ProductTypeId))
                 .ToDictionary(g => g.Key, g => Math.Max(1, g.First().Quantity));
 
-            var inBuild = activeJobs
-                .GroupBy(j => (Station: j.FacilityId, j.ProductTypeId))
+            // ⚠️ Per TYPE, not per facility. A job delivers where it runs, and the station that
+            // WANTS the material is usually a different one — Titanium Carbide is reacted at the
+            // Reactor and consumed at T2 Adv component-Ammo, so keying on the job's facility
+            // matched nothing and the column read blank against 18.9 million units in the ovens.
+            // Only items made and consumed in the same structure ever lined up, which is why
+            // Titanium Chromide looked right and Titanium Carbide did not.
+            var inBuildByType = activeJobs
+                .GroupBy(j => j.ProductTypeId)
                 .ToDictionary(
                     g => g.Key,
                     g => g.Sum(j => (long)j.Runs
                                   * perRun.GetValueOrDefault((j.BlueprintTypeId, j.ProductTypeId), 1)));
+
+            // ⚠️ Then shared out across that type's station rows, in proportion to how short each
+            // one is. Item Needs groups stations under an item, so the type's whole figure repeated
+            // on every row would multiply itself down the group; apportioned, the rows still add up
+            // to what is actually being made.
+            var shortByType = want
+                .GroupBy(kv => kv.Key.TypeId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(kv => Math.Max(0, kv.Value.OrderJobs + kv.Value.Jobs
+                                               + kv.Value.RuleJobs + kv.Value.Level
+                                               - stock.GetValueOrDefault(kv.Key))));
+
+            long ShareOfBuild((long Station, int TypeId) key, Want w)
+            {
+                var total = inBuildByType.GetValueOrDefault(key.TypeId);
+                if (total <= 0) return 0;
+
+                var allShort = shortByType.GetValueOrDefault(key.TypeId);
+                if (allShort <= 0) return 0;
+
+                var mine = Math.Max(0, w.OrderJobs + w.Jobs + w.RuleJobs + w.Level
+                                     - stock.GetValueOrDefault(key));
+
+                return (long)((double)total * mine / allShort);
+            }
 
 
             return want
@@ -379,7 +411,7 @@ public class LogisticsGenerator(
                         })
                         .OrderByDescending(d => d.Qty)
                         .ToList(),
-                    inBuild.GetValueOrDefault((kv.Key.Station, kv.Key.TypeId))))
+                    ShareOfBuild(kv.Key, kv.Value)))
                 .OrderBy(n => n.StationName).ThenBy(n => n.TypeName)
                 .ToList();
         }
