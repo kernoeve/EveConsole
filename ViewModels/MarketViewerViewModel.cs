@@ -686,7 +686,12 @@ public class MarketViewerViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync();
             int? region = _selectedRegion?.RegionId;
 
-            var conds = new List<string> { PlayerOrders, $"o.IsBuyOrder = {(buy ? 1 : 0)}" };
+            // ⚠️ Quoted, and TRUE rather than 1. Two faults in one expression: PostgreSQL folds an
+            // unquoted identifier to lower case, so o.IsBuyOrder became o.isbuyorder and no such
+            // column exists — and IsBuyOrder is a boolean there, which cannot be compared to an
+            // integer at all. Every other reference in this file already had both right, which is
+            // how one line went unnoticed until the last two tabs were opened on PostgreSQL.
+            var conds = new List<string> { PlayerOrders, $"o.\"IsBuyOrder\" = {(buy ? "TRUE" : "FALSE")}" };
             conds.Add(region is int r ? $"{RegionExpr} = {r}" : $"{RegionExpr} IS NOT NULL");
             var where = "WHERE " + string.Join(" AND ", conds);
 
