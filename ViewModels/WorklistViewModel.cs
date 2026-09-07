@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using EveConsole.Services;
 using System.Reactive;
 using Avalonia.Collections;
@@ -80,6 +81,44 @@ public class WorklistRowVm : ReactiveObject
 
     public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
+
+    // ── Icon ──────────────────────────────────────────────────────────────────
+    //
+    // ⚠️ What the icon shows differs by kind, and each is the thing the row is ABOUT rather than
+    // the thing it touches: a buy shows what is being bought, a job shows what it PRODUCES rather
+    // than the blueprint or a material, and a corporation project shows what has to be delivered.
+    // The generators already carry that type on the item for the name link, so nothing new is
+    // looked up — the icon and the link cannot disagree, because they read the same field.
+
+    private Bitmap? _icon;
+    public Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>
+    /// ⚠️ Blueprints have their own render, reached by a path segment rather than a parameter —
+    /// asking for /icon on a blueprint returns the generic paper sheet, so every print in a buy
+    /// list would look like every other print.
+    /// </summary>
+    private string IconVariant => _item.TitleTag == "BPO/BPC" ? "bp" : "icon";
+
+    /// <summary>
+    /// Fetches the icon. Cheap after the first time: <see cref="EveImageCache"/> keeps them.
+    ///
+    /// <para>Awaited by the caller in a batch rather than started in the constructor, so a list
+    /// rebuild does not fire several hundred requests from inside a property setter.</para>
+    /// </summary>
+    public async Task LoadIconAsync()
+    {
+        if (_item.TypeId <= 0) return;
+
+        var bmp = await EveImageCache.GetAsync(
+            $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32");
+
+        if (bmp is not null) Dispatcher.UIThread.Post(() => Icon = bmp);
+    }
     public int    Priority      => _item.Priority;
 
     /// <summary>How many stopped tasks this one would release. Set for hauls and purchases by
@@ -1733,6 +1772,13 @@ public class WorklistViewModel : ReactiveObject
                 // rather than a second guess at it. Built off-thread with everything else — the
                 // rows are plain view models until something binds to them.
                 var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
+
+                // Icons fetched together rather than one per row as the grid realises them: they
+                // come from a cache that dedupes across refreshes, so a rebuild costs nothing
+                // after the first, and starting them here means the column is filled by the time
+                // anybody has finished reading the first screen. Not awaited — a missing icon is
+                // a blank cell, never a reason to hold up the list.
+                _ = Task.WhenAll(rows.Select(r => r.LoadIconAsync()));
 
                 return (built, alive, rows,
                         built.Sections.Where(s => s.Error is not null).ToList());

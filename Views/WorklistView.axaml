@@ -358,6 +358,23 @@
 
         <!-- No Task column: it is the group header now. -->
 
+        <!-- What the row is about, in a picture. ⚠️ The type shown differs by kind and is chosen
+             to be the SUBJECT rather than anything the task merely touches: a buy shows what is
+             being bought, a job shows what it produces rather than its blueprint or a material,
+             and a corporation project shows what has to be delivered. Every one of those comes
+             from the same TypeId the name link uses, so the picture and the link cannot disagree.
+             Rows with no type — a haul of several things, a skill queue — leave the cell empty
+             rather than showing a placeholder that would read as a kind of its own. -->
+        <DataGridTemplateColumn Header="" Width="30" IsReadOnly="True" CanUserSort="False"
+                                CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Image Source="{Binding Icon}" Width="24" Height="24"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- The task itself, drawn per kind.
              ⚠️ One cell rather than the Description / Character / Location 1 / Location 2 / Note
              columns it replaces. A DataGrid has one column set for every row, so those five had to
