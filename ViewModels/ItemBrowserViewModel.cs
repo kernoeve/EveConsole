@@ -795,6 +795,11 @@ public class ItemBrowserViewModel : ReactiveObject
                                 IDbContextFactory<AppDbContext>? dbFactory = null,
                                 AppPreferencesService? prefs = null)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _db             = db;
         _prefs          = prefs;
         _dbFactory      = dbFactory;

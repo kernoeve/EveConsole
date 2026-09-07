@@ -212,6 +212,11 @@ public class WorklistFinalProductsViewModel : ReactiveObject
                                           AppPreferencesService prefs,
                                           AppErrorLogger errorLogger)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _dbFactory   = dbFactory;
         _prefs       = prefs;
         _errorLogger = errorLogger;

@@ -64,6 +64,11 @@ public static class ThemeService
 
         if (Application.Current is { } app) app.RequestedThemeVariant = choice.Variant;
 
+        // ⚠️ Charts do not follow on their own. LiveCharts draws through Skia and takes a colour
+        // value, so an axis keeps whatever it was built with until something replaces it — the
+        // rest of the window would turn and the chart frames would not.
+        ChartPaint.Restyle();
+
         UiState.Set(UiState.Theme, choice.Key);
     }
 

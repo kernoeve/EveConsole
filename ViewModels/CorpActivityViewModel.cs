@@ -1327,6 +1327,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                                  ExportFormatSettings? exportFormat = null,
                                  AppErrorLogger? errorLogger = null)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _service      = service;
         _excludeSvc   = excludeSvc!;
         _titles       = titles!;

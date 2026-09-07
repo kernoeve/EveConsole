@@ -460,6 +460,11 @@ public class SalesTrackerViewModel : ReactiveObject
     public SalesTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger,
         CorpActivityService names, OrderLabelService labels)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
