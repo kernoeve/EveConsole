@@ -4,23 +4,23 @@
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
              x:Class="EveConsole.Views.NotificationsView"
              x:DataType="vm:NotificationsViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="10" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
     <Style Selector="TextBlock.flabel">
-      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="TextBlock.dhdr">
-      <Setter Property="FontSize" Value="10" /><Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize" Value="10" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontWeight" Value="SemiBold" /><Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
@@ -47,7 +47,7 @@
   <Grid RowDefinitions="Auto,2*,4,1*,Auto">
 
     <!-- Filter bar -->
-    <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="12 8">
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="12 8">
       <StackPanel Orientation="Horizontal" Spacing="8">
         <TextBlock Classes="flabel" Text="Character:" />
         <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
@@ -66,13 +66,13 @@
         <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
                   MinWidth="150" FontSize="11" VerticalAlignment="Center" />
         <CheckBox IsChecked="{Binding ShowUnreadOnly}" Content="Unread only"
-                  FontSize="11" Foreground="#aab" VerticalAlignment="Center" />
+                  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
         <Button Command="{Binding ClearFiltersCommand}" Content="Clear" FontSize="10" Padding="8 2" Height="24"
-                Background="#1a1a2a" Foreground="#888899" BorderBrush="#2a2a3a" BorderThickness="1"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 VerticalAlignment="Center" />
-        <TextBlock Text="{Binding UnreadText}" FontSize="11" FontWeight="SemiBold" Foreground="#c8a84b"
+        <TextBlock Text="{Binding UnreadText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                    VerticalAlignment="Center" />
-        <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" />
+        <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="{DynamicResource TextMutedBrush}" />
       </StackPanel>
     </Border>
 
@@ -81,7 +81,7 @@
               ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"
-              Background="#0d0d12">
+              Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"   Width="130" />
         <DataGridTextColumn Header="Type"        Binding="{Binding TypeLabel}"  Width="220" />
@@ -121,10 +121,10 @@
     </DataGrid>
 
     <GridSplitter Grid.Row="2" Height="4" ResizeDirection="Rows"
-                  HorizontalAlignment="Stretch" Background="#1e1e2a" />
+                  HorizontalAlignment="Stretch" Background="{DynamicResource BorderSubtleBrush}" />
 
     <!-- Detail (selected row) -->
-    <Border Grid.Row="3" Background="#0b0b10" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+    <Border Grid.Row="3" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
       <Panel>
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
@@ -139,41 +139,41 @@
                   <Image Source="{Binding Icon}" Width="40" Height="40" Stretch="UniformToFill" />
                 </Border>
                 <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
-                           FontSize="20" Foreground="#8899aa"
+                           FontSize="20" Foreground="{DynamicResource InfoBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Panel>
               <StackPanel Grid.Column="1" Spacing="6">
-                <TextBlock Text="{Binding TypeLabel}" FontSize="14" FontWeight="SemiBold" Foreground="#e0e0ee" />
+                <TextBlock Text="{Binding TypeLabel}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
                 <Grid ColumnDefinitions="70,*,70,*" RowDefinitions="Auto,Auto">
                   <TextBlock Grid.Row="0" Grid.Column="0" Classes="dhdr" Text="Date" />
-                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DateText}"  FontSize="11" Foreground="#c8c8d8" Margin="0 0 12 0" />
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DateText}"  FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 12 0" />
                   <TextBlock Grid.Row="0" Grid.Column="2" Classes="dhdr" Text="Read" />
-                  <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ReadText}"  FontSize="11" Foreground="#c8c8d8" />
+                  <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ReadText}"  FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                   <TextBlock Grid.Row="1" Grid.Column="0" Classes="dhdr" Text="Char" />
-                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Character}" FontSize="11" Foreground="#c8c8d8" Margin="0 0 12 0" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Character}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 12 0" />
                   <TextBlock Grid.Row="1" Grid.Column="2" Classes="dhdr" Text="Sender" />
-                  <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Sender}"    FontSize="11" Foreground="#c8c8d8" />
+                  <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Sender}"    FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Grid>
               </StackPanel>
             </Grid>
-            <Border Height="1" Background="#1e1e2a" Margin="0 2" />
-            <SelectableTextBlock Text="{Binding Body}" FontSize="12" Foreground="#aab8c8"
+            <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0 2" />
+            <SelectableTextBlock Text="{Binding Body}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                  FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
           </StackPanel>
         </ScrollViewer>
         <TextBlock Text="Select a notification to view its details."
                    IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNull}}"
-                   FontSize="12" Foreground="#444455"
+                   FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />
       </Panel>
     </Border>
 
     <!-- Pager -->
-    <Border Grid.Row="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0" Padding="12 6">
+    <Border Grid.Row="4" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="12 6">
       <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
         <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
         <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
-        <TextBlock Text="{Binding Pager.PageInfo}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="12 0" MinWidth="220" TextAlignment="Center" />
+        <TextBlock Text="{Binding Pager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12 0" MinWidth="220" TextAlignment="Center" />
         <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
         <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
       </StackPanel>

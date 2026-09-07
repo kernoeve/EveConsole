@@ -15,6 +15,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -52,7 +53,7 @@ public sealed class FinalProductJobVm
     public string ProfitText => BuildCost > 0 || MarketValue > 0
                               ? MarketFmt.Isk(PotentialProfit) : "—";
 
-    public string ProfitColor => PotentialProfit >= 0 ? "#4a8a5a" : "#aa4444";
+    public IBrush ProfitColor => PotentialProfit >= 0 ? Palette.Good : Palette.Bad;
 
     public double ProfitPctRaw => BuildCost > 0 ? PotentialProfit / BuildCost * 100 : double.MinValue;
     public string ProfitPct    => BuildCost > 0 ? $"{PotentialProfit / BuildCost * 100:N1}%" : "—";
@@ -189,8 +190,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             UnitWidth       = TimeSpan.FromDays(1).Ticks,
             MinStep         = TimeSpan.FromDays(1).Ticks,
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 
@@ -200,8 +201,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         {
             Labeler         = FormatIskAxis,
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 

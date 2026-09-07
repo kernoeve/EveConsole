@@ -12,6 +12,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -317,15 +318,15 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _hasActiveAlarms, value);
     }
 
-    private string _alarmLightColor = "#2a2a34";
-    public string AlarmLightColor
+    private IBrush _alarmLightColor = Palette.SurfaceRaised;
+    public IBrush AlarmLightColor
     {
         get => _alarmLightColor;
         private set => this.RaiseAndSetIfChanged(ref _alarmLightColor, value);
     }
 
-    private string _alarmLightRing = "#3a3a48";
-    public string AlarmLightRing
+    private IBrush _alarmLightRing = Palette.SurfaceRaised;
+    public IBrush AlarmLightRing
     {
         get => _alarmLightRing;
         private set => this.RaiseAndSetIfChanged(ref _alarmLightRing, value);
@@ -364,8 +365,8 @@ public class MainWindowViewModel : ReactiveObject
         ActiveAlarmCount = count;
         HasActiveAlarms  = count > 0;
 
-        AlarmLightColor   = count > 0 ? "#c0392b" : "#2a2a34";
-        AlarmLightRing    = count > 0 ? "#e05a4a" : "#3a3a48";
+        AlarmLightColor   = count > 0 ? Palette.BadSurface : Palette.SurfaceRaised;
+        AlarmLightRing    = count > 0 ? Palette.Bad : Palette.SurfaceRaised;
         AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
 
         _armedCount = count;
@@ -426,8 +427,8 @@ public class MainWindowViewModel : ReactiveObject
     }
 
     /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
-    private string _onlineCharactersColor = "#444455";
-    public string OnlineCharactersColor
+    private IBrush _onlineCharactersColor = Palette.BorderStrong;
+    public IBrush OnlineCharactersColor
     {
         get => _onlineCharactersColor;
         private set => this.RaiseAndSetIfChanged(ref _onlineCharactersColor, value);
@@ -498,7 +499,7 @@ public class MainWindowViewModel : ReactiveObject
             {
                 OnlineCharactersText  = text;
                 OnlineCharactersTip   = tip;
-                OnlineCharactersColor = online.Count > 0 ? "#70ad47" : "#444455";
+                OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
         }
         catch
@@ -524,8 +525,8 @@ public class MainWindowViewModel : ReactiveObject
     private string _serverStatusText = "Online";
     public string ServerStatusText { get => _serverStatusText; private set => this.RaiseAndSetIfChanged(ref _serverStatusText, value); }
 
-    private string _serverStatusColor = "#70ad47";
-    public string ServerStatusColor { get => _serverStatusColor; private set => this.RaiseAndSetIfChanged(ref _serverStatusColor, value); }
+    private IBrush _serverStatusColor = Palette.Good;
+    public IBrush ServerStatusColor { get => _serverStatusColor; private set => this.RaiseAndSetIfChanged(ref _serverStatusColor, value); }
 
     private string _serverPlayersText = "";
     public string ServerPlayersText { get => _serverPlayersText; private set => this.RaiseAndSetIfChanged(ref _serverPlayersText, value); }
@@ -592,6 +593,10 @@ public class MainWindowViewModel : ReactiveObject
             // the tab sat in the background shows nothing until something else triggers a load.
             if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
             if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
+
+            // ⚠️ The error log is NOT refreshed here. Returning to a tab already open should not
+            // re-read five thousand rows; the list is as old as the moment it was opened, and the
+            // Refresh button says so.
             return;
         }
 
@@ -653,6 +658,12 @@ public class MainWindowViewModel : ReactiveObject
         // a fresh read also picks up anything the agent created since the tab was last shown.
         if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
         if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
+
+        // ⚠️ Same reasoning, and it mattered more here. The error log used to read at application
+        // start, so opening it showed a list from whenever the app was launched — which looks
+        // current and is not. Reading on open means closing the tab and opening it again reads
+        // afresh, which is what somebody doing that is asking for.
+        if (toolId == "error_log") ErrorLogVm.Reload();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;

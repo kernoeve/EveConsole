@@ -7,6 +7,6 @@
         Title="Asset Browser"
         Width="1400" Height="800"
         MinWidth="900" MinHeight="500"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:AssetBrowserView DataContext="{Binding}" />
 </Window>

@@ -7,6 +7,6 @@
         Title="Net Worth"
         Width="1100" Height="700"
         MinWidth="700" MinHeight="500"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:NetWorthView DataContext="{Binding}" />
 </Window>

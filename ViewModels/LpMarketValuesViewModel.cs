@@ -11,6 +11,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -40,9 +41,9 @@ public record LpCorpValueVm(
     /// <summary>Highlighted when the median sits well below the mean. Both cover the same
     /// offers, so a wide gap is not a discrepancy — it says the store's average is being
     /// carried by a few unusually good offers rather than by the catalogue at large.</summary>
-    public string MedianColor =>
+    public IBrush MedianColor =>
         Math.Abs(IskPerLp - MedianIskPerLp) > Math.Max(50, Math.Abs(MedianIskPerLp))
-            ? "#aa7744" : "#889";
+            ? Palette.Warn : Palette.TextMuted;
 
     /// <summary>Values span several orders of magnitude between corporations, so the
     /// precision follows the number rather than being fixed.</summary>
@@ -57,11 +58,11 @@ public record LpCorpValueVm(
 
     /// <summary>An average resting on a small slice of the catalogue is worth less trust,
     /// so the coverage is dimmed when most offers could not be priced.</summary>
-    public string CoverageColor =>
-        TotalOffers > 0 && ValuedOffers * 2 < TotalOffers ? "#aa7744" : "#889";
+    public IBrush CoverageColor =>
+        TotalOffers > 0 && ValuedOffers * 2 < TotalOffers ? Palette.Warn : Palette.TextMuted;
 
     public string HeldText  => LpHeld > 0 ? $"{LpHeld:N0}" : "—";
-    public string HeldColor => LpHeld > 0 ? "#4caf50" : "#555566";
+    public IBrush HeldColor => LpHeld > 0 ? Palette.Good : Palette.TextFaint;
 
     /// <summary>What the balance is worth at the mean rate, matching the headline ISK / LP
     /// column so the two agree.</summary>
@@ -342,8 +343,8 @@ public class LpMarketValuesViewModel : ReactiveObject
                 [
                     new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
                     {
-                        LabelsPaint     = new SolidColorPaint(new SKColor(136, 136, 153)),
-                        SeparatorsPaint = new SolidColorPaint(new SKColor(40, 40, 60)),
+                        LabelsPaint     = ChartPaint.Labels,
+                        SeparatorsPaint = ChartPaint.Separators,
                     },
                 ];
 
@@ -352,8 +353,8 @@ public class LpMarketValuesViewModel : ReactiveObject
                     new Axis
                     {
                         Name            = "ISK per LP",
-                        LabelsPaint     = new SolidColorPaint(new SKColor(200, 168, 75)),
-                        SeparatorsPaint = new SolidColorPaint(new SKColor(40, 40, 60)),
+                        LabelsPaint     = ChartPaint.AccentLabels,
+                        SeparatorsPaint = ChartPaint.Separators,
                         Labeler         = v => Math.Abs(v) >= 100 ? v.ToString("N0") : v.ToString("N2"),
                     },
                 ];

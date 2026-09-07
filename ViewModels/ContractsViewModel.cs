@@ -7,6 +7,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -48,21 +49,21 @@ internal static class ContractFmt
     public static string EffectiveStatusLabel(string status, DateTimeOffset? expired) =>
         IsExpired(status, expired) ? "Expired" : StatusLabel(status);
 
-    public static string EffectiveStatusColor(string status, DateTimeOffset? expired) =>
-        IsExpired(status, expired) ? "#a06a45" : StatusColor(status);
+    public static IBrush EffectiveStatusColor(string status, DateTimeOffset? expired) =>
+        IsExpired(status, expired) ? Palette.Warn : StatusColor(status);
 
-    public static string StatusColor(string status) => status switch
+    public static IBrush StatusColor(string status) => status switch
     {
-        "outstanding"  => "#5b9bd5",
-        "in_progress"  => "#c8a84b",
-        "finished"     => "#5cb85c",
-        "closed"       => "#7c7c8a",
-        "cancelled"    => "#888899",
-        "rejected"     => "#d9534f",
-        "failed"       => "#d9534f",
-        "deleted"      => "#666677",
-        "reversed"     => "#9b78c8",
-        _              => "#aab",
+        "outstanding"  => Palette.Info,
+        "in_progress"  => Palette.Accent,
+        "finished"     => Palette.Good,
+        "closed"       => Palette.TextDim,
+        "cancelled"    => Palette.TextMuted,
+        "rejected"     => Palette.Bad,
+        "failed"       => Palette.Bad,
+        "deleted"      => Palette.TextDim,
+        "reversed"     => Palette.TextDim,
+        _              => Palette.TextSecondary,
     };
 
     public static string Date(DateTimeOffset? d) =>
@@ -74,7 +75,7 @@ internal static class ContractFmt
 public class ContractItemRowVm
 {
     public string Kind      { get; }     // "Offered" / "Requested"
-    public string KindColor { get; }
+    public IBrush KindColor { get; }
     public string TypeName  { get; }
     public string Quantity  { get; }
     public string Details   { get; }     // blueprint / singleton notes
@@ -86,7 +87,7 @@ public class ContractItemRowVm
     public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames)
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
-        KindColor = it.IsIncluded ? "#5cb85c" : "#d9877a";
+        KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
         TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
         Quantity  = it.Quantity.ToString("N0");
@@ -110,7 +111,7 @@ public class ContractDetailVm
     public string Title      { get; }
     public string TypeLabel  { get; }
     public string Status     { get; }
-    public string StatusColor{ get; }
+    public IBrush StatusColor{ get; }
     public string Availability { get; }
 
     public string Issuer     { get; }
@@ -232,7 +233,7 @@ public class ContractRowVm
     public int    ContractId    { get; }
     public string TypeLabel     { get; }
     public string Status        { get; }
-    public string StatusColor   { get; }
+    public IBrush StatusColor   { get; }
     public string Issuer        { get; }
     public string Assignee      { get; }
     public string Acceptor      { get; }

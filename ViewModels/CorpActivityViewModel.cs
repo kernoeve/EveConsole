@@ -274,7 +274,7 @@ public sealed class StandingProjectRowVm
     public string RemainingPayoutText  { get; }
     public string RemainingPercentText { get; }
     public bool   IsLowRemaining       { get; }   // < 10% of the target left
-    public string RemainingColor       { get; }
+    public IBrush RemainingColor       { get; }
     public bool   IsDeliverItem       { get; }
     public int?   ItemTypeId          { get; }
     public string ItemTypeName        { get; }
@@ -373,7 +373,7 @@ public sealed class StandingProjectRowVm
         RemainingText        = row.RemainingText;
         RemainingPayoutText  = row.RemainingPayoutText;
         RemainingPercentText = row.RemainingPercentText;
-        RemainingColor       = IsLowRemaining ? "#e0902e" : "#c8c8d8";
+        RemainingColor       = IsLowRemaining ? Palette.Warn : Palette.TextPrimary;
         IsDeliverItem       = row.ItemTypeId.HasValue;
         ItemTypeId          = row.ItemTypeId;
         ItemTypeName        = row.ItemTypeName;
@@ -447,7 +447,29 @@ public sealed class MonthSummaryLineVm
     /// — the report decides which lines those are, and this is only the trip through the grid.</summary>
     public bool   IsTotal  { get; init; }
     /// <summary>Set only where the sign carries meaning — net position, efficiency.</summary>
+    /// <summary>
+    /// The colour as the EXPORT wants it: a hex code, because the monthly summary is also posted
+    /// as EVE mail, where that is the only thing a colour can be.
+    /// </summary>
     public string ValueColor { get; init; } = "#ccccdd";
+
+    /// <summary>
+    /// The same meaning as a themed brush, for the grid.
+    ///
+    /// <para>⚠️ The row carries both, and that is the point. Retyping ValueColor was the obvious
+    /// move and it cannot work: the identical property feeds a text export whose record takes a
+    /// string, so one of the two consumers would always be handed the wrong thing. The export
+    /// never sees this one, and the grid never sees the hex.</para>
+    ///
+    /// <para>The export writes exactly three colours, and they are the three meanings the summary
+    /// has: a figure that went up, one that went down, and one that is just a figure.</para>
+    /// </summary>
+    public IBrush ValueBrush => ValueColor.ToLowerInvariant() switch
+    {
+        "#70ad47" => Palette.Good,
+        "#cc6666" => Palette.Bad,
+        _          => Palette.TextPrimary,
+    };
 
     public bool   IsValue    => !IsHeader;
     public string ChangeColor => Change.StartsWith('+') ? "#70ad47"
@@ -1650,16 +1672,16 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                     d => d.ToString(moreThan60 ? "MMM yy" : "MM/dd"))
                 {
                     TextSize        = 10,
-                    LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                    LabelsPaint     = ChartPaint.Labels,
+                    SeparatorsPaint = ChartPaint.Separators,
                 },
             ],
             [
                 new Axis
                 {
                     TextSize        = 10,
-                    LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                    LabelsPaint     = ChartPaint.Labels,
+                    SeparatorsPaint = ChartPaint.Separators,
                     Labeler         = v => FormatIsk(v),
                 },
             ]
@@ -2236,8 +2258,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 Labels          = labels,
                 LabelsRotation  = -35,
                 TextSize        = 10,
-                LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                LabelsPaint     = ChartPaint.Labels,
+                SeparatorsPaint = ChartPaint.Separators,
             }
         ];
         yAxes = [
@@ -2245,8 +2267,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 TextSize        = 10,
                 MinLimit        = 0,
-                LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                LabelsPaint     = ChartPaint.Labels,
+                SeparatorsPaint = ChartPaint.Separators,
                 Labeler         = v => FormatIsk(v),
             }
         ];
@@ -2399,8 +2421,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 Labels = labels, LabelsRotation = -45,
                 TextSize = 9,
-                SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-                LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
+                SeparatorsPaint = ChartPaint.Separators,
+                LabelsPaint     = ChartPaint.FaintLabels,
             }
         ];
         KillDailyYAxes =
@@ -2409,8 +2431,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 TextSize    = 9,
                 MinLimit    = 0,
-                LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
+                LabelsPaint = ChartPaint.FaintLabels,
+                SeparatorsPaint = ChartPaint.Separators,
             }
         ];
     }

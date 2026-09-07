@@ -4,15 +4,15 @@
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.WalletView"
              x:DataType="vm:WalletViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock">
       <Setter Property="FontSize" Value="10" />
     </Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background"  Value="#12121a" />
-      <Setter Property="Foreground"  Value="#555566" />
+      <Setter Property="Background"  Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground"  Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"    Value="10" />
       <Setter Property="FontWeight"  Value="SemiBold" />
       <Setter Property="Padding"     Value="6 5 2 5" />
@@ -41,12 +41,12 @@
   <Grid RowDefinitions="Auto,Auto,*">
 
     <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
             Padding="12 8">
       <Grid ColumnDefinitions="Auto,16,Auto,*,Auto,12,Auto">
 
         <!-- Owner picker -->
-        <TextBlock Grid.Column="0" Text="Owner:" FontSize="12" Foreground="#888899"
+        <TextBlock Grid.Column="0" Text="Owner:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center" />
         <ComboBox Grid.Column="2"
                   ItemsSource="{Binding Owners}"
@@ -72,15 +72,15 @@
     </Border>
 
     <!-- ── Balance bar ────────────────────────────────────────────────────── -->
-    <Border Grid.Row="1" Background="#0d0d12" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+    <Border Grid.Row="1" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
             Padding="14 6">
       <Grid ColumnDefinitions="Auto,*,Auto">
-        <TextBlock Grid.Column="0" Text="Balance:" FontSize="11" Foreground="#555566"
+        <TextBlock Grid.Column="0" Text="Balance:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                    VerticalAlignment="Center" />
         <TextBlock Grid.Column="2"
                    Text="{Binding BalanceText}"
                    FontSize="14" FontWeight="SemiBold"
-                   Foreground="#c8a84b"
+                   Foreground="{DynamicResource AccentBrush}"
                    VerticalAlignment="Center" />
       </Grid>
     </Border>
@@ -88,7 +88,7 @@
     <!-- ── Status overlay + tabs ─────────────────────────────────────────── -->
     <Grid Grid.Row="2">
 
-      <TabControl Background="#0d0d12">
+      <TabControl Background="{DynamicResource SurfaceBaseBrush}">
 
         <!-- ════ Overview ══════════════════════════════════════════════════ -->
         <TabItem Header="Overview">
@@ -97,16 +97,16 @@
             <Grid ColumnDefinitions="*,16,*" Margin="12 12 12 12">
 
               <!-- Income pie -->
-              <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+              <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
                 <StackPanel Spacing="6">
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Income" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#555566" VerticalAlignment="Center" />
+                               Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding IncomeTotalText}"
                                FontSize="11" FontWeight="SemiBold"
-                               Foreground="#c8a84b" VerticalAlignment="Center" />
+                               Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                   </Grid>
                   <lvc:PieChart IsVisible="{Binding HasIncomeData}"
                                 Series="{Binding IncomeSeries}"
@@ -116,7 +116,7 @@
                                 Background="Transparent" />
                   <TextBlock IsVisible="{Binding !HasIncomeData}"
                              Text="No income data for this period."
-                             FontSize="11" Foreground="#444455"
+                             FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"
                              Margin="0 60" />
@@ -124,16 +124,16 @@
               </Border>
 
               <!-- Expenses pie -->
-              <Border Grid.Column="2" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+              <Border Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
                 <StackPanel Spacing="6">
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Expenses" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#555566" VerticalAlignment="Center" />
+                               Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding ExpenseTotalText}"
                                FontSize="11" FontWeight="SemiBold"
-                               Foreground="#c8a84b" VerticalAlignment="Center" />
+                               Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                   </Grid>
                   <lvc:PieChart IsVisible="{Binding HasExpenseData}"
                                 Series="{Binding ExpenseSeries}"
@@ -143,7 +143,7 @@
                                 Background="Transparent" />
                   <TextBlock IsVisible="{Binding !HasExpenseData}"
                              Text="No expense data for this period."
-                             FontSize="11" Foreground="#444455"
+                             FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"
                              Margin="0 60" />
@@ -158,33 +158,33 @@
         <TabItem Header="Journal">
           <Grid RowDefinitions="Auto,*,Auto">
             <!-- Filter bar -->
-            <Border Grid.Row="0" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                     Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="Type:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <TextBlock Text="Type:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding JournalTypeFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="130" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
-                <TextBlock Text="Owner:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
+                <TextBlock Text="Owner:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding JournalOwnerFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="120" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
-                <TextBlock Text="Div:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
+                <TextBlock Text="Div:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding JournalDivFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="90" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
-                <TextBlock Text="From:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
+                <TextBlock Text="From:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding JournalFromDate, Mode=TwoWay}"
                                     FontSize="11" Width="120" Height="22" />
-                <TextBlock Text="Thru:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <TextBlock Text="Thru:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding JournalThruDate, Mode=TwoWay}"
                                     FontSize="11" Width="120" Height="22" />
                 <Button Content="Clear" Command="{Binding ClearJournalFiltersCommand}"
                         FontSize="10" Padding="8 2" Height="22"
-                        Background="#1a1a2a" Foreground="#888899"
-                        BorderBrush="#2a2a3a" BorderThickness="1"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                         VerticalAlignment="Center" />
-                <TextBlock Text="Sort:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <TextBlock Text="Sort:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding JournalSortOptions}" SelectedItem="{Binding SelectedJournalSort}"
                           FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
               </StackPanel>
@@ -233,11 +233,11 @@
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
               </DataGrid.Columns>
             </DataGrid>
-            <Border Grid.Row="2" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0" Padding="8 5">
+            <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                 <Button Command="{Binding JournalPager.FirstPageCommand}" IsEnabled="{Binding JournalPager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
                 <Button Command="{Binding JournalPager.PrevPageCommand}"  IsEnabled="{Binding JournalPager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
-                <TextBlock Text="{Binding JournalPager.PageInfo}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
+                <TextBlock Text="{Binding JournalPager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
                 <Button Command="{Binding JournalPager.NextPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
                 <Button Command="{Binding JournalPager.LastPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
               </StackPanel>
@@ -249,35 +249,35 @@
         <TabItem Header="Market Transactions">
           <Grid RowDefinitions="Auto,*,Auto">
             <!-- Filter bar -->
-            <Border Grid.Row="0" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 0 0 1"
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                     Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="Item:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <TextBlock Text="Item:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnItemFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="160" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
-                <TextBlock Text="B/S:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
+                <TextBlock Text="B/S:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding DirectionOptions}"
                           SelectedItem="{Binding TxnDirectionFilter, Mode=TwoWay}"
                           FontSize="11" Width="70" Height="22" />
-                <TextBlock Text="Location:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <TextBlock Text="Location:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnLocationFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="150" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
-                <TextBlock Text="Owner:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
+                <TextBlock Text="Owner:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnOwnerFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="120" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
-                <TextBlock Text="Div:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
+                <TextBlock Text="Div:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnDivFilter, Mode=TwoWay}"
                          Watermark="filter…" FontSize="11" Width="90" Height="22"
-                         Background="#12121a" Foreground="#c8c8d8" BorderBrush="#2a2a3a" Padding="5 2" />
+                         Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
                 <Button Content="Clear" Command="{Binding ClearTxnFiltersCommand}"
                         FontSize="10" Padding="8 2" Height="22"
-                        Background="#1a1a2a" Foreground="#888899"
-                        BorderBrush="#2a2a3a" BorderThickness="1"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                         VerticalAlignment="Center" />
-                <TextBlock Text="Sort:" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+                <TextBlock Text="Sort:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding TxnSortOptions}" SelectedItem="{Binding SelectedTxnSort}"
                           FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
               </StackPanel>
@@ -356,11 +356,11 @@
                 <DataGridTextColumn Header="Div"        Binding="{Binding DivisionText}" Width="100" />
               </DataGrid.Columns>
             </DataGrid>
-            <Border Grid.Row="2" Background="#0d111a" BorderBrush="#1e1e2a" BorderThickness="0 1 0 0" Padding="8 5">
+            <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
                 <Button Command="{Binding TxnPager.FirstPageCommand}" IsEnabled="{Binding TxnPager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
                 <Button Command="{Binding TxnPager.PrevPageCommand}"  IsEnabled="{Binding TxnPager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
-                <TextBlock Text="{Binding TxnPager.PageInfo}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
+                <TextBlock Text="{Binding TxnPager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
                 <Button Command="{Binding TxnPager.NextPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
                 <Button Command="{Binding TxnPager.LastPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
               </StackPanel>
@@ -394,7 +394,7 @@
               VerticalAlignment="Stretch">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
           <TextBlock Text="{Binding StatusText}"
-                     FontSize="13" Foreground="#aaaacc"
+                     FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                      HorizontalAlignment="Center" />
         </StackPanel>
       </Border>

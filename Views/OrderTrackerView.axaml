@@ -3,24 +3,24 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.OrderTrackerView"
              x:DataType="vm:OrderTrackerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <!-- A settled order quotes the cost from the day it settled, so the cell says which day. -->
     <Style Selector="DataGridCell.build"><Setter Property="ToolTip.Tip" Value="{Binding BuildBasis}" /></Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding" Value="6 5 2 5" />
     </Style>
     <Style Selector="TextBlock.fl">
-      <Setter Property="Foreground" Value="#555566" /><Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="TextBox, ComboBox">
-      <Setter Property="Background" Value="#131320" /><Setter Property="BorderBrush" Value="#2a2a3a" />
-      <Setter Property="Foreground" Value="#ccccdd" /><Setter Property="FontSize" Value="11" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
     </Style>
 
     <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
@@ -45,21 +45,21 @@
 
   <Grid RowDefinitions="Auto,*">
 
-    <Border Grid.Row="0" Background="#0d0d12" Padding="10 6" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
 
         <!-- Title + actions -->
         <Grid ColumnDefinitions="Auto,*,Auto">
           <TextBlock Grid.Column="0" Text="Order Tracker" FontSize="13" FontWeight="SemiBold"
-                     Foreground="#c8a84b" VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
+                     Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" Margin="12 0 0 0" />
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
             <!-- The grid loads on startup and after an edit; the fulfilment poll changes rows
                  behind it every five minutes, so there has to be a way to pick that up. -->
             <Button Content="Refresh" Command="{Binding RefreshCommand}" Padding="12 4" />
             <Button Content="Add Order" Command="{Binding AddCommand}" Padding="12 4"
-                    Background="#1a2030" Foreground="#c8a84b" BorderBrush="#3a3020" BorderThickness="1" />
+                    Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
             <Button Content="Edit"   Command="{Binding EditCommand}"   Padding="12 4"
                     IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
             <Button Content="Delete" Command="{Binding DeleteCommand}" Padding="12 4"
@@ -95,7 +95,7 @@
               SelectionMode="Extended"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-              Background="#0d0d12" DoubleTapped="OnRowDoubleTapped">
+              Background="{DynamicResource SurfaceBaseBrush}" DoubleTapped="OnRowDoubleTapped">
       <DataGrid.ContextMenu>
         <ContextMenu>
           <MenuItem x:Name="AddLabelMenu"    Header="Add label" />

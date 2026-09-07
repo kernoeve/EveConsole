@@ -7,6 +7,6 @@
         Title="Industry Jobs"
         Width="1500" Height="850"
         MinWidth="900" MinHeight="580"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:IndustryBrowserView DataContext="{Binding}" />
 </Window>

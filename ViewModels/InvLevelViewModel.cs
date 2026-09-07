@@ -37,8 +37,7 @@ public record CollectionOption(int? CollectionId, string Name)
 
 public class InvCollectionRow : ReactiveObject
 {
-    private static readonly SolidColorBrush RowBrush = new(Color.Parse("#0e0e1a"));
-    public IBrush RowBackground => RowBrush;
+    public IBrush RowBackground => Palette.SurfaceBase;
 
     public bool IsCollection => true;
     public bool IsGroup      => false;
@@ -93,8 +92,7 @@ public class InvCollectionRow : ReactiveObject
 
 public class InvGroupRow : ReactiveObject
 {
-    private static readonly SolidColorBrush RowBrush = new(Color.Parse("#141420"));
-    public IBrush RowBackground => RowBrush;
+    public IBrush RowBackground => Palette.SurfacePanelAlt;
 
     public bool IsCollection => false;
     public bool IsGroup      => true;
@@ -250,12 +248,12 @@ public class InvItemRow : ReactiveObject
     // Whole-row background tint when the item is under target: orange from 0% down to -50%,
     // red once the shortfall is worse than -50%. Transparent lets the base row colour show.
     private static readonly SolidColorBrush RowClear  = new(Colors.Transparent);
-    private static readonly SolidColorBrush RowOrange = new(Color.Parse("#3a2a12"));
-    private static readonly SolidColorBrush RowRed    = new(Color.Parse("#3a1616"));
+    private static IBrush RowOrange => Palette.WarnSurface;
+    private static IBrush RowRed    => Palette.BadSurface;
 
     /// <summary>Alternating shade for a row carrying no warning. A small step from the grid's own
     /// #0d0d12, matching the shared banding elsewhere in the app.</summary>
-    private static readonly SolidColorBrush RowBand = new(Color.Parse("#111118"));
+    private static IBrush RowBand => Palette.SurfacePanelAlt;
 
     private readonly InvLevelService _svc;
 

@@ -8,6 +8,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -52,10 +53,10 @@ public class HistoryRegionRowVm : ReactiveObject
                               : Refreshed == 0 ? "Empty"
                               : "Filling";
 
-    public string StatusColor => Total == 0 ? "#666677"
-                               : Queue == 0 ? "#70ad47"
-                               : Refreshed == 0 ? "#cc6666"
-                               : "#c8a84b";
+    public IBrush StatusColor => Total == 0 ? Palette.TextDim
+                               : Queue == 0 ? Palette.Good
+                               : Refreshed == 0 ? Palette.Bad
+                               : Palette.Accent;
 }
 
 public class ScheduleRowVm

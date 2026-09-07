@@ -3,7 +3,7 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.EveMailView"
              x:DataType="vm:EveMailViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
 
@@ -30,28 +30,28 @@
   <Grid RowDefinitions="Auto,*">
 
     <!-- ── Toolbar ────────────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#0a0a10" Padding="10 6">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6">
       <Grid ColumnDefinitions="Auto,16,Auto,16,*,Auto">
 
         <!-- Character selector -->
         <TextBlock Grid.Column="0" Text="CHARACTER" FontSize="9" FontWeight="SemiBold"
-                   Foreground="#555566" LetterSpacing="1.2" VerticalAlignment="Center" />
+                   Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.2" VerticalAlignment="Center" />
         <ComboBox Grid.Column="2"
                   ItemsSource="{Binding Characters}"
                   SelectedItem="{Binding SelectedChar}"
-                  Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                  Foreground="#c8c8d8" FontSize="12"
+                  Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                   MinWidth="160" Padding="6 3" />
 
         <!-- Status -->
         <TextBlock Grid.Column="4" Text="{Binding StatusText}"
-                   FontSize="11" Foreground="#445566" VerticalAlignment="Center" />
+                   FontSize="11" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
 
         <!-- Compose -->
         <Button Grid.Column="5" Content="+ Compose"
                 Command="{Binding ComposeCommand}"
-                Background="#0d1020" Foreground="#c8a84b"
-                BorderBrush="#3a3020" BorderThickness="1"
+                Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource AccentBrush}"
+                BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                 Padding="10 4" FontSize="11" Cursor="Hand" />
 
       </Grid>
@@ -61,7 +61,7 @@
     <Grid Grid.Row="1" ColumnDefinitions="140,1,280,1,*">
 
       <!-- Folder list -->
-      <Border Grid.Column="0" Background="#0a0a10" Padding="0 6 0 0">
+      <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="0 6 0 0">
         <ListBox ItemsSource="{Binding Folders}"
                  SelectedItem="{Binding SelectedFolder}"
                  Background="Transparent" BorderThickness="0" Padding="0">
@@ -71,24 +71,24 @@
               <Setter Property="Background" Value="Transparent" />
             </Style>
             <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-              <Setter Property="Background" Value="#14141e" />
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
             </Style>
             <Style Selector="ListBoxItem:selected TextBlock">
-              <Setter Property="Foreground" Value="#c8a84b" />
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             </Style>
           </ListBox.Styles>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:EveMailFolderVm">
-              <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#888899" />
+              <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
       </Border>
 
-      <Rectangle Grid.Column="1" Fill="#1a1a26" />
+      <Rectangle Grid.Column="1" Fill="{DynamicResource SurfaceHoverBrush}" />
 
       <!-- Mail list -->
-      <Border Grid.Column="2" Background="#0d0d12">
+      <Border Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}">
         <ListBox ItemsSource="{Binding Mails}"
                  SelectedItem="{Binding SelectedMail}"
                  Background="Transparent" BorderThickness="0" Padding="0">
@@ -98,18 +98,18 @@
               <Setter Property="Background" Value="Transparent" />
             </Style>
             <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-              <Setter Property="Background" Value="#14141e" />
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
             </Style>
           </ListBox.Styles>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:EveMailRowVm">
-              <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1" Padding="8 7">
+              <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1" Padding="8 7">
                 <Grid ColumnDefinitions="38,*">
 
                   <!-- Portrait -->
                   <Border Grid.Column="0"
                           Width="32" Height="32" CornerRadius="4" ClipToBounds="True"
-                          Background="#1a1a28" VerticalAlignment="Top" Margin="0 1 6 0">
+                          Background="{DynamicResource SurfaceRaisedBrush}" VerticalAlignment="Top" Margin="0 1 6 0">
                     <Image Source="{Binding Portrait}" Stretch="UniformToFill" />
                   </Border>
 
@@ -122,7 +122,7 @@
                                  Foreground="{Binding FromColor}" />
                       <TextBlock Grid.Column="1"
                                  Text="{Binding TimeText}"
-                                 FontSize="10" Foreground="#445566"
+                                 FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}"
                                  VerticalAlignment="Center" />
                     </Grid>
                     <TextBlock Grid.Row="1"
@@ -139,44 +139,44 @@
         </ListBox>
       </Border>
 
-      <Rectangle Grid.Column="3" Fill="#1a1a26" />
+      <Rectangle Grid.Column="3" Fill="{DynamicResource SurfaceHoverBrush}" />
 
       <!-- Mail body -->
       <Grid Grid.Column="4" RowDefinitions="Auto,1,*">
 
         <!-- Selected mail header -->
-        <Border Grid.Row="0" Background="#0a0a10" Padding="14 10"
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="14 10"
                 IsVisible="{Binding SelectedMail, Converter={x:Static ObjectConverters.IsNotNull}}">
           <Grid ColumnDefinitions="54,*">
 
             <!-- Sender portrait (48×48) -->
             <Border Grid.Column="0"
                     Width="48" Height="48" CornerRadius="4" ClipToBounds="True"
-                    Background="#1a1a28" VerticalAlignment="Top">
+                    Background="{DynamicResource SurfaceRaisedBrush}" VerticalAlignment="Top">
               <Image Source="{Binding SelectedFromPortrait}" Stretch="UniformToFill" />
             </Border>
 
             <!-- Subject / From / To / Date -->
             <StackPanel Grid.Column="1" Spacing="3">
               <TextBlock Text="{Binding SelectedMail.Subject}"
-                         FontSize="15" FontWeight="SemiBold" Foreground="#e8e8f0"
+                         FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
                          TextTrimming="CharacterEllipsis" />
               <Grid ColumnDefinitions="36,*">
-                <TextBlock Grid.Column="0" Text="From:" FontSize="11" Foreground="#555566" />
+                <TextBlock Grid.Column="0" Text="From:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                 <Panel Grid.Column="1">
                   <Button Classes="link" Click="OnOpenMailFrom"
                           IsVisible="{Binding SelectedMail.HasFromLink}"
                           ToolTip.Tip="Open in the entity browser">
                     <TextBlock Text="{Binding SelectedMail.FromText}" Classes="linktext"
-                               FontSize="11" Foreground="#888899" />
+                               FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                   </Button>
                   <TextBlock Text="{Binding SelectedMail.FromText}"
                              IsVisible="{Binding !SelectedMail.HasFromLink}"
-                             FontSize="11" Foreground="#888899" VerticalAlignment="Center" />
+                             FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                 </Panel>
               </Grid>
               <Grid ColumnDefinitions="36,*">
-                <TextBlock Grid.Column="0" Text="To:" FontSize="11" Foreground="#555566" />
+                <TextBlock Grid.Column="0" Text="To:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                 <!-- Each addressee on its own, so a mail to five people gives five links rather
                      than one unclickable joined string. -->
                 <ItemsControl Grid.Column="1" ItemsSource="{Binding SelectedMail.Recipients}">
@@ -191,19 +191,19 @@
                         <Button Classes="link" Click="OnOpenRecipient" IsVisible="{Binding HasLink}"
                                 ToolTip.Tip="Open in the entity browser">
                           <TextBlock Text="{Binding Name}" Classes="linktext"
-                                     FontSize="11" Foreground="#888899" />
+                                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                         </Button>
                         <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasLink}"
-                                   FontSize="11" Foreground="#888899" VerticalAlignment="Center" />
+                                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                       </Panel>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </Grid>
               <Grid ColumnDefinitions="36,*">
-                <TextBlock Grid.Column="0" Text="Date:" FontSize="11" Foreground="#555566" />
+                <TextBlock Grid.Column="0" Text="Date:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                 <TextBlock Grid.Column="1" Text="{Binding SelectedMail.TimeText}"
-                           FontSize="11" Foreground="#888899" />
+                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
               </Grid>
             </StackPanel>
 
@@ -214,16 +214,16 @@
         <TextBlock Grid.Row="0"
                    IsVisible="{Binding SelectedMail, Converter={x:Static ObjectConverters.IsNull}}"
                    Text="Select a message to read it."
-                   FontSize="13" Foreground="#333348"
+                   FontSize="13" Foreground="{DynamicResource TextFaintBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    Margin="0 24 0 0" />
 
-        <Rectangle Grid.Row="1" Fill="#1a1a26" />
+        <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
 
         <!-- Body -->
         <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
           <TextBlock Text="{Binding BodyText}"
-                     FontSize="12" Foreground="#c8c8d8"
+                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                      TextWrapping="Wrap" Padding="14 12"
                      LineHeight="20" />
         </ScrollViewer>

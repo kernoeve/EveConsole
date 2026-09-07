@@ -3,21 +3,21 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.StandingBuyOrdersView"
              x:DataType="vm:StandingBuyOrdersViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="10" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
     <Style Selector="Button.tool">
       <Setter Property="FontSize" Value="10" /><Setter Property="Padding" Value="10 3" />
-      <Setter Property="Background" Value="#1a1a2a" /><Setter Property="Foreground" Value="#888899" />
-      <Setter Property="BorderBrush" Value="#2a2a3a" /><Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" /><Setter Property="BorderThickness" Value="1" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
@@ -43,17 +43,17 @@
 
   <Grid RowDefinitions="Auto,*">
 
-    <Border Grid.Row="0" Background="#0d0d12" Padding="10 6"
-            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Text="Standing Buy Orders" FontSize="13" FontWeight="SemiBold"
-                     Foreground="#c8a84b" VerticalAlignment="Center" />
+                     Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
-                     Foreground="#888899" VerticalAlignment="Center" />
+                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
         </Grid>
 
-        <TextBlock FontSize="11" Foreground="#666" TextWrapping="Wrap"
+        <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                    Text="Buy orders you intend to keep standing at a station or structure. Each is matched against your characters' and corporations' live buy orders." />
 
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -68,7 +68,7 @@
     <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-              Background="#0d0d12">
+              Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
         <DataGridTemplateColumn Header="Status" Width="80" SortMemberPath="Status">
           <DataGridTemplateColumn.CellTemplate>
@@ -115,10 +115,10 @@
                 <Button Classes="link" Click="OnOpenRowOwner" IsVisible="{Binding HasOwnerLink}"
                         ToolTip.Tip="Open in the entity browser">
                   <TextBlock Text="{Binding Owner}" Classes="linktext" FontSize="11"
-                             Foreground="#c8c8d8" TextTrimming="CharacterEllipsis" />
+                             Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding Owner}" IsVisible="{Binding !HasOwnerLink}"
-                           FontSize="11" Foreground="#c8c8d8"
+                           FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                            ToolTip.Tip="{Binding OwnerTooltip}" />
               </Panel>

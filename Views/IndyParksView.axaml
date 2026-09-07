@@ -4,7 +4,7 @@
              xmlns:services="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.IndyParksView"
              x:DataType="vm:IndyParksViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
 
@@ -31,28 +31,28 @@
   <Grid ColumnDefinitions="220,1,*">
 
     <!-- ── Left: park list ──────────────────────────────────────────────── -->
-    <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="#0d0d12">
+    <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="{DynamicResource SurfaceBaseBrush}">
 
       <!-- Toolbar -->
-      <Border Grid.Row="0" Background="#12121a" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+      <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
         <StackPanel Spacing="6">
           <TextBlock Text="INDY PARKS" FontSize="10" FontWeight="SemiBold"
-                     Foreground="#555566" LetterSpacing="1" Margin="2 0 0 4" />
+                     Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="2 0 0 4" />
           <StackPanel Orientation="Horizontal" Spacing="6">
             <Button Command="{Binding AddParkCommand}"
                     Content="+ New Park"
-                    Background="#1a1a28" Foreground="#c8a84b"
-                    BorderBrush="#3a3020" BorderThickness="1"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                    BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                     Padding="10 4" FontSize="11" />
             <Button Click="OnImportClick"
                     Content="Import"
-                    Background="#1a1a28" Foreground="#5588aa"
-                    BorderBrush="#20303a" BorderThickness="1"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                    BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                     Padding="10 4" FontSize="11" />
             <Button Command="{Binding DeleteParkCommand}"
                     Content="Delete"
-                    Background="#1a1a28" Foreground="#aa4444"
-                    BorderBrush="#3a2020" BorderThickness="1"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource BadBrush}"
+                    BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                     Padding="10 4" FontSize="11" />
           </StackPanel>
         </StackPanel>
@@ -70,15 +70,15 @@
             <Setter Property="Padding" Value="12 8" />
           </Style>
           <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1a2030" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
           </Style>
         </ListBox.Styles>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:IndyParkListItem">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="★" FontSize="11" Foreground="#c8a84b"
+              <TextBlock Text="★" FontSize="11" Foreground="{DynamicResource AccentBrush}"
                          IsVisible="{Binding IsDefault}" VerticalAlignment="Center" />
-              <TextBlock Text="{Binding Name}" FontSize="13" Foreground="#c8c8d8"
+              <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                          VerticalAlignment="Center" />
             </StackPanel>
           </DataTemplate>
@@ -87,7 +87,7 @@
     </Grid>
 
     <!-- Divider -->
-    <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+    <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Right: park detail ────────────────────────────────────────────── -->
     <Grid Grid.Column="2">
@@ -95,7 +95,7 @@
       <!-- No park selected -->
       <TextBlock IsVisible="{Binding SelectedPark, Converter={x:Static ObjectConverters.IsNull}}"
                  Text="Create or select an Indy Park from the list."
-                 Foreground="#333344" FontSize="13"
+                 Foreground="{DynamicResource TextFaintBrush}" FontSize="13"
                  HorizontalAlignment="Center" VerticalAlignment="Center" />
 
       <!-- Park detail.
@@ -110,23 +110,23 @@
           <StackPanel Spacing="6">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Grid.Column="0" Text="PARK NAME" FontSize="10" FontWeight="SemiBold"
-                         Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
+                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" VerticalAlignment="Center" />
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
                 <Button Command="{Binding SetDefaultParkCommand}"
                         Content="★ Set Default"
-                        Background="#1a1a28" Foreground="#c8a84b"
-                        BorderBrush="#3a3020" BorderThickness="1"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                         Padding="10 4" FontSize="11" />
                 <Button Click="OnExportClick"
                         Content="Export Park"
-                        Background="#1a1a28" Foreground="#5588aa"
-                        BorderBrush="#20303a" BorderThickness="1"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                         Padding="10 4" FontSize="11" />
               </StackPanel>
             </Grid>
             <TextBox Text="{Binding ParkName}"
-                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                     CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="14" Padding="10 6" MaxWidth="400"
                      HorizontalAlignment="Left" />
           </StackPanel>
@@ -134,7 +134,7 @@
           <!-- Structures toolbar. Pinned; the list itself is in the scroller below. -->
           <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="STRUCTURES" FontSize="10" FontWeight="SemiBold"
-                         Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
+                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" VerticalAlignment="Center" />
 
               <!-- Bulk add. Building a park a row at a time is the slow part of setting one up,
                    and the real fitting arrives with the link, so rigs need no retyping. -->
@@ -152,17 +152,17 @@
               <Button Grid.Row="0" Grid.Column="4" Command="{Binding AddAllInSystemCommand}"
                       Content="+ Add Missing In System" Margin="0 0 6 0"
                       ToolTip.Tip="Adds the industrial structures in that system this park does not already have. Structures already linked here are counted and left alone, so pressing it again after adding one by hand creates no duplicates."
-                      Background="#1a1a28" Foreground="#c8a84b"
-                      BorderBrush="#3a3020" BorderThickness="1"
+                      Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                      BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                       Padding="10 4" FontSize="11" />
               <Button Grid.Row="0" Grid.Column="5" Command="{Binding AddStructureCommand}"
                       Content="+ Add Structure"
-                      Background="#1a1a28" Foreground="#c8a84b"
-                      BorderBrush="#3a3020" BorderThickness="1"
+                      Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                      BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                       Padding="10 4" FontSize="11" />
 
               <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Text="{Binding BulkStatus}"
-                         FontSize="10" Foreground="#7a8896" TextWrapping="Wrap" Margin="0 6 0 0"
+                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0 6 0 0"
                          IsVisible="{Binding BulkStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
           </Grid>
         </StackPanel>
@@ -175,31 +175,31 @@
             <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Structures}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:StructureVm">
-                  <Border Background="#12121a" CornerRadius="4" Padding="14 12"
-                          Margin="0 0 0 8" BorderBrush="#1e1e2a" BorderThickness="1">
+                  <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="14 12"
+                          Margin="0 0 0 8" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
                     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
                       <!-- Row 0: Name + Type + Default + Remove button -->
                       <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 0 0 10">
                         <TextBox Grid.Column="0" Text="{Binding DisplayName}"
                                  Watermark="Structure name…"
-                                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                                 CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                                 Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                 CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                                  FontSize="13" FontWeight="SemiBold" Padding="8 4" />
                         <ComboBox Grid.Column="1"
                                   SelectedItem="{Binding StructureTypeLabel}"
                                   ItemsSource="{x:Static vm:IndyParksViewModel.StructureTypeLabels}"
                                   MinWidth="120" Margin="8 0 0 0" FontSize="12"
-                                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
+                                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <CheckBox Grid.Column="2" IsChecked="{Binding IsDefaultFacility}"
-                                  Content="Default" FontSize="11" Foreground="#c8c8d8"
+                                  Content="Default" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                   VerticalAlignment="Center" Margin="10 0 0 0"
                                   ToolTip.Tip="Catch-all facility. Items no category assignment covers are planned here with no rig bonus, so the calculation completes instead of failing. Only one facility per park." />
                         <Button Grid.Column="3" x:CompileBindings="False"
                                 Command="{Binding $parent[UserControl].DataContext.RemoveStructureCommand}"
                                 CommandParameter="{Binding}"
-                                Content="✕" Background="#2a1010" Foreground="#aa4444"
-                                BorderBrush="#3a2020" BorderThickness="1"
+                                Content="✕" Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                                 Padding="6 4" Margin="8 0 0 0" FontSize="11" />
                       </Grid>
 
@@ -207,29 +207,29 @@
                       <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0 0 0 10">
                         <TextBox Grid.Column="0" Text="{Binding SystemName}"
                                  Watermark="Solar system…"
-                                 Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                                 CornerRadius="3" Foreground="#ccccdd" CaretBrush="#c8a84b"
+                                 Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                 CornerRadius="3" Foreground="{DynamicResource TextPrimaryBrush}" CaretBrush="{DynamicResource AccentBrush}"
                                  FontSize="12" Padding="8 4" />
                         <ComboBox Grid.Column="1"
                                   SelectedItem="{Binding SecurityLabel}"
                                   ItemsSource="{x:Static vm:IndyParksViewModel.SecurityLabels}"
                                   MinWidth="110" Margin="8 0 0 0" FontSize="12"
-                                  Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8c8d8" />
+                                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
                       </Grid>
 
                       <!-- Row 2: Tax percentage -->
                       <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6"
                                   Margin="0 0 0 10" VerticalAlignment="Center">
-                        <TextBlock Text="Tax Percentage:" FontSize="12" Foreground="#666677"
+                        <TextBlock Text="Tax Percentage:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                    VerticalAlignment="Center" />
                         <NumericUpDown x:CompileBindings="False"
                                        Value="{Binding FacilityTax}"
                                        Minimum="0" Maximum="100" Increment="0.1"
                                        FormatString="{}{0:0.##}"
                                        MinWidth="80" FontSize="12"
-                                       Background="#131320" BorderBrush="#2a2a3a"
-                                       Foreground="#c8c8d8" />
-                        <TextBlock Text="%" FontSize="12" Foreground="#666677"
+                                       Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="%" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                    VerticalAlignment="Center" />
                       </StackPanel>
 
@@ -238,7 +238,7 @@
                            the linked facility are checked against the rigs below. -->
                       <StackPanel Grid.Row="3" Spacing="4" Margin="0 0 0 10">
                         <TextBlock Text="ACTUAL FACILITY" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="#444455" LetterSpacing="1" />
+                                   Foreground="{DynamicResource BorderStrongBrush}" LetterSpacing="1" />
 
                         <Grid ColumnDefinitions="*,Auto">
                           <!-- Linked: the name opens the facility. Unlinked: FacilityLinkText is
@@ -248,39 +248,39 @@
                                     IsVisible="{Binding HasFacilityLink}"
                                     ToolTip.Tip="Open this station or structure">
                               <TextBlock Text="{Binding FacilityLinkText}" Classes="linktext"
-                                         FontSize="11" Foreground="#aaaabc"
+                                         FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                          TextTrimming="CharacterEllipsis" />
                             </Button>
                             <TextBlock Text="{Binding FacilityLinkText}"
                                        IsVisible="{Binding !HasFacilityLink}"
                                        FontSize="11" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis"
-                                       Foreground="#aaaabc" />
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
                           </Panel>
                           <Button Grid.Column="1" x:CompileBindings="False"
                                   Command="{Binding $parent[UserControl].DataContext.UnlinkFacilityCommand}"
                                   CommandParameter="{Binding}"
                                   Content="Unlink" FontSize="10" Padding="8 2" Margin="8 0 0 0"
-                                  Background="#1a1a2a" Foreground="#888899"
-                                  BorderBrush="#2a2a3a" BorderThickness="1"
+                                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                                   IsVisible="{Binding RealStructureId, Converter={x:Static ObjectConverters.IsNotNull}}" />
                         </Grid>
 
                         <Grid ColumnDefinitions="*,Auto">
                           <TextBox Grid.Column="0" Text="{Binding FacilitySearch}"
                                    Watermark="Search station or structure to link…"
-                                   Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                                   CornerRadius="3" Foreground="#ccccdd" CaretBrush="#c8a84b"
+                                   Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                   CornerRadius="3" Foreground="{DynamicResource TextPrimaryBrush}" CaretBrush="{DynamicResource AccentBrush}"
                                    FontSize="11" Padding="8 4" />
                           <Button Grid.Column="1" x:CompileBindings="False"
                                   Command="{Binding $parent[UserControl].DataContext.SearchFacilityCommand}"
                                   CommandParameter="{Binding}"
                                   Content="Search" FontSize="10" Padding="10 3" Margin="8 0 0 0"
-                                  Background="#1a1a2a" Foreground="#888899"
-                                  BorderBrush="#2a2a3a" BorderThickness="1" />
+                                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
                         </Grid>
 
-                        <Border Background="#0f0f18" CornerRadius="3" BorderBrush="#1e1e2a"
+                        <Border Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}"
                                 BorderThickness="1" MaxHeight="120"
                                 IsVisible="{Binding FacilityResults.Count}">
                           <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -292,7 +292,7 @@
                                           CommandParameter="{Binding}"
                                           HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                                           Background="Transparent" BorderThickness="0" Padding="8 3">
-                                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#c8c8d8" />
+                                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                                   </Button>
                                 </DataTemplate>
                               </ItemsControl.ItemTemplate>
@@ -304,14 +304,14 @@
                       <!-- Row 4: Rig slots -->
                       <StackPanel Grid.Row="4" Spacing="6">
                         <TextBlock Text="RIGS" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="#444455" LetterSpacing="1" />
+                                   Foreground="{DynamicResource BorderStrongBrush}" LetterSpacing="1" />
                         <ItemsControl ItemsSource="{Binding RigSlots}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:RigSlotVm">
                               <Grid ColumnDefinitions="Auto,Auto,*" Margin="0 3">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding SlotIndex, StringFormat='Slot {0}:'}"
-                                           FontSize="11" Foreground="#444455"
+                                           FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                                            VerticalAlignment="Center" MinWidth="48" />
                                 <!-- The fitted rig's icon, and the only way into the Item Browser
                                      for it: the name itself lives inside the ComboBox, where it
@@ -331,7 +331,7 @@
                                           SelectedItem="{Binding Selected}"
                                           PlaceholderText="— empty —"
                                           FontSize="11"
-                                          Background="#131320" BorderBrush="#2a2a3a" Foreground="#aaaabc">
+                                          Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextSecondaryBrush}">
                                   <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="vm:SdeRigOption">
                                       <TextBlock Text="{Binding Name}" FontSize="11" />
@@ -349,7 +349,7 @@
                            which one holds what changes nothing, so there is no slot to show. -->
                       <StackPanel Grid.Row="5" Spacing="6" Margin="0 10 0 0">
                         <TextBlock Text="SERVICE MODULES" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="#444455" LetterSpacing="1" />
+                                   Foreground="{DynamicResource BorderStrongBrush}" LetterSpacing="1" />
 
                         <ItemsControl ItemsSource="{Binding Services}">
                           <ItemsControl.ItemTemplate>
@@ -360,10 +360,10 @@
                                           IsVisible="{Binding HasItemLink}"
                                           ToolTip.Tip="Open in the Item Browser">
                                     <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="11"
-                                               Foreground="#aaaabc" TextTrimming="CharacterEllipsis" />
+                                               Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                                   </Button>
                                   <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasItemLink}"
-                                             FontSize="11" Foreground="#aaaabc"
+                                             FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                              VerticalAlignment="Center"
                                              TextTrimming="CharacterEllipsis" />
                                 </Panel>
@@ -372,8 +372,8 @@
                                         Command="{Binding $parent[UserControl].DataContext.RemoveServiceCommand}"
                                         CommandParameter="{Binding}"
                                         Content="✕" FontSize="10" Padding="6 1" Margin="8 0 0 0"
-                                        Background="#2a1010" Foreground="#aa4444"
-                                        BorderBrush="#3a2020" BorderThickness="1" />
+                                        Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                        BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
                               </Grid>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
@@ -385,7 +385,7 @@
                                     SelectedItem="{Binding ServiceToAdd}"
                                     PlaceholderText="— add a service module —"
                                     FontSize="11"
-                                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#aaaabc">
+                                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextSecondaryBrush}">
                             <ComboBox.ItemTemplate>
                               <DataTemplate x:DataType="vm:SdeRigOption">
                                 <TextBlock Text="{Binding Name}" FontSize="11" />
@@ -396,15 +396,15 @@
                                   Command="{Binding $parent[UserControl].DataContext.AddServiceCommand}"
                                   CommandParameter="{Binding}"
                                   Content="Add" FontSize="10" Padding="10 3" Margin="8 0 0 0"
-                                  Background="#1a1a2a" Foreground="#888899"
-                                  BorderBrush="#2a2a3a" BorderThickness="1" />
+                                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
                         </Grid>
                       </StackPanel>
 
                       <!-- Row 6: who owns this fitting -->
                       <TextBlock Grid.Row="6" Text="{Binding FittingSourceText}"
                                  IsVisible="{Binding FittingSourceText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                 FontSize="10" Foreground="#556" TextWrapping="Wrap"
+                                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                                  Margin="0 8 0 0" />
 
                     </Grid>
@@ -417,34 +417,34 @@
           <StackPanel Spacing="10">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Grid.Column="0" Text="PRODUCTION ASSIGNMENTS" FontSize="10" FontWeight="SemiBold"
-                         Foreground="#555566" LetterSpacing="1" VerticalAlignment="Center" />
+                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" VerticalAlignment="Center" />
               <Button Grid.Column="1" Command="{Binding AutoAssignCommand}"
                       Content="Auto-assign from rigs"
-                      Background="#1a1a28" Foreground="#c8a84b"
-                      BorderBrush="#3a3020" BorderThickness="1"
+                      Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                      BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                       Padding="10 4" FontSize="11"
                       ToolTip.Tip="Fills empty categories from each structure's rigs. Existing choices are left alone." />
             </Grid>
             <TextBlock Text="Assign which structure handles each production category."
-                       FontSize="11" Foreground="#444455" />
-            <TextBlock Text="{Binding AutoAssignStatus}" FontSize="10" Foreground="#7a8896"
+                       FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" />
+            <TextBlock Text="{Binding AutoAssignStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap"
                        IsVisible="{Binding AutoAssignStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-            <Border Background="#12121a" CornerRadius="4" Padding="0" BorderBrush="#1e1e2a" BorderThickness="1">
+            <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="0" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
               <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Assignments}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:CompileBindings="False" x:DataType="vm:CategoryAssignmentVm">
-                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="14 8">
+                    <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="14 8">
                       <Grid ColumnDefinitions="220,*">
                         <TextBlock Grid.Column="0" Text="{Binding CategoryLabel}"
-                                   FontSize="12" Foreground="#888899" VerticalAlignment="Center" />
+                                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding StructureOptions}"
                                   SelectedItem="{Binding Selected}"
                                   PlaceholderText="— not assigned —"
                                   FontSize="12"
-                                  Background="#131320" BorderBrush="#1e1e2a" Foreground="#c8c8d8">
+                                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                           <ComboBox.ItemTemplate>
                             <DataTemplate>
                               <TextBlock x:CompileBindings="False"
@@ -464,20 +464,20 @@
           <!-- Item exceptions section -->
           <StackPanel Spacing="10">
             <TextBlock Text="ITEM EXCEPTIONS" FontSize="10" FontWeight="SemiBold"
-                       Foreground="#555566" LetterSpacing="1" />
+                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <TextBlock Text="Override the category assignment for a specific item."
-                       FontSize="11" Foreground="#444455" />
+                       FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" />
 
             <!-- Search box -->
             <TextBox Text="{Binding ItemSearchText}"
                      Watermark="Search for an item to add exception…"
-                     Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-                     CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+                     Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                     CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                      FontSize="12" Padding="8 5" />
 
             <!-- Search results dropdown -->
             <Border IsVisible="{Binding ItemSearchResults.Count}"
-                    Background="#12121a" CornerRadius="4" BorderBrush="#2a2a3a" BorderThickness="1"
+                    Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                     MaxHeight="200">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl x:CompileBindings="False" ItemsSource="{Binding ItemSearchResults}">
@@ -489,7 +489,7 @@
                               Background="Transparent" BorderThickness="0"
                               HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                               Padding="12 6" Cursor="Hand">
-                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8c8d8" />
+                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
                       </Button>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -499,20 +499,20 @@
 
             <!-- Exceptions list -->
             <Border IsVisible="{Binding ItemExceptions.Count}"
-                    Background="#12121a" CornerRadius="4" Padding="0" BorderBrush="#1e1e2a" BorderThickness="1">
+                    Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="0" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
               <ItemsControl x:CompileBindings="False" ItemsSource="{Binding ItemExceptions}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:CompileBindings="False" x:DataType="vm:ItemExceptionVm">
-                    <Border BorderBrush="#1e1e2a" BorderThickness="0 0 0 1" Padding="14 8">
+                    <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="14 8">
                       <Grid ColumnDefinitions="220,*,Auto">
                         <TextBlock Grid.Column="0" Text="{Binding TypeName}"
-                                   FontSize="12" Foreground="#888899" VerticalAlignment="Center" />
+                                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding StructureOptions}"
                                   SelectedItem="{Binding Selected}"
                                   PlaceholderText="— not assigned —"
                                   FontSize="12"
-                                  Background="#131320" BorderBrush="#1e1e2a" Foreground="#c8c8d8">
+                                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                           <ComboBox.ItemTemplate>
                             <DataTemplate>
                               <TextBlock x:CompileBindings="False"
@@ -524,8 +524,8 @@
                         <Button Grid.Column="2" x:CompileBindings="False"
                                 Command="{Binding $parent[UserControl].DataContext.RemoveItemExceptionCommand}"
                                 CommandParameter="{Binding}"
-                                Content="✕" Background="#2a1010" Foreground="#aa4444"
-                                BorderBrush="#3a2020" BorderThickness="1"
+                                Content="✕" Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                                 Padding="6 4" Margin="8 0 0 0" FontSize="11" />
                       </Grid>
                     </Border>

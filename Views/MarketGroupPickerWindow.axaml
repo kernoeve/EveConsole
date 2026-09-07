@@ -6,7 +6,7 @@
         Title="Add Items From Market Group"
         Width="480" Height="620"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12"
+        Background="{DynamicResource SurfaceBaseBrush}"
         CanResize="True">
 
   <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="12">
@@ -14,12 +14,12 @@
     <!-- Status -->
     <TextBlock Grid.Row="0"
                Text="{Binding StatusText}"
-               FontSize="11" Foreground="#888899"
+               FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                Margin="0 0 0 8" />
 
     <!-- Tree -->
     <Border Grid.Row="1"
-            Background="#0a0a10" BorderBrush="#2a2a3a" BorderThickness="1"
+            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
             CornerRadius="3" Padding="4">
       <TreeView ItemsSource="{Binding RootNodes}"
                 SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
@@ -27,7 +27,7 @@
         <TreeView.ItemTemplate>
           <TreeDataTemplate ItemsSource="{Binding Children}">
             <TextBlock Text="{Binding Name}"
-                       FontSize="12" Foreground="#c8c8d8"
+                       FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                        Padding="2 2" />
           </TreeDataTemplate>
         </TreeView.ItemTemplate>
@@ -37,10 +37,10 @@
             <Setter Property="Padding"    Value="2 1" />
           </Style>
           <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#1a2030" />
+            <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
           </Style>
           <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
-            <Setter Property="Background" Value="#14141e" />
+            <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
           </Style>
         </TreeView.Styles>
       </TreeView>
@@ -51,7 +51,7 @@
                 Margin="0 10 0 0" VerticalAlignment="Center"
                 IsVisible="{Binding ShowQuantity}">
       <TextBlock Text="TARGET QTY PER ITEM"
-                 FontSize="10" Foreground="#888899"
+                 FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                  VerticalAlignment="Center" />
       <!-- Same limit as the add-item dialog, and for the same reason: six digits cannot express
            a reaction target that runs to millions. -->
@@ -60,8 +60,8 @@
                      Increment="1"
                      FormatString="N0"
                      Width="140"
-                     Background="#0a0a10" Foreground="#c8c8d8"
-                     BorderBrush="#2a2a3a" />
+                     Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                     BorderBrush="{DynamicResource BorderDefaultBrush}" />
     </StackPanel>
 
     <!-- OK / Cancel -->
@@ -69,11 +69,11 @@
                 HorizontalAlignment="Right" Margin="0 10 0 0">
       <Button x:Name="OkButton" Content="ADD ITEMS"
               IsEnabled="{Binding CanConfirm}"
-              Background="#c8a84b" Foreground="#0d0d12"
+              Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource SurfaceBaseBrush}"
               FontWeight="SemiBold" FontSize="12"
               Padding="14 6" Click="OnOkClick" />
       <Button x:Name="CancelButton" Content="CANCEL"
-              Background="#1a1a26" Foreground="#888899"
+              Background="{DynamicResource SurfaceHoverBrush}" Foreground="{DynamicResource TextMutedBrush}"
               FontSize="12" Padding="14 6"
               Click="OnCancelClick" />
     </StackPanel>

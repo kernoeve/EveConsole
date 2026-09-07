@@ -76,8 +76,21 @@ public class ErrorLogViewModel : ReactiveObject
         _dateFrom    = DateTime.Now.AddHours(-24).ToString("yyyy-MM-dd HH:mm");   // last 24 hours
 
         RefreshCommand = ReactiveCommand.Create(() => { _ = LoadAsync(); });
-        _ = LoadAsync();
+
+        // ⚠️ Deliberately NOT loaded here. Constructing this at startup meant opening the Error Log
+        // showed a list read when the application launched — which looks current, is not, and is
+        // worse than an empty grid because nothing about it says so. MainWindowViewModel.OpenTool
+        // calls Reload when the tab is opened.
     }
+
+    /// <summary>
+    /// Reads the log. Called when the tool is opened, including when it is closed and opened again.
+    ///
+    /// <para>Not called when returning to a tab that was already open: the list is then as old as
+    /// the moment it was opened, which is what the Refresh button is for, and re-reading five
+    /// thousand rows every time somebody passes through the tab is a cost with no reader.</para>
+    /// </summary>
+    public void Reload() => _ = LoadAsync();
 
     private async Task LoadAsync()
     {

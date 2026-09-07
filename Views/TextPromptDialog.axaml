@@ -4,22 +4,22 @@
         Width="420" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <StackPanel Margin="20" Spacing="10">
     <TextBlock x:Name="LabelText" FontSize="10" FontWeight="SemiBold"
-               Foreground="#555566" LetterSpacing="1" />
+               Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
     <TextBox x:Name="Entry"
-             Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-             CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+             Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+             CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
              FontSize="13" Padding="8 5" />
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
       <Button x:Name="CancelButton" Content="Cancel" Padding="18 5"
-              Background="#1a1a28" Foreground="#888899"
-              BorderBrush="#2a2a3a" BorderThickness="1" FontSize="12" />
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" FontSize="12" />
       <Button x:Name="OkButton" Content="OK" Padding="24 5"
-              Background="#1a1a28" Foreground="#c8a84b"
-              BorderBrush="#3a3020" BorderThickness="1" FontSize="12" />
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+              BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" FontSize="12" />
     </StackPanel>
   </StackPanel>
 </Window>

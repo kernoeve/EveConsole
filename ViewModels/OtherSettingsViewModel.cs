@@ -16,6 +16,30 @@ public class OtherSettingsViewModel : ReactiveObject
     private readonly UiLinkSettings _settings;
     private bool _loading = true;
 
+    // ── Appearance ────────────────────────────────────────────────────────────
+
+    public IReadOnlyList<ThemeChoice> Themes { get; } = ThemeService.All;
+
+    private ThemeChoice? _selectedTheme =
+        ThemeService.All.FirstOrDefault(t => t.Key == ThemeService.Current);
+
+    /// <summary>
+    /// The theme, applied the moment it is chosen.
+    ///
+    /// <para>⚠️ No Apply button and no restart. A theme is the one setting whose effect IS its own
+    /// preview, so making somebody confirm a colour scheme they cannot see yet gets the choice
+    /// wrong in both directions. Everything bound through the palette repaints live.</para>
+    /// </summary>
+    public ThemeChoice? SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTheme, value);
+            if (value is not null) ThemeService.Apply(value.Key);
+        }
+    }
+
     public string[] EveTimeSiteOptions { get; } =
     [
         UiLinkSettings.EveOnlineTimeUrl,

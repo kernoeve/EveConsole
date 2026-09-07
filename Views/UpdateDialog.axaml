@@ -7,7 +7,7 @@
         Width="460" Height="240"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <StackPanel Margin="24" Spacing="14">
 
@@ -15,20 +15,20 @@
     <StackPanel x:Name="PromptPanel" Spacing="14">
 
       <TextBlock Text="A new version of EVE Console is available."
-                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+                 FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
       <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
         <TextBlock Grid.Row="0" Grid.Column="0" Text="Current:"
-                   Foreground="#666" VerticalAlignment="Center" Margin="0 0 0 4" />
+                   Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentVersionText}"
-                   Foreground="#aaa" VerticalAlignment="Center" Margin="0 0 0 4" />
+                   Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
         <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
-                   Foreground="#666" VerticalAlignment="Center" />
+                   Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestVersionText}"
-                   Foreground="#e8a030" VerticalAlignment="Center" />
+                   Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
       </Grid>
 
-      <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                  Text="The app will download the update and restart to apply it." />
 
       <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
@@ -41,9 +41,9 @@
     <!-- ── Progress (shown while downloading/applying) ── -->
     <StackPanel x:Name="ProgressPanel" IsVisible="False" Spacing="10">
       <TextBlock Text="Updating EVE Console…"
-                 FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b" />
+                 FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
       <ProgressBar IsIndeterminate="True" Height="8" />
-      <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#888" TextWrapping="Wrap" />
+      <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
     </StackPanel>
 
   </StackPanel>

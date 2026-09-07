@@ -154,6 +154,18 @@ public class EsiPollingService : ReactiveObject
     }
     private readonly ConcurrentDictionary<string, GroupState>     _rateLimits     = new();
     private readonly ConcurrentDictionary<string, string>         _endpointGroups = new(); // endpoint→group
+
+    /// <summary>
+    /// When a specific endpoint may next be called, after it was refused.
+    ///
+    /// <para>⚠️ A safety net under the group-level block, because that one is conditional on a
+    /// header. UpdateRateLimitState only recorded a block when the response carried
+    /// X-Ratelimit-Group — so a 429 that arrived without it recorded nothing at all, the endpoint
+    /// came due again on its ordinary interval, and was refused again. That is a refusal every
+    /// cycle for as long as the condition lasts, which is precisely what corp killmails did for
+    /// two days.</para>
+    /// </summary>
+    private readonly ConcurrentDictionary<string, DateTimeOffset>  _endpointBlocks = new();
     private readonly ConcurrentDictionary<long, string>           _charNames      = new();
 
     // UTC ticks; 0 = not blocked. Written/read via Interlocked so parallel tasks see updates safely.
@@ -486,6 +498,10 @@ public class EsiPollingService : ReactiveObject
                 gs.BlockedUntil.HasValue && now < gs.BlockedUntil.Value)
                 continue;
 
+            // And the endpoint's own block, which is set whether or not the refusal named a group.
+            if (_endpointBlocks.TryGetValue(ep.Key, out var until) && now < until)
+                continue;
+
             // Re-check global error limit — a parallel task may have tripped it since cycle start.
             if (Interlocked.Read(ref _errorLimitBlockedUntilTicks) is var bt and > 0 && DateTimeOffset.UtcNow.UtcTicks < bt)
                 return;
@@ -640,6 +656,18 @@ public class EsiPollingService : ReactiveObject
 
     private void UpdateRateLimitState(string endpointKey, PollingResult result)
     {
+        // ⚠️ Outside the group check below, and that is the whole point of it being here. A refusal
+        // is a refusal whether or not the response troubled to say which group it belonged to.
+        if (result.StatusCode is 420 or 429)
+        {
+            var wait = result.RetryAfterSeconds ?? result.ErrorLimitReset ?? 60;
+            _endpointBlocks[endpointKey] = DateTimeOffset.UtcNow.AddSeconds(wait);
+        }
+        else
+        {
+            _endpointBlocks.TryRemove(endpointKey, out _);
+        }
+
         if (result.RateLimitGroup is not null)
         {
             _endpointGroups[endpointKey] = result.RateLimitGroup;
@@ -1709,14 +1737,19 @@ public class EsiPollingService : ReactiveObject
 
     private async Task<PollingResult> FetchKillMailsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
-        var r = await _esi.ExecuteAllPagesAsync<EsiKillMailRef>(charId,
-            $"characters/{charId}/killmails/recent/", ct);
-        if (!r.IsSuccess) return FromResult(r);
-
+        // What we already hold, read before paging — see the corporation variant. ⚠️ Nothing here
+        // deletes: these two calls exist to DISCOVER killmails, and a killmail already stored is
+        // simply not re-added. Stopping the walk early therefore cannot lose history; it only
+        // declines to re-download it.
         var existingIds = await db.EsiKillMailRefs
             .Where(k => k.OwnerId == charId && k.OwnerType == "character")
             .Select(k => k.KillMailId)
             .ToHashSetAsync(ct);
+
+        var r = await _esi.ExecuteAllPagesAsync<EsiKillMailRef>(charId,
+            $"characters/{charId}/killmails/recent/", ct,
+            stopAfterPage: page => page.All(k => existingIds.Contains(k.KillMailId)));
+        if (!r.IsSuccess) return FromResult(r);
 
         var newRefs = r.Data!
             .Where(k => !existingIds.Contains(k.KillMailId))
@@ -2639,14 +2672,22 @@ public class EsiPollingService : ReactiveObject
 
     private async Task<PollingResult> FetchCorpKillMailsAsync(long corpId, AppDbContext db, CancellationToken ct)
     {
-        var r = await _esi.ExecuteCorpAllPagesAsync<EsiKillMailRef>(
-            corpId, $"corporations/{corpId}/killmails/recent/", ct);
-        if (!r.IsSuccess) return FromResult(r);
-
+        // ⚠️ Read what we already hold BEFORE paging, not after. ESI re-offers the corporation's
+        // whole killmail history on every poll, newest first, and this ran every five minutes: it
+        // downloaded every page, then threw away all but the handful it had not seen. For a
+        // corporation with a long history that was the entire rate limit for the route, spent on
+        // data already in the database — a steady 429 every cycle, for one corporation, for days.
         var existingIds = await db.EsiKillMailRefs
             .Where(k => k.OwnerId == corpId && k.OwnerType == "corporation")
             .Select(k => k.KillMailId)
             .ToHashSetAsync(ct);
+
+        // Newest first, so a page with nothing new means every page after it is older and older
+        // still — all of it already stored. Steady state is one page.
+        var r = await _esi.ExecuteCorpAllPagesAsync<EsiKillMailRef>(
+            corpId, $"corporations/{corpId}/killmails/recent/", ct,
+            stopAfterPage: page => page.All(k => existingIds.Contains(k.KillMailId)));
+        if (!r.IsSuccess) return FromResult(r);
 
         db.EsiKillMailRefs.AddRange(r.Data!
             .Where(k => !existingIds.Contains(k.KillMailId))

@@ -9,6 +9,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -39,7 +40,7 @@ public class WalletJournalRowVm
     public string          RefTypeText  { get; }
     public string          Description  { get; }
     public string          AmountText   { get; }
-    public string          AmountColor  { get; }
+    public IBrush          AmountColor  { get; }
     public string          BalanceText  { get; }
     public string          OwnerText    { get; }
     public string          DivisionText { get; }
@@ -67,7 +68,7 @@ public class WalletJournalRowVm
         Description  = e.Description ?? e.Reason ?? "";
         AmountRaw    = e.Amount;
         AmountText   = FormatAmount(e.Amount);
-        AmountColor  = e.Amount >= 0 ? "#5cb85c" : "#d9534f";
+        AmountColor  = e.Amount >= 0 ? Palette.Good : Palette.Bad;
         BalanceRaw   = e.Balance;
         BalanceText  = FormatIsk(e.Balance);
         OwnerText    = ownerNames.TryGetValue(e.OwnerId, out var n) ? n : "";
@@ -110,7 +111,7 @@ public class WalletTransactionRowVm
     public string  Quantity     { get; }
     public string  UnitPrice    { get; }
     public string  Total        { get; }
-    public string  TotalColor   { get; }
+    public IBrush  TotalColor   { get; }
     public string  Direction    { get; }
     public string  OwnerText    { get; }
     public string  DivisionText { get; }
@@ -160,7 +161,7 @@ public class WalletTransactionRowVm
         var gross    = (decimal)t.Quantity * t.UnitPrice;
         TotalRaw     = t.IsBuy ? -gross : gross;
         Total        = FormatIsk(gross);
-        TotalColor   = t.IsBuy ? "#d9534f" : "#5cb85c";
+        TotalColor   = t.IsBuy ? Palette.Bad : Palette.Good;
         Direction    = t.IsBuy ? "Buy" : "Sell";
         OwnerText    = ownerNames.TryGetValue(t.OwnerId, out var on) ? on : "";
         DivisionText = t.Division is > 0

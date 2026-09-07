@@ -4,16 +4,16 @@
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.IncomeExpenseView"
              x:DataType="vm:IncomeExpenseViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <Grid RowDefinitions="Auto,*,*" Margin="0">
 
     <!-- Header -->
-    <Border Grid.Row="0" Background="#0d0d12" Padding="12 8" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <Grid ColumnDefinitions="Auto,*">
-        <TextBlock Text="Income &amp; Expense" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b"
+        <TextBlock Text="Income &amp; Expense" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                    VerticalAlignment="Center" Margin="0 0 12 0" />
-        <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
+        <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center" HorizontalAlignment="Right" />
       </Grid>
     </Border>
@@ -21,20 +21,20 @@
     <!-- Income (left) + Expenses (right) -->
     <Grid Grid.Row="1" ColumnDefinitions="*,12,*" Margin="12 10 12 6">
 
-      <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+      <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
               CornerRadius="4" Padding="12 10">
         <Grid RowDefinitions="Auto,*">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
-            <TextBlock Text="INCOME" FontSize="10" FontWeight="SemiBold" Foreground="#888899" LetterSpacing="1" />
-            <TextBlock Grid.Column="1" Text="{Binding IncomeTotal}" FontSize="13" FontWeight="Bold" Foreground="#70ad47" />
+            <TextBlock Text="INCOME" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
+            <TextBlock Grid.Column="1" Text="{Binding IncomeTotal}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource GoodBrush}" />
           </Grid>
           <ScrollViewer Grid.Row="1" x:Name="IncomeList" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding IncomeRows}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:IncomeExpenseRowVm">
                   <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#aaaacc" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="#ccccdd" Margin="8 0 0 0" />
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="8 0 0 0" />
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -43,20 +43,20 @@
         </Grid>
       </Border>
 
-      <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+      <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
               CornerRadius="4" Padding="12 10">
         <Grid RowDefinitions="Auto,*">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
-            <TextBlock Text="EXPENSES" FontSize="10" FontWeight="SemiBold" Foreground="#888899" LetterSpacing="1" />
-            <TextBlock Grid.Column="1" Text="{Binding ExpenseTotal}" FontSize="13" FontWeight="Bold" Foreground="#e05252" />
+            <TextBlock Text="EXPENSES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
+            <TextBlock Grid.Column="1" Text="{Binding ExpenseTotal}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BadBrush}" />
           </Grid>
           <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding ExpenseRows}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:IncomeExpenseRowVm">
                   <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#aaaacc" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="#ccccdd" Margin="8 0 0 0" />
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Text="{Binding Amount}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="8 0 0 0" />
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -68,14 +68,14 @@
     </Grid>
 
     <!-- Daily income / expense / cashflow -->
-    <Border Grid.Row="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+    <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
             CornerRadius="4" Margin="12 0 12 12" Padding="10 8">
       <Grid RowDefinitions="Auto,*">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
           <TextBlock Text="Daily Income · Expense · Cashflow" FontSize="11" FontWeight="SemiBold"
-                     Foreground="#555566" VerticalAlignment="Center" />
+                     Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding NetTotal, StringFormat='Net: {0}'}" FontSize="11"
-                     FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
         </Grid>
         <lvc:CartesianChart Grid.Row="1" MinHeight="150"
                             Series="{Binding Series}"
