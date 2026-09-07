@@ -120,11 +120,17 @@ public class HaulPressureService(
         // all answered a question nobody asked: Tritanium is in thirteen hangars, and "13 other
         // place(s)" beside a job read as thirteen pickups when one of them covers the shortfall
         // outright. What a trip costs is the number of stops needed to COVER what is short.
+        // ⚠️ The same exclusions the haul plan applies, or a job reads as held in places the
+        // plan will never source from: asset-safety wraps, the contents of ships, and assembled
+        // hulls, which are a flown ship rather than a pickup.
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
+
         var held = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId) && a.Quantity > 0)
-                .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => scope is null || scope.Contains(a.RootLocationId))
+            .Where(a => !wrapped.Contains(a.ItemId)
+                        && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(
                 g => g.Key,

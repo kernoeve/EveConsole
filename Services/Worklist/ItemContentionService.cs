@@ -402,11 +402,17 @@ public class ItemContentionService(
             scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
                 .Select(s => s.LocationId).ToListAsync(ct));
 
+        // ⚠️ The same exclusions the worklist itself applies, or this tab reports contention
+        // over stock the plan will not touch: asset-safety wraps, the contents of ships, and
+        // assembled hulls, which are somebody's flown ship rather than material.
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
+
         var onHand = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId))
-                .Select(a => new { a.TypeId, a.Quantity, a.RootLocationId })
+                .Select(a => new { a.ItemId, a.TypeId, a.Quantity, a.RootLocationId })
                 .ToListAsync(ct))
-            .Where(a => scope is null || scope.Contains(a.RootLocationId))
+            .Where(a => !wrapped.Contains(a.ItemId)
+                        && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
