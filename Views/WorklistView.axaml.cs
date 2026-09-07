@@ -128,14 +128,17 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
 
     /// <summary>Opens the tasks behind a contention row's counts. Same shape as the two toggles
     /// above it — the glyph lives on the item so it survives row recycling.</summary>
+    /// <summary>
+    /// Opens the tasks behind a contention row's counts.
+    ///
+    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else. What opens is a Popup bound to
+    /// that flag, not RowDetails — see the note beside the Popup in the XAML for why the drawer had
+    /// to go, and tools/gridsim for the measurements.</para>
+    /// </summary>
     private void OnShortageToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not ItemShortageRowVm vm || !vm.HasTasks) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: ItemShortageRowVm { HasTasks: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
     /// <summary>Opens the tasks behind a BPO / Formula row's counts.</summary>
