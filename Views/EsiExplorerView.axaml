@@ -3,16 +3,16 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.EsiExplorerView"
              x:DataType="vm:EsiExplorerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <Grid ColumnDefinitions="220,Auto,*">
 
     <!-- ── Left sidebar ──────────────────────────────────────────────── -->
-    <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="#111117">
+    <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="{DynamicResource SurfaceInputBrush}">
 
-      <Border Grid.Row="0" Background="#161620" Padding="10 8">
+      <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 8">
         <TextBlock Text="ESI Tables"
-                   FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b" />
+                   FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
       </Border>
 
       <ListBox x:Name="TableList"
@@ -24,16 +24,16 @@
         <ListBox.ItemContainerTheme>
           <ControlTheme TargetType="ListBoxItem">
             <Setter Property="Padding"    Value="10 5" />
-            <Setter Property="Foreground" Value="#a0a0b0" />
+            <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
             <Setter Property="FontSize"   Value="12" />
             <Setter Property="Background" Value="Transparent" />
             <Style Selector="^:selected">
-              <Setter Property="Background" Value="#1c1c2a" />
-              <Setter Property="Foreground" Value="#c8a84b" />
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             </Style>
             <Style Selector="^:pointerover:not(:selected)">
-              <Setter Property="Background" Value="#16161e" />
-              <Setter Property="Foreground" Value="#c8c8cc" />
+              <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
             </Style>
           </ControlTheme>
         </ListBox.ItemContainerTheme>
@@ -48,14 +48,14 @@
     </Grid>
 
     <!-- Divider -->
-    <Border Grid.Column="1" Width="1" Background="#252530" />
+    <Border Grid.Column="1" Width="1" Background="{DynamicResource BorderDefaultBrush}" />
 
     <!-- ── Right panel ────────────────────────────────────────────────── -->
     <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
 
       <!-- Filter bar -->
-      <Border Grid.Row="0" Background="#0d0d12" Padding="8 6"
-              BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+      <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6"
+              BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
         <Grid ColumnDefinitions="*,Auto">
 
           <StackPanel x:Name="FilterRowsPanel"
@@ -73,10 +73,10 @@
                     Click="OnApplyFilterClick"
                     HorizontalAlignment="Stretch"
                     Padding="12 3"
-                    Background="#1e1e28"
-                    Foreground="#c8a84b"
+                    Background="{DynamicResource BorderSubtleBrush}"
+                    Foreground="{DynamicResource AccentBrush}"
                     BorderThickness="1"
-                    BorderBrush="#3a3020"
+                    BorderBrush="{DynamicResource AccentSurfaceBrush}"
                     FontSize="11" />
             <Button Content="Clear"
                     Click="OnClearFilterClick"
@@ -88,7 +88,7 @@
                     Click="OnAddFilterClick"
                     HorizontalAlignment="Stretch"
                     Padding="12 3"
-                    Foreground="#5588aa"
+                    Foreground="{DynamicResource InfoBrush}"
                     FontSize="11" />
           </StackPanel>
         </Grid>
@@ -106,20 +106,20 @@
                 KeyDown="OnGridKeyDown" />
 
       <!-- Status bar -->
-      <Border Grid.Row="2" Background="#111117" Padding="12 6">
+      <Border Grid.Row="2" Background="{DynamicResource SurfaceInputBrush}" Padding="12 6">
         <DockPanel>
           <Button DockPanel.Dock="Right"
                   Content="Load More"
                   IsVisible="{Binding HasMore}"
                   Click="OnLoadMoreClick"
                   Padding="14 4"
-                  Background="#1e1e28"
-                  Foreground="#c8a84b"
-                  BorderBrush="#3a3020"
+                  Background="{DynamicResource BorderSubtleBrush}"
+                  Foreground="{DynamicResource AccentBrush}"
+                  BorderBrush="{DynamicResource AccentSurfaceBrush}"
                   Margin="8 0 0 0"
                   FontSize="11" />
           <TextBlock Text="{Binding StatusText}"
-                     Foreground="#555566"
+                     Foreground="{DynamicResource TextFaintBrush}"
                      FontSize="11"
                      VerticalAlignment="Center" />
         </DockPanel>

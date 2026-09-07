@@ -7,17 +7,17 @@
        corporation logos and security colouring — instead of a second copy that
        drifts the first time either is touched. -->
           <DataTemplate x:Key="KillmailRowTemplate" DataType="vm:KillmailListRowVm">
-            <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1">
+            <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1">
               <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
 
                   <!-- Date / Time / ISK -->
                   <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                     <TextBlock Text="{Binding DateText}"
-                               FontSize="10" Foreground="#888899" />
+                               FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
                     <TextBlock Text="{Binding TimeText}"
-                               FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                               FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding TotalIskText}"
-                               FontSize="10" Foreground="#c8a84b"
+                               FontSize="10" Foreground="{DynamicResource AccentBrush}"
                                IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                   </StackPanel>
 
@@ -44,19 +44,19 @@
                               HorizontalContentAlignment="Left" Cursor="Hand"
                               ToolTip.Tip="Open on the Universe map">
                         <TextBlock Text="{Binding SystemName}"
-                                   FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold"
+                                   FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                    TextDecorations="Underline"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
                     </StackPanel>
                     <TextBlock Text="{Binding ConstellationName}"
-                               FontSize="9" Foreground="#888899"
+                               FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                TextTrimming="CharacterEllipsis"
                                IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <Button Content="{Binding RegionName}" Command="{Binding OpenRegionCommand}"
                             Background="Transparent" BorderThickness="0" Padding="0"
                             HorizontalContentAlignment="Left" Cursor="Hand"
-                            FontSize="9" Foreground="#666677"
+                            FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                             IsVisible="{Binding RegionName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                   </StackPanel>
 
@@ -73,15 +73,15 @@
                       <Button Content="{Binding VictimName}" Command="{Binding OpenVictimCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                              FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
                       <Button Content="{Binding VictimCorp}" Command="{Binding OpenVictimCorpCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              FontSize="9" Foreground="#888899" />
+                              FontSize="9" Foreground="{DynamicResource TextMutedBrush}" />
                       <Button Content="{Binding VictimAlliance}" Command="{Binding OpenVictimAllianceCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              FontSize="9" Foreground="#666677" IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                              FontSize="9" Foreground="{DynamicResource TextDimBrush}" IsVisible="{Binding VictimAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
                   </Grid>
 
@@ -98,15 +98,15 @@
                       <Button Content="{Binding FbName}" Command="{Binding OpenFbCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
+                              FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
                       <Button Content="{Binding FbCorp}" Command="{Binding OpenFbCorpCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              FontSize="9" Foreground="#888899" />
+                              FontSize="9" Foreground="{DynamicResource TextMutedBrush}" />
                       <Button Content="{Binding FbAlliance}" Command="{Binding OpenFbAllianceCommand}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              FontSize="9" Foreground="#666677" IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                              FontSize="9" Foreground="{DynamicResource TextDimBrush}" IsVisible="{Binding FbAlliance, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
                   </Grid>
 

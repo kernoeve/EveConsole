@@ -4,7 +4,7 @@
         Width="480"
         MinWidth="380"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12"
+        Background="{DynamicResource SurfaceBaseBrush}"
         CanResize="False"
         SizeToContent="Height">
 
@@ -17,7 +17,7 @@
     <TextBlock Grid.Row="0"
                x:Name="TitleText"
                TextWrapping="Wrap"
-               Foreground="#cc7766"
+               Foreground="{DynamicResource BadBrush}"
                FontSize="14"
                FontWeight="SemiBold"
                Margin="20 20 20 8" />
@@ -25,11 +25,11 @@
     <TextBlock Grid.Row="1"
                x:Name="MessageText"
                TextWrapping="Wrap"
-               Foreground="#ccc"
+               Foreground="{DynamicResource TextPrimaryBrush}"
                FontSize="13"
                Margin="20 0 20 16" />
 
-    <Border Grid.Row="2" Background="#0d0d12" Padding="16 12">
+    <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
       <Button Content="Close"
               Click="OnClose"
               Padding="20 5"

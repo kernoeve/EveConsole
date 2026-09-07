@@ -3,36 +3,36 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.IndustryBrowserView"
              x:DataType="vm:IndustryBrowserViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <!-- Dark theme for CalendarDatePicker to match the EVE UI -->
     <Style Selector="CalendarDatePicker">
-      <Setter Property="Background"       Value="#1e1e28"/>
-      <Setter Property="BorderBrush"      Value="#3a3040"/>
+      <Setter Property="Background"       Value="{DynamicResource BorderSubtleBrush}"/>
+      <Setter Property="BorderBrush"      Value="{DynamicResource SurfaceRaisedBrush}"/>
       <Setter Property="BorderThickness"  Value="1"/>
-      <Setter Property="Foreground"       Value="#c8c8d4"/>
+      <Setter Property="Foreground"       Value="{DynamicResource TextPrimaryBrush}"/>
     </Style>
     <Style Selector="CalendarDatePicker /template/ TextBox">
-      <Setter Property="Background"       Value="#1e1e28"/>
-      <Setter Property="Foreground"       Value="#c8c8d4"/>
-      <Setter Property="CaretBrush"       Value="#c8a84b"/>
-      <Setter Property="SelectionBrush"   Value="#3a3020"/>
+      <Setter Property="Background"       Value="{DynamicResource BorderSubtleBrush}"/>
+      <Setter Property="Foreground"       Value="{DynamicResource TextPrimaryBrush}"/>
+      <Setter Property="CaretBrush"       Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="SelectionBrush"   Value="{DynamicResource AccentSurfaceBrush}"/>
     </Style>
     <Style Selector="CalendarDatePicker /template/ Button">
-      <Setter Property="Background"       Value="#2a2a38"/>
-      <Setter Property="Foreground"       Value="#8899aa"/>
+      <Setter Property="Background"       Value="{DynamicResource BorderDefaultBrush}"/>
+      <Setter Property="Foreground"       Value="{DynamicResource InfoBrush}"/>
     </Style>
     <Style Selector="CalendarDatePicker /template/ Button:pointerover /template/ ContentPresenter">
-      <Setter Property="Background"       Value="#3a3a50"/>
+      <Setter Property="Background"       Value="{DynamicResource SurfaceRaisedBrush}"/>
     </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,Auto,*,Auto">
 
     <!-- ── Job detail panel ──────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#111117"
-            BorderBrush="#1c1c28" BorderThickness="0 0 0 1"
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceInputBrush}"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1"
             Padding="10 8" MinHeight="170">
       <Grid ColumnDefinitions="220,1,*">
 
@@ -40,33 +40,33 @@
         <Grid Grid.Column="0"
               ColumnDefinitions="86,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
               VerticalAlignment="Top">
-          <TextBlock Grid.Row="0"  Grid.Column="0" Text="Owner Type"     Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="1"  Grid.Column="0" Text="Owner"          Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="2"  Grid.Column="0" Text="Installer"      Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="3"  Grid.Column="0" Text="Start Date"     Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="4"  Grid.Column="0" Text="End Date"       Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="5"  Grid.Column="0" Text="Completed By"   Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="6"  Grid.Column="0" Text="Activity"       Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="7"  Grid.Column="0" Text="Status"         Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="8"  Grid.Column="0" Text="Runs"           Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="9"  Grid.Column="0" Text="Items"          Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="10" Grid.Column="0" Text="Success Chance" Foreground="#555566" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="0"  Grid.Column="0" Text="Owner Type"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="1"  Grid.Column="0" Text="Owner"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="2"  Grid.Column="0" Text="Installer"      Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="3"  Grid.Column="0" Text="Start Date"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="4"  Grid.Column="0" Text="End Date"       Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="5"  Grid.Column="0" Text="Completed By"   Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="6"  Grid.Column="0" Text="Activity"       Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="7"  Grid.Column="0" Text="Status"         Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="8"  Grid.Column="0" Text="Runs"           Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="9"  Grid.Column="0" Text="Items"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="10" Grid.Column="0" Text="Success Chance" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
 
-          <TextBlock x:Name="DetailOwnerType"    Grid.Row="0"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailOwner"        Grid.Row="1"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-          <TextBlock x:Name="DetailInstaller"    Grid.Row="2"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-          <TextBlock x:Name="DetailStartDate"    Grid.Row="3"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailEndDate"      Grid.Row="4"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailCompletedBy"  Grid.Row="5"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-          <TextBlock x:Name="DetailActivity"     Grid.Row="6"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailStatus"       Grid.Row="7"  Grid.Column="1" Foreground="#c8a84b" FontSize="10" FontWeight="SemiBold" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailRuns"         Grid.Row="8"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailItemsProduced"  Grid.Row="9"  Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailSuccessChance"  Grid.Row="10" Grid.Column="1" Foreground="#c8c8d4" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailOwnerType"    Grid.Row="0"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailOwner"        Grid.Row="1"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="DetailInstaller"    Grid.Row="2"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="DetailStartDate"    Grid.Row="3"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailEndDate"      Grid.Row="4"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailCompletedBy"  Grid.Row="5"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="DetailActivity"     Grid.Row="6"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailStatus"       Grid.Row="7"  Grid.Column="1" Foreground="{DynamicResource AccentBrush}" FontSize="10" FontWeight="SemiBold" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailRuns"         Grid.Row="8"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailItemsProduced"  Grid.Row="9"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
+          <TextBlock x:Name="DetailSuccessChance"  Grid.Row="10" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
         </Grid>
 
         <!-- Separator -->
-        <Border Grid.Column="1" Background="#1c1c28"/>
+        <Border Grid.Column="1" Background="{DynamicResource SurfaceRaisedBrush}"/>
 
         <!-- Right: images + stats -->
         <Grid Grid.Column="2" Margin="12 0 0 0"
@@ -76,19 +76,19 @@
           <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0 0 0 8">
             <Image x:Name="FacilityImage" Width="40" Height="40" Stretch="Uniform" VerticalAlignment="Top" Margin="0 2 0 0"/>
             <StackPanel Orientation="Vertical" Spacing="2" VerticalAlignment="Center">
-              <TextBlock x:Name="DetailFacility" Foreground="#9ab4c8" FontSize="11" FontWeight="SemiBold"
+              <TextBlock x:Name="DetailFacility" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" FontWeight="SemiBold"
                          TextTrimming="CharacterEllipsis" MaxWidth="440"/>
               <!-- System and region split out so each can link. Security travels with them but is
                    a value rather than a place, so it stays plain. Separators hide when the part
                    after them is empty, which is how the old single joined string behaved. -->
               <StackPanel Orientation="Horizontal" Spacing="0" MaxWidth="440">
-                <TextBlock x:Name="DetailSystem"   Foreground="#556677" FontSize="10"
+                <TextBlock x:Name="DetailSystem"   Foreground="{DynamicResource TextFaintBrush}" FontSize="10"
                            TextTrimming="CharacterEllipsis"/>
-                <TextBlock x:Name="DetailLocSep1"  Text="  ·  " Foreground="#556677" FontSize="10"/>
-                <TextBlock x:Name="DetailRegion"   Foreground="#556677" FontSize="10"
+                <TextBlock x:Name="DetailLocSep1"  Text="  ·  " Foreground="{DynamicResource TextFaintBrush}" FontSize="10"/>
+                <TextBlock x:Name="DetailRegion"   Foreground="{DynamicResource TextFaintBrush}" FontSize="10"
                            TextTrimming="CharacterEllipsis"/>
-                <TextBlock x:Name="DetailLocSep2"  Text="  ·  " Foreground="#556677" FontSize="10"/>
-                <TextBlock x:Name="DetailSecurity" Foreground="#556677" FontSize="10"/>
+                <TextBlock x:Name="DetailLocSep2"  Text="  ·  " Foreground="{DynamicResource TextFaintBrush}" FontSize="10"/>
+                <TextBlock x:Name="DetailSecurity" Foreground="{DynamicResource TextFaintBrush}" FontSize="10"/>
               </StackPanel>
             </StackPanel>
           </StackPanel>
@@ -99,34 +99,34 @@
             <!-- Blueprint -->
             <Grid Grid.Column="0" RowDefinitions="64,Auto,Auto,Auto" Width="150">
               <Image x:Name="BlueprintImage" Grid.Row="0" Width="64" Height="64" Stretch="Uniform" HorizontalAlignment="Center"/>
-              <TextBlock x:Name="DetailBlueprint" Grid.Row="1" Foreground="#8899aa" FontSize="10"
+              <TextBlock x:Name="DetailBlueprint" Grid.Row="1" Foreground="{DynamicResource InfoBrush}" FontSize="10"
                          HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="148" Margin="0 4 0 2"/>
               <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                <Border Background="#0d1a0d" BorderBrush="#2a4a2a" BorderThickness="1" CornerRadius="2" Padding="4 1">
+                <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="2" Padding="4 1">
                   <StackPanel Orientation="Horizontal" Spacing="3">
-                    <TextBlock Text="ME" Foreground="#4a8a4a" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="DetailME" Foreground="#88cc88" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="ME" Foreground="{DynamicResource TextDimBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DetailME" Foreground="{DynamicResource GoodBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
                   </StackPanel>
                 </Border>
-                <Border Background="#0d0d1a" BorderBrush="#2a2a4a" BorderThickness="1" CornerRadius="2" Padding="4 1">
+                <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" CornerRadius="2" Padding="4 1">
                   <StackPanel Orientation="Horizontal" Spacing="3">
-                    <TextBlock Text="TE" Foreground="#4a4a8a" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="DetailTE" Foreground="#8888cc" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="TE" Foreground="{DynamicResource TextFaintBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DetailTE" Foreground="{DynamicResource InfoBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
                   </StackPanel>
                 </Border>
               </StackPanel>
             </Grid>
 
             <!-- Arrow -->
-            <TextBlock Grid.Column="1" Text="→" Foreground="#445566" FontSize="20"
+            <TextBlock Grid.Column="1" Text="→" Foreground="{DynamicResource InfoSurfaceBrush}" FontSize="20"
                        VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 18 0 0"/>
 
             <!-- Product -->
             <Grid Grid.Column="2" RowDefinitions="64,Auto,Auto" Width="150">
               <Image x:Name="ProductImage" Grid.Row="0" Width="64" Height="64" Stretch="Uniform" HorizontalAlignment="Center"/>
-              <TextBlock x:Name="DetailProduct" Grid.Row="1" Foreground="#8899aa" FontSize="10"
+              <TextBlock x:Name="DetailProduct" Grid.Row="1" Foreground="{DynamicResource InfoBrush}" FontSize="10"
                          HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="148" Margin="0 4 0 2"/>
-              <TextBlock x:Name="DetailItemsProducedImg" Grid.Row="2" Foreground="#c8c8d4" FontSize="10"
+              <TextBlock x:Name="DetailItemsProducedImg" Grid.Row="2" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10"
                          HorizontalAlignment="Center" Margin="0 2 0 0"/>
             </Grid>
 
@@ -134,13 +134,13 @@
             <StackPanel Grid.Column="3" Orientation="Vertical" Spacing="8"
                         VerticalAlignment="Center" Margin="20 0 0 0">
               <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <TextBlock Text="Time Left" Foreground="#555566" FontSize="10" VerticalAlignment="Center"/>
-                <TextBlock x:Name="DetailTimeLeft" Foreground="#c8a84b" FontSize="13"
+                <TextBlock Text="Time Left" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" VerticalAlignment="Center"/>
+                <TextBlock x:Name="DetailTimeLeft" Foreground="{DynamicResource AccentBrush}" FontSize="13"
                            FontWeight="SemiBold" VerticalAlignment="Center"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <TextBlock Text="Cost" Foreground="#555566" FontSize="10" VerticalAlignment="Center"/>
-                <TextBlock x:Name="DetailCost" Foreground="#88cc88" FontSize="13"
+                <TextBlock Text="Cost" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" VerticalAlignment="Center"/>
+                <TextBlock x:Name="DetailCost" Foreground="{DynamicResource GoodBrush}" FontSize="13"
                            FontWeight="SemiBold" VerticalAlignment="Center"/>
               </StackPanel>
             </StackPanel>
@@ -152,45 +152,45 @@
     </Border>
 
     <!-- ── Filter bar ──────────────────────────────────────────────────────── -->
-    <Border Grid.Row="1" Background="#0d0d12" Padding="8 6"
-            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+    <Border Grid.Row="1" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <WrapPanel Orientation="Horizontal">
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Owner:" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+          <TextBlock Text="Owner:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <ComboBox x:Name="OwnerPicker" Width="160" FontSize="11" MaxDropDownHeight="300"
                     ItemsSource="{Binding OwnerOptions}"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Activity:" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+          <TextBlock Text="Activity:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <ComboBox x:Name="ActivityPicker" Width="145" FontSize="11" MaxDropDownHeight="250"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Status:" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+          <TextBlock Text="Status:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <ComboBox x:Name="StatusPicker" Width="120" FontSize="11" MaxDropDownHeight="250"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Started:" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+          <TextBlock Text="Started:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <CalendarDatePicker x:Name="FromDatePicker" Width="115" FontSize="11"
                               Watermark="From…" IsTodayHighlighted="True" SelectedDateFormat="Short"/>
-          <TextBlock Text="–" FontSize="11" Foreground="#555" VerticalAlignment="Center"/>
+          <TextBlock Text="–" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
           <CalendarDatePicker x:Name="ThruDatePicker" Width="115" FontSize="11"
                               Watermark="Thru…" IsTodayHighlighted="True" SelectedDateFormat="Short"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Search:" FontSize="11" Foreground="#888" VerticalAlignment="Center"/>
+          <TextBlock Text="Search:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <TextBox x:Name="SearchBox" Watermark="blueprint or product…"
                    Width="180" FontSize="11" KeyDown="OnSearchKeyDown"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
           <Button Content="Apply" Click="OnApplyClick" Padding="14 3"
-                  Background="#1e1e28" Foreground="#c8a84b"
-                  BorderThickness="1" BorderBrush="#3a3020" FontSize="11"/>
+                  Background="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource AccentBrush}"
+                  BorderThickness="1" BorderBrush="{DynamicResource AccentSurfaceBrush}" FontSize="11"/>
           <Button Content="Clear" Click="OnClearClick" Padding="14 3" FontSize="11"/>
         </StackPanel>
 
@@ -212,9 +212,9 @@
               KeyDown="OnGridKeyDown" />
 
     <!-- ── Status bar ──────────────────────────────────────────────────────── -->
-    <Border Grid.Row="3" Background="#111117" Padding="12 6">
+    <Border Grid.Row="3" Background="{DynamicResource SurfaceInputBrush}" Padding="12 6">
       <TextBlock Text="{Binding StatusText}"
-                 Foreground="#555566" FontSize="11" VerticalAlignment="Center"/>
+                 Foreground="{DynamicResource TextFaintBrush}" FontSize="11" VerticalAlignment="Center"/>
     </Border>
 
   </Grid>

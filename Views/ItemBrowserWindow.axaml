@@ -7,6 +7,6 @@
         Title="Item Browser"
         Width="1000" Height="680"
         MinWidth="720" MinHeight="480"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:ItemBrowserView DataContext="{Binding}" />
 </Window>

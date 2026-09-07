@@ -3,13 +3,13 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.SaleListingView"
              x:DataType="vm:SaleListingViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="10" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
@@ -38,14 +38,14 @@
   <Grid RowDefinitions="Auto,*">
 
     <!-- Header -->
-    <Border Grid.Row="0" Background="#0d0d12" Padding="10 6" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <Grid ColumnDefinitions="Auto,*,Auto">
-        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b"
+        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                    VerticalAlignment="Center" />
-        <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
+        <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center" Margin="12 0 12 0" />
         <Button Grid.Column="2" Classes="link" Click="OnOpenSalesTracker" VerticalAlignment="Center">
-          <TextBlock Text="Sales Tracker →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+          <TextBlock Text="Sales Tracker →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
         </Button>
       </Grid>
     </Border>
@@ -53,7 +53,7 @@
     <DataGrid Grid.Row="1" ItemsSource="{Binding Rows}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-              Background="#0d0d12">
+              Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
         <DataGridTextColumn Header="Date / Time" Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <!-- Buyer and Item are links. The item cell links only the named type: on a contract it
@@ -84,7 +84,7 @@
                 </Button>
                 <TextBlock Text="{Binding ItemName}" IsVisible="{Binding !HasItemLink}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding ItemExtra}" Foreground="#77778a" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ItemExtra}" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
               </StackPanel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

@@ -7,7 +7,7 @@
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.CharacterView"
              x:DataType="vm:OverviewViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="Button.newslink">
@@ -52,8 +52,8 @@
       <Setter Property="Padding" Value="4 0" />
     </Style>
     <Style Selector="DataGrid.wl DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="9" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="4 4 2 4" />
@@ -66,13 +66,13 @@
          Sized at about three quarters of the tool's: these panels share the window with five
          others, and the tool's 34px header and 16px key eat a dashboard cell. -->
     <Style Selector="DataGrid.wl DataGridRowGroupHeader">
-      <Setter Property="Background" Value="#12121a"/>
-      <Setter Property="Foreground" Value="#c8a84b"/>
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
       <Setter Property="MinHeight"  Value="28"/>
       <Setter Property="Template">
         <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
           <Border Background="{TemplateBinding Background}"
-                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
             <StackPanel Orientation="Horizontal" Spacing="6" Margin="5 0"
                         VerticalAlignment="Center">
               <!-- DynamicResource: the theme lives in the DataGrid's own dictionary, merged through
@@ -81,14 +81,14 @@
                             Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
                             Background="Transparent" BorderThickness="0"/>
               <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" VerticalAlignment="Center"/>
-              <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                         Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                          Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
                                          ConverterParameter=Count}"/>
-              <TextBlock FontSize="11" Foreground="#7a7a88" VerticalAlignment="Center"
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                          Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
                                          ConverterParameter=Volume}"/>
-              <TextBlock FontSize="11" Foreground="#7a7a88" VerticalAlignment="Center"
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                          Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
                                          ConverterParameter=Value}"/>
             </StackPanel>
@@ -104,15 +104,15 @@
       <Setter Property="Template">
         <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
           <Border Background="{TemplateBinding Background}"
-                  BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
             <StackPanel Orientation="Horizontal" Spacing="6" Margin="5 0"
                         VerticalAlignment="Center">
               <ToggleButton Name="PART_ExpanderButton" Width="10" Height="10"
                             Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
                             Background="Transparent" BorderThickness="0"/>
               <TextBlock Text="{Binding Key}" FontSize="11" FontWeight="SemiBold"
-                         Foreground="#c8a84b" VerticalAlignment="Center"/>
-              <TextBlock FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"
+                         Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                          Text="{Binding Items, Converter={x:Static views:GroupTotalConverter.Instance},
                                          ConverterParameter=Count}"/>
             </StackPanel>
@@ -129,19 +129,19 @@
     </Style>
     <Style Selector="Button.expander:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="TextElement.Foreground" Value="#c8a84b"/>
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentBrush}"/>
     </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*,Auto">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#12121a" Padding="14 10"
-            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="14 10"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto">
 
         <TextBlock Grid.Column="0" Text="Period:" FontSize="12"
-                   Foreground="#888899" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                    Margin="0 0 8 0" />
 
         <ComboBox Grid.Column="1"
@@ -155,17 +155,17 @@
                     VerticalAlignment="Center" Margin="14 0 0 0">
           <TextBlock Text="{Binding LoadStatus}"
                      IsVisible="{Binding !HasLoadError}"
-                     FontSize="11" Foreground="#888899" />
+                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
           <TextBlock Text="{Binding LoadStatus}"
                      IsVisible="{Binding HasLoadError}"
-                     FontSize="11" Foreground="#e07070" />
+                     FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
         </StackPanel>
 
         <Button Grid.Column="3" Content="⚙ Customize Layout"
                 Click="OnCustomizeClick"
                 FontSize="11" Padding="10 4" VerticalAlignment="Center"
-                Background="#1a1a28" Foreground="#c8a84b"
-                BorderBrush="#2a2a3a" BorderThickness="1" />
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
       </Grid>
     </Border>
 
@@ -178,101 +178,101 @@
 
         <!-- ════ Activity Summary ════════════════════════════════════════ -->
         <Border x:Name="SectionActivitySummary"
-                Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="14 12">
           <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
 
             <TextBlock Text="Activity Summary" FontSize="13" FontWeight="SemiBold"
-                       Foreground="#c8a84b" />
+                       Foreground="{DynamicResource AccentBrush}" />
 
             <!-- Two-column metric grid -->
             <Grid ColumnDefinitions="*,24,*">
 
               <!-- Left column: period-based metrics -->
-              <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+              <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
                 <StackPanel Spacing="0">
 
                   <!-- Header row -->
                   <Grid ColumnDefinitions="*,60,80" Margin="0 0 0 6">
                     <TextBlock Grid.Column="0" Text="In Period" FontSize="11"
-                               FontWeight="SemiBold" Foreground="#555566" />
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
                     <TextBlock Grid.Column="1" Text="Count" FontSize="11"
-                               FontWeight="SemiBold" Foreground="#555566"
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="ISK" FontSize="11"
-                               FontWeight="SemiBold" Foreground="#555566"
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
                   </Grid>
 
                   <!-- Rows -->
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Market Sales"       FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding MktSellCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text="{Binding MktSellIsk}"   FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Market Sales"       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding MktSellCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding MktSellIsk}"   FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Market Purchases"   FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding MktBuyCount}"  FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text="{Binding MktBuyIsk}"    FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Market Purchases"   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding MktBuyCount}"  FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding MktBuyIsk}"    FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Completed Jobs"     FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding CompletedJobCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Completed Jobs"     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding CompletedJobCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Player Ship Kills"  FontSize="12" Foreground="#aaaacc"
+                    <TextBlock Grid.Column="0" Text="Player Ship Kills"  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                ToolTip.Tip="Requires full kill mail fetch to distinguish kills from losses" />
-                    <TextBlock Grid.Column="1" Text="{Binding ShipKillCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="1" Text="{Binding ShipKillCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Ships Lost"         FontSize="12" Foreground="#aaaacc"
+                    <TextBlock Grid.Column="0" Text="Ships Lost"         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                ToolTip.Tip="Requires full kill mail fetch to distinguish kills from losses" />
-                    <TextBlock Grid.Column="1" Text="{Binding ShipLossCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="1" Text="{Binding ShipLossCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
 
                 </StackPanel>
               </Border>
 
               <!-- Right column: current-state metrics -->
-              <Border Grid.Column="2" Background="#0d0d12" CornerRadius="3"
-                      BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+              <Border Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
                 <StackPanel Spacing="0">
 
                   <Grid ColumnDefinitions="*,60,80" Margin="0 0 0 6">
                     <TextBlock Grid.Column="0" Text="Current State" FontSize="11"
-                               FontWeight="SemiBold" Foreground="#555566" />
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
                     <TextBlock Grid.Column="1" Text="Count" FontSize="11"
-                               FontWeight="SemiBold" Foreground="#555566"
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
                     <TextBlock Grid.Column="2" Text="Value" FontSize="11"
-                               FontWeight="SemiBold" Foreground="#555566"
+                               FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                                HorizontalAlignment="Right" />
                   </Grid>
 
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Outstanding Sell Orders" FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding SellOrderCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text="{Binding SellOrderIsk}"   FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Outstanding Sell Orders" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding SellOrderCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding SellOrderIsk}"   FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Outstanding Buy Orders"  FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding BuyOrderCount}"  FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text="{Binding BuyOrderIsk}"    FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Outstanding Buy Orders"  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding BuyOrderCount}"  FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="{Binding BuyOrderIsk}"    FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Outstanding Contracts"   FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding CtrActiveCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Outstanding Contracts"   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding CtrActiveCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
                   <Grid ColumnDefinitions="*,60,80" Margin="0 3">
-                    <TextBlock Grid.Column="0" Text="Active Indy Jobs"        FontSize="12" Foreground="#aaaacc" />
-                    <TextBlock Grid.Column="1" Text="{Binding ActiveJobCount}" FontSize="12" Foreground="#c8a84b" HorizontalAlignment="Right" />
-                    <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="#aaaacc" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="0" Text="Active Indy Jobs"        FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Grid.Column="1" Text="{Binding ActiveJobCount}" FontSize="12" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text=""                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" />
                   </Grid>
 
                 </StackPanel>
@@ -285,15 +285,15 @@
         </Border>
 
           <!-- ════ Alerts ═══════════════════════════════════════════════ -->
-          <Border x:Name="SectionAlerts" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border x:Name="SectionAlerts" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Alerts" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenAlertSettings" VerticalAlignment="Center">
-                  <TextBlock Text="Alert Settings →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Alert Settings →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -302,21 +302,21 @@
 
               <TextBlock IsVisible="{Binding NoAlerts}"
                          Text="No active alerts."
-                         FontSize="12" Foreground="#444455"
+                         FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          FontStyle="Italic" />
 
               <ItemsControl IsVisible="{Binding HasAlerts}"
                             ItemsSource="{Binding Alerts}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:AlertRowVm">
-                    <Border Background="#1a1208" BorderBrush="#3a2c10"
+                    <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}"
                             BorderThickness="1" CornerRadius="3"
                             Padding="8 6" Margin="0 2">
                       <Grid ColumnDefinitions="Auto,*,Auto">
                         <!-- Leading icon: alert-specific (e.g. character portrait) or the default warning glyph -->
                         <Panel Grid.Column="0" Width="32" Height="32"
                                VerticalAlignment="Center" Margin="0 0 8 0">
-                          <TextBlock Text="⚠" FontSize="16" Foreground="#c8a84b"
+                          <TextBlock Text="⚠" FontSize="16" Foreground="{DynamicResource AccentBrush}"
                                      IsVisible="{Binding NoIcon}"
                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                           <Border IsVisible="{Binding HasIcon}"
@@ -327,7 +327,7 @@
                         </Panel>
                         <TextBlock Grid.Column="1" Text="{Binding Message}"
                                    IsVisible="{Binding !IsClickable}"
-                                   FontSize="12" Foreground="#ddccaa"
+                                   FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center"
                                    TextWrapping="Wrap" />
                         <Button Grid.Column="1"
@@ -337,7 +337,7 @@
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left">
                           <TextBlock Text="{Binding Message}"
-                                     FontSize="12" Foreground="#ddccaa"
+                                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextDecorations="Underline"
                                      VerticalAlignment="Center"
                                      TextWrapping="Wrap" />
@@ -347,8 +347,8 @@
                                 Command="{Binding DismissCommand}"
                                 Content="Dismiss"
                                 FontSize="10" Padding="8 2" Margin="8 0 0 0"
-                                Background="#2a1a10" Foreground="#c8a84b"
-                                BorderBrush="#3a2c10" BorderThickness="1" />
+                                Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource AccentBrush}"
+                                BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
                       </Grid>
                     </Border>
                   </DataTemplate>
@@ -361,26 +361,26 @@
           </Border>
 
           <!-- Eve News Feed -->
-          <Border x:Name="SectionNews" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border x:Name="SectionNews" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
 
               <TextBlock Grid.Row="0" Text="Eve Online News" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" Margin="0 0 0 8" />
+                         Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
 
               <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="8">
 
               <TextBlock IsVisible="{Binding NoNews}"
                          Text="News unavailable — will retry next refresh."
-                         FontSize="12" Foreground="#444455"
+                         FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          FontStyle="Italic" />
 
               <ItemsControl IsVisible="{Binding HasNews}"
                             ItemsSource="{Binding NewsItems}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:NewsItemVm">
-                    <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
+                    <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" Padding="8 6" Margin="0 2">
                       <StackPanel Spacing="4">
 
@@ -392,14 +392,14 @@
                                   HorizontalAlignment="Stretch"
                                   HorizontalContentAlignment="Left">
                             <TextBlock Text="{Binding Title}"
-                                       FontSize="12" Foreground="#5599dd"
+                                       FontSize="12" Foreground="{DynamicResource InfoBrush}"
                                        TextDecorations="Underline"
                                        TextWrapping="NoWrap"
                                        TextTrimming="CharacterEllipsis" />
                           </Button>
                           <TextBlock Grid.Column="1"
                                      Text="{Binding PubDateText}"
-                                     FontSize="10" Foreground="#555566"
+                                     FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                      Margin="12 0 0 0"
                                      VerticalAlignment="Center" />
                         </Grid>
@@ -407,13 +407,13 @@
                         <!-- Collapsed preview -->
                         <TextBlock IsVisible="{Binding IsCollapsed}"
                                    Text="{Binding PreviewText}"
-                                   FontSize="11" Foreground="#667788"
+                                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                    TextWrapping="Wrap" />
 
                         <!-- Full body -->
                         <TextBlock IsVisible="{Binding IsExpanded}"
                                    Text="{Binding FullText}"
-                                   FontSize="11" Foreground="#8899aa"
+                                   FontSize="11" Foreground="{DynamicResource InfoBrush}"
                                    TextWrapping="Wrap" />
 
                         <!-- Expand/collapse toggle -->
@@ -422,7 +422,7 @@
                                 Command="{Binding ToggleCommand}"
                                 HorizontalAlignment="Left">
                           <TextBlock Text="{Binding ExpandLabel}"
-                                     FontSize="10" Foreground="#445566" />
+                                     FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" />
                         </Button>
 
                       </StackPanel>
@@ -437,15 +437,15 @@
           </Border>
 
           <!-- Recent Notifications -->
-          <Border x:Name="SectionNotifications" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border x:Name="SectionNotifications" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
           <Grid RowDefinitions="Auto,*">
 
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
               <TextBlock Text="Notifications" FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" VerticalAlignment="Center" />
+                         Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
               <Button Grid.Column="1" Classes="newslink" Click="OnOpenNotifications" VerticalAlignment="Center">
-                <TextBlock Text="Notifications →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                <TextBlock Text="Notifications →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
               </Button>
             </Grid>
 
@@ -453,7 +453,7 @@
 
             <TextBlock IsVisible="{Binding NoNotifications}"
                        Text="No recent notifications."
-                       FontSize="12" Foreground="#444455" FontStyle="Italic"
+                       FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                        VerticalAlignment="Top" />
 
             <!-- ListBox virtualizes by default (VirtualizingStackPanel), so a long period stays
@@ -477,7 +477,7 @@
               </ListBox.Styles>
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:NotificationBoxVm">
-                  <Border Background="#0e0e16" BorderBrush="#1e1e2a" BorderThickness="1"
+                  <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                           CornerRadius="3" Padding="8 6" Margin="0 0 0 6">
                     <ToolTip.Tip>
                       <TextBlock Text="{Binding TooltipText}" FontSize="11" MaxWidth="440"
@@ -492,19 +492,19 @@
                           <Image Source="{Binding Icon}" Width="32" Height="32" Stretch="UniformToFill" />
                         </Border>
                         <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
-                                   FontSize="16" Foreground="#8899aa"
+                                   FontSize="16" Foreground="{DynamicResource InfoBrush}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                       </Panel>
 
                       <!-- One-liner + relative age -->
                       <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="{Binding OneLiner}" FontSize="12" Foreground="#dfe4ee"
+                        <TextBlock Text="{Binding OneLiner}" FontSize="12" Foreground="{DynamicResource TextBrightBrush}"
                                    TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding AgeText}" FontSize="10" Foreground="#667" />
+                        <TextBlock Text="{Binding AgeText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                       </StackPanel>
 
                       <!-- Unread marker -->
-                      <TextBlock Grid.Column="2" Text="{Binding UnreadDot}" Foreground="#c8a84b"
+                      <TextBlock Grid.Column="2" Text="{Binding UnreadDot}" Foreground="{DynamicResource AccentBrush}"
                                  FontSize="12" VerticalAlignment="Top" Margin="6 0 0 0" />
                     </Grid>
                   </Border>
@@ -517,42 +517,42 @@
           </Border>
 
           <!-- ════ Personal Killmails ═══════════════════════════════════ -->
-          <Border x:Name="SectionPersonalKillmails" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionPersonalKillmails" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,Auto,*">
 
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Personal Killmails" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenKillmailsTool" VerticalAlignment="Center">
-                  <TextBlock Text="Killmails →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Killmails →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <!-- Kill / Loss counts + ISK -->
               <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="0 0 0 8">
-                <Border Grid.Column="0" Background="#0d0d12" CornerRadius="3" BorderBrush="#1e1e2a"
+                <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}"
                         BorderThickness="1" Padding="10 6" Margin="0 0 4 0">
                   <StackPanel Spacing="2">
-                    <TextBlock Text="KILLS" FontSize="9" Foreground="#888899"
+                    <TextBlock Text="KILLS" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                FontWeight="SemiBold" LetterSpacing="1" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock Text="{Binding PersonalKillCount}" FontSize="16"
-                                 Foreground="#70ad47" FontWeight="Bold" />
-                      <TextBlock Text="{Binding PersonalKillIsk}" FontSize="12" Foreground="#8899aa"
+                                 Foreground="{DynamicResource GoodBrush}" FontWeight="Bold" />
+                      <TextBlock Text="{Binding PersonalKillIsk}" FontSize="12" Foreground="{DynamicResource InfoBrush}"
                                  VerticalAlignment="Bottom" Margin="0 0 0 2" />
                     </StackPanel>
                   </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="#0d0d12" CornerRadius="3" BorderBrush="#1e1e2a"
+                <Border Grid.Column="1" Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}"
                         BorderThickness="1" Padding="10 6" Margin="4 0 0 0">
                   <StackPanel Spacing="2">
-                    <TextBlock Text="LOSSES" FontSize="9" Foreground="#888899"
+                    <TextBlock Text="LOSSES" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                FontWeight="SemiBold" LetterSpacing="1" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock Text="{Binding PersonalLossCount}" FontSize="16"
-                                 Foreground="#cc4444" FontWeight="Bold" />
-                      <TextBlock Text="{Binding PersonalLossIsk}" FontSize="12" Foreground="#8899aa"
+                                 Foreground="{DynamicResource TextFaintBrush}" FontWeight="Bold" />
+                      <TextBlock Text="{Binding PersonalLossIsk}" FontSize="12" Foreground="{DynamicResource InfoBrush}"
                                  VerticalAlignment="Bottom" Margin="0 0 0 2" />
                     </StackPanel>
                   </StackPanel>
@@ -562,7 +562,7 @@
               <!-- Empty state -->
               <TextBlock Grid.Row="2" IsVisible="{Binding NoPersonalKills}"
                          Text="No killmails in this period."
-                         FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <!-- Killmail list (zkillboard style, like Corp Activity) -->
@@ -577,20 +577,20 @@
                     <Setter Property="Background" Value="Transparent" />
                   </Style>
                   <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                    <Setter Property="Background" Value="#141420" />
+                    <Setter Property="Background" Value="{DynamicResource SurfaceBaseBrush}" />
                   </Style>
                 </ListBox.Styles>
                 <ListBox.ItemTemplate>
                   <DataTemplate DataType="vm:Activity24hKillRowVm">
-                    <Border BorderBrush="#1a1a26" BorderThickness="0 0 0 1"
+                    <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1"
                             Background="{Binding RowTint}">
                       <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
 
                         <!-- Date / Time / ISK -->
                         <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                          <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="#888899" />
-                          <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="#c8c8d8" FontWeight="SemiBold" />
-                          <TextBlock Text="{Binding TotalIskText}" FontSize="10" Foreground="#c8a84b"
+                          <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
+                          <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding TotalIskText}" FontSize="10" Foreground="{DynamicResource AccentBrush}"
                                      IsVisible="{Binding TotalIskText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                         </StackPanel>
 
@@ -606,22 +606,22 @@
                                        Foreground="{Binding SecurityColor}" />
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
-                              <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8"
+                              <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                          FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding SystemName}" IsVisible="{Binding ShowSystemPlain}" FontSize="10" Foreground="#c8c8d8"
+                            <TextBlock Text="{Binding SystemName}" IsVisible="{Binding ShowSystemPlain}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                        FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                           </Panel>
                           </StackPanel>
-                          <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="#888899"
+                          <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                      TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                           <Panel>
                             <Button Classes="link" Click="OnOpenKillRegion" IsVisible="{Binding HasRegionLink}">
-                              <TextBlock Text="{Binding RegionName}" Classes="linktext" FontSize="9" Foreground="#666677"
+                              <TextBlock Text="{Binding RegionName}" Classes="linktext" FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                                           TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding RegionName}" IsVisible="{Binding ShowRegionPlain}" FontSize="9" Foreground="#666677"
+                            <TextBlock Text="{Binding RegionName}" IsVisible="{Binding ShowRegionPlain}" FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                                         TextTrimming="CharacterEllipsis" />
                           </Panel>
                         </StackPanel>
@@ -634,26 +634,26 @@
                           <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
-                              <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8"
+                              <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                          FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding VictimName}" IsVisible="{Binding ShowVictimPlain}" FontSize="10" Foreground="#c8c8d8"
+                            <TextBlock Text="{Binding VictimName}" IsVisible="{Binding ShowVictimPlain}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                        FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                           </Panel>
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillVictimCorp" IsVisible="{Binding HasVictimCorpLink}">
-                              <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                              <TextBlock Text="{Binding VictimCorp}" Classes="linktext" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                           TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding VictimCorp}" IsVisible="{Binding ShowVictimCorpPlain}" FontSize="9" Foreground="#888899"
+                            <TextBlock Text="{Binding VictimCorp}" IsVisible="{Binding ShowVictimCorpPlain}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                         TextTrimming="CharacterEllipsis" />
                           </Panel>
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillVictimAlliance" IsVisible="{Binding HasVictimAllianceLink}">
-                              <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                              <TextBlock Text="{Binding VictimAlliance}" Classes="linktext" FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                                           TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding VictimAlliance}" IsVisible="{Binding ShowVictimAlliancePlain}" FontSize="9" Foreground="#666677"
+                            <TextBlock Text="{Binding VictimAlliance}" IsVisible="{Binding ShowVictimAlliancePlain}" FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                                         TextTrimming="CharacterEllipsis" />
                           </Panel>
                           </StackPanel>
@@ -667,26 +667,26 @@
                           <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
-                              <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="#c8c8d8"
+                              <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                          FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding FbName}" IsVisible="{Binding ShowFbPlain}" FontSize="10" Foreground="#c8c8d8"
+                            <TextBlock Text="{Binding FbName}" IsVisible="{Binding ShowFbPlain}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                        FontWeight="SemiBold"  TextTrimming="CharacterEllipsis" />
                           </Panel>
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillFbCorp" IsVisible="{Binding HasFbCorpLink}">
-                              <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9" Foreground="#888899"
+                              <TextBlock Text="{Binding FbCorp}" Classes="linktext" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                           TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding FbCorp}" IsVisible="{Binding ShowFbCorpPlain}" FontSize="9" Foreground="#888899"
+                            <TextBlock Text="{Binding FbCorp}" IsVisible="{Binding ShowFbCorpPlain}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                         TextTrimming="CharacterEllipsis" />
                           </Panel>
                             <Panel>
                             <Button Classes="link" Click="OnOpenKillFbAlliance" IsVisible="{Binding HasFbAllianceLink}">
-                              <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9" Foreground="#666677"
+                              <TextBlock Text="{Binding FbAlliance}" Classes="linktext" FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                                           TextTrimming="CharacterEllipsis" />
                             </Button>
-                            <TextBlock Text="{Binding FbAlliance}" IsVisible="{Binding ShowFbAlliancePlain}" FontSize="9" Foreground="#666677"
+                            <TextBlock Text="{Binding FbAlliance}" IsVisible="{Binding ShowFbAlliancePlain}" FontSize="9" Foreground="{DynamicResource TextDimBrush}"
                                         TextTrimming="CharacterEllipsis" />
                           </Panel>
                           </StackPanel>
@@ -702,26 +702,26 @@
           </Border>
 
           <!-- ════ Sale Listing (Build) ═════════════════════════════════ -->
-          <Border x:Name="SectionSaleListingBuild" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionSaleListingBuild" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" ClipToBounds="True">
             <views:SaleListingView DataContext="{Binding SaleListingBuild}" />
           </Border>
 
           <!-- ════ Sale Listing (Market) ════════════════════════════════ -->
-          <Border x:Name="SectionSaleListingMarket" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionSaleListingMarket" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" ClipToBounds="True">
             <views:SaleListingView DataContext="{Binding SaleListingMarket}" />
           </Border>
 
           <!-- ════ Income (Pie) ═════════════════════════════════════════ -->
-          <Border x:Name="SectionIncomePie" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionIncomePie" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Income" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding IncomeTotalText}" FontSize="12"
-                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+                           FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
               </Grid>
               <lvc:PieChart Grid.Row="1" x:Name="IncomeChart"
                             IsVisible="{Binding HasIncomeData}"
@@ -730,20 +730,20 @@
                             Background="Transparent" />
               <TextBlock Grid.Row="1" IsVisible="{Binding !HasIncomeData}"
                          Text="No income data for this period."
-                         FontSize="12" Foreground="#444455"
+                         FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Grid>
           </Border>
 
           <!-- ════ Expenses (Pie) ═══════════════════════════════════════ -->
-          <Border x:Name="SectionExpensePie" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionExpensePie" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Expenses" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding ExpenseTotalText}" FontSize="12"
-                           FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+                           FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
               </Grid>
               <lvc:PieChart Grid.Row="1" x:Name="ExpenseChart"
                             IsVisible="{Binding HasExpenseData}"
@@ -752,32 +752,32 @@
                             Background="Transparent" />
               <TextBlock Grid.Row="1" IsVisible="{Binding !HasExpenseData}"
                          Text="No expense data for this period."
-                         FontSize="12" Foreground="#444455"
+                         FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Grid>
           </Border>
 
           <!-- ════ Income & Expense ═════════════════════════════════════ -->
-          <Border x:Name="SectionIncomeExpense" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionIncomeExpense" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" ClipToBounds="True">
             <views:IncomeExpenseView DataContext="{Binding IncomeExpense}" />
           </Border>
 
           <!-- ════ Standing Buy Orders ══════════════════════════════════ -->
           <!-- ———— Orders ———————————————————————————— -->
-          <Border x:Name="SectionOrders" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionOrders" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Orders" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenOrderTracker" VerticalAlignment="Center">
-                  <TextBlock Text="Order Tracker →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Order Tracker →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <TextBlock Grid.Row="1" IsVisible="{Binding NoOrders}"
-                         Text="No active orders." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         Text="No active orders." FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <DataGrid Grid.Row="1" IsVisible="{Binding HasOrders}"
@@ -788,7 +788,7 @@
                 <DataGrid.Styles>
                   <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
                   <Style Selector="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
                     <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
                     <Setter Property="Padding" Value="6 5 2 5" />
                   </Style>
@@ -817,19 +817,19 @@
             </Grid>
           </Border>
 
-          <Border x:Name="SectionStandingBuyOrders" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionStandingBuyOrders" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Standing Buy Orders" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingBuyOrders" VerticalAlignment="Center">
-                  <TextBlock Text="Standing Buy Orders →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Standing Buy Orders →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingBuyOrders}"
-                         Text="No standing buy orders." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         Text="No standing buy orders." FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingBuyOrders}"
@@ -840,7 +840,7 @@
                 <DataGrid.Styles>
                   <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
                   <Style Selector="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
                     <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
                     <Setter Property="Padding" Value="6 5 2 5" />
                   </Style>
@@ -896,14 +896,14 @@
           </Border>
 
           <!-- Worklist (All) -->
-          <Border x:Name="SectionWorklistAll" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionWorklistAll" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Worklist (All)" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -929,7 +929,7 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:WorklistRowVm">
                     <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
                       <ItemsControl ItemsSource="{Binding Lines}">
                         <ItemsControl.ItemTemplate>
@@ -940,19 +940,19 @@
                                         IsVisible="{Binding HasItemLink}"
                                         ToolTip.Tip="Open in the Item Browser">
                                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="#c8c8d8"/>
+                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Button>
                                 <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                               </Panel>
                               <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="#8a8a99"
+                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                                          MinWidth="48" TextAlignment="Right"/>
                               <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                               <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                             </Grid>
                           </DataTemplate>
@@ -972,7 +972,7 @@
                                 IsVisible="{Binding HasLines}"
                                 Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
                                 Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 ToolTip.Tip="Show the items on this task"/>
@@ -991,27 +991,27 @@
 
                           <!-- Haul: where from, where to, and how much of it. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
-                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
-                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Job: what is being made, where, and by whom. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Buy: what to buy, how much, and where. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                           </StackPanel>
 
@@ -1020,18 +1020,18 @@
                                without this the row matched none of the four and drew an empty
                                cell, which is indistinguishable from a task with nothing to say. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsRefining}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                           </StackPanel>
 
                           <!-- Corp projects, asset safety, skill queues: no shared shape, so the
                                plain title, plus the character where there is one. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
                           </StackPanel>
 
@@ -1049,14 +1049,14 @@
           </Border>
 
           <!-- Worklist (Buy) -->
-          <Border x:Name="SectionWorklistBuy" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionWorklistBuy" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Worklist (Buy)" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1082,7 +1082,7 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:WorklistRowVm">
                     <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
                       <ItemsControl ItemsSource="{Binding Lines}">
                         <ItemsControl.ItemTemplate>
@@ -1093,19 +1093,19 @@
                                         IsVisible="{Binding HasItemLink}"
                                         ToolTip.Tip="Open in the Item Browser">
                                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="#c8c8d8"/>
+                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Button>
                                 <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                               </Panel>
                               <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="#8a8a99"
+                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                                          MinWidth="48" TextAlignment="Right"/>
                               <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                               <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                             </Grid>
                           </DataTemplate>
@@ -1125,7 +1125,7 @@
                                 IsVisible="{Binding HasLines}"
                                 Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
                                 Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 ToolTip.Tip="Show the items on this task"/>
@@ -1144,36 +1144,36 @@
 
                           <!-- Haul: where from, where to, and how much of it. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
-                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
-                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Job: what is being made, where, and by whom. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Buy: what to buy, how much, and where. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                           </StackPanel>
 
                           <!-- Corp projects, asset safety, skill queues: no shared shape, so the
                                plain title, plus the character where there is one. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
                           </StackPanel>
 
@@ -1191,14 +1191,14 @@
           </Border>
 
           <!-- Worklist (Haul) -->
-          <Border x:Name="SectionWorklistHaul" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionWorklistHaul" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Worklist (Haul)" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1224,7 +1224,7 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:WorklistRowVm">
                     <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
                       <ItemsControl ItemsSource="{Binding Lines}">
                         <ItemsControl.ItemTemplate>
@@ -1235,19 +1235,19 @@
                                         IsVisible="{Binding HasItemLink}"
                                         ToolTip.Tip="Open in the Item Browser">
                                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="#c8c8d8"/>
+                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Button>
                                 <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                               </Panel>
                               <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="#8a8a99"
+                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                                          MinWidth="48" TextAlignment="Right"/>
                               <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                               <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                             </Grid>
                           </DataTemplate>
@@ -1267,7 +1267,7 @@
                                 IsVisible="{Binding HasLines}"
                                 Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
                                 Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 ToolTip.Tip="Show the items on this task"/>
@@ -1286,36 +1286,36 @@
 
                           <!-- Haul: where from, where to, and how much of it. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
-                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
-                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Job: what is being made, where, and by whom. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Buy: what to buy, how much, and where. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                           </StackPanel>
 
                           <!-- Corp projects, asset safety, skill queues: no shared shape, so the
                                plain title, plus the character where there is one. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
                           </StackPanel>
 
@@ -1333,14 +1333,14 @@
           </Border>
 
           <!-- Worklist (Jobs) -->
-          <Border x:Name="SectionWorklistJobs" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionWorklistJobs" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Worklist (Jobs)" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklist" VerticalAlignment="Center">
-                  <TextBlock Text="Worklist →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Worklist →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1366,7 +1366,7 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:WorklistRowVm">
                     <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
                       <ItemsControl ItemsSource="{Binding Lines}">
                         <ItemsControl.ItemTemplate>
@@ -1377,19 +1377,19 @@
                                         IsVisible="{Binding HasItemLink}"
                                         ToolTip.Tip="Open in the Item Browser">
                                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="#c8c8d8"/>
+                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 </Button>
                                 <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                               </Panel>
                               <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="#8a8a99"
+                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                                          MinWidth="48" TextAlignment="Right"/>
                               <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                               <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="#6e6e80"
+                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                                          MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
                             </Grid>
                           </DataTemplate>
@@ -1409,7 +1409,7 @@
                                 IsVisible="{Binding HasLines}"
                                 Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
                                 Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                                 ToolTip.Tip="Show the items on this task"/>
@@ -1428,36 +1428,36 @@
 
                           <!-- Haul: where from, where to, and how much of it. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
-                            <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
-                            <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Job: what is being made, where, and by whom. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center"/>
                           </StackPanel>
 
                           <!-- Buy: what to buy, how much, and where. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding LocationName}" Foreground="#7a7a88" FontSize="9"
+                            <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                           </StackPanel>
 
                           <!-- Corp projects, asset safety, skill queues: no shared shape, so the
                                plain title, plus the character where there is one. -->
                           <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsOther}">
-                            <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="10"
+                            <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
-                            <TextBlock Text="{Binding CharacterName}" Foreground="#8a8a99" FontSize="9"
+                            <TextBlock Text="{Binding CharacterName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
                                        IsVisible="{Binding HasCharacterLink}" VerticalAlignment="Center"/>
                           </StackPanel>
 
@@ -1475,14 +1475,14 @@
           </Border>
 
           <!-- Worklist (Station Needs) -->
-          <Border x:Name="SectionWorklistNeeds" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionWorklistNeeds" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Worklist (Station Needs)" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenWorklistNeeds" VerticalAlignment="Center">
-                  <TextBlock Text="Station Needs →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Station Needs →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
@@ -1537,19 +1537,19 @@
           </Border>
 
           <!-- ════ Standing Projects ════════════════════════════════════ -->
-          <Border x:Name="SectionStandingProjects" Background="#12121a" BorderBrush="#1e1e2a"
+          <Border x:Name="SectionStandingProjects" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                   BorderThickness="1" CornerRadius="4" Padding="14 12">
             <Grid RowDefinitions="Auto,*">
               <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
                 <TextBlock Text="Standing Projects" FontSize="13" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="newslink" Click="OnOpenStandingProjects" VerticalAlignment="Center">
-                  <TextBlock Text="Corp Activity →" FontSize="11" Foreground="#5599dd" TextDecorations="Underline" />
+                  <TextBlock Text="Corp Activity →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
                 </Button>
               </Grid>
 
               <TextBlock Grid.Row="1" IsVisible="{Binding NoStandingProjects}"
-                         Text="No standing projects." FontSize="12" Foreground="#444455" FontStyle="Italic"
+                         Text="No standing projects." FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" FontStyle="Italic"
                          HorizontalAlignment="Center" VerticalAlignment="Center" />
 
               <DataGrid Grid.Row="1" IsVisible="{Binding HasStandingProjects}"
@@ -1560,7 +1560,7 @@
                 <DataGrid.Styles>
                   <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
                   <Style Selector="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#12121a" /><Setter Property="Foreground" Value="#555566" />
+                    <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
                     <Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" />
                     <Setter Property="Padding" Value="6 5 2 5" />
                   </Style>
@@ -1624,10 +1624,10 @@
     </Panel>
 
     <!-- ── Status bar ───────────────────────────────────────────────────── -->
-    <Border Grid.Row="2" Background="#0d0d12" Padding="14 4"
-            BorderThickness="0 1 0 0" BorderBrush="#1e1e2a">
+    <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="14 4"
+            BorderThickness="0 1 0 0" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <TextBlock Text="Overview data reflects characters and personal corporations only."
-                 FontSize="11" Foreground="#444455" />
+                 FontSize="11" Foreground="{DynamicResource BorderStrongBrush}" />
     </Border>
 
   </Grid>

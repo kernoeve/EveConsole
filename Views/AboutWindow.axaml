@@ -7,7 +7,7 @@
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <StackPanel Margin="36 32 36 28" Spacing="0">
 
@@ -22,37 +22,37 @@
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 4">
       <TextBlock Text="EVE "
                  FontSize="26" FontWeight="Bold"
-                 Foreground="#e8e8ec"
+                 Foreground="{DynamicResource TextBrightBrush}"
                  LetterSpacing="4" />
       <TextBlock Text="Console"
                  FontSize="26" FontWeight="Bold"
-                 Foreground="#c8a84b"
+                 Foreground="{DynamicResource AccentBrush}"
                  LetterSpacing="4" />
     </StackPanel>
 
     <!-- Version -->
     <TextBlock x:Name="VersionText"
                Text=""
-               FontSize="12" Foreground="#555566"
+               FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                HorizontalAlignment="Center"
                Margin="0 0 0 24" />
 
     <!-- Divider -->
-    <Rectangle Height="1" Fill="#1e1e28" Margin="0 0 0 20" />
+    <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 0 0 20" />
 
     <!-- Description -->
     <TextBlock Text="An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management."
-               FontSize="12" Foreground="#aaaabc"
+               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                TextWrapping="Wrap"
                TextAlignment="Center"
                LineHeight="20"
                Margin="0 0 0 24" />
 
     <!-- Divider -->
-    <Rectangle Height="1" Fill="#1e1e28" Margin="0 0 0 16" />
+    <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 0 0 16" />
 
     <!-- CCP trademark notice -->
-    <TextBlock FontSize="11" Foreground="#3a3a4a"
+    <TextBlock FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                TextWrapping="Wrap"
                TextAlignment="Center"
                LineHeight="17">

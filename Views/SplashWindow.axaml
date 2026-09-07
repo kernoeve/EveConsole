@@ -6,7 +6,7 @@
         SystemDecorations="None"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Background="#0d0d10">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <Grid>
 
@@ -36,19 +36,19 @@
           <TextBlock x:Name="StatusText"
                      Grid.Column="0"
                      Text="Initializing…"
-                     FontSize="11" Foreground="#555566"
+                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                      VerticalAlignment="Center" />
           <TextBlock x:Name="VersionText"
                      Grid.Column="1"
                      Text=""
-                     FontSize="11" Foreground="#3a3a4a"
+                     FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                      VerticalAlignment="Center" />
         </Grid>
         <!-- Progress track -->
-        <Grid Height="2" Background="#1a1a24">
+        <Grid Height="2" Background="{DynamicResource SurfacePanelBrush}">
           <Rectangle x:Name="ProgressFill"
                      HorizontalAlignment="Left"
-                     Fill="#c8a84b"
+                     Fill="{DynamicResource AccentBrush}"
                      Height="2"
                      Width="0" />
         </Grid>
@@ -64,16 +64,16 @@
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="EVE "
                      FontSize="34" FontWeight="Bold"
-                     Foreground="#e8e8ec"
+                     Foreground="{DynamicResource TextBrightBrush}"
                      LetterSpacing="10" />
           <TextBlock Text="Console"
                      FontSize="34" FontWeight="Bold"
-                     Foreground="#c8a84b"
+                     Foreground="{DynamicResource AccentBrush}"
                      LetterSpacing="10" />
         </StackPanel>
         <TextBlock x:Name="SubVersionText"
                    Text=""
-                   FontSize="11" Foreground="#555566"
+                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                    HorizontalAlignment="Left" />
       </StackPanel>
 

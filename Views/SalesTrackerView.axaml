@@ -4,13 +4,13 @@
              x:Class="EveConsole.Views.SalesTrackerView"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:DataType="vm:SalesTrackerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="10" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
@@ -40,27 +40,27 @@
   <Grid RowDefinitions="Auto,*">
 
     <!-- Header + filters -->
-    <Border Grid.Row="0" Background="#0d0d12" Padding="10 6" BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Sales Tracker" FontSize="13" FontWeight="SemiBold" Foreground="#c8a84b"
+          <TextBlock Text="Sales Tracker" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="#888899"
+          <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" />
         </Grid>
         <StackPanel Orientation="Horizontal" Spacing="8">
           <StackPanel.Styles>
             <Style Selector="TextBlock.fl">
-              <Setter Property="Foreground" Value="#555566" /><Setter Property="FontSize" Value="11" />
+              <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" />
               <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style Selector="TextBox">
-              <Setter Property="Background" Value="#131320" /><Setter Property="BorderBrush" Value="#2a2a3a" />
-              <Setter Property="Foreground" Value="#ccccdd" /><Setter Property="FontSize" Value="11" />
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
             </Style>
             <Style Selector="ComboBox">
-              <Setter Property="Background" Value="#131320" /><Setter Property="BorderBrush" Value="#2a2a3a" />
-              <Setter Property="Foreground" Value="#ccccdd" /><Setter Property="FontSize" Value="11" />
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+              <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
             </Style>
           </StackPanel.Styles>
           <TextBlock Classes="fl" Text="From" />
@@ -74,7 +74,7 @@
           <TextBlock Classes="fl" Text="Profit based on" Margin="8 0 0 0" />
           <ComboBox ItemsSource="{Binding ProfitBasisOptions}" SelectedItem="{Binding SelectedProfitBasis}" MinWidth="90" />
           <CheckBox IsChecked="{Binding ShowNotForProfit}" Content="Show not for profit"
-                    FontSize="11" Foreground="#999" Margin="12 0 0 0" VerticalAlignment="Center"
+                    FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="12 0 0 0" VerticalAlignment="Center"
                     ToolTip.Tip="Include sales marked as not for profit. They count everywhere on this screen when shown: the summaries, the charts and the grid all follow this box." />
         </StackPanel>
       </StackPanel>
@@ -90,10 +90,10 @@
     <!-- Rollups: Top Buyers / By Market Group / By Item (grouped over the filtered sales) -->
     <Grid Grid.Row="0" ColumnDefinitions="*,8,*,8,*" Margin="10 8 10 0">
 
-      <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4">
+      <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
           <TextBlock Grid.Row="0" Text="Top Buyers" FontSize="11" FontWeight="SemiBold"
-                     Foreground="#c8a84b" Margin="10 6 10 4" />
+                     Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopBuyers}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
@@ -117,10 +117,10 @@
         </Grid>
       </Border>
 
-      <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4">
+      <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
           <TextBlock Grid.Row="0" Text="Profit by Market Group" FontSize="11" FontWeight="SemiBold"
-                     Foreground="#c8a84b" Margin="10 6 10 4" />
+                     Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding MarketGroups}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
@@ -132,10 +132,10 @@
         </Grid>
       </Border>
 
-      <Border Grid.Column="4" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1" CornerRadius="4">
+      <Border Grid.Column="4" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
           <TextBlock Grid.Row="0" Text="Profit by Item" FontSize="11" FontWeight="SemiBold"
-                     Foreground="#c8a84b" Margin="10 6 10 4" />
+                     Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopItems}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
@@ -166,23 +166,23 @@
              decides which sales are counted, this decides how they are bucketed. -->
         <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*" Margin="10 10 10 4">
           <TextBlock Grid.Column="0" Text="Chart by" VerticalAlignment="Center"
-                     FontSize="11" Foreground="#555566" Margin="0 0 8 0" />
+                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 8 0" />
           <ComboBox Grid.Column="1" ItemsSource="{Binding Grains}" SelectedItem="{Binding Grain}"
-                    FontSize="11" MinWidth="100" Background="#131320" Foreground="#ccccdd"
-                    BorderBrush="#2a2a3a" />
+                    FontSize="11" MinWidth="100" Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" />
           <TextBlock Grid.Column="3" Text="{Binding UncostedNote}" FontSize="10"
-                     Foreground="#8a6a2e" VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
                      HorizontalAlignment="Right" TextWrapping="NoWrap" />
         </Grid>
 
         <!-- ⚠️ Two charts, because margin is a percentage. Sharing an axis with figures in the
              billions would flatten it to the zero line and make it unreadable. -->
         <Grid Grid.Row="2" ColumnDefinitions="2*,8,*" Margin="10 0 10 10">
-          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="10 8">
             <DockPanel>
               <TextBlock DockPanel.Dock="Top" Text="Costs, sales and profit" FontSize="11"
-                         FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 6" />
+                         FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 6" />
               <lvc:CartesianChart Series="{Binding IskSeries}"
                                   XAxes="{Binding ChartXAxes}" YAxes="{Binding IskYAxes}"
                                   LegendPosition="Top" TooltipPosition="Top"
@@ -190,11 +190,11 @@
             </DockPanel>
           </Border>
 
-          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="10 8">
             <DockPanel>
               <TextBlock DockPanel.Dock="Top" Text="Margin" FontSize="11"
-                         FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 6" />
+                         FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 6" />
               <lvc:CartesianChart Series="{Binding MarginSeries}"
                                   XAxes="{Binding ChartXAxes}" YAxes="{Binding MarginYAxes}"
                                   TooltipPosition="Top"
@@ -211,7 +211,7 @@
               SelectionMode="Extended"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               DoubleTapped="OnRowDoubleTapped"
-              Background="#0d0d12">
+              Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.ContextMenu>
         <ContextMenu>
           <MenuItem Header="Mark as not for profit" Click="OnMarkNotForProfit" />

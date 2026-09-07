@@ -3,7 +3,7 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.PriceOverrideView"
              x:DataType="vm:PriceOverrideViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
 
@@ -30,46 +30,46 @@
   <Grid RowDefinitions="Auto,1,Auto,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
-            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <Grid ColumnDefinitions="Auto,Auto,Auto,*">
 
         <Button Grid.Column="0"
                 Command="{Binding AddCommand}"
                 Content="+ Add Type"
-                Background="#1a1a28" Foreground="#c8a84b"
-                BorderBrush="#3a3020" BorderThickness="1"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" />
 
         <Button Grid.Column="1"
                 Command="{Binding DeleteSelectedCommand}"
                 Content="Remove"
-                Background="#1a1a28" Foreground="#cc6666"
-                BorderBrush="#4a2a2a" BorderThickness="1"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextDimBrush}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" Margin="8 0 0 0" />
 
         <Button Grid.Column="2"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding !Busy}"
                 Content="Save &amp; Recalculate"
-                Background="#1a281a" Foreground="#88cc88"
-                BorderBrush="#2a4a2a" BorderThickness="1"
+                Background="{DynamicResource SurfaceHeaderBrush}" Foreground="{DynamicResource GoodBrush}"
+                BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" Margin="8 0 0 0" />
 
         <TextBlock Grid.Column="3"
                    Text="{Binding Status}"
-                   FontSize="11" Foreground="#666677"
+                   FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0"
                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
       </Grid>
     </Border>
 
-    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+    <Rectangle Grid.Row="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Help banner ──────────────────────────────────────────────── -->
-    <Border Grid.Row="2" Background="#101018" Padding="12 6"
-            BorderThickness="0 0 0 1" BorderBrush="#1a1a26">
-      <TextBlock FontSize="10.5" Foreground="#707084" TextWrapping="Wrap"
+    <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 6"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource SurfaceHoverBrush}">
+      <TextBlock FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                  Text="Leave a cell blank to leave that value computed. A set value REPLACES the computed value everywhere it is used. Contract Value on a blueprint is the PER-RUN BPC price. Values are in ISK; commas are ignored." />
     </Border>
 
@@ -83,10 +83,10 @@
               CanUserResizeColumns="True"
               CanUserSortColumns="True"
               IsReadOnly="False"
-              Background="#0d0d12"
-              RowBackground="#0d0d12"
+              Background="{DynamicResource SurfaceBaseBrush}"
+              RowBackground="{DynamicResource SurfaceBaseBrush}"
               GridLinesVisibility="Horizontal"
-              HorizontalGridLinesBrush="#1a1a26"
+              HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}"
               HeadersVisibility="Column"
               FontSize="11"
               RowHeight="25"
@@ -95,13 +95,13 @@
 
       <DataGrid.Styles>
         <Style Selector="DataGridColumnHeader">
-          <Setter Property="Background"                Value="#12121a" />
-          <Setter Property="Foreground"                Value="#555566" />
+          <Setter Property="Background"                Value="{DynamicResource SurfacePanelBrush}" />
+          <Setter Property="Foreground"                Value="{DynamicResource TextFaintBrush}" />
           <Setter Property="FontSize"                  Value="10" />
           <Setter Property="FontWeight"                Value="SemiBold" />
           <Setter Property="Padding"                   Value="6 6 2 6" />
           <Setter Property="HorizontalContentAlignment" Value="Left" />
-          <Setter Property="BorderBrush"               Value="#1e1e2a" />
+          <Setter Property="BorderBrush"               Value="{DynamicResource BorderSubtleBrush}" />
           <Setter Property="BorderThickness"           Value="0 0 1 1" />
         </Style>
         <Style Selector="DataGridCell">

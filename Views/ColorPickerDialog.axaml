@@ -5,7 +5,7 @@
         Width="380" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <StackPanel Margin="14" Spacing="12">
 
@@ -25,24 +25,24 @@
                IsAlphaVisible="False"
                Height="330" />
 
-    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#555566"
+    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                Text="EVE mail is drawn on a near-black background, so very dark colours all but disappear in it. The swatch below is on that background rather than on this dialog's." />
 
-    <Border Background="#0a0a0e" CornerRadius="3" Padding="10 8"
-            BorderBrush="#2a2a3a" BorderThickness="1">
+    <Border Background="{DynamicResource SurfaceBaseBrush}" CornerRadius="3" Padding="10 8"
+            BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
       <TextBlock x:Name="Sample" Text="Archon  (10,0,0) - 2.12B" FontSize="12" />
     </Border>
 
     <Grid ColumnDefinitions="*,Auto,Auto">
       <TextBlock Grid.Column="0" x:Name="HexLabel" Text="" FontSize="11"
-                 Foreground="#888899" VerticalAlignment="Center" />
+                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
       <Button Grid.Column="1" x:Name="CancelButton" Content="Cancel"
-              Background="#1a1a28" Foreground="#888899"
-              BorderBrush="#2a2a3a" BorderThickness="1"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 5" FontSize="12" Margin="0 0 8 0" />
       <Button Grid.Column="2" x:Name="OkButton" Content="Use this colour"
-              Background="#1a1a28" Foreground="#c8a84b"
-              BorderBrush="#3a3020" BorderThickness="1"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+              BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 5" FontSize="12" />
     </Grid>
   </StackPanel>

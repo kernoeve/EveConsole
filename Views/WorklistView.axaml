@@ -18,12 +18,12 @@
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="10" /></Style>
     <Style Selector="TextBlock.fieldLabel">
       <Setter Property="FontSize"   Value="10" />
-      <Setter Property="Foreground" Value="#7a8896" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
       <Setter Property="Margin"     Value="0 0 8 3" />
     </Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="10" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
@@ -54,7 +54,7 @@
   <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="14 12">
 
     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
-      <TextBlock Text="Worklist" FontSize="15" FontWeight="SemiBold" Foreground="#c8a84b"
+      <TextBlock Text="Worklist" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                  VerticalAlignment="Center"/>
       <!-- No status line here. Everything it said — ready, blocked, waiting — is in the strip
            immediately below, in larger type, and a second copy beside Refresh was one more place
@@ -63,12 +63,12 @@
               IsEnabled="{Binding !IsLoading}" FontSize="11" Padding="10 4"/>
       <!-- When the run happened. The rows carry their own data age, but nothing said when the list
            itself was last built. -->
-      <TextBlock Text="{Binding RefreshedText}" FontSize="10" Foreground="#555566"
+      <TextBlock Text="{Binding RefreshedText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                  VerticalAlignment="Center"/>
     </StackPanel>
 
     <TextBlock Grid.Row="1" Text="{Binding Errors}" IsVisible="{Binding HasErrors}"
-               FontSize="10" Foreground="#c85a5a" TextWrapping="Wrap" Margin="0 0 0 8"/>
+               FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="0 0 0 8"/>
 
     <StackPanel Grid.Row="2" Spacing="6" Margin="0 0 0 8">
 
@@ -79,17 +79,17 @@
            ⚠️ Counts only. Every per-kind total — tasks, value, volume — is on that kind's group
            header a few pixels below, so carrying them here printed the same figures twice. And
            ready appears once, as the headline; the state chips are blocked and waiting only. -->
-      <Border Background="#12121a" BorderBrush="#252530" BorderThickness="1"
+      <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               CornerRadius="3" Padding="16 12">
         <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
 
           <StackPanel VerticalAlignment="Center">
             <TextBlock Text="{Binding ReadyCountText}" FontSize="30" FontWeight="SemiBold"
-                       Foreground="#e8e8f0"/>
-            <TextBlock Text="ready now" FontSize="11" Foreground="#7a7a88" Margin="0 2 0 0"/>
+                       Foreground="{DynamicResource TextBrightBrush}"/>
+            <TextBlock Text="ready now" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0 2 0 0"/>
           </StackPanel>
 
-          <Rectangle Width="1" Fill="#252530" VerticalAlignment="Stretch" Margin="0 2"/>
+          <Rectangle Width="1" Fill="{DynamicResource BorderDefaultBrush}" VerticalAlignment="Stretch" Margin="0 2"/>
 
           <ItemsControl ItemsSource="{Binding KindSummary}" VerticalAlignment="Center">
             <ItemsControl.ItemsPanel>
@@ -101,8 +101,8 @@
               <DataTemplate x:DataType="vm:SummaryStatVm">
                 <StackPanel>
                   <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold"
-                             Foreground="#c8c8d8"/>
-                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#7a7a88"
+                             Foreground="{DynamicResource TextPrimaryBrush}"/>
+                  <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                              Margin="0 1 0 0"/>
                 </StackPanel>
               </DataTemplate>
@@ -153,7 +153,7 @@
         <Button   Grid.Column="7" Content="Clear" Command="{Binding ClearFiltersCommand}"
                   IsVisible="{Binding HasFilters}"
                   FontSize="11" Padding="8 3" Background="Transparent"
-                  BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
       </Grid>
     </StackPanel>
 
@@ -161,7 +161,7 @@
          in the same cell as the grid rather than above it, so it costs nothing when there are rows. -->
     <TextBlock Grid.Row="3" IsVisible="{Binding !Rows.Count}"
                Text="{x:Static vm:WorklistViewModel.HelpText}"
-               FontSize="11" Foreground="#555566" TextWrapping="Wrap" MaxWidth="520"
+               FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" MaxWidth="520"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
     <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
@@ -203,13 +203,13 @@
           <Setter Property="HorizontalContentAlignment" Value="Right"/>
         </Style>
         <Style Selector="DataGridRowGroupHeader">
-          <Setter Property="Background" Value="#12121a"/>
-          <Setter Property="Foreground" Value="#c8a84b"/>
+          <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}"/>
+          <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
           <Setter Property="MinHeight"  Value="34"/>
           <Setter Property="Template">
             <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
               <Border Background="{TemplateBinding Background}"
-                      BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
                             VerticalAlignment="Center">
                   <!-- DynamicResource: the theme lives in the DataGrid's own dictionary, merged
@@ -221,14 +221,14 @@
                   <!-- The name still leads, but the figures are read too, so they are only one
                        step down rather than the footnote they were. -->
                   <TextBlock Text="{Binding Key}" FontSize="16" FontWeight="SemiBold"
-                             Foreground="#c8a84b" VerticalAlignment="Center"/>
-                  <TextBlock FontSize="13" Foreground="#8a8a99" VerticalAlignment="Center"
+                             Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                  <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                              Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                              ConverterParameter=Count}"/>
-                  <TextBlock FontSize="13" Foreground="#7a7a88" VerticalAlignment="Center"
+                  <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                              Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                              ConverterParameter=Volume}"/>
-                  <TextBlock FontSize="13" Foreground="#7a7a88" VerticalAlignment="Center"
+                  <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                              Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                              ConverterParameter=Value}"/>
                 </StackPanel>
@@ -245,7 +245,7 @@
         </Style>
         <Style Selector="Button.expander:pointerover /template/ ContentPresenter">
           <Setter Property="Background" Value="Transparent"/>
-          <Setter Property="TextElement.Foreground" Value="#c8a84b"/>
+          <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentBrush}"/>
         </Style>
       </DataGrid.Styles>
 
@@ -260,11 +260,11 @@
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:WorklistRowVm">
           <Border Margin="70 0 0 8" Padding="12 8"
-                  Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                  Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
             <StackPanel Spacing="5">
               <TextBlock Text="MANIFEST" FontSize="11" FontWeight="SemiBold"
-                         Foreground="#555566" LetterSpacing="1"/>
+                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
               <ItemsControl ItemsSource="{Binding Lines}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="wl:WorklistLine">
@@ -277,19 +277,19 @@
                         <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
                                 ToolTip.Tip="Open in the Item Browser">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                     FontSize="14" Foreground="#c8c8d8"/>
+                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                   FontSize="14" Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                                   FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                       </Panel>
                       <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                 FontSize="14" Foreground="#8a8a99"
+                                 FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
                                  MinWidth="60" TextAlignment="Right"/>
                       <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                 FontSize="14" Foreground="#6e6e80"
+                                 FontSize="14" Foreground="{DynamicResource TextDimBrush}"
                                  MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
                       <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                 FontSize="14" Foreground="#6e6e80"
+                                 FontSize="14" Foreground="{DynamicResource TextDimBrush}"
                                  MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
                     </Grid>
                   </DataTemplate>
@@ -326,7 +326,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"
-                    Stroke="#8f9dab" StrokeThickness="1.15"
+                    Stroke="{DynamicResource BorderStrongBrush}" StrokeThickness="1.15"
                     StrokeLineCap="Round" StrokeJoin="Round"
                     Width="16" Height="16"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -344,7 +344,7 @@
                       IsVisible="{Binding HasLines}"
                       Content="{Binding ExpandGlyph}" FontSize="14" FontWeight="Bold"
                       Padding="0" Width="16" Height="16" MinWidth="0" MinHeight="0"
-                      Background="Transparent" BorderThickness="0" Foreground="#7a8896" Cursor="Hand"
+                      Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}" Cursor="Hand"
                       HorizontalAlignment="Center" VerticalAlignment="Center"
                       HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                       ToolTip.Tip="Show the items on this task"/>
@@ -377,68 +377,68 @@
 
                 <!-- Haul: where from, where to, and how much of it. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsHaul}">
-                  <TextBlock Text="{Binding RouteText}" Foreground="#e0e0ea" FontSize="16"
+                  <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}"/>
                   <!-- How many items are on the run: it decides whether this is a quick courier
                        trip or a packing job, so it sits with the route rather than under it. -->
-                  <TextBlock Text="{Binding Title}" Foreground="#8a8a99" FontSize="14"
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
                              VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Job: what is being made, by whom, and where — one line, like the rest. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
-                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
                   <!-- The efficiency the materials were planned at. Sits with the station and the
                        character because it is the same sort of fact — context for the job rather
                        than part of its name. Manufacturing only; see BlueprintMeText. -->
                   <TextBlock Text="{Binding BlueprintMeText}" IsVisible="{Binding HasBlueprintMe}"
-                             Foreground="#7a7a88" FontSize="14" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextMutedBrush}" FontSize="14" VerticalAlignment="Center"
                              ToolTip.Tip="Material and time efficiency of the blueprint this job would use"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
                       <TextBlock Text="{Binding LocationName}" Classes="linktext"
-                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="14" TextTrimming="CharacterEllipsis"/>
                     </Button>
                     <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
-                               Foreground="#7a7a88" FontSize="14"
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                   </Panel>
                   <Panel>
                     <Button Classes="link" Click="OnOpenCharacter" IsVisible="{Binding HasCharacterLink}"
                             ToolTip.Tip="Open in the entity browser">
                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
-                                 Foreground="#8a8a99" FontSize="14"/>
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="14"/>
                     </Button>
                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
-                               Foreground="#8a8a99" FontSize="14" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="14" VerticalAlignment="Center"/>
                   </Panel>
                 </StackPanel>
 
                 <!-- Buy: what to buy, where, and who places it. The reasoning is a paragraph, so
                      it lives on the marker rather than on the row. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsBuy}">
-                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
                       <TextBlock Text="{Binding LocationName}" Classes="linktext"
-                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="14" TextTrimming="CharacterEllipsis"/>
                     </Button>
                     <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
-                               Foreground="#7a7a88" FontSize="14"
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                   </Panel>
                   <Panel>
                     <Button Classes="link" Click="OnOpenCharacter" IsVisible="{Binding HasCharacterLink}"
                             ToolTip.Tip="Open in the entity browser">
                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
-                                 Foreground="#8a8a99" FontSize="14"/>
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="14"/>
                     </Button>
                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
-                               Foreground="#8a8a99" FontSize="14" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="14" VerticalAlignment="Center"/>
                   </Panel>
                 </StackPanel>
 
@@ -446,16 +446,16 @@
                      No character, because the action needs whoever is already there rather than a
                      particular pilot. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsRefining}">
-                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
                       <TextBlock Text="{Binding LocationName}" Classes="linktext"
-                                 Foreground="#7a7a88" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="14" TextTrimming="CharacterEllipsis"/>
                     </Button>
                     <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}"
-                               Foreground="#7a7a88" FontSize="14"
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="14"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                   </Panel>
                 </StackPanel>
@@ -463,7 +463,7 @@
                 <!-- Corp projects, asset safety, skill queues: no shared shape between them, so
                      they keep the plain title. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsOther}">
-                  <TextBlock Text="{Binding Title}" Foreground="#e0e0ea" FontSize="16"
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
                   <!-- Skill-queue rows land here and name a character; corp projects and asset
                        safety do not, and their link simply never shows. -->
@@ -471,7 +471,7 @@
                     <Button Classes="link" Click="OnOpenCharacter"
                             ToolTip.Tip="Open in the entity browser">
                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
-                                 Foreground="#8a8a99" FontSize="14"/>
+                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="14"/>
                     </Button>
                   </Panel>
                 </StackPanel>
@@ -548,7 +548,7 @@
                       Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).SnoozeCommand}"
                       CommandParameter="{Binding Key}"
                       FontSize="11" Padding="6 2" Background="Transparent"
-                      BorderBrush="#252530" BorderThickness="1" Cursor="Hand"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"
                       ToolTip.Tip="Hide this item for 8 hours"/>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -568,12 +568,12 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
           <TextBlock Text="Station Needs" FontSize="15" FontWeight="SemiBold"
-                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+                     Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
           <Button Content="Refresh" Command="{Binding RefreshNeedsCommand}"
                   IsEnabled="{Binding !NeedsLoading}" FontSize="11" Padding="10 4"/>
         </StackPanel>
 
-        <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
         <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
@@ -594,21 +594,21 @@
                  DataGridCollectionViewGroup and knows only its key string, not the row behind it,
                  so it has no id to open; the Station column on each row carries the link. -->
             <Style Selector="DataGridRowGroupHeader">
-              <Setter Property="Background" Value="#12121a"/>
-              <Setter Property="Foreground" Value="#c8a84b"/>
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}"/>
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
               <Setter Property="MinHeight"  Value="28"/>
               <Setter Property="Template">
                 <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
                   <Border Background="{TemplateBinding Background}"
-                          BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                          BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
                                 VerticalAlignment="Center">
                       <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
                                     Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
                                     Background="Transparent" BorderThickness="0"/>
                       <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
-                                 Foreground="#c8a84b" VerticalAlignment="Center"/>
-                      <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                                  Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                                  ConverterParameter=Count}"/>
                     </StackPanel>
@@ -632,12 +632,12 @@
                     <Button Classes="expander" Click="OnNeedToggle"
                             Background="Transparent" BorderThickness="0" Cursor="Hand"
                             Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                            FontSize="20" Foreground="#8a99a8"
+                            FontSize="20" Foreground="{DynamicResource TextMutedBrush}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
-                    <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
+                    <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
                                ToolTip.Tip="Nothing itemised this need"/>
                   </Panel>
@@ -708,11 +708,11 @@
                them. -->
           <DataGrid.RowDetailsTemplate>
             <DataTemplate x:DataType="vm:StationNeedRowVm">
-              <Border Background="#0d0d14" BorderBrush="#1e1e2a" BorderThickness="0 1 0 1"
+              <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
                       Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
                 <StackPanel Spacing="4">
                   <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
-                             Foreground="#555566" LetterSpacing="1"/>
+                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
                   <ItemsControl ItemsSource="{Binding Drivers}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:NeedDriverRowVm">
@@ -723,12 +723,12 @@
                               <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
                             </Button>
                             <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
-                                       FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                       FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                           </Panel>
                           <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
-                                     Foreground="#c8c8d8" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                                     Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
                           <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
-                                     Foreground="#666677"/>
+                                     Foreground="{DynamicResource TextDimBrush}"/>
                         </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -750,12 +750,12 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
           <TextBlock Text="Item Needs" FontSize="15" FontWeight="SemiBold"
-                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+                     Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
           <Button Content="Refresh" Command="{Binding RefreshNeedsCommand}"
                   IsEnabled="{Binding !NeedsLoading}" FontSize="11" Padding="10 4"/>
         </StackPanel>
 
-        <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
         <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
@@ -776,21 +776,21 @@
                  DataGridCollectionViewGroup and knows only its key string, not the row behind it,
                  so it has no id to open; the Item column on each row carries the link. -->
             <Style Selector="DataGridRowGroupHeader">
-              <Setter Property="Background" Value="#12121a"/>
-              <Setter Property="Foreground" Value="#c8a84b"/>
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}"/>
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
               <Setter Property="MinHeight"  Value="28"/>
               <Setter Property="Template">
                 <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
                   <Border Background="{TemplateBinding Background}"
-                          BorderBrush="#1e1e2a" BorderThickness="0 1 0 1">
+                          BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
                                 VerticalAlignment="Center">
                       <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
                                     Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
                                     Background="Transparent" BorderThickness="0"/>
                       <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
-                                 Foreground="#c8a84b" VerticalAlignment="Center"/>
-                      <TextBlock FontSize="11" Foreground="#8a8a99" VerticalAlignment="Center"
+                                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                                  Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                                  ConverterParameter=Count}"/>
                     </StackPanel>
@@ -814,12 +814,12 @@
                     <Button Classes="expander" Click="OnNeedToggle"
                             Background="Transparent" BorderThickness="0" Cursor="Hand"
                             Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                            FontSize="20" Foreground="#8a99a8"
+                            FontSize="20" Foreground="{DynamicResource TextMutedBrush}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
                             ToolTip.Tip="What is asking for this"/>
-                    <TextBlock Text="—" FontSize="12" Foreground="#3f3f4d" Margin="6 0"
+                    <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
                                ToolTip.Tip="Nothing itemised this need"/>
                   </Panel>
@@ -890,11 +890,11 @@
                them. -->
           <DataGrid.RowDetailsTemplate>
             <DataTemplate x:DataType="vm:StationNeedRowVm">
-              <Border Background="#0d0d14" BorderBrush="#1e1e2a" BorderThickness="0 1 0 1"
+              <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
                       Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
                 <StackPanel Spacing="4">
                   <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
-                             Foreground="#555566" LetterSpacing="1"/>
+                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
                   <ItemsControl ItemsSource="{Binding Drivers}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:NeedDriverRowVm">
@@ -905,12 +905,12 @@
                               <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
                             </Button>
                             <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
-                                       FontSize="10" Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                       FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                           </Panel>
                           <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
-                                     Foreground="#c8c8d8" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                                     Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
                           <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
-                                     Foreground="#666677"/>
+                                     Foreground="{DynamicResource TextDimBrush}"/>
                         </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -934,12 +934,12 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
           <TextBlock Text="Bottlenecks" FontSize="15" FontWeight="SemiBold"
-                     Foreground="#c8a84b" VerticalAlignment="Center"/>
+                     Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
           <Button Content="Refresh" Command="{Binding RefreshBottlenecksCommand}"
                   IsEnabled="{Binding !BottlenecksLoading}" FontSize="11" Padding="10 4"/>
         </StackPanel>
 
-        <TextBlock Grid.Row="1" Text="{Binding BottleneckStatus}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="1" Text="{Binding BottleneckStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
 
@@ -955,7 +955,7 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
               <StackPanel Margin="0 10 14 14" Spacing="14">
 
-                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                            Text="What to do, in the order worth doing it. Ranked by how much work each one is holding up, across every tab. The supporting figures are on the tabs themselves."/>
 
                 <ItemsControl ItemsSource="{Binding Observations}">
@@ -976,7 +976,7 @@
                            card outline cannot be the same element — nesting a filled column
                            inside the card is what lets the primary finding be marked without
                            tinting its whole outline. -->
-                      <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                      <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                               CornerRadius="4" Margin="0 0 24 18">
                         <Grid ColumnDefinitions="3,*">
                           <Border Grid.Column="0" Background="{Binding RuleColor}"
@@ -985,8 +985,8 @@
                           <TextBlock Text="{Binding Marker}" FontSize="10" FontWeight="SemiBold"
                                      Foreground="{Binding MarkerColor}" LetterSpacing="1"/>
                           <TextBlock Text="{Binding Headline}" FontSize="15" FontWeight="SemiBold"
-                                     Foreground="#c8c8d8" TextWrapping="Wrap"/>
-                          <TextBlock Text="{Binding Body}" FontSize="13" Foreground="#8a8a99"
+                                     Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                          <TextBlock Text="{Binding Body}" FontSize="13" Foreground="{DynamicResource TextMutedBrush}"
                                      TextWrapping="Wrap" LineHeight="19"/>
 
                           <ItemsControl ItemsSource="{Binding Points}" IsVisible="{Binding HasPoints}"
@@ -995,9 +995,9 @@
                               <DataTemplate x:DataType="x:String">
                                 <Grid ColumnDefinitions="14,*" Margin="0 0 0 4">
                                   <TextBlock Grid.Column="0" Text="·" FontSize="14"
-                                             Foreground="#555566" VerticalAlignment="Top"/>
+                                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Top"/>
                                   <TextBlock Grid.Column="1" Text="{Binding}" FontSize="13"
-                                             Foreground="#8a8a99" TextWrapping="Wrap" LineHeight="19"/>
+                                             Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="19"/>
                                 </Grid>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -1009,7 +1009,7 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                            IsVisible="{Binding !Observations.Count}"
                            Text="Nothing is holding the pipeline up: no pool has a queue worth the name, no blueprint has work waiting on it, nothing is short of material, and nothing is waiting on a delivery."/>
               </StackPanel>
@@ -1022,50 +1022,50 @@
             <!-- ── Slots ──────────────────────────────────────────────────── -->
             <StackPanel Spacing="6">
               <TextBlock Text="SLOTS" FontSize="10" FontWeight="SemiBold"
-                         Foreground="#555566" LetterSpacing="1"/>
-              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="Slots are bandwidth, not a shopping list. A queue is work that piled up while throughput sat under demand, so each remedy is measured by what it does to the time needed to catch up. Rates come from the last 90 days of job history, so they already carry the structures and skills in use."/>
 
               <ItemsControl ItemsSource="{Binding SlotPressure}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:SlotPressureRowVm">
-                    <Border Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+                    <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="4" Padding="12 10" Margin="0 0 0 8">
                       <StackPanel Spacing="8">
 
                         <Grid ColumnDefinitions="170,*,Auto">
                           <TextBlock Grid.Column="0" Text="{Binding Pool}" FontSize="13"
-                                     FontWeight="SemiBold" Foreground="#c8a84b"/>
+                                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
                           <TextBlock Grid.Column="1" Text="{Binding Headline}" FontSize="11"
-                                     Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                                     Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                           <TextBlock Grid.Column="2" Text="{Binding Utilised}" FontSize="16"
                                      Foreground="{Binding UtilisedColor}" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Grid ColumnDefinitions="*,*,*,*,*,*">
                           <StackPanel Grid.Column="0" Spacing="1">
-                            <TextBlock Text="Capacity" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding Capacity}" FontSize="12" Foreground="#c8c8d8"/>
+                            <TextBlock Text="Capacity" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding Capacity}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
                           </StackPanel>
                           <StackPanel Grid.Column="1" Spacing="1">
-                            <TextBlock Text="In use" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding InUse}" FontSize="12" Foreground="#c8c8d8"/>
+                            <TextBlock Text="In use" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding InUse}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
                           </StackPanel>
                           <StackPanel Grid.Column="2" Spacing="1">
-                            <TextBlock Text="Free" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding Free}" FontSize="12" Foreground="#c8c8d8"/>
+                            <TextBlock Text="Free" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding Free}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"/>
                           </StackPanel>
                           <StackPanel Grid.Column="3" Spacing="1">
-                            <TextBlock Text="Waiting on a slot" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding Waiting}" FontSize="12" Foreground="#c8a84b"/>
+                            <TextBlock Text="Waiting on a slot" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding Waiting}" FontSize="12" Foreground="{DynamicResource AccentBrush}"/>
                           </StackPanel>
                           <StackPanel Grid.Column="4" Spacing="1">
-                            <TextBlock Text="Blocked" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="#c85a5a"/>
+                            <TextBlock Text="Blocked" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="{DynamicResource TextFaintBrush}"/>
                           </StackPanel>
                           <StackPanel Grid.Column="5" Spacing="1">
-                            <TextBlock Text="Days to catch up" FontSize="9" Foreground="#555566"/>
-                            <TextBlock Text="{Binding ClearDays}" FontSize="12" Foreground="#c8a84b"/>
+                            <TextBlock Text="Days to catch up" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding ClearDays}" FontSize="12" Foreground="{DynamicResource AccentBrush}"/>
                             <!-- kept -->
                           </StackPanel>
                         </Grid>
@@ -1075,13 +1075,13 @@
                             <DataTemplate x:DataType="wl:SlotRemedy">
                               <Grid ColumnDefinitions="320,110,230,*" Margin="0 2">
                                 <TextBlock Grid.Column="0" Text="{Binding Action}" FontSize="11"
-                                           Foreground="#c8c8d8" TextWrapping="Wrap" Margin="0 0 10 0"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" Margin="0 0 10 0"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Gain}" FontSize="11"
-                                           Foreground="#5599aa" HorizontalAlignment="Left"/>
+                                           Foreground="{DynamicResource InfoBrush}" HorizontalAlignment="Left"/>
                                 <TextBlock Grid.Column="2" Text="{Binding Effect}" FontSize="10"
-                                           Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Column="3" Text="{Binding Detail}" FontSize="10"
-                                           Foreground="#666677" TextWrapping="Wrap"/>
+                                           Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"/>
                               </Grid>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
@@ -1103,8 +1103,8 @@
             <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
               <StackPanel Grid.Row="0" Spacing="6">
                 <TextBlock Text="MATERIALS" FontSize="10" FontWeight="SemiBold"
-                           Foreground="#555566" LetterSpacing="1"/>
-                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                            Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by the work each one is holding up. Hover a column heading for what it means. ⚠ Every rate here is a floor: nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
               </StackPanel>
 
@@ -1123,21 +1123,21 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:ItemShortageRowVm">
                     <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
                       <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ShortageTaskRowVm">
                             <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
                               <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="#6e6e80" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                                         Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
                               <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
                                          Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
-                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         Margin="{Binding Indent}" Foreground="{DynamicResource TextPrimaryBrush}"
                                          TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
-                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                             </Grid>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -1155,7 +1155,7 @@
                                 IsVisible="{Binding HasTasks}"
                                 Content="{Binding Glyph}" FontSize="20"
                                 Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand"
                                 HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 3 0 0"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -1299,8 +1299,8 @@
             <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
             <StackPanel Grid.Row="0" Spacing="6">
               <TextBlock Text="BLUEPRINTS" FontSize="10" FontWeight="SemiBold"
-                         Foreground="#555566" LetterSpacing="1"/>
-              <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="A blueprint bottleneck is having to WAIT for an original to free up — not running one a lot. Ranking on use ranks the fix above the problem: a formula run flat out across eight originals has never blocked anything, and buying the eighth is what settled it. Listed from 5% all-busy up, or 15% for single-BPO items, where the measure degenerates into plain use. Hover a column heading for what it means."/>
             </StackPanel>
 
@@ -1316,21 +1316,21 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:PrintPressureRowVm">
                     <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
                       <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ShortageTaskRowVm">
                             <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
                               <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="#6e6e80" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                                         Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
                               <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
                                          Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
-                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         Margin="{Binding Indent}" Foreground="{DynamicResource TextPrimaryBrush}"
                                          TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
-                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                             </Grid>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -1348,7 +1348,7 @@
                                 IsVisible="{Binding HasTasks}"
                                 Content="{Binding Glyph}" FontSize="20"
                                 Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -1398,7 +1398,7 @@
                       <TextBlock Text="Made" Background="Transparent" ToolTip.Tip="Units a day actually produced over the last 90 days. It can never exceed the ceiling, which is why it cannot be used to measure demand."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Used}" Width="60" Foreground="#666677">
+                  <DataGridTextColumn Binding="{Binding Used}" Width="60" Foreground="{DynamicResource TextDimBrush}">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Used" Background="Transparent" ToolTip.Tip="Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints."/>
                     </DataGridTextColumn.Header>
@@ -1414,12 +1414,12 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Binding="{Binding Rank}" Width="70" Foreground="#666677">
+                  <DataGridTextColumn Binding="{Binding Rank}" Width="70" Foreground="{DynamicResource TextDimBrush}">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="Rank" Background="Transparent" ToolTip.Tip="Where this sits among all your own blueprints. Nothing here uses a fixed cut-off, so the flag is drawn against your own spread."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTextColumn Binding="{Binding Recent}" Width="55" Foreground="#666677">
+                  <DataGridTextColumn Binding="{Binding Recent}" Width="55" Foreground="{DynamicResource TextDimBrush}">
                     <DataGridTextColumn.Header>
                       <TextBlock Text="30d" Background="Transparent" ToolTip.Tip="The same all-busy figure over the last 30 days, so a busy month is not hidden inside a quiet quarter."/>
                     </DataGridTextColumn.Header>
@@ -1489,23 +1489,23 @@
             <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
               <StackPanel Grid.Row="0" Spacing="6">
                 <TextBlock Text="TRIPS" FontSize="10" FontWeight="SemiBold"
-                           Foreground="#555566" LetterSpacing="1"/>
-                <TextBlock FontSize="10" Foreground="#666677" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                            Text="Jobs stopped for want of material that is already owned and sitting somewhere else — the other half of Item Contention, where the fix is a trip rather than a purchase. Every row is a job that could run the moment its material arrives. Hover a column heading for what it means."/>
 
                 <!-- ⚠️ Above the grid, not in it. One row per stopped job is right for "what is
                      stuck" and cannot say "these four are one errand" — the same trip appears
                      four times with nothing marking them as the same delivery. -->
                 <Border IsVisible="{Binding HasSharedTrips}" Margin="0 4 0 0" Padding="10 7"
-                        Background="#0f0f16" BorderBrush="#2c2c3a" BorderThickness="1"
+                        Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                         CornerRadius="3" HorizontalAlignment="Left">
                   <StackPanel Spacing="4">
                     <TextBlock Text="ONE TRIP, SEVERAL JOBS" FontSize="9" FontWeight="SemiBold"
-                               Foreground="#c8a84b" LetterSpacing="1"/>
+                               Foreground="{DynamicResource AccentBrush}" LetterSpacing="1"/>
                     <ItemsControl ItemsSource="{Binding SharedTrips}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
-                          <TextBlock Text="{Binding}" FontSize="10" Foreground="#8a8a99"
+                          <TextBlock Text="{Binding}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                                      TextWrapping="Wrap" Margin="0 1"/>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
@@ -1525,21 +1525,21 @@
                 <DataGrid.RowDetailsTemplate>
                   <DataTemplate x:DataType="vm:HaulPressureRowVm">
                     <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                            Background="#0f0f16" BorderBrush="#22222e" BorderThickness="1"
+                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                             CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
                       <ItemsControl ItemsSource="{Binding Tasks}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ShortageTaskRowVm">
                             <Grid ColumnDefinitions="70,70,240,*" Margin="0 1">
                               <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="#6e6e80" VerticalAlignment="Center"/>
+                                         Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
                                          Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
-                                         Margin="{Binding Indent}" Foreground="#c8c8d8"
+                                         Margin="{Binding Indent}" Foreground="{DynamicResource TextPrimaryBrush}"
                                          TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                               <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10" TextWrapping="Wrap"
-                                         Foreground="#8a8a99" VerticalAlignment="Center"/>
+                                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                             </Grid>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -1557,7 +1557,7 @@
                                 IsVisible="{Binding HasTasks}"
                                 Content="{Binding Glyph}" FontSize="20"
                                 Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="#7a8896"
+                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
                                 Cursor="Hand"
                                 HorizontalAlignment="Center" VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
@@ -1683,22 +1683,22 @@
         <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*"
               Margin="0 0 0 8">
           <TextBlock Grid.Column="0" Text="Completed" VerticalAlignment="Center"
-                     FontSize="11" Foreground="#555566" Margin="0 0 8 0" />
+                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 8 0" />
           <TextBox Grid.Column="1" Text="{Binding From}" Watermark="from yyyy-MM-dd"
-                   FontSize="11" MinWidth="120" Background="#1a1a28" Foreground="#c8c8d8"
-                   BorderBrush="#2a2a3a" />
+                   FontSize="11" MinWidth="120" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                   BorderBrush="{DynamicResource BorderDefaultBrush}" />
           <TextBox Grid.Column="2" Text="{Binding Thru}" Watermark="thru yyyy-MM-dd"
-                   FontSize="11" MinWidth="120" Margin="6 0 0 0" Background="#1a1a28"
-                   Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                   FontSize="11" MinWidth="120" Margin="6 0 0 0" Background="{DynamicResource SurfaceRaisedBrush}"
+                   Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
 
           <!-- What the output is worth. A shop selling at a fixed margin over cost never sees the
                market price, so valuing its work by one describes somebody else's business. -->
           <TextBlock Grid.Column="3" Text="Value at" VerticalAlignment="Center"
-                     FontSize="11" Foreground="#555566" Margin="16 0 8 0" />
+                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="16 0 8 0" />
           <ComboBox Grid.Column="4" ItemsSource="{Binding Valuations}"
                     SelectedItem="{Binding Valuation}"
-                    FontSize="11" MinWidth="120" Background="#1a1a28" Foreground="#c8c8d8"
-                    BorderBrush="#2a2a3a" />
+                    FontSize="11" MinWidth="120" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" />
 
           <!-- ⚠️ Wide enough for the DIGITS: a NumericUpDown spends most of its width on the two
                spinner buttons. Hidden rather than disabled when the market is being quoted — a
@@ -1707,20 +1707,20 @@
                          IsVisible="{Binding IsOverBuild}"
                          Minimum="0" Maximum="1000" Increment="1" FormatString="0"
                          Width="120" FontSize="11" Margin="6 0 0 0"
-                         Background="#1a1a28" Foreground="#c8c8d8" BorderBrush="#2a2a3a" />
+                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
 
           <TextBlock Grid.Column="6" Text="Chart by" VerticalAlignment="Center"
-                     FontSize="11" Foreground="#555566" Margin="16 0 8 0" />
+                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="16 0 8 0" />
           <ComboBox Grid.Column="7" ItemsSource="{Binding Grains}" SelectedItem="{Binding Grain}"
-                    FontSize="11" MinWidth="100" Background="#1a1a28" Foreground="#c8c8d8"
-                    BorderBrush="#2a2a3a" />
+                    FontSize="11" MinWidth="100" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" />
 
           <Button Grid.Column="8" Command="{Binding RefreshCommand}" Content="Refresh"
                   FontSize="11" Padding="12 4" Margin="16 0 0 0"
-                  Background="#1a1a28" Foreground="#888899" BorderBrush="#2a2a3a" />
+                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
 
           <TextBlock Grid.Column="9" Text="{Binding StatusText}" FontSize="11"
-                     Foreground="#666677" VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"
                      HorizontalAlignment="Right" Margin="16 0 0 0" />
         </Grid>
 
@@ -1761,11 +1761,11 @@
         <!-- The grid's own figures, summed into the chosen bucket. Side by side because the
              question is whether profit follows value or diverges from it. -->
         <Grid Grid.Row="3" ColumnDefinitions="*,10,*">
-          <Border Grid.Column="0" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="10 8">
             <DockPanel>
               <TextBlock DockPanel.Dock="Top" Text="Market value" FontSize="12"
-                         FontWeight="SemiBold" Foreground="#5599aa" Margin="0 0 0 6" />
+                         FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" Margin="0 0 0 6" />
               <lvc:CartesianChart Series="{Binding MarketSeries}"
                                   XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
                                   TooltipPosition="Top" EasingFunction="{x:Null}"
@@ -1773,11 +1773,11 @@
             </DockPanel>
           </Border>
 
-          <Border Grid.Column="2" Background="#12121a" BorderBrush="#1e1e2a" BorderThickness="1"
+          <Border Grid.Column="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="10 8">
             <DockPanel>
               <TextBlock DockPanel.Dock="Top" Text="Potential profit" FontSize="12"
-                         FontWeight="SemiBold" Foreground="#4a8a5a" Margin="0 0 0 6" />
+                         FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" Margin="0 0 0 6" />
               <lvc:CartesianChart Series="{Binding ProfitSeries}"
                                   XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
                                   TooltipPosition="Top" EasingFunction="{x:Null}"
@@ -1801,15 +1801,15 @@
         <StackPanel Margin="14 12" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">
 
           <StackPanel Spacing="6">
-            <TextBlock Text="Sources" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
-            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+            <TextBlock Text="Sources" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+            <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                        Text="A source that is off is skipped entirely — it costs no queries rather than running and having its output discarded."/>
             <ItemsControl ItemsSource="{Binding Sources}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:WorklistToggleVm">
                   <StackPanel Margin="0 6 0 0">
                     <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
-                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
+                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                Margin="24 0 0 0" TextWrapping="Wrap"/>
                   </StackPanel>
                 </DataTemplate>
@@ -1819,15 +1819,15 @@
 
           <StackPanel Spacing="6">
             <TextBlock Text="Standing buy orders — what to raise" FontSize="12"
-                       FontWeight="SemiBold" Foreground="#c8a84b"/>
-            <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+                       FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+            <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                        Text="Which conditions become tasks. Each is a different job, so they switch independently."/>
             <ItemsControl ItemsSource="{Binding Conditions}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:WorklistToggleVm">
                   <StackPanel Margin="0 6 0 0">
                     <CheckBox Content="{Binding Label}" IsChecked="{Binding IsOn}" FontSize="11"/>
-                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="#555566"
+                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                Margin="24 0 0 0" TextWrapping="Wrap"/>
                   </StackPanel>
                 </DataTemplate>
@@ -1848,7 +1848,7 @@
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding MarketAltsVm}" x:DataType="vm:WorklistMarketAltsViewModel">
 
-        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                    Margin="0 0 0 10"
                    Text="Where shortfalls are bought, and which character maintains orders at each station. Items route through these, so a station with no alt assigned produces blocked items that name no owner."/>
 
@@ -1865,7 +1865,7 @@
                            ToolTip.Tip="Where purchases are raised, and whose market alt gets them. Blueprints are left unassigned — a BPO or BPC comes from contracts, not a market order."/>
           <TextBlock Text="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.BuyWarning}"
                      IsVisible="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).IndustryVm.HasBuyWarning}"
-                     FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap" MaxWidth="560"/>
+                     FontSize="10" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" MaxWidth="560"/>
         </StackPanel>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,180,180,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
@@ -1889,7 +1889,7 @@
                   FontSize="11" Padding="10 4"/>
         </Grid>
 
-        <TextBlock Grid.Row="3" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="3" Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
         <DataGrid Grid.Row="5" ItemsSource="{Binding MarketAlts}"
@@ -1917,7 +1917,7 @@
                 <DataTemplate x:DataType="vm:MarketAltRow">
                   <TextBox Text="{Binding Note, Mode=TwoWay}" Watermark="optional"
                            FontSize="10" Background="Transparent" BorderThickness="0"
-                           Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -1929,7 +1929,7 @@
                           Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).MarketAltsVm.DeleteCommand}"
                           CommandParameter="{Binding}"
                           FontSize="9" Padding="6 2" Background="Transparent"
-                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -1942,7 +1942,7 @@
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding RulesVm}" x:DataType="vm:WorklistInvRulesViewModel">
 
-        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                    Margin="0 0 0 10"
                    Text="When a group drops below the threshold, there should be a buy order at that station. Several rules can point at one group — below 100% order locally, below 75% also order at the hub — and they stack rather than replace each other. Who places the order comes from the station's market alt."/>
 
@@ -1972,7 +1972,7 @@
                            FontSize="11" Watermark="Type two characters…"
                            IsVisible="{Binding NeedsLocation}"/>
           <!-- A Build rule runs wherever the park assigns the job, so there is nothing to pick. -->
-          <TextBlock Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" FontSize="10" Foreground="#666677"
+          <TextBlock Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                      VerticalAlignment="Center" TextWrapping="Wrap"
                      IsVisible="{Binding !NeedsLocation}"
                      Text="Decided by the Indy Park on the Industry tab"/>
@@ -1988,13 +1988,13 @@
                   FontSize="11" Padding="10 4"/>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="2" Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
         <!-- Amber, like the park and buy warnings on the Other tab: the rule is saved and valid,
              it just cannot produce work anybody can do. -->
         <TextBlock Grid.Row="3" Text="{Binding AltWarning}" IsVisible="{Binding HasAltWarning}"
-                   FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap" Margin="0 0 0 8"/>
+                   FontSize="11" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 8"/>
 
         <DataGrid Grid.Row="4" ItemsSource="{Binding Rules}"
                   IsReadOnly="False" AutoGenerateColumns="False" FontSize="10"
@@ -2031,7 +2031,7 @@
                   <NumericUpDown Value="{Binding Threshold, Mode=TwoWay, Converter={StaticResource PctConv}}"
                                  Minimum="0.1" Maximum="10000" Increment="5" FormatString="0.#"
                                  ShowButtonSpinner="False" FontSize="10"
-                                 Background="Transparent" BorderThickness="0" Foreground="#c8c8d8"
+                                 Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
                                  ToolTip.Tip="Raise a task when stock falls below this share of the group target"/>
                 </DataTemplate>
@@ -2044,7 +2044,7 @@
                   <NumericUpDown Value="{Binding Fill, Mode=TwoWay, Converter={StaticResource PctConv}}"
                                  Minimum="0.1" Maximum="10000" Increment="5" FormatString="0.#"
                                  ShowButtonSpinner="False" FontSize="10"
-                                 Background="Transparent" BorderThickness="0" Foreground="#c8c8d8"
+                                 Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}"
                                  HorizontalAlignment="Stretch" VerticalAlignment="Center"
                                  ToolTip.Tip="Fill back up to this share of the group target"/>
                 </DataTemplate>
@@ -2078,10 +2078,10 @@
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <Panel>
                     <TextBlock IsVisible="{Binding NeedsLocation}" Text="{Binding LocationName}"
-                               FontSize="10" Foreground="#c8c8d8" VerticalAlignment="Center"
+                               FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"
                                ToolTip.Tip="Double-click to change the station"/>
                     <TextBlock IsVisible="{Binding !NeedsLocation}" Text="{Binding LocationDisplay}"
-                               FontSize="10" Foreground="#666677" VerticalAlignment="Center"/>
+                               FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
                   </Panel>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
@@ -2098,7 +2098,7 @@
                                      FontSize="10" Watermark="Type two characters…"
                                      VerticalAlignment="Center"/>
                     <TextBlock IsVisible="{Binding !NeedsLocation}" Text="{Binding LocationDisplay}"
-                               FontSize="10" Foreground="#666677" VerticalAlignment="Center"/>
+                               FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
                   </Panel>
                 </DataTemplate>
               </DataGridTemplateColumn.CellEditingTemplate>
@@ -2113,7 +2113,7 @@
                           Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).RulesVm.DeleteCommand}"
                           CommandParameter="{Binding}"
                           FontSize="9" Padding="6 2" Background="Transparent"
-                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -2126,7 +2126,7 @@
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="14 12"
             DataContext="{Binding StationLevelsVm}" x:DataType="vm:WorklistStationLevelsViewModel">
 
-        <TextBlock Grid.Row="0" FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+        <TextBlock Grid.Row="0" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                    Margin="0 0 0 10"
                    Text="Where each group's stock should live. This distributes material rather than demanding more of it — the Inventory Rules already set the quantity — so it raises hauling only, never a buy or a build. Tick Accepts surplus for the station spare stock should collect at when nothing else needs it."/>
 
@@ -2167,7 +2167,7 @@
                          ToolTip.Tip="Excess is left where it is until a station is this far over its level, then drained back down to it. Zero sweeps any excess at all."/>
         </Grid>
 
-        <TextBlock Grid.Row="3" Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Grid.Row="3" Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
         <DataGrid Grid.Row="4" ItemsSource="{Binding Levels}"
@@ -2190,7 +2190,7 @@
             <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="LocationName" IsReadOnly="False">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationLevelRow">
-                  <TextBlock Text="{Binding LocationName}" FontSize="10" Foreground="#c8c8d8"
+                  <TextBlock Text="{Binding LocationName}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                              VerticalAlignment="Center"
                              ToolTip.Tip="Double-click to change the station"/>
                 </DataTemplate>
@@ -2225,7 +2225,7 @@
                           Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).StationLevelsVm.DeleteCommand}"
                           CommandParameter="{Binding}"
                           FontSize="9" Padding="6 2" Background="Transparent"
-                          BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -2241,16 +2241,16 @@
       <StackPanel Margin="14 12" Spacing="18"
             DataContext="{Binding IndustryVm}" x:DataType="vm:WorklistIndustryViewModel">
 
-        <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+        <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                    Text="Where industry work is planned, where its materials are counted, and where what is missing gets bought."/>
 
         <!-- ── Industry ──────────────────────────────────────────────────── -->
-        <TextBlock Text="Industry" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+        <TextBlock Text="Industry" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
 
         <Grid ColumnDefinitions="240,Auto,Auto,Auto,*" RowDefinitions="Auto,Auto">
           <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="6">
             <TextBlock Text="Plan against park" Classes="fieldLabel"/>
-            <TextBlock Text="{Binding ParkResolvedText}" Classes="fieldLabel" Foreground="#7a8896"/>
+            <TextBlock Text="{Binding ParkResolvedText}" Classes="fieldLabel" Foreground="{DynamicResource TextMutedBrush}"/>
           </StackPanel>
           <TextBlock Grid.Row="0" Grid.Column="1" Text="Max job length — manufacturing" Classes="fieldLabel"/>
           <TextBlock Grid.Row="0" Grid.Column="2" Text="reactions" Classes="fieldLabel"/>
@@ -2274,10 +2274,10 @@
         </Grid>
 
         <TextBlock Text="{Binding ParkWarning}" IsVisible="{Binding HasParkWarning}"
-                   FontSize="10" Foreground="#c8a84b" TextWrapping="Wrap"/>
+                   FontSize="10" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"/>
 
         <!-- ── Asset Scope ───────────────────────────────────────────────── -->
-        <TextBlock Text="Asset Scope" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+        <TextBlock Text="Asset Scope" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
 
         <Grid ColumnDefinitions="130,240,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Count material" Classes="fieldLabel"/>
@@ -2324,23 +2324,23 @@
                         CommandParameter="{Binding}"
                         Content="{Binding LocationName}" ToolTip.Tip="Click to remove from the scope"
                         FontSize="9" Padding="6 2" Margin="0 0 4 4" Cursor="Hand"
-                        Background="Transparent" BorderBrush="#252530" BorderThickness="1"/>
+                        Background="Transparent" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </Grid>
 
-        <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+        <TextBlock Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap"/>
 
         <!-- ── Corp Projects ─────────────────────────────────────────────── -->
         <!-- Its own view model, reached explicitly because the panel around it is bound to the
              industry settings. -->
-        <TextBlock Text="Corp Projects" FontSize="12" FontWeight="SemiBold" Foreground="#c8a84b"/>
+        <TextBlock Text="Corp Projects" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
 
         <StackPanel Spacing="6" x:CompileBindings="False"
                     DataContext="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CorpAltsVm}">
-          <TextBlock FontSize="10" Foreground="#555566" TextWrapping="Wrap"
+          <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                      Text="Standing projects are defined in Corp Activity; the only thing the worklist needs is who maintains them. Projects belong to a corporation, so this routes by corporation rather than by station. Only corporations that actually have standing projects are listed."/>
 
           <Grid ColumnDefinitions="*,200,200,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
@@ -2359,7 +2359,7 @@
                     FontSize="11" Padding="10 4"/>
           </Grid>
 
-          <TextBlock Text="{Binding Status}" FontSize="10" Foreground="#7a8896"
+          <TextBlock Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                      TextWrapping="Wrap" Margin="0 0 0 8"/>
 
           <DataGrid ItemsSource="{Binding Alts}" MinHeight="140" MaxHeight="320"
@@ -2386,7 +2386,7 @@
                   <DataTemplate x:DataType="vm:CorpAltRow">
                     <TextBox Text="{Binding Note, Mode=TwoWay}" Watermark="optional"
                              FontSize="10" Background="Transparent" BorderThickness="0"
-                             Foreground="#c8c8d8" VerticalAlignment="Center"/>
+                             Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
@@ -2397,7 +2397,7 @@
                             Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CorpAltsVm.DeleteCommand}"
                             CommandParameter="{Binding}"
                             FontSize="9" Padding="6 2" Background="Transparent"
-                            BorderBrush="#252530" BorderThickness="1" Cursor="Hand"/>
+                            BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>

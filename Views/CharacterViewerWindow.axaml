@@ -7,6 +7,6 @@
         Title="Character Viewer"
         Width="1100" Height="720"
         MinWidth="860" MinHeight="520"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:CharacterViewerView DataContext="{Binding}" />
 </Window>

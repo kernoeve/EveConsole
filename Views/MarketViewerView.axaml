@@ -4,24 +4,24 @@
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.MarketViewerView"
              x:DataType="vm:MarketViewerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
-      <Setter Property="Background" Value="#12121a" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="FontSize"   Value="10" />
       <Setter Property="FontWeight" Value="SemiBold" />
       <Setter Property="Padding"    Value="6 5 2 5" />
     </Style>
     <Style Selector="TextBlock.flabel">
-      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#555566" />
+      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="Border.kpi">
-      <Setter Property="Background" Value="#131320" />
-      <Setter Property="BorderBrush" Value="#252535" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="4" />
       <Setter Property="Padding" Value="14 8" />
@@ -29,26 +29,26 @@
       <Setter Property="MinWidth" Value="150" />
     </Style>
     <Style Selector="Border.kpi TextBlock.k">
-      <Setter Property="FontSize" Value="9" /><Setter Property="Foreground" Value="#888899" />
+      <Setter Property="FontSize" Value="9" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
       <Setter Property="FontWeight" Value="SemiBold" /><Setter Property="LetterSpacing" Value="1" />
     </Style>
     <Style Selector="Border.kpi TextBlock.v">
-      <Setter Property="FontSize" Value="20" /><Setter Property="Foreground" Value="#ccccdd" />
+      <Setter Property="FontSize" Value="20" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
       <Setter Property="FontWeight" Value="Bold" />
     </Style>
     <Style Selector="Border.chartcard">
-      <Setter Property="Background" Value="#0d0d12" />
-      <Setter Property="BorderBrush" Value="#1e1e2a" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceBaseBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="3" />
       <Setter Property="Padding" Value="10 8" />
     </Style>
     <Style Selector="Border.chartcard TextBlock.title">
       <Setter Property="FontSize" Value="11" /><Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
     </Style>
     <Style Selector="TextBlock.nodata">
-      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#444455" />
+      <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="{DynamicResource BorderStrongBrush}" />
       <Setter Property="HorizontalAlignment" Value="Center" /><Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
@@ -73,7 +73,7 @@
   </UserControl.Styles>
 
   <Grid>
-    <TabControl Background="#0d0d12" SelectedIndex="{Binding SelectedTab}">
+    <TabControl Background="{DynamicResource SurfaceBaseBrush}" SelectedIndex="{Binding SelectedTab}">
 
       <!-- ══ Summary ═════════════════════════════════════════════════════════ -->
       <TabItem Header="Summary">
@@ -153,7 +153,7 @@
         <DataGrid ItemsSource="{Binding GroupRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-                  Background="#0d0d12">
+                  Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
             <DataGridTextColumn Header="Market Group"     Binding="{Binding Group}"      Width="260" />
             <DataGridTextColumn Header="Sell Order Units" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
@@ -171,7 +171,7 @@
         <DataGrid ItemsSource="{Binding TypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-                  Background="#0d0d12">
+                  Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
             <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="260">
               <DataGridTemplateColumn.CellTemplate>
@@ -202,7 +202,7 @@
         <DataGrid ItemsSource="{Binding SellByTypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-                  Background="#0d0d12">
+                  Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
             <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280">
               <DataGridTemplateColumn.CellTemplate>
@@ -229,7 +229,7 @@
         <DataGrid ItemsSource="{Binding BuyByTypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
-                  Background="#0d0d12">
+                  Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
             <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280">
               <DataGridTemplateColumn.CellTemplate>
@@ -256,7 +256,7 @@
     <!-- Period + Region selectors, floated over the right of the tab strip -->
     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Top"
                 Margin="0 5 10 0">
-      <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="#888899" Margin="0 0 6 0" />
+      <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 6 0" />
       <TextBlock Classes="flabel" Text="Period:" />
       <ComboBox ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}"
                 MinWidth="130" FontSize="11" Height="26" VerticalAlignment="Center" />

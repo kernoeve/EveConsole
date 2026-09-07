@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.CharacterViewerView"
              x:DataType="vm:CharacterViewerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="Button.skilllink">
@@ -32,14 +32,14 @@
 
       <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
         <TextBlock Text="All characters" FontSize="15" FontWeight="SemiBold"
-                   Foreground="#c8a84b" VerticalAlignment="Center"/>
+                   Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
         <Button Content="Refresh" Command="{Binding RefreshSummaryCommand}"
                 IsEnabled="{Binding !SummaryLoading}" FontSize="11" Padding="10 4"/>
         <TextBlock Text="Double-click a row to open it on the Detail tab."
-                   FontSize="10" Foreground="#555566" VerticalAlignment="Center"/>
+                   FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
       </StackPanel>
 
-      <TextBlock Grid.Row="1" Text="{Binding SummaryStatus}" FontSize="10" Foreground="#7a8896"
+      <TextBlock Grid.Row="1" Text="{Binding SummaryStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                  TextWrapping="Wrap" Margin="0 0 0 8"/>
 
       <DataGrid Grid.Row="2" x:Name="SummaryGrid"
@@ -57,8 +57,8 @@
             <Setter Property="FontSize" Value="10" />
           </Style>
           <Style Selector="DataGridColumnHeader">
-            <Setter Property="Background" Value="#12121a" />
-            <Setter Property="Foreground" Value="#555566" />
+            <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
             <Setter Property="FontSize"   Value="10" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Padding"    Value="6 5 2 5" />
@@ -168,10 +168,10 @@
   <DockPanel>
 
     <!-- ── Top: selector bar ──────────────────────────────────────────────── -->
-    <Border DockPanel.Dock="Top" Background="#161620" Padding="14 8">
+    <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceHeaderBrush}" Padding="14 8">
       <Grid ColumnDefinitions="Auto,*,Auto">
         <TextBlock Grid.Column="0" Text="Character:"
-                   Foreground="#666677" FontSize="12"
+                   Foreground="{DynamicResource TextDimBrush}" FontSize="12"
                    VerticalAlignment="Center" Margin="0 0 10 0" />
         <ComboBox Grid.Column="1"
                   ItemsSource="{Binding Characters}"
@@ -191,14 +191,14 @@
     </Border>
 
     <!-- ── Character info bar (portrait + stats) ──────────────────────────── -->
-    <Border DockPanel.Dock="Top" Background="#111117" Padding="14 12">
+    <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceInputBrush}" Padding="14 12">
       <Grid ColumnDefinitions="Auto,*">
 
         <!-- Portrait -->
         <Border Grid.Column="0"
                 Width="96" Height="96"
                 CornerRadius="4"
-                Background="#252530"
+                Background="{DynamicResource BorderDefaultBrush}"
                 ClipToBounds="True"
                 Margin="0 0 16 0">
           <Image Source="{Binding Portrait}"
@@ -211,19 +211,19 @@
           <!-- Name + corp -->
           <TextBlock Text="{Binding SelectedCharacter.Name}"
                      FontSize="18" FontWeight="SemiBold"
-                     Foreground="#c8a84b" />
+                     Foreground="{DynamicResource AccentBrush}" />
           <TextBlock Text="{Binding CorpName}"
-                     FontSize="11" Foreground="#777788" />
+                     FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
 
           <!-- SP + sec status row -->
           <StackPanel Orientation="Horizontal" Spacing="0" Margin="0 4 0 0">
-            <TextBlock Text="Total SP: " Foreground="#555566" FontSize="11" />
+            <TextBlock Text="Total SP: " Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
             <TextBlock Text="{Binding SelectedCharacter.TotalSp, StringFormat=\{0:N0\}}"
-                       Foreground="#b0b0c0" FontSize="11" Margin="0 0 20 0" />
-            <TextBlock Text="Unallocated: " Foreground="#555566" FontSize="11" />
+                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0 0 20 0" />
+            <TextBlock Text="Unallocated: " Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
             <TextBlock Text="{Binding SelectedCharacter.UnallocatedSp, StringFormat=\{0:N0\}}"
-                       Foreground="#b0b0c0" FontSize="11" Margin="0 0 20 0" />
-            <TextBlock Text="Sec Status: " Foreground="#555566" FontSize="11" />
+                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0 0 20 0" />
+            <TextBlock Text="Sec Status: " Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
             <TextBlock Text="{Binding SelectedCharacter.SecurityStatus, StringFormat=\{0:F1\}}"
                        Foreground="{Binding SelectedCharacter.SecurityStatus, Converter={x:Static local:SecurityStatusBrushConverter.Instance}}"
                        FontSize="11" />
@@ -231,18 +231,18 @@
 
           <!-- Last updated -->
           <TextBlock Text="{Binding SelectedCharacter.LastUpdated, StringFormat='Updated: \{0:dd MMM yyyy HH:mm\}'}"
-                     Foreground="#444455" FontSize="10" />
+                     Foreground="{DynamicResource BorderStrongBrush}" FontSize="10" />
 
         </StackPanel>
       </Grid>
     </Border>
 
     <!-- ── Bottom: status bar ─────────────────────────────────────────────── -->
-    <Border DockPanel.Dock="Bottom" Background="#0d0d12" Padding="12 5">
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 5">
       <Grid ColumnDefinitions="*,Auto">
         <TextBlock Grid.Column="0"
                    Text="{Binding StatusText}"
-                   Foreground="#555566" FontSize="11"
+                   Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                    VerticalAlignment="Center" />
         <ProgressBar Grid.Column="1"
                      IsVisible="{Binding IsBusy}"
@@ -259,11 +259,11 @@
         <Grid ColumnDefinitions="190,1,*,1,500">
 
           <!-- Skill group list (left panel) -->
-          <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="#111117">
-            <Border Grid.Row="0" Background="#161620" Padding="10 7">
+          <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="{DynamicResource SurfaceInputBrush}">
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 7">
               <TextBlock Text="Skill Groups"
                          FontSize="11" FontWeight="SemiBold"
-                         Foreground="#888899" />
+                         Foreground="{DynamicResource TextMutedBrush}" />
             </Border>
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding SkillGroups}"
@@ -280,7 +280,7 @@
                     <TextBlock Grid.Column="1"
                                Text="{Binding SpText}"
                                FontSize="10"
-                               Foreground="#555566"
+                               Foreground="{DynamicResource TextFaintBrush}"
                                Margin="4 0 2 0" />
                   </Grid>
                 </DataTemplate>
@@ -289,7 +289,7 @@
           </Grid>
 
           <!-- Divider -->
-          <Border Grid.Column="1" Background="#252530" />
+          <Border Grid.Column="1" Background="{DynamicResource BorderDefaultBrush}" />
 
           <!-- Skill display (center) -->
           <ScrollViewer Grid.Column="2"
@@ -299,18 +299,18 @@
               <ItemsControl.DataTemplates>
 
                 <DataTemplate DataType="{x:Type vm:SkillGroupHeader}">
-                  <Border Background="#161620"
+                  <Border Background="{DynamicResource SurfaceHeaderBrush}"
                           Padding="8 5" Margin="0 10 0 3"
                           CornerRadius="2">
                     <Grid ColumnDefinitions="*,Auto">
                       <TextBlock Grid.Column="0"
                                  Text="{Binding Name}"
                                  FontSize="11" FontWeight="SemiBold"
-                                 Foreground="#9090a8" />
+                                 Foreground="{DynamicResource TextMutedBrush}" />
                       <TextBlock Grid.Column="1"
                                  Text="{Binding SpText}"
                                  FontSize="10"
-                                 Foreground="#444455" />
+                                 Foreground="{DynamicResource BorderStrongBrush}" />
                     </Grid>
                   </Border>
                 </DataTemplate>
@@ -323,7 +323,7 @@
                             CommandParameter="{Binding TypeId}"
                             ToolTip.Tip="Open in Item Browser">
                       <TextBlock Text="{Binding Name}"
-                                 FontSize="11" Foreground="#c8c8d8"
+                                 FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                  TextDecorations="Underline"
                                  VerticalAlignment="Center"
                                  TextTrimming="CharacterEllipsis" />
@@ -342,7 +342,7 @@
                     <TextBlock Grid.Column="2"
                                Text="{Binding SpText}"
                                FontSize="10"
-                               Foreground="#555566"
+                               Foreground="{DynamicResource TextFaintBrush}"
                                VerticalAlignment="Center"
                                Width="68"
                                TextAlignment="Right"
@@ -355,18 +355,18 @@
           </ScrollViewer>
 
           <!-- Divider -->
-          <Border Grid.Column="3" Background="#252530" />
+          <Border Grid.Column="3" Background="{DynamicResource BorderDefaultBrush}" />
 
           <!-- Training queue (right panel) -->
-          <Grid Grid.Column="4" RowDefinitions="Auto,*,Auto" Background="#111117">
-            <Border Grid.Row="0" Background="#161620" Padding="10 7">
+          <Grid Grid.Column="4" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfaceInputBrush}">
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 7">
               <Grid ColumnDefinitions="Auto,*">
                 <TextBlock Grid.Column="0" Text="Training Queue"
                            FontSize="11" FontWeight="SemiBold"
-                           Foreground="#888899" VerticalAlignment="Center" />
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding QueueEtaText}"
                            FontSize="11" FontWeight="SemiBold"
-                           Foreground="#c8a84b" VerticalAlignment="Center"
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
                            HorizontalAlignment="Right" />
               </Grid>
             </Border>
@@ -379,7 +379,7 @@
                         <TextBlock Grid.Column="0"
                                    Text="{Binding DisplayPos, StringFormat=\{0\}.}"
                                    Width="22" FontSize="10"
-                                   Foreground="#444455"
+                                   Foreground="{DynamicResource BorderStrongBrush}"
                                    VerticalAlignment="Center" />
                         <Button Grid.Column="1"
                                 x:CompileBindings="False"
@@ -388,7 +388,7 @@
                                 CommandParameter="{Binding TypeId}"
                                 ToolTip.Tip="Open in Item Browser">
                           <TextBlock Text="{Binding SkillName}"
-                                     FontSize="11" Foreground="#c8c8d8"
+                                     FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextDecorations="Underline"
                                      TextTrimming="CharacterEllipsis"
                                      VerticalAlignment="Center" />
@@ -396,13 +396,13 @@
                         <TextBlock Grid.Column="2"
                                    Text="{Binding TargetLevel, StringFormat='→ L\{0\}'}"
                                    FontSize="10"
-                                   Foreground="#c8a84b"
+                                   Foreground="{DynamicResource AccentBrush}"
                                    VerticalAlignment="Center"
                                    Margin="4 0 0 0" />
                         <TextBlock Grid.Column="3"
                                    Text="{Binding DurationText}"
                                    FontSize="10"
-                                   Foreground="#6688aa"
+                                   Foreground="{DynamicResource TextDimBrush}"
                                    VerticalAlignment="Center"
                                    TextAlignment="Right"
                                    Width="120"
@@ -415,17 +415,17 @@
                                    Margin="22 2 0 0" />
                       <TextBlock Text="{Binding EtaText}"
                                  FontSize="10"
-                                 Foreground="#555566"
+                                 Foreground="{DynamicResource TextFaintBrush}"
                                  Margin="22 0 0 0" />
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
             </ScrollViewer>
-            <Border Grid.Row="2" Background="#0d0d12" Padding="8 6">
+            <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6">
               <TextBlock Text="{Binding QueueText}"
                          FontSize="10"
-                         Foreground="#444455"
+                         Foreground="{DynamicResource BorderStrongBrush}"
                          TextWrapping="Wrap" />
             </Border>
           </Grid>
@@ -440,37 +440,37 @@
 
             <TextBlock Text="Character Attributes"
                        FontSize="14" FontWeight="SemiBold"
-                       Foreground="#c8a84b" />
+                       Foreground="{DynamicResource AccentBrush}" />
 
             <Grid ColumnDefinitions="140,80" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                   IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNotNull}}">
-              <TextBlock Grid.Row="0" Grid.Column="0" Text="Intelligence" Foreground="#888899" FontSize="12" Margin="0 4" />
-              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Attributes.Intelligence}" Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="1" Grid.Column="0" Text="Memory"       Foreground="#888899" FontSize="12" Margin="0 4" />
-              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Attributes.Memory}"       Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="2" Grid.Column="0" Text="Charisma"     Foreground="#888899" FontSize="12" Margin="0 4" />
-              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Attributes.Charisma}"     Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="3" Grid.Column="0" Text="Perception"   Foreground="#888899" FontSize="12" Margin="0 4" />
-              <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Attributes.Perception}"   Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="4" Grid.Column="0" Text="Willpower"    Foreground="#888899" FontSize="12" Margin="0 4" />
-              <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Attributes.Willpower}"    Foreground="#c8c8cc" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="Intelligence" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Attributes.Intelligence}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="Memory"       Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Attributes.Memory}"       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="Charisma"     Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Attributes.Charisma}"     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="Perception"   Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Attributes.Perception}"   Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
+              <TextBlock Grid.Row="4" Grid.Column="0" Text="Willpower"    Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Attributes.Willpower}"    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
             </Grid>
 
             <TextBlock IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNull}}"
                        Text="No attribute data available. Character attributes are loaded during ESI polling."
-                       Foreground="#555566" FontSize="12" TextWrapping="Wrap" />
+                       Foreground="{DynamicResource TextFaintBrush}" FontSize="12" TextWrapping="Wrap" />
 
             <Border IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNotNull}}"
-                    Background="#161620" CornerRadius="4" Padding="12 10">
+                    Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4" Padding="12 10">
               <StackPanel Spacing="6">
-                <TextBlock Text="Neural Remapping" FontSize="11" FontWeight="SemiBold" Foreground="#888899" />
-                <TextBlock Text="{Binding RemapInfo}" FontSize="11" Foreground="#c8a84b" TextWrapping="Wrap" />
+                <TextBlock Text="Neural Remapping" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
+                <TextBlock Text="{Binding RemapInfo}" FontSize="11" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
                 <Grid ColumnDefinitions="140,*"
                       IsVisible="{Binding Attributes.LastRemapDate, Converter={x:Static ObjectConverters.IsNotNull}}">
-                  <TextBlock Grid.Column="0" Text="Last Remap:" Foreground="#555566" FontSize="11" />
+                  <TextBlock Grid.Column="0" Text="Last Remap:" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
                   <TextBlock Grid.Column="1"
                              Text="{Binding Attributes.LastRemapDate, StringFormat=\{0:dd MMM yyyy\}}"
-                             Foreground="#888899" FontSize="11" />
+                             Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
                 </Grid>
               </StackPanel>
             </Border>
@@ -488,45 +488,45 @@
             <StackPanel Spacing="8">
               <TextBlock Text="Active Clone Implants"
                          FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" />
+                         Foreground="{DynamicResource AccentBrush}" />
               <TextBlock IsVisible="{Binding NoActiveImplants}"
                          Text="No implants fitted in active clone."
-                         Foreground="#555566" FontSize="11" />
+                         Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
               <ItemsControl ItemsSource="{Binding ActiveImplants}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:ActiveImplantVm">
-                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#b0b0c0" Margin="0 2" />
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 2" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
             </StackPanel>
 
-            <Border Height="1" Background="#252530" />
+            <Border Height="1" Background="{DynamicResource BorderDefaultBrush}" />
 
             <!-- Jump clones -->
             <StackPanel Spacing="8">
               <TextBlock Text="Jump Clones"
                          FontSize="13" FontWeight="SemiBold"
-                         Foreground="#c8a84b" />
+                         Foreground="{DynamicResource AccentBrush}" />
               <TextBlock IsVisible="{Binding NoJumpClones}"
                          Text="No jump clones."
-                         Foreground="#555566" FontSize="11" />
+                         Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
               <ItemsControl ItemsSource="{Binding JumpClones}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:JumpCloneVm">
-                    <Border Background="#161620" CornerRadius="3" Padding="10 8" Margin="0 4">
+                    <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="3" Padding="10 8" Margin="0 4">
                       <StackPanel Spacing="4">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                           <TextBlock Text="{Binding CloneName}"
-                                     FontSize="11" FontWeight="SemiBold" Foreground="#c8a84b"
+                                     FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                                      IsVisible="{Binding CloneName, Converter={x:Static ObjectConverters.IsNotNull}}" />
                           <TextBlock Text="{Binding Location}"
-                                     FontSize="11" Foreground="#777788" />
+                                     FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                         </StackPanel>
                         <ItemsControl ItemsSource="{Binding ImplantNames}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                              <TextBlock Text="{Binding}" FontSize="10" Foreground="#888899" Margin="0 1" />
+                              <TextBlock Text="{Binding}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="0 1" />
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -550,7 +550,7 @@
                   IsVisible="{Binding NoMedals}"
                   Padding="20 16">
             <TextBlock Text="{Binding MedalCountText}"
-                       Foreground="#555566" FontSize="12" />
+                       Foreground="{DynamicResource TextFaintBrush}" FontSize="12" />
           </Border>
 
           <!-- Medal list -->
@@ -560,25 +560,25 @@
             <ItemsControl ItemsSource="{Binding Medals}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:MedalDisplayVm">
-                  <Border Background="#161620" CornerRadius="3"
+                  <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="3"
                           Padding="12 8" Margin="0 4">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
                       <TextBlock Grid.Row="0" Grid.Column="0"
                                  Text="{Binding Title}"
                                  FontSize="12" FontWeight="SemiBold"
-                                 Foreground="#c8a84b" />
+                                 Foreground="{DynamicResource AccentBrush}" />
                       <TextBlock Grid.Row="0" Grid.Column="1"
                                  Text="{Binding Date, StringFormat=\{0:dd MMM yyyy\}}"
-                                 FontSize="10" Foreground="#555566"
+                                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                  VerticalAlignment="Center" />
                       <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                                  Text="{Binding Reason}"
-                                 FontSize="11" Foreground="#888899"
+                                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                  TextWrapping="Wrap" Margin="0 3 0 0"
                                  IsVisible="{Binding Reason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                       <TextBlock Grid.Row="2" Grid.Column="0"
                                  Text="{Binding Status}"
-                                 FontSize="10" Foreground="#555566"
+                                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                  Margin="0 3 0 0" />
                     </Grid>
                   </Border>
@@ -597,7 +597,7 @@
                   IsVisible="{Binding NoTitles}"
                   Padding="20 16">
             <TextBlock Text="No titles held by this character."
-                       Foreground="#555566" FontSize="12" />
+                       Foreground="{DynamicResource TextFaintBrush}" FontSize="12" />
           </Border>
           <ScrollViewer Grid.Row="1"
                         IsVisible="{Binding !NoTitles}"
@@ -605,10 +605,10 @@
             <ItemsControl ItemsSource="{Binding Titles}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:TitleVm">
-                  <Border Background="#161620" CornerRadius="3"
+                  <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="3"
                           Padding="12 8" Margin="0 4">
                     <local:ColorTagTextBlock TaggedText="{Binding Name}"
-                                            FontSize="12" Foreground="#c8a84b" />
+                                            FontSize="12" Foreground="{DynamicResource AccentBrush}" />
                   </Border>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -624,7 +624,7 @@
                   IsVisible="{Binding NoStandings}"
                   Padding="20 16">
             <TextBlock Text="No standings data available."
-                       Foreground="#555566" FontSize="12" />
+                       Foreground="{DynamicResource TextFaintBrush}" FontSize="12" />
           </Border>
           <ScrollViewer Grid.Row="1"
                         IsVisible="{Binding !NoStandings}"
@@ -636,9 +636,9 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                       <TextBlock Text="{Binding EntityName}"
                                  FontSize="12" TextTrimming="CharacterEllipsis" />
-                      <Border Background="#1e1e2a" CornerRadius="2" Padding="5 1">
+                      <Border Background="{DynamicResource BorderSubtleBrush}" CornerRadius="2" Padding="5 1">
                         <TextBlock Text="{Binding TypeLabel}"
-                                   FontSize="10" Foreground="#666677" />
+                                   FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                       </Border>
                     </StackPanel>
                     <TextBlock Grid.Column="2"

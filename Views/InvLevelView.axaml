@@ -4,7 +4,7 @@
              xmlns:conv="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.InvLevelView"
              x:DataType="vm:InvLevelViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Resources>
     <conv:NullableDecimalToPositiveIntConverter x:Key="IntConv" />
@@ -35,46 +35,46 @@
   <Grid RowDefinitions="Auto,1,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
-            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <Grid ColumnDefinitions="Auto,Auto,Auto,*">
 
         <Button Grid.Column="0"
                 Command="{Binding AddGroupCommand}"
                 Content="+ Add Group"
-                Background="#1a1a28" Foreground="#c8a84b"
-                BorderBrush="#3a3020" BorderThickness="1"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" />
 
         <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8 0 0 0">
           <Button Command="{Binding AddCollectionCommand}"
                   Content="+ Collection"
-                  Background="#1a1a28" Foreground="#8888cc"
-                  BorderBrush="#2a2a4a" BorderThickness="1"
+                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                  BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                   Padding="12 4" FontSize="11" />
           <Button Command="{Binding ImportCollectionCommand}"
                   Content="Import Collection"
                   ToolTip.Tip="Read a collection from a file. It always comes in as a new collection, never merged into an existing one."
-                  Background="#1a1a28" Foreground="#8888cc"
-                  BorderBrush="#2a2a4a" BorderThickness="1"
+                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                  BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                   Padding="12 4" FontSize="11" Margin="8 0 0 0" />
         </StackPanel>
 
         <Button Grid.Column="2"
                 Command="{Binding RefreshCommand}"
                 Content="Refresh"
-                Background="#1a1a28" Foreground="#5599aa"
-                BorderBrush="#2a3a44" BorderThickness="1"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" Margin="8 0 0 0" />
 
         <TextBlock Grid.Column="3"
                    Text="{Binding StatusText}"
-                   FontSize="11" Foreground="#666677"
+                   FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0" />
       </Grid>
     </Border>
 
-    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+    <Rectangle Grid.Row="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Data grid ─────────────────────────────────────────────────── -->
     <DataGrid Grid.Row="2"
@@ -88,10 +88,10 @@
               Sorting="OnGridSorting"
               IsReadOnly="False"
               Classes="tinted"
-              Background="#0d0d12"
-              RowBackground="#0d0d12"
+              Background="{DynamicResource SurfaceBaseBrush}"
+              RowBackground="{DynamicResource SurfaceBaseBrush}"
               GridLinesVisibility="Horizontal"
-              HorizontalGridLinesBrush="#1a1a26"
+              HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}"
               HeadersVisibility="Column"
               FontSize="11"
               RowHeight="25"
@@ -119,13 +119,13 @@
 
       <DataGrid.Styles>
         <Style Selector="DataGridColumnHeader">
-          <Setter Property="Background"                Value="#12121a" />
-          <Setter Property="Foreground"                Value="#555566" />
+          <Setter Property="Background"                Value="{DynamicResource SurfacePanelBrush}" />
+          <Setter Property="Foreground"                Value="{DynamicResource TextFaintBrush}" />
           <Setter Property="FontSize"                  Value="10" />
           <Setter Property="FontWeight"                Value="SemiBold" />
           <Setter Property="Padding"                   Value="6 6 2 6" />
           <Setter Property="HorizontalContentAlignment" Value="Left" />
-          <Setter Property="BorderBrush"               Value="#1e1e2a" />
+          <Setter Property="BorderBrush"               Value="{DynamicResource BorderSubtleBrush}" />
           <Setter Property="BorderThickness"           Value="0 0 1 1" />
         </Style>
         <Style Selector="DataGridCell">
@@ -158,42 +158,42 @@
                   <Button Command="{Binding ToggleCommand}"
                           Content="{Binding ExpanderIcon}"
                           Background="Transparent" BorderThickness="0"
-                          Foreground="#8888cc" Padding="2 0" FontSize="11"
+                          Foreground="{DynamicResource InfoBrush}" Padding="2 0" FontSize="11"
                           VerticalAlignment="Center" Cursor="Hand" />
                   <TextBlock Text="{Binding CollectionName}"
                              FontSize="12" FontWeight="SemiBold"
-                             Foreground="#8888cc" VerticalAlignment="Center" />
+                             Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
                   <Button Command="{Binding ExpandAllCommand}"
                           Content="+"
                           ToolTip.Tip="Expand all groups"
-                          Background="#0d1020" Foreground="#8888cc"
-                          BorderBrush="#2a2a4a" BorderThickness="1"
+                          Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                           Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
                   <Button Command="{Binding CollapseAllCommand}"
                           Content="−"
                           ToolTip.Tip="Collapse all groups"
-                          Background="#0d1020" Foreground="#8888cc"
-                          BorderBrush="#2a2a4a" BorderThickness="1"
+                          Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                           Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding RenameCommand}"
                           Content="Rename"
                           IsVisible="{Binding !IsSynthetic}"
-                          Background="#1a1a28" Foreground="#888899"
-                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding ExportCommand}"
                           Content="Export"
                           IsVisible="{Binding !IsSynthetic}"
                           ToolTip.Tip="Save this collection's groups, scopes and item targets to a file."
-                          Background="#1a1a28" Foreground="#888899"
-                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand"
                           Margin="6 0 0 0" />
                   <Button Command="{Binding DeleteCommand}"
                           Content="Delete"
                           IsVisible="{Binding !IsSynthetic}"
-                          Background="#2a1010" Foreground="#aa4444"
-                          BorderBrush="#3a2020" BorderThickness="1"
+                          Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                          BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                 </StackPanel>
 
@@ -203,12 +203,12 @@
                   <Button Command="{Binding ToggleCommand}"
                           Content="{Binding ExpanderIcon}"
                           Background="Transparent" BorderThickness="0"
-                          Foreground="#888899" Padding="2 0" FontSize="11"
+                          Foreground="{DynamicResource TextMutedBrush}" Padding="2 0" FontSize="11"
                           VerticalAlignment="Center" Cursor="Hand" />
                   <TextBlock Text="{Binding GroupName}"
                              FontSize="12" FontWeight="SemiBold"
-                             Foreground="#c8a84b" VerticalAlignment="Center" />
-                  <TextBlock Text="×" FontSize="10" Foreground="#555566"
+                             Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                  <TextBlock Text="×" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                              VerticalAlignment="Center" Margin="6 0 0 0" />
                   <NumericUpDown x:CompileBindings="False"
                                  Value="{Binding Multiplier, Converter={StaticResource IntConv}}"
@@ -218,21 +218,21 @@
                                  Background="Transparent"
                                  BorderThickness="0"
                                  VerticalAlignment="Center"
-                                 Foreground="#aaaacc" />
+                                 Foreground="{DynamicResource TextSecondaryBrush}" />
                   <Button Command="{Binding AddItemCommand}"
                           Content="+ Item"
-                          Background="#0d1a12" Foreground="#4a8a5a"
-                          BorderBrush="#1e3a28" BorderThickness="1"
+                          Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
                   <Button Command="{Binding EditCommand}"
                           Content="Edit"
-                          Background="#1a1a28" Foreground="#888899"
-                          BorderBrush="#2a2a3a" BorderThickness="1"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding DeleteCommand}"
                           Content="Delete"
-                          Background="#2a1010" Foreground="#aa4444"
-                          BorderBrush="#3a2020" BorderThickness="1"
+                          Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                          BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <!-- ScopeDisplay split so the location name can link while the scope word stays
                        plain. Where it goes depends on the scope: the region, the system, or the
@@ -243,15 +243,15 @@
                             IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this location">
                       <TextBlock Text="{Binding LocationName}" Classes="linktext"
-                                 FontSize="10" Foreground="#445566" />
+                                 FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" />
                     </Button>
                     <TextBlock Text="{Binding ScopeDisplay}" IsVisible="{Binding !HasLocationLink}"
-                               FontSize="10" Foreground="#445566" VerticalAlignment="Center" />
+                               FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding ScopeSuffix}" IsVisible="{Binding HasLocationLink}"
-                               FontSize="10" Foreground="#445566" VerticalAlignment="Center" />
+                               FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
                   </StackPanel>
                   <TextBlock Text="{Binding IncludeSummary}"
-                             FontSize="10" Foreground="#334455"
+                             FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}"
                              VerticalAlignment="Center" Margin="4 0 0 0" />
                 </StackPanel>
 
@@ -262,7 +262,7 @@
                         Canvas.Left="32" Canvas.Top="5"
                         ToolTip.Tip="Open in the Item Browser">
                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                             FontSize="11" Foreground="#c8c8d8" />
+                             FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Button>
               </Canvas>
             </DataTemplate>
@@ -280,7 +280,7 @@
                              ShowButtonSpinner="False"
                              FontSize="11"
                              Background="Transparent" BorderThickness="0"
-                             Foreground="#c8c8d8"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              HorizontalAlignment="Stretch" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -293,7 +293,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding TargetTotalText}"
-                         Foreground="#888899"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -307,7 +307,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding AvailableText}"
-                         Foreground="#c8c8d8"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -350,7 +350,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding AssetsText}"
-                         Foreground="#99aacc"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -364,7 +364,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding IndustryJobsText}"
-                         Foreground="#99aacc"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -378,7 +378,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding BuyOrdersText}"
-                         Foreground="#99aacc"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -392,7 +392,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding MarketPriceText}"
-                         Foreground="#aabbcc"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -406,7 +406,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding BuildPriceText}"
-                         Foreground="#88bbaa"
+                         Foreground="{DynamicResource GoodBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -420,7 +420,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding VolumeText}"
-                         Foreground="#888899"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>

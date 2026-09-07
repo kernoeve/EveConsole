@@ -7,7 +7,7 @@
         Title="Background Processes"
         Width="900" Height="560"
         MinWidth="640" MinHeight="340"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <TabControl Margin="6">
 
@@ -16,27 +16,27 @@
       <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- In-flight calls -->
-        <Border Grid.Row="0" Background="#10101a" BorderBrush="#252530"
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                 BorderThickness="0 0 0 1" Padding="8 6">
           <StackPanel>
             <TextBlock Text="In Progress" FontSize="11" FontWeight="SemiBold"
-                       Foreground="#c8a84b" Margin="0 0 0 4" />
+                       Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 4" />
             <ItemsControl ItemsSource="{Binding InFlight}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="svc:InFlightCall">
                   <Grid ColumnDefinitions="100,130,*" Margin="0 1">
                     <TextBlock Grid.Column="0"
                                Text="{Binding StartedAt, StringFormat=\{0:HH:mm:ss\}}"
-                               FontSize="11" Foreground="#555"
+                               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                VerticalAlignment="Center" Margin="0 0 8 0" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding OwnerName}"
-                               FontSize="11" Foreground="#999"
+                               FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" Margin="0 0 8 0" />
                     <TextBlock Grid.Column="2"
                                Text="{Binding Endpoint}"
-                               FontSize="11" Foreground="#6688cc"
+                               FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" />
                   </Grid>
@@ -49,7 +49,7 @@
               </ItemsControl.ItemsPanel>
             </ItemsControl>
             <TextBlock Text="No calls in progress."
-                       FontSize="11" Foreground="#444" FontStyle="Italic"
+                       FontSize="11" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic"
                        IsVisible="{Binding HasNoInFlight}" />
           </StackPanel>
         </Border>
@@ -58,17 +58,17 @@
         <Border Grid.Row="1">
           <Grid RowDefinitions="Auto,*">
             <Grid Grid.Row="0" ColumnDefinitions="165,130,200,55,*"
-                  Background="#14141c" Margin="0">
-              <TextBlock Grid.Column="0" Text="Timestamp"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
-              <TextBlock Grid.Column="1" Text="Character"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-              <TextBlock Grid.Column="2" Text="Endpoint"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-              <TextBlock Grid.Column="3" Text="HTTP"       FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" HorizontalAlignment="Center" />
-              <TextBlock Grid.Column="4" Text="Result"     FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+                  Background="{DynamicResource SurfacePanelAltBrush}" Margin="0">
+              <TextBlock Grid.Column="0" Text="Timestamp"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Character"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Endpoint"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="HTTP"       FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" HorizontalAlignment="Center" />
+              <TextBlock Grid.Column="4" Text="Result"     FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
             </Grid>
 
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding Entries}"
-                     Background="#0d0d12"
+                     Background="{DynamicResource SurfaceBaseBrush}"
                      BorderThickness="0"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
 
@@ -85,21 +85,21 @@
                   <Grid ColumnDefinitions="165,130,200,55,*" Margin="0 1">
                     <TextBlock Grid.Column="0"
                                Text="{Binding Timestamp, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"
-                               FontSize="11" Foreground="#555"
+                               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                VerticalAlignment="Center" Margin="8 2" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding OwnerName}"
-                               FontSize="11" Foreground="#999"
+                               FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" Margin="4 2" />
                     <TextBlock Grid.Column="2"
                                Text="{Binding Endpoint}"
-                               FontSize="11" Foreground="#6688cc"
+                               FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" Margin="4 2" />
                     <TextBlock Grid.Column="3"
                                Text="{Binding StatusCodeText}"
-                               FontSize="11" Foreground="#777"
+                               FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center" Margin="4 2" />
                     <TextBlock Grid.Column="4"
@@ -117,8 +117,8 @@
         </Border>
 
         <!-- Footer -->
-        <Border Grid.Row="2" Background="#0d0d12" Padding="12 6">
-          <TextBlock x:Name="CountLabel" FontSize="11" Foreground="#555" />
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 6">
+          <TextBlock x:Name="CountLabel" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
         </Border>
 
       </Grid>
@@ -136,7 +136,7 @@
             <!-- Token selector -->
             <Border Grid.Row="0" Padding="0 0 0 8">
               <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <TextBlock Text="Token:" FontSize="12" Foreground="#999" VerticalAlignment="Center" />
+                <TextBlock Text="Token:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding TokenOptions}"
                           SelectedItem="{Binding SelectedToken}"
                           MinWidth="220">
@@ -147,7 +147,7 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
                 <TextBlock Text="Select a token to see its polling schedule."
-                           FontSize="11" Foreground="#555" VerticalAlignment="Center"
+                           FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
                            IsVisible="{Binding SelectedToken,
                                        Converter={x:Static ObjectConverters.IsNull}}" />
               </StackPanel>
@@ -155,17 +155,17 @@
 
             <!-- Column headers -->
             <Grid Grid.Row="1" ColumnDefinitions="220,165,165,110"
-                  Background="#14141c">
-              <TextBlock Grid.Column="0" Text="Endpoint"    FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
-              <TextBlock Grid.Column="1" Text="Last Called" FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-              <TextBlock Grid.Column="2" Text="Next Call"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-              <TextBlock Grid.Column="3" Text="Time Until"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+                  Background="{DynamicResource SurfacePanelAltBrush}">
+              <TextBlock Grid.Column="0" Text="Endpoint"    FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Last Called" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Next Call"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Time Until"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
             </Grid>
 
             <!-- Schedule rows -->
             <ListBox Grid.Row="2"
                      ItemsSource="{Binding Schedule}"
-                     Background="#0d0d12"
+                     Background="{DynamicResource SurfaceBaseBrush}"
                      BorderThickness="0"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
               <ListBox.ItemContainerTheme>
@@ -178,10 +178,10 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ScheduleRowVm">
                   <Grid ColumnDefinitions="220,165,165,110" Margin="0 1">
-                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="8 2" />
-                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="#777" VerticalAlignment="Center" Margin="4 2" />
-                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="#999" VerticalAlignment="Center" Margin="4 2" />
-                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="#6688cc" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
                   </Grid>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -196,17 +196,17 @@
 
             <!-- Column headers -->
             <Grid Grid.Row="0" ColumnDefinitions="220,165,165,110"
-                  Background="#14141c">
-              <TextBlock Grid.Column="0" Text="Market Source"  FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
-              <TextBlock Grid.Column="1" Text="Last Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-              <TextBlock Grid.Column="2" Text="Next Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-              <TextBlock Grid.Column="3" Text="Time Until"     FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+                  Background="{DynamicResource SurfacePanelAltBrush}">
+              <TextBlock Grid.Column="0" Text="Market Source"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Last Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Next Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Time Until"     FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
             </Grid>
 
             <!-- Market refresh rows -->
             <ListBox Grid.Row="1"
                      ItemsSource="{Binding MarketSchedule}"
-                     Background="#0d0d12"
+                     Background="{DynamicResource SurfaceBaseBrush}"
                      BorderThickness="0"
                      ScrollViewer.VerticalScrollBarVisibility="Auto">
               <ListBox.ItemContainerTheme>
@@ -219,10 +219,10 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ScheduleRowVm">
                   <Grid ColumnDefinitions="220,165,165,110" Margin="0 1">
-                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="8 2" />
-                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="#777" VerticalAlignment="Center" Margin="4 2" />
-                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="#999" VerticalAlignment="Center" Margin="4 2" />
-                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="#6688cc" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
                   </Grid>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -241,21 +241,21 @@
         <!-- Running indicator -->
         <Border Grid.Row="0" Padding="0 0 0 8">
           <TextBlock Text="{Binding HistoryState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="#c8a84b" VerticalAlignment="Center" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
         </Border>
 
         <!-- Column headers -->
-        <Grid Grid.Row="1" ColumnDefinitions="240,160,120,*" Background="#14141c">
-          <TextBlock Grid.Column="0" Text="Region"         FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="8 4" />
-          <TextBlock Grid.Column="1" Text="Refreshed / Total (24h)" FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-          <TextBlock Grid.Column="2" Text="Queued"         FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
-          <TextBlock Grid.Column="3" Text="Status"         FontSize="11" FontWeight="SemiBold" Foreground="#666" Margin="4 4" />
+        <Grid Grid.Row="1" ColumnDefinitions="240,160,120,*" Background="{DynamicResource SurfacePanelAltBrush}">
+          <TextBlock Grid.Column="0" Text="Region"         FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+          <TextBlock Grid.Column="1" Text="Refreshed / Total (24h)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+          <TextBlock Grid.Column="2" Text="Queued"         FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+          <TextBlock Grid.Column="3" Text="Status"         FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
         </Grid>
 
         <!-- Region rows -->
         <ListBox Grid.Row="2"
                  ItemsSource="{Binding HistoryRegions}"
-                 Background="#0d0d12"
+                 Background="{DynamicResource SurfaceBaseBrush}"
                  BorderThickness="0"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
           <ListBox.ItemContainerTheme>
@@ -268,9 +268,9 @@
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:HistoryRegionRowVm">
               <Grid ColumnDefinitions="240,160,120,*" Margin="0 1">
-                <TextBlock Grid.Column="0" Text="{Binding RegionName}" FontSize="11" Foreground="#aab" VerticalAlignment="Center" Margin="8 2" />
-                <TextBlock Grid.Column="1" Text="{Binding CountsText}" FontSize="11" Foreground="#999" VerticalAlignment="Center" Margin="4 2" />
-                <TextBlock Grid.Column="2" Text="{Binding Queue}"      FontSize="11" Foreground="#6688cc" VerticalAlignment="Center" Margin="4 2" />
+                <TextBlock Grid.Column="0" Text="{Binding RegionName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8 2" />
+                <TextBlock Grid.Column="1" Text="{Binding CountsText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4 2" />
+                <TextBlock Grid.Column="2" Text="{Binding Queue}"      FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
                 <TextBlock Grid.Column="3" Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontSize="11" VerticalAlignment="Center" Margin="4 2" />
               </Grid>
             </DataTemplate>
@@ -286,24 +286,24 @@
 
         <!-- Running indicator -->
         <TextBlock Grid.Row="0" Text="{Binding ContractsState}" FontSize="12"
-                   FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 12" />
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 12" />
 
         <!-- Progress rows -->
         <Grid Grid.Row="1" ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Public contracts"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
           <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ContractsPublicText}"
-                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
 
           <TextBlock Grid.Row="1" Grid.Column="0" Text="Character / corp contracts"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
           <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractsOwnedText}"
-                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
 
           <TextBlock Grid.Row="2" Grid.Column="0" Text="Deferred"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractsDeferredText}"
-                     FontSize="12" Foreground="#886" VerticalAlignment="Center" TextWrapping="Wrap" />
+                     FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
         </Grid>
 
       </Grid>
@@ -313,30 +313,30 @@
       <Grid RowDefinitions="Auto,Auto" Margin="10 12 10 0">
 
         <TextBlock Grid.Row="0" Text="{Binding LpStoreState}" FontSize="12"
-                   FontWeight="SemiBold" Foreground="#c8a84b" Margin="0 0 0 12" />
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 12" />
 
         <Grid Grid.Row="1" ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
           <TextBlock Grid.Row="0" Grid.Column="0" Text="Sweep progress"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
           <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LpStoreProgressText}"
-                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
 
           <TextBlock Grid.Row="1" Grid.Column="0" Text="Catalogue"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
           <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LpStoreOffersText}"
-                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
 
           <TextBlock Grid.Row="2" Grid.Column="0" Text="Last corporation"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
           <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LpStoreLastText}"
-                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
 
           <TextBlock Grid.Row="3" Grid.Column="0" Text="Detail"
-                     FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Center" Margin="0 0 0 8" />
+                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
           <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LpStoreDetail}"
-                     FontSize="12" Foreground="#aab" VerticalAlignment="Center" Margin="0 0 0 8" TextWrapping="Wrap" />
+                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" TextWrapping="Wrap" />
 
-          <TextBlock Grid.Row="4" Grid.ColumnSpan="2" FontSize="11" Foreground="#886" TextWrapping="Wrap"
+          <TextBlock Grid.Row="4" Grid.ColumnSpan="2" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                      Text="LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same." />
         </Grid>
 
@@ -349,33 +349,33 @@
         <StackPanel Spacing="14">
 
           <TextBlock Text="{Binding ZkbLiveState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
 
           <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Scope"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ZkbScopeText}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Live capture"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ZkbLiveDetail}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Daily dump backfill"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ZkbBackfillDetail}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Coverage"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ZkbCoverageText}"
-                       FontSize="12" Foreground="#886" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Posting kills"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
             <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ZkbPostDetail}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
           </Grid>
 
         </StackPanel>
@@ -387,26 +387,26 @@
         <StackPanel Spacing="14">
 
           <TextBlock Text="{Binding IntelState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
 
           <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Channels"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding IntelChannelsText}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Parsing"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding IntelDetail}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Backlog"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IntelBacklogText}"
-                       FontSize="12" Foreground="#886" TextWrapping="Wrap" />
+                       FontSize="12" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
           </Grid>
 
-          <TextBlock FontSize="11" Foreground="#667" TextWrapping="Wrap"
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                      Text="Parsing runs straight after each chat log tail, so a sighting reaches the map on the same pass that stored the message. Channels are chosen under Settings → Chat Logs, where there is also a button to parse the history already on disk." />
 
         </StackPanel>
@@ -419,26 +419,26 @@
         <StackPanel Spacing="14">
 
           <TextBlock Text="{Binding AlarmState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
 
           <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Evaluating"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AlarmDetail}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Next check"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AlarmNextText}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Last firing"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AlarmLastFireText}"
-                       FontSize="12" Foreground="#886" TextWrapping="Wrap" />
+                       FontSize="12" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
           </Grid>
 
-          <TextBlock FontSize="11" Foreground="#667" TextWrapping="Wrap"
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                      Text="Each alarm is checked on its own interval, so the loop only touches the database when one is actually due. An alarm announces only what it has not announced before — a condition that stays true does not repeat itself — which is why a check that keeps matching shows here as armed rather than as firing over and over." />
 
         </StackPanel>
@@ -454,26 +454,26 @@
                not running — this one failed silently for a whole session before the empty Source
                column gave it away. -->
           <TextBlock Text="Order fulfilment" FontSize="13" FontWeight="SemiBold"
-                     Foreground="#c8a84b" Margin="0 18 0 6" />
+                     Foreground="{DynamicResource AccentBrush}" Margin="0 18 0 6" />
 
           <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" Margin="0 0 0 6">
             <TextBlock Grid.Row="0" Grid.Column="0" Text="State"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OrderFulfilState}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Last check"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OrderFulfilLast}"
-                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Next check"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OrderFulfilNext}"
-                       FontSize="12" Foreground="#aab" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
           </Grid>
 
-          <TextBlock FontSize="11" Foreground="#667" TextWrapping="Wrap"
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                      Text="Every five minutes, each pending order in the Order Tracker is matched against what could fill it: a contract issued by one of your characters or personal corporations to that buyer after the order was placed completes it outright; otherwise unreserved stock on hand, or the soonest industry job producing the item, whose completion date becomes the order's estimated date. Stock and jobs are reserved as they are claimed, so two orders never count the same units, and a contract already linked to one order is never reused for another." />
 
         </StackPanel>
@@ -486,39 +486,39 @@
         <StackPanel Spacing="14">
 
           <TextBlock Text="{Binding StructureState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
 
           <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Last sweep"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StructureSweepText}"
-                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Next sweep"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StructureNextText}"
-                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Last result"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding StructureCountsText}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Public list"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PublicStructureText}"
-                       FontSize="12" Foreground="#aab" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="What this does"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Top" />
-            <TextBlock Grid.Row="4" Grid.Column="1" FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Top" />
+            <TextBlock Grid.Row="4" Grid.Column="1" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                        Margin="0 0 0 10"
                        Text="Collects player-structure IDs from assets, contracts, industry jobs, market orders and wallet entries, then resolves each one's name, type, owner and position. Sweeps hourly; the public structure list is walked once a day for structures nobody here has visited. Rows our own assets identify as ships, containers or asset-safety wraps are removed rather than kept as unknown structures. Resolving needs esi-universe.read_structures.v1 and docking access, so a private structure stays unresolved — those are the ones worth describing by hand in the Structure Browser." />
 
             <Button Grid.Row="5" Grid.Column="1" Content="Sweep now"
                     HorizontalAlignment="Left" Padding="14 5" FontSize="11"
-                    Background="#1a1a28" Foreground="#5599aa" BorderBrush="#2a3a44" BorderThickness="1"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
                     Command="{Binding RunStructureSweep}"
                     IsEnabled="{Binding !StructureSweepRunning}" />
           </Grid>
@@ -532,17 +532,17 @@
         <StackPanel Spacing="14">
 
           <TextBlock Text="{Binding NameCacheState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="#c8a84b" TextWrapping="Wrap" />
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
 
           <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto">
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Cached names"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" Margin="0 0 0 8" />
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding NameCacheCountText}"
-                       FontSize="12" Foreground="#aab" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="What this does"
-                       FontSize="12" FontWeight="SemiBold" Foreground="#889" VerticalAlignment="Top" />
-            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="11" Foreground="#666" TextWrapping="Wrap"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Top" />
+            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                        Text="Resolves character, corporation and alliance IDs found anywhere in the database to names, ahead of any screen needing them. Sweeps hourly. EVE entity names cannot be changed, so each name is fetched once and kept permanently." />
           </Grid>
 

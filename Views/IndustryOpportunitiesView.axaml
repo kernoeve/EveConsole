@@ -3,7 +3,7 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.IndustryOpportunitiesView"
              x:DataType="vm:IndustryOpportunitiesViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="DataGridCell TextBlock">
@@ -43,8 +43,8 @@
 
     <!-- ── Controls bar ─────────────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Top"
-            Background="#0d0d12" Padding="12 10"
-            BorderBrush="#1c1c28" BorderThickness="0 0 0 1">
+            Background="{DynamicResource SurfaceBaseBrush}" Padding="12 10"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
      <StackPanel Spacing="10">
       <DockPanel>
 
@@ -52,9 +52,9 @@
                 Content="Calculate"
                 Command="{Binding CalculateCommand}"
                 Padding="18 6"
-                Background="#1e1e28"
-                Foreground="#c8a84b"
-                BorderBrush="#3a3020"
+                Background="{DynamicResource BorderSubtleBrush}"
+                Foreground="{DynamicResource AccentBrush}"
+                BorderBrush="{DynamicResource AccentSurfaceBrush}"
                 BorderThickness="1"
                 FontSize="12" />
 
@@ -63,7 +63,7 @@
           <ComboBox ItemsSource="{Binding ModeOptions}"
                     SelectedItem="{Binding SelectedMode}"
                     Width="220" FontSize="12"
-                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#c8a84b">
+                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource AccentBrush}">
             <ComboBox.ItemTemplate>
               <DataTemplate DataType="vm:IndustryModeOption">
                 <TextBlock Text="{Binding Label}" />
@@ -71,12 +71,12 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
-          <TextBlock Text="Price at" Foreground="#555566" FontSize="11"
+          <TextBlock Text="Price at" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <ComboBox ItemsSource="{Binding MarketConfigs}"
                     SelectedItem="{Binding SelectedConfig}"
                     Width="220" FontSize="12"
-                    Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd">
+                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
             <ComboBox.ItemTemplate>
               <DataTemplate DataType="vm:IndustryMarketConfig">
                 <TextBlock Text="{Binding Name}" />
@@ -84,26 +84,26 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
-          <TextBlock Text="Min 30d ISK Vol" Foreground="#555566" FontSize="11"
+          <TextBlock Text="Min 30d ISK Vol" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinIskVolume}" Width="110" FontSize="12"
                    Watermark="No filter"
-                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
-          <TextBlock Text="Min 30d Unit Vol" Foreground="#555566" FontSize="11"
+          <TextBlock Text="Min 30d Unit Vol" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
                    Watermark="No filter"
-                   Background="#131320" BorderBrush="#2a2a3a" Foreground="#ccccdd" />
+                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
           <CheckBox IsChecked="{Binding SkipFactionItems}"
                     Content="Skip faction"
-                    Foreground="#ccccdd" FontSize="11"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
                     VerticalAlignment="Center" />
 
           <CheckBox IsChecked="{Binding BpoOnly}"
                     Content="Skip Non BPO traceable Items"
-                    Foreground="#ccccdd" FontSize="11"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
                     VerticalAlignment="Center"
                     ToolTip.Tip="Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, and 'Limited Time' event items whose BPO can no longer be bought in game." />
 
@@ -112,7 +112,7 @@
 
       <!-- ── Excluded market groups ─────────────────────────────────────────── -->
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Text="Exclude Groups" Foreground="#555566" FontSize="11"
+        <TextBlock Text="Exclude Groups" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                    VerticalAlignment="Center" />
 
         <ItemsControl ItemsSource="{Binding ExcludedMarketGroups}">
@@ -123,7 +123,7 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="vm:ExcludedMarketGroupVm">
-              <Border Background="#131320" BorderBrush="#2a2a3a" BorderThickness="1"
+              <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                       CornerRadius="3" Padding="6 3" Margin="0 0 6 4">
                 <StackPanel Orientation="Horizontal" Spacing="5">
                   <Button x:CompileBindings="False"
@@ -131,10 +131,10 @@
                           Command="{Binding $parent[UserControl].DataContext.RemoveExcludedGroupCommand}"
                           CommandParameter="{Binding}"
                           Background="Transparent" BorderThickness="0"
-                          Foreground="#cc6666" FontSize="10" Padding="0"
+                          Foreground="{DynamicResource TextDimBrush}" FontSize="10" Padding="0"
                           Cursor="Hand" VerticalAlignment="Center"
                           ToolTip.Tip="Remove this exclusion" />
-                  <TextBlock Text="{Binding Name}" FontSize="11" Foreground="#ccccdd"
+                  <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                              VerticalAlignment="Center" />
                 </StackPanel>
               </Border>
@@ -145,8 +145,8 @@
         <Button Content="+ Add Group"
                 Command="{Binding AddExcludedGroupCommand}"
                 Padding="8 3" FontSize="11"
-                Background="#131320" Foreground="#8899cc"
-                BorderBrush="#2a2a3a" BorderThickness="1" />
+                Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
       </StackPanel>
 
      </StackPanel>
@@ -154,10 +154,10 @@
 
     <!-- ── Status footer ────────────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Bottom"
-            Background="#111117" Padding="12 8"
-            BorderBrush="#1c1c28" BorderThickness="0 1 0 0">
+            Background="{DynamicResource SurfaceInputBrush}" Padding="12 8"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 1 0 0">
       <TextBlock Text="{Binding StatusText}"
-                 Foreground="#555566" FontSize="11"
+                 Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                  VerticalAlignment="Center" />
     </Border>
 
@@ -196,7 +196,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BuildCostDisplay}"
-                         Foreground="#5b9bd5"
+                         Foreground="{DynamicResource InfoBrush}"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>
@@ -217,7 +217,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitUnitDisplay}"
-                         Foreground="#70ad47"
+                         Foreground="{DynamicResource GoodBrush}"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>
@@ -228,7 +228,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding MarginDisplay}"
-                         Foreground="#c8a84b"
+                         Foreground="{DynamicResource AccentBrush}"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>
@@ -259,7 +259,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitPerSlotDayDisplay}"
-                         Foreground="#70ad47" FontWeight="SemiBold"
+                         Foreground="{DynamicResource GoodBrush}" FontWeight="SemiBold"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>
@@ -270,7 +270,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding UnitVol30dDisplay}"
-                         Foreground="#888899"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>
@@ -281,7 +281,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding IskVol30dDisplay}"
-                         Foreground="#888899"
+                         Foreground="{DynamicResource TextMutedBrush}"
                          HorizontalAlignment="Right" Padding="0 0 8 0"
                          VerticalAlignment="Center" />
             </DataTemplate>
@@ -301,14 +301,14 @@
       <StackPanel HorizontalAlignment="Center" Spacing="14">
         <ProgressBar IsIndeterminate="True"
                      Width="240" Height="3"
-                     Foreground="#c8a84b"
-                     Background="#333344" />
+                     Foreground="{DynamicResource AccentBrush}"
+                     Background="{DynamicResource SurfaceRaisedBrush}" />
         <TextBlock Text="Scanning for industry opportunities…"
                    FontSize="14" FontWeight="SemiBold"
-                   Foreground="#c8a84b"
+                   Foreground="{DynamicResource AccentBrush}"
                    HorizontalAlignment="Center" />
         <TextBlock Text="{Binding StatusText}"
-                   FontSize="11" Foreground="#888899"
+                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    HorizontalAlignment="Center"
                    MaxWidth="320" TextWrapping="Wrap" TextAlignment="Center" />
       </StackPanel>

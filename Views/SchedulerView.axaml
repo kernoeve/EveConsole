@@ -4,38 +4,38 @@
              xmlns:svc="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.SchedulerView"
              x:DataType="vm:SchedulerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="TextBlock.flabel">
       <Setter Property="FontSize" Value="9.5" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="Margin" Value="2 0 0 2" />
     </Style>
     <Style Selector="TextBlock.section">
       <Setter Property="FontSize" Value="11" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
       <Setter Property="Margin" Value="0 0 0 6" />
     </Style>
     <Style Selector="TextBlock.hint">
       <Setter Property="FontSize" Value="10" />
-      <Setter Property="Foreground" Value="#556" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="Button.tool">
-      <Setter Property="Background" Value="#1a1a28" />
-      <Setter Property="Foreground" Value="#5599aa" />
-      <Setter Property="BorderBrush" Value="#2a3a44" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InfoSurfaceBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="12 4" />
       <Setter Property="FontSize" Value="11" />
     </Style>
     <Style Selector="Button.small">
-      <Setter Property="Background" Value="#16161d" />
-      <Setter Property="Foreground" Value="#7a8a99" />
-      <Setter Property="BorderBrush" Value="#252533" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SurfaceHeaderBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="7 1" />
       <Setter Property="FontSize" Value="11" />
@@ -48,50 +48,50 @@
     </Style>
     <Style Selector="CheckBox">
       <Setter Property="FontSize" Value="11" />
-      <Setter Property="Foreground" Value="#999" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,1,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="#12121a" Padding="12 8"
-            BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+    <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
+            BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <StackPanel Spacing="5">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto">
         <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Task" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
                 Content="Refresh" Margin="8 0 0 0" />
-        <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="11" Foreground="#666677"
+        <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
         <TextBlock Grid.Column="3" Text="Times are EVE time" FontSize="10.5"
-                   Foreground="#4a4a5a" VerticalAlignment="Center" Margin="12 0 0 0" />
+                   Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
         <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
-                   FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap" Margin="1 0 0 0" />
+                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
 
-    <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+    <Rectangle Grid.Row="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <Grid Grid.Row="2" ColumnDefinitions="300,1,*">
 
       <!-- ── Left: the tasks ────────────────────────────────────────────── -->
       <ListBox Grid.Column="0" ItemsSource="{Binding Tasks}"
                SelectedItem="{Binding SelectedTask}"
-               Background="#0b0b10" BorderThickness="0">
+               Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="0">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:ScheduledTaskRowVm">
             <Grid ColumnDefinitions="Auto,*" Margin="0 3">
               <CheckBox Grid.Column="0" IsChecked="{Binding Enabled}" IsHitTestVisible="False"
                         VerticalAlignment="Top" Margin="0 2 6 0" />
               <StackPanel Grid.Column="1" Spacing="1">
-                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#ddd"
+                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                            FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding Schedule}" FontSize="10.5" Foreground="#7a7a8a"
+                <TextBlock Text="{Binding Schedule}" FontSize="10.5" Foreground="{DynamicResource TextDimBrush}"
                            TextTrimming="CharacterEllipsis" />
-                <TextBlock Text="{Binding LastRunText}" FontSize="10" Foreground="#556" />
-                <TextBlock Text="{Binding LastResult}" FontSize="10" Foreground="#445"
+                <TextBlock Text="{Binding LastRunText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                <TextBlock Text="{Binding LastResult}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                            TextTrimming="CharacterEllipsis" />
               </StackPanel>
             </Grid>
@@ -99,7 +99,7 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+      <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
       <!-- ── Right: the editor, then a fixed action bar ──────────────────── -->
       <Grid Grid.Column="2" RowDefinitions="*,Auto">
@@ -107,7 +107,7 @@
         <TextBlock Grid.Row="0" IsVisible="{Binding !HasEditor}"
                    Text="Select a task, or create one."
                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontSize="12" Foreground="#445" />
+                   FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
 
         <ScrollViewer Grid.Row="0" IsVisible="{Binding HasEditor}">
           <!-- Margin on the content, not padding on the ScrollViewer: padding is not counted in
@@ -162,9 +162,9 @@
                   <StackPanel Orientation="Horizontal" Spacing="10"
                               VerticalAlignment="Bottom" Margin="0 0 0 6">
                     <RadioButton GroupName="unit" IsChecked="{Binding IntervalInMinutes}"
-                                 Content="minutes" FontSize="11" Foreground="#999" />
+                                 Content="minutes" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                     <RadioButton GroupName="unit" IsChecked="{Binding IntervalInHours}"
-                                 Content="hours" FontSize="11" Foreground="#999" />
+                                 Content="hours" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                   </StackPanel>
                 </StackPanel>
 
@@ -225,7 +225,7 @@
             </StackPanel>
 
             <!-- ══ The rule, and below it only what this task type needs ══ -->
-            <Rectangle Height="1" Fill="#1e1e2a" Margin="0 2" />
+            <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 2" />
 
             <!-- ── Post to Slack ──────────────────────────────────────────── -->
             <StackPanel Spacing="14" IsVisible="{Binding IsSlackPost}">
@@ -279,13 +279,13 @@
                     <ItemsControl ItemsSource="{Binding Blocks}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:MessageBlockVm">
-                          <Border Background="#101018" BorderBrush="#1e1e2a" BorderThickness="1"
+                          <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                                   CornerRadius="3" Padding="10 8" Margin="0 0 0 8">
                             <StackPanel Spacing="8">
 
                               <Grid ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0" Text="{Binding Heading}" FontSize="10"
-                                           FontWeight="SemiBold" Foreground="#5599aa"
+                                           FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}"
                                            VerticalAlignment="Center" />
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
                                   <Button Classes="small" Content="↑"
@@ -294,7 +294,7 @@
                                   <Button Classes="small" Content="↓"
                                           Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).MoveDownCommand}"
                                           CommandParameter="{Binding}" />
-                                  <Button Classes="small" Content="✕" Foreground="#aa5555"
+                                  <Button Classes="small" Content="✕" Foreground="{DynamicResource BadBrush}"
                                           Command="{Binding $parent[ItemsControl].((vm:SchedulerViewModel)DataContext).RemoveCommand}"
                                           CommandParameter="{Binding}" />
                                 </StackPanel>
@@ -350,9 +350,9 @@
                             <TextBlock Classes="hint"
                                        Text="Twelve months of trends, drawn as an image and uploaded under the message." />
                             <Border IsVisible="{Binding ShowWebhookChartWarning}"
-                                    Background="#231d10" BorderBrush="#4a3a1a" BorderThickness="1"
+                                    Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                                     CornerRadius="3" Padding="8 6">
-                              <TextBlock FontSize="10.5" Foreground="#c8a84b" TextWrapping="Wrap"
+                              <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                          Text="This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs." />
                             </Border>
                           </StackPanel>
@@ -436,7 +436,7 @@
                   </StackPanel>
 
                   <!-- Preview -->
-                  <Border Grid.Column="2" Background="#0b0b10" BorderBrush="#1e1e2a"
+                  <Border Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
                           BorderThickness="1" CornerRadius="3" Padding="10 8"
                           VerticalAlignment="Top" MinHeight="120">
                     <StackPanel Spacing="6">
@@ -450,7 +450,7 @@
                                     MaxHeight="620" IsVisible="{Binding HasPreview}">
                         <SelectableTextBlock Text="{Binding PreviewText}"
                                              FontFamily="Consolas, DejaVu Sans Mono, Liberation Mono, monospace"
-                                             FontSize="11" Foreground="#99a" />
+                                             FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                       </ScrollViewer>
                     </StackPanel>
                   </Border>
@@ -489,8 +489,8 @@
              refuses quietly when something is missing, and a refusal read from the far side of a
              wide screen is a button that looks broken. -->
         <Border Grid.Row="1" IsVisible="{Binding HasEditor}"
-                Background="#101018" Padding="16 8"
-                BorderBrush="#1e1e2a" BorderThickness="0 1 0 0">
+                Background="{DynamicResource SurfaceBaseBrush}" Padding="16 8"
+                BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
           <Grid ColumnDefinitions="Auto,*">
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
               <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
@@ -501,11 +501,11 @@
               <Button Classes="tool" Content="{Binding RunLabel}" Command="{Binding RunNowCommand}"
                       ToolTip.Tip="Runs what is on screen, for real, and counts as the scheduled run." />
               <Button Content="Delete" Command="{Binding DeleteCommand}"
-                      Background="#1a1a28" Foreground="#aa5555" BorderBrush="#442a2a"
+                      Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource BadBrush}" BorderBrush="{DynamicResource BadSurfaceBrush}"
                       BorderThickness="1" Padding="12 4" FontSize="11" />
             </StackPanel>
             <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
-                       Foreground="#8a8a9a" VerticalAlignment="Center" Margin="14 0 0 0"
+                       Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="14 0 0 0"
                        TextTrimming="CharacterEllipsis" />
           </Grid>
         </Border>

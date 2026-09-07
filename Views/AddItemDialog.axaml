@@ -5,38 +5,38 @@
         Width="400" Height="400"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <Grid RowDefinitions="*,Auto" Margin="20">
 
     <StackPanel Grid.Row="0" Spacing="14">
 
       <TextBlock Text="SEARCH FOR ITEM" FontSize="10" FontWeight="SemiBold"
-                 Foreground="#555566" LetterSpacing="1" />
+                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
 
       <TextBox x:Name="SearchBox"
                Watermark="Start typing item name…"
-               Background="#1a1a28" BorderBrush="#2a2a3a" BorderThickness="1"
-               CornerRadius="3" Foreground="#e8e8f0" CaretBrush="#c8a84b"
+               Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+               CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                FontSize="12" Padding="8 5"
                TextChanged="OnSearchChanged" />
 
       <!-- Collapses once something is picked, so the choice and the quantity are what is left on
            screen rather than a list the reader has finished with. Typing again brings it back. -->
       <Border x:Name="SelectedPanel" IsVisible="False"
-              Background="#12121a" CornerRadius="3"
-              BorderBrush="#1e1e2a" BorderThickness="1" Padding="10 8">
+              Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
+              BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Grid.Column="0" x:Name="SelectedText" FontSize="12" Foreground="#c8a84b"
+          <TextBlock Grid.Column="0" x:Name="SelectedText" FontSize="12" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
           <Button Grid.Column="1" Content="Change" Click="OnChangeClick"
-                  Background="Transparent" Foreground="#888899"
-                  BorderBrush="#2a2a3a" BorderThickness="1" Padding="8 3" FontSize="11"/>
+                  Background="Transparent" Foreground="{DynamicResource TextMutedBrush}"
+                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="8 3" FontSize="11"/>
         </Grid>
       </Border>
 
-      <Border x:Name="ResultsPanel" Background="#12121a" CornerRadius="3"
-              BorderBrush="#1e1e2a" BorderThickness="1" Height="200">
+      <Border x:Name="ResultsPanel" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
+              BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Height="200">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <ListBox x:Name="ResultsList"
                    Background="Transparent" BorderThickness="0"
@@ -46,12 +46,12 @@
                 <Setter Property="Padding" Value="10 6" />
               </Style>
               <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                <Setter Property="Background" Value="#1a2030" />
+                <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
               </Style>
             </ListBox.Styles>
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8c8d8" />
+                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -60,7 +60,7 @@
 
       <StackPanel x:Name="QtyPanel" Spacing="5">
         <TextBlock Text="TARGET QUANTITY" FontSize="10" FontWeight="SemiBold"
-                   Foreground="#555566" LetterSpacing="1" />
+                   Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <!-- Six digits was too small to say what these groups actually hold: the reaction
              targets here run to twenty million, and anything larger silently clamped. The cap is
              now the column's own limit rather than an arbitrary one. -->
@@ -69,8 +69,8 @@
                        Increment="1" ShowButtonSpinner="True"
                        FormatString="N0"
                        Width="160" FontSize="12"
-                       Background="#131320" BorderBrush="#2a2a3a"
-                       Foreground="#c8c8d8" />
+                       Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
       </StackPanel>
 
     </StackPanel>
@@ -78,17 +78,17 @@
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 12 0 0">
       <TextBlock Grid.Column="0" x:Name="HintText"
                  Text="Select an item from the list above."
-                 Foreground="#444455" FontSize="11"
+                 Foreground="{DynamicResource BorderStrongBrush}" FontSize="11"
                  VerticalAlignment="Center" />
       <Button Grid.Column="1" Content="Cancel"
-              Background="#1a1a28" Foreground="#888899"
-              BorderBrush="#2a2a3a" BorderThickness="1"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0"
               Click="OnCancelClick" />
       <Button Grid.Column="2" x:Name="OkButton"
               Content="Add"
-              Background="#1a2030" Foreground="#c8a84b"
-              BorderBrush="#3a3020" BorderThickness="1"
+              Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
+              BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 6" IsEnabled="False"
               Click="OnOkClick" />
     </Grid>
