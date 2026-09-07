@@ -304,21 +304,27 @@
                          Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
                 <ItemsControl ItemsSource="{Binding Lines}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="wl:WorklistLine">
+                    <DataTemplate x:DataType="vm:WorklistLineVm">
                       <!-- Count, then value, then volume — each in its own fixed column so the
                            figures line up down the list rather than drifting with name length.
                            Value and volume are dimmer than the count: the count is what the task
                            is about, the other two are what it costs to do. -->
                       <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
-                        <Panel Grid.Column="0" Margin="0 0 24 0">
-                          <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
-                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                       FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                          </Button>
-                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </Panel>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+                                    Margin="0 0 24 0">
+                          <Image Source="{Binding Icon}" Width="18" Height="18"
+                                 VerticalAlignment="Center"
+                                 IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                          <Panel>
+                            <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
+                                    ToolTip.Tip="Open in the Item Browser">
+                              <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                         FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                       FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                          </Panel>
+                        </StackPanel>
                         <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
                                    FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
                                    MinWidth="60" TextAlignment="Right"/>
@@ -443,8 +449,19 @@
 
                 <!-- Job: what is being made, by whom, and where — one line, like the rest. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
-                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
-                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <!-- ⚠️ The name links but does not LOOK like a link: same brush and size it had.
+                       It is the row's headline, and underlining the biggest text on every row
+                       would turn a plan into a page of hyperlinks. -->
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open this item">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Title}" IsVisible="{Binding !HasItemLink}"
+                               Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  </Panel>
                   <!-- The efficiency the materials were planned at. Sits with the station and the
                        character because it is the same sort of fact — context for the job rather
                        than part of its name. Manufacturing only; see BlueprintMeText. -->
@@ -475,8 +492,16 @@
                 <!-- Buy: what to buy, where, and who places it. The reasoning is a paragraph, so
                      it lives on the marker rather than on the row. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsBuy}">
-                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
-                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open this item">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Title}" IsVisible="{Binding !HasItemLink}"
+                               Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  </Panel>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">

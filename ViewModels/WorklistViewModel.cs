@@ -278,7 +278,9 @@ public class WorklistRowVm : ReactiveObject
         : $"{_item.Volume:N1} m³";
 
     /// <summary>The manifest, shown by expanding the row. Empty for single-item tasks.</summary>
-    public IReadOnlyList<WorklistLine> Lines => _item.Lines;
+    private IReadOnlyList<WorklistLineVm>? _lines;
+    public IReadOnlyList<WorklistLineVm> Lines =>
+        _lines ??= [.. _item.Lines.Select(l => new WorklistLineVm(l))];
     public bool HasLines => _item.Lines.Count > 0;
 
     /// <summary>The stopped jobs waiting on something this haul carries.</summary>
@@ -639,6 +641,40 @@ public sealed class ItemShortageRowVm : ReactiveObject
 /// </summary>
 /// <summary>One finding on the Summary tab. Prose, so there is almost nothing to format.</summary>
 /// <summary>One line of a summary finding, with the item it names.</summary>
+/// <summary>
+/// One manifest line, with the item's picture.
+///
+/// <para>⚠️ A view model rather than a property on WorklistLine. That is a record in the service
+/// layer, created fresh on every refresh and immutable — an icon arrives asynchronously and has to
+/// raise a change when it does, which a record cannot.</para>
+/// </summary>
+public sealed class WorklistLineVm : ReactiveObject
+{
+    private readonly WorklistLine _line;
+
+    public WorklistLineVm(WorklistLine line)
+    {
+        _line = line;
+        _ = ItemIcons.LoadAsync(line.TypeId, b => Icon = b);
+    }
+
+    public WorklistLine Line => _line;
+
+    public string TypeName   => _line.TypeName;
+    public long   Quantity   => _line.Quantity;
+    public string ValueText  => _line.ValueText;
+    public string VolumeText => _line.VolumeText;
+    public bool   HasItemLink => _line.HasItemLink;
+    public void   OpenItem()  => _line.OpenItem();
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+}
+
 public sealed class ObservationPointVm : ReactiveObject
 {
     private readonly ObservationPoint _p;

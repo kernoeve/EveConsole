@@ -87,9 +87,13 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenCharacter(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenCharacter();
 
+    /// <summary>The row's own item — what a job makes, or what a buy order is for.</summary>
+    private void OnOpenRowItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenItem();
+
     /// <summary>A manifest line, which is a WorklistLine rather than a row.</summary>
     private void OnOpenLineItem(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as EveConsole.Services.Worklist.WorklistLine)?.OpenItem();
+        => ((sender as Control)?.DataContext as WorklistLineVm)?.OpenItem();
 
     /// <summary>A job waiting on this cargo. Opens the item it would produce.</summary>
     private void OnOpenWaitingJob(object? sender, RoutedEventArgs e)
