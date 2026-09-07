@@ -1650,16 +1650,16 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                     d => d.ToString(moreThan60 ? "MMM yy" : "MM/dd"))
                 {
                     TextSize        = 10,
-                    LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                    LabelsPaint     = ChartPaint.Labels,
+                    SeparatorsPaint = ChartPaint.Separators,
                 },
             ],
             [
                 new Axis
                 {
                     TextSize        = 10,
-                    LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                    LabelsPaint     = ChartPaint.Labels,
+                    SeparatorsPaint = ChartPaint.Separators,
                     Labeler         = v => FormatIsk(v),
                 },
             ]
@@ -2236,8 +2236,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 Labels          = labels,
                 LabelsRotation  = -35,
                 TextSize        = 10,
-                LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                LabelsPaint     = ChartPaint.Labels,
+                SeparatorsPaint = ChartPaint.Separators,
             }
         ];
         yAxes = [
@@ -2245,8 +2245,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 TextSize        = 10,
                 MinLimit        = 0,
-                LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                LabelsPaint     = ChartPaint.Labels,
+                SeparatorsPaint = ChartPaint.Separators,
                 Labeler         = v => FormatIsk(v),
             }
         ];
@@ -2399,8 +2399,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 Labels = labels, LabelsRotation = -45,
                 TextSize = 9,
-                SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-                LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
+                SeparatorsPaint = ChartPaint.Separators,
+                LabelsPaint     = ChartPaint.FaintLabels,
             }
         ];
         KillDailyYAxes =
@@ -2409,8 +2409,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 TextSize    = 9,
                 MinLimit    = 0,
-                LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
+                LabelsPaint = ChartPaint.FaintLabels,
+                SeparatorsPaint = ChartPaint.Separators,
             }
         ];
     }

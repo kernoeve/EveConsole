@@ -83,6 +83,24 @@ public static class Palette
         return Colors.Magenta;   // loud on purpose: a missing token should be seen, not guessed at
     }
 
+    /// <summary>
+    /// A token as a SkiaSharp colour, for charts.
+    ///
+    /// <para>⚠️ LiveCharts draws through Skia, which knows nothing about Avalonia brushes — so a
+    /// chart cannot share the self-updating instances everything else uses and has to be handed a
+    /// value. That value is read when the paint is built, which means a chart already on screen
+    /// keeps its colours until something rebuilds it.</para>
+    /// </summary>
+    public static SkiaSharp.SKColor Sk(string token)
+    {
+        var c = Colour(token);
+        return new SkiaSharp.SKColor(c.R, c.G, c.B, c.A);
+    }
+
+    /// <summary>Whether the current theme is a light one, for the code that can only pick a side.</summary>
+    public static bool IsLight =>
+        Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Light;
+
     // ── Resolution ────────────────────────────────────────────────────────────
 
     private static readonly Dictionary<string, IBrush> Cache = [];

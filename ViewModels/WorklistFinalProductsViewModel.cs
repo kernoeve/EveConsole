@@ -190,8 +190,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             UnitWidth       = TimeSpan.FromDays(1).Ticks,
             MinStep         = TimeSpan.FromDays(1).Ticks,
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 
@@ -201,8 +201,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         {
             Labeler         = FormatIskAxis,
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 

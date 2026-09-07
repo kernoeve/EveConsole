@@ -455,7 +455,7 @@ public class SalePostingRow : ReactiveObject
     public bool IsItem    => false;
 
     // Warm/amber tint so posting rows stand out from sections (blue) and items (near-black).
-    public IBrush RowBackground { get; } = new SolidColorBrush(Color.Parse("#241c10"));
+    public IBrush RowBackground => Palette.AccentSurface;   // the posting header band
 
     public SalePosting Model { get; private set; }
     public int PostingId => Model.Id;
@@ -579,7 +579,7 @@ public class SalePostingSectionRow : ReactiveObject
     public bool IsItem    => false;
 
     // Blue tint so section rows stand out from postings (amber) and items (near-black).
-    public IBrush RowBackground { get; } = new SolidColorBrush(Color.Parse("#16162e"));
+    public IBrush RowBackground => Palette.SurfaceHeader;   // the section band
 
     public SalePostingSection Model { get; private set; }
     public int SectionId => Model.Id;
@@ -674,7 +674,7 @@ public class SalePostingItemRow : ReactiveObject
     public bool IsSection => false;
     public bool IsItem    => true;
 
-    public IBrush RowBackground { get; } = new SolidColorBrush(Color.Parse("#0d0d12"));
+    public IBrush RowBackground => Palette.SurfaceBase;     // an ordinary item row
 
     private readonly SalePostingService _svc;
 

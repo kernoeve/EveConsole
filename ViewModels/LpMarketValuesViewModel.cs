@@ -343,8 +343,8 @@ public class LpMarketValuesViewModel : ReactiveObject
                 [
                     new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
                     {
-                        LabelsPaint     = new SolidColorPaint(new SKColor(136, 136, 153)),
-                        SeparatorsPaint = new SolidColorPaint(new SKColor(40, 40, 60)),
+                        LabelsPaint     = ChartPaint.Labels,
+                        SeparatorsPaint = ChartPaint.Separators,
                     },
                 ];
 
@@ -353,8 +353,8 @@ public class LpMarketValuesViewModel : ReactiveObject
                     new Axis
                     {
                         Name            = "ISK per LP",
-                        LabelsPaint     = new SolidColorPaint(new SKColor(200, 168, 75)),
-                        SeparatorsPaint = new SolidColorPaint(new SKColor(40, 40, 60)),
+                        LabelsPaint     = ChartPaint.AccentLabels,
+                        SeparatorsPaint = ChartPaint.Separators,
                         Labeler         = v => Math.Abs(v) >= 100 ? v.ToString("N0") : v.ToString("N2"),
                     },
                 ];
