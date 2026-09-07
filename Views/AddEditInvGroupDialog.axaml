@@ -84,8 +84,8 @@
                     IsChecked="True"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
           <CheckBox x:Name="IncludeContractsBox"
-                    Content="Contracts Buying (coming soon)"
-                    Foreground="{DynamicResource TextDimBrush}" FontSize="12" IsEnabled="False" />
+                    Content="Contracts Buying"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
         </StackPanel>
 
         <!-- Multiplier -->

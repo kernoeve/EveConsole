@@ -286,14 +286,17 @@ public class InvItemRow : ReactiveObject
     private long _availAssets;
     private long _availIJ;
     private long _availOrders;
+    private long _availContracts;
 
     public long AssetsQty       => _availAssets;
     public long IndustryJobsQty => _availIJ;
     public long BuyOrdersQty    => _availOrders;
+    public long ContractsQty    => _availContracts;
 
     public string AssetsText       => FormatQty(_availAssets);
     public string IndustryJobsText => FormatQty(_availIJ);
     public string BuyOrdersText    => FormatQty(_availOrders);
+    public string ContractsText    => FormatQty(_availContracts);
 
     private int _groupMultiplier = 1;
     public int GroupMultiplier
@@ -385,6 +388,7 @@ public class InvItemRow : ReactiveObject
         _availAssets  = avail.Assets;
         _availIJ      = avail.IndustryJobs;
         _availOrders  = avail.BuyOrders;
+        _availContracts = avail.Contracts;
         RaiseDiffDependents();
     }
 
@@ -395,9 +399,11 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(AssetsQty));
         this.RaisePropertyChanged(nameof(IndustryJobsQty));
         this.RaisePropertyChanged(nameof(BuyOrdersQty));
+        this.RaisePropertyChanged(nameof(ContractsQty));
         this.RaisePropertyChanged(nameof(AssetsText));
         this.RaisePropertyChanged(nameof(IndustryJobsText));
         this.RaisePropertyChanged(nameof(BuyOrdersText));
+        this.RaisePropertyChanged(nameof(ContractsText));
         this.RaisePropertyChanged(nameof(TargetTotal));
         this.RaisePropertyChanged(nameof(TargetTotalText));
         this.RaisePropertyChanged(nameof(Diff));

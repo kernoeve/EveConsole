@@ -385,6 +385,20 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- CONTRACTS -->
+        <DataGridTemplateColumn Header="CONTRACTS" Width="90" MinWidth="90" Tag="Contracts" IsReadOnly="True">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False"
+                         IsVisible="{Binding IsItem}"
+                         Text="{Binding ContractsText}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Padding="4 0" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
         <!-- MARKET PRICE -->
         <DataGridTemplateColumn Header="MKT PRICE" Width="95" MinWidth="95" Tag="MarketPrice" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>

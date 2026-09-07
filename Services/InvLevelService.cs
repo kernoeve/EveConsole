@@ -14,9 +14,9 @@ public record LocationOption(long Id, string Name);
 
 public record InvTypeResult(int TypeId, string Name);
 
-public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders)
+public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders, long Contracts = 0)
 {
-    public long Total => Assets + IndustryJobs + BuyOrders;
+    public long Total => Assets + IndustryJobs + BuyOrders + Contracts;
 }
 
 public record InvTypeMeta(string Name, double Volume, double? MarketPrice, double? BuildPrice);
@@ -359,6 +359,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         var assets  = new Dictionary<int, long>();
         var jobs    = new Dictionary<int, long>();
         var orders  = new Dictionary<int, long>();
+        var contracts = new Dictionary<int, long>();
 
         // Assets
         if (group.IncludeAssets)
@@ -483,12 +484,52 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 orders[g.Key] = g.Sum(o => (long)o.VolumeRemain);
         }
 
+        // Contracts we are buying through — outstanding item exchanges of ours that ASK for the
+        // item, so accepting them brings it in.
+        //
+        // ⚠️ Requested, not offered. IsIncluded true means the issuer is handing the item over;
+        // false means they want it delivered to them. This counts the false rows on contracts our
+        // own characters and personal corporations issued, which is the contract-window equivalent
+        // of a market buy order and the only shape that adds stock we do not already have.
+        //
+        // ⚠️ Ours only, by the same owner filter every block here uses — a contract sitting in a
+        // corporation the player merely belongs to is somebody else's supply.
+        //
+        // ⚠️ Not scoped by station. A contract's end location is where it is collected, and the
+        // item lands wherever the acceptor is told to put it; a location-scoped group would
+        // otherwise silently drop every contract whose pickup happens to sit elsewhere.
+        if (group.IncludeContractsBuying)
+        {
+            var mine = await db.EsiContracts.AsNoTracking()
+                .Where(c => c.Status == "outstanding"
+                         && c.Type == "item_exchange"
+                         && ownerFilter.Contains(c.OwnerId)
+                         && ownerFilter.Contains(c.IssuerId))
+                .Select(c => c.ContractId)
+                .Distinct()
+                .ToListAsync(ct);
+
+            if (mine.Count > 0)
+            {
+                var lines = await db.EsiContractItems.AsNoTracking()
+                    .Where(i => mine.Contains(i.ContractId)
+                             && !i.IsIncluded
+                             && typeIds.Contains(i.TypeId))
+                    .Select(i => new { i.TypeId, i.Quantity })
+                    .ToListAsync(ct);
+
+                foreach (var g in lines.GroupBy(i => i.TypeId))
+                    contracts[g.Key] = g.Sum(i => i.Quantity);
+            }
+        }
+
         return typeIds.Distinct().ToDictionary(
             id => id,
             id => new InvAvailability(
                 assets.GetValueOrDefault(id),
                 jobs.GetValueOrDefault(id),
-                orders.GetValueOrDefault(id)));
+                orders.GetValueOrDefault(id),
+                contracts.GetValueOrDefault(id)));
     }
 
     // ── Type metadata lookup ──────────────────────────────────────────────────
