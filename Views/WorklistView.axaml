@@ -167,7 +167,7 @@
     <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
               Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
-              AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="tasks">
+              AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:ScrollEstimates.Track="True" views:ScrollDiag.Label="tasks">
 
       <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background straight from
            this brush in the stock template, so `Selector="DataGridRow /template/
@@ -677,7 +677,7 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
-                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="needs"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:ScrollEstimates.Track="True" views:ScrollDiag.Label="needs"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -859,7 +859,7 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
-                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="itemneeds"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:ScrollEstimates.Track="True" views:ScrollDiag.Label="itemneeds"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -1219,7 +1219,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="contention"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:ScrollEstimates.Track="True" views:ScrollDiag.Label="contention"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <!-- ⚠️ A resource, not a style. The details presenter reads this brush straight
                      from the stock template, so a style selector on it never wins and the row
@@ -1426,7 +1426,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="prints"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:ScrollEstimates.Track="True" views:ScrollDiag.Label="prints"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Resources>
                   <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
@@ -1647,7 +1647,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="hauls"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:ScrollEstimates.Track="True" views:ScrollDiag.Label="hauls"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Resources>
                   <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
