@@ -123,8 +123,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 SELECT "EntityId" AS "Id", "Name",
                        '' AS "Subtitle"
                 FROM "UniverseNames"
-                WHERE "Category" = @cat AND "Name" LIKE @q
-                ORDER BY CASE WHEN "Name" LIKE @prefix THEN 0 ELSE 1 END, LENGTH("Name"), "Name"
+                WHERE "Category" = @cat AND LOWER("Name") LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER("Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, LENGTH("Name"), "Name"
                 LIMIT @lim
                 """,
 
@@ -137,8 +137,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 LEFT JOIN "SdeCorpDivisions"   d ON d."DivisionId"    = a."DivisionId"
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
-                WHERE a."Name" LIKE @q OR COALESCE(n."Name",'') LIKE @q OR COALESCE(s."Name",'') LIKE @q
-                ORDER BY CASE WHEN a."Name" LIKE @prefix THEN 0 ELSE 1 END, a."Level" DESC, a."Name"
+                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER(a."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, a."Level" DESC, a."Name"
                 LIMIT @lim
                 """,
 
@@ -147,8 +147,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                        COALESCE(f."Name",'') AS "Subtitle"
                 FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
-                WHERE n."Name" LIKE @q OR COALESCE(f."Name",'') LIKE @q
-                ORDER BY CASE WHEN n."Name" LIKE @prefix THEN 0 ELSE 1 END, n."Name"
+                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER(n."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, n."Name"
                 LIMIT @lim
                 """,
 
@@ -161,16 +161,16 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 FROM "SdeStations" s
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = s."CorporationId"
                 LEFT JOIN "SdeRegions"         r ON r."RegionId"      = s."RegionId"
-                WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
-                ORDER BY CASE WHEN s."Name" LIKE @prefix THEN 0 ELSE 1 END, s."Name"
+                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER(s."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, s."Name"
                 LIMIT @lim
                 """,
 
             _ => """
                 SELECT "FactionId" AS "Id", "Name", '' AS "Subtitle"
                 FROM "SdeFactions"
-                WHERE "Name" LIKE @q
-                ORDER BY CASE WHEN "Name" LIKE @prefix THEN 0 ELSE 1 END, "Name"
+                WHERE LOWER("Name") LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER("Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, "Name"
                 LIMIT @lim
                 """,
         };
@@ -196,24 +196,24 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         var sql = kind switch
         {
             EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance =>
-                """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND "Name" LIKE @q""",
+                """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND LOWER("Name") LIKE LOWER(@q)""",
             EntityKind.Agent => """
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeAgents" a
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
-                WHERE a."Name" LIKE @q OR COALESCE(n."Name",'') LIKE @q OR COALESCE(s."Name",'') LIKE @q
+                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q)
                 """,
             EntityKind.NpcCorp => """
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
-                WHERE n."Name" LIKE @q OR COALESCE(f."Name",'') LIKE @q
+                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q)
                 """,
             EntityKind.Station => """
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeStations" s
                 LEFT JOIN "SdeRegions" r ON r."RegionId" = s."RegionId"
-                WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
+                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q)
                 """,
-            _ => """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE "Name" LIKE @q""",
+            _ => """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE LOWER("Name") LIKE LOWER(@q)""",
         };
 
         return (await db.Database.SqlQueryRaw<int>(sql,

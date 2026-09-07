@@ -49,10 +49,14 @@ internal static class SqlFilter
 {
     private static bool IsTextual(FilterOp op) => op.UseLike || op.Sql is "=" or "!=";
 
-    public static string Clause(string column, FilterOp op, int index) =>
-        IsTextual(op)
-            ? $"CAST(\"{column}\" AS TEXT) {op.Sql} @fv{index}"
-            : $"\"{column}\" {op.Sql} @fv{index}";
+public static string Clause(string column, FilterOp op, int index) =>
+        op.UseLike
+            // ⚠️ LOWER on both sides. PostgreSQL LIKE is case-SENSITIVE where SQLite is not, so
+            // "isotropic" matched nothing against "Isotropic Neofullerene" on one engine only.
+            ? $"LOWER(CAST(\"{column}\" AS TEXT)) {op.Sql} LOWER(@fv{index})"
+            : IsTextual(op)
+                ? $"CAST(\"{column}\" AS TEXT) {op.Sql} @fv{index}"
+                : $"\"{column}\" {op.Sql} @fv{index}";
 
     public static object Value(FilterOp op, string value) =>
         op.UseLike     ? $"%{value}%"

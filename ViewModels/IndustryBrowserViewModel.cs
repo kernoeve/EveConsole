@@ -57,6 +57,18 @@ public class IndustryBrowserViewModel : ReactiveObject
         "Created", "Completed",
     ];
 
+    /// <summary>
+    /// Columns read by magnitude rather than by name, and so right-justified.
+    ///
+    /// <para>⚠️ Time Remaining is NOT one of them, though it is a number. It is read against the
+    /// rows above and below to see what finishes first, and a duration is already ordered by its
+    /// leading digit — pushed right it separates from the status word it qualifies.</para>
+    /// </summary>
+    public static readonly HashSet<string> NumericColumns =
+    [
+        "Runs", "Successful Runs", "Items Produced", "Build Cost", "Market Value",
+    ];
+
     /// <summary>Populated after the query from IndyFacilityCheckService — see
     /// ApplyFacilityRigNotesAsync.</summary>
     public const string ColNote = "Note";
@@ -236,11 +248,19 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
             conds.Add("\"Status\" = @status");
         if (!string.IsNullOrEmpty(search))
-            conds.Add("(Blueprint LIKE @search OR Product LIKE @search)");
+            // ⚠️ QUOTED, like every other condition here. These are quoted aliases in the select
+            // list, and PostgreSQL folds an unquoted Blueprint to "blueprint", which does not
+            // exist — the query threw and the grid kept whatever it was already showing, which
+            // looks exactly like a filter that does nothing. SQLite matched it case-insensitively
+            // and hid the bug.
+            //
+            // ⚠️ LOWER on both sides too: PostgreSQL LIKE is case-SENSITIVE where SQLite is not,
+            // so "isotropic" would still have missed "Isotropic Neofullerene".
+            conds.Add("(LOWER(\"Blueprint\") LIKE LOWER(@search) OR LOWER(\"Product\") LIKE LOWER(@search))");
         if (startedFrom.HasValue)
-            conds.Add("Start Date >= @startedFrom");
+            conds.Add("\"Start Date\" >= @startedFrom");
         if (startedThru.HasValue)
-            conds.Add("Start Date < @startedThru");
+            conds.Add("\"Start Date\" < @startedThru");
         if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
             conds.Add("\"Owner\" = @owner");
 

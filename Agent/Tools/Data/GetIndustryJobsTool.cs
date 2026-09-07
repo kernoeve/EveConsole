@@ -83,7 +83,7 @@ public sealed class GetIndustryJobsTool : IAgentTool
             LEFT JOIN "EsiStructureNames" sn_f ON sn_f."StructureId" = j."FacilityId"
             WHERE  (CAST(@status AS TEXT) IS NULL OR j."Status" = @status)
               AND  (@inProgress = 0 OR j."Status" IN ('active', 'ready'))
-              AND  (CAST(@owner AS TEXT) IS NULL OR c."Name" LIKE @owner OR corp."Name" LIKE @owner)
+              AND  (CAST(@owner AS TEXT) IS NULL OR LOWER(c."Name") LIKE LOWER(@owner) OR LOWER(corp."Name") LIKE LOWER(@owner))
             ORDER BY
                 CASE j."Status" WHEN 'ready' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END,
                 j."EndDate"
