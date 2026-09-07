@@ -919,10 +919,15 @@
             <DataGridTextColumn Header="Total"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
             <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
 
-            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortRaw">
+            <!-- ⚠️ Item Needs only. This tab asks what still has to be MADE, so production
+                 counts; Station Needs asks what a station holds against what it wants, and a
+                 job three days from delivering does not fill a hangar today. -->
+            <DataGridTextColumn Header="In build" Binding="{Binding InBuild}"
+                                SortMemberPath="InBuildRaw" Width="110"/>
+            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortAfterBuildRaw">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
-                  <TextBlock Text="{Binding Short}" Foreground="{Binding ShortColor}"
+                  <TextBlock Text="{Binding ShortAfterBuild}" Foreground="{Binding ShortColor}"
                              FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>

@@ -855,6 +855,16 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
 
     public long   ShortRaw  => n.Shortfall;
     public string Short     => n.Shortfall > 0 ? n.Shortfall.ToString("N0") : "";
+
+    // ⚠️ Station Needs keeps the shortfall above, which is measured against what is HERE. These
+    // two are for Item Needs, which asks a different question — what still has to be MADE — and
+    // has to count the reactors. Titanium Carbide read 16 million short with 19 million already
+    // running, which is what sent somebody looking for a job the planner was right not to raise.
+    public long   InBuildRaw => n.InBuild;
+    public string InBuild    => n.InBuild > 0 ? n.InBuild.ToString("N0") : "";
+
+    public long   ShortAfterBuildRaw => n.ShortAfterBuild;
+    public string ShortAfterBuild    => n.ShortAfterBuild > 0 ? n.ShortAfterBuild.ToString("N0") : "";
     /// <summary>Red only where the station is actually short; a covered need is not a problem.</summary>
     public IBrush ShortColor => n.Shortfall > 0 ? Palette.Bad : Palette.TextFaint;
 

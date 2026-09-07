@@ -1095,6 +1095,37 @@ public class IndustryJobGenerator(
         }
         }
 
+
+        // ⚠️ Nothing demanded may vanish without saying so.
+        //
+        // Tungsten Carbide was 508,190 against a 20,000,000 Build rule, with seventeen free
+        // formula BPOs sitting in the very structure the park assigns react_composite to — and it
+        // produced no row of any kind: not ready, not waiting, not blocked. It was only noticed by
+        // running out of the material. A walk this deep has many ways to drop an entry, and every
+        // one of them was silent, so the tool answered a question it had not been asked ("here is
+        // what to do") while quietly not answering the one it had ("what about this?").
+        //
+        // This does not fix whatever dropped it. It makes the drop impossible to miss, and names
+        // the type, so the next occurrence is a lead rather than an absence.
+        var accounted = items.Select(i => i.TypeId).ToHashSet();
+
+        foreach (var s in queue.Where(s => !accounted.Contains(s.Demand.TypeId))
+                               .OrderByDescending(s => s.Demand.Units))
+        {
+            var name = names.GetValueOrDefault(s.Demand.TypeId, $"Type {s.Demand.TypeId}");
+            var made = ctx.BlueprintByProduct.ContainsKey(s.Demand.TypeId);
+
+            items.Add(Unstartable(
+                s.Demand.TypeId, name, LivePriority(s),
+                ctx.BlueprintByProduct.GetValueOrDefault(s.Demand.TypeId)?.Activity == "reaction"
+                    ? IndustryPool.Reaction : IndustryPool.Manufacturing,
+                s.Demand.Units,
+                $"{s.Demand.Head} Short {s.Demand.Units:N0}.",
+                made
+                    ? "The planner did not produce a task for this and did not say why — please report it"
+                    : "Nothing in the SDE makes this, so it can only be bought"));
+        }
+
         return items;
     }
 

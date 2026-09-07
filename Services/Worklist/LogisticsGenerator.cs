@@ -56,13 +56,33 @@ public sealed record StationNeed(
     long   StationLevels,
     double UnitPrice  = 0,
     double UnitVolume = 0,
-    IReadOnlyList<NeedDriver>? Drivers = null)
+    IReadOnlyList<NeedDriver>? Drivers = null,
+
+    /// <param name="InBuild">Units already coming out of a running job that delivers HERE.</param>
+    long   InBuild = 0)
 {
     /// <summary>What is asking for this, largest first. Empty when nothing itemised it.</summary>
     public IReadOnlyList<NeedDriver> Why => Drivers ?? [];
 
     public long Total     => OrderJobs + Jobs + InventoryLevels + StationLevels;
+
+    /// <summary>
+    /// ⚠️ Against what is HERE, and deliberately not against what is being built.
+    ///
+    /// <para>Station Needs answers "what does this station hold against what it wants", and a job
+    /// three days from delivering does not fill a hangar today.</para>
+    /// </summary>
     public long Shortfall => Math.Max(0, Total - OnHand);
+
+    /// <summary>
+    /// ⚠️ The same gap with production counted, which is the question the Item Needs tab asks.
+    ///
+    /// <para>Titanium Carbide sat 16 million below its target with 19 million already in the
+    /// reactors: short by the station's reckoning, and not actually short at all. Reading the one
+    /// number as the other is how a satisfied item looks like a crisis — and why no job was raised
+    /// for it, correctly.</para>
+    /// </summary>
+    public long ShortAfterBuild => Math.Max(0, Total - OnHand - InBuild);
 
     /// <summary>What closing the gap costs, and what it takes to carry. Priced and sized on the
     /// shortfall rather than the total, since the total is mostly stock already sitting there.</summary>
@@ -309,6 +329,33 @@ public class LogisticsGenerator(
                 .Where(t => t > 0).Distinct().ToList();
             var names  = await NamesAsync(db, typeIds, ct);
             var (prices, volumes) = await PriceAndVolumeAsync(db, typeIds, ct);
+            // Units already coming out of a running job, by where that job delivers.
+            //
+            // ⚠️ Keyed on FacilityId, not summed per type. Item Needs groups stations under an
+            // item, so a type-wide figure repeated on every row would multiply itself down the
+            // group; attributed to the structure the job runs in, the rows add up.
+            //
+            // ⚠️ Runs × output-per-run, not runs. A reaction formula returns 10,000 units a run,
+            // so counting runs would report 1,891 units in build where 18,910,000 are.
+            var activeJobs = await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Status == "active" && j.ProductTypeId != null && j.FacilityId > 0)
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId })
+                .ToListAsync(ct);
+
+            var perRun = (await db.SdeBlueprintProducts.AsNoTracking()
+                    .Where(p => p.Activity == "manufacturing" || p.Activity == "reaction")
+                    .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                    .ToListAsync(ct))
+                .GroupBy(p => (p.TypeId, p.ProductTypeId))
+                .ToDictionary(g => g.Key, g => Math.Max(1, g.First().Quantity));
+
+            var inBuild = activeJobs
+                .GroupBy(j => (Station: j.FacilityId, j.ProductTypeId))
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(j => (long)j.Runs
+                                  * perRun.GetValueOrDefault((j.BlueprintTypeId, j.ProductTypeId), 1)));
+
 
             return want
                 .Select(kv => new StationNeed(
@@ -331,7 +378,8 @@ public class LogisticsGenerator(
                                 : "",
                         })
                         .OrderByDescending(d => d.Qty)
-                        .ToList()))
+                        .ToList(),
+                    inBuild.GetValueOrDefault((kv.Key.Station, kv.Key.TypeId))))
                 .OrderBy(n => n.StationName).ThenBy(n => n.TypeName)
                 .ToList();
         }
