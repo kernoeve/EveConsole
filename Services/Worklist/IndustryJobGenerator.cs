@@ -293,6 +293,20 @@ public class IndustryJobGenerator(
         // nobody can run would be a lie about the shelf.
         static bool StillShort(PlanState s) => s.Remaining > 0;
 
+        // Whether a dependent still has work that cannot run: either not yet written down, or
+        // written down and blocked.
+        //
+        // ⚠️ Deliberately NOT StillShort, which is the wrong question to ask about an ancestor.
+        // Remaining falls the moment a shortfall is REPORTED, blocked or not — right for a count
+        // that has to decay as the list grows, wrong for "is anything above me still stuck".
+        // Three Ark runs and a Salvation sat on the list blocked for want of Tungsten Carbide,
+        // and because their units had been reported their Remaining read zero: the hulls dropped
+        // out of the ancestry of their own bottleneck. Tungsten scored fin 0 with thirteen jobs
+        // stopped behind it and sat a band below items holding up one job each.
+        //
+        // Planned only moves for work that can actually start, which is exactly the question.
+        static bool StillWaiting(PlanState s) => s.Planned < s.Demand.Units;
+
         int BlockedNow(PlanState s)
         {
             var starving = Starving(s);
@@ -327,7 +341,7 @@ public class IndustryJobGenerator(
             var n = s.Demand.IsFinal ? 1 : 0;
 
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && StillShort(dep) && dep.Demand.IsFinal)
+                if (byType.TryGetValue(t, out var dep) && StillWaiting(dep) && dep.Demand.IsFinal)
                     n++;
             return (int)Math.Ceiling(n * starving);
         }
@@ -433,7 +447,7 @@ public class IndustryJobGenerator(
 
             foreach (var t in s.Demand.Dependents)
             {
-                if (!byType.TryGetValue(t, out var dep) || !StillShort(dep)) continue;
+                if (!byType.TryGetValue(t, out var dep) || !StillWaiting(dep)) continue;
 
                 // ⚠️ The ancestor's OWN priority, not its inherited one. Dependents is closed over
                 // the whole chain above an item, so the highest own-priority among the ancestors
