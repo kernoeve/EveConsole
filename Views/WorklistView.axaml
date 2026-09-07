@@ -553,21 +553,22 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <!-- The planner's sort keys, in the order it applies them. Hidden rather than removed:
-             they explain an ordering that cannot be audited from the outside, and the next
-             question about why one job outranks another is answered by switching them back on.
+        <!-- The planner's sort keys, in the order it applies them, SHOWN. They explain an
+             ordering that cannot be audited from the outside, and there is no column picker to
+             turn them on with — so hidden they were unreachable, and the question "why is this
+             above that" had no answer available to the person asking it.
              ⚠️ SortPriority is NOT debug-only — the row order itself sorts on it, since the
              stamped priority and the one the planner used are different numbers. -->
         <DataGridTextColumn Binding="{Binding DbgPriority}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="prio" IsVisible="False"/>
+                            CellStyleClasses="num" Header="prio" />
         <DataGridTextColumn Binding="{Binding DbgFinal}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="fin" IsVisible="False"/>
+                            CellStyleClasses="num" Header="fin" />
         <DataGridTextColumn Binding="{Binding DbgBlocked}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="blkd" IsVisible="False"/>
+                            CellStyleClasses="num" Header="blkd" />
         <DataGridTextColumn Binding="{Binding DbgCoverage}" FontSize="11" Width="65"
-                            CellStyleClasses="num" Header="cover" IsVisible="False"/>
+                            CellStyleClasses="num" Header="cover" />
         <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="seq" IsVisible="False"/>
+                            CellStyleClasses="num" Header="seq" />
 
         <!-- How many stopped tasks this row would release: the key that separates hauls and
              purchases from each other, blank on everything else. Hidden alongside the keys above,
@@ -576,7 +577,7 @@
              delivery or market order outranks another. Sorted on the number so 9 does not
              outrank 50. -->
         <DataGridTextColumn Binding="{Binding UnblocksText}" FontSize="11" Width="70"
-                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" IsVisible="False"/>
+                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" />
 
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
@@ -1053,11 +1054,17 @@
                           <ItemsControl ItemsSource="{Binding Points}" IsVisible="{Binding HasPoints}"
                                         Margin="0 4 0 0">
                             <ItemsControl.ItemTemplate>
-                              <DataTemplate x:DataType="x:String">
-                                <Grid ColumnDefinitions="14,*" Margin="0 0 0 4">
+                              <DataTemplate x:DataType="vm:ObservationPointVm">
+                                <Grid ColumnDefinitions="24,*" Margin="0 0 0 4">
+                                  <!-- The item's picture where the line is about one, the bullet
+                                       where it is not: a slot finding names no item. -->
                                   <TextBlock Grid.Column="0" Text="·" FontSize="14"
+                                             IsVisible="{Binding !HasIcon}"
                                              Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Top"/>
-                                  <TextBlock Grid.Column="1" Text="{Binding}" FontSize="13"
+                                  <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                         IsVisible="{Binding HasIcon}" HorizontalAlignment="Left"
+                                         VerticalAlignment="Top" Margin="0 1 0 0"/>
+                                  <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="13"
                                              Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="19"/>
                                 </Grid>
                               </DataTemplate>
@@ -1230,14 +1237,19 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
-                        <Panel>
-                          <Button Classes="link" Click="OnOpenShortageItem" IsVisible="{Binding HasLink}"
-                                  ToolTip.Tip="Open this item">
-                            <TextBlock Text="{Binding Item}" Classes="linktext"/>
-                          </Button>
-                          <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
-                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
-                        </Panel>
+                        <Grid ColumnDefinitions="Auto,*">
+                          <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                 Margin="0 0 6 0" VerticalAlignment="Center"
+                                 IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                          <Panel Grid.Column="1">
+                            <Button Classes="link" Click="OnOpenShortageItem" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Item}" Classes="linktext"/>
+                            </Button>
+                            <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
+                                       VerticalAlignment="Center"/>
+                          </Panel>
+                        </Grid>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1423,14 +1435,19 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
-                        <Panel>
-                          <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
-                                  ToolTip.Tip="Open this item">
-                            <TextBlock Text="{Binding Product}" Classes="linktext"/>
-                          </Button>
-                          <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
-                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
-                        </Panel>
+                        <Grid ColumnDefinitions="Auto,*">
+                          <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                 Margin="0 0 6 0" VerticalAlignment="Center"
+                                 IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                          <Panel Grid.Column="1">
+                            <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Product}" Classes="linktext"/>
+                            </Button>
+                            <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
+                                       VerticalAlignment="Center"/>
+                          </Panel>
+                        </Grid>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1634,14 +1651,19 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
-                        <Panel>
-                          <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
-                                  ToolTip.Tip="Open what this job makes">
-                            <TextBlock Text="{Binding Task}" Classes="linktext"/>
-                          </Button>
-                          <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
-                                     VerticalAlignment="Center"/>
-                        </Panel>
+                        <Grid ColumnDefinitions="Auto,*">
+                          <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                 Margin="0 0 6 0" VerticalAlignment="Center"
+                                 IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                          <Panel Grid.Column="1">
+                            <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
+                                    ToolTip.Tip="Open what this job makes">
+                              <TextBlock Text="{Binding Task}" Classes="linktext"/>
+                            </Button>
+                            <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
+                                       VerticalAlignment="Center"/>
+                          </Panel>
+                        </Grid>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>

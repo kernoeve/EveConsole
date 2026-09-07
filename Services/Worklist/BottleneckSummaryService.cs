@@ -5,13 +5,27 @@ namespace EveConsole.Services.Worklist;
 /// </summary>
 /// <param name="Rank">Higher sorts first: how much work the finding is holding up, counted in
 /// distinct stopped tasks.</param>
+/// <summary>
+/// One action, and the item it is about.
+///
+/// <para>⚠️ The type id rides along so the summary can show the item's icon beside it. The text
+/// was prose with a name inside it, which reads fine and cannot be turned back into an item — and
+/// every one of these lines came from a record that knew the id perfectly well.</para>
+///
+/// <para>TypeId 0 for a point about no particular item, which is what the slot findings are.</para>
+/// </summary>
+public sealed record ObservationPoint(int TypeId, string Text)
+{
+    public static implicit operator ObservationPoint(string text) => new(0, text);
+}
+
 /// <param name="Points">The actions themselves, one per line.</param>
 public sealed record Observation(
     string Kind,
     int    Rank,
     string Headline,
     string Body,
-    IReadOnlyList<string> Points)
+    IReadOnlyList<ObservationPoint> Points)
 {
     /// <summary>Whether this is the finding to act on rather than one to be aware of.</summary>
     public bool IsPrimary { get; init; }
@@ -97,9 +111,10 @@ public class BottleneckSummaryService
 
             // ⚠️ Only remedies worth taking. A remedy worth nothing used to be spelled out so
             // the reader would stop considering it — which is an explanation, not an action.
-            var points = s.Remedies
+            List<ObservationPoint> points = s.Remedies
                 .Where(r => r.Slots > 0)
-                .Select(r => $"{r.Action} — +{r.Slots:N0} slots ({r.PercentGain:N0}%)")
+                .Select(r => new ObservationPoint(0,
+                    $"{r.Action} — +{r.Slots:N0} slots ({r.PercentGain:N0}%)"))
                 .ToList();
 
             if (points.Count == 0) continue;
@@ -226,7 +241,7 @@ public class BottleneckSummaryService
 
         if (unset.Count == 0 && thin.Count == 0) yield break;
 
-        var points = new List<string>();
+        var points = new List<ObservationPoint>();
 
         foreach (var s in unset.Take(MaxNamed / 2))
             points.Add($"{s.Name} — set level to {Suggest(s)}");
@@ -262,14 +277,14 @@ public class BottleneckSummaryService
         // what belongs here is the delivery worth making.
         var shared = SharedHauls.Find(idle).Where(h => !h.Raised).ToList();
 
-        var points = shared.Count > 0
-            ? [.. shared.Take(MaxNamed).Select(h =>
+        List<ObservationPoint> points = shared.Count > 0
+            ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId,
                   $"{h.TypeName} to {h.StationName} — {h.Units:N0} ({h.Volume:N0} m3), "
                 + (h.Unblocks > 0 ? $"restarts {h.Unblocks:N0} jobs"
-                                  : $"wanted by {h.Jobs:N0} jobs, none restarted by it alone"))]
-            : idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
-                  .Select(h => $"{h.Title} at {h.StationName} — {h.Volume:N0} m3")
-                  .ToList();
+                                  : $"wanted by {h.Jobs:N0} jobs, none restarted by it alone")))]
+            : [.. idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
+                   .Select(h => new ObservationPoint(h.TypeId,
+                       $"{h.Title} at {h.StationName} — {h.Volume:N0} m3"))];
 
         yield return new Observation(
             "hauling",

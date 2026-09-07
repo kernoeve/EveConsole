@@ -516,8 +516,24 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
     };
 }
 
-public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
+public sealed class ItemShortageRowVm : ReactiveObject
 {
+    private readonly ItemShortage s;
+
+    public ItemShortageRowVm(ItemShortage shortage)
+    {
+        s     = shortage;
+        Tasks = [.. (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t))];
+        _ = ItemIcons.LoadAsync(s.TypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
     private bool _isExpanded;
 
     /// <summary>Whether the task list is open. Lives on the item, not the row, so the
@@ -567,8 +583,7 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
     /// <para>A count nobody can take apart is a count nobody can act on: "Blocking 4" becomes
     /// useful at the moment it can be read as four named tasks.</para>
     /// </summary>
-    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
-        (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t)).ToList();
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
     public bool HasTasks => s.Tasks is { Count: > 0 };
 
@@ -623,11 +638,39 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 /// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
 /// </summary>
 /// <summary>One finding on the Summary tab. Prose, so there is almost nothing to format.</summary>
+/// <summary>One line of a summary finding, with the item it names.</summary>
+public sealed class ObservationPointVm : ReactiveObject
+{
+    private readonly ObservationPoint _p;
+
+    public ObservationPointVm(ObservationPoint p)
+    {
+        _p = p;
+        if (p.TypeId > 0) _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b);
+    }
+
+    public string Text => _p.Text;
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>⚠️ Only once the picture is actually here. Reserving the space up front leaves a
+    /// hole beside every slot finding, which is about no item at all and has nothing to draw.</summary>
+    public bool HasIcon => _icon is not null;
+}
+
+// ── Icon plumbing shared by the bottleneck grids ─────────────────────────────
+
 public sealed class ObservationVm(Observation o)
 {
     public string Headline => o.Headline;
     public string Body     => o.Body;
-    public IReadOnlyList<string> Points => o.Points;
+    public IReadOnlyList<ObservationPointVm> Points { get; } =
+        [.. o.Points.Select(p => new ObservationPointVm(p))];
 
     public bool HasPoints => o.Points.Count > 0;
 
@@ -650,8 +693,24 @@ public sealed class ObservationVm(Observation o)
 
 /// <summary>One stopped job on the Hauling tab.</summary>
 
-public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
+public sealed class HaulPressureRowVm : ReactiveObject
 {
+    private readonly HaulBlock h;
+
+    public HaulPressureRowVm(HaulBlock block)
+    {
+        h     = block;
+        Tasks = [.. h.Tasks.Select(t => new ShortageTaskRowVm(t))];
+        _ = ItemIcons.LoadAsync(h.TypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
     private bool _isExpanded;
 
     public bool IsExpanded
@@ -684,8 +743,7 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
         _                => Palette.Good,
     };
 
-    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
-        h.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
     public bool HasTasks => h.Tasks.Count > 0;
 
@@ -706,9 +764,28 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
     }
 }
 
-public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
-
+public sealed class PrintPressureRowVm : ReactiveObject
 {
+    private readonly ItemBandwidth p;
+
+    public PrintPressureRowVm(ItemBandwidth bandwidth)
+    {
+        p     = bandwidth;
+        Tasks = [.. p.Tasks.Select(t => new ShortageTaskRowVm(t))];
+
+        // ⚠️ The PRODUCT's icon, not a blueprint one. This grid is named for the print but every
+        // row is identified by what it makes, and the image server has no blueprint art for a
+        // product id — asking for one returns nothing at all.
+        _ = ItemIcons.LoadAsync(p.ProductTypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
     private bool _isExpanded;
 
     /// <summary>Whether the task list is open. On the item, not the row, so the glyph
@@ -730,8 +807,7 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
     /// </summary>
     public string Blocking => p.StalledTasks > 0 ? p.StalledTasks.ToString("N0") : "";
 
-    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
-        p.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
     public bool HasTasks => p.Tasks.Count > 0;
 
