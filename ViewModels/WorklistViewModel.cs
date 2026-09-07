@@ -342,16 +342,16 @@ public class WorklistRowVm : ReactiveObject
     /// </summary>
     public IBrush ReadinessBarColor => _item.Readiness switch
     {
-        WorklistReadiness.Ready   => Theme.GoodSurface,
-        WorklistReadiness.Blocked => Theme.Bad,
-        _                         => Theme.Accent,
+        WorklistReadiness.Ready   => Palette.GoodSurface,
+        WorklistReadiness.Blocked => Palette.Bad,
+        _                         => Palette.Accent,
     };
 
     public IBrush ReadinessColor => _item.Readiness switch
     {
-        WorklistReadiness.Ready   => Theme.Good,
-        WorklistReadiness.Blocked => Theme.Bad,
-        _                         => Theme.Accent,
+        WorklistReadiness.Ready   => Palette.Good,
+        WorklistReadiness.Blocked => Palette.Bad,
+        _                         => Palette.Accent,
     };
 
     /// <summary>Blocked items say what is in the way; the rest carry their own detail.</summary>
@@ -399,7 +399,7 @@ public sealed class SlotPressureRowVm(SlotPressure p)
     public string Utilised => $"{p.Utilised:N0}%";
 
     /// <summary>Amber only where work is actually queued behind a full pool.</summary>
-    public IBrush UtilisedColor => p.IsBottleneck ? Theme.Accent : p.Utilised >= 90 ? Theme.TextMuted : Theme.TextDim;
+    public IBrush UtilisedColor => p.IsBottleneck ? Palette.Accent : p.Utilised >= 90 ? Palette.TextMuted : Palette.TextDim;
 
     public bool IsBottleneck => p.IsBottleneck;
 
@@ -465,11 +465,11 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
 
     public IBrush StateColor => t.State switch
     {
-        "Blocked" => Theme.Bad,
-        "Waiting" => Theme.Accent,
-        "Running" => Theme.Good,
-        "Ready"   => Theme.Good,
-        _         => Theme.TextMuted,
+        "Blocked" => Palette.Bad,
+        "Waiting" => Palette.Accent,
+        "Running" => Palette.Good,
+        "Ready"   => Palette.Good,
+        _         => Palette.TextMuted,
     };
 }
 
@@ -498,7 +498,7 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 
     /// <summary>⚠️ Red once the work needs more than exists: a level being met is beside the
     /// point when the demand in front of it is larger than the level.</summary>
-    public IBrush NeedColor => s.Need > s.OnHand ? Theme.Bad : Theme.TextDim;
+    public IBrush NeedColor => s.Need > s.OnHand ? Palette.Bad : Palette.TextDim;
 
     /// <summary>
     /// Tasks this shortage is holding up, its own consumers and everything stopped behind them.
@@ -517,7 +517,7 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 
     /// <summary>Red where the thing that is short has nothing arriving to refill it.</summary>
     public IBrush MakeBlockedColor =>
-        s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? Theme.Bad : Theme.TextDim;
+        s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? Palette.Bad : Palette.TextDim;
     /// <summary>
     /// The tasks behind the counts, shown by expanding the row.
     ///
@@ -542,29 +542,29 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 
     /// <summary>⚠️ Amber, not red, during a wave — a deficit while a big order passes
     /// through is expected, and absorbing it is what the buffer is for.</summary>
-    public IBrush BalanceColor => !s.Buildable             ? Theme.TextDim
-                                : s.IsDraining && s.IsWave ? Theme.Accent
-                                : s.IsDraining             ? Theme.Bad
-                                : Theme.Good;
+    public IBrush BalanceColor => !s.Buildable             ? Palette.TextDim
+                                : s.IsDraining && s.IsWave ? Palette.Accent
+                                : s.IsDraining             ? Palette.Bad
+                                : Palette.Good;
 
     /// <summary>How much harder than usual this is being drawn on right now.</summary>
     public string Surge => s.Surge >= 1.2 ? $"{s.Surge:N1}×" : "";
 
     public IBrush VerdictColor => s.Verdict switch
     {
-        "Buy now"        => Theme.Bad,
-        "On order"       => Theme.Good,
-        "Buffer spent"   => Theme.Bad,
-        "Blocked"        => Theme.Bad,
-        "Level too low"  => Theme.Bad,
-        "No buffer"      => Theme.Bad,
-        "Not the shelf"  => Theme.TextMuted,
-        "Making too few" => Theme.Accent,
-        "Buy"            => Theme.Info,
-        "Buffer thin"    => Theme.Accent,
-        "No level set"   => Theme.Accent,
-        "Wave"           => Theme.TextMuted,
-        _                => Theme.TextDim,
+        "Buy now"        => Palette.Bad,
+        "On order"       => Palette.Good,
+        "Buffer spent"   => Palette.Bad,
+        "Blocked"        => Palette.Bad,
+        "Level too low"  => Palette.Bad,
+        "No buffer"      => Palette.Bad,
+        "Not the shelf"  => Palette.TextMuted,
+        "Making too few" => Palette.Accent,
+        "Buy"            => Palette.Info,
+        "Buffer thin"    => Palette.Accent,
+        "No level set"   => Palette.Accent,
+        "Wave"           => Palette.TextMuted,
+        _                => Palette.TextDim,
     };
 
     /// <summary>⚠️ Marks a rate that is itself throttled by the shortage being measured.</summary>
@@ -591,8 +591,8 @@ public sealed class ObservationVm(Observation o)
     /// <summary>The one finding to act on is marked, not merely first: a list read top-down
     /// reads as four jobs to do rather than one lever and three things to know about.</summary>
     public string Marker      => o.IsPrimary ? "START HERE" : Kind;
-    public IBrush MarkerColor => o.IsPrimary ? Theme.Accent : Theme.TextFaint;
-    public IBrush RuleColor   => o.IsPrimary ? Theme.Accent : Theme.SurfaceRaised;
+    public IBrush MarkerColor => o.IsPrimary ? Palette.Accent : Palette.TextFaint;
+    public IBrush RuleColor   => o.IsPrimary ? Palette.Accent : Palette.SurfaceRaised;
 
     private string Kind => o.Kind switch
     {
@@ -636,9 +636,9 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
     /// <summary>Red where nothing is moving: the material exists and no trip has been raised.</summary>
     public IBrush VerdictColor => h.Verdict switch
     {
-        "Nothing moving" => Theme.Bad,
-        "Several stops"  => Theme.Accent,
-        _                => Theme.Good,
+        "Nothing moving" => Palette.Bad,
+        "Several stops"  => Palette.Accent,
+        _                => Palette.Good,
     };
 
     public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
@@ -725,9 +725,9 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
 
     public IBrush TrendColor => p.Trend switch
     {
-        "Rising" => Theme.Bad,
-        "Easing" => Theme.Good,
-        _        => Theme.TextDim,
+        "Rising" => Palette.Bad,
+        "Easing" => Palette.Good,
+        _        => Palette.TextDim,
     };
     public string Advice      => p.Advice;
 
@@ -737,22 +737,22 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
     /// every day still measures around 60% — and a scale that called that "idle" would report
     /// that nothing is ever a bottleneck.
     /// </summary>
-    public IBrush CoverColor => p.IsTight ? Theme.Bad
-                             : p.IsIdle   ? Theme.TextDim
-                             : Theme.Accent;
+    public IBrush CoverColor => p.IsTight ? Palette.Bad
+                             : p.IsIdle   ? Palette.TextDim
+                             : Palette.Accent;
 
     /// <summary>⚠️ Muted always. It is context, and colouring it would invite ranking by it.</summary>
-    public IBrush UsedColor => Theme.TextDim;
+    public IBrush UsedColor => Palette.TextDim;
 
     /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
     public IBrush VerdictColor => p.Verdict switch
     {
-        "Blocking" => Theme.Bad,
-        "Steady"   => Theme.Bad,
-        "Blocked"  => Theme.Accent,
-        "Surge"    => Theme.Info,
-        "Minor"    => Theme.TextDim,
-        _          => Theme.TextMuted,
+        "Blocking" => Palette.Bad,
+        "Steady"   => Palette.Bad,
+        "Blocked"  => Palette.Accent,
+        "Surge"    => Palette.Info,
+        "Minor"    => Palette.TextDim,
+        _          => Palette.TextMuted,
     };
 
     public bool HasLink => p.ProductTypeId > 0;
@@ -813,7 +813,7 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
     public long   ShortRaw  => n.Shortfall;
     public string Short     => n.Shortfall > 0 ? n.Shortfall.ToString("N0") : "";
     /// <summary>Red only where the station is actually short; a covered need is not a problem.</summary>
-    public IBrush ShortColor => n.Shortfall > 0 ? Theme.Bad : Theme.TextFaint;
+    public IBrush ShortColor => n.Shortfall > 0 ? Palette.Bad : Palette.TextFaint;
 
     // Priced and sized on the shortfall, so the columns answer "what does closing this cost, and
     // what does it take to carry" rather than restating stock already sitting there.

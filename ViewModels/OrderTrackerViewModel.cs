@@ -114,7 +114,7 @@ public class TrackedOrderRowVm
     /// accounted for; the grid shows it in red when it is not.</summary>
     public int    Shortfall     { get; }
     public string ShortfallText { get; }
-    public IBrush ShortColor    => Theme.Bad;
+    public IBrush ShortColor    => Palette.Bad;
 
     public int?   LinkedJobId      { get; }
     public int?   LinkedContractId { get; }

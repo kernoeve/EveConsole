@@ -50,20 +50,20 @@ internal static class ContractFmt
         IsExpired(status, expired) ? "Expired" : StatusLabel(status);
 
     public static IBrush EffectiveStatusColor(string status, DateTimeOffset? expired) =>
-        IsExpired(status, expired) ? Theme.Warn : StatusColor(status);
+        IsExpired(status, expired) ? Palette.Warn : StatusColor(status);
 
     public static IBrush StatusColor(string status) => status switch
     {
-        "outstanding"  => Theme.Info,
-        "in_progress"  => Theme.Accent,
-        "finished"     => Theme.Good,
-        "closed"       => Theme.TextDim,
-        "cancelled"    => Theme.TextMuted,
-        "rejected"     => Theme.Bad,
-        "failed"       => Theme.Bad,
-        "deleted"      => Theme.TextDim,
-        "reversed"     => Theme.TextDim,
-        _              => Theme.TextSecondary,
+        "outstanding"  => Palette.Info,
+        "in_progress"  => Palette.Accent,
+        "finished"     => Palette.Good,
+        "closed"       => Palette.TextDim,
+        "cancelled"    => Palette.TextMuted,
+        "rejected"     => Palette.Bad,
+        "failed"       => Palette.Bad,
+        "deleted"      => Palette.TextDim,
+        "reversed"     => Palette.TextDim,
+        _              => Palette.TextSecondary,
     };
 
     public static string Date(DateTimeOffset? d) =>
@@ -87,7 +87,7 @@ public class ContractItemRowVm
     public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames)
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
-        KindColor = it.IsIncluded ? Theme.Good : Theme.Bad;
+        KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
         TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
         Quantity  = it.Quantity.ToString("N0");

@@ -78,7 +78,7 @@ public sealed class EveServerStatusService(
     }
 
     public string StatusText  => IsOnline ? "Online" : "Offline";
-    public IBrush StatusColor => IsOnline ? Theme.Good : Theme.Bad;
+    public IBrush StatusColor => IsOnline ? Palette.Good : Palette.Bad;
 
     /// <summary>Blank while offline — a stale player count next to an "Offline" badge
     /// reads as though people are still logged in.</summary>

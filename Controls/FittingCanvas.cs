@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
+using EveConsole.Services;
 
 namespace EveConsole.Controls;
 
@@ -103,12 +104,15 @@ public class FittingCanvas : Control
 
     // ── Appearance ───────────────────────────────────────────────────────────
 
-    private static readonly IBrush BackBrush  = new ImmutableSolidColorBrush(Color.Parse("#0b0b10"));
-    private static readonly IBrush EmptyFill  = new ImmutableSolidColorBrush(Color.Parse("#14141e"));
-    private static readonly IPen   EmptyPen   = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#2a2a38")), 1);
-    private static readonly IPen   HoverPen   = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#7fb8d8")), 1.5);
-    private static readonly IBrush RingBrush  = new ImmutableSolidColorBrush(Color.Parse("#10101a"));
-    private static readonly IPen   RingPen    = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#1e1e2a")), 1);
+    private static IPen? _emptyPen;
+    private static IPen? _hoverPen;
+    private static IPen? _ringPen;
+    private static IBrush BackBrush  => Palette.SurfaceBase;
+    private static IBrush EmptyFill  => Palette.SurfacePanelAlt;
+    private static IPen   EmptyPen   => _emptyPen ??= new Pen(Palette.BorderDefault, 1);
+    private static IPen   HoverPen   => _hoverPen ??= new Pen(Palette.Info, 1.5);
+    private static IBrush RingBrush  => Palette.SurfacePanel;
+    private static IPen   RingPen    => _ringPen ??= new Pen(Palette.BorderSubtle, 1);
 
     // One colour per band, so a glance says which ring you are looking at without reading labels.
     private static readonly IBrush HighFill    = new ImmutableSolidColorBrush(Color.Parse("#3b5f7a"));
@@ -117,7 +121,7 @@ public class FittingCanvas : Control
     private static readonly IBrush RigFill     = new ImmutableSolidColorBrush(Color.Parse("#5a4a6b"));
     private static readonly IBrush ServiceFill = new ImmutableSolidColorBrush(Color.Parse("#6b6440"));
 
-    private static readonly IBrush LabelBrush = new ImmutableSolidColorBrush(Color.Parse("#8d8d9e"));
+    private static IBrush LabelBrush => Palette.TextMuted;
     private static readonly IBrush TipBack    = new ImmutableSolidColorBrush(Color.Parse("#f00e0e16"));
     private static readonly IPen   TipPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a4a58")), 1);
     private static readonly IBrush TipTitle   = new ImmutableSolidColorBrush(Color.Parse("#e8e8f2"));

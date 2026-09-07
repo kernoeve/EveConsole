@@ -108,25 +108,32 @@ public class MapCanvas : Control
 
     // ── Brushes and pens (immutable, allocated once) ─────────────────────────
 
-    private static readonly IBrush BackBrush     = new ImmutableSolidColorBrush(Color.Parse("#0b0b10"));
-    private static readonly IPen   EdgePen       = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a3a4e")), 1);
-    private static readonly IPen   NodePen       = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
-    private static readonly IPen   SelectedPen   = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#e8c86a")), 2);
-    private static readonly IPen   HoverPen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#7fb8d8")), 1.5);
-    private static readonly IBrush LabelBrush    = new ImmutableSolidColorBrush(Color.Parse("#b8b8c8"));
-    private static readonly IBrush BadgeBrush    = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
+    private static IPen? _edgePen;
+    private static IPen? _gateEdgePen;
+    private static IPen? _gatePen;
+    private static IPen? _hoverPen;
+    private static IPen? _nodePen;
+    private static IPen? _selectedPen;
+    private static IPen? _tipPen;
+    private static IBrush BackBrush     => Palette.SurfaceBase;
+    private static IPen   EdgePen       => _edgePen ??= new Pen(Palette.BorderDefault, 1);
+    private static IPen   NodePen       => _nodePen ??= new Pen(Palette.SurfaceBase, 1.5);
+    private static IPen   SelectedPen   => _selectedPen ??= new Pen(Palette.Accent, 2);
+    private static IPen   HoverPen      => _hoverPen ??= new Pen(Palette.Info, 1.5);
+    private static IBrush LabelBrush    => Palette.TextSecondary;
+    private static IBrush BadgeBrush    => Palette.Accent;
     private static readonly IBrush TipBackBrush  = new ImmutableSolidColorBrush(Color.Parse("#e6141420"));
-    private static readonly IPen   TipPen        = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a3a4e")), 1);
-    private static readonly IBrush TipTextBrush  = new ImmutableSolidColorBrush(Color.Parse("#d8d8e4"));
+    private static IPen   TipPen        => _tipPen ??= new Pen(Palette.BorderDefault, 1);
+    private static IBrush TipTextBrush  => Palette.TextPrimary;
     private static readonly Color  DefaultFill   = Color.Parse("#6a6a80");
 
     // Gateways to neighbouring regions: a box rather than a dot, so they read as an exit from
     // the map rather than as one more system on it.
-    private static readonly IBrush GateBackBrush   = new ImmutableSolidColorBrush(Color.Parse("#1e2630"));
-    private static readonly IPen   GatePen         = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#5a7d99")), 1);
-    private static readonly IBrush GateSysBrush    = new ImmutableSolidColorBrush(Color.Parse("#c2ccd6"));
-    private static readonly IBrush GateRegionBrush = new ImmutableSolidColorBrush(Color.Parse("#79b0d8"));
-    private static readonly IPen   GateEdgePen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3f5a6e")), 1);
+    private static IBrush GateBackBrush   => Palette.SurfacePanel;
+    private static IPen   GatePen         => _gatePen ??= new Pen(Palette.BorderStrong, 1);
+    private static IBrush GateSysBrush    => Palette.TextPrimary;
+    private static IBrush GateRegionBrush => Palette.Info;
+    private static IPen   GateEdgePen     => _gateEdgePen ??= new Pen(Palette.BorderDefault, 1);
 
     private static readonly IBrush DarkInk      = new ImmutableSolidColorBrush(Color.Parse("#101018"));
     private static readonly IBrush DarkInkSoft  = new ImmutableSolidColorBrush(Color.Parse("#99101018"));

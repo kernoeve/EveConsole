@@ -43,7 +43,7 @@ public record LpCorpValueVm(
     /// carried by a few unusually good offers rather than by the catalogue at large.</summary>
     public IBrush MedianColor =>
         Math.Abs(IskPerLp - MedianIskPerLp) > Math.Max(50, Math.Abs(MedianIskPerLp))
-            ? Theme.Warn : Theme.TextMuted;
+            ? Palette.Warn : Palette.TextMuted;
 
     /// <summary>Values span several orders of magnitude between corporations, so the
     /// precision follows the number rather than being fixed.</summary>
@@ -59,10 +59,10 @@ public record LpCorpValueVm(
     /// <summary>An average resting on a small slice of the catalogue is worth less trust,
     /// so the coverage is dimmed when most offers could not be priced.</summary>
     public IBrush CoverageColor =>
-        TotalOffers > 0 && ValuedOffers * 2 < TotalOffers ? Theme.Warn : Theme.TextMuted;
+        TotalOffers > 0 && ValuedOffers * 2 < TotalOffers ? Palette.Warn : Palette.TextMuted;
 
     public string HeldText  => LpHeld > 0 ? $"{LpHeld:N0}" : "—";
-    public IBrush HeldColor => LpHeld > 0 ? Theme.Good : Theme.TextFaint;
+    public IBrush HeldColor => LpHeld > 0 ? Palette.Good : Palette.TextFaint;
 
     /// <summary>What the balance is worth at the mean rate, matching the headline ISK / LP
     /// column so the two agree.</summary>

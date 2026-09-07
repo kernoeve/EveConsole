@@ -53,10 +53,10 @@ public class HistoryRegionRowVm : ReactiveObject
                               : Refreshed == 0 ? "Empty"
                               : "Filling";
 
-    public IBrush StatusColor => Total == 0 ? Theme.TextDim
-                               : Queue == 0 ? Theme.Good
-                               : Refreshed == 0 ? Theme.Bad
-                               : Theme.Accent;
+    public IBrush StatusColor => Total == 0 ? Palette.TextDim
+                               : Queue == 0 ? Palette.Good
+                               : Refreshed == 0 ? Palette.Bad
+                               : Palette.Accent;
 }
 
 public class ScheduleRowVm

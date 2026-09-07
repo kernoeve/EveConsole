@@ -68,7 +68,7 @@ public class WalletJournalRowVm
         Description  = e.Description ?? e.Reason ?? "";
         AmountRaw    = e.Amount;
         AmountText   = FormatAmount(e.Amount);
-        AmountColor  = e.Amount >= 0 ? Theme.Good : Theme.Bad;
+        AmountColor  = e.Amount >= 0 ? Palette.Good : Palette.Bad;
         BalanceRaw   = e.Balance;
         BalanceText  = FormatIsk(e.Balance);
         OwnerText    = ownerNames.TryGetValue(e.OwnerId, out var n) ? n : "";
@@ -161,7 +161,7 @@ public class WalletTransactionRowVm
         var gross    = (decimal)t.Quantity * t.UnitPrice;
         TotalRaw     = t.IsBuy ? -gross : gross;
         Total        = FormatIsk(gross);
-        TotalColor   = t.IsBuy ? Theme.Bad : Theme.Good;
+        TotalColor   = t.IsBuy ? Palette.Bad : Palette.Good;
         Direction    = t.IsBuy ? "Buy" : "Sell";
         OwnerText    = ownerNames.TryGetValue(t.OwnerId, out var on) ? on : "";
         DivisionText = t.Division is > 0

@@ -53,7 +53,7 @@ public sealed class FinalProductJobVm
     public string ProfitText => BuildCost > 0 || MarketValue > 0
                               ? MarketFmt.Isk(PotentialProfit) : "—";
 
-    public IBrush ProfitColor => PotentialProfit >= 0 ? Theme.Good : Theme.Bad;
+    public IBrush ProfitColor => PotentialProfit >= 0 ? Palette.Good : Palette.Bad;
 
     public double ProfitPctRaw => BuildCost > 0 ? PotentialProfit / BuildCost * 100 : double.MinValue;
     public string ProfitPct    => BuildCost > 0 ? $"{PotentialProfit / BuildCost * 100:N1}%" : "—";

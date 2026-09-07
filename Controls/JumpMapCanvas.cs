@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using EveConsole.Services;
 
 namespace EveConsole.Controls;
 
@@ -155,34 +156,39 @@ public class JumpMapCanvas : Control
 
     // ── Brushes and pens ─────────────────────────────────────────────────────
 
-    private static readonly IBrush BackBrush   = new ImmutableSolidColorBrush(Color.Parse("#0b0b10"));
+    private static IPen? _hoverPen;
+    private static IPen? _legPen;
+    private static IPen? _linkPen;
+    private static IPen? _markerPen;
+    private static IPen? _tipPen;
+    private static IBrush BackBrush   => Palette.SurfaceBase;
     private static readonly IBrush DotHigh     = new ImmutableSolidColorBrush(Color.Parse("#2c4a3a"));
     private static readonly IBrush DotLow      = new ImmutableSolidColorBrush(Color.Parse("#4a4030"));
     private static readonly IBrush DotNull     = new ImmutableSolidColorBrush(Color.Parse("#3a2c34"));
 
-    private static readonly IPen   LegPen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#c8a84b")), 1.6);
-    private static readonly IPen   MarkerPen   = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
+    private static IPen   LegPen      => _legPen ??= new Pen(Palette.Accent, 1.6);
+    private static IPen   MarkerPen   => _markerPen ??= new Pen(Palette.SurfaceBase, 1.5);
     private static readonly IPen   DragPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#7fb8d8")), 1.5,
                                                                   new ImmutableDashStyle([4, 3], 0));
     private static readonly IBrush WaypointFill = new ImmutableSolidColorBrush(Color.Parse("#e8c86a"));
     private static readonly IBrush MidpointFill = new ImmutableSolidColorBrush(Color.Parse("#5599aa"));
     private static readonly IBrush PinnedFill   = new ImmutableSolidColorBrush(Color.Parse("#8fd06a"));
-    private static readonly IPen   HoverPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#7fb8d8")), 1.5);
+    private static IPen   HoverPen     => _hoverPen ??= new Pen(Palette.Info, 1.5);
     private static readonly IPen   GhostPen     = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#66788a")), 1,
                                                                   new ImmutableDashStyle([2, 2], 0));
 
-    private static readonly IBrush LabelBrush  = new ImmutableSolidColorBrush(Color.Parse("#ccccd8"));
-    private static readonly IBrush CaptionBrush = new ImmutableSolidColorBrush(Color.Parse("#7a8896"));
+    private static IBrush LabelBrush  => Palette.TextPrimary;
+    private static IBrush CaptionBrush => Palette.TextMuted;
     private static readonly IBrush PlateBrush  = new ImmutableSolidColorBrush(Color.Parse("#cc12121a"));
-    private static readonly IBrush HintBrush   = new ImmutableSolidColorBrush(Color.Parse("#55606e"));
+    private static IBrush HintBrush   => Palette.TextFaint;
 
-    private static readonly IPen   LinkPen      = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#22283a")), 1);
+    private static IPen   LinkPen      => _linkPen ??= new Pen(Palette.BorderSubtle, 1);
     private static readonly IBrush CandidateFill = new ImmutableSolidColorBrush(Color.Parse("#4ad991"));
     private static readonly IPen   CandidatePen  = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#2f7d55")), 1);
-    private static readonly IBrush DotLabelBrush = new ImmutableSolidColorBrush(Color.Parse("#8d8d9e"));
+    private static IBrush DotLabelBrush => Palette.TextMuted;
 
     private static readonly IBrush TipBackBrush = new ImmutableSolidColorBrush(Color.Parse("#f00e0e16"));
-    private static readonly IPen   TipPen       = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#3a4a58")), 1);
+    private static IPen   TipPen       => _tipPen ??= new Pen(Palette.BorderDefault, 1);
     private static readonly IBrush TipTitle     = new ImmutableSolidColorBrush(Color.Parse("#e8e8f2"));
     private static readonly IBrush TipBody      = new ImmutableSolidColorBrush(Color.Parse("#9aa8b6"));
     private static readonly IBrush TipCost      = new ImmutableSolidColorBrush(Color.Parse("#c8a84b"));

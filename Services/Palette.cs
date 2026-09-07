@@ -6,6 +6,11 @@ namespace EveConsole.Services;
 /// <summary>
 /// The palette, reachable from code.
 ///
+/// <para>⚠️ Named Palette, not Theme, and it cannot be Theme: Avalonia puts a Theme property on
+/// StyledElement, so inside any Control subclass — every custom-drawn canvas here — the bare name
+/// resolves to that instance property instead, and the compiler reports it as needing an object
+/// reference rather than as a collision.</para>
+///
 /// <para>Everything in <c>Themes/Palette.axaml</c> that a view model or a custom-drawn control
 /// needs. Markup gets these through <c>{DynamicResource}</c>; this is the same brushes, by the
 /// same keys, for the code that cannot write markup.</para>
@@ -21,7 +26,7 @@ namespace EveConsole.Services;
 /// A string is parsed into a brush once at bind time and is then a fixed colour for ever, which
 /// is exactly the bug this replaces: status text that stayed dark-theme green on a light page.</para>
 /// </summary>
-public static class Theme
+public static class Palette
 {
     // ── Surfaces ──────────────────────────────────────────────────────────────
     public static IBrush SurfaceBase     => Brush("SurfaceBaseBrush");

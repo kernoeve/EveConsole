@@ -84,9 +84,9 @@ public record LpOfferVm(
 
     /// <summary>Red below zero — the offer costs more than the item fetches, so the LP is
     /// doing nothing for you.</summary>
-    public IBrush IskPerLpColor => IskPerLp is null ? Theme.TextFaint
-                                 : IskPerLp.Value < 0 ? Theme.Bad
-                                 : Theme.Good;
+    public IBrush IskPerLpColor => IskPerLp is null ? Palette.TextFaint
+                                 : IskPerLp.Value < 0 ? Palette.Bad
+                                 : Palette.Good;
 
     /// <summary>
     /// Always shown, including for a single unit. This was a field rather than a property,
@@ -102,7 +102,7 @@ public record LpOfferVm(
     public bool   CanAfford    => LpHeld >= LpCost;
     public string HeldText     => LpHeld > 0 ? $"{LpHeld:N0} LP" : "none";
     /// <summary>Green when a character can cover it today, muted when they cannot.</summary>
-    public IBrush HeldColor    => CanAfford ? Theme.Good : Theme.TextFaint;
+    public IBrush HeldColor    => CanAfford ? Palette.Good : Palette.TextFaint;
 }
 
 public record AttrDisplayVm(string Name, string ValueText);

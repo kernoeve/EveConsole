@@ -318,14 +318,14 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _hasActiveAlarms, value);
     }
 
-    private IBrush _alarmLightColor = Theme.SurfaceRaised;
+    private IBrush _alarmLightColor = Palette.SurfaceRaised;
     public IBrush AlarmLightColor
     {
         get => _alarmLightColor;
         private set => this.RaiseAndSetIfChanged(ref _alarmLightColor, value);
     }
 
-    private IBrush _alarmLightRing = Theme.SurfaceRaised;
+    private IBrush _alarmLightRing = Palette.SurfaceRaised;
     public IBrush AlarmLightRing
     {
         get => _alarmLightRing;
@@ -365,8 +365,8 @@ public class MainWindowViewModel : ReactiveObject
         ActiveAlarmCount = count;
         HasActiveAlarms  = count > 0;
 
-        AlarmLightColor   = count > 0 ? Theme.BadSurface : Theme.SurfaceRaised;
-        AlarmLightRing    = count > 0 ? Theme.Bad : Theme.SurfaceRaised;
+        AlarmLightColor   = count > 0 ? Palette.BadSurface : Palette.SurfaceRaised;
+        AlarmLightRing    = count > 0 ? Palette.Bad : Palette.SurfaceRaised;
         AlarmGleamOpacity = count > 0 ? 0.55 : 0.18;
 
         _armedCount = count;
@@ -427,7 +427,7 @@ public class MainWindowViewModel : ReactiveObject
     }
 
     /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
-    private IBrush _onlineCharactersColor = Theme.BorderStrong;
+    private IBrush _onlineCharactersColor = Palette.BorderStrong;
     public IBrush OnlineCharactersColor
     {
         get => _onlineCharactersColor;
@@ -499,7 +499,7 @@ public class MainWindowViewModel : ReactiveObject
             {
                 OnlineCharactersText  = text;
                 OnlineCharactersTip   = tip;
-                OnlineCharactersColor = online.Count > 0 ? Theme.Good : Theme.BorderStrong;
+                OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
         }
         catch
@@ -525,7 +525,7 @@ public class MainWindowViewModel : ReactiveObject
     private string _serverStatusText = "Online";
     public string ServerStatusText { get => _serverStatusText; private set => this.RaiseAndSetIfChanged(ref _serverStatusText, value); }
 
-    private IBrush _serverStatusColor = Theme.Good;
+    private IBrush _serverStatusColor = Palette.Good;
     public IBrush ServerStatusColor { get => _serverStatusColor; private set => this.RaiseAndSetIfChanged(ref _serverStatusColor, value); }
 
     private string _serverPlayersText = "";

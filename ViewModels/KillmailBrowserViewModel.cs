@@ -250,7 +250,7 @@ public class KillmailAttackerVm : ReactiveObject
     public bool   FinalBlow    { get; }
     public bool   IsTopDamage  { get; set; }
     public string RoleLabel    { get; private set; } = "";
-    public IBrush RoleColor    { get; private set; } = Theme.TextFaint;
+    public IBrush RoleColor    { get; private set; } = Palette.TextFaint;
 
     private Bitmap? _portrait;
     private Bitmap? _shipIcon;
@@ -274,7 +274,7 @@ public class KillmailAttackerVm : ReactiveObject
         _allianceId    = r.AllianceId;
         _shipTypeId   = r.ShipTypeId;
         _weaponTypeId = r.WeaponTypeId;
-        if (r.FinalBlow) { RoleLabel = "★ FB"; RoleColor = Theme.Accent; }
+        if (r.FinalBlow) { RoleLabel = "★ FB"; RoleColor = Palette.Accent; }
 
         OpenCharCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _characterId));
         OpenCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _corporationId));
@@ -290,7 +290,7 @@ public class KillmailAttackerVm : ReactiveObject
     public void MarkTopDamage()
     {
         IsTopDamage = true;
-        if (!FinalBlow) { RoleLabel = "▲ TD"; RoleColor = Theme.Good; }
+        if (!FinalBlow) { RoleLabel = "▲ TD"; RoleColor = Palette.Good; }
         else            { RoleLabel = "★ FB  ▲ TD"; }
     }
 
@@ -491,7 +491,7 @@ public class KillmailBrowserViewModel : ReactiveObject
     // Status
     private bool   _isLoading;
     private string _statusText  = "";
-    private IBrush _statusColor = Theme.TextFaint;
+    private IBrush _statusColor = Palette.TextFaint;
     public bool   IsLoading    { get => _isLoading;    private set => this.RaiseAndSetIfChanged(ref _isLoading,    value); }
     public string StatusText   { get => _statusText;   private set => this.RaiseAndSetIfChanged(ref _statusText,   value); }
     public IBrush StatusColor  { get => _statusColor;  private set => this.RaiseAndSetIfChanged(ref _statusColor,  value); }
@@ -561,7 +561,7 @@ public class KillmailBrowserViewModel : ReactiveObject
     private async Task LoadAsync(CancellationToken ct = default)
     {
         IsLoading   = true;
-        StatusColor = Theme.TextFaint;
+        StatusColor = Palette.TextFaint;
         StatusText  = "Loading killmails…";
         _offset     = 0;
         HasMore     = false;
@@ -582,7 +582,7 @@ public class KillmailBrowserViewModel : ReactiveObject
             UpdateStatusText();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Theme.Bad; }
+        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Palette.Bad; }
         finally { IsLoading = false; }
     }
 
@@ -611,7 +611,7 @@ public class KillmailBrowserViewModel : ReactiveObject
             UpdateStatusText();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Theme.Bad; }
+        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Palette.Bad; }
         finally { IsLoadingMore = false; }
     }
 

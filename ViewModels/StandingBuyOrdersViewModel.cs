@@ -57,10 +57,10 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// sellers fill their order instead of ours. Amber rather than red: like low volume
     /// and near expiry, it is a standing order that needs adjusting, not one that is
     /// absent. Red stays reserved for an order that isn't there at all.</summary>
-    public IBrush PriceColor { get; } = r.IsOutbid ? Theme.Warn : Theme.TextPrimary;
+    public IBrush PriceColor { get; } = r.IsOutbid ? Palette.Warn : Palette.TextPrimary;
 
-    public IBrush StationBidColor { get; } = r.IsOutbid ? Theme.Warn
-                                           : r.IsLocationTracked ? Theme.TextPrimary : Theme.TextFaint;
+    public IBrush StationBidColor { get; } = r.IsOutbid ? Palette.Warn
+                                           : r.IsLocationTracked ? Palette.TextPrimary : Palette.TextFaint;
 
     public string? PriceTooltip { get; } = !r.IsLocationTracked
         ? "This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market."
@@ -85,14 +85,14 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// outbid, running low, nearing expiry. Red means the order does not exist.</summary>
     public IBrush StatusColor { get; } = r.MatchStatus switch
     {
-        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => Theme.Warn,
-        "matched"                                               => Theme.Good,
-        _                                                       => Theme.Bad,
+        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => Palette.Warn,
+        "matched"                                               => Palette.Good,
+        _                                                       => Palette.Bad,
     };
 
     /// <summary>Expiry gets its own colour so a healthy-volume order that is about to
     /// lapse is visible in the column that explains why.</summary>
-    public IBrush ExpiryColor { get; } = r.IsExpiringSoon ? Theme.Warn : Theme.TextMuted;
+    public IBrush ExpiryColor { get; } = r.IsExpiringSoon ? Palette.Warn : Palette.TextMuted;
 
     /// <summary>Sort key tracking the status colour — red, then orange, then healthy.
     /// Derived here rather than in the caller so it cannot drift from StatusColor.</summary>

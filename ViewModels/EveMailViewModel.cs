@@ -57,16 +57,16 @@ public class EveMailRowVm : ReactiveObject
         CharName      = charName;
         _isRead       = r.IsRead;
         _isUnread     = !r.IsRead;
-        _fromColor    = r.IsRead ? Theme.TextMuted : Theme.TextBright;
-        _subjectColor = r.IsRead ? Theme.TextFaint : Theme.TextPrimary;
+        _fromColor    = r.IsRead ? Palette.TextMuted : Palette.TextBright;
+        _subjectColor = r.IsRead ? Palette.TextFaint : Palette.TextPrimary;
     }
 
     public void MarkAsRead()
     {
         IsRead       = true;
         IsUnread     = false;
-        FromColor    = Theme.TextMuted;
-        SubjectColor = Theme.TextFaint;
+        FromColor    = Palette.TextMuted;
+        SubjectColor = Palette.TextFaint;
     }
 
     public Task LoadPortraitAsync()
