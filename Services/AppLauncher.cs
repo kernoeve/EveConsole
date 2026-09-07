@@ -174,14 +174,6 @@ public static class AppLauncher
     }
 
     /// <summary>
-    /// How this copy was installed, in the words the person reading a settings page would use.
-    /// </summary>
-    public static string InstallKind =>
-        IsAppImage                  ? "AppImage"
-        : OperatingSystem.IsLinux() ? "tarball"
-                                    : "installed";
-
-    /// <summary>
     /// Whether <paramref name="recorded"/> — a path read back out of a unit file or autostart entry
     /// — refers to this same copy of the application.
     ///

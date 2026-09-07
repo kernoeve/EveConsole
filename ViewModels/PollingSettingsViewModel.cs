@@ -259,9 +259,6 @@ public class PollingSettingsViewModel : ReactiveObject
         }
     }
 
-    /// <summary>Stopped, but it will be started again anyway — the case worth saying out loud.</summary>
-    public bool ServiceReturnsAtBoot => ServiceInstalled && !ServiceRunning && _startsWithWindows;
-
     private async Task SetStartsWithWindowsAsync(bool automatic)
     {
         ServiceBusy = true;
@@ -353,7 +350,6 @@ public class PollingSettingsViewModel : ReactiveObject
 
         _startsWithWindows = installed && SystemdServiceControl.StartsAtLogin();
         this.RaisePropertyChanged(nameof(StartsWithWindows));
-        this.RaisePropertyChanged(nameof(ServiceReturnsAtBoot));
         this.RaisePropertyChanged(nameof(ServiceUpdateReason));
 
         ServiceStatus = !installed         ? "Not installed"
@@ -392,7 +388,6 @@ public class PollingSettingsViewModel : ReactiveObject
         // and cannot be changed by Stop because reconfiguring a service needs elevation.
         _startsWithWindows  = status is not null && WindowsServiceControl.StartsWithWindows() == true;
         this.RaisePropertyChanged(nameof(StartsWithWindows));
-        this.RaisePropertyChanged(nameof(ServiceReturnsAtBoot));
 
         ServiceDatabase       = status is null ? "" : MachineConfig.DescribeConnection() ?? "not configured";
         ServiceOtherDatabase  = status is not null && !MachineConfig.MatchesConnection(AppConfig.GetPostgresConnection());
@@ -402,7 +397,12 @@ public class PollingSettingsViewModel : ReactiveObject
         {
             null                                                  => "Not installed",
             System.ServiceProcess.ServiceControllerStatus.Running      => "Running",
-            System.ServiceProcess.ServiceControllerStatus.Stopped      => "Installed, stopped",
+            // ⚠️ Stopped is not the same as staying stopped. A service left on automatic start is
+            // back the next time the machine boots, and somebody who pressed Stop to make it go
+            // away has been told it did.
+            System.ServiceProcess.ServiceControllerStatus.Stopped      =>
+                _startsWithWindows ? "Installed, stopped — will start again at the next boot"
+                                   : "Installed, stopped",
             System.ServiceProcess.ServiceControllerStatus.StartPending => "Starting…",
             System.ServiceProcess.ServiceControllerStatus.StopPending  => "Stopping…",
             _                                                     => status.ToString()!,
