@@ -51,6 +51,11 @@ public class AppErrorLogger
                 Context      = context,
                 Message      = message,
                 InnerMessage = innerMessage,
+
+                // Who is reporting. On a shared database the log is everybody's, and a row that
+                // does not say which client wrote it sends the search to the wrong machine.
+                HostName     = Environment.MachineName,
+                Headless     = AppRuntime.IsHeadless,
             });
             await db.SaveChangesAsync();
         }

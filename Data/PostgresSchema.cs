@@ -97,6 +97,20 @@ public static class PostgresSchema
         """
         ALTER TABLE "WorkerActivity" ADD COLUMN IF NOT EXISTS "Count" INTEGER NULL
         """,
+
+        // ⚠️ AppErrorLog is built by EnsureCreated from the model, which only builds into an EMPTY
+        // database — so every install that already exists needs these two added by hand. They say
+        // which client wrote a row, which stopped being obvious the moment several of them began
+        // sharing one log.
+        //
+        // ⚠️ NOT NULL with a default rather than nullable: a client still on an older build inserts
+        // without naming these columns at all, and the default is what lets that go on working.
+        """
+        ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "HostName" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "Headless" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
     ];
 
     /// <summary>

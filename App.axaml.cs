@@ -2249,9 +2249,17 @@ public class App : Application
                         "Source"       TEXT    NOT NULL DEFAULT '',
                         "Context"      TEXT    NOT NULL DEFAULT '',
                         "Message"      TEXT    NOT NULL DEFAULT '',
-                        "InnerMessage" TEXT
+                        "InnerMessage" TEXT,
+                        "HostName"     TEXT    NOT NULL DEFAULT '',
+                        "Headless"     INTEGER NOT NULL DEFAULT 0
                     )
                     """);
+
+                // And for a file that already has the table. Which client wrote a row stopped being
+                // obvious the moment several of them could share one log — and while SQLite has only
+                // ever had one writer, a file copied to a server keeps its history.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "HostName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AppErrorLog" ADD COLUMN "Headless" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 // ── Standing buy orders ──────────────────────────────────────────
                 // User-declared intent; the live counterpart lives in EsiMarketOrders.
