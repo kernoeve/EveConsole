@@ -1100,6 +1100,7 @@ public class App : Application
                         "IncludeIndustryJobs"    INTEGER NOT NULL DEFAULT 0,
                         "IncludeMarketBuyOrders" INTEGER NOT NULL DEFAULT 0,
                         "IncludeContractsBuying" INTEGER NOT NULL DEFAULT 0,
+                        "PackagedOnly"           INTEGER NOT NULL DEFAULT 0,
                         "CollectionId"           INTEGER
                     )
                     """);
@@ -1122,6 +1123,10 @@ public class App : Application
                 // Throws "no such column" everywhere else, which is the success case. Safe to drop:
                 // no index, view or trigger refers to it, and every value is zero.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelItems" DROP COLUMN "IsFinalProduct" """); } catch { }
+
+                // Packaged-only arrived after the table did, so an existing database needs it added.
+                // Throws "duplicate column" on one that already has it, which is the success case.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "InvLevelGroups" ADD COLUMN "PackagedOnly" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 // ── Collections (new tables + alter existing tables) ─────────────
                 db.Database.ExecuteSqlRaw("""

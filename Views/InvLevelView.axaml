@@ -409,7 +409,7 @@
         </DataGridTemplateColumn>
 
         <!-- MARKET PRICE -->
-        <DataGridTemplateColumn Header="MKT PRICE" Width="95" MinWidth="95" Tag="MarketPrice" IsReadOnly="True">
+        <DataGridTemplateColumn Header="MKT PRICE" Width="119" MinWidth="119" Tag="MarketPrice" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -423,7 +423,7 @@
         </DataGridTemplateColumn>
 
         <!-- BUILD PRICE -->
-        <DataGridTemplateColumn Header="BUILD PRICE" Width="95" MinWidth="95" Tag="BuildPrice" IsReadOnly="True">
+        <DataGridTemplateColumn Header="BUILD PRICE" Width="119" MinWidth="119" Tag="BuildPrice" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -437,7 +437,7 @@
         </DataGridTemplateColumn>
 
         <!-- VOLUME -->
-        <DataGridTemplateColumn Header="VOLUME (m³)" Width="90" MinWidth="90" Tag="Volume" IsReadOnly="True">
+        <DataGridTemplateColumn Header="VOLUME (m³)" Width="113" MinWidth="113" Tag="Volume" IsReadOnly="True">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"

@@ -111,6 +111,11 @@ public static class PostgresSchema
         """
         ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "Headless" BOOLEAN NOT NULL DEFAULT FALSE
         """,
+
+        // Packaged-only arrived after InvLevelGroups did.
+        """
+        ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "PackagedOnly" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
     ];
 
     /// <summary>

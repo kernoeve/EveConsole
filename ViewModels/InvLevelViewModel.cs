@@ -25,6 +25,7 @@ public record InvGroupDialogResult(
     bool   IncludeIndustryJobs,
     bool   IncludeMarketBuyOrders,
     bool   IncludeContractsBuying,
+    bool   PackagedOnly,
     int    Multiplier,
     int?   CollectionId = null);
 
@@ -145,6 +146,7 @@ public class InvGroupRow : ReactiveObject
     public bool   IncludeIndustryJobs    { get; private set; }
     public bool   IncludeMarketBuyOrders { get; private set; }
     public bool   IncludeContractsBuying { get; private set; }
+    public bool   PackagedOnly           { get; private set; }
 
     public List<InvItemRow> AllItems { get; } = [];
 
@@ -232,6 +234,7 @@ public class InvGroupRow : ReactiveObject
             if (IncludeIndustryJobs)    parts.Add("IJ");
             if (IncludeMarketBuyOrders) parts.Add("Orders");
             if (IncludeContractsBuying) parts.Add("Contracts");
+            if (PackagedOnly)           parts.Add("packaged only");
             return parts.Count > 0 ? string.Join(", ", parts) : "None";
         }
     }
@@ -267,6 +270,7 @@ public class InvGroupRow : ReactiveObject
         IncludeIndustryJobs    = g.IncludeIndustryJobs;
         IncludeMarketBuyOrders = g.IncludeMarketBuyOrders;
         IncludeContractsBuying = g.IncludeContractsBuying;
+        PackagedOnly           = g.PackagedOnly;
         this.RaisePropertyChanged(nameof(ScopeDisplay));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(LocationName));
@@ -952,6 +956,14 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     public Func<string, int, Task<bool>>? ShowConfirmLargeGroup { get; set; }
 
+    /// <summary>Yes/no from the view, for the destructive things. True when there is no view
+    /// wired — a headless caller has nobody to ask, and refusing every delete would be worse
+    /// than doing what was requested.</summary>
+    public Func<string, Task<bool>>? ShowConfirm { get; set; }
+
+    private async Task<bool> ConfirmAsync(string message) =>
+        ShowConfirm is null || await ShowConfirm(message);
+
     private InvGroupRow? GetContextGroup()
     {
         return _selectedRow switch
@@ -1030,6 +1042,13 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task DeleteGroupAsync(InvGroupRow row)
     {
+        // ⚠️ Asked before doing it, not offered as an undo afterwards. Delete sits inches from
+        // Edit on the group line and takes the items with it; there is nothing to put back.
+        var items = row.AllItems.Count;
+        var what  = items == 0 ? "" : items == 1 ? " and its 1 item" : $" and its {items:N0} items";
+        if (!await ConfirmAsync($"Delete the group '{row.GroupName}'{what}? This cannot be undone."))
+            return;
+
         await _svc.DeleteGroupAsync(row.GroupId);
         _allGroups.Remove(row);
         RebuildGridRows();
@@ -1347,6 +1366,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             row.IncludeIndustryJobs,
             row.IncludeMarketBuyOrders,
             row.IncludeContractsBuying,
+            row.PackagedOnly,
             multiplierOverride ?? row.Multiplier,
             row.CollectionId);
 
@@ -1386,6 +1406,17 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 if (isSynthetic || !collectionId.HasValue) return;
                 var collRow = _allCollections.FirstOrDefault(c => c.CollectionId == collectionId);
                 if (collRow == null) return;
+
+                // The groups SURVIVE — DeleteCollectionAsync clears their CollectionId rather than
+                // removing them, so they reappear under Default. Worth saying in the prompt: the
+                // fear when deleting a folder is losing what is in it.
+                var kept = _allGroups.Count(g => g.CollectionId == collectionId.Value);
+                var fate = kept == 0 ? ""
+                    : kept == 1 ? " Its 1 group moves to Default and is not deleted."
+                    : $" Its {kept:N0} groups move to Default and are not deleted.";
+                if (!await ConfirmAsync($"Delete the collection '{collRow.CollectionName}'?{fate}"))
+                    return;
+
                 await _svc.DeleteCollectionAsync(collectionId.Value);
                 foreach (var g in _allGroups.Where(g => g.CollectionId == collectionId.Value))
                     g.CollectionId = null;

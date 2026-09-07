@@ -61,6 +61,7 @@ public partial class AddEditInvGroupDialog : Window
         IncludeJobsBox.IsChecked       = existing.IncludeIndustryJobs;
         IncludeBuyOrdersBox.IsChecked  = existing.IncludeMarketBuyOrders;
         IncludeContractsBox.IsChecked  = existing.IncludeContractsBuying;
+        PackagedOnlyBox.IsChecked      = existing.PackagedOnly;
         MultiplierBox.Value            = existing.Multiplier;
 
         if (existing.LocationId.HasValue)
@@ -146,6 +147,7 @@ public partial class AddEditInvGroupDialog : Window
             IncludeJobsBox.IsChecked      == true,
             IncludeBuyOrdersBox.IsChecked == true,
             IncludeContractsBox.IsChecked == true,
+            PackagedOnlyBox.IsChecked     == true,
             (int)(MultiplierBox.Value ?? 1),
             selectedCollection?.CollectionId));
     }

@@ -85,6 +85,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             IncludeIndustryJobs    = r.IncludeIndustryJobs,
             IncludeMarketBuyOrders = r.IncludeMarketBuyOrders,
             IncludeContractsBuying = r.IncludeContractsBuying,
+            PackagedOnly           = r.PackagedOnly,
         };
         db.InvLevelGroups.Add(g);
         await db.SaveChangesAsync(ct);
@@ -106,6 +107,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         g.IncludeIndustryJobs    = r.IncludeIndustryJobs;
         g.IncludeMarketBuyOrders = r.IncludeMarketBuyOrders;
         g.IncludeContractsBuying = r.IncludeContractsBuying;
+        g.PackagedOnly           = r.PackagedOnly;
         await db.SaveChangesAsync(ct);
     }
 
@@ -368,13 +370,23 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         // Assets
         if (group.IncludeAssets)
         {
+            var bpTypeIds = await BlueprintTypeIdsAsync(db, typeIds, ct);
+
             var q = db.EsiAssets.Where(a => typeIds.Contains(a.TypeId)
                                          && ownerFilter.Contains(a.OwnerId));
             if (stationFilter != null)
                 q = q.Where(a => stationFilter.Contains(a.RootLocationId));
-            // Only packaged (non-singleton) items — skip assembled/fitted hulls.
-            if (packagedOnly)
-                q = q.Where(a => !a.IsSingleton);
+
+            // Packaged only: skip assembled and fitted hulls. The group setting is the usual
+            // source; the parameter is how the sale posting tool overrides it per posting.
+            //
+            // ⚠️ Blueprints are exempt, and that is not a nicety. Singleton on a blueprint does
+            // not mean "assembled" — it means the item does not stack, which is true of every copy
+            // and every researched original. Filtering on it would empty a blueprint group
+            // outright, and a group of T2 copies is exactly where somebody would think to tick a
+            // box about packaging.
+            if (packagedOnly || group.PackagedOnly)
+                q = q.Where(a => !a.IsSingleton || bpTypeIds.Contains(a.TypeId));
 
             var rows = await q.Select(a => new { a.ItemId, a.TypeId, a.Quantity }).ToListAsync(ct);
 
@@ -388,8 +400,6 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             // copy and cannot touch the original, however many runs the original is good for. A
             // group holding a BPO and no copies is genuinely empty, and cutting copies is the
             // answer — the same reason the purchase pass counts only copies against a shelf.
-            var bpTypeIds = await BlueprintTypeIdsAsync(db, typeIds, ct);
-
             var runsByItem = bpTypeIds.Count == 0
                 ? []
                 : await db.EsiBlueprints.AsNoTracking()
