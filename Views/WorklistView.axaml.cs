@@ -97,7 +97,7 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
 
     /// <summary>A job waiting on this cargo. Opens the item it would produce.</summary>
     private void OnOpenWaitingJob(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as EveConsole.Services.Worklist.WorklistWaitingJob)?.OpenItem();
+        => ((sender as Control)?.DataContext as WorklistWaitingJobVm)?.OpenItem();
 
     private void OnOpenNeedStation(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenStation();

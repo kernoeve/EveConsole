@@ -284,12 +284,18 @@ public class WorklistRowVm : ReactiveObject
     public bool HasLines => _item.Lines.Count > 0;
 
     /// <summary>The stopped jobs waiting on something this haul carries.</summary>
-    public IReadOnlyList<WorklistWaitingJob> WaitingJobs => _item.WaitingJobs;
+    private IReadOnlyList<WorklistWaitingJobVm>? _waiting;
+    public IReadOnlyList<WorklistWaitingJobVm> WaitingJobs =>
+        _waiting ??= [.. _item.WaitingJobs.Select(w => new WorklistWaitingJobVm(w))];
     public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
 
     /// <summary>Whether the row has anything to open. Not hauls only any more: a job lists what
     /// waits on its output, and a purchase lists what it would release.</summary>
-    public bool CanExpand => HasLines || HasWaitingJobs;
+    /// <summary>⚠️ HasDetail counts. Every task has a reason it is on the list — the level it
+    /// fills, the bid it is behind, the orders behind that — and a purchase with nothing waiting
+    /// on it still has one. Gating on cargo and waiting jobs left those rows unopenable while
+    /// their neighbours opened, which reads as missing data rather than as no data.</summary>
+    public bool CanExpand => HasLines || HasWaitingJobs || HasDetail;
     public bool HasDetail => _item.Detail.Length > 0;
 
     /// <summary>
@@ -649,6 +655,38 @@ public sealed class ItemShortageRowVm : ReactiveObject
 /// </summary>
 /// <summary>One finding on the Summary tab. Prose, so there is almost nothing to format.</summary>
 /// <summary>One line of a summary finding, with the item it names.</summary>
+/// <summary>
+/// One entry in a row's "waiting on this" panel, with the item's picture.
+///
+/// <para>⚠️ A view model rather than a property on WorklistWaitingJob, for the same reason the
+/// manifest lines needed one: that is an immutable record rebuilt on every refresh, and an icon
+/// arrives asynchronously and has to raise a change when it does.</para>
+/// </summary>
+public sealed class WorklistWaitingJobVm : ReactiveObject
+{
+    private readonly WorklistWaitingJob _w;
+
+    public WorklistWaitingJobVm(WorklistWaitingJob w)
+    {
+        _w = w;
+        _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b);
+    }
+
+    public string TypeName    => _w.TypeName;
+    public string StatusText  => _w.StatusText;
+    public string StatusTip   => _w.StatusTip;
+    public IBrush StatusColor => _w.StatusColor;
+    public bool   HasItemLink => _w.HasItemLink;
+    public void   OpenItem()  => _w.OpenItem();
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+}
+
 /// <summary>
 /// One manifest line, with the item's picture.
 ///

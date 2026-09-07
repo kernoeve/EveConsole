@@ -280,17 +280,23 @@
                            Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
                 <ItemsControl ItemsSource="{Binding WaitingJobs}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="wl:WorklistWaitingJob">
+                    <DataTemplate x:DataType="vm:WorklistWaitingJobVm">
                       <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                        <Panel Grid.Column="0" Margin="0 0 24 0">
-                          <Button Classes="link" Click="OnOpenWaitingJob" IsVisible="{Binding HasItemLink}"
-                                  ToolTip.Tip="Open in the Item Browser">
-                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                       FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                          </Button>
-                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </Panel>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+                                    Margin="0 0 24 0">
+                          <Image Source="{Binding Icon}" Width="18" Height="18"
+                                 VerticalAlignment="Center"
+                                 IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                          <Panel>
+                            <Button Classes="link" Click="OnOpenWaitingJob" IsVisible="{Binding HasItemLink}"
+                                    ToolTip.Tip="Open in the Item Browser">
+                              <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                         FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                       FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                          </Panel>
+                        </StackPanel>
 
                         <!-- ⚠️ Says which of the two it is rather than ticking only the good case.
                              A blank beside a job reads as "not checked yet"; naming what it is
