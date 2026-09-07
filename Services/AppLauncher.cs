@@ -44,12 +44,21 @@ public static class AppLauncher
     }
 
     /// <summary>
-    /// Starts another copy of this application. Returns what went wrong, or null.
+    /// Starts another copy of this application, detached from this one. Returns what went wrong,
+    /// or null.
     ///
-    /// <para>⚠️ UseShellExecute only on Windows. On Linux it hands the path to xdg-open, which
+    /// <para>⚠️ UseShellExecute only on Windows. Off Windows it hands the path to xdg-open, which
     /// consults the desktop's file associations for what to do with the file — it may run it, it
     /// may open it in an editor, and for an AppImage it may offer to unpack it. Starting our own
     /// binary is not a job for the file manager.</para>
+    ///
+    /// <para>⚠️ And through <c>setsid</c> off Windows, so the new process gets its own session and
+    /// process group. Everything started here is meant to OUTLIVE this process — the tray icon, the
+    /// replacement after a "Save and Restart", a second client from the tray menu — and a plain
+    /// child does not. It inherits this process's group, so a signal sent to the group reaches it
+    /// too, a terminal closing SIGHUPs it, and an IDE that ends a run by killing the group takes it
+    /// along. Ticking the tray box started an icon that duly appeared and then vanished the moment
+    /// the client that started it closed, which is the one moment the icon exists for.</para>
     /// </summary>
     public static string? Start(params string[] arguments)
     {
@@ -57,10 +66,23 @@ public static class AppLauncher
         {
             if (RelaunchPath is not { } exe) return "Could not determine this application's path.";
 
-            var psi = new System.Diagnostics.ProcessStartInfo(exe)
+            var psi = new System.Diagnostics.ProcessStartInfo
             {
                 UseShellExecute = OperatingSystem.IsWindows(),
             };
+
+            // setsid forks when it is already a group leader and execs in place when it is not;
+            // either way what comes out is detached. If it is missing, start directly rather than
+            // not at all — a tray icon that dies with its parent still beats no tray icon.
+            if (!OperatingSystem.IsWindows() && Setsid() is { } setsid)
+            {
+                psi.FileName = setsid;
+                psi.ArgumentList.Add(exe);
+            }
+            else
+            {
+                psi.FileName = exe;
+            }
 
             foreach (var a in arguments)
                 if (!string.IsNullOrWhiteSpace(a)) psi.ArgumentList.Add(a);
@@ -69,6 +91,21 @@ public static class AppLauncher
             return null;
         }
         catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+    }
+
+    /// <summary>
+    /// Where <c>setsid</c> lives, or null if this system has not got it.
+    ///
+    /// <para>Probed by path rather than by running <c>which</c>: it is part of util-linux and sits
+    /// in one of two places on every distribution that has it, and spawning a process to find out
+    /// whether we can spawn a process is a poor trade.</para>
+    /// </summary>
+    private static string? Setsid()
+    {
+        foreach (var path in new[] { "/usr/bin/setsid", "/bin/setsid" })
+            if (File.Exists(path)) return path;
+
+        return null;
     }
 
     /// <summary>
