@@ -37,6 +37,32 @@ fi
 echo "== EVE Console $VERSION — linux-x64"
 echo
 
+# ── Somewhere to work ─────────────────────────────────────────────────────────
+#
+# ⚠️ Not /tmp, and not by preference. On Arch and most systemd distributions /tmp is a tmpfs
+# sized from RAM, and this build does not fit in it: a self-contained publish is well over a
+# hundred megabytes, vpk unpacks it again to assemble the AppImage, and squashfs writes the whole
+# thing a third time before compressing. The failure arrives as "No space left on device" from
+# whichever of those got there first, which reads like a full disk rather than a full ramdisk.
+#
+# .NET, vpk and the AppImage tools all take TMPDIR, so pointing it at the working tree is enough.
+BUILD_TMP="${EVECONSOLE_BUILD_TMP:-$PWD/.build-tmp}"
+mkdir -p "$BUILD_TMP"
+export TMPDIR="$BUILD_TMP" TMP="$BUILD_TMP" TEMP="$BUILD_TMP"
+
+# Removed on the way out however this ends, so a failed run does not leave gigabytes behind and
+# a later one does not build on top of it.
+trap 'rm -rf "$BUILD_TMP"' EXIT
+
+FREE_MB=$(df -Pm "$BUILD_TMP" | awk 'NR==2 {print $4}')
+if [ "${FREE_MB:-0}" -lt 2048 ]; then
+  echo "Only ${FREE_MB} MB free where this builds ($BUILD_TMP). It needs about 2 GB."
+  echo "Set EVECONSOLE_BUILD_TMP to somewhere with room, or free some up."
+  exit 1
+fi
+echo "   work dir   $BUILD_TMP (${FREE_MB} MB free)"
+echo
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 
 command -v dotnet >/dev/null || { echo "dotnet is not on PATH."; exit 1; }

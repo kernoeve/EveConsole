@@ -15,3 +15,9 @@ CLAUDE.md
 Thumbs.db
 .DS_Store
 
+
+# Local Linux build output (packaging/build-appimage.sh)
+publish-linux/
+Releases/
+.build-tmp/
+EveConsole-linux-x64.tar.gz
