@@ -287,6 +287,11 @@ public class WorklistRowVm : ReactiveObject
     public IReadOnlyList<WorklistWaitingJob> WaitingJobs => _item.WaitingJobs;
     public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
 
+    /// <summary>Whether the row has anything to open. Not hauls only any more: a job lists what
+    /// waits on its output, and a purchase lists what it would release.</summary>
+    public bool CanExpand => HasLines || HasWaitingJobs;
+    public bool HasDetail => _item.Detail.Length > 0;
+
     /// <summary>
     /// Whether the manifest is showing. Collapsed by default and toggled by the row's own +/−,
     /// rather than following selection: a reader clicks a row to work on it as often as to look
@@ -304,6 +309,9 @@ public class WorklistRowVm : ReactiveObject
     }
 
     public string ExpandGlyph => _isExpanded ? "−" : "+";
+
+    /// <summary>Startable now — what the Overview lists, whatever the tool is filtered to.</summary>
+    public bool IsReady => _item.Readiness == WorklistReadiness.Ready;
 
     public string ReadinessText => _item.Readiness switch
     {
@@ -1941,10 +1949,18 @@ public class WorklistViewModel : ReactiveObject
                 // their own, and inheriting whatever the tool happened to be filtered to would make
                 // a dashboard panel change behind the user for reasons not visible on it.
                 //
+                // ⚠️ READY only, and NOT _pool. The pool is what the two CHECKBOXES allow through,
+                // so ticking "show blocked / waiting" in the tool silently filled the dashboard
+                // with work nobody can start — the same leak the paragraph above warns about,
+                // through a control the Overview does not show either. The Overview asks "what is
+                // there to do", which is one question with one answer whatever the tool is set to.
+                // Snoozed rows go for the same reason: set aside is set aside, and the show-snoozed
+                // box is another tool control the dashboard cannot explain.
+                //
                 // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
                 // bound collections whenever this changes, so an item-by-item fill here was
                 // quadratic — see BulkObservableCollection.
-                PoolRows.ResetTo(_pool);
+                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
                 RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
 

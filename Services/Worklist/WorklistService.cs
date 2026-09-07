@@ -116,6 +116,15 @@ public class WorklistService(
             .GroupBy(x => x.Key)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
 
+        // The same shortages indexed by TYPE alone, for the jobs pass: a job's output feeds
+        // whoever needs it wherever they are, unlike a delivery, which is judged where it lands.
+        var stoppedByType = all
+            .SelectMany(x => x.Shortages.Select(h => (Job: x, h.TypeId)))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
+
+        PromoteBlockingJobs(sections, stoppedByType);
+
         if (stopped.Count == 0) return;
 
         for (var si = 0; si < sections.Count; si++)
@@ -217,6 +226,54 @@ public class WorklistService(
         }
     }
 
+
+    /// <summary>
+    /// What is waiting on a JOB's output, so the row can be opened like a haul.
+    ///
+    /// <para>⚠️ By TYPE, not by station. A haul is judged where it lands, but a job's output feeds
+    /// whoever needs it wherever they are — the Tungsten Carbide reacted at the Reactor is
+    /// consumed at T2 Adv component-Ammo, and keying on the producing station would have found
+    /// nothing.</para>
+    ///
+    /// <para>⚠️ A job never claims to START anything. Its own output is not on a dock yet, the
+    /// quantity is what the planner intends rather than what exists, and the consumer may be short
+    /// of three other things besides. So every entry reads as what it wants, and the promise of
+    /// "starts on arrival" is left to the deliveries that can actually keep it.</para>
+    /// </summary>
+    private static void PromoteBlockingJobs(
+        List<WorklistSection> sections,
+        Dictionary<int, List<WorklistItem>> stoppedByType)
+    {
+        for (var si = 0; si < sections.Count; si++)
+        {
+            var section = sections[si];
+
+            for (var n = 0; n < section.Items.Count; n++)
+            {
+                var job = section.Items[n];
+
+                if (job.Kind is not (WorklistKind.Job or WorklistKind.Refine or WorklistKind.Decompress)
+                 || job.TypeId <= 0
+                 || job.WaitingJobs.Count > 0) continue;
+
+                var waiting = stoppedByType.GetValueOrDefault(job.TypeId, [])
+                    // Not itself. A job is not waiting on its own output.
+                    .Where(j => j.Key != job.Key)
+                    .DistinctBy(j => j.Key)
+                    .Select(j => new WorklistWaitingJob(
+                        j.Key, j.Title, j.TypeId, j.TypeName,
+                        Unblocked:    false,
+                        StillShortOf: [],
+                        WantsUnits:   j.Shortages.Where(s => s.TypeId == job.TypeId).Sum(s => s.Short)))
+                    .OrderByDescending(w => w.WantsUnits)
+                    .ToList();
+
+                if (waiting.Count == 0) continue;
+
+                section.Items[n] = job with { WaitingJobs = waiting };
+            }
+        }
+    }
     /// <summary>
     /// Ranks each purchase by the work it would release, exactly as hauls are ranked.
     ///
