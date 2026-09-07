@@ -21,9 +21,21 @@ public static class ThemeService
     /// <summary>The themes on offer, in the order a menu should list them.</summary>
     public static IReadOnlyList<ThemeChoice> All { get; } =
     [
-        new("dark",   "Dark",   ThemeVariant.Dark),
-        new("light",  "Light",  ThemeVariant.Light),
-        new("system", "Follow the desktop", ThemeVariant.Default),
+        new("dark",        "Dark",        ThemeVariant.Dark),
+        new("light",       "Light",       ThemeVariant.Light),
+
+        // ⚠️ Tints, not replacements. Each inherits Dark or Light and restates only the neutrals
+        // and the accent, so everything that carries meaning — a chart line, a status word, a row
+        // tint, EVE's own security ramp — reads exactly as it does on its parent. A theme changes
+        // the room; it does not change what the signals mean.
+        new("blue-dark",   "Blue (dark)",  AppThemes.BlueDark),
+        new("blue-light",  "Blue (light)", AppThemes.BlueLight),
+        new("pink-dark",   "Pink (dark)",  AppThemes.PinkDark),
+        new("pink-light",  "Pink (light)", AppThemes.PinkLight),
+        new("beige-dark",  "Beige (dark)", AppThemes.BeigeDark),
+        new("beige-light", "Beige (light)",AppThemes.BeigeLight),
+
+        new("system",      "Follow the desktop", ThemeVariant.Default),
     ];
 
     /// <summary>

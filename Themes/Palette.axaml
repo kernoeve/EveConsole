@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:svc="clr-namespace:EveConsole.Services">
 
   <!--
     ═══════════════════════════════════════════════════════════════════════════
@@ -175,6 +176,247 @@
       <!-- The same two, pale. A plate on a light map hides the starfield the other way up. -->
       <Color x:Key="SurfaceOverlay">#e0eeecf2</Color>
       <Color x:Key="SurfaceOverlayStrong">#f2f6f5f8</Color>
+    </ResourceDictionary>
+
+
+    <!-- ═══ BLUEDARK — cool navy, the amber traded for a colder highlight.
+         Inherits Dark: every colour that carries MEANING comes from there, so a
+         chart line, a status word and a row tint read exactly as they do on Dark. -->
+    <ResourceDictionary x:Key="{x:Static svc:AppThemes.BlueDark}">
+      <Color x:Key="SurfaceBase">#121a26</Color>
+      <Color x:Key="SurfacePanel">#192434</Color>
+      <Color x:Key="SurfacePanelAlt">#1e2b3e</Color>
+      <Color x:Key="SurfaceHeader">#253449</Color>
+      <Color x:Key="SurfaceRaised">#2e405a</Color>
+      <Color x:Key="SurfaceInput">#161f2c</Color>
+      <Color x:Key="SurfaceHover">#2b3c52</Color>
+      <Color x:Key="SurfaceSelected">#24405f</Color>
+
+      <Color x:Key="BorderSubtle">#2a3a4e</Color>
+      <Color x:Key="BorderDefault">#364c66</Color>
+      <Color x:Key="BorderStrong">#47617f</Color>
+
+      <Color x:Key="TextFaint">#6b7f96</Color>
+      <Color x:Key="TextDim">#7d92aa</Color>
+      <Color x:Key="TextMuted">#9aaec5</Color>
+      <Color x:Key="TextSecondary">#b6c8dc</Color>
+      <Color x:Key="TextPrimary">#d2e0ee</Color>
+      <Color x:Key="TextBright">#eef4fa</Color>
+
+      <Color x:Key="Accent">#5fb0d8</Color>
+      <Color x:Key="AccentHover">#7cc4e6</Color>
+      <Color x:Key="AccentPressed">#4090b8</Color>
+      <Color x:Key="AccentSurface">#1e3040</Color>
+      <Color x:Key="AccentDeep">#2a5f7a</Color>
+      <Color x:Key="AccentPale">#a8d8ee</Color>
+      <Color x:Key="SystemAccentColor">#5fb0d8</Color>
+      <Color x:Key="SystemAccentColorDark1">#4090b8</Color>
+      <Color x:Key="SystemAccentColorDark2">#2a5f7a</Color>
+      <Color x:Key="SystemAccentColorDark3">#2a5f7a</Color>
+      <Color x:Key="SystemAccentColorLight1">#7cc4e6</Color>
+      <Color x:Key="SystemAccentColorLight2">#a8d8ee</Color>
+      <Color x:Key="SystemAccentColorLight3">#a8d8ee</Color>
+      <Color x:Key="SurfaceOverlay">#192434cc</Color>
+    </ResourceDictionary>
+
+    <!-- ═══ BLUELIGHT — pale sky, a deep marine accent.
+         Inherits Light: every colour that carries MEANING comes from there, so a
+         chart line, a status word and a row tint read exactly as they do on Light. -->
+    <ResourceDictionary x:Key="{x:Static svc:AppThemes.BlueLight}">
+      <Color x:Key="SurfaceBase">#dfe6ee</Color>
+      <Color x:Key="SurfacePanel">#f0f4f9</Color>
+      <Color x:Key="SurfacePanelAlt">#e8eef5</Color>
+      <Color x:Key="SurfaceHeader">#d2dce8</Color>
+      <Color x:Key="SurfaceRaised">#f8fafd</Color>
+      <Color x:Key="SurfaceInput">#ffffff</Color>
+      <Color x:Key="SurfaceHover">#d6e2ef</Color>
+      <Color x:Key="SurfaceSelected">#c6d8ee</Color>
+
+      <Color x:Key="BorderSubtle">#d2dce6</Color>
+      <Color x:Key="BorderDefault">#b8c8d8</Color>
+      <Color x:Key="BorderStrong">#97abc0</Color>
+
+      <Color x:Key="TextFaint">#7d8fa2</Color>
+      <Color x:Key="TextDim">#68798c</Color>
+      <Color x:Key="TextMuted">#4f6072</Color>
+      <Color x:Key="TextSecondary">#3a4959</Color>
+      <Color x:Key="TextPrimary">#26333f</Color>
+      <Color x:Key="TextBright">#141d26</Color>
+
+      <Color x:Key="Accent">#1f5f8a</Color>
+      <Color x:Key="AccentHover">#2b7aad</Color>
+      <Color x:Key="AccentPressed">#164a6c</Color>
+      <Color x:Key="AccentSurface">#dceaf4</Color>
+      <Color x:Key="AccentDeep">#123a54</Color>
+      <Color x:Key="AccentPale">#9cc6e0</Color>
+      <Color x:Key="SystemAccentColor">#1f5f8a</Color>
+      <Color x:Key="SystemAccentColorDark1">#164a6c</Color>
+      <Color x:Key="SystemAccentColorDark2">#123a54</Color>
+      <Color x:Key="SystemAccentColorDark3">#123a54</Color>
+      <Color x:Key="SystemAccentColorLight1">#2b7aad</Color>
+      <Color x:Key="SystemAccentColorLight2">#9cc6e0</Color>
+      <Color x:Key="SystemAccentColorLight3">#9cc6e0</Color>
+      <Color x:Key="SurfaceOverlay">#f0f4f9cc</Color>
+    </ResourceDictionary>
+
+    <!-- ═══ PINKDARK — plum and rose.
+         Inherits Dark: every colour that carries MEANING comes from there, so a
+         chart line, a status word and a row tint read exactly as they do on Dark. -->
+    <ResourceDictionary x:Key="{x:Static svc:AppThemes.PinkDark}">
+      <Color x:Key="SurfaceBase">#1d1520</Color>
+      <Color x:Key="SurfacePanel">#271c2c</Color>
+      <Color x:Key="SurfacePanelAlt">#2e2134</Color>
+      <Color x:Key="SurfaceHeader">#3a2942</Color>
+      <Color x:Key="SurfaceRaised">#46334f</Color>
+      <Color x:Key="SurfaceInput">#221826</Color>
+      <Color x:Key="SurfaceHover">#3d2c46</Color>
+      <Color x:Key="SurfaceSelected">#472a4a</Color>
+
+      <Color x:Key="BorderSubtle">#3a2c42</Color>
+      <Color x:Key="BorderDefault">#4b3a55</Color>
+      <Color x:Key="BorderStrong">#63506e</Color>
+
+      <Color x:Key="TextFaint">#8a7a92</Color>
+      <Color x:Key="TextDim">#9c8ba4</Color>
+      <Color x:Key="TextMuted">#b6a3be</Color>
+      <Color x:Key="TextSecondary">#cdbcd4</Color>
+      <Color x:Key="TextPrimary">#e4d6e9</Color>
+      <Color x:Key="TextBright">#f6eef8</Color>
+
+      <Color x:Key="Accent">#e08aa8</Color>
+      <Color x:Key="AccentHover">#eca0bc</Color>
+      <Color x:Key="AccentPressed">#c06a88</Color>
+      <Color x:Key="AccentSurface">#3a2230</Color>
+      <Color x:Key="AccentDeep">#6a3a4e</Color>
+      <Color x:Key="AccentPale">#f4c0d2</Color>
+      <Color x:Key="SystemAccentColor">#e08aa8</Color>
+      <Color x:Key="SystemAccentColorDark1">#c06a88</Color>
+      <Color x:Key="SystemAccentColorDark2">#6a3a4e</Color>
+      <Color x:Key="SystemAccentColorDark3">#6a3a4e</Color>
+      <Color x:Key="SystemAccentColorLight1">#eca0bc</Color>
+      <Color x:Key="SystemAccentColorLight2">#f4c0d2</Color>
+      <Color x:Key="SystemAccentColorLight3">#f4c0d2</Color>
+      <Color x:Key="SurfaceOverlay">#271c2ccc</Color>
+    </ResourceDictionary>
+
+    <!-- ═══ PINKLIGHT — blush, a deep rose accent.
+         Inherits Light: every colour that carries MEANING comes from there, so a
+         chart line, a status word and a row tint read exactly as they do on Light. -->
+    <ResourceDictionary x:Key="{x:Static svc:AppThemes.PinkLight}">
+      <Color x:Key="SurfaceBase">#eee4e9</Color>
+      <Color x:Key="SurfacePanel">#faf5f8</Color>
+      <Color x:Key="SurfacePanelAlt">#f4ecf1</Color>
+      <Color x:Key="SurfaceHeader">#e2d4dc</Color>
+      <Color x:Key="SurfaceRaised">#fdfafc</Color>
+      <Color x:Key="SurfaceInput">#ffffff</Color>
+      <Color x:Key="SurfaceHover">#ecdde5</Color>
+      <Color x:Key="SurfaceSelected">#edd6e2</Color>
+
+      <Color x:Key="BorderSubtle">#e6d8e0</Color>
+      <Color x:Key="BorderDefault">#d0bcc8</Color>
+      <Color x:Key="BorderStrong">#b49caa</Color>
+
+      <Color x:Key="TextFaint">#9a8a92</Color>
+      <Color x:Key="TextDim">#85737d</Color>
+      <Color x:Key="TextMuted">#6b5a64</Color>
+      <Color x:Key="TextSecondary">#52434c</Color>
+      <Color x:Key="TextPrimary">#3a2d35</Color>
+      <Color x:Key="TextBright">#241a20</Color>
+
+      <Color x:Key="Accent">#a03a5e</Color>
+      <Color x:Key="AccentHover">#bc5077</Color>
+      <Color x:Key="AccentPressed">#7e2846</Color>
+      <Color x:Key="AccentSurface">#f8e6ee</Color>
+      <Color x:Key="AccentDeep">#641c34</Color>
+      <Color x:Key="AccentPale">#d894ac</Color>
+      <Color x:Key="SystemAccentColor">#a03a5e</Color>
+      <Color x:Key="SystemAccentColorDark1">#7e2846</Color>
+      <Color x:Key="SystemAccentColorDark2">#641c34</Color>
+      <Color x:Key="SystemAccentColorDark3">#641c34</Color>
+      <Color x:Key="SystemAccentColorLight1">#bc5077</Color>
+      <Color x:Key="SystemAccentColorLight2">#d894ac</Color>
+      <Color x:Key="SystemAccentColorLight3">#d894ac</Color>
+      <Color x:Key="SurfaceOverlay">#faf5f8cc</Color>
+    </ResourceDictionary>
+
+    <!-- ═══ BEIGEDARK — warm stone, a tan highlight.
+         Inherits Dark: every colour that carries MEANING comes from there, so a
+         chart line, a status word and a row tint read exactly as they do on Dark. -->
+    <ResourceDictionary x:Key="{x:Static svc:AppThemes.BeigeDark}">
+      <Color x:Key="SurfaceBase">#1e1a16</Color>
+      <Color x:Key="SurfacePanel">#29241e</Color>
+      <Color x:Key="SurfacePanelAlt">#302a23</Color>
+      <Color x:Key="SurfaceHeader">#3b342b</Color>
+      <Color x:Key="SurfaceRaised">#473e33</Color>
+      <Color x:Key="SurfaceInput">#231f1a</Color>
+      <Color x:Key="SurfaceHover">#3b342b</Color>
+      <Color x:Key="SurfaceSelected">#4a3f2c</Color>
+
+      <Color x:Key="BorderSubtle">#3a332a</Color>
+      <Color x:Key="BorderDefault">#4b4235</Color>
+      <Color x:Key="BorderStrong">#635745</Color>
+
+      <Color x:Key="TextFaint">#8a8175</Color>
+      <Color x:Key="TextDim">#9c9285</Color>
+      <Color x:Key="TextMuted">#b6ab9c</Color>
+      <Color x:Key="TextSecondary">#cdc3b4</Color>
+      <Color x:Key="TextPrimary">#e4dbcd</Color>
+      <Color x:Key="TextBright">#f7f2e9</Color>
+
+      <Color x:Key="Accent">#d0a870</Color>
+      <Color x:Key="AccentHover">#e0be8e</Color>
+      <Color x:Key="AccentPressed">#a88450</Color>
+      <Color x:Key="AccentSurface">#332a1c</Color>
+      <Color x:Key="AccentDeep">#5c4a2e</Color>
+      <Color x:Key="AccentPale">#ecd8b4</Color>
+      <Color x:Key="SystemAccentColor">#d0a870</Color>
+      <Color x:Key="SystemAccentColorDark1">#a88450</Color>
+      <Color x:Key="SystemAccentColorDark2">#5c4a2e</Color>
+      <Color x:Key="SystemAccentColorDark3">#5c4a2e</Color>
+      <Color x:Key="SystemAccentColorLight1">#e0be8e</Color>
+      <Color x:Key="SystemAccentColorLight2">#ecd8b4</Color>
+      <Color x:Key="SystemAccentColorLight3">#ecd8b4</Color>
+      <Color x:Key="SurfaceOverlay">#29241ecc</Color>
+    </ResourceDictionary>
+
+    <!-- ═══ BEIGELIGHT — cream and ink.
+         Inherits Light: every colour that carries MEANING comes from there, so a
+         chart line, a status word and a row tint read exactly as they do on Light. -->
+    <ResourceDictionary x:Key="{x:Static svc:AppThemes.BeigeLight}">
+      <Color x:Key="SurfaceBase">#eae3d7</Color>
+      <Color x:Key="SurfacePanel">#f7f3ec</Color>
+      <Color x:Key="SurfacePanelAlt">#f1ece2</Color>
+      <Color x:Key="SurfaceHeader">#ded5c6</Color>
+      <Color x:Key="SurfaceRaised">#fdfbf7</Color>
+      <Color x:Key="SurfaceInput">#ffffff</Color>
+      <Color x:Key="SurfaceHover">#e6ded0</Color>
+      <Color x:Key="SurfaceSelected">#e2dcc8</Color>
+
+      <Color x:Key="BorderSubtle">#e0d8c9</Color>
+      <Color x:Key="BorderDefault">#c8bda9</Color>
+      <Color x:Key="BorderStrong">#ab9e88</Color>
+
+      <Color x:Key="TextFaint">#948a79</Color>
+      <Color x:Key="TextDim">#7d7466</Color>
+      <Color x:Key="TextMuted">#635b50</Color>
+      <Color x:Key="TextSecondary">#4c453c</Color>
+      <Color x:Key="TextPrimary">#35302a</Color>
+      <Color x:Key="TextBright">#201c18</Color>
+
+      <Color x:Key="Accent">#8a6a3a</Color>
+      <Color x:Key="AccentHover">#a8834c</Color>
+      <Color x:Key="AccentPressed">#6a5028</Color>
+      <Color x:Key="AccentSurface">#f4e9d6</Color>
+      <Color x:Key="AccentDeep">#4c3818</Color>
+      <Color x:Key="AccentPale">#cfae7c</Color>
+      <Color x:Key="SystemAccentColor">#8a6a3a</Color>
+      <Color x:Key="SystemAccentColorDark1">#6a5028</Color>
+      <Color x:Key="SystemAccentColorDark2">#4c3818</Color>
+      <Color x:Key="SystemAccentColorDark3">#4c3818</Color>
+      <Color x:Key="SystemAccentColorLight1">#a8834c</Color>
+      <Color x:Key="SystemAccentColorLight2">#cfae7c</Color>
+      <Color x:Key="SystemAccentColorLight3">#cfae7c</Color>
+      <Color x:Key="SurfaceOverlay">#f7f3eccc</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>
