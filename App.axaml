@@ -6,19 +6,19 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
+        <!-- ⚠️ First: every other dictionary and style below resolves its colours from here.
+             The tokens are defined per theme variant, so switching the variant repaints the
+             application without rebuilding a window. -->
+        <ResourceInclude Source="avares://EveConsole/Themes/Palette.axaml" />
+
         <!-- Shared so the Killmail Browser and the entity viewer render the same row. -->
         <ResourceInclude Source="avares://EveConsole/Views/KillmailRowTemplate.axaml" />
       </ResourceDictionary.MergedDictionaries>
 
-      <!-- Eve amber replaces Fluent blue everywhere: tab underlines, focus rings,
-           checkbox fills, progress bar fill, selection highlights -->
-      <Color x:Key="SystemAccentColor">#c8a84b</Color>
-      <Color x:Key="SystemAccentColorDark1">#b8942e</Color>
-      <Color x:Key="SystemAccentColorDark2">#a07e1e</Color>
-      <Color x:Key="SystemAccentColorDark3">#886810</Color>
-      <Color x:Key="SystemAccentColorLight1">#d4b865</Color>
-      <Color x:Key="SystemAccentColorLight2">#dfc87a</Color>
-      <Color x:Key="SystemAccentColorLight3">#e8d898</Color>
+      <!-- Eve amber replaces Fluent blue everywhere: tab underlines, focus rings, checkbox
+           fills, progress bar fill and selection highlights. ⚠️ The SystemAccentColor family
+           now lives in Themes/Palette.axaml, declared once per theme: a Color element parses
+           its content as a literal, so there is no way to point one at a token from here. -->
 
       <!-- How much room every column header reserves for its sort arrow.
            Fluent's default is 32, against a glyph the same theme draws at 12 high — and the
@@ -42,14 +42,14 @@
 
       <!-- ── Window ──────────────────────────────────────────────────────── -->
       <Style Selector="Window">
-        <Setter Property="Background" Value="#0d0d12" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBaseBrush}" />
       </Style>
 
       <!-- ── Button: outlined dark, amber border on hover ────────────────── -->
       <Style Selector="Button">
         <Setter Property="Background"       Value="Transparent" />
-        <Setter Property="Foreground"       Value="#9090a0" />
-        <Setter Property="BorderBrush"      Value="#2a2a38" />
+        <Setter Property="Foreground"       Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="BorderBrush"      Value="{DynamicResource BorderDefaultBrush}" />
         <Setter Property="BorderThickness"  Value="1" />
         <Setter Property="CornerRadius"     Value="2" />
         <Setter Property="Padding"          Value="14 4" />
@@ -57,11 +57,11 @@
         <Setter Property="Cursor"           Value="Hand" />
       </Style>
       <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background"  Value="#1a1a26" />
-        <Setter Property="BorderBrush" Value="#c8a84b" />
+        <Setter Property="Background"  Value="{DynamicResource SurfaceHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
       </Style>
       <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#22222e" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
       </Style>
       <Style Selector="Button:disabled">
         <Setter Property="Opacity" Value="0.4" />
@@ -76,53 +76,53 @@
       <!-- ── TabItem: underline-only, amber when active ───────────────────── -->
       <Style Selector="TabItem">
         <Setter Property="Background"      Value="Transparent" />
-        <Setter Property="Foreground"      Value="#666677" />
+        <Setter Property="Foreground"      Value="{DynamicResource TextDimBrush}" />
         <Setter Property="FontSize"        Value="12" />
         <Setter Property="Padding"         Value="14 8" />
         <Setter Property="Margin"          Value="0" />
       </Style>
       <Style Selector="TabItem:selected">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#c8a84b" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
       </Style>
       <Style Selector="TabItem:pointerover:not(:selected)">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#b0b0be" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
       </Style>
 
       <!-- ── ComboBox: dark neutral ───────────────────────────────────────── -->
       <Style Selector="ComboBox">
-        <Setter Property="Background"      Value="#111117" />
-        <Setter Property="BorderBrush"     Value="#2a2a38" />
+        <Setter Property="Background"      Value="{DynamicResource SurfaceInputBrush}" />
+        <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Foreground"      Value="#c8c8cc" />
+        <Setter Property="Foreground"      Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="FontSize"        Value="12" />
         <Setter Property="CornerRadius"    Value="2" />
         <Setter Property="MinHeight"       Value="26" />
       </Style>
       <Style Selector="ComboBoxItem">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#c8c8cc" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="FontSize"   Value="12" />
         <Setter Property="Padding"    Value="8 4" />
       </Style>
       <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#1a1a26" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
       </Style>
       <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
-        <Setter Property="Background" Value="#1e2030" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
       </Style>
 
       <!-- ── TextBox: dark neutral, amber caret and focus border ──────────── -->
       <Style Selector="TextBox">
-        <Setter Property="Background"      Value="#111117" />
-        <Setter Property="BorderBrush"     Value="#2a2a38" />
+        <Setter Property="Background"      Value="{DynamicResource SurfaceInputBrush}" />
+        <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Foreground"      Value="#c8c8cc" />
+        <Setter Property="Foreground"      Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="FontSize"        Value="12" />
         <Setter Property="CornerRadius"    Value="2" />
-        <Setter Property="CaretBrush"      Value="#c8a84b" />
-        <Setter Property="SelectionBrush"  Value="#3a3010" />
+        <Setter Property="CaretBrush"      Value="{DynamicResource AccentBrush}" />
+        <Setter Property="SelectionBrush"  Value="{DynamicResource AccentSurfaceBrush}" />
         <Setter Property="MinHeight"       Value="26" />
       </Style>
 
@@ -134,51 +134,51 @@
       </Style>
       <Style Selector="ListBoxItem">
         <Setter Property="Padding"    Value="8 5" />
-        <Setter Property="Foreground" Value="#a0a0b0" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="FontSize"   Value="12" />
         <Setter Property="Background" Value="Transparent" />
       </Style>
       <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-        <Setter Property="Background" Value="#1c1c2a" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
       </Style>
       <Style Selector="ListBoxItem:selected">
-        <Setter Property="Foreground" Value="#c8a84b" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
       </Style>
       <Style Selector="ListBoxItem:pointerover:not(:selected) /template/ ContentPresenter">
-        <Setter Property="Background" Value="#16161e" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
       </Style>
 
       <!-- ── ProgressBar: dark track (amber fill comes from accent override) ─ -->
       <Style Selector="ProgressBar">
-        <Setter Property="Background"   Value="#1e1e28" />
+        <Setter Property="Background"   Value="{DynamicResource SurfacePanelAltBrush}" />
         <Setter Property="CornerRadius" Value="1" />
         <Setter Property="Height"       Value="4" />
       </Style>
 
       <!-- ── DataGrid ─────────────────────────────────────────────────────── -->
       <Style Selector="DataGrid">
-        <Setter Property="Background"               Value="#0d0d12" />
+        <Setter Property="Background"               Value="{DynamicResource SurfaceBaseBrush}" />
         <Setter Property="GridLinesVisibility"      Value="None" />
         <Setter Property="BorderThickness"          Value="0" />
         <Setter Property="FontSize"                 Value="11" />
-        <Setter Property="Foreground"               Value="#c8c8cc" />
+        <Setter Property="Foreground"               Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="RowBackground"            Value="Transparent" />
         <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
         <Setter Property="VerticalScrollBarVisibility"   Value="Auto" />
       </Style>
       <Style Selector="DataGridColumnHeader">
-        <Setter Property="Background"     Value="#111117" />
-        <Setter Property="Foreground"     Value="#55556a" />
+        <Setter Property="Background"     Value="{DynamicResource SurfaceHeaderBrush}" />
+        <Setter Property="Foreground"     Value="{DynamicResource TextFaintBrush}" />
         <Setter Property="FontSize"       Value="11" />
         <Setter Property="FontWeight"     Value="Normal" />
         <!-- Asymmetric: the right side abuts the sort-arrow column, which brings its own gap,
              so padding there was spending width twice. -->
         <Setter Property="Padding"        Value="6 5 2 5" />
-        <Setter Property="SeparatorBrush" Value="#1e1e28" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource SurfacePanelAltBrush}" />
       </Style>
       <Style Selector="DataGridRow">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="#c8c8cc" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
       </Style>
 
       <!-- Alternating rows.
@@ -193,16 +193,16 @@
            banding silently replaced the signal on every other row. A grid that says something
            with row colour opts out with Classes="tinted". -->
       <Style Selector="DataGrid:not(.tinted) DataGridRow:nth-child(even) /template/ Rectangle#BackgroundRectangle">
-        <Setter Property="Fill"    Value="#111118" />
+        <Setter Property="Fill"    Value="{DynamicResource SurfacePanelBrush}" />
         <Setter Property="Opacity" Value="1" />
       </Style>
 
       <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
-        <Setter Property="Fill"    Value="#16161e" />
+        <Setter Property="Fill"    Value="{DynamicResource SurfaceHoverBrush}" />
         <Setter Property="Opacity" Value="1" />
       </Style>
       <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
-        <Setter Property="Fill"    Value="#1c2030" />
+        <Setter Property="Fill"    Value="{DynamicResource SurfaceSelectedBrush}" />
         <Setter Property="Opacity" Value="1" />
       </Style>
       <Style Selector="DataGridCell">
@@ -239,12 +239,12 @@
         <Setter Property="TextAlignment"       Value="Right" />
       </Style>
       <Style Selector="DataGridCell.dim TextBlock">
-        <Setter Property="Foreground" Value="#7a7a88" />
+        <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
       </Style>
 
       <!-- ── CheckBox ─────────────────────────────────────────────────────── -->
       <Style Selector="CheckBox">
-        <Setter Property="Foreground" Value="#a0a0b0" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="FontSize"   Value="12" />
       </Style>
 

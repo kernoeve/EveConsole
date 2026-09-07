@@ -26,6 +26,12 @@ public class App : Application
     {
         LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers());
         AvaloniaXamlLoader.Load(this);
+
+        // ⚠️ After the XAML is loaded and before any window exists. The palette lives in the
+        // dictionaries this call brings in, so asking for a variant beforehand has nothing to
+        // resolve against — and doing it after a window is up means the first frame is drawn in
+        // whichever theme the markup declared and then repainted, which reads as a flicker.
+        EveConsole.Services.ThemeService.ApplySaved();   // ⚠️ fully qualified: App.Services is a property
     }
 
     public override async void OnFrameworkInitializationCompleted()

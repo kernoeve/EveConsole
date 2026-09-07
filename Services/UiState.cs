@@ -31,6 +31,7 @@ public static class UiState
     public const string CollapsedGroups      = "invlevels.collapsed_groups";
     public const string CollapsedCollections = "invlevels.collapsed_collections";
     public const string StructuresShowUnknown = "structures.show_unknown";
+    public const string Theme                 = "ui.theme";
 
     /// <summary>
     /// This client's value for <paramref name="key"/>.
