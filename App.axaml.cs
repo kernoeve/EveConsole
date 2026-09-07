@@ -233,9 +233,48 @@ public class App : Application
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            errorLogger.Log("TaskScheduler", "UnobservedTaskException",
-                e.Exception.Message, e.Exception.ToString());
+            // First, and unconditionally: whatever this handler decides to do about the message,
+            // the task has been dealt with.
             e.SetObserved();
+
+            var flat = e.Exception.Flatten();
+
+            // ⚠️ Dropped rather than logged, and this is the one case that earns it. Avalonia asks
+            // the session bus for the desktop's tray, global menu and portal services; a desktop
+            // that offers none of them answers ServiceUnknown, on a fire-and-forget task nobody
+            // observes. It is permanent, it is correct, and there is nothing to do about it — the
+            // application works fine without those integrations. Logging it means an error the user
+            // cannot act on, arriving forever, in the log they go to when something is actually
+            // wrong.
+            //
+            // ⚠️ Matched by name rather than by type. Tmds.DBus arrives transitively through
+            // Avalonia.FreeDesktop; referencing the type here would make this file depend on a
+            // package nothing else names, and would break the Windows build differently from the
+            // Linux one.
+            if (IsAbsentDesktopService(flat)) return;
+
+            // ⚠️ The innermost message as the headline. Every one of these arrives wrapped in the
+            // same "A Task's exception(s) were not observed…" sentence, so the log was a column of
+            // identical rows with the actual fault — a locked database, a disposed listener, a
+            // broken Rx pipeline — visible only by opening the detail on each one. The full chain
+            // is still kept beside it.
+            var cause = Innermost(flat.InnerExceptions.Count > 0 ? flat.InnerExceptions[0] : flat);
+
+            errorLogger.Log("TaskScheduler", "UnobservedTaskException",
+                $"{cause.GetType().Name}: {cause.Message.Split('\n')[0]}", e.Exception.ToString());
+
+            static Exception Innermost(Exception ex)
+            {
+                while (ex.InnerException is { } inner) ex = inner;
+                return ex;
+            }
+
+            static bool IsAbsentDesktopService(AggregateException flat) =>
+                flat.InnerExceptions.Count > 0 &&
+                flat.InnerExceptions.Select(Innermost).All(x =>
+                    x.GetType().FullName?.StartsWith("Tmds.DBus", StringComparison.Ordinal) == true &&
+                    (x.Message.Contains("ServiceUnknown",  StringComparison.Ordinal) ||
+                     x.Message.Contains("NameHasNoOwner",  StringComparison.Ordinal)));
         };
 
         EsiPollingService?    polling       = null;
