@@ -70,33 +70,18 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         return await db.InvLevelGroups.OrderBy(g => g.Name).ToListAsync(ct);
     }
 
-    public async Task<InvLevelGroup> AddGroupAsync(InvGroupDialogResult r, CancellationToken ct = default)
+    /// <summary>
+    /// Everything the dialog decides, copied onto a group.
+    ///
+    /// <para>⚠️ ONE mapping, deliberately. There were three — add, update, and a literal in the
+    /// view model that rebuilt the row after an edit — and a field missing from the third silently
+    /// reverted the other two. The row kept the stale value, and the Multiplier setter then
+    /// re-saved the whole group FROM THE ROW, writing it back over what had just been stored.
+    /// Packaged-only never saved for exactly that reason, and scope had the same bug before it.
+    /// A new flag added here reaches all three.</para>
+    /// </summary>
+    public static void ApplyTo(InvLevelGroup g, InvGroupDialogResult r)
     {
-        await using var db = dbFactory.CreateDbContext();
-        var g = new InvLevelGroup
-        {
-            Name                   = r.Name,
-            CollectionId           = r.CollectionId,
-            Scope                  = r.Scope,
-            LocationId             = r.LocationId,
-            LocationName           = r.LocationName,
-            Multiplier             = r.Multiplier,
-            IncludeAssets          = r.IncludeAssets,
-            IncludeIndustryJobs    = r.IncludeIndustryJobs,
-            IncludeMarketBuyOrders = r.IncludeMarketBuyOrders,
-            IncludeContractsBuying = r.IncludeContractsBuying,
-            PackagedOnly           = r.PackagedOnly,
-        };
-        db.InvLevelGroups.Add(g);
-        await db.SaveChangesAsync(ct);
-        return g;
-    }
-
-    public async Task UpdateGroupAsync(int groupId, InvGroupDialogResult r, CancellationToken ct = default)
-    {
-        await using var db = dbFactory.CreateDbContext();
-        var g = await db.InvLevelGroups.FindAsync([groupId], ct);
-        if (g is null) return;
         g.Name                   = r.Name;
         g.CollectionId           = r.CollectionId;
         g.Scope                  = r.Scope;
@@ -108,6 +93,24 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         g.IncludeMarketBuyOrders = r.IncludeMarketBuyOrders;
         g.IncludeContractsBuying = r.IncludeContractsBuying;
         g.PackagedOnly           = r.PackagedOnly;
+    }
+
+    public async Task<InvLevelGroup> AddGroupAsync(InvGroupDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var g = new InvLevelGroup();
+        ApplyTo(g, r);
+        db.InvLevelGroups.Add(g);
+        await db.SaveChangesAsync(ct);
+        return g;
+    }
+
+    public async Task UpdateGroupAsync(int groupId, InvGroupDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var g = await db.InvLevelGroups.FindAsync([groupId], ct);
+        if (g is null) return;
+        ApplyTo(g, r);
         await db.SaveChangesAsync(ct);
     }
 

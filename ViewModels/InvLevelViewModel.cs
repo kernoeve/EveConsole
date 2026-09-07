@@ -261,6 +261,21 @@ public class InvGroupRow : ReactiveObject
         AddItemCommand = ReactiveCommand.CreateFromTask(addItem);
     }
 
+    /// <summary>
+    /// The row, from what the dialog returned.
+    ///
+    /// <para>⚠️ Through the service's one mapping, not a literal rebuilt here. A field left out of
+    /// the literal that used to sit in EditGroupAsync did not merely fail to show — the Multiplier
+    /// setter re-saves the whole group FROM THIS ROW, so the stale value went straight back over
+    /// what had just been written. That is why packaged-only would not save.</para>
+    /// </summary>
+    public void ApplyGroupData(InvGroupDialogResult r)
+    {
+        var g = new InvLevelGroup();
+        InvLevelService.ApplyTo(g, r);
+        ApplyGroupData(g);
+    }
+
     public void ApplyGroupData(InvLevelGroup g)
     {
         Scope                  = g.Scope;
@@ -1017,16 +1032,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         // Multiplier setter re-saves the whole group from the row's current state, so if
         // the row still held the old scope it would clobber the just-saved new scope in
         // the DB (the bug where scope changes reverted after restart).
-        row.ApplyGroupData(new InvLevelGroup
-        {
-            Scope                  = result.Scope,
-            LocationId             = result.LocationId,
-            LocationName           = result.LocationName,
-            IncludeAssets          = result.IncludeAssets,
-            IncludeIndustryJobs    = result.IncludeIndustryJobs,
-            IncludeMarketBuyOrders = result.IncludeMarketBuyOrders,
-            IncludeContractsBuying = result.IncludeContractsBuying,
-        });
+        row.ApplyGroupData(result);
         row.Multiplier   = result.Multiplier;
 
         // Ensure/remove synthetic Default row based on whether any group is uncollected
