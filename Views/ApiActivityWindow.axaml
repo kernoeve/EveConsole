@@ -303,7 +303,7 @@
           <TextBlock Grid.Row="2" Grid.Column="0" Text="Deferred"
                      FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractsDeferredText}"
-                     FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                     FontSize="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
         </Grid>
 
       </Grid>
@@ -336,7 +336,7 @@
           <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LpStoreDetail}"
                      FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" TextWrapping="Wrap" />
 
-          <TextBlock Grid.Row="4" Grid.ColumnSpan="2" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+          <TextBlock Grid.Row="4" Grid.ColumnSpan="2" FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap"
                      Text="LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same." />
         </Grid>
 
@@ -370,7 +370,7 @@
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Coverage"
                        FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
             <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ZkbCoverageText}"
-                       FontSize="12" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
+                       FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Posting kills"
                        FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
@@ -403,7 +403,7 @@
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Backlog"
                        FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IntelBacklogText}"
-                       FontSize="12" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+                       FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" />
           </Grid>
 
           <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
@@ -435,7 +435,7 @@
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Last firing"
                        FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AlarmLastFireText}"
-                       FontSize="12" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+                       FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" />
           </Grid>
 
           <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"

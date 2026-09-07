@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -35,12 +36,12 @@ public class EveMailRowVm : ReactiveObject
 
     private bool   _isRead;
     private bool   _isUnread;
-    private string _fromColor;
-    private string _subjectColor;
+    private IBrush _fromColor;
+    private IBrush _subjectColor;
     public bool   IsRead       { get => _isRead;       private set => this.RaiseAndSetIfChanged(ref _isRead,       value); }
     public bool   IsUnread     { get => _isUnread;     private set => this.RaiseAndSetIfChanged(ref _isUnread,     value); }
-    public string FromColor    { get => _fromColor;    private set => this.RaiseAndSetIfChanged(ref _fromColor,    value); }
-    public string SubjectColor { get => _subjectColor; private set => this.RaiseAndSetIfChanged(ref _subjectColor, value); }
+    public IBrush FromColor    { get => _fromColor;    private set => this.RaiseAndSetIfChanged(ref _fromColor,    value); }
+    public IBrush SubjectColor { get => _subjectColor; private set => this.RaiseAndSetIfChanged(ref _subjectColor, value); }
 
     public EveMailRowVm(EveMailRow r, string charName)
     {
@@ -56,16 +57,16 @@ public class EveMailRowVm : ReactiveObject
         CharName      = charName;
         _isRead       = r.IsRead;
         _isUnread     = !r.IsRead;
-        _fromColor    = r.IsRead ? "#888899" : "#e8e8f0";
-        _subjectColor = r.IsRead ? "#555566" : "#c8c8d8";
+        _fromColor    = r.IsRead ? Theme.TextMuted : Theme.TextBright;
+        _subjectColor = r.IsRead ? Theme.TextFaint : Theme.TextPrimary;
     }
 
     public void MarkAsRead()
     {
         IsRead       = true;
         IsUnread     = false;
-        FromColor    = "#888899";
-        SubjectColor = "#555566";
+        FromColor    = Theme.TextMuted;
+        SubjectColor = Theme.TextFaint;
     }
 
     public Task LoadPortraitAsync()

@@ -15,6 +15,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -52,7 +53,7 @@ public sealed class FinalProductJobVm
     public string ProfitText => BuildCost > 0 || MarketValue > 0
                               ? MarketFmt.Isk(PotentialProfit) : "—";
 
-    public string ProfitColor => PotentialProfit >= 0 ? "#4a8a5a" : "#aa4444";
+    public IBrush ProfitColor => PotentialProfit >= 0 ? Theme.Good : Theme.Bad;
 
     public double ProfitPctRaw => BuildCost > 0 ? PotentialProfit / BuildCost * 100 : double.MinValue;
     public string ProfitPct    => BuildCost > 0 ? $"{PotentialProfit / BuildCost * 100:N1}%" : "—";

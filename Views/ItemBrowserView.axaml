@@ -225,7 +225,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
               </Style>
               <Style Selector="TabItem:pointerover">
-                <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
               </Style>
             </TabControl.Styles>
 
@@ -434,7 +434,7 @@
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
                         <Style Selector="ListBoxItem:pointerover">
-                          <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+                          <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
                         </Style>
                       </ListBox.Styles>
                       <ListBox.ItemsPanel>
@@ -479,7 +479,7 @@
                               <TextBlock Grid.Column="2"
                                          IsVisible="{Binding HasProbability}"
                                          Text="{Binding ProbabilityText}"
-                                         FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                         FontSize="11" Foreground="{DynamicResource WarnBrush}"
                                          VerticalAlignment="Center" Margin="8 0 0 0" />
                             </Grid>
                           </DataTemplate>
@@ -715,7 +715,7 @@
 
                 <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
                   <TextBlock Grid.Row="0" Text="SELL ORDERS" FontSize="11" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 4" />
+                             Foreground="{DynamicResource BadBrush}" LetterSpacing="1" Margin="0 0 0 4" />
                   <DataGrid Grid.Row="1"
                             ItemsSource="{Binding SellOrders}"
                             CanUserSortColumns="True"
@@ -776,7 +776,7 @@
 
                 <Grid Grid.Row="4" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
                   <TextBlock Grid.Row="0" Text="BUY ORDERS" FontSize="11" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" Margin="0 0 0 4" />
+                             Foreground="{DynamicResource GoodBrush}" LetterSpacing="1" Margin="0 0 0 4" />
                   <DataGrid Grid.Row="1"
                             ItemsSource="{Binding BuyOrders}"
                             CanUserSortColumns="True"

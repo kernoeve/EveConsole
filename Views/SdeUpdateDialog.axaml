@@ -25,7 +25,7 @@
         <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestBuild}"
-                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                   Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
       </Grid>
 
       <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">

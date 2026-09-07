@@ -106,7 +106,7 @@
         <TextBlock Grid.Row="1" Grid.Column="0" Classes="lbl" Text="Reward"
                    IsVisible="{Binding HasReward}" />
         <TextBlock Grid.Row="1" Grid.Column="1" Classes="val" Text="{Binding Reward}"
-                   Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasReward}" />
+                   Foreground="{DynamicResource GoodBrush}" IsVisible="{Binding HasReward}" />
 
         <TextBlock Grid.Row="2" Grid.Column="0" Classes="lbl" Text="Collateral"
                    IsVisible="{Binding HasCollateral}" />

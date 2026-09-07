@@ -159,7 +159,7 @@
 
           <StackPanel IsVisible="{Binding DetailTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
             <TextBlock Text="{Binding DetailTitle}" FontSize="14" FontWeight="SemiBold"
-                       Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+                       Foreground="{DynamicResource TextBrightBrush}" TextWrapping="Wrap" />
             <ItemsControl ItemsSource="{Binding DetailRows}" Margin="0 6 0 0">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -197,7 +197,7 @@
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                    <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center" />
                   </StackPanel>
                 </DataTemplate>
@@ -225,7 +225,7 @@
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="{DynamicResource TextDimBrush}"
+                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"
                                TextWrapping="Wrap" VerticalAlignment="Center" />
                   </StackPanel>
                 </DataTemplate>
@@ -244,7 +244,7 @@
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="{DynamicResource TextDimBrush}"
+                    <TextBlock Text="{Binding Label}" FontSize="10.5" Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center" />
                   </StackPanel>
                 </DataTemplate>

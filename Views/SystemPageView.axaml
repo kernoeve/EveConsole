@@ -160,7 +160,7 @@
 
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasProduction}">
             <TextBlock Classes="hlabel" Text="Production" Margin="0 0 6 0" />
-            <TextBlock Classes="hvalue" Text="{Binding Production}" Foreground="{DynamicResource TextSecondaryBrush}" />
+            <TextBlock Classes="hvalue" Text="{Binding Production}" Foreground="{DynamicResource GoodBrush}" />
           </StackPanel>
         </StackPanel>
 
@@ -601,7 +601,7 @@
                       <TextBlock Grid.Column="4" Classes="col" Text="{Binding Level}"
                                  Margin="0 0 12 0" />
                       <TextBlock Grid.Column="5" Classes="colmuted" Text="{Binding Locator}"
-                                 Foreground="{DynamicResource TextMutedBrush}" />
+                                 Foreground="{DynamicResource GoodBrush}" />
                     </Grid>
                   </Border>
                 </DataTemplate>
@@ -793,7 +793,7 @@
                     <Grid ColumnDefinitions="120,40,34,3*,150,2*,190,80"
                           ToolTip.Tip="{Binding Message}">
                       <TextBlock Grid.Column="0" Text="{Binding When}" FontSize="11"
-                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11"
                                  Foreground="{Binding CountColor}"
                                  VerticalAlignment="Center" />
@@ -890,7 +890,7 @@
                         <Button Classes="link" Command="{Binding ReportedBy.OpenCommand}"
                                 Margin="2 0 0 0" ToolTip.Tip="{Binding Channel}">
                           <TextBlock Text="{Binding Reporter}" Classes="linktext" FontSize="11"
-                                     Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
+                                     Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
                         </Button>
                       </StackPanel>
                       <TextBlock Grid.Column="7" Text="{Binding Status}" FontSize="10"

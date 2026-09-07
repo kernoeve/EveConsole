@@ -314,7 +314,7 @@
                                  BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="8 0" />
                 <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="Add"
                         Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                        BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="12 4" FontSize="11" />
+                        BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" />
               </Grid>
 
               <DataGrid ItemsSource="{Binding Senders}" SelectedItem="{Binding SelectedSender}"

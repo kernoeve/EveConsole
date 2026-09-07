@@ -171,7 +171,7 @@
                     FontSize="11" MinWidth="100" Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                     BorderBrush="{DynamicResource BorderDefaultBrush}" />
           <TextBlock Grid.Column="3" Text="{Binding UncostedNote}" FontSize="10"
-                     Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
+                     Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center"
                      HorizontalAlignment="Right" TextWrapping="NoWrap" />
         </Grid>
 

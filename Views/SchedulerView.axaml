@@ -350,7 +350,7 @@
                             <TextBlock Classes="hint"
                                        Text="Twelve months of trends, drawn as an image and uploaded under the message." />
                             <Border IsVisible="{Binding ShowWebhookChartWarning}"
-                                    Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
                                     CornerRadius="3" Padding="8 6">
                               <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                          Text="This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs." />
@@ -505,7 +505,7 @@
                       BorderThickness="1" Padding="12 4" FontSize="11" />
             </StackPanel>
             <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
-                       Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="14 0 0 0"
+                       Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="14 0 0 0"
                        TextTrimming="CharacterEllipsis" />
           </Grid>
         </Border>

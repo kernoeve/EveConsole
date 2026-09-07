@@ -48,7 +48,7 @@
         <Grid RowDefinitions="Auto,*">
           <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
             <TextBlock Text="EXPENSES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" LetterSpacing="1" />
-            <TextBlock Grid.Column="1" Text="{Binding ExpenseTotal}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextFaintBrush}" />
+            <TextBlock Grid.Column="1" Text="{Binding ExpenseTotal}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BadBrush}" />
           </Grid>
           <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding ExpenseRows}">

@@ -255,7 +255,7 @@
                                     SelectedItem="{Binding Kind}" FontSize="11"
                                     HorizontalAlignment="Stretch" />
                           <Button Grid.Column="2" Content="Remove" FontSize="10.5"
-                                  Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextFaintBrush}"
+                                  Background="Transparent" BorderThickness="0" Foreground="{DynamicResource WarnBrush}"
                                   Command="{Binding $parent[ItemsControl].((vm:AlarmsViewModel)DataContext).RemoveActionCommand}"
                                   CommandParameter="{Binding}" />
                         </Grid>

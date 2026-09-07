@@ -146,7 +146,7 @@
 
       <Border IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
               Background="{DynamicResource SurfaceBaseBrush}"
-              BorderBrush="{DynamicResource BorderSubtleBrush}"
+              BorderBrush="{DynamicResource GoodSurfaceBrush}"
               BorderThickness="0 1 0 0"
               Padding="10 5">
         <TextBlock Text="{Binding StatusText}"
@@ -156,12 +156,12 @@
       </Border>
 
       <Border IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-              Background="{DynamicResource SurfaceBaseBrush}"
-              BorderBrush="{DynamicResource BorderSubtleBrush}"
+              Background="{DynamicResource BadSurfaceBrush}"
+              BorderBrush="{DynamicResource BadSurfaceBrush}"
               BorderThickness="0 1 0 0"
               Padding="10 6">
         <TextBlock Text="{Binding ErrorText}"
-                   Foreground="{DynamicResource TextDimBrush}"
+                   Foreground="{DynamicResource BadBrush}"
                    FontSize="10"
                    TextWrapping="Wrap"/>
       </Border>
@@ -207,7 +207,7 @@
                 ToolTip.Tip="Click to start recording; click again to transcribe. Or hold the global hotkey.">
           <Panel>
             <TextBlock Text="🎙" IsVisible="{Binding !IsRecording}" />
-            <TextBlock Text="⏹" Foreground="{DynamicResource TextFaintBrush}" IsVisible="{Binding IsRecording}" />
+            <TextBlock Text="⏹" Foreground="{DynamicResource BadBrush}" IsVisible="{Binding IsRecording}" />
           </Panel>
         </Button>
 

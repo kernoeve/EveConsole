@@ -5,6 +5,7 @@ using Avalonia.Collections;
 using Avalonia.Threading;
 using EveConsole.Services.Worklist;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -339,18 +340,18 @@ public class WorklistRowVm : ReactiveObject
     /// was removed for. Blocked and waiting keep their full colour, so the eye lands on the rows
     /// that want something, and the rail still reads as continuous down the list.</para>
     /// </summary>
-    public string ReadinessBarColor => _item.Readiness switch
+    public IBrush ReadinessBarColor => _item.Readiness switch
     {
-        WorklistReadiness.Ready   => "#24402c",
-        WorklistReadiness.Blocked => "#c85a5a",
-        _                         => "#c8a84b",
+        WorklistReadiness.Ready   => Theme.GoodSurface,
+        WorklistReadiness.Blocked => Theme.Bad,
+        _                         => Theme.Accent,
     };
 
-    public string ReadinessColor => _item.Readiness switch
+    public IBrush ReadinessColor => _item.Readiness switch
     {
-        WorklistReadiness.Ready   => "#5aa469",
-        WorklistReadiness.Blocked => "#c85a5a",
-        _                         => "#c8a84b",
+        WorklistReadiness.Ready   => Theme.Good,
+        WorklistReadiness.Blocked => Theme.Bad,
+        _                         => Theme.Accent,
     };
 
     /// <summary>Blocked items say what is in the way; the rest carry their own detail.</summary>
@@ -398,7 +399,7 @@ public sealed class SlotPressureRowVm(SlotPressure p)
     public string Utilised => $"{p.Utilised:N0}%";
 
     /// <summary>Amber only where work is actually queued behind a full pool.</summary>
-    public string UtilisedColor => p.IsBottleneck ? "#c8a84b" : p.Utilised >= 90 ? "#8a8a99" : "#666677";
+    public IBrush UtilisedColor => p.IsBottleneck ? Theme.Accent : p.Utilised >= 90 ? Theme.TextMuted : Theme.TextDim;
 
     public bool IsBottleneck => p.IsBottleneck;
 
@@ -462,13 +463,13 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
                         : t.Hop == 0         ? "needs it"
                         :                      $"behind ({t.Hop})";
 
-    public string StateColor => t.State switch
+    public IBrush StateColor => t.State switch
     {
-        "Blocked" => "#c85a5a",
-        "Waiting" => "#c8a84b",
-        "Running" => "#4a8a5a",
-        "Ready"   => "#4a8a5a",
-        _         => "#8a8a99",
+        "Blocked" => Theme.Bad,
+        "Waiting" => Theme.Accent,
+        "Running" => Theme.Good,
+        "Ready"   => Theme.Good,
+        _         => Theme.TextMuted,
     };
 }
 
@@ -497,7 +498,7 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 
     /// <summary>⚠️ Red once the work needs more than exists: a level being met is beside the
     /// point when the demand in front of it is larger than the level.</summary>
-    public string NeedColor => s.Need > s.OnHand ? "#c85a5a" : "#666677";
+    public IBrush NeedColor => s.Need > s.OnHand ? Theme.Bad : Theme.TextDim;
 
     /// <summary>
     /// Tasks this shortage is holding up, its own consumers and everything stopped behind them.
@@ -515,8 +516,8 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
     public string MakeBlocked => s.MakingBlocked > 0 ? s.MakingBlocked.ToString("N0") : "";
 
     /// <summary>Red where the thing that is short has nothing arriving to refill it.</summary>
-    public string MakeBlockedColor =>
-        s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? "#c85a5a" : "#666677";
+    public IBrush MakeBlockedColor =>
+        s.MakingBlocked > 0 && s.MakingRunning == 0 && s.MakingReady == 0 ? Theme.Bad : Theme.TextDim;
     /// <summary>
     /// The tasks behind the counts, shown by expanding the row.
     ///
@@ -541,29 +542,29 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 
     /// <summary>⚠️ Amber, not red, during a wave — a deficit while a big order passes
     /// through is expected, and absorbing it is what the buffer is for.</summary>
-    public string BalanceColor => !s.Buildable             ? "#666677"
-                                : s.IsDraining && s.IsWave ? "#c8a84b"
-                                : s.IsDraining             ? "#c85a5a"
-                                : "#4a8a5a";
+    public IBrush BalanceColor => !s.Buildable             ? Theme.TextDim
+                                : s.IsDraining && s.IsWave ? Theme.Accent
+                                : s.IsDraining             ? Theme.Bad
+                                : Theme.Good;
 
     /// <summary>How much harder than usual this is being drawn on right now.</summary>
     public string Surge => s.Surge >= 1.2 ? $"{s.Surge:N1}×" : "";
 
-    public string VerdictColor => s.Verdict switch
+    public IBrush VerdictColor => s.Verdict switch
     {
-        "Buy now"        => "#c85a5a",
-        "On order"       => "#4a8a5a",
-        "Buffer spent"   => "#c85a5a",
-        "Blocked"        => "#c85a5a",
-        "Level too low"  => "#c85a5a",
-        "No buffer"      => "#c85a5a",
-        "Not the shelf"  => "#8a8a99",
-        "Making too few" => "#c8a84b",
-        "Buy"            => "#5599aa",
-        "Buffer thin"    => "#c8a84b",
-        "No level set"   => "#c8a84b",
-        "Wave"           => "#8a8a99",
-        _                => "#666677",
+        "Buy now"        => Theme.Bad,
+        "On order"       => Theme.Good,
+        "Buffer spent"   => Theme.Bad,
+        "Blocked"        => Theme.Bad,
+        "Level too low"  => Theme.Bad,
+        "No buffer"      => Theme.Bad,
+        "Not the shelf"  => Theme.TextMuted,
+        "Making too few" => Theme.Accent,
+        "Buy"            => Theme.Info,
+        "Buffer thin"    => Theme.Accent,
+        "No level set"   => Theme.Accent,
+        "Wave"           => Theme.TextMuted,
+        _                => Theme.TextDim,
     };
 
     /// <summary>⚠️ Marks a rate that is itself throttled by the shortage being measured.</summary>
@@ -590,8 +591,8 @@ public sealed class ObservationVm(Observation o)
     /// <summary>The one finding to act on is marked, not merely first: a list read top-down
     /// reads as four jobs to do rather than one lever and three things to know about.</summary>
     public string Marker      => o.IsPrimary ? "START HERE" : Kind;
-    public string MarkerColor => o.IsPrimary ? "#c8a84b" : "#555566";
-    public string RuleColor   => o.IsPrimary ? "#c8a84b" : "#2c2c3a";
+    public IBrush MarkerColor => o.IsPrimary ? Theme.Accent : Theme.TextFaint;
+    public IBrush RuleColor   => o.IsPrimary ? Theme.Accent : Theme.SurfaceRaised;
 
     private string Kind => o.Kind switch
     {
@@ -633,11 +634,11 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
                           :                         $"{h.Volume:N0} m3";
 
     /// <summary>Red where nothing is moving: the material exists and no trip has been raised.</summary>
-    public string VerdictColor => h.Verdict switch
+    public IBrush VerdictColor => h.Verdict switch
     {
-        "Nothing moving" => "#c85a5a",
-        "Several stops"  => "#c8a84b",
-        _                => "#4a8a5a",
+        "Nothing moving" => Theme.Bad,
+        "Several stops"  => Theme.Accent,
+        _                => Theme.Good,
     };
 
     public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
@@ -722,11 +723,11 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
     public string Trend       => p.Trend;
     public string Recent      => p.RecentContentionPercent <= 0 ? "" : $"{p.RecentContentionPercent:N0}%";
 
-    public string TrendColor => p.Trend switch
+    public IBrush TrendColor => p.Trend switch
     {
-        "Rising" => "#c85a5a",
-        "Easing" => "#4a8a5a",
-        _        => "#666677",
+        "Rising" => Theme.Bad,
+        "Easing" => Theme.Good,
+        _        => Theme.TextDim,
     };
     public string Advice      => p.Advice;
 
@@ -736,22 +737,22 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
     /// every day still measures around 60% — and a scale that called that "idle" would report
     /// that nothing is ever a bottleneck.
     /// </summary>
-    public string CoverColor => p.IsTight ? "#c85a5a"
-                             : p.IsIdle   ? "#666677"
-                             : "#c8a84b";
+    public IBrush CoverColor => p.IsTight ? Theme.Bad
+                             : p.IsIdle   ? Theme.TextDim
+                             : Theme.Accent;
 
     /// <summary>⚠️ Muted always. It is context, and colouring it would invite ranking by it.</summary>
-    public string UsedColor => "#666677";
+    public IBrush UsedColor => Theme.TextDim;
 
     /// <summary>Steady is the one worth buying for; a surge is a week of work, not a shortage.</summary>
-    public string VerdictColor => p.Verdict switch
+    public IBrush VerdictColor => p.Verdict switch
     {
-        "Blocking" => "#c85a5a",
-        "Steady"   => "#c85a5a",
-        "Blocked"  => "#c8a84b",
-        "Surge"    => "#5599aa",
-        "Minor"    => "#666677",
-        _          => "#8a8a99",
+        "Blocking" => Theme.Bad,
+        "Steady"   => Theme.Bad,
+        "Blocked"  => Theme.Accent,
+        "Surge"    => Theme.Info,
+        "Minor"    => Theme.TextDim,
+        _          => Theme.TextMuted,
     };
 
     public bool HasLink => p.ProductTypeId > 0;
@@ -812,7 +813,7 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
     public long   ShortRaw  => n.Shortfall;
     public string Short     => n.Shortfall > 0 ? n.Shortfall.ToString("N0") : "";
     /// <summary>Red only where the station is actually short; a covered need is not a problem.</summary>
-    public string ShortColor => n.Shortfall > 0 ? "#c85a5a" : "#555566";
+    public IBrush ShortColor => n.Shortfall > 0 ? Theme.Bad : Theme.TextFaint;
 
     // Priced and sized on the shortfall, so the columns answer "what does closing this cost, and
     // what does it take to carry" rather than restating stock already sitting there.

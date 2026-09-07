@@ -65,7 +65,7 @@
                complete the bar shows neither state. -->
           <TextBlock Text="up to date"
                      IsVisible="{Binding SdeVm.SdeUpToDate}"
-                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                     FontSize="11" Foreground="{DynamicResource GoodBrush}"
                      VerticalAlignment="Center" Margin="6 0 0 0"
                      ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest from CCP is {0}'}" />
 
@@ -395,7 +395,7 @@
                   <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                 </Style>
                 <Style Selector="ListBoxItem:pointerover TextBlock">
-                  <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+                  <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
                 </Style>
               </ListBox.Styles>
               <ListBox.ItemContainerTheme>
@@ -448,7 +448,7 @@
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
                         <Style Selector="Button:pointerover">
-                          <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+                          <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
                         </Style>
                       </Button.Styles>
                     </Button>

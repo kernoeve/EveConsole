@@ -66,7 +66,7 @@
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
       <Button Content="Apply" Click="OnApply"
               FontSize="12" Padding="14 6"
-              Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
+              Background="{DynamicResource WarnSurfaceBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
     </StackPanel>
 
   </Grid>

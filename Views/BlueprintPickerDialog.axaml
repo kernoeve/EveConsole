@@ -33,7 +33,7 @@
         </ListBox>
       </Border>
       <TextBlock x:Name="SelectedBlueprintText"
-                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                 FontSize="10" Foreground="{DynamicResource GoodBrush}"
                  IsVisible="False" />
     </StackPanel>
 
@@ -75,7 +75,7 @@
 
     <!-- Error -->
     <TextBlock x:Name="ErrorText" Grid.Row="3"
-               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+               FontSize="11" Foreground="{DynamicResource BadBrush}"
                IsVisible="False" Margin="0 0 0 6" />
 
     <!-- OK / Cancel -->

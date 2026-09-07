@@ -157,11 +157,11 @@
                   <TextBlock Text="{Binding PlanWarningHeader}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold"/>
                   <TextBlock Text="Planned in the park's default facility with no rig bonus, so these costs may be overstated."
-                             Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap"/>
+                             Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"/>
                   <ItemsControl ItemsSource="{Binding Plan.Warnings}" Margin="0 2 0 0">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="{Binding}" Foreground="{DynamicResource WarnBrush}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0 1"/>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -179,11 +179,11 @@
                   <TextBlock Text="{Binding PricingWarningHeader}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold"/>
                   <TextBlock Text="Blueprint copies trade only by contract, so a quiet month leaves no current price. The most recent one on record is used; where there is none the blueprint counts as 0 ISK and the build cost is understated by that much."
-                             Foreground="{DynamicResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap"/>
+                             Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"/>
                   <ItemsControl ItemsSource="{Binding Plan.PricingWarnings}" Margin="0 2 0 0">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <TextBlock Text="{Binding}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="{Binding}" Foreground="{DynamicResource WarnBrush}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0 1"/>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -200,7 +200,7 @@
                 <TextBlock Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Text="{Binding Plan.TotalJobCost, StringFormat='{}{0:N0} ISK'}"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Leftover Value:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                <TextBlock Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource GoodBrush}" FontSize="12"
                            Text="{Binding Plan.TotalLeftoverValue, StringFormat='{}{0:N0} ISK'}"/>
                 <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0 4" Background="{DynamicResource BorderDefaultBrush}"/>
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Net Cost:" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"/>
@@ -253,7 +253,7 @@
                           <TextBlock Text="{Binding TotalCost,        StringFormat='{}{0:N0} ISK'}"
                                      FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"/>
                           <TextBlock Text="{Binding MarketTotalValue, StringFormat='{}{0:N0} ISK'}"
-                                     FontSize="12" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                                     FontSize="12" Foreground="{DynamicResource GoodBrush}" HorizontalAlignment="Right"/>
                           <TextBlock Text="build / market" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
                         </StackPanel>
                       </Grid>
@@ -624,10 +624,10 @@
                           <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock Text="{Binding Job.Runs,            StringFormat='Runs: {0}'}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                             <TextBlock Text="{Binding Job.QuantityProduced, StringFormat='Out: {0:N0}'}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Job.Leftover,         StringFormat='Leftover: {0:N0}'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat='In: {0:N0} m³'}"  FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                            <TextBlock Text="{Binding Job.Leftover,         StringFormat='Leftover: {0:N0}'}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
+                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat='In: {0:N0} m³'}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                        ToolTip.Tip="Packed volume this job consumes — what has to reach the facility."/>
-                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat='Out: {0:N0} m³'}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat='Out: {0:N0} m³'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                        ToolTip.Tip="Packed volume this job produces — what leaves it."/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="10">

@@ -283,7 +283,7 @@
                       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
             <TextBlock x:Name="AllianceEmptyLabel"
                        Text="No alliance found on any tracked character."
-                       FontSize="11" Foreground="{DynamicResource TextDimBrush}" IsVisible="False" TextWrapping="Wrap" />
+                       FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="False" TextWrapping="Wrap" />
             <Grid ColumnDefinitions="Auto,*" Margin="0 4 0 0">
               <TextBlock Grid.Column="0" Text="MIN ADM:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center" Margin="0 0 10 0" />

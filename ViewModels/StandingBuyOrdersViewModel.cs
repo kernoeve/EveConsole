@@ -3,6 +3,7 @@ using System.Reactive;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -56,10 +57,10 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// sellers fill their order instead of ours. Amber rather than red: like low volume
     /// and near expiry, it is a standing order that needs adjusting, not one that is
     /// absent. Red stays reserved for an order that isn't there at all.</summary>
-    public string PriceColor { get; } = r.IsOutbid ? "#e0902e" : "#c8c8d8";
+    public IBrush PriceColor { get; } = r.IsOutbid ? Theme.Warn : Theme.TextPrimary;
 
-    public string StationBidColor { get; } = r.IsOutbid ? "#e0902e"
-                                           : r.IsLocationTracked ? "#c8c8d8" : "#555566";
+    public IBrush StationBidColor { get; } = r.IsOutbid ? Theme.Warn
+                                           : r.IsLocationTracked ? Theme.TextPrimary : Theme.TextFaint;
 
     public string? PriceTooltip { get; } = !r.IsLocationTracked
         ? "This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market."
@@ -82,16 +83,16 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// but is running out — either of volume or of time — green otherwise.</summary>
     /// <summary>Amber covers every "the order is there but wants adjusting" case —
     /// outbid, running low, nearing expiry. Red means the order does not exist.</summary>
-    public string StatusColor { get; } = r.MatchStatus switch
+    public IBrush StatusColor { get; } = r.MatchStatus switch
     {
-        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => "#e0902e",
-        "matched"                                               => "#6a9a6a",
-        _                                                       => "#cc6666",
+        "matched" when r.IsOutbid || r.IsLow || r.IsExpiringSoon => Theme.Warn,
+        "matched"                                               => Theme.Good,
+        _                                                       => Theme.Bad,
     };
 
     /// <summary>Expiry gets its own colour so a healthy-volume order that is about to
     /// lapse is visible in the column that explains why.</summary>
-    public string ExpiryColor { get; } = r.IsExpiringSoon ? "#e0902e" : "#999999";
+    public IBrush ExpiryColor { get; } = r.IsExpiringSoon ? Theme.Warn : Theme.TextMuted;
 
     /// <summary>Sort key tracking the status colour — red, then orange, then healthy.
     /// Derived here rather than in the caller so it cannot drift from StatusColor.</summary>

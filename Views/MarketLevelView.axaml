@@ -202,7 +202,7 @@
                   <Button Command="{Binding AddItemCommand}"
                           Content="+ Item"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                          BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
                   <Button Command="{Binding EditCommand}"
                           Content="Edit"

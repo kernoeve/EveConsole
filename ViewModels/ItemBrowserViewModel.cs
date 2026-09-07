@@ -14,6 +14,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -83,9 +84,9 @@ public record LpOfferVm(
 
     /// <summary>Red below zero — the offer costs more than the item fetches, so the LP is
     /// doing nothing for you.</summary>
-    public string IskPerLpColor => IskPerLp is null ? "#555566"
-                                 : IskPerLp.Value < 0 ? "#aa4444"
-                                 : "#4caf50";
+    public IBrush IskPerLpColor => IskPerLp is null ? Theme.TextFaint
+                                 : IskPerLp.Value < 0 ? Theme.Bad
+                                 : Theme.Good;
 
     /// <summary>
     /// Always shown, including for a single unit. This was a field rather than a property,
@@ -101,7 +102,7 @@ public record LpOfferVm(
     public bool   CanAfford    => LpHeld >= LpCost;
     public string HeldText     => LpHeld > 0 ? $"{LpHeld:N0} LP" : "none";
     /// <summary>Green when a character can cover it today, muted when they cannot.</summary>
-    public string HeldColor    => CanAfford ? "#4caf50" : "#555566";
+    public IBrush HeldColor    => CanAfford ? Theme.Good : Theme.TextFaint;
 }
 
 public record AttrDisplayVm(string Name, string ValueText);
@@ -188,7 +189,7 @@ public class OrderRowVm
     public DateTimeOffset Expires      { get; init; }
 
     public string SecurityText  => Security is { } s ? EveConsole.Services.SecurityColors.Text(s) : "";
-    public string SecurityColor => Security is { } s ? EveConsole.Services.SecurityColors.Hex(s) : "#555566";
+    public string SecurityColor => Security is { } s ? EveConsole.Services.SecurityColors.Hex(s) : "#8a8a99";
     public string SecurityTip   => Security is { } s ? EveConsole.Services.SecurityColors.Tip(s) : "";
 
     public string PriceText        => Price.ToString("N2");

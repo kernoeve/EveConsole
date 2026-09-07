@@ -78,7 +78,7 @@
               <Run Text="{Binding Source}" /><Run Text="  —  " /><Run Text="{Binding Context}" />
             </TextBlock>
             <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0 2" />
-            <SelectableTextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+            <SelectableTextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource BadBrush}"
                                  FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
           </StackPanel>
         </ScrollViewer>

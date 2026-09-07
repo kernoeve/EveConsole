@@ -108,13 +108,17 @@
            of the dark theme: on light backgrounds depth reads as the raised thing
            being brighter. Keeping the dark theme's direction gives grey cards on
            a white page, which reads as disabled. ─────────────────────────────── -->
-      <Color x:Key="SurfaceBase">#eceaf0</Color>
-      <Color x:Key="SurfacePanel">#f8f7fa</Color>
-      <Color x:Key="SurfacePanelAlt">#f2f1f6</Color>
-      <Color x:Key="SurfaceHeader">#e4e2ea</Color>
-      <Color x:Key="SurfaceRaised">#ffffff</Color>
-      <Color x:Key="SurfaceInput">#ffffff</Color>
-      <Color x:Key="SurfaceHover">#e6e4ee</Color>
+      <!-- ⚠️ Toned down a step from the first attempt, which ran from #eceaf0 to pure white and
+           read as glare rather than as paper. Nothing here is #ffffff any more: the brightest
+           surface is the one thing raised above everything else, and it has more effect at f6
+           against a warmer ground than at ff against a cold one. -->
+      <Color x:Key="SurfaceBase">#e2e0e8</Color>
+      <Color x:Key="SurfacePanel">#eeecf2</Color>
+      <Color x:Key="SurfacePanelAlt">#e8e6ee</Color>
+      <Color x:Key="SurfaceHeader">#d8d5e0</Color>
+      <Color x:Key="SurfaceRaised">#f6f5f8</Color>
+      <Color x:Key="SurfaceInput">#f8f7fa</Color>
+      <Color x:Key="SurfaceHover">#dcd9e6</Color>
       <Color x:Key="SurfaceSelected">#d8dcf0</Color>
 
       <!-- ── Lines ───────────────────────────────────────────────────────── -->

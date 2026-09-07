@@ -102,9 +102,9 @@
               <TextBlock x:Name="DetailBlueprint" Grid.Row="1" Foreground="{DynamicResource InfoBrush}" FontSize="10"
                          HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="148" Margin="0 4 0 2"/>
               <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" CornerRadius="2" Padding="4 1">
+                <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" CornerRadius="2" Padding="4 1">
                   <StackPanel Orientation="Horizontal" Spacing="3">
-                    <TextBlock Text="ME" Foreground="{DynamicResource TextDimBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="ME" Foreground="{DynamicResource GoodBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
                     <TextBlock x:Name="DetailME" Foreground="{DynamicResource GoodBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
                   </StackPanel>
                 </Border>

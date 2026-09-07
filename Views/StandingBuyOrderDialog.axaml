@@ -95,7 +95,7 @@
         </StackPanel>
 
         <TextBlock x:Name="ErrorLabel" IsVisible="False"
-                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+                   FontSize="11" Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
 
       </StackPanel>
     </ScrollViewer>
@@ -107,7 +107,7 @@
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
       <Button x:Name="SaveButton" Content="Save" Click="OnSave" Padding="18 6"
               Background="{DynamicResource SurfaceHeaderBrush}" Foreground="{DynamicResource AccentBrush}"
-              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+              BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1" />
     </StackPanel>
 
   </Grid>

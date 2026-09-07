@@ -8,6 +8,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -113,7 +114,7 @@ public class TrackedOrderRowVm
     /// accounted for; the grid shows it in red when it is not.</summary>
     public int    Shortfall     { get; }
     public string ShortfallText { get; }
-    public string ShortColor    => "#cc4444";
+    public IBrush ShortColor    => Theme.Bad;
 
     public int?   LinkedJobId      { get; }
     public int?   LinkedContractId { get; }

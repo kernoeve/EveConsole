@@ -91,7 +91,7 @@
             <DataGridTemplateColumn Header="Best Offer" Width="110" SortMemberPath="BestIskPerLp">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
-                  <TextBlock Text="{Binding BestText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                  <TextBlock Text="{Binding BestText}" FontSize="11" Foreground="{DynamicResource GoodBrush}"
                              TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>

@@ -45,7 +45,7 @@
         <Button x:Name="QuitButton"    Content="Quit"           Click="OnQuit"    Padding="14 6" />
         <Button x:Name="FreshButton"   Content="Start fresh"    Click="OnFresh"   Padding="14 6" />
         <Button x:Name="RestoreButton" Content="Restore backup" Click="OnRestore" Padding="14 6"
-                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextBrightBrush}" />
+                Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource TextBrightBrush}" />
       </StackPanel>
 
     </StackPanel>

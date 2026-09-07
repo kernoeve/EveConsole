@@ -28,7 +28,7 @@
             <Setter Property="FontSize"   Value="12" />
             <Setter Property="Background" Value="Transparent" />
             <Style Selector="^:selected">
-              <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+              <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
               <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
             </Style>
             <Style Selector="^:pointerover:not(:selected)">

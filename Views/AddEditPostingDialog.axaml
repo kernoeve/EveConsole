@@ -90,7 +90,7 @@
           </ComboBox>
           <TextBlock x:Name="NoStationsText"
                      Text="No polled markets yet — add a Market config under Market Overview first."
-                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}" IsVisible="False" TextWrapping="Wrap" />
+                     FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="False" TextWrapping="Wrap" />
           <TextBlock Text="PRICE TYPE" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
           <ComboBox x:Name="PriceTypeBox"
@@ -177,7 +177,7 @@
                        FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"
                        VerticalAlignment="Center" />
             <Button Grid.Column="1" Content="+ Add Post" Command="{Binding AddPostCommand}"
-                    Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                    Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}" BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                     Padding="8 3" FontSize="11" />
           </Grid>
 

@@ -138,7 +138,7 @@
         <Style Selector="TextBox.cell">
           <Setter Property="Background"      Value="Transparent" />
           <Setter Property="BorderThickness" Value="0" />
-          <Setter Property="Foreground"      Value="{DynamicResource SurfaceRaisedBrush}" />
+          <Setter Property="Foreground"      Value="{DynamicResource WarnBrush}" />
           <Setter Property="CaretBrush"      Value="{DynamicResource AccentBrush}" />
           <Setter Property="FontSize"        Value="11" />
           <Setter Property="Padding"         Value="4 0" />
@@ -166,7 +166,7 @@
                              Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                   <Button Command="{Binding AddSectionCommand}" Content="+ Section"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                          BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
                   <Button Command="{Binding EditCommand}" Content="Edit"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
@@ -198,7 +198,7 @@
                     <TextBlock Text="{Binding ScopeSuffix}" IsVisible="{Binding HasLocationLink}"
                                FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
                   </StackPanel>
-                  <TextBlock Text="{Binding PricingDisplay}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                  <TextBlock Text="{Binding PricingDisplay}" FontSize="10" Foreground="{DynamicResource WarnBrush}"
                              VerticalAlignment="Center" Margin="4 0 0 0" />
                 </StackPanel>
 
@@ -213,7 +213,7 @@
                              Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
                   <Button Command="{Binding AddItemCommand}" Content="+ Item"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                          BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
                   <Button Command="{Binding EditCommand}" Content="Edit"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
@@ -223,7 +223,7 @@
                           Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                           BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
-                  <TextBlock Text="{Binding OverrideSummary}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                  <TextBlock Text="{Binding OverrideSummary}" FontSize="10" Foreground="{DynamicResource WarnBrush}"
                              VerticalAlignment="Center" Margin="8 0 0 0" />
                 </StackPanel>
 
@@ -284,7 +284,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InStockText}"
-                         Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                         Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -305,7 +305,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InBuildText}"
-                         Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                         Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -326,7 +326,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding ReservedText}"
-                         Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
+                         Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -378,13 +378,13 @@
             <DataTemplate>
               <Panel x:CompileBindings="False">
                 <TextBlock IsVisible="{Binding IsItem}" Text="{Binding SalePriceText}"
-                           Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
+                           Foreground="{DynamicResource WarnBrush}" FontWeight="SemiBold"
                            HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
                 <TextBlock IsVisible="{Binding IsSection}" Text="{Binding TotalSaleValueText}"
-                           Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
+                           Foreground="{DynamicResource WarnBrush}" FontWeight="SemiBold"
                            HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
                 <TextBlock IsVisible="{Binding IsPosting}" Text="{Binding TotalSaleValueText}"
-                           Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="Bold"
+                           Foreground="{DynamicResource WarnBrush}" FontWeight="Bold"
                            HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
               </Panel>
             </DataTemplate>
@@ -434,7 +434,7 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding CompletionDateText}"
-                         Foreground="{DynamicResource TextMutedBrush}"
+                         Foreground="{DynamicResource GoodBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>

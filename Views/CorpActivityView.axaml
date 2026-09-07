@@ -2085,7 +2085,7 @@
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
                   <TextBlock Text="KILLS"
-                             FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
+                             FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
                   <ItemsControl ItemsSource="{Binding TopKillers}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
@@ -2103,7 +2103,7 @@
                                                 VerticalAlignment="Center" />
                                      </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
-                                     FontSize="11" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" />
+                                     FontSize="11" Foreground="{DynamicResource WarnBrush}" HorizontalAlignment="Right" />
                         </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -2149,7 +2149,7 @@
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
                 <StackPanel Spacing="4">
                   <TextBlock Text="INDUSTRY TAX"
-                             FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" />
+                             FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
                   <ItemsControl ItemsSource="{Binding TopIndustry}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
@@ -2167,7 +2167,7 @@
                                                 VerticalAlignment="Center" />
                                      </Panel>
                           <TextBlock Grid.Column="2" Text="{Binding AmountText}"
-                                     FontSize="11" Foreground="{DynamicResource TextDimBrush}" HorizontalAlignment="Right" />
+                                     FontSize="11" Foreground="{DynamicResource WarnBrush}" HorizontalAlignment="Right" />
                           <TextBlock Grid.Column="3" Text="{Binding PercentText}"
                                      FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
                         </Grid>

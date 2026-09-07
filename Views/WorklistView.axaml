@@ -68,7 +68,7 @@
     </StackPanel>
 
     <TextBlock Grid.Row="1" Text="{Binding Errors}" IsVisible="{Binding HasErrors}"
-               FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="0 0 0 8"/>
+               FontSize="10" Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" Margin="0 0 0 8"/>
 
     <StackPanel Grid.Row="2" Spacing="6" Margin="0 0 0 8">
 
@@ -1061,7 +1061,7 @@
                           </StackPanel>
                           <StackPanel Grid.Column="4" Spacing="1">
                             <TextBlock Text="Blocked" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>
-                            <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Text="{Binding Blocked}" FontSize="12" Foreground="{DynamicResource BadBrush}"/>
                           </StackPanel>
                           <StackPanel Grid.Column="5" Spacing="1">
                             <TextBlock Text="Days to catch up" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"/>

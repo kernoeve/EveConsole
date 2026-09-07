@@ -117,7 +117,7 @@
             <TextBlock Text="INDUSTRY" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentIndustry}" FontSize="15"
-                       Foreground="{DynamicResource TextMutedBrush}" />
+                       Foreground="{DynamicResource WarnBrush}" />
           </StackPanel>
         </Border>
 
@@ -147,7 +147,7 @@
             <TextBlock Text="CONTRACT COLLAT." FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentCollateral}" FontSize="15"
-                       Foreground="{DynamicResource TextFaintBrush}" />
+                       Foreground="{DynamicResource BadBrush}" />
           </StackPanel>
         </Border>
 
@@ -157,7 +157,7 @@
             <TextBlock Text="CONTRACT VALUE" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentContracts}" FontSize="15"
-                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                       Foreground="{DynamicResource WarnBrush}" />
           </StackPanel>
         </Border>
 

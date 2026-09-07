@@ -131,7 +131,7 @@
                           Command="{Binding $parent[UserControl].DataContext.RemoveExcludedGroupCommand}"
                           CommandParameter="{Binding}"
                           Background="Transparent" BorderThickness="0"
-                          Foreground="{DynamicResource TextDimBrush}" FontSize="10" Padding="0"
+                          Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
                           Cursor="Hand" VerticalAlignment="Center"
                           ToolTip.Tip="Remove this exclusion" />
                   <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"

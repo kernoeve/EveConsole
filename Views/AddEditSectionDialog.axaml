@@ -43,7 +43,7 @@
           <TextBlock Text="SECTION ROW COLOUR" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
           <controls:ColorField x:Name="RowColorField" />
-          <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+          <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource WarnBrush}"
                      Text="⚠ Only used when the posting is NOT colouring by state. That setting is per line and takes precedence, so with it on this has no effect. An item's own colour beats both." />
         </StackPanel>
 
@@ -110,7 +110,7 @@
             </ComboBox>
             <TextBlock x:Name="NoStationsText"
                        Text="No polled markets yet — add a Market config under Market Overview first."
-                       FontSize="11" Foreground="{DynamicResource TextFaintBrush}" IsVisible="False" TextWrapping="Wrap" />
+                       FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="False" TextWrapping="Wrap" />
             <TextBlock Text="PRICE TYPE" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
             <ComboBox x:Name="PriceTypeBox" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"

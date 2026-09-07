@@ -222,7 +222,7 @@
                   <Button Command="{Binding AddItemCommand}"
                           Content="+ Item"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                          BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
                   <Button Command="{Binding EditCommand}"
                           Content="Edit"
@@ -350,7 +350,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding AssetsText}"
-                         Foreground="{DynamicResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -364,7 +364,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding IndustryJobsText}"
-                         Foreground="{DynamicResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
@@ -378,7 +378,7 @@
               <TextBlock x:CompileBindings="False"
                          IsVisible="{Binding IsItem}"
                          Text="{Binding BuyOrdersText}"
-                         Foreground="{DynamicResource TextMutedBrush}"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          HorizontalAlignment="Right" VerticalAlignment="Center"
                          Padding="4 0" />
             </DataTemplate>
