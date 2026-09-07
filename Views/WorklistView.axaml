@@ -167,7 +167,7 @@
     <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
               Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
-              AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True">
+              AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="tasks">
 
       <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background straight from
            this brush in the stock template, so `Selector="DataGridRow /template/
@@ -593,23 +593,23 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-
-        <!-- The planner's sort keys, in the order it applies them, SHOWN. They explain an
-             ordering that cannot be audited from the outside, and there is no column picker to
-             turn them on with — so hidden they were unreachable, and the question "why is this
-             above that" had no answer available to the person asking it.
+        <!-- The planner's sort keys, in the order it applies them. Hidden again now the ordering
+             question they were switched on for is answered. They explain an ordering that cannot
+             be audited from the outside and there is no column picker, so bringing them back
+             means clearing IsVisible on the six columns below and rebuilding — worth doing the
+             moment "why is this above that" comes up, because nothing else can answer it.
              ⚠️ SortPriority is NOT debug-only — the row order itself sorts on it, since the
              stamped priority and the one the planner used are different numbers. -->
         <DataGridTextColumn Binding="{Binding DbgPriority}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="prio" />
+                            CellStyleClasses="num" Header="prio" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgFinal}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="fin" />
+                            CellStyleClasses="num" Header="fin" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgBlocked}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="blkd" />
+                            CellStyleClasses="num" Header="blkd" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgCoverage}" FontSize="11" Width="65"
-                            CellStyleClasses="num" Header="cover" />
+                            CellStyleClasses="num" Header="cover" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="seq" />
+                            CellStyleClasses="num" Header="seq" IsVisible="False" />
 
         <!-- How many stopped tasks this row would release: the key that separates hauls and
              purchases from each other, blank on everything else. Hidden alongside the keys above,
@@ -618,7 +618,7 @@
              delivery or market order outranks another. Sorted on the number so 9 does not
              outrank 50. -->
         <DataGridTextColumn Binding="{Binding UnblocksText}" FontSize="11" Width="70"
-                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" />
+                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" IsVisible="False" />
 
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
@@ -677,7 +677,7 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
-                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="needs"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -859,7 +859,7 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
-                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True"
+                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="itemneeds"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -1219,7 +1219,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="contention"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <!-- ⚠️ A resource, not a style. The details presenter reads this brush straight
                      from the stock template, so a style selector on it never wins and the row
@@ -1426,7 +1426,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="prints"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Resources>
                   <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
@@ -1647,7 +1647,7 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True"
+                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed" LoadingRow="OnRowLoading" views:DetailsEstimate.Track="True" views:ScrollDiag.Label="hauls"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Resources>
                   <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
