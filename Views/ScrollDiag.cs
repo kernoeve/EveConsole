@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,25 +8,28 @@ using System.Reflection;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace EveConsole.Views;
 
 /// <summary>
-/// TEMPORARY. Records what the DataGrid actually believes about its own scroll extent, so the
-/// upward-scroll fight can be diagnosed from numbers instead of from another theory.
+/// TEMPORARY. Records what the DataGrid believes about its own scroll extent, and how long each
+/// step costs, so the upward-scroll fight can be diagnosed from numbers instead of theories.
 ///
-/// <para>⚠️ Delete this file, its attribute in WorklistView.axaml and this note once the flicker
-/// is settled. It reads private members by reflection and appends to a log on every wheel tick;
-/// neither belongs in a shipped build.</para>
+/// <para>⚠️ Delete this file and its attribute in WorklistView.axaml once the flicker is settled.
+/// It reads private members by reflection and writes a log; neither belongs in a shipped build.</para>
 ///
-/// <para>Writes <c>%LOCALAPPDATA%\EveConsole\scrolldiag.log</c>. One line per wheel tick, taken
-/// after layout has settled: the two estimates the grid prices unrealised rows with, the
-/// scrollbar's maximum and value, the offset, and the realised rows with their real heights.
-/// Stops itself after a few hundred lines so it cannot grow without bound.</para>
+/// <para>⚠️ Logs on LayoutUpdated, NOT on the wheel. The first version logged from a Background
+/// post per wheel event, which is starved exactly when the grid is busy — so the slow steps, the
+/// ones worth seeing, were the ones it missed. Every layout pass gets a line now, deduped when
+/// nothing moved.</para>
+///
+/// <para>Two candidates are separated by this: <c>pending</c> is the height a single scroll call
+/// is about to apply, and above twice the viewport Avalonia abandons the exact walk for an
+/// estimate that prices every row at RowHeightEstimate alone — which ignores drawers entirely in
+/// Collapsed mode. <c>ms</c> and <c>built</c> are the other one: time since the last change, and
+/// how many drawers have been constructed, since a seventy-line drawer rebuilt on recycling is
+/// enough to stall the thread on its own.</para>
 /// </summary>
 public sealed class ScrollDiag
 {
@@ -41,8 +46,15 @@ public sealed class ScrollDiag
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "EveConsole", "scrolldiag.log");
 
-    private static int _lines;
-    private const int Cap = 600;
+    private const int Cap = 4000;
+
+    private static readonly List<string> Pending = [];
+    private static readonly Stopwatch    Clock   = Stopwatch.StartNew();
+
+    private static int    _lines;
+    private static string _last  = "";
+    private static long   _lastMs;
+    private static int    _built;
 
     static ScrollDiag()
     {
@@ -50,22 +62,16 @@ public sealed class ScrollDiag
         {
             if (e.GetNewValue<string?>() is not { Length: > 0 } label) return;
 
-            // Tunnel: the grid handles the wheel itself, so a bubbling handler never runs.
-            grid.AddHandler(InputElement.PointerWheelChangedEvent,
-                (_, args) => After(grid, label, args.Delta.Y),
-                RoutingStrategies.Tunnel);
+            grid.LoadingRowDetails += (_, _) => _built++;
+            grid.LayoutUpdated     += (_, _) => Write(grid, label);
         });
     }
-
-    private static void After(DataGrid grid, string label, double dy) =>
-        Dispatcher.UIThread.Post(() => Write(grid, label, dy), DispatcherPriority.Background);
 
     private static object? Peek(object target, string name)
     {
         const BindingFlags Any = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-        var type = target.GetType();
-        for (var t = type; t is not null; t = t.BaseType)
+        for (var t = target.GetType(); t is not null; t = t.BaseType)
         {
             if (t.GetProperty(name, Any) is { } p) return p.GetValue(target);
             if (t.GetField(name, Any) is { } f) return f.GetValue(target);
@@ -74,10 +80,9 @@ public sealed class ScrollDiag
     }
 
     private static string Num(object? v) =>
-        v is double d ? d.ToString("F1", CultureInfo.InvariantCulture)
-      : v?.ToString() ?? "?";
+        v is double d ? d.ToString("F1", CultureInfo.InvariantCulture) : v?.ToString() ?? "?";
 
-    private static void Write(DataGrid grid, string label, double dy)
+    private static void Write(DataGrid grid, string label)
     {
         if (_lines >= Cap) return;
 
@@ -87,27 +92,28 @@ public sealed class ScrollDiag
             var disp = Peek(grid, "DisplayData");
 
             var sb = new StringBuilder();
-            sb.Append(DateTime.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture))
-              .Append(' ').Append(label)
-              .Append(dy > 0 ? " UP  " : " DOWN")
+            sb.Append(label)
               .Append(" rowEst=").Append(Num(Peek(grid, "RowHeightEstimate")))
               .Append(" detEst=").Append(Num(Peek(grid, "RowDetailsHeightEstimate")))
               .Append(" offset=").Append(Num(Peek(grid, "_verticalOffset")))
               .Append(" neg=").Append(Num(Peek(grid, "NegVerticalOffset")))
               .Append(" cells=").Append(Num(Peek(grid, "CellsEstimatedHeight")));
 
+            // The height ONE scroll call is about to apply. Past twice the viewport Avalonia
+            // stops walking rows and estimates instead.
+            if (disp is not null)
+                sb.Append(" pending=").Append(Num(Peek(disp, "PendingVerticalScrollHeight")));
+
             if (vsb is not null)
                 sb.Append(" sbMax=").Append(Num(Peek(vsb, "Maximum")))
-                  .Append(" sbVal=").Append(Num(Peek(vsb, "Value")))
-                  .Append(" sbView=").Append(Num(Peek(vsb, "ViewportSize")));
+                  .Append(" sbVal=").Append(Num(Peek(vsb, "Value")));
 
             if (disp is not null)
                 sb.Append(" slots=").Append(Num(Peek(disp, "FirstScrollingSlot")))
-                  .Append("..").Append(Num(Peek(disp, "LastScrollingSlot")))
-                  .Append('/').Append(Num(Peek(disp, "NumDisplayedScrollingElements")));
+                  .Append("..").Append(Num(Peek(disp, "LastScrollingSlot")));
 
-            // What the realised rows really measure, open ones included. This is the truth the
-            // two estimates above are standing in for.
+            sb.Append(" built=").Append(_built);
+
             var rows = grid.GetVisualDescendants().OfType<DataGridRow>()
                            .Where(r => r.IsVisible)
                            .OrderBy(r => r.Index)
@@ -115,8 +121,20 @@ public sealed class ScrollDiag
 
             sb.Append(" | ").Append(string.Join(' ', rows));
 
-            File.AppendAllText(Path, sb.Append(Environment.NewLine).ToString());
+            var line = sb.ToString();
+            if (line == _last) return;          // Layout ran; nothing moved.
+
+            var now = Clock.ElapsedMilliseconds;
+            Pending.Add($"{DateTime.Now:HH:mm:ss.fff} ms={now - _lastMs,-5} {line}");
+            _lastMs = now;
+            _last   = line;
             _lines++;
+
+            // Batched, so the log is not itself the stall being measured.
+            if (Pending.Count < 25) return;
+
+            File.AppendAllLines(Path, Pending);
+            Pending.Clear();
         }
         catch
         {
