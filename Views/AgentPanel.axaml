@@ -51,7 +51,7 @@
                     Click="OnMuteClick">
               <Panel>
                 <TextBlock Text="♦" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding !IsMuted}" />
-                <TextBlock Text="◇" Foreground="{DynamicResource InfoSurfaceBrush}" IsVisible="{Binding IsMuted}"  />
+                <TextBlock Text="◇" Foreground="{DynamicResource InfoBrush}" IsVisible="{Binding IsMuted}"  />
               </Panel>
             </Button>
             <Slider Value="{Binding Volume}"
@@ -64,7 +64,7 @@
           <Button Content="⌫"
                   ToolTip.Tip="Clear conversation"
                   Background="Transparent"
-                  Foreground="{DynamicResource InfoSurfaceBrush}"
+                  Foreground="{DynamicResource InfoBrush}"
                   BorderThickness="0"
                   FontSize="13"
                   Padding="6 2"
@@ -72,7 +72,7 @@
           <Button Content="✕"
                   ToolTip.Tip="Close panel"
                   Background="Transparent"
-                  Foreground="{DynamicResource InfoSurfaceBrush}"
+                  Foreground="{DynamicResource InfoBrush}"
                   BorderThickness="0"
                   FontSize="13"
                   Padding="6 2"
@@ -97,7 +97,7 @@
                 <!-- Summary separator label -->
                 <TextBlock IsVisible="{Binding IsSummary}"
                            Text="— earlier context summarized —"
-                           Foreground="{DynamicResource GoodSurfaceBrush}"
+                           Foreground="{DynamicResource GoodBrush}"
                            FontSize="9"
                            FontStyle="Italic"
                            HorizontalAlignment="Center"

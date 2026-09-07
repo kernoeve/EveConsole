@@ -422,7 +422,7 @@
                                 Command="{Binding ToggleCommand}"
                                 HorizontalAlignment="Left">
                           <TextBlock Text="{Binding ExpandLabel}"
-                                     FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" />
+                                     FontSize="10" Foreground="{DynamicResource InfoBrush}" />
                         </Button>
 
                       </StackPanel>

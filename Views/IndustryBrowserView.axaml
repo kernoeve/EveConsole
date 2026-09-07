@@ -118,7 +118,7 @@
             </Grid>
 
             <!-- Arrow -->
-            <TextBlock Grid.Column="1" Text="→" Foreground="{DynamicResource InfoSurfaceBrush}" FontSize="20"
+            <TextBlock Grid.Column="1" Text="→" Foreground="{DynamicResource InfoBrush}" FontSize="20"
                        VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 18 0 0"/>
 
             <!-- Product -->

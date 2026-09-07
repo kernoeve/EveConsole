@@ -243,15 +243,15 @@
                             IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this location">
                       <TextBlock Text="{Binding LocationName}" Classes="linktext"
-                                 FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" />
+                                 FontSize="10" Foreground="{DynamicResource InfoBrush}" />
                     </Button>
                     <TextBlock Text="{Binding ScopeDisplay}" IsVisible="{Binding !HasLocationLink}"
-                               FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
+                               FontSize="10" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding ScopeSuffix}" IsVisible="{Binding HasLocationLink}"
-                               FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
+                               FontSize="10" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
                   </StackPanel>
                   <TextBlock Text="{Binding IncludeSummary}"
-                             FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}"
+                             FontSize="10" Foreground="{DynamicResource InfoBrush}"
                              VerticalAlignment="Center" Margin="4 0 0 0" />
                 </StackPanel>
 

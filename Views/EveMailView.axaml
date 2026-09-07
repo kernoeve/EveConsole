@@ -45,7 +45,7 @@
 
         <!-- Status -->
         <TextBlock Grid.Column="4" Text="{Binding StatusText}"
-                   FontSize="11" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
+                   FontSize="11" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
 
         <!-- Compose -->
         <Button Grid.Column="5" Content="+ Compose"
@@ -122,7 +122,7 @@
                                  Foreground="{Binding FromColor}" />
                       <TextBlock Grid.Column="1"
                                  Text="{Binding TimeText}"
-                                 FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}"
+                                 FontSize="10" Foreground="{DynamicResource InfoBrush}"
                                  VerticalAlignment="Center" />
                     </Grid>
                     <TextBlock Grid.Row="1"

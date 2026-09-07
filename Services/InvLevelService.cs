@@ -332,6 +332,20 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         return ids.ToHashSet();
     }
 
+    /// <summary>
+    /// Which of these types are blueprints.
+    ///
+    /// <para>Asked as "does anything have a blueprint activity" rather than by category, because
+    /// that is the same table every other blueprint decision in the app is made from.</para>
+    /// </summary>
+    private static async Task<HashSet<int>> BlueprintTypeIdsAsync(
+        AppDbContext db, IReadOnlyList<int> typeIds, CancellationToken ct) =>
+        [.. await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => typeIds.Contains(p.TypeId))
+            .Select(p => p.TypeId)
+            .Distinct()
+            .ToListAsync(ct)];
+
     public async Task<Dictionary<int, InvAvailability>> LoadAvailableAsync(
         InvLevelGroup group, IReadOnlyList<int> typeIds, CancellationToken ct = default,
         bool packagedOnly = false)
@@ -357,10 +371,40 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             if (packagedOnly)
                 q = q.Where(a => !a.IsSingleton);
 
-            var totals = await q.GroupBy(a => a.TypeId)
-                .Select(g => new { TypeId = g.Key, Total = g.Sum(a => (long)a.Quantity) })
-                .ToListAsync(ct);
-            foreach (var t in totals) assets[t.TypeId] = t.Total;
+            var rows = await q.Select(a => new { a.ItemId, a.TypeId, a.Quantity }).ToListAsync(ct);
+
+            // ⚠️ A blueprint level is written in RUNS, not copies, and the assets table cannot
+            // answer in runs: a copy is one row of quantity 1 whether it carries two runs or
+            // twenty. Counted that way, four Ark copies holding twenty runs between them read as
+            // "4" against a target of five and asked for a fifth that was not needed.
+            //
+            // ⚠️ Copies ONLY. An original is unlimited runs and satisfies nothing here, which
+            // looks wrong until you ask what a blueprint level is kept for: invention runs off a
+            // copy and cannot touch the original, however many runs the original is good for. A
+            // group holding a BPO and no copies is genuinely empty, and cutting copies is the
+            // answer — the same reason the purchase pass counts only copies against a shelf.
+            var bpTypeIds = await BlueprintTypeIdsAsync(db, typeIds, ct);
+
+            var runsByItem = bpTypeIds.Count == 0
+                ? []
+                : await db.EsiBlueprints.AsNoTracking()
+                    .Where(b => bpTypeIds.Contains(b.TypeId) && b.Runs > 0)
+                    .ToDictionaryAsync(b => b.ItemId, b => (long)b.Runs, ct);
+
+            foreach (var g in rows.GroupBy(r => r.TypeId))
+            {
+                if (!bpTypeIds.Contains(g.Key))
+                {
+                    assets[g.Key] = g.Sum(r => (long)r.Quantity);
+                    continue;
+                }
+
+                // ⚠️ A row the blueprints endpoint never returned counts for nothing rather than
+                // for one. Runs are the unit here, that row's run count is unknown, and guessing
+                // at it would report stock the group may not have — where a plain count at least
+                // could not be wrong about what it was counting.
+                assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
+            }
         }
 
         // Industry Jobs — active manufacturing (1) and reactions (9, plus legacy 11).
