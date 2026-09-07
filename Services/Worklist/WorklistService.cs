@@ -119,25 +119,76 @@ public class WorklistService(
                 var haul = section.Items[n];
                 if (haul.Kind != WorklistKind.Haul || haul.DestinationId <= 0) continue;
 
-                var carried = haul.Lines.Count > 0
-                    ? haul.Lines.Select(l => l.TypeId)
-                    : [haul.TypeId];
+                // What this one trip actually puts on the dock, by type and by how much.
+                //
+                // ⚠️ Quantities, not just a set of type ids. A move is capped by what the source
+                // station has free, so a destination short of 5,000 units can be served by several
+                // trips out of several stations, each of them its own row here. A trip carrying 200
+                // of those 5,000 is worth showing against the job, but it does not start it, and a
+                // test on type alone cannot tell the two apart.
+                var cargo = haul.Lines.Count > 0
+                    ? haul.Lines.GroupBy(l => l.TypeId)
+                          .ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity))
+                    : new Dictionary<int, long> { [haul.TypeId] = haul.Quantity };
 
-                var freed = carried
+                // Every job at the destination waiting on anything in this cargo. Relevant to the
+                // row, but not the same thing as restarted by it.
+                var touched = cargo.Keys
                     .SelectMany(t => stopped.GetValueOrDefault((haul.DestinationId, t), []))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
-                if (freed.Count == 0) continue;
+                if (touched.Count == 0) continue;
+
+                // ⚠️ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
+                // The count used to be "jobs waiting on any of these items", which is a different
+                // and much larger number: a job short of three things and sent one of them stays
+                // exactly as stopped as it was. Every shortage is tested, MustBuy included — nobody
+                // owns a MustBuy item, so no haul can be carrying one, and a job with such a
+                // shortage is not restarted by any delivery at all.
+                var waiting = touched
+                    .Select(j =>
+                    {
+                        var outstanding = j.Shortages
+                            .Where(s => cargo.GetValueOrDefault(s.TypeId) < s.Short)
+                            .Select(s => s.TypeName)
+                            .Distinct()
+                            .ToList();
+
+                        return new WorklistWaitingJob(
+                            j.Key, j.Title, j.TypeId, j.TypeName,
+                            Unblocked: outstanding.Count == 0,
+                            StillShortOf: outstanding);
+                    })
+                    .OrderByDescending(w => w.Unblocked)
+                    .ThenBy(w => w.StillShortOf.Count)
+                    .ThenBy(w => w.TypeName)
+                    .ToList();
+
+                var freed = waiting.Where(w => w.Unblocked).ToList();
 
                 section.Items[n] = haul with
                 {
-                    Unblocks = freed.Count,
-                    Priority = Math.Max(haul.Priority, freed.Max(j => j.Priority)),
-                    Detail   = haul.Detail
-                             + $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
-                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
-                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                    WaitingJobs = waiting,
+                    Unblocks    = freed.Count,
+
+                    // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
+                    // job this haul only partly serves would rank the trip by work it cannot
+                    // release.
+                    Priority = freed.Count > 0
+                        ? Math.Max(haul.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                        : haul.Priority,
+
+                    Detail = haul.Detail
+                           + (freed.Count > 0
+                                ? $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
+                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
+                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                : "")
+                           + (waiting.Count > freed.Count
+                                ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
+                                + "cargo but are short of other things too."
+                                : ""),
                 };
             }
         }
@@ -186,24 +237,63 @@ public class WorklistService(
                 if (buy.Kind != WorklistKind.Buy) continue;
 
                 var bought = buy.Lines.Count > 0
-                    ? buy.Lines.Select(l => l.TypeId)
-                    : [buy.TypeId];
+                    ? buy.Lines.GroupBy(l => l.TypeId)
+                         .ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity))
+                    : new Dictionary<int, long> { [buy.TypeId] = buy.Quantity };
 
-                var freed = bought
+                var touched = bought.Keys
                     .SelectMany(t => unowned.GetValueOrDefault(t, []))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
-                if (freed.Count == 0) continue;
+                if (touched.Count == 0) continue;
+
+                // ⚠️ Same rule as the hauls below, and for the same reason: a job is released only
+                // when this purchase covers every shortage it has, in full. Buying one of the three
+                // things a job needs leaves it exactly as stopped as it was, and the shortages that
+                // are NOT MustBuy count too — material that exists but sits at another station is
+                // just as much a reason the job has not started.
+                var waiting = touched
+                    .Select(j =>
+                    {
+                        var outstanding = j.Shortages
+                            .Where(s => bought.GetValueOrDefault(s.TypeId) < s.Short)
+                            .Select(s => s.TypeName)
+                            .Distinct()
+                            .ToList();
+
+                        return new WorklistWaitingJob(
+                            j.Key, j.Title, j.TypeId, j.TypeName,
+                            Unblocked: outstanding.Count == 0,
+                            StillShortOf: outstanding);
+                    })
+                    .OrderByDescending(w => w.Unblocked)
+                    .ThenBy(w => w.StillShortOf.Count)
+                    .ThenBy(w => w.TypeName)
+                    .ToList();
+
+                var freed = waiting.Where(w => w.Unblocked).ToList();
 
                 section.Items[n] = buy with
                 {
-                    Unblocks = freed.Count,
-                    Priority = Math.Max(buy.Priority, freed.Max(j => j.Priority)),
-                    Detail   = buy.Detail
-                             + $" Releases {freed.Count:N0} stopped job(s): "
-                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
-                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                    WaitingJobs = waiting,
+                    Unblocks    = freed.Count,
+
+                    // Priority still comes from the jobs it actually releases.
+                    Priority = freed.Count > 0
+                        ? Math.Max(buy.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                        : buy.Priority,
+
+                    Detail = buy.Detail
+                           + (freed.Count > 0
+                                ? $" Releases {freed.Count:N0} stopped job(s): "
+                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
+                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                : "")
+                           + (waiting.Count > freed.Count
+                                ? $" {waiting.Count - freed.Count:N0} more job(s) want this but are "
+                                + "short of other things too."
+                                : ""),
                 };
             }
         }

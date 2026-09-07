@@ -262,40 +262,79 @@
           <Border Margin="70 0 0 8" Padding="12 8"
                   Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
-            <StackPanel Spacing="5">
-              <TextBlock Text="MANIFEST" FontSize="11" FontWeight="SemiBold"
+            <!-- Two panels: what is stopped for want of this cargo, and the cargo itself. The
+                 jobs come first because they are the reason the trip is on the list: the
+                 manifest says what to load, the left panel says what it is for. Hidden entirely
+                 when nothing is waiting, so a restock haul does not carry an empty heading. -->
+            <Grid ColumnDefinitions="Auto,Auto">
+
+              <StackPanel Grid.Column="0" Spacing="5" Margin="0 0 28 0"
+                          IsVisible="{Binding HasWaitingJobs}">
+                <TextBlock Text="WAITING ON THIS" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                <ItemsControl ItemsSource="{Binding WaitingJobs}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="wl:WorklistWaitingJob">
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                        <Panel Grid.Column="0" Margin="0 0 24 0">
+                          <Button Classes="link" Click="OnOpenWaitingJob" IsVisible="{Binding HasItemLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                       FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </Panel>
+
+                        <!-- ⚠️ Says which of the two it is rather than ticking only the good case.
+                             A blank beside a job reads as "not checked yet"; naming what it is
+                             still short of is the difference between a promise and a fact. -->
+                        <TextBlock Grid.Column="1" Text="{Binding StatusText}"
+                                   FontSize="13" MinWidth="150" TextAlignment="Right"
+                                   Foreground="{Binding StatusColor}"
+                                   ToolTip.Tip="{Binding StatusTip}"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+              <StackPanel Grid.Column="1" Spacing="5">
+                <TextBlock Text="MANIFEST" FontSize="11" FontWeight="SemiBold"
                          Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-              <ItemsControl ItemsSource="{Binding Lines}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="wl:WorklistLine">
-                    <!-- Count, then value, then volume — each in its own fixed column so the
-                         figures line up down the list rather than drifting with name length.
-                         Value and volume are dimmer than the count: the count is what the task
-                         is about, the other two are what it costs to do. -->
-                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
-                      <Panel Grid.Column="0" Margin="0 0 24 0">
-                        <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </Button>
-                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                   FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                      </Panel>
-                      <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                 FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
-                                 MinWidth="60" TextAlignment="Right"/>
-                      <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                 FontSize="14" Foreground="{DynamicResource TextDimBrush}"
-                                 MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
-                      <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                 FontSize="14" Foreground="{DynamicResource TextDimBrush}"
-                                 MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
-                    </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
+                <ItemsControl ItemsSource="{Binding Lines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="wl:WorklistLine">
+                      <!-- Count, then value, then volume — each in its own fixed column so the
+                           figures line up down the list rather than drifting with name length.
+                           Value and volume are dimmer than the count: the count is what the task
+                           is about, the other two are what it costs to do. -->
+                      <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
+                        <Panel Grid.Column="0" Margin="0 0 24 0">
+                          <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
+                                  ToolTip.Tip="Open in the Item Browser">
+                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                       FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Button>
+                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </Panel>
+                        <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                   FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
+                                   MinWidth="60" TextAlignment="Right"/>
+                        <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                   FontSize="14" Foreground="{DynamicResource TextDimBrush}"
+                                   MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
+                        <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                   FontSize="14" Foreground="{DynamicResource TextDimBrush}"
+                                   MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+            </Grid>
           </Border>
         </DataTemplate>
       </DataGrid.RowDetailsTemplate>

@@ -281,6 +281,10 @@ public class WorklistRowVm : ReactiveObject
     public IReadOnlyList<WorklistLine> Lines => _item.Lines;
     public bool HasLines => _item.Lines.Count > 0;
 
+    /// <summary>The stopped jobs waiting on something this haul carries.</summary>
+    public IReadOnlyList<WorklistWaitingJob> WaitingJobs => _item.WaitingJobs;
+    public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
+
     /// <summary>
     /// Whether the manifest is showing. Collapsed by default and toggled by the row's own +/−,
     /// rather than following selection: a reader clicks a row to work on it as often as to look

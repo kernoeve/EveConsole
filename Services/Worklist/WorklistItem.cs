@@ -57,6 +57,44 @@ public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, Asse
 public sealed record WorklistShortage(
     int TypeId, string TypeName, long Short, long Wanted, bool MustBuy);
 
+/// <summary>
+/// One stopped job that is waiting on something a haul is carrying.
+/// </summary>
+/// <param name="Unblocked">⚠️ True only when this haul covers EVERYTHING the job is short of.
+/// A job short of three things is not restarted by a delivery of one of them, however much of it
+/// arrives — which is what "restarts N jobs" claimed, and what checking the jobs behind the number
+/// kept disproving.</param>
+/// <param name="StillShortOf">What it would still be waiting for once this haul lands. Empty when
+/// the haul finishes it.</param>
+public sealed record WorklistWaitingJob(
+    string Key, string Title, int TypeId, string TypeName,
+    bool Unblocked, IReadOnlyList<string> StillShortOf)
+{
+    public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
+    public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
+
+    /// <summary>
+    /// What this delivery does for the job, in the fewest words that are true.
+    ///
+    /// <para>⚠️ Both cases are stated. A tick on the ones this restarts and a blank on the rest
+    /// would read as "checked" and "not checked", when the blank is the more important finding:
+    /// the job is waiting on this crate AND on other things, so the trip will not start it.</para>
+    /// </summary>
+    public string StatusText => Unblocked
+        ? "starts on arrival"
+        : StillShortOf.Count == 1
+            ? "also short of 1 item"
+            : $"also short of {StillShortOf.Count:N0} items";
+
+    public string StatusTip => Unblocked
+        ? "This haul carries everything the job is short of, so it starts when the cargo lands."
+        : "Still short of " + string.Join(", ", StillShortOf.Take(6))
+        + (StillShortOf.Count > 6 ? $", and {StillShortOf.Count - 6:N0} more." : ".");
+
+    public Avalonia.Media.IBrush StatusColor =>
+        Unblocked ? EveConsole.Services.Palette.Good : EveConsole.Services.Palette.TextFaint;
+}
+
 public sealed record WorklistLine(int TypeId, string TypeName, long Quantity)
 {
     public double Volume { get; init; }
@@ -138,6 +176,16 @@ public sealed record WorklistItem
     /// wanted the detail had to parse prose or go without.</para>
     /// </summary>
     public IReadOnlyList<WorklistShortage> Shortages { get; init; } = [];
+
+    /// <summary>
+    /// The stopped jobs waiting on something this haul carries, and whether it finishes their wait.
+    ///
+    /// <para>⚠️ Both, because they are different facts and only one of them is a promise. A haul
+    /// bringing one of the three things a job is short of is genuinely relevant to that job — it is
+    /// worth seeing on the row — but it does not restart it, and a list that showed only the count
+    /// could not tell those apart.</para>
+    /// </summary>
+    public IReadOnlyList<WorklistWaitingJob> WaitingJobs { get; init; } = [];
 
     /// <summary>
     /// Stopped jobs this task would restart, where the task is not itself a job.
