@@ -489,20 +489,58 @@ public class MaterialPurchaseGenerator(
             // Supply from both tables. The blueprints table does not cover every structure the
             // assets table does — this corporation has 5,518 blueprint rows and none at UALX-3,
             // where assets list two Avatar copies — and "absent from that table" is not the same
-            // fact as "not owned". Assets contribute a count only: no runs, ME or TE on those
-            // rows, so they cannot be planned against, merely counted.
-            var held = allPrints.Count(p => p.TypeId == bpTypeId && owned.Owns(p));
-            if (held == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
+            // fact as "not owned".
+            var mine   = allPrints.Where(p => p.TypeId == bpTypeId && owned.Owns(p)).ToList();
+            var copies = mine.Where(p => !p.IsOriginal)
+                             .OrderByDescending(p => p.Runs)   // see the spend loop below
+                             .ToList();
 
-            var jobs  = jobNeed.GetValueOrDefault(bpTypeId);
-            var shelf = shelfWant.GetValueOrDefault(bpTypeId);
+            var anyOriginal = mine.Any(p => p.IsOriginal);
 
-            // An original is never spent by the job it runs, so one covers every run — but it does
-            // not fill a shelf target, which asks for a print to be there.
-            var anyOriginal = allPrints.Any(p => p.TypeId == bpTypeId && p.IsOriginal && owned.Owns(p));
-            var demand      = (anyOriginal ? 0 : jobs) + shelf;
+            // ⚠️ TWO units, and conflating them is what put a spurious purchase on the list. A
+            // copy is not one blueprint's worth of anything: it carries RUNS, and a run is what a
+            // job spends. Two Ark copies of two and three runs are five runs of production, and
+            // counting them as "2 owned" against a demand of four asked the contract window for
+            // two more prints that were not needed.
+            //
+            // What the item count is for is concurrency: a shelf rule asking for three copies is
+            // asking for three jobs to be able to run at once, which one copy cannot do however
+            // many runs are on it.
+            var heldRuns   = copies.Sum(p => (long)p.Runs);
+            var heldPrints = copies.Count;
 
-            var stillNeeded = Math.Max(0, demand - held);
+            // ⚠️ The assets fallback carries no runs, ME or TE — those rows can be counted and not
+            // planned against. One run apiece is a floor, and deliberately: it is what the old
+            // count-only arithmetic assumed, so nothing gets worse where the blueprints table is
+            // the one with the gap.
+            if (mine.Count == 0)
+            {
+                heldPrints = ownedInAssets.GetValueOrDefault(bpTypeId);
+                heldRuns   = heldPrints;
+            }
+
+            var jobs  = jobNeed.GetValueOrDefault(bpTypeId);    // runs
+            var shelf = shelfWant.GetValueOrDefault(bpTypeId);  // copies
+
+            // An original is never spent by the job it runs, so one covers every run there will
+            // ever be — but it does not fill a shelf target, which asks for a print to be there.
+            var runsShort = anyOriginal ? 0 : Math.Max(0, jobs - heldRuns);
+
+            // ⚠️ One pile, spent once. Jobs draw on it first and the shelf gets what survives —
+            // a copy whose runs the builds consume is gone, and cannot also be sitting there.
+            // Largest copies first, because that is what spends the fewest of them, and what a
+            // player reaching into the hangar actually does.
+            var spend = anyOriginal ? 0 : Math.Min(jobs, heldRuns);
+            var left  = heldPrints;
+            foreach (var c in copies)
+            {
+                if (spend < c.Runs) break;   // partly used, so still on the shelf afterwards
+                spend -= c.Runs;
+                left--;
+            }
+
+            var shelfShort  = Math.Max(0, shelf - left);
+            var stillNeeded = runsShort + shelfShort;
             if (stillNeeded <= 0) continue;
 
             var bpName = ctx.TypeNames.GetValueOrDefault(bpTypeId, $"Blueprint {bpTypeId}");
@@ -510,22 +548,34 @@ public class MaterialPurchaseGenerator(
                 ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
                 : "";
 
-            // Spelled out, because the number is a subtraction the reader cannot see.
+            // Spelled out, because the number is a subtraction the reader cannot see — and now a
+            // subtraction in two units, which is worth naming rather than leaving to be guessed.
             var parts = new List<string>(3);
-            if (jobs  > 0) parts.Add($"{jobs:N0} for {forWhat.GetValueOrDefault(bpTypeId, "queued builds")}");
-            if (shelf > 0) parts.Add($"{shelf:N0} to stock");
-            var haveText = held > 0 ? $", {held:N0} owned" : ", none owned";
+            if (jobs  > 0) parts.Add($"{jobs:N0} run(s) for {forWhat.GetValueOrDefault(bpTypeId, "queued builds")}");
+            if (shelf > 0) parts.Add($"{shelf:N0} on the shelf");
+
+            var haveText = anyOriginal
+                ? ", original owned"
+                : heldPrints > 0
+                    ? $", {heldPrints:N0} copy(s) owned carrying {heldRuns:N0} run(s)"
+                    : ", none owned";
+
+            // Runs and copies are different asks, and a single number cannot say which is short.
+            var titleNeed = runsShort > 0 && shelfShort > 0
+                ? $"{shelfShort:N0} + {runsShort:N0} run(s)"
+                : runsShort > 0 ? $"{runsShort:N0} run(s)"
+                                : $"{shelfShort:N0}";
 
             items.Add(new WorklistItem
             {
                 Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = $"{bpName} — BPO/BPC × {stillNeeded:N0}",
+                Title         = $"{bpName} — BPO/BPC × {titleNeed}",
                 TitleTag      = "BPO/BPC",
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
-                Detail        = $"{string.Join(" + ", parts)}{haveText} — short {stillNeeded:N0}.{price}",
+                Detail        = $"{string.Join(" + ", parts)}{haveText} — short {titleNeed}.{price}",
                 Readiness     = WorklistReadiness.Ready,
                 CharacterId   = alt?.CharacterId   ?? 0,
                 CharacterName = alt?.CharacterName ?? "",
