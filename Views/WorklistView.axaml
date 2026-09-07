@@ -259,12 +259,20 @@
            up its figures. -->
       <DataGrid.RowDetailsTemplate>
         <DataTemplate x:DataType="vm:WorklistRowVm">
-          <!-- ⚠️ BOUNDED, and that is not only about tidiness. A DataGrid measures rows as it
-               virtualises them, and details tall enough to exceed the viewport make scrolling BACK
-               up re-measure something bigger than the space it is being fitted into — which is the
-               stick-and-flicker on the wheel. A cap plus an inner scroller means every expanded
-               row has a height the grid can settle on. -->
-          <Border Margin="70 0 0 8" Padding="12 8" MaxHeight="320"
+          <!-- ⚠️ A FIXED height, and it has to be fixed rather than capped.
+
+               Avalonia's DataGrid keeps ONE RowDetailsHeightEstimate for the whole grid — a single
+               scalar, not a height per row. Expand two rows to different heights and that number
+               is wrong for one of them, so the extent and the scroll offset are recomputed every
+               time an unrealised row comes into view. Scrolling UP is where it shows, because
+               going up realises rows the estimate has not been corrected against yet: the content
+               sticks and flickers while the scrollbar keeps moving.
+
+               Capping the height did nothing, and nor did shortening the panels — five-line
+               details flicker exactly as much as fifty-line ones, because what matters is that
+               they DIFFER, not that they are large. One height for every drawer makes that single
+               estimate exactly right, and the inner scroller carries whatever does not fit. -->
+          <Border Margin="70 0 0 8" Padding="12 8" Height="220"
                   Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
