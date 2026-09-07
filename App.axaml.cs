@@ -3099,7 +3099,7 @@ public class App : Application
             // unanswered.
             var leaseState = holder
                 ? "this process holds the lease"
-                : "held by another client — contending every 30s until it is free";
+                : "held by another client — queued at the server, and granted the moment it is free";
 
             Console.WriteLine($"EVE Console {AppVersion.Display} — headless worker");
             Console.WriteLine($"  database   {db}{(DbEngine.IsPostgres ? "" : $"  {AppConfig.GetDbPath()}")}");
@@ -3362,9 +3362,17 @@ public class App : Application
 
                 // The only two events a worker has worth reporting, and the pair somebody watching
                 // a service actually wants: did it get the work, and did it lose it.
-                ServiceLog.Write(hold
+                var leaseNews = hold
                     ? "took the lease — starting background work"
-                    : "lost the lease — stopping background work");
+                    : "lost the lease — stopping background work";
+
+                ServiceLog.Write(leaseNews);
+
+                // ⚠️ And to the console, which for a systemd unit is the journal. The file above is
+                // for coming back to later; this is what somebody running `journalctl -f` while
+                // they close a client is watching for, and its absence is exactly what "I cannot
+                // get it to take over" looks like from outside.
+                if (AppRuntime.IsHeadless) Console.WriteLine($"EVE Console: {leaseNews}");
 
                 if (hold) StartLeaderServices();
                 else      await StopLeaderServicesAsync();

@@ -9,12 +9,25 @@ namespace EveConsole.Services;
 /// alive, connected and doing nothing looks identical to one that is working perfectly, and there
 /// was no way to tell them apart from outside.</para>
 ///
-/// <para>Silent for a desktop client and for <c>--headless</c> run from a terminal: those have
-/// somewhere better to put it. This is the fallback for the one that does not.</para>
+/// <para>⚠️ Written by every worker, not only the Windows service. A systemd unit has the journal
+/// and a terminal has stdout, but both belong to whoever started the process — and somebody working
+/// out why a worker is doing nothing is usually looking hours later, from a different session. A
+/// file the worker always writes is the one account of itself that is still there.</para>
+///
+/// <para>Silent for a desktop client, which has a window to say things in.</para>
 /// </summary>
 public static class ServiceLog
 {
-    public static string FilePath => Path.Combine(MachineConfig.Folder, "service.log");
+    /// <summary>
+    /// ⚠️ Machine-wide on Windows and per-user everywhere else, because that is what the two
+    /// workers are. The Windows service runs as LocalSystem and has no user profile to write into;
+    /// a systemd user unit runs as the user and cannot write to the machine-wide directory —
+    /// <c>CommonApplicationData</c> resolves to /usr/share there, which belongs to root.
+    /// </summary>
+    public static string FilePath => Path.Combine(Folder, "service.log");
+
+    private static string Folder =>
+        OperatingSystem.IsWindows() ? MachineConfig.Folder : AppConfig.AppDataDir;
 
     /// <summary>
     /// ⚠️ Trimmed, not rotated. It records a handful of lines per start and one per lease change,
@@ -27,13 +40,13 @@ public static class ServiceLog
 
     public static void Write(string message)
     {
-        if (!AppRuntime.IsService) return;
+        if (!AppRuntime.IsHeadless) return;   // implied by IsService
 
         try
         {
             lock (Gate)
             {
-                Directory.CreateDirectory(MachineConfig.Folder);
+                Directory.CreateDirectory(Folder);
 
                 if (File.Exists(FilePath) && new FileInfo(FilePath).Length > MaxBytes)
                 {

@@ -50,6 +50,17 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
     private CancellationTokenSource? _cts;
     private DateTimeOffset           _takenUtc;
 
+    /// <summary>
+    /// Why the last attempt to take the lease failed, or null if it did not.
+    ///
+    /// <para>⚠️ Reported, not merely logged. A worker that cannot reach the server contends every
+    /// tick for as long as it runs, and each refusal went to the application's error log — a table
+    /// in the database that is doing the refusing. From outside, a worker that could not connect
+    /// was indistinguishable from one waiting politely for a lease somebody else held, which is
+    /// exactly the wrong two things to make look the same.</para>
+    /// </summary>
+    public string? LastAcquireError { get; private set; }
+
     /// <summary>Whether this process is currently responsible for background work.</summary>
     public bool IsHolder { get; private set; }
 
@@ -147,18 +158,29 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
         // running, waiting thirty seconds to start polling would be thirty seconds of nothing.
         while (!ct.IsCancellationRequested)
         {
+            var wasHolder = IsHolder;
+
             // ⚠️ Guarded whole. This loop ending is the app silently deciding never to do
             // background work again, with nothing on screen to say so.
             try
             {
+                // ⚠️ A contender WAITS at the server rather than asking again in thirty seconds.
+                // That is what makes the queue decide who gets it, and the queue is in join order —
+                // so a worker that has been waiting since boot is served before a desktop client
+                // that opened a moment ago. See ContendAsync.
                 if (IsHolder) await HoldAsync(ct);
-                else          await ContendAsync(ct);
+                else          await ContendAsync(ct, wait: true);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception ex)
             {
                 errorLogger.Log("WorkerLease", "lease tick", ex);
             }
+
+            // ⚠️ Skipped on the tick that won it. The wait can have been hours, and following it
+            // with half a minute of nothing would put the delay back exactly where it was removed
+            // from — between the lease becoming free and the work starting.
+            if (!wasHolder && IsHolder) continue;
 
             try { await Task.Delay(Tick, ct); }
             catch (OperationCanceledException) { return; }
@@ -203,11 +225,33 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
     /// reached, on purpose, so that startup would fail a moment later with a better message. The
     /// same answer here would mean every client that loses the network appoints itself the worker
     /// — a partition producing as many writers as there are clients.</para>
+    ///
+    /// <para><paramref name="wait"/> decides how it asks, and the difference decides who wins.
+    /// ⚠️ Polling with <c>pg_try_advisory_lock</c> made the newcomer beat the incumbent every time:
+    /// a starting client asks the instant it launches, while a client already contending is asleep
+    /// for all but a moment of each tick. Open a desktop client beside a headless worker that has
+    /// been waiting for hours and the desktop client takes the work, which is the exact opposite of
+    /// "first come, keeps it" — and made the headless worker look broken when it was merely
+    /// waiting its turn.</para>
+    ///
+    /// <para>So a contender BLOCKS on <c>pg_advisory_lock</c> instead. PostgreSQL queues waiters
+    /// and grants in order, which does three things at once: the queue makes the incumbent win
+    /// because it queued first, the grant is immediate rather than up to a tick later, and there is
+    /// no polling at all. Startup still uses the non-waiting form — it has to answer "am I the
+    /// worker?" before the schema step, and cannot sit and wait to find out.</para>
     /// </summary>
-    private async Task ContendAsync(CancellationToken ct)
+    private async Task ContendAsync(CancellationToken ct, bool wait = false)
     {
         var cs = AppConfig.GetPostgresConnection();
-        if (string.IsNullOrWhiteSpace(cs)) return;   // App reports the misconfiguration
+        if (string.IsNullOrWhiteSpace(cs))
+        {
+            // ⚠️ Said, not merely returned from. This is a real state — no connection configured, or
+            // a password the keyring would not give up — and it lasts for as long as it lasts. A
+            // silent return here is a worker that contends forever, reports nothing, and looks
+            // exactly like one politely waiting for a lease somebody else holds.
+            ReportAcquireFailure("no PostgreSQL connection is configured for this process");
+            return;
+        }
 
         // Not already ours — from SingleInstance's handover, or from a previous tick that took
         // the lock but could not finish claiming it.
@@ -219,33 +263,63 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
                 // ⚠️ Unpooled and kept open for the life of the lease. An advisory lock belongs to
                 // the session that took it, so returning this connection to the pool would end that
                 // session and drop the lock while this process still believed it held one.
-                var b = new NpgsqlConnectionStringBuilder(AppDb.PostgresConnectionString(cs)) { Pooling = false };
+                //
+                // ⚠️ KeepAlive, because a contender now sits in a blocking wait that can last days.
+                // Without it a server that went away unnoticed would leave this process waiting on a
+                // socket nobody is going to answer, having quietly stopped contending at all.
+                var b = new NpgsqlConnectionStringBuilder(AppDb.PostgresConnectionString(cs))
+                {
+                    Pooling   = false,
+                    KeepAlive = 30,
+                };
                 conn = new NpgsqlConnection(b.ConnectionString);
                 await conn.OpenAsync(ct);
 
                 await using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT pg_try_advisory_lock(@k)";
                     cmd.Parameters.AddWithValue("k", AdvisoryLockKey);
-                    if (await cmd.ExecuteScalarAsync(ct) is not true)
+
+                    if (wait)
                     {
-                        await conn.DisposeAsync();   // somebody else has it: nothing wrong happened
-                        return;
+                        // ⚠️ No command timeout. Waiting IS the operation, and Npgsql's default
+                        // thirty seconds would abort it — turning the queued wait straight back
+                        // into the polling this replaced, with more moving parts.
+                        cmd.CommandText    = "SELECT pg_advisory_lock(@k)";
+                        cmd.CommandTimeout = 0;
+                        await cmd.ExecuteNonQueryAsync(ct);   // returns when granted
+                    }
+                    else
+                    {
+                        cmd.CommandText = "SELECT pg_try_advisory_lock(@k)";
+                        if (await cmd.ExecuteScalarAsync(ct) is not true)
+                        {
+                            await conn.DisposeAsync();   // somebody else has it: nothing wrong happened
+                            return;
+                        }
                     }
                 }
 
                 _lock = conn;
                 conn  = null;                        // owned by the lease now, not by this method
             }
-            catch (OperationCanceledException) { throw; }
+            catch (OperationCanceledException)
+            {
+                // Shutting down mid-wait. Dispose here rather than leaving it to a finalizer: the
+                // server is holding a backend open for this wait and should be told now.
+                if (conn is not null) { try { await conn.DisposeAsync(); } catch { } }
+                throw;
+            }
             catch (Exception ex)
             {
                 // Unreachable, refused, wrong credentials — all the same answer: not the holder.
                 if (conn is not null) { try { await conn.DisposeAsync(); } catch { } }
                 errorLogger.Log("WorkerLease", "acquiring the lease", ex);
+                ReportAcquireFailure(ex.Message.Split('\n')[0].Trim());
                 return;
             }
         }
+
+        ClearAcquireFailure();
 
         // The lock is ours. Say who we are before claiming to be anyone.
         try
@@ -266,6 +340,37 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
 
         IsHolder = true;
         Gained?.Invoke();
+    }
+
+    /// <summary>
+    /// Says, somewhere reachable, that the lease could not be taken.
+    ///
+    /// <para>⚠️ On change only. This runs every thirty seconds for as long as the condition lasts,
+    /// so reporting each attempt would fill a journal with one repeated line and bury the start-up
+    /// banner that says which database it is even trying to reach. The first refusal is the news;
+    /// the two hundredth is not.</para>
+    /// </summary>
+    private void ReportAcquireFailure(string reason)
+    {
+        if (reason == LastAcquireError) return;
+
+        LastAcquireError = reason;
+
+        var line = $"cannot take the background lease — {reason}";
+        if (AppRuntime.IsHeadless) Console.Error.WriteLine($"EVE Console: {line}");
+        ServiceLog.Write(line);
+    }
+
+    /// <summary>The other half: a recovery nobody is told about reads as a fault that never ended.</summary>
+    private void ClearAcquireFailure()
+    {
+        if (LastAcquireError is null) return;
+
+        LastAcquireError = null;
+
+        const string line = "reached the database again — contending for the background lease";
+        if (AppRuntime.IsHeadless) Console.Error.WriteLine($"EVE Console: {line}");
+        ServiceLog.Write(line);
     }
 
     /// <summary>Records who took it, so other clients can see what version is writing.</summary>
