@@ -250,6 +250,10 @@ public class IndustryDemandService(
     {
         var gross = new Dictionary<int, Gross>();
 
+        // child type -> the types that consume it, one edge per material line. The ancestry
+        // closure below is computed from these once the whole walk has finished.
+        var consumers = new Dictionary<int, HashSet<int>>();
+
         Gross At(int typeId)
         {
             if (!gross.TryGetValue(typeId, out var g)) gross[typeId] = g = new Gross();
@@ -464,11 +468,41 @@ public class IndustryDemandService(
                 }
 
                 child.Dependents.Add(typeId);
-                child.Dependents.UnionWith(g.Dependents);
+                if (!consumers.TryGetValue(m.MaterialTypeId, out var above))
+                    consumers[m.MaterialTypeId] = above = [];
+                above.Add(typeId);
 
                 pending.Enqueue(m.MaterialTypeId);
             }
         }
+
+        // ── Close the ancestry over the edges ─────────────────────────────────
+        //
+        // ⚠️ AFTER the walk, not during it. Every consumer edge is known by now, so an item that
+        // was expanded as a root before anything above it had been seen still ends up carrying its
+        // full ancestry — which is exactly the case that was losing the hulls.
+        //
+        // Breadth-first up the edges, each type visited once per closure. Cycles terminate on the
+        // visited set rather than on a depth cap, so a loop contributes what it reaches and no
+        // more.
+        foreach (var (typeId, g) in gross)
+        {
+            var seen  = new HashSet<int>(g.Dependents);
+            var queue2 = new Queue<int>(g.Dependents);
+
+            while (queue2.Count > 0)
+            {
+                var above = queue2.Dequeue();
+                if (!consumers.TryGetValue(above, out var next)) continue;
+
+                foreach (var a in next)
+                    if (a != typeId && seen.Add(a)) queue2.Enqueue(a);
+            }
+
+            g.Dependents.Clear();
+            g.Dependents.UnionWith(seen);
+        }
+
 
         // ── Net once ──────────────────────────────────────────────────────────
 
