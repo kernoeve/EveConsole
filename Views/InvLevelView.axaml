@@ -267,7 +267,7 @@
                          it loads — an empty box that fills in reads worse than a name that gains
                          a picture. -->
                     <Image Source="{Binding Icon}" Width="18" Height="18"
-                           VerticalAlignment="Center" IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                           VerticalAlignment="Center" />
                     <TextBlock Text="{Binding TypeName}" Classes="linktext"
                                FontSize="11" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />

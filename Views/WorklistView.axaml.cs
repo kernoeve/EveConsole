@@ -170,6 +170,36 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         if (sender is Control { DataContext: HaulPressureRowVm vm }) vm.OpenStation();
     }
 
+    /// <summary>
+    /// Restores a row's expanded state as the grid virtualises it back into view.
+    ///
+    /// <para>⚠️ LoadingRow, not a style binding. The note on OnManifestToggle is right that a style
+    /// setter loses to the local write the DataGrid makes itself — but it also assumed the grid's
+    /// own bookkeeping carries the details flag across recycling, and the symptom says otherwise:
+    /// scrolling UP through expanded rows sticks and flickers on every grid here, whatever the
+    /// details contain and however tall they are. Upward scrolling is where rows are recycled into
+    /// positions they did not previously hold, so a row arriving with the wrong details state
+    /// measures the wrong height and the offset is corrected after the fact.</para>
+    ///
+    /// <para>This is the supported place to put it: the grid raises LoadingRow after attaching the
+    /// item and before measuring, so the state is right the first time rather than corrected.</para>
+    /// </summary>
+    private void OnRowLoading(object? sender, DataGridRowEventArgs e)
+    {
+        bool? expanded = e.Row.DataContext switch
+        {
+            WorklistRowVm      w => w.IsExpanded,
+            StationNeedRowVm   n => n.IsExpanded,
+            ItemShortageRowVm  i => i.IsExpanded,
+            PrintPressureRowVm p => p.IsExpanded,
+            HaulPressureRowVm  h => h.IsExpanded,
+            _                    => null,
+        };
+
+        if (expanded is { } want && e.Row.AreDetailsVisible != want)
+            e.Row.AreDetailsVisible = want;
+    }
+
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
 
 

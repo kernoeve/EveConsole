@@ -178,9 +178,9 @@ public class BottleneckSummaryService
             // ⚠️ The gain, not the evidence. How often every copy was busy is what identified the
             // row and belongs on the tab that shows it; what a reader needs here is how much
             // throughput one purchase buys.
-            [.. blocking.Take(MaxNamed).Select(p =>
+            [.. blocking.Take(MaxNamed).Select(p => new ObservationPoint(p.ProductTypeId,
                 $"{p.ProductName} — buy 1 of {p.Prints:N0} owned "
-              + $"(+{(p.Prints > 0 ? 100.0 / p.Prints : 100):N0}% output)")]);
+              + $"(+{(p.Prints > 0 ? 100.0 / p.Prints : 100):N0}% output)"))]);
     }
 
     // ── Buying ────────────────────────────────────────────────────────────────
@@ -217,9 +217,9 @@ public class BottleneckSummaryService
             DistinctStopped(buys.Select(x => (IEnumerable<ShortageTask>)x.Stalled)),
             $"Place {buys.Count:N0} buy order(s)",
             More(buys.Count),
-            [.. buys.Take(MaxNamed).Select(x =>
+            [.. buys.Take(MaxNamed).Select(x => new ObservationPoint(x.Item.TypeId,
                 x.Item.Title
-              + (x.Stalled.Count > 0 ? $" — unblocks {x.Stalled.Count:N0} task(s)" : ""))]);
+              + (x.Stalled.Count > 0 ? $" — unblocks {x.Stalled.Count:N0} task(s)" : "")))]);
     }
 
     // ── Buffers ───────────────────────────────────────────────────────────────
@@ -244,10 +244,10 @@ public class BottleneckSummaryService
         var points = new List<ObservationPoint>();
 
         foreach (var s in unset.Take(MaxNamed / 2))
-            points.Add($"{s.Name} — set level to {Suggest(s)}");
+            points.Add(new ObservationPoint(s.TypeId, $"{s.Name} — set level to {Suggest(s)}"));
 
         foreach (var s in thin.Take(MaxNamed))
-            points.Add($"{s.Name} — raise level {s.Level:N0} to {Suggest(s)}");
+            points.Add(new ObservationPoint(s.TypeId, $"{s.Name} — raise level {s.Level:N0} to {Suggest(s)}"));
 
         yield return new Observation(
             "levels",
