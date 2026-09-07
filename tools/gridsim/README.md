@@ -65,3 +65,18 @@ corrupt `DisplayData` — it cannot be relocated a long way from outside a layou
 
 `pinned + reconciled`, on all three modes: 103 steps of exactly 50px, `extentErr` 1, and zero for
 drift, stuck, reverse and clamping. That is `Views/ScrollEstimates.cs`.
+
+## ⚠️ What CLEAN here does not mean
+
+It said CLEAN for a candidate that then corrupted the real grid: rows vanished, the grid locked,
+and the window stopped laying out entirely — a blank Overview tab, not just a blank list.
+
+The rig drives the grid with a fixed number of dispatcher passes per step. It therefore does not
+model continuous layout, re-entrant `LayoutUpdated`, or a person holding the wheel down, and those
+are exactly the conditions under which writing `NegVerticalOffset` and calling `UpdateDisplayedRows`
+from outside the owning layout pass falls apart. Two crashes of that same class are in the rejected
+list above; a third arrangement passing here was never evidence that it survives a real event loop.
+
+So: this rig is trustworthy about **arithmetic** — extents, estimates, where a step lands. It says
+nothing about **lifecycle safety**. Anything that writes to `DisplayData`, or that runs from a
+layout callback, has to be proven somewhere else before it goes near the app.
