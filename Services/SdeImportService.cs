@@ -28,6 +28,25 @@ public class SdeCompatibilityException : Exception
         $"Your existing SDE data has NOT been cleared.";
 }
 
+// Thrown when an import ran to completion but emptied a table that previously held data.
+// The transaction is rolled back before this is raised, so the previous SDE is still in place.
+public class SdeVerificationException : Exception
+{
+    public IReadOnlyList<string> LostTables { get; }
+
+    public SdeVerificationException(IReadOnlyList<string> lost)
+        : base(BuildMessage(lost))
+    {
+        LostTables = lost;
+    }
+
+    private static string BuildMessage(IReadOnlyList<string> lost) =>
+        $"The SDE archive was read without error, but {lost.Count} table(s) that held data " +
+        $"beforehand came back empty, which is what a changed file format looks like: " +
+        $"{string.Join(" ", lost)} " +
+        $"The import was rolled back and your existing SDE data has NOT been changed.";
+}
+
 public class SdeImportService
 {
     // CCP moved to a new URL and flat file structure (no fsd/ or bsd/ subdirectories).
@@ -69,7 +88,18 @@ public class SdeImportService
         catch { return null; }
     }
 
-    public async Task ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
+    /// <summary>
+    /// Downloads the current SDE and replaces every table the app derives from it.
+    /// </summary>
+    /// <returns>
+    /// Warnings about tables that imported oddly but not badly enough to reject the run. Empty
+    /// after a clean import.
+    /// </returns>
+    /// <exception cref="SdeCompatibilityException">A required file is missing from the archive.</exception>
+    /// <exception cref="SdeVerificationException">
+    /// The import ran to the end but lost a table that previously held data. Nothing was committed.
+    /// </exception>
+    public async Task<IReadOnlyList<string>> ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
     {
         Report(progress, "Preparing", "Fetching build info…", 0.01);
         var buildInfo = await GetLatestBuildInfoAsync(ct);
@@ -80,6 +110,8 @@ public class SdeImportService
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // SQLite PRAGMAs, and journal_mode cannot be set inside a transaction — so this stays
+            // above the one opened below.
             await AppDb.TuneForBulkImportAsync(db.Database, ct);
 
             // Open archive and validate BEFORE touching any existing data.
@@ -89,8 +121,32 @@ public class SdeImportService
             var fsdRoot = DetectRoot(archive, progress);
             ValidateArchive(archive, fsdRoot, progress);
 
+            // Schema first, and outside the transaction: the statements are all IF NOT EXISTS, they
+            // describe the shape rather than the contents, and a new column is wanted whether or
+            // not the rows that follow survive.
             Report(progress, "Preparing", "Creating schema…",            0.30);
             await EnsureSdeSchemaAsync(db, ct);
+
+            // Read before the wipe destroys it. This is what the verification at the end compares
+            // against, so a table that quietly stops being filled reads as "races held 11 rows and
+            // now holds none" rather than merely "races is empty" — which on a first import is the
+            // plain truth and no cause for alarm.
+            Report(progress, "Preparing", "Reading current row counts…", 0.305);
+            var before = await CountSdeTablesAsync(db, ct);
+
+            // ⚠️ The wipe and the refill are ONE transaction. A failure anywhere — a changed file
+            // format, a duplicate key, a cancelled run — now leaves the previous SDE exactly as it
+            // was, because nothing is published until everything has been read and checked.
+            //
+            // Before this, a stage that threw left every table after it empty, and since the whole
+            // import is a wipe followed by a refill there was no way to tell that from "CCP removed
+            // it". One duplicate key cost ten tables, reprocessing among them.
+            //
+            // It also closes a window nobody had raised: other clients share this database and read
+            // the SDE throughout the minutes an import takes, and until now they saw those tables
+            // empty for all of it. They now keep seeing the previous data until the commit
+            // publishes the whole new set at once.
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
 
             Report(progress, "Preparing", "Clearing existing SDE data…", 0.31);
             await ClearSdeTablesAsync(db, ct);
@@ -140,12 +196,116 @@ public class SdeImportService
                 await db.SaveChangesAsync(ct);
             }
 
+            // Inside the transaction, so "this import lost a table" is still a decision and not
+            // merely a note about something that has already happened.
+            Report(progress, "Verifying", "Checking row counts…", 0.99);
+            var (lost, warnings) = await VerifyImportAsync(db, before, ct);
+
+            if (lost.Count > 0)
+            {
+                // CancellationToken.None: whatever else has gone wrong, undoing this is exactly
+                // what still needs to happen.
+                await tx.RollbackAsync(CancellationToken.None);
+                foreach (var line in lost)
+                    _errors.Log("SdeImport", "Verification", line);
+                throw new SdeVerificationException(lost);
+            }
+
+            await tx.CommitAsync(ct);
+
+            foreach (var line in warnings)
+                _errors.Log("SdeImport", "Verification", line);
+
             Report(progress, "Done", "SDE import complete.", 1.0);
+            return warnings;
         }
         finally
         {
+            // The transaction is disposed on the way out of the block above, which rolls it back
+            // unless it was committed. Nothing here has to undo anything.
             if (File.Exists(tempPath)) File.Delete(tempPath);
         }
+    }
+
+    /// <summary>
+    /// Row counts for every table the import owns, as they stand at this moment.
+    /// </summary>
+    /// <remarks>
+    /// One statement per table rather than a single UNION, so a table the schema step has not
+    /// created yet costs one missing entry instead of blinding the whole sweep. Measured at a few
+    /// hundred milliseconds for all 42 — including ones of 646k and 476k rows — against an import
+    /// measured in minutes, and it runs twice.
+    /// </remarks>
+    private static async Task<Dictionary<string, long>> CountSdeTablesAsync(AppDbContext db, CancellationToken ct)
+    {
+        var counts = new Dictionary<string, long>(StringComparer.Ordinal);
+
+        foreach (var table in SdeTablesToClear(db))
+        {
+            try
+            {
+                counts[table] = await db.Database
+                    .SqlQueryRaw<long>($"SELECT CAST(COUNT(*) AS BIGINT) AS \"Value\" FROM \"{table}\"")
+                    .SingleAsync(ct);
+            }
+            catch
+            {
+                // Absent or unreadable. Left OUT of the dictionary rather than recorded as zero:
+                // the caller reports that as "could not be counted", which is the opposite claim
+                // to "empty" and must not be mistaken for it.
+            }
+        }
+
+        return counts;
+    }
+
+    /// <summary>
+    /// Compares the row counts after an import against the ones taken before the wipe.
+    /// </summary>
+    /// <returns>
+    /// <c>Lost</c> — tables that held rows before and hold none now, which is what a file whose
+    /// format changed underneath us looks like, and is treated as a failed import.
+    /// <c>Warnings</c> — tables merely worth a look, reported without rejecting the run.
+    /// </returns>
+    /// <remarks>
+    /// ⚠️ Only a fall to ZERO rejects an import. A table merely shrinking is ordinary — CCP retires
+    /// ships, merges groups, drops certificates — and any threshold on "how much smaller is too
+    /// much" is a guess that would one day block a legitimate update with no way past it. Falling
+    /// to nothing from something is not a guess: no SDE release empties a table this app requires,
+    /// so it means the parse has stopped matching the file.
+    ///
+    /// <para>A first import compares against all zeros, so nothing can be "lost" and a fresh
+    /// install cannot trip this.</para>
+    /// </remarks>
+    private static async Task<(List<string> Lost, List<string> Warnings)> VerifyImportAsync(
+        AppDbContext db, IReadOnlyDictionary<string, long> before, CancellationToken ct)
+    {
+        var after    = await CountSdeTablesAsync(db, ct);
+        var lost     = new List<string>();
+        var warnings = new List<string>();
+
+        foreach (var (table, was) in before.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+        {
+            if (!after.TryGetValue(table, out var now))
+            {
+                warnings.Add($"{table}: could not be counted after the import.");
+                continue;
+            }
+
+            if (now == 0 && was > 0)
+                lost.Add($"{table}: held {was:N0} row(s) before this import and holds none now.");
+            else if (now == 0)
+                warnings.Add($"{table}: imported empty, and was empty beforehand too.");
+            else if (was > 0 && now < was / 2)
+                warnings.Add($"{table}: {now:N0} row(s), down from {was:N0} — under half what it held.");
+        }
+
+        foreach (var table in after.Keys.Except(before.Keys, StringComparer.Ordinal)
+                                        .OrderBy(t => t, StringComparer.Ordinal))
+            if (after[table] == 0)
+                warnings.Add($"{table}: new table, imported empty.");
+
+        return (lost, warnings);
     }
 
     private record BuildInfoDto(
@@ -191,6 +351,7 @@ public class SdeImportService
         {
             "dogmaAttributeCategories.yaml", "races.yaml", "certificates.yaml",
             "typeMaterials.yaml", "planetSchematics.yaml",
+            "industryModifierSources.yaml",
             "dogmaUnits.yaml", "icons.yaml", "graphics.yaml", "skins.yaml", "skinLicenses.yaml",
             "npcStations.yaml", "stationServices.yaml", "stationOperations.yaml",
         };

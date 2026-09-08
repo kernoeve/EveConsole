@@ -198,8 +198,13 @@ public class SdeViewModel : ReactiveObject
 
         try
         {
-            await Task.Run(async () => await _sde.ImportAsync(progress, _cts.Token), _cts.Token);
-            StatusText      = "SDE import complete.";
+            var warnings = await Task.Run(async () => await _sde.ImportAsync(progress, _cts.Token), _cts.Token);
+
+            // A clean import says so. One that landed but looks odd says that instead, because
+            // "complete" over a table that came back empty is how a silent failure stays silent.
+            StatusText      = warnings.Count == 0
+                ? "SDE import complete."
+                : $"SDE import complete — {warnings.Count} table(s) worth a look, see Errors.";
             Fraction        = 1;
             UpdateAvailable = false;
             await LoadStoredBuildAsync();
@@ -211,9 +216,18 @@ public class SdeViewModel : ReactiveObject
             StatusText = $"⚠ Update required — {ex.Message}";
             Fraction   = 0;
         }
+        catch (SdeVerificationException ex)
+        {
+            // The archive read cleanly but lost a table, so the import was rolled back. Same
+            // shape of outcome as above: nothing was changed, and saying so is the point.
+            StatusText = $"⚠ Import rolled back — {ex.Message}";
+            Fraction   = 0;
+        }
         catch (Exception ex)
         {
-            StatusText = $"Error: {RootMessage(ex)}";
+            // The import is one transaction, so whatever went wrong, the previous SDE is still
+            // there. Before that was true this message left people guessing.
+            StatusText = $"Error: {RootMessage(ex)} — your previous SDE data has been kept.";
             Fraction   = 0;
         }
         finally
