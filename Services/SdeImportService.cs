@@ -39,11 +39,13 @@ public class SdeImportService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory   _httpFactory;
     private readonly IDeserializer        _yaml;
+    private readonly AppErrorLogger       _errors;
 
     public SdeImportService(IServiceScopeFactory scopeFactory, IHttpClientFactory httpFactory)
     {
         _scopeFactory = scopeFactory;
         _httpFactory  = httpFactory;
+        _errors = new AppErrorLogger(scopeFactory);
         _yaml = new DeserializerBuilder()
             .IgnoreUnmatchedProperties()
             .Build();
@@ -1494,7 +1496,7 @@ public class SdeImportService
     // Batch save helper
     // -----------------------------------------------------------------------
 
-    private static async Task SaveBatchesAsync<T>(
+    private async Task SaveBatchesAsync<T>(
         AppDbContext db,
         DbSet<T> set,
         IEnumerable<T> source,
@@ -1536,6 +1538,17 @@ public class SdeImportService
         }
 
         p.Report(new SdeImportProgress(stage, $"{saved:N0} rows saved", fracEnd));
+
+        // ⚠️ A stage that stores NOTHING from a file that exists is a silent failure, and this
+        // import is a wipe followed by a refill: whatever it fails to store is simply gone. Ten
+        // tables came back empty after a clean import — races, meta groups, certificates, type
+        // materials, planet schematics, dogma units, icons, graphics, skins and skin licences —
+        // and nothing anywhere said so. Type materials alone is reprocessing.
+        if (saved == 0)
+            _errors.Log("SdeImport", stage,
+                estimatedTotal > 0
+                    ? $"Stored 0 of {estimatedTotal:N0} row(s) parsed. The file was read and nothing reached the database."
+                    : "Stored 0 rows: the file was found but parsed to nothing.");
     }
 
     // -----------------------------------------------------------------------
