@@ -315,7 +315,7 @@
                      back. The flag still lives on the ITEM, not the row: the grid recycles
                      rows, and a popup keyed to the row would open against whatever item
                      landed in it next. -->
-                <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
+                <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
                        Placement="BottomEdgeAlignedLeft"
                        HorizontalOffset="-70"
                        IsLightDismissEnabled="True">
@@ -763,7 +763,7 @@
                            back. The flag still lives on the ITEM, not the row: the grid recycles
                            rows, and a popup keyed to the row would open against whatever item
                            landed in it next. -->
-                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
+                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
                              Placement="BottomEdgeAlignedLeft"
                              IsLightDismissEnabled="True">
                         <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
@@ -963,7 +963,7 @@
                            back. The flag still lives on the ITEM, not the row: the grid recycles
                            rows, and a popup keyed to the row would open against whatever item
                            landed in it next. -->
-                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
+                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
                              Placement="BottomEdgeAlignedLeft"
                              IsLightDismissEnabled="True">
                         <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
@@ -1314,7 +1314,7 @@
                                glyph back. The flag still lives on the ITEM, not the row: the grid
                                recycles rows, and a popup keyed to the row would open against
                                whatever item landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
                                  Placement="BottomEdgeAlignedLeft"
                                  IsLightDismissEnabled="True">
                             <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
@@ -1531,7 +1531,7 @@
                                back. The flag still lives on the ITEM, not the row: the grid recycles
                                rows, and a popup keyed to the row would open against whatever item
                                landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
                                  Placement="BottomEdgeAlignedLeft"
                                  IsLightDismissEnabled="True">
                             <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
@@ -1765,7 +1765,7 @@
                                back. The flag still lives on the ITEM, not the row: the grid recycles
                                rows, and a popup keyed to the row would open against whatever item
                                landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
                                  Placement="BottomEdgeAlignedLeft"
                                  IsLightDismissEnabled="True">
                             <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the

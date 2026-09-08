@@ -193,14 +193,34 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     /// </summary>
     private void ReopenPanels()
     {
+        var opened = new HashSet<string>();
+
         foreach (var popup in this.GetVisualDescendants().OfType<Popup>())
-            if (popup.DataContext is IExpandableRow { IsExpanded: true }) popup.IsOpen = true;
+            if (popup.DataContext is IExpandableRow { IsExpanded: true } row && opened.Add(row.ExpandKey))
+                popup.SetCurrentValue(Popup.IsOpenProperty, true);
     }
 
     /// <summary>A summary finding that names an item.</summary>
     private void OnOpenPoint(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { DataContext: ObservationPointVm vm }) vm.Open();
+    }
+
+    /// <summary>
+    /// The row under a panel went away. Shuts the panel without forgetting it was open.
+    ///
+    /// <para>⚠️ Needed the moment IsOpen stopped being TwoWay. A popup renders in its own overlay,
+    /// so one whose row has been recycled or filtered away does not vanish with it — it hangs
+    /// there at the old anchor, and the binding, which still reads true, keeps it there. Filtering
+    /// the list to one station drew the same manifest twice: once under its row and once where
+    /// that row used to be.</para>
+    ///
+    /// <para>⚠️ SetCurrentValue, not the property. Assigning IsOpen directly would outrank the
+    /// binding and the panel could never come back.</para>
+    /// </summary>
+    private void OnDetailDetached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (sender is Popup popup) popup.SetCurrentValue(Popup.IsOpenProperty, false);
     }
 
 }
