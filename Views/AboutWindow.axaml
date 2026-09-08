@@ -46,7 +46,7 @@
              RenderOptions.BitmapInterpolationMode="HighQuality" />
 
       <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top"
-                  Margin="40 34 0 0" Spacing="4">
+                  Margin="20 17 0 0" Spacing="4">
         <!-- Two-tone name: EVE in white, Console in amber. Same treatment as the splash, a size
              down, because this window is narrower than that one. -->
         <StackPanel Orientation="Horizontal">
