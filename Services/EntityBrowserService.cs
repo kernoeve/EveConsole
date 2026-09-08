@@ -560,6 +560,53 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             .FirstOrDefaultAsync(ct);
     }
 
+    /// <summary>
+    /// The public ESI profile of an NPC corporation, kept once fetched.
+    ///
+    /// <para>⚠️ The SDE has all of this and the import drops it: NpcCorpYaml reads name and
+    /// factionID and nothing else, so the headquarters, ticker, description and tax rate never
+    /// reach the database. Rather than widen an import that runs for twenty minutes and has to be
+    /// re-run to take effect, the same facts come off a public ESI route, one call, the first time
+    /// a page is opened.</para>
+    ///
+    /// <para>NPC corporations do not change, so a stored row is used indefinitely. A failed fetch
+    /// stores nothing and is simply tried again next time.</para>
+    /// </summary>
+    public async Task<NpcCorpProfile?> NpcCorpProfileAsync(long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var cached = await db.EsiNpcCorpProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.CorporationId == corpId, ct);
+        if (cached is not null) return cached;
+
+        if (esi is null) return null;
+
+        var live = await esi.GetCorporationPublicAsync((int)corpId, ct);
+        if (live is null) return null;
+
+        var row = new NpcCorpProfile
+        {
+            CorporationId = corpId,
+            Ticker        = live.Ticker,
+            Description   = live.Description,
+            Url           = live.Url,
+            CeoId         = live.CeoId,
+            HomeStationId = live.HomeStationId ?? 0,
+            MemberCount   = live.MemberCount,
+            TaxRate       = live.TaxRate,
+            FetchedUtc    = DateTimeOffset.UtcNow,
+        };
+
+        db.EsiNpcCorpProfiles.Add(row);
+
+        // Two tabs opening the same corporation at once both fetch and both insert; the loser of
+        // that race has nothing to fix, because they wrote the same row.
+        try { await db.SaveChangesAsync(ct); } catch { }
+
+        return row;
+    }
+
     public async Task<List<EntityStationRow>> NpcCorpStationsAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -996,16 +1043,44 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                return new EntityDetail(id, r.Name, $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}", "",
-                    [
-                        new("Corporation ID", id.ToString("N0")),
-                        new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
-                        new("Stations",       r.Stations.ToString("N0")),
-                        new("Agents",         r.Agents.ToString("N0")),
-                        new("LP store",       r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"),
-                        new("Your LP",        r.LpHeld > 0 ? $"{r.LpHeld:N0}" : "—"),
-                        new("ISK per LP",     r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"),
-                    ], url);
+                var p  = await NpcCorpProfileAsync(id, ct);
+                var hq = p is null || p.HomeStationId <= 0 ? null
+                       : await db.SdeStations.AsNoTracking()
+                             .Where(s => s.StationId == p.HomeStationId)
+                             .Select(s => s.Name)
+                             .FirstOrDefaultAsync(ct);
+
+                var facts = new List<EntityFact>
+                {
+                    new("Corporation ID", id.ToString("N0")),
+                    new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
+                };
+
+                if (p is { Ticker.Length: > 0 }) facts.Add(new("Ticker", p.Ticker));
+
+                // ⚠️ The headquarters is NOT one of the "Stations" below it, and the two disagreeing
+                // is the normal case rather than a fault. A militia corporation owns no station and
+                // is still based somewhere: Malakim Zealots run out of an Archangels station in
+                // G-0Q86. Both lines answer a question somebody actually asks.
+                if (hq is { Length: > 0 })
+                    facts.Add(new("Headquarters", hq, EntityKind.Station, p!.HomeStationId));
+
+                facts.Add(new("Stations", r.Stations.ToString("N0")));
+                facts.Add(new("Agents",   r.Agents.ToString("N0")));
+
+                if (p is { MemberCount: > 0 }) facts.Add(new("Members",  p.MemberCount.ToString("N0")));
+                if (p is { TaxRate: > 0 })     facts.Add(new("Tax rate", p.TaxRate.ToString("P1")));
+
+                facts.Add(new("LP store",   r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"));
+                facts.Add(new("Your LP",    r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
+                facts.Add(new("ISK per LP", r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"));
+
+                if (p is { Url.Length: > 0 }) facts.Add(new("Website", p.Url, Url: p.Url));
+
+                // The Description tab shows itself as soon as there is one to show.
+                return new EntityDetail(id, r.Name,
+                    $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}",
+                    p?.Description ?? "", facts, url);
             }
 
             default:

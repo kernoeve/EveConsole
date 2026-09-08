@@ -58,6 +58,22 @@ public static class PostgresSchema
     /// </summary>
     private static readonly string[] Tables =
     [
+        // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
+        // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        """
+        CREATE TABLE IF NOT EXISTS "EsiNpcCorpProfiles" (
+            "CorporationId" BIGINT PRIMARY KEY,
+            "Ticker"        TEXT             NOT NULL DEFAULT '',
+            "Description"   TEXT             NOT NULL DEFAULT '',
+            "Url"           TEXT             NOT NULL DEFAULT '',
+            "CeoId"         BIGINT           NOT NULL DEFAULT 0,
+            "HomeStationId" BIGINT           NOT NULL DEFAULT 0,
+            "MemberCount"   INTEGER          NOT NULL DEFAULT 0,
+            "TaxRate"       DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "FetchedUtc"    TIMESTAMPTZ      NOT NULL DEFAULT NOW()
+        )
+        """,
+
         """
         CREATE TABLE IF NOT EXISTS "TradeOpportunitiesSettings" (
             "Id"                     INTEGER NOT NULL PRIMARY KEY,

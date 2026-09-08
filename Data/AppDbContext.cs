@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<AgentResearch>              EsiAgentResearch        => Set<AgentResearch>();
     public DbSet<LoyaltyPoint>               EsiLoyaltyPoints        => Set<LoyaltyPoint>();
+    public DbSet<NpcCorpProfile>             EsiNpcCorpProfiles      => Set<NpcCorpProfile>();
     public DbSet<LpStoreOffer>               EsiLpStoreOffers        => Set<LpStoreOffer>();
     public DbSet<LpStoreOfferItem>           EsiLpStoreOfferItems    => Set<LpStoreOfferItem>();
     public DbSet<LpStoreCorp>                EsiLpStoreCorps         => Set<LpStoreCorp>();
@@ -803,6 +804,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.CorporationId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiLoyaltyPoints"); });
+
+        mb.Entity<NpcCorpProfile>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("EsiNpcCorpProfiles"); });
 
         mb.Entity<LpStoreOffer>(e => {
             e.HasKey(x => new { x.CorporationId, x.OfferId });
