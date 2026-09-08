@@ -263,21 +263,6 @@ public partial class CharacterView : UserControl
     private void OnOpenOrderTracker(object? sender, RoutedEventArgs e)
         => _vm?.NavigateToOrderTracker?.Invoke();
 
-    /// <summary>Expands or collapses a task's manifest, the same gesture the tool uses.</summary>
-    private void OnOverviewManifestToggle(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-
-        // The glyph lives on the item so it stays correct when the row is recycled.
-        if (row.DataContext is WorklistRowVm vm) vm.IsExpanded = row.AreDetailsVisible;
-    }
-
-    private void OnOpenManifestItem(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as EveConsole.Services.Worklist.WorklistLine)?.OpenItem();
-
     private void OnOpenNeedItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenItem();
 
