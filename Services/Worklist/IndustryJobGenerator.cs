@@ -164,11 +164,41 @@ public class IndustryJobGenerator(
                                Qty = g.Sum(a => (long)a.Quantity) })
             .ToList();
 
+        // What is already on its way out of a machine. See ScopeStock.Anywhere for why this has
+        // to be here and not only in group availability.
+        //
+        // ⚠️ Runs times what a run YIELDS, not runs. A reaction turns 250 runs into 50,000 units,
+        // and netting off the run count would credit a two-hundredth of what is arriving.
+        var running = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                            && j.ProductTypeId != null)
+                .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId, j.BlueprintTypeId })
+                .ToListAsync(ct))
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
+            .ToList();
+
+        var runningPrints = running.Select(j => j.BlueprintTypeId).Distinct().ToList();
+
+        var runningYield = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => runningPrints.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(p => (p.TypeId, p.ProductTypeId))
+            .ToDictionary(x => x.Key, x => (long)Math.Max(1, x.Max(p => p.Quantity)));
+
+        var inBuild = running
+            .GroupBy(j => j.ProductTypeId!.Value)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Sum(j => j.Runs * runningYield.GetValueOrDefault(
+                                    (j.BlueprintTypeId, j.ProductTypeId!.Value), 1L)));
+
         var inScope = new ScopeStock(
             scopeRows.Where(a => a.OwnerType == "corporation")
                      .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
             scopeRows.Where(a => a.OwnerType != "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)));
+                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
+            inBuild);
 
         // Rig bonuses key off the item's category, which needs the SDE group tree.
         var typeToGroup = ctx.TypeGroupMap.ToDictionary(kv => kv.Key, kv => kv.Value.GroupId);

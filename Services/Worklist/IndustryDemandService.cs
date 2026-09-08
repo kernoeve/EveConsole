@@ -128,7 +128,10 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
 /// holds a pile decides who can take from it.</param>
 public sealed record ScopeStock(
     Dictionary<(int TypeId, long OwnerId), long> Corp,
-    Dictionary<(int TypeId, long OwnerId), long> Personal)
+    Dictionary<(int TypeId, long OwnerId), long> Personal,
+
+    /// <summary>Units already coming out of a running job, by what the job makes.</summary>
+    Dictionary<int, long>? InBuild = null)
 {
     /// <summary>
     /// What one character's job could actually draw on: their own hangar, plus the hangars of the
@@ -148,10 +151,18 @@ public sealed record ScopeStock(
     /// whether one character can start one job. A sub-assembly with no inventory rule has no
     /// group availability to fall back on, and counting only one alt's reach would ask for a
     /// second batch of something the corp already holds.
+    ///
+    /// <para>⚠️ Running jobs count. An item WITH an inventory rule already has them counted for it
+    /// — group availability includes industry jobs — but one without a rule lands here, and
+    /// assets alone do not know about work in flight. A 20-run Vexor installed for an Ishtar was
+    /// invisible and the planner asked for another twenty, against a tooltip that said "20 for
+    /// Ishtar … against 0 on hand". Every other job dropped off the list minutes after starting,
+    /// which is precisely the items that do have a rule.</para>
     /// </summary>
     public long Anywhere(int typeId) =>
         Corp.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
-        + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value);
+        + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
+        + (InBuild?.GetValueOrDefault(typeId) ?? 0);
 }
 
 /// What industry has to build, from every demand at once.
