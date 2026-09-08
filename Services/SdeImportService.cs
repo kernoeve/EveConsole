@@ -358,37 +358,49 @@ public class SdeImportService
         }
     }
 
+    /// <summary>
+    /// Empties every table this import refills, immediately before it refills them.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Derived from the model rather than hand-listed, because a hand-list is one line that
+    /// gets forgotten. When SdeIndustryModifierSources was added to the import and not added
+    /// here, the next import inserted its rows on top of the previous run's, violated the primary
+    /// key and threw — and because this whole import is a WIPE followed by a refill, every stage
+    /// after that one never ran and its table stayed empty. Ten tables came back blank from one
+    /// missing line, type materials among them, which is reprocessing.
+    ///
+    /// <para>No foreign key is configured between any two of these, so no delete order is
+    /// required. If one is ever added this needs a topological sort, not a hand-written order
+    /// that the next new table silently falls out of.</para>
+    /// </remarks>
     private static async Task ClearSdeTablesAsync(AppDbContext db, CancellationToken ct)
     {
-        // Delete in leaf-first order so FK constraints (if any ever get added) don't block.
-        var deletes = new[]
-        {
-            "DELETE FROM \"SdeTypeDogmaAttributes\"", "DELETE FROM \"SdeTypeDogmaEffects\"",
-            "DELETE FROM \"SdeBlueprintMaterials\"",  "DELETE FROM \"SdeBlueprintProducts\"",
-            "DELETE FROM \"SdeBlueprintSkills\"",     "DELETE FROM \"SdeBlueprints\"",
-            "DELETE FROM \"SdeStargates\"",           "DELETE FROM \"SdeStations\"",
-            "DELETE FROM \"SdeStationServices\"",     "DELETE FROM \"SdeStationOperations\"",
-            "DELETE FROM \"SdeStationOperationServices\"",
-            "DELETE FROM \"SdePlanetResources\"",
-            "DELETE FROM \"SdeAgents\"", "DELETE FROM \"SdeAgentTypes\"",
-            "DELETE FROM \"SdeCorpDivisions\"",
-            "DELETE FROM \"SdeCelestials\"",
-            "DELETE FROM \"SdeSolarSystems\"",        "DELETE FROM \"SdeConstellations\"",
-            "DELETE FROM \"SdeRegions\"",             "DELETE FROM \"SdeTypes\"",
-            "DELETE FROM \"SdeGroups\"",              "DELETE FROM \"SdeCategories\"",
-            "DELETE FROM \"SdeMarketGroups\"",        "DELETE FROM \"SdeDogmaAttributeCategories\"",
-            "DELETE FROM \"SdeDogmaAttributes\"",
-            "DELETE FROM \"SdeDogmaEffects\"",        "DELETE FROM \"SdeFactions\"",
-            "DELETE FROM \"SdeNpcCorporations\"",     "DELETE FROM \"SdeRaces\"",
-            "DELETE FROM \"SdeMetaGroups\"",          "DELETE FROM \"SdeCertificates\"",
-            "DELETE FROM \"SdeTypeMaterials\"",       "DELETE FROM \"SdePlanetSchematicTypes\"",
-            "DELETE FROM \"SdePlanetSchematics\"",    "DELETE FROM \"SdeDogmaUnits\"",
-            "DELETE FROM \"SdeIcons\"",               "DELETE FROM \"SdeGraphics\"",
-            "DELETE FROM \"SdeSkinTypes\"",           "DELETE FROM \"SdeSkins\"",
-            "DELETE FROM \"SdeSkinLicenses\"",
-        };
-        foreach (var sql in deletes)
-            await db.Database.ExecuteSqlRawAsync(sql, ct);
+        foreach (var table in SdeTablesToClear(db))
+            await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\"", ct);
+    }
+
+    /// <summary>
+    /// Every "Sde" table in the model except the ones the import deliberately preserves.
+    /// </summary>
+    /// <remarks>
+    /// SdeBuildInfos is the single row saying which SDE build is installed. The import upserts it
+    /// rather than rewriting it, and the UI reads it to report what is loaded, so wiping it would
+    /// make a half-finished import look like no import at all.
+    /// </remarks>
+    private static IEnumerable<string> SdeTablesToClear(AppDbContext db)
+    {
+        var keep = new HashSet<string>(StringComparer.Ordinal) { "SdeBuildInfos" };
+
+        return db.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())
+            .Where(n => n is not null && n.StartsWith("Sde", StringComparison.Ordinal) && !keep.Contains(n))
+            .Select(n => n!)
+            // A table name cannot be a parameter, so it is interpolated. It comes from our own
+            // compiled model and can come from nowhere else; this says so in code rather than
+            // only in a comment.
+            .Where(n => n.All(char.IsLetterOrDigit))
+            .Distinct()
+            .OrderBy(n => n, StringComparer.Ordinal);
     }
 
     // -----------------------------------------------------------------------
