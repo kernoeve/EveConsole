@@ -315,9 +315,13 @@
                      back. The flag still lives on the ITEM, not the row: the grid recycles
                      rows, and a popup keyed to the row would open against whatever item
                      landed in it next. -->
-                <Popup IsOpen="{Binding IsExpanded, Mode=TwoWay}"
+                <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
                        Placement="BottomEdgeAlignedLeft"
+                       HorizontalOffset="-70"
                        IsLightDismissEnabled="True">
+                  <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                       full height of the screen and off the bottom of it. -->
+                  <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
                   <!-- ⚠️ No height constraint here, deliberately. Three attempts to cure the scroll
                        flicker by controlling this box all failed — a 320px cap, shorter panels, and a
                        fixed 220px drawer — which between them rule out the size of the details as the
@@ -417,6 +421,7 @@
                     </Grid>
                     </StackPanel>
                   </Border>
+                  </ScrollViewer>
                 </Popup>
               </Panel>
             </DataTemplate>
@@ -758,9 +763,12 @@
                            back. The flag still lives on the ITEM, not the row: the grid recycles
                            rows, and a popup keyed to the row would open against whatever item
                            landed in it next. -->
-                      <Popup IsOpen="{Binding IsExpanded, Mode=TwoWay}"
+                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
                              Placement="BottomEdgeAlignedLeft"
                              IsLightDismissEnabled="True">
+                        <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                             full height of the screen and off the bottom of it. -->
+                        <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
                         <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
                                 Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
                           <StackPanel Spacing="4">
@@ -788,6 +796,7 @@
                             </ItemsControl>
                           </StackPanel>
                         </Border>
+                        </ScrollViewer>
                       </Popup>
                     </Panel>
                     <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
@@ -954,9 +963,12 @@
                            back. The flag still lives on the ITEM, not the row: the grid recycles
                            rows, and a popup keyed to the row would open against whatever item
                            landed in it next. -->
-                      <Popup IsOpen="{Binding IsExpanded, Mode=TwoWay}"
+                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
                              Placement="BottomEdgeAlignedLeft"
                              IsLightDismissEnabled="True">
+                        <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                             full height of the screen and off the bottom of it. -->
+                        <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
                         <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
                                 Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
                           <StackPanel Spacing="4">
@@ -984,6 +996,7 @@
                             </ItemsControl>
                           </StackPanel>
                         </Border>
+                        </ScrollViewer>
                       </Popup>
                     </Panel>
                     <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
@@ -1143,8 +1156,21 @@
                                   <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
                                          IsVisible="{Binding HasIcon}" HorizontalAlignment="Left"
                                          VerticalAlignment="Top" Margin="0 1 0 0"/>
+                                  <!-- ⚠️ The whole line, not just the name inside it. The finding
+                                       is written as one sentence about one item, and picking the
+                                       name back out of it would mean splitting prose on a dash. The
+                                       link style adds a cursor and a hover underline and leaves the
+                                       colour alone, so a bullet still reads as a bullet. -->
                                   <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="13"
+                                             IsVisible="{Binding !HasItem}"
                                              Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="19"/>
+                                  <Button Grid.Column="1" Classes="link" Click="OnOpenPoint"
+                                          IsVisible="{Binding HasItem}" Padding="0"
+                                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                          ToolTip.Tip="Open this item in the Item Browser">
+                                    <TextBlock Text="{Binding Text}" FontSize="13"
+                                               Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="19"/>
+                                  </Button>
                                 </Grid>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -1288,14 +1314,16 @@
                                glyph back. The flag still lives on the ITEM, not the row: the grid
                                recycles rows, and a popup keyed to the row would open against
                                whatever item landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded, Mode=TwoWay}"
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
                                  Placement="BottomEdgeAlignedLeft"
                                  IsLightDismissEnabled="True">
+                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                                 full height of the screen and off the bottom of it. -->
+                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
                             <Border Padding="10 7" MinWidth="720"
                                     Background="{DynamicResource SurfaceBaseBrush}"
                                     BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                                     CornerRadius="3">
-                              <ScrollViewer MaxHeight="520" HorizontalScrollBarVisibility="Disabled">
                                 <ItemsControl ItemsSource="{Binding Tasks}">
                                   <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ShortageTaskRowVm">
@@ -1318,8 +1346,8 @@
                                     </DataTemplate>
                                   </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                              </ScrollViewer>
                             </Border>
+                            </ScrollViewer>
                           </Popup>
                         </Panel>
                       </DataTemplate>
@@ -1503,9 +1531,12 @@
                                back. The flag still lives on the ITEM, not the row: the grid recycles
                                rows, and a popup keyed to the row would open against whatever item
                                landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded, Mode=TwoWay}"
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
                                  Placement="BottomEdgeAlignedLeft"
                                  IsLightDismissEnabled="True">
+                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                                 full height of the screen and off the bottom of it. -->
+                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
                             <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
                                     Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                                     CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
@@ -1534,6 +1565,7 @@
                                 </ItemsControl.ItemTemplate>
                               </ItemsControl>
                             </Border>
+                            </ScrollViewer>
                           </Popup>
                         </Panel>
                       </DataTemplate>
@@ -1733,9 +1765,12 @@
                                back. The flag still lives on the ITEM, not the row: the grid recycles
                                rows, and a popup keyed to the row would open against whatever item
                                landed in it next. -->
-                          <Popup IsOpen="{Binding IsExpanded, Mode=TwoWay}"
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed"
                                  Placement="BottomEdgeAlignedLeft"
                                  IsLightDismissEnabled="True">
+                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                                 full height of the screen and off the bottom of it. -->
+                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
                             <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
                                     Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                                     CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
@@ -1764,6 +1799,7 @@
                                 </ItemsControl.ItemTemplate>
                               </ItemsControl>
                             </Border>
+                            </ScrollViewer>
                           </Popup>
                         </Panel>
                       </DataTemplate>

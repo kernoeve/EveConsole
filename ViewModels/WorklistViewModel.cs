@@ -779,7 +779,13 @@ public sealed class ObservationPointVm : ReactiveObject
     /// <summary>⚠️ Only once the picture is actually here. Reserving the space up front leaves a
     /// hole beside every slot finding, which is about no item at all and has nothing to draw.</summary>
     public bool HasIcon => _icon is not null;
+
+    /// <summary>Whether this line is about an item at all. A slot finding names none.</summary>
+    public bool HasItem => _p.TypeId > 0;
+
+    public void Open() { if (_p.TypeId > 0) EntityNavigator.Instance.Item(_p.TypeId); }
 }
+
 
 // ── Icon plumbing shared by the bottleneck grids ─────────────────────────────
 

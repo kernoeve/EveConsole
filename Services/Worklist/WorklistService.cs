@@ -197,7 +197,7 @@ public class WorklistService(
                 // drivers cover builds that never became a row, and dropping those is what made
                 // the panel disagree with the tooltip beside it. Matched on the product.
                 var told = waiting.Select(w => w.TypeId).ToHashSet();
-                var also = haul.WaitingJobs.Where(w => w.IsPlanned && !told.Contains(w.TypeId));
+                var also = haul.WaitingJobs.Where(w => w.IsPlanned && !told.Contains(w.TypeId)).ToList();
 
                 section.Items[n] = haul with
                 {
@@ -220,6 +220,15 @@ public class WorklistService(
                            + (waiting.Count > freed.Count
                                 ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
                                 + "cargo but will not start on this load."
+                                : "")
+
+                           // ⚠️ The planner's drivers, merged in above, are counted here too, or
+                           // the sentence contradicts the list underneath it: eighteen items were
+                           // named while the prose said one. They are not jobs — nothing has been
+                           // written down for them yet — so they are counted as what they are.
+                           + (also.Count > 0
+                                ? $" {also.Count:N0} more item(s) here are wanted by planned work "
+                                + "that has no stopped job of its own."
                                 : ""),
                 };
             }

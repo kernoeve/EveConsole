@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
 
@@ -30,6 +32,8 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         base.OnLoaded(e);
         if (DataContext is WorklistViewModel vm && vm.TakeRequestedTab() is { } tab)
             vm.OuterTabIndex = tab;
+
+        Dispatcher.UIThread.Post(ReopenPanels, DispatcherPriority.Background);
     }
 
     /// <summary>Set when a click focused a select-all field, so the selection can be reapplied
@@ -163,4 +167,40 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     {
         if (sender is Control { DataContext: WorklistRowVm vm }) vm.IsExpanded = !vm.IsExpanded;
     }
+    /// <summary>
+    /// A detail panel closed. Clears the flag only if this tool is still on screen.
+    ///
+    /// <para>⚠️ Not a TwoWay binding on IsOpen, which is what it looks like it ought to be. Clicking
+    /// an item link switches to the Item Browser tab, and that detaches this view and closes every
+    /// popup with it — a TwoWay binding writes that back, so returning to the Worklist found the
+    /// panel shut. A popup whose row is scrolled out of view closes the same way.</para>
+    ///
+    /// <para>Light dismiss inside the tool still closes it, because the view is attached when that
+    /// happens. That is the whole difference between the two cases.</para>
+    /// </summary>
+    private void OnDetailClosed(object? sender, EventArgs e)
+    {
+        if (sender is Popup { DataContext: IExpandableRow row } popup && popup.GetVisualRoot() is not null)
+            row.IsExpanded = false;
+    }
+
+    /// <summary>
+    /// Reopens what was open, once this view is attached again.
+    ///
+    /// <para>⚠️ Needed because the binding is one-way and its source never changed, so nothing
+    /// tells the popup to come back on its own. Posted rather than run inline, so the grid has
+    /// realised its rows and there are popups to open.</para>
+    /// </summary>
+    private void ReopenPanels()
+    {
+        foreach (var popup in this.GetVisualDescendants().OfType<Popup>())
+            if (popup.DataContext is IExpandableRow { IsExpanded: true }) popup.IsOpen = true;
+    }
+
+    /// <summary>A summary finding that names an item.</summary>
+    private void OnOpenPoint(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ObservationPointVm vm }) vm.Open();
+    }
+
 }
