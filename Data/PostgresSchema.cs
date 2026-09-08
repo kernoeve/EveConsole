@@ -7,15 +7,15 @@ namespace EveConsole.Data;
 ///
 /// <para>The SQLite path in App.axaml.cs is nearly 2,400 lines, and almost none of it applies
 /// here. Of its 158 <c>CREATE TABLE</c> statements, 156 duplicate an entity EF has already
-/// created — they are dead code on any fresh database, and its 116 <c>ALTER TABLE</c> patches
+/// created â they are dead code on any fresh database, and its 116 <c>ALTER TABLE</c> patches
 /// exist to carry old SQLite files forward. A server created today starts at the current schema
 /// and has no history to catch up on.</para>
 ///
-/// <para>⚠️ It could not simply be run anyway: 47 of those statements use <c>AUTOINCREMENT</c>,
+/// <para>â ï¸ It could not simply be run anyway: 47 of those statements use <c>AUTOINCREMENT</c>,
 /// which PostgreSQL rejects at parse time even under <c>IF NOT EXISTS</c>, so a table already
 /// present would still fail. What remains below is the part that is genuinely load-bearing.</para>
 ///
-/// <para>⚠️ This file and the SQLite block have to be kept in step by hand: a new index or seed
+/// <para>â ï¸ This file and the SQLite block have to be kept in step by hand: a new index or seed
 /// row added there and not here works for every existing user and silently does not exist for
 /// Postgres ones. <c>tools/PgSchemaCheck</c> compares the two index lists and fails on drift,
 /// which covers the case that is easiest to forget.</para>
@@ -23,8 +23,8 @@ namespace EveConsole.Data;
 public static class PostgresSchema
 {
     /// <param name="includeSeeds">
-    /// ⚠️ False when the database is about to receive a copy of an existing one. The seeds
-    /// write fixed primary keys — MarketPricingConfigs 1 and 2, AlertSettings 1 — and the
+    /// â ï¸ False when the database is about to receive a copy of an existing one. The seeds
+    /// write fixed primary keys â MarketPricingConfigs 1 and 2, AlertSettings 1 â and the
     /// copy then carries the same keys across, so seeding first turns the migration into a
     /// duplicate-key failure partway through. The rows arrive with the data instead, and the
     /// next ordinary start seeds anything genuinely absent, every seed being written to no-op
@@ -35,15 +35,15 @@ public static class PostgresSchema
         IProgress<(double Pct, string Status)>? progress = null,
         bool includeSeeds = true)
     {
-        progress?.Report((30, "Preparing database…"));
+        progress?.Report((30, "Preparing databaseâ¦"));
         foreach (var sql in Tables)  db.Database.ExecuteSqlRaw(sql);
 
-        progress?.Report((55, "Building indexes…"));
+        progress?.Report((55, "Building indexesâ¦"));
         foreach (var sql in Indexes) db.Database.ExecuteSqlRaw(sql);
 
         if (!includeSeeds) return;
 
-        progress?.Report((75, "Writing defaults…"));
+        progress?.Report((75, "Writing defaultsâ¦"));
         foreach (var sql in Seeds)   db.Database.ExecuteSqlRaw(sql);
     }
 
@@ -51,7 +51,7 @@ public static class PostgresSchema
     /// Tables <c>EnsureCreated</c> will not add.
     ///
     /// <para>It builds a schema only into an empty database, so anything introduced after a
-    /// database first existed has to be spelled out here. Two of these are not entities at all —
+    /// database first existed has to be spelled out here. Two of these are not entities at all â
     /// single-row settings the UI writes directly with ADO, which the model has never known
     /// about. The third is an ordinary entity that simply arrived later, and needs saying for
     /// exactly the same reason.</para>
@@ -59,7 +59,80 @@ public static class PostgresSchema
     private static readonly string[] Tables =
     [
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
-        // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // â ï¸ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // Fields the SDE has always carried that the import did not read.
+        // ⚠️ Additive only, and every NOT NULL carries a DEFAULT: an older build inserting
+        // without naming these columns has to go on working against the same database.
+        """
+        ALTER TABLE "SdeCategories" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "MinAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "MaxAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "TooltipTitle" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "TooltipDescription" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "DataType" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "DisplayWhenZero" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "ChargeRechargeTimeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "ShortDescription" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "SizeFactor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "UniqueName" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeGroups" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeGroups" ADD COLUMN IF NOT EXISTS "FittableNonSingleton" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeGroups" ADD COLUMN IF NOT EXISTS "UseBasePrice" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "IconSuffix" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "ColorHex" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeRaces" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeRaces" ADD COLUMN IF NOT EXISTS "ShipTypeId" INTEGER NULL
+        """,
+
         // Where each structure and rig industry bonus actually comes from, which the app has been
         // inferring from rig description text instead.
         """
@@ -73,7 +146,7 @@ public static class PostgresSchema
         )
         """,
 
-        // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
+        // â ï¸ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
         // figure, which is 115,000 against 10,000 for a Vexor.
         """
         ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "PackagedVolume" DOUBLE PRECISION NOT NULL DEFAULT 0
@@ -208,18 +281,18 @@ public static class PostgresSchema
             "UpdatedUtc" TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """,
-        // Count arrived after the table did, within this same unreleased branch — so a database
+        // Count arrived after the table did, within this same unreleased branch â so a database
         // that already has the table needs it added rather than created.
         """
         ALTER TABLE "WorkerActivity" ADD COLUMN IF NOT EXISTS "Count" INTEGER NULL
         """,
 
-        // ⚠️ AppErrorLog is built by EnsureCreated from the model, which only builds into an EMPTY
-        // database — so every install that already exists needs these two added by hand. They say
+        // â ï¸ AppErrorLog is built by EnsureCreated from the model, which only builds into an EMPTY
+        // database â so every install that already exists needs these two added by hand. They say
         // which client wrote a row, which stopped being obvious the moment several of them began
         // sharing one log.
         //
-        // ⚠️ NOT NULL with a default rather than nullable: a client still on an older build inserts
+        // â ï¸ NOT NULL with a default rather than nullable: a client still on an older build inserts
         // without naming these columns at all, and the default is what lets that go on working.
         """
         ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "HostName" TEXT NOT NULL DEFAULT ''
@@ -235,12 +308,12 @@ public static class PostgresSchema
     ];
 
     /// <summary>
-    /// Every index the app creates by hand. Copied verbatim from the SQLite block — the syntax is
-    /// identical in both engines — and all of them are listed rather than only the 27 the model
+    /// Every index the app creates by hand. Copied verbatim from the SQLite block â the syntax is
+    /// identical in both engines â and all of them are listed rather than only the 27 the model
     /// lacks, because <c>IF NOT EXISTS</c> makes the overlap free and a short list would need
     /// re-deriving each time the model changes.
     ///
-    /// <para>⚠️ These are not optional decoration. <c>IX_KillMailAttackers_Corp</c> is the
+    /// <para>â ï¸ These are not optional decoration. <c>IX_KillMailAttackers_Corp</c> is the
     /// difference between a corporation's Kills tab taking 1.7 seconds and taking over ten
     /// minutes; a Postgres install without it would look broken rather than slow.</para>
     ///
@@ -299,19 +372,19 @@ public static class PostgresSchema
     /// The rows a new install cannot start without: a market to price against, the settings row
     /// every preferences screen reads, and the two opportunity filters.
     ///
-    /// <para>⚠️ Every <c>1</c> and <c>0</c> from the SQLite originals that lands in a bool column
+    /// <para>â ï¸ Every <c>1</c> and <c>0</c> from the SQLite originals that lands in a bool column
     /// is written <c>true</c>/<c>false</c> here. SQLite stores a bool as INTEGER and accepts
     /// either; PostgreSQL maps it to <c>boolean</c> and rejects the integer outright. Same reason
-    /// <c>INSERT OR IGNORE</c> becomes <c>ON CONFLICT DO NOTHING</c> — the SQLite spelling is not
+    /// <c>INSERT OR IGNORE</c> becomes <c>ON CONFLICT DO NOTHING</c> â the SQLite spelling is not
     /// SQL PostgreSQL will parse.</para>
     ///
     /// <para>The <c>WHERE NOT EXISTS</c> forms are left exactly as they are: they are already
     /// portable, and they mean "seed only an empty table", which is not the same thing as
     /// per-row conflict handling and must not be rewritten into it.</para>
     ///
-    /// <para>⚠️ <c>NULL::bigint</c>, not a bare <c>NULL</c>. In an <c>INSERT … SELECT … UNION
+    /// <para>â ï¸ <c>NULL::bigint</c>, not a bare <c>NULL</c>. In an <c>INSERT â¦ SELECT â¦ UNION
     /// ALL</c> PostgreSQL settles the union's column types before it ever looks at the target,
-    /// and an untyped NULL settles as <c>text</c> — so the insert fails with "column
+    /// and an untyped NULL settles as <c>text</c> â so the insert fails with "column
     /// StationFilter is of type bigint but expression is of type text". SQLite is dynamically
     /// typed and never had an opinion. This was caught by applying the file to a real server;
     /// no amount of reading it would have shown it.</para>

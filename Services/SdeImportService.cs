@@ -401,7 +401,7 @@ public class SdeImportService
         Report(p, "Categories", "Parsing…", 0.32);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, CategoryYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeCategory { CategoryId = kv.Key, Name = kv.Value.name?.en ?? "", Published = kv.Value.published });
+        var rows = raw.Select(kv => new SdeCategory { CategoryId = kv.Key, Name = kv.Value.name?.en ?? "", Published = kv.Value.published, IconId = kv.Value.iconID });
         await SaveBatchesAsync(db, db.SdeCategories, rows, "Categories", raw.Count, p, 0.32, 0.33, ct);
     }
 
@@ -422,6 +422,9 @@ public class SdeImportService
             Published  = kv.Value.published,
             Anchorable = kv.Value.anchorable,
             Anchored   = kv.Value.anchored,
+            IconId     = kv.Value.iconID,
+            FittableNonSingleton = kv.Value.fittableNonSingleton,
+            UseBasePrice         = kv.Value.useBasePrice,
         });
         await SaveBatchesAsync(db, db.SdeGroups, rows, "Groups", raw.Count, p, 0.335, 0.35, ct);
     }
@@ -547,6 +550,15 @@ public class SdeImportService
             Stackable    = kv.Value.stackable,
             UnitId       = kv.Value.unitID,
             Published    = kv.Value.published,
+            Description  = kv.Value.description ?? "",
+            IconId       = kv.Value.iconID,
+            MinAttributeId = kv.Value.minAttributeID,
+            MaxAttributeId = kv.Value.maxAttributeID,
+            TooltipTitle       = kv.Value.tooltipTitleID?.en ?? "",
+            TooltipDescription = kv.Value.tooltipDescriptionID?.en ?? "",
+            DataType     = kv.Value.dataType,
+            DisplayWhenZero = kv.Value.displayWhenZero,
+            ChargeRechargeTimeId = kv.Value.chargeRechargeTimeID,
         });
         await SaveBatchesAsync(db, db.SdeDogmaAttributes, rows, "Dogma Attributes", raw.Count, p, 0.50, 0.52, ct);
     }
@@ -1196,6 +1208,10 @@ public class SdeImportService
             Name = kv.Value.nameID?.en ?? kv.Value.name?.en ?? "",
             Description = kv.Value.descriptionID?.en ?? kv.Value.description?.en ?? "",
             CorporationId = kv.Value.corporationID, MilitiaCorporationId = kv.Value.militiaCorporationID, SolarSystemId = kv.Value.solarSystemID,
+            IconId           = kv.Value.iconID,
+            ShortDescription = kv.Value.shortDescriptionID?.en ?? kv.Value.shortDescription?.en ?? "",
+            SizeFactor       = kv.Value.sizeFactor ?? 0,
+            UniqueName       = kv.Value.uniqueName,
         });
         await SaveBatchesAsync(db, db.SdeFactions, rows, "Factions", raw.Count, p, 0.89, 0.91, ct);
     }
@@ -1278,7 +1294,14 @@ public class SdeImportService
         Report(p, "Races", "Parsing…", 0.93);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, RaceYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeRace { RaceId = kv.Key, Name = kv.Value.name?.en ?? "", Description = kv.Value.description?.en ?? "" });
+        var rows = raw.Select(kv => new SdeRace
+        {
+            RaceId      = kv.Key,
+            Name        = kv.Value.name?.en ?? "",
+            Description = kv.Value.description?.en ?? "",
+            IconId      = kv.Value.iconID,
+            ShipTypeId  = kv.Value.shipTypeID,
+        });
         await SaveBatchesAsync(db, db.SdeRaces, rows, "Races", raw.Count, p, 0.93, 0.94, ct);
     }
 
@@ -1290,7 +1313,15 @@ public class SdeImportService
         Report(p, "Meta Groups", "Parsing…", 0.94);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, MetaGroupYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeMetaGroup { MetaGroupId = kv.Key, Name = kv.Value.name?.en ?? "" });
+        var rows = raw.Select(kv => new SdeMetaGroup
+        {
+            MetaGroupId = kv.Key,
+            Name        = kv.Value.name?.en ?? "",
+            Description = kv.Value.description?.en ?? "",
+            IconId      = kv.Value.iconID,
+            IconSuffix  = kv.Value.iconSuffix ?? "",
+            ColorHex    = kv.Value.color?.Hex ?? "",
+        });
         await SaveBatchesAsync(db, db.SdeMetaGroups, rows, "Meta Groups", raw.Count, p, 0.94, 0.96, ct);
     }
 
@@ -1511,7 +1542,7 @@ public class SdeImportService
 
     private class LocalizedString { public string? en { get; set; } }
 
-    private class CategoryYaml { public LocalizedString? name { get; set; } public bool published { get; set; } }
+    private class CategoryYaml { public LocalizedString? name { get; set; } public bool published { get; set; } public int? iconID { get; set; } }
     private class GroupYaml
     {
         public int              categoryID  { get; set; }
@@ -1519,6 +1550,9 @@ public class SdeImportService
         public bool             published   { get; set; }
         public bool             anchorable  { get; set; }
         public bool             anchored    { get; set; }
+        public int?             iconID      { get; set; }
+        public bool             fittableNonSingleton { get; set; }
+        public bool             useBasePrice { get; set; }
     }
 
     private class MarketGroupYaml
@@ -1577,6 +1611,15 @@ public class SdeImportService
         public bool             highIsGood          { get; set; }
         public bool             stackable           { get; set; }
         public int?             unitID              { get; set; }
+        public string?          description         { get; set; }
+        public int?             iconID              { get; set; }
+        public int?             minAttributeID      { get; set; }
+        public int?             maxAttributeID      { get; set; }
+        public LocalizedString? tooltipTitleID       { get; set; }
+        public LocalizedString? tooltipDescriptionID { get; set; }
+        public int?             dataType            { get; set; }
+        public bool             displayWhenZero     { get; set; }
+        public int?             chargeRechargeTimeID { get; set; }
         public bool             published           { get; set; }
     }
 
@@ -1832,6 +1875,11 @@ public class SdeImportService
         public int?             corporationID        { get; set; }
         public int?             militiaCorporationID { get; set; }
         public int?             solarSystemID        { get; set; }
+        public int?             iconID               { get; set; }
+        public LocalizedString? shortDescription     { get; set; }
+        public LocalizedString? shortDescriptionID   { get; set; }
+        public double?          sizeFactor           { get; set; }
+        public bool             uniqueName           { get; set; }
     }
 
     private class IndustryModifierYaml
@@ -1863,8 +1911,29 @@ public class SdeImportService
         public int?             secondaryActivityID { get; set; }
         public bool             deleted     { get; set; }
     }
-    private class RaceYaml      { public LocalizedString? name { get; set; } public LocalizedString? description { get; set; } }
-    private class MetaGroupYaml { public LocalizedString? name { get; set; } }
+    private class RaceYaml
+    {
+        public LocalizedString? name        { get; set; }
+        public LocalizedString? description { get; set; }
+        public int?             iconID      { get; set; }
+        public int?             shipTypeID  { get; set; }
+    }
+    private class MetaGroupYaml
+    {
+        public LocalizedString? name        { get; set; }
+        public LocalizedString? description { get; set; }
+        public int?             iconID      { get; set; }
+        public string?          iconSuffix  { get; set; }
+        public MetaColorYaml?   color       { get; set; }
+    }
+
+    private class MetaColorYaml
+    {
+        public double r { get; set; }
+        public double g { get; set; }
+        public double b { get; set; }
+        public string Hex => $"#{(int)Math.Round(r * 255):X2}{(int)Math.Round(g * 255):X2}{(int)Math.Round(b * 255):X2}";
+    }
 
     private class CertificateYaml
     {

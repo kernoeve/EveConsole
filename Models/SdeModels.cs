@@ -17,6 +17,7 @@ public class SdeBuildInfo
 public class SdeCategory
 {
     public int    CategoryId { get; set; }
+    public int?   IconId     { get; set; }
     public string Name       { get; set; } = "";
     public bool   Published  { get; set; }
 }
@@ -29,6 +30,12 @@ public class SdeGroup
     public bool   Published  { get; set; }
     public bool   Anchorable { get; set; }
     public bool   Anchored   { get; set; }
+    public int?   IconId     { get; set; }
+
+    /// <summary>Whether a stack of these can be fitted without unstacking, and whether the
+    /// group prices off basePrice rather than the market.</summary>
+    public bool   FittableNonSingleton { get; set; }
+    public bool   UseBasePrice         { get; set; }
 }
 
 public class SdeType
@@ -90,6 +97,15 @@ public class SdeDogmaAttributeCategory
 public class SdeDogmaAttribute
 {
     public int     AttributeId  { get; set; }
+    public string  Description  { get; set; } = "";
+    public int?    IconId       { get; set; }
+    public int?    MinAttributeId { get; set; }
+    public int?    MaxAttributeId { get; set; }
+    public string  TooltipTitle       { get; set; } = "";
+    public string  TooltipDescription { get; set; } = "";
+    public int?    DataType     { get; set; }
+    public bool    DisplayWhenZero { get; set; }
+    public int?    ChargeRechargeTimeId { get; set; }
     public string  Name         { get; set; } = "";
     public string  DisplayName  { get; set; } = "";
     public int?    CategoryId   { get; set; }
@@ -350,6 +366,10 @@ public class SdeFaction
     public int?   CorporationId         { get; set; }
     public int?   MilitiaCorporationId  { get; set; }
     public int?   SolarSystemId         { get; set; }
+    public int?   IconId                { get; set; }
+    public string ShortDescription      { get; set; } = "";
+    public double SizeFactor            { get; set; }
+    public bool   UniqueName            { get; set; }
 }
 
 public class SdeNpcCorporation
@@ -424,6 +444,8 @@ public class SdeIndustryModifierSource
 public class SdeRace
 {
     public int    RaceId      { get; set; }
+    public int?   IconId      { get; set; }
+    public int?   ShipTypeId  { get; set; }
     public string Name        { get; set; } = "";
     public string Description { get; set; } = "";
 }
@@ -432,6 +454,13 @@ public class SdeMetaGroup
 {
     public int    MetaGroupId { get; set; }
     public string Name        { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int?   IconId      { get; set; }
+    public string IconSuffix  { get; set; } = "";
+
+    /// <summary>The meta group's colour, which the SDE gives as r/g/b floats and this keeps
+    /// as the hex a UI can actually use.</summary>
+    public string ColorHex    { get; set; } = "";
 }
 
 public class SdeCertificate
