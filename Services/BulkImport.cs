@@ -3,21 +3,35 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
+// ⚠️ EF1002 is suppressed for this file. A table name cannot be a bound parameter, so it has to be
+// interpolated; what makes that safe is where the names come from. TablesFor reads them out of
+// db.Model — the compiled entity model — and filters them to letters and digits, so no value a
+// user, a server or a downloaded file can influence ever reaches these strings. Anything added
+// here that interpolates something else does NOT inherit that argument and needs its own.
+#pragma warning disable EF1002
+
 /// <summary>
 /// Thrown when an import ran to completion but emptied a table that previously held data, so it
 /// was rolled back.
 /// </summary>
-public class ImportVerificationException(string source, IReadOnlyList<string> lost)
-    : Exception(BuildMessage(source, lost))
+public class ImportVerificationException(string dataset, IReadOnlyList<string> lost)
+    : Exception(BuildMessage(dataset, lost))
 {
-    public string Source { get; } = source;
+    /// <summary>Which import this was: "SDE" or "Hoboleaks".</summary>
+    /// <remarks>
+    /// ⚠️ Deliberately not called Source. Exception already has one, meaning the application or
+    /// object that threw, and shadowing it means anything holding this as an Exception reads the
+    /// base value instead — so the two would disagree depending on the static type of the
+    /// variable rather than on anything real.
+    /// </remarks>
+    public string Dataset { get; } = dataset;
     public IReadOnlyList<string> LostTables { get; } = lost;
 
-    private static string BuildMessage(string source, IReadOnlyList<string> lost) =>
-        $"The {source} data was read without error, but {lost.Count} table(s) that held data " +
+    private static string BuildMessage(string dataset, IReadOnlyList<string> lost) =>
+        $"The {dataset} data was read without error, but {lost.Count} table(s) that held data " +
         $"beforehand came back empty, which is what a changed file format looks like: " +
         $"{string.Join(" ", lost)} " +
-        $"The import was rolled back and your existing {source} data has NOT been changed.";
+        $"The import was rolled back and your existing {dataset} data has NOT been changed.";
 }
 
 /// <summary>

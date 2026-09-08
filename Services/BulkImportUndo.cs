@@ -4,6 +4,14 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EveConsole.Services;
 
+// ⚠️ EF1002 is suppressed for this file, for two interpolations with different reasons. The table
+// names come from BulkImport.TablesFor — read out of the compiled entity model and filtered to
+// letters and digits — and a table name cannot be a bound parameter anyway. The ATTACH statement
+// interpolates a filesystem path instead, taken from the open connection's own DataSource with
+// its quotes doubled, so no caller supplies any part of that either. Anything added here that
+// interpolates something else inherits neither argument and needs its own.
+#pragma warning disable EF1002
+
 /// <summary>
 /// A way to put the previous data back if a wipe-and-refill import does not finish.
 /// </summary>
