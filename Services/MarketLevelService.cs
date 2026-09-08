@@ -177,7 +177,7 @@ public class MarketLevelService(IDbContextFactory<AppDbContext> dbFactory)
         // Resolve type names and volumes
         var typeData = await db.SdeTypes
             .Where(t => typeIds.Contains(t.TypeId))
-            .Select(t => new { t.TypeId, t.Name, t.Volume })
+            .Select(t => new { t.TypeId, t.Name, Volume = t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume })
             .ToListAsync(ct);
         var typeNames   = typeData.ToDictionary(t => t.TypeId, t => t.Name);
         var typeVolumes = typeData.ToDictionary(t => t.TypeId, t => t.Volume);

@@ -459,6 +459,15 @@ public class SdeImportService
             Name          = kv.Value.nameID?.en        ?? kv.Value.name?.en        ?? "",
             Description   = kv.Value.descriptionID?.en ?? kv.Value.description?.en ?? "",
             Volume        = kv.Value.volume,
+            PackagedVolume = kv.Value.packagedVolume ?? 0,
+            MetaLevel      = kv.Value.metaLevel,
+            TechLevel      = kv.Value.techLevel,
+            IsRepackable   = kv.Value.isRepackable  ?? false,
+            IsDynamicType  = kv.Value.isDynamicType ?? false,
+            Radius         = kv.Value.radius ?? 0,
+            VariationParentTypeId = kv.Value.variationParentTypeID,
+            SoundId        = kv.Value.soundID,
+            ShipTreeGroupId = kv.Value.shipTreeGroupID,
             Mass          = kv.Value.mass,
             Capacity      = kv.Value.capacity,
             PortionSize   = kv.Value.portionSize,
@@ -1495,6 +1504,15 @@ public class SdeImportService
         public LocalizedString? description   { get; set; }
         public LocalizedString? descriptionID { get; set; }
         public double           volume        { get; set; }
+        public double?          packagedVolume { get; set; }
+        public int?             metaLevel      { get; set; }
+        public int?             techLevel      { get; set; }
+        public bool?            isRepackable   { get; set; }
+        public bool?            isDynamicType  { get; set; }
+        public double?          radius         { get; set; }
+        public int?             variationParentTypeID { get; set; }
+        public int?             soundID        { get; set; }
+        public int?             shipTreeGroupID { get; set; }
         public double           mass          { get; set; }
         public double           capacity      { get; set; }
         public int              portionSize   { get; set; }

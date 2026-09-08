@@ -63,7 +63,7 @@ public class WorklistService(
 
         var sections = (await Task.WhenAll(tasks)).ToList();
 
-        // Before the merge, because these carry no quantity and would not merge — two rows saying
+        // Before the merge, because these carry no quantity and would not merge â two rows saying
         // the same bid is losing is a duplicate however the amounts work out.
         DropDuplicateOutbid(sections);
 
@@ -89,9 +89,9 @@ public class WorklistService(
     /// crate of Self-Harmonizing Power Cores restarting four jobs at one station outranks a
     /// trip that restarts one, and until now they sorted identically.</para>
     ///
-    /// <para>⚠️ The haul inherits the priority of the most urgent job it frees, never more.
+    /// <para>â ï¸ The haul inherits the priority of the most urgent job it frees, never more.
     /// Adding a bonus per job unblocked would push a haul through the order band, where one
-    /// step means one customer order — so the count breaks ties instead, below priority.</para>
+    /// step means one customer order â so the count breaks ties instead, below priority.</para>
     /// </summary>
     private static void PromoteUnblockingHauls(List<WorklistSection> sections)
     {
@@ -101,8 +101,8 @@ public class WorklistService(
 
         // Every job stopped for want of something, by where it runs and what it wants.
         //
-        // ⚠️ MustBuy shortfalls are INCLUDED, and the flag is not what it sounds like. It means
-        // "not enough owned in scope that other jobs have not already claimed" — so with one
+        // â ï¸ MustBuy shortfalls are INCLUDED, and the flag is not what it sounds like. It means
+        // "not enough owned in scope that other jobs have not already claimed" â so with one
         // Obelisk owned and three Anshar jobs wanting one each, the first job is a hauling
         // problem and the other two are marked MustBuy. Filtering them out here dropped them
         // from the panel entirely, which is why a haul carrying an Obelisk listed one job
@@ -138,7 +138,7 @@ public class WorklistService(
 
                 // What this one trip actually puts on the dock, by type and by how much.
                 //
-                // ⚠️ Quantities, not just a set of type ids. A move is capped by what the source
+                // â ï¸ Quantities, not just a set of type ids. A move is capped by what the source
                 // station has free, so a destination short of 5,000 units can be served by several
                 // trips out of several stations, each of them its own row here. A trip carrying 200
                 // of those 5,000 is worth showing against the job, but it does not start it, and a
@@ -155,20 +155,20 @@ public class WorklistService(
                     .DistinctBy(j => j.Key)
                     .ToList();
 
-                // ⚠️ No longer a reason to leave the row alone. The generator has already put the
+                // â ï¸ No longer a reason to leave the row alone. The generator has already put the
                 // planner's own drivers on it, and those are what the tooltip means by "Jobs are
-                // waiting on this" — so a haul with no matching stopped ROW still has something
+                // waiting on this" â so a haul with no matching stopped ROW still has something
                 // true to show, which is the case the panel used to be silent about.
                 if (touched.Count == 0) continue;
 
-                // ⚠️ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
+                // â ï¸ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
                 // The count used to be "jobs waiting on any of these items", which is a different
                 // and much larger number: a job short of three things and sent one of them stays
                 // exactly as stopped as it was.
                 //
-                // ⚠️ A MustBuy shortage is ALWAYS outstanding, whatever the manifest says. The
+                // â ï¸ A MustBuy shortage is ALWAYS outstanding, whatever the manifest says. The
                 // flag means the owned stock is already spoken for by another job, and this crate
-                // came out of that same owned stock — so a second job wanting the same hull is
+                // came out of that same owned stock â so a second job wanting the same hull is
                 // queued behind the first, not served by the same trip. That is a different fact
                 // from "waiting on something else too", and the row says which.
                 var waiting = touched
@@ -192,8 +192,8 @@ public class WorklistService(
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
 
-                // ⚠️ Merged, not replaced. A stopped row is the better answer where there is one —
-                // only it can say whether this load actually starts the job — but the planner's
+                // â ï¸ Merged, not replaced. A stopped row is the better answer where there is one â
+                // only it can say whether this load actually starts the job â but the planner's
                 // drivers cover builds that never became a row, and dropping those is what made
                 // the panel disagree with the tooltip beside it. Matched on the product.
                 var told = waiting.Select(w => w.TypeId).ToHashSet();
@@ -204,7 +204,7 @@ public class WorklistService(
                     WaitingJobs = [.. waiting, .. also],
                     Unblocks    = freed.Count,
 
-                    // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
+                    // â ï¸ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
                     // job this haul only partly serves would rank the trip by work it cannot
                     // release.
                     Priority = freed.Count > 0
@@ -222,10 +222,10 @@ public class WorklistService(
                                 + "cargo but will not start on this load."
                                 : "")
 
-                           // ⚠️ The planner's drivers, merged in above, are counted here too, or
+                           // â ï¸ The planner's drivers, merged in above, are counted here too, or
                            // the sentence contradicts the list underneath it: eighteen items were
-                           // named while the prose said one. They are not jobs — nothing has been
-                           // written down for them yet — so they are counted as what they are.
+                           // named while the prose said one. They are not jobs â nothing has been
+                           // written down for them yet â so they are counted as what they are.
                            + (also.Count > 0
                                 ? $" {also.Count:N0} more item(s) here are wanted by planned work "
                                 + "that has no stopped job of its own."
@@ -239,12 +239,12 @@ public class WorklistService(
     /// <summary>
     /// What is waiting on a JOB's output, so the row can be opened like a haul.
     ///
-    /// <para>⚠️ By TYPE, not by station. A haul is judged where it lands, but a job's output feeds
-    /// whoever needs it wherever they are — the Tungsten Carbide reacted at the Reactor is
+    /// <para>â ï¸ By TYPE, not by station. A haul is judged where it lands, but a job's output feeds
+    /// whoever needs it wherever they are â the Tungsten Carbide reacted at the Reactor is
     /// consumed at T2 Adv component-Ammo, and keying on the producing station would have found
     /// nothing.</para>
     ///
-    /// <para>⚠️ A job never claims to START anything. Its own output is not on a dock yet, the
+    /// <para>â ï¸ A job never claims to START anything. Its own output is not on a dock yet, the
     /// quantity is what the planner intends rather than what exists, and the consumer may be short
     /// of three other things besides. So every entry reads as what it wants, and the promise of
     /// "starts on arrival" is left to the deliveries that can actually keep it.</para>
@@ -289,16 +289,16 @@ public class WorklistService(
     /// <para>The two are complements and read the same shortage list from opposite ends. A haul
     /// answers a shortage of something we own elsewhere; a purchase answers one of something
     /// nobody owns, which is what <c>MustBuy</c> marks. Neither generator can see the jobs it
-    /// would restart — the purchase generator knows the plan is short, the industry generator
+    /// would restart â the purchase generator knows the plan is short, the industry generator
     /// knows which jobs stopped, and neither knows the other.</para>
     ///
-    /// <para>⚠️ No destination filter, unlike the haul pass. A haul lands its cargo at one
+    /// <para>â ï¸ No destination filter, unlike the haul pass. A haul lands its cargo at one
     /// station and only frees jobs there; a purchase of something nobody owns answers the
     /// shortage wherever the job is, because the alternative to buying it is not having it at
     /// all.</para>
     ///
-    /// <para>⚠️ The purchase inherits the priority of the most urgent job it frees, never more,
-    /// and the count breaks ties below priority rather than adding to it — the same rule the
+    /// <para>â ï¸ The purchase inherits the priority of the most urgent job it frees, never more,
+    /// and the count breaks ties below priority rather than adding to it â the same rule the
     /// hauls follow, so a crate and a market order for the same material stay commensurable.
     /// Purchases used to carry a flat OrderDriven, which put every one of them above refining,
     /// outbid orders, standing projects and final products regardless of what was waiting.</para>
@@ -314,9 +314,9 @@ public class WorklistService(
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
 
-        // ⚠️ And the same again over EVERY shortage, for the list rather than the ranking.
-        // MustBuy does not mean "nobody owns one" — it means the stock in scope is already
-        // claimed by an earlier job — so a purchase can be raised for a job whose shortage is not
+        // â ï¸ And the same again over EVERY shortage, for the list rather than the ranking.
+        // MustBuy does not mean "nobody owns one" â it means the stock in scope is already
+        // claimed by an earlier job â so a purchase can be raised for a job whose shortage is not
         // MustBuy at all. The buy for Gel-Matrix Biopaste said "for Programmable Purification
         // Membrane" in its reason and then listed nothing underneath, because 23,229 sit in
         // Tenerifis already spoken for. The reader still needs to see whose work it is for.
@@ -348,10 +348,10 @@ public class WorklistService(
 
                 if (touched.Count == 0) continue;
 
-                // ⚠️ Same rule as the hauls below, and for the same reason: a job is released only
+                // â ï¸ Same rule as the hauls below, and for the same reason: a job is released only
                 // when this purchase covers every shortage it has, in full. Buying one of the three
                 // things a job needs leaves it exactly as stopped as it was, and the shortages that
-                // are NOT MustBuy count too — material that exists but sits at another station is
+                // are NOT MustBuy count too â material that exists but sits at another station is
                 // just as much a reason the job has not started.
                 var waiting = touched
                     .Select(j =>
@@ -372,8 +372,8 @@ public class WorklistService(
                     .ThenBy(w => w.TypeName)
                     .ToList();
 
-                // ⚠️ Ranking still comes from the jobs this purchase can actually release on its
-                // own — the ones short of something nobody owns. A buy that merely tops up
+                // â ï¸ Ranking still comes from the jobs this purchase can actually release on its
+                // own â the ones short of something nobody owns. A buy that merely tops up
                 // material sitting at another station releases nothing by itself; the haul does.
                 var releasable = bought.Keys
                     .SelectMany(t => unowned.GetValueOrDefault(t, []))
@@ -411,7 +411,7 @@ public class WorklistService(
     /// One row per losing bid, however many reasons there are to care about it.
     ///
     /// <para>An order can be needed by a build plan, by a stocking rule, and be a standing order
-    /// the player maintains on its own terms — three sources, one price to change. Each finds it
+    /// the player maintains on its own terms â three sources, one price to change. Each finds it
     /// honestly and independently, which is what keeps them from having to know about each other,
     /// and the reader would get the same sentence three times.</para>
     ///
@@ -445,7 +445,7 @@ public class WorklistService(
     /// Folds purchases of the same type at the same station into one task.
     ///
     /// <para>Generators are deliberately ignorant of each other, which is what keeps them simple
-    /// — but it means the job materials and an inventory rule can each raise a buy for the same
+    /// â but it means the job materials and an inventory rule can each raise a buy for the same
     /// thing in the same place, and the reader gets two rows for one order. Adding them up is
     /// the only place in this service that reaches across sections, and it belongs here rather
     /// than in either generator: neither can see the other's answer.</para>
@@ -469,12 +469,12 @@ public class WorklistService(
             var parts = group.OrderByDescending(x => x.Item.Priority).ToList();
             var lead  = parts[0];
 
-            // ⚠️ Demands add up; the stock that fills them does not. Every contributor has already
+            // â ï¸ Demands add up; the stock that fills them does not. Every contributor has already
             // subtracted the same pile from its own demand, so summing their answers credits that
             // pile once per contributor. Measured on Fullerite-C32: a job wanting 540,933 and a
             // rule wanting 500,000 both subtracted the same 125,298 on hand, 12,886 on order and
             // 333,374 recoverable, and the row asked for 97,817 against a real requirement of
-            // 569,375 — the whole supply credited twice.
+            // 569,375 â the whole supply credited twice.
             //
             // So pooled demand less supply counted once, at the largest figure any contributor
             // claimed. Falls back to the old sum when a contributor cannot report its halves,
@@ -488,8 +488,8 @@ public class WorklistService(
                                : parts.Sum(p => p.Item.Quantity);
 
             // Each contributor's reason is kept verbatim. The point of merging is one errand, not
-            // one explanation — "why am I buying this many" is the question the row has to answer.
-            var reasons = string.Join("  •  ", parts.Select(p => p.Item.Detail).Where(d => d.Length > 0));
+            // one explanation â "why am I buying this many" is the question the row has to answer.
+            var reasons = string.Join("  â¢  ", parts.Select(p => p.Item.Detail).Where(d => d.Length > 0));
 
             // Blocked wins: the combined order cannot be placed if any part of it cannot be.
             var blocked = parts.FirstOrDefault(p => p.Item.Readiness == WorklistReadiness.Blocked).Item;
@@ -506,20 +506,20 @@ public class WorklistService(
                 // the purchase, which is the thing the player decided to leave for later.
                 Key       = $"merged:{group.Key}",
                 // A zero total means every contributor was the "none owned at all" row, which
-                // carries no count by design — naming a number there would invent one.
+                // carries no count by design â naming a number there would invent one.
                 Title     = (tag, total) switch
                 {
-                    (null, _) => $"{lead.Item.TypeName} × {total:N0}",
-                    (_,    0) => $"{lead.Item.TypeName} — {tag}",
-                    _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
+                    (null, _) => $"{lead.Item.TypeName} Ã {total:N0}",
+                    (_,    0) => $"{lead.Item.TypeName} â {tag}",
+                    _         => $"{lead.Item.TypeName} â {tag} Ã {total:N0}",
                 },
                 Quantity  = total,
-                // ⚠️ The contributors' own figures do not add up to this, and saying so is the
+                // â ï¸ The contributors' own figures do not add up to this, and saying so is the
                 // point. Each was computed against the whole of the shared stock, so a reader
                 // adding the "short" numbers gets a figure that credits that stock once per
-                // demand — which is what this row used to print. The sum is spelled out instead.
+                // demand â which is what this row used to print. The sum is spelled out instead.
                 Detail    = pooled
-                    ? $"{total:N0} in total — {demand:N0} wanted between them, less {supply:N0} " +
+                    ? $"{total:N0} in total â {demand:N0} wanted between them, less {supply:N0} " +
                       $"already on hand, on order or recoverable, counted once. {reasons}"
                     : $"{total:N0} in total. {reasons}",
                 Priority  = parts.Max(p => p.Item.Priority),
@@ -541,7 +541,7 @@ public class WorklistService(
     /// packaged size for the same item, and four more queries.</para>
     ///
     /// <para>Packaged volume is the honest figure for material being hauled or bought. An
-    /// assembled ship takes far more room than its packaged form, but nothing here is assembled —
+    /// assembled ship takes far more room than its packaged form, but nothing here is assembled â
     /// these are things being moved to or made at a structure.</para>
     /// </summary>
     private async Task ApplyVolumeAsync(List<WorklistSection> sections, CancellationToken ct)
@@ -558,10 +558,14 @@ public class WorklistService(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var volumes = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Volume, ct);
+            // ⚠️ PACKAGED, not assembled. A ship comes out of a job packaged and is hauled
+            // that way: a Vexor is 10,000 m³ packaged against 115,000 assembled, so every
+            // figure here was more than eleven times too large. Zero means the SDE gives no
+            // packaged figure, which is most items -- for those the two are the same.
+            .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
 
         // Priced here too, off the same one lookup and at whatever the asset valuation is set to
-        // use — so what a task is worth and what the hangar it comes from is worth are the same
+        // use â so what a task is worth and what the hangar it comes from is worth are the same
         // number, and a summary can add them up without a second opinion about prices.
         var prices = new Dictionary<int, double>();
         var market = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
@@ -576,8 +580,8 @@ public class WorklistService(
                     _                    => p.Midpoint,
                 });
 
-        // ⚠️ Contracts fill the gaps the market cannot. A blueprint has no market price at all —
-        // it is bought and sold on contracts — so a buy task for one valued at nothing, and the
+        // â ï¸ Contracts fill the gaps the market cannot. A blueprint has no market price at all â
+        // it is bought and sold on contracts â so a buy task for one valued at nothing, and the
         // ISK column on those rows sat blank while the task itself was worth billions. Applied
         // only where the market had no price rather than in preference to it: the market is the
         // better number when it exists, and mixing the two per type would make the total depend on
@@ -589,9 +593,9 @@ public class WorklistService(
                 if (ContractPricing.EffectivePrice(cp) is { } effective && effective > 0)
                     prices[cp.TypeId] = (double)effective;
 
-        // ⚠️ A blueprint is priced as a copy, and this overrides both sources above rather than
+        // â ï¸ A blueprint is priced as a copy, and this overrides both sources above rather than
         // filling a gap they left. ContractPrices holds the whole-item price, which for a
-        // blueprint type is the original — and an Avatar BPO is tens of billions against a copy
+        // blueprint type is the original â and an Avatar BPO is tens of billions against a copy
         // at a small fraction of that. Nobody with a task to acquire a titan print is buying the
         // original; they are buying a copy, which is what the task's own note already quotes.
         // Valuing the row off the BPO put a number on the list that no part of the plan matched.
@@ -639,8 +643,8 @@ public class WorklistService(
     /// keys never encountered before.
     ///
     /// Rows for keys that no longer generate are left alone rather than swept. They cost a few
-    /// bytes, and keeping them means an item that comes back — a standing order that lapses
-    /// again next month — is not misreported as brand new, nor its snooze quietly forgotten.
+    /// bytes, and keeping them means an item that comes back â a standing order that lapses
+    /// again next month â is not misreported as brand new, nor its snooze quietly forgotten.
     /// </summary>
     private async Task ApplyStateAsync(List<WorklistSection> sections, CancellationToken ct)
     {
@@ -675,8 +679,8 @@ public class WorklistService(
                 {
                     section.Items[i] = item with { FirstSeenAt = now };
 
-                    // ⚠️ Only once per key. The same suggestion can appear in more than one
-                    // section — the key is what makes it the same suggestion — and adding a row
+                    // â ï¸ Only once per key. The same suggestion can appear in more than one
+                    // section â the key is what makes it the same suggestion â and adding a row
                     // per appearance put two rows with one key into a single SaveChanges. That
                     // failed the whole batch on the unique constraint, so EVERY new item lost its
                     // first-seen stamp, not just the repeated one, and the "age" column stayed
@@ -693,8 +697,8 @@ public class WorklistService(
         try { await db.SaveChangesAsync(ct); }
         catch
         {
-            // A rebuild running at the same time — the tool and the Overview's sections both do
-            // one — can insert the same key between the read above and here. Retry a row at a
+            // A rebuild running at the same time â the tool and the Overview's sections both do
+            // one â can insert the same key between the read above and here. Retry a row at a
             // time so one collision costs one stamp instead of the whole batch. A row that fails
             // now is one somebody else has already written, which is the outcome we wanted.
             db.ChangeTracker.Clear();

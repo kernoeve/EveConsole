@@ -12,11 +12,11 @@ namespace EveConsole.Services.Worklist;
 /// split exists to prevent: sending somebody shopping for something already in a hangar three
 /// jumps away.</para>
 ///
-/// <para>⚠️ One row per BLOCKED JOB. Grouping by destination was tried first and read as a
-/// logistics summary rather than as a list of stopped work — the question is which jobs are
+/// <para>â ï¸ One row per BLOCKED JOB. Grouping by destination was tried first and read as a
+/// logistics summary rather than as a list of stopped work â the question is which jobs are
 /// waiting on a delivery, and a station is not waiting on anything.</para>
 /// </summary>
-/// <param name="StalledTasks">Jobs stopped behind this one, transitively — what starts moving
+/// <param name="StalledTasks">Jobs stopped behind this one, transitively â what starts moving
 /// again once this job can run.</param>
 /// <param name="HaulTasks">Hauls already on the worklist bringing any of this job's missing
 /// material to it. Zero is the finding: the material exists, the job is stopped, and nothing is
@@ -70,7 +70,7 @@ public sealed record HaulBlock(
 
         _ =>
             $"Stopped, and {HaulTasks:N0} haul(s) are already raised to bring the {Volume:N0} m3 "
-          + $"here. Nothing to decide — it starts when the material arrives.{Behind}",
+          + $"here. Nothing to decide â it starts when the material arrives.{Behind}",
     };
 
     /// <summary>How many places have to be visited to cover it.</summary>
@@ -94,7 +94,7 @@ public class HaulPressureService(
     public async Task<List<HaulBlock>> PressuresAsync(
         IReadOnlyList<WorklistItem> items, CancellationToken ct = default)
     {
-        // ⚠️ MustBuy false is the whole selection: owned within the scope, just not where the
+        // â ï¸ MustBuy false is the whole selection: owned within the scope, just not where the
         // job is. Its opposite is Item Contention's list, and nothing belongs on both.
         var blocked = items
             .Select(i => (Item: i, Short: i.Shortages.Where(s => !s.MustBuy).ToList()))
@@ -109,18 +109,22 @@ public class HaulPressureService(
 
         var volumes = await db.SdeTypes.AsNoTracking()
             .Where(t => ids.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Volume, ct);
+            // ⚠️ PACKAGED, not assembled. A ship comes out of a job packaged and is hauled
+            // that way: a Vexor is 10,000 m³ packaged against 115,000 assembled, so every
+            // figure here was more than eleven times too large. Zero means the SDE gives no
+            // packaged figure, which is most items -- for those the two are the same.
+            .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
 
         // Where the material actually is. Scoped as the generator scopes it: stock the plan
         // cannot reach is not a pickup, it is somebody else's.
         var scope = await InvLevelService.ResolveScopeFilterAsync(
             db, settings.IndustryScope, settings.IndustryScopeId, ct);
 
-        // ⚠️ Quantities, not just a set of locations. Counting the places that hold a type at
+        // â ï¸ Quantities, not just a set of locations. Counting the places that hold a type at
         // all answered a question nobody asked: Tritanium is in thirteen hangars, and "13 other
         // place(s)" beside a job read as thirteen pickups when one of them covers the shortfall
         // outright. What a trip costs is the number of stops needed to COVER what is short.
-        // ⚠️ The same exclusions the haul plan applies, or a job reads as held in places the
+        // â ï¸ The same exclusions the haul plan applies, or a job reads as held in places the
         // plan will never source from: asset-safety wraps, the contents of ships, and assembled
         // hulls, which are a flown ship rather than a pickup.
         var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
@@ -211,7 +215,7 @@ public class HaulPressureService(
                     "Needs", 0, sh.TypeName, sh.TypeName,
                     from.Count == 1 ? "1 stop" : $"{from.Count:N0} stops",
                     $"short {sh.Short:N0} of {sh.Wanted:N0}, "
-                  + $"{sh.Short * volumes.GetValueOrDefault(sh.TypeId):N0} m3 — from {name}"
+                  + $"{sh.Short * volumes.GetValueOrDefault(sh.TypeId):N0} m3 â from {name}"
                   + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""),
                     sh.TypeId);
             }));

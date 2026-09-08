@@ -560,7 +560,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
         var types = await db.SdeTypes
             .Where(t => ids.Contains(t.TypeId))
-            .Select(t => new { t.TypeId, t.Name, t.Volume })
+            .Select(t => new { t.TypeId, t.Name, Volume = t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume })
             .ToListAsync(ct);
 
         var blueprints = await BlueprintTypeIdsAsync(db, ids, ct);

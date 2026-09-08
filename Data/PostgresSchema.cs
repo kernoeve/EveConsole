@@ -60,6 +60,36 @@ public static class PostgresSchema
     [
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
+        // figure, which is 115,000 against 10,000 for a Vexor.
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "PackagedVolume" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "MetaLevel" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "TechLevel" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "IsRepackable" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "IsDynamicType" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "Radius" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "VariationParentTypeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "SoundId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "ShipTreeGroupId" INTEGER NULL
+        """,
+
         // npcCorporations.yaml has thirty-two fields; the import read three. These are the rest
         // of the ones worth having, and every existing database needs them added by hand.
         """

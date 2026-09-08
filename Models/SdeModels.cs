@@ -38,6 +38,26 @@ public class SdeType
     public string  Name          { get; set; } = "";
     public string  Description   { get; set; } = "";
     public double  Volume        { get; set; }
+
+    /// <summary>
+    /// What it takes up PACKAGED, which for anything with an interior is a different number.
+    ///
+    /// <para>⚠️ A Vexor is 115,000 m³ assembled and 10,000 packaged, and a ship comes out of a job
+    /// packaged — so every haul volume, courier size and cubic-metre total computed from
+    /// <see cref="Volume"/> was more than eleven times too large. Zero where the SDE gives none,
+    /// which is most items: for those the two are the same and Volume is the answer.</para>
+    /// </summary>
+    public double  PackagedVolume { get; set; }
+
+    /// <summary>Meta level and tech level, which the type list has always had and nothing read.</summary>
+    public int?    MetaLevel     { get; set; }
+    public int?    TechLevel     { get; set; }
+    public bool    IsRepackable  { get; set; }
+    public bool    IsDynamicType { get; set; }
+    public double  Radius        { get; set; }
+    public int?    VariationParentTypeId { get; set; }
+    public int?    SoundId       { get; set; }
+    public int?    ShipTreeGroupId { get; set; }
     public double  Mass          { get; set; }
     public double  Capacity      { get; set; }
     public int     PortionSize   { get; set; }
