@@ -70,7 +70,15 @@ public record NpcOrderItemRow(bool IsBuyOrder, int TypeId, string Item,
     public string LowText  => LowPrice.ToString("N2");
     public string HighText => HighPrice.ToString("N2");
 }
-public record LpOfferRow(string Item, int TypeId, int Quantity, string LpCost, string IskCost, string Required);
+public record LpOfferRow(string Item, int TypeId, int Quantity, int LpCost, long IskCost, string Required)
+{
+    // ⚠️ Numbers, not the formatted strings this used to hand over. A grid sorts on what it is
+    // bound to, so "1,200,000" sorted before "800" and the LP and ISK columns ordered offers by
+    // the shape of their digits rather than their size. Formatting is for display only now, with
+    // the columns sorting through SortMemberPath.
+    public string LpText  => LpCost.ToString("N0");
+    public string IskText => IskCost > 0 ? IskCost.ToString("N0") : "—";
+}
 public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold,
                                 string Role, string Owner, string Occupier)
 {
@@ -747,9 +755,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => $"{x.Quantity:N0} × {x.Item}")));
 
         return offers.Select(o => new LpOfferRow(
-            o.Item, o.TypeId, o.Quantity,
-            o.LpCost.ToString("N0"),
-            o.IskCost > 0 ? o.IskCost.ToString("N0") : "—",
+            o.Item, o.TypeId, o.Quantity, o.LpCost, o.IskCost,
             required.GetValueOrDefault(o.OfferId, "—"))).ToList();
     }
 
