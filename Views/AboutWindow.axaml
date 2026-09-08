@@ -3,7 +3,7 @@
         x:Class="EveConsole.Views.AboutWindow"
         Title="About EVE Console"
         Icon="avares://EveConsole/Assets/ec.ico"
-        Width="470"
+        Width="700"
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -32,42 +32,43 @@
        to the content beneath it instead. -->
   <StackPanel Spacing="0">
 
-    <!-- The splash artwork rather than logo.png. The logo is square, so filling this width would
-         make a 470px-tall block; this one is 1952x608, which lands at about 150. It carries no
-         wordmark of its own, which is why the name is set as text below rather than being left to
-         the image as it was with the logo. -->
-    <Image Source="avares://EveConsole/Assets/splash_background.png"
-           Stretch="UniformToFill"
-           Height="150"
-           HorizontalAlignment="Stretch"
-           VerticalAlignment="Center"
-           RenderOptions.BitmapInterpolationMode="HighQuality" />
+    <!-- Header: the name set over the artwork, as the splash screen does it.
+         ⚠️ ClipToBounds, because UniformToFill renders past the panel it is measured into. Without
+         it the overflow paints down over the description rather than being cut at the header edge.
+         The name sits upper LEFT because that is the dark end of this artwork — the bright nebula
+         is away to the right — so it stays legible without the gradient the splash screen needs
+         under its own text. -->
+    <Panel Height="210" ClipToBounds="True">
+      <Image Source="avares://EveConsole/Assets/splash_background.png"
+             Stretch="UniformToFill"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center"
+             RenderOptions.BitmapInterpolationMode="HighQuality" />
 
-    <StackPanel Margin="40 22 40 28" Spacing="0">
-
-      <!-- Two-tone app name -->
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 4">
-        <TextBlock Text="EVE "
-                   FontSize="26" FontWeight="Bold"
-                   Foreground="{DynamicResource TextBrightBrush}"
-                   LetterSpacing="4" />
-        <TextBlock Text="Console"
-                   FontSize="26" FontWeight="Bold"
-                   Foreground="{DynamicResource AccentBrush}"
-                   LetterSpacing="4" />
+      <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top"
+                  Margin="40 34 0 0" Spacing="4">
+        <!-- Two-tone name: EVE in white, Console in amber. Same treatment as the splash, a size
+             down, because this window is narrower than that one. -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="EVE "
+                     FontSize="30" FontWeight="Bold"
+                     Foreground="{DynamicResource TextBrightBrush}"
+                     LetterSpacing="8" />
+          <TextBlock Text="Console"
+                     FontSize="30" FontWeight="Bold"
+                     Foreground="{DynamicResource AccentBrush}"
+                     LetterSpacing="8" />
+        </StackPanel>
+        <TextBlock x:Name="VersionText"
+                   Text=""
+                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                   HorizontalAlignment="Left" />
       </StackPanel>
+    </Panel>
 
-      <!-- Version -->
-      <TextBlock x:Name="VersionText"
-                 Text=""
-                 FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
-                 HorizontalAlignment="Center"
-                 Margin="0 0 0 22" />
+    <StackPanel Margin="40 26 40 28" Spacing="0">
 
-      <!-- Divider -->
-      <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 0 0 20" />
-
-      <!-- Description -->
+      <!-- Description. No divider above it: the edge of the artwork already separates them. -->
       <TextBlock Text="An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management."
                  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                  TextWrapping="Wrap"
