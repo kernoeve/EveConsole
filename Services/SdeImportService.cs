@@ -132,21 +132,22 @@ public class SdeImportService
             // now holds none" rather than merely "races is empty" — which on a first import is the
             // plain truth and no cause for alarm.
             Report(progress, "Preparing", "Reading current row counts…", 0.305);
+            var tables = SdeTablesToClear(db).ToList();
             var before = await CountSdeTablesAsync(db, ct);
 
-            // ⚠️ The wipe and the refill are ONE transaction. A failure anywhere — a changed file
-            // format, a duplicate key, a cancelled run — now leaves the previous SDE exactly as it
-            // was, because nothing is published until everything has been read and checked.
+            // ⚠️ The wipe and the refill are undoable as one unit. A failure anywhere — a changed
+            // file format, a duplicate key, a cancelled run — now leaves the previous SDE exactly
+            // as it was.
             //
             // Before this, a stage that threw left every table after it empty, and since the whole
             // import is a wipe followed by a refill there was no way to tell that from "CCP removed
             // it". One duplicate key cost ten tables, reprocessing among them.
             //
-            // It also closes a window nobody had raised: other clients share this database and read
-            // the SDE throughout the minutes an import takes, and until now they saw those tables
-            // empty for all of it. They now keep seeing the previous data until the commit
-            // publishes the whole new set at once.
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            // ⚠️ HOW it is undoable differs by engine, and the difference is not cosmetic: on
+            // PostgreSQL this is one transaction, on SQLite a copy of the tables in an attached
+            // file, because a transaction held for the length of an import blocks every other
+            // writer in the app. SdeUndo has the measurements.
+            await using var undo = await SdeUndo.CreateAsync(db, tables, progress, ct);
 
             Report(progress, "Preparing", "Clearing existing SDE data…", 0.31);
             await ClearSdeTablesAsync(db, ct);
@@ -205,13 +206,13 @@ public class SdeImportService
             {
                 // CancellationToken.None: whatever else has gone wrong, undoing this is exactly
                 // what still needs to happen.
-                await tx.RollbackAsync(CancellationToken.None);
+                await undo.RollbackAsync(CancellationToken.None);
                 foreach (var line in lost)
                     _errors.Log("SdeImport", "Verification", line);
                 throw new SdeVerificationException(lost);
             }
 
-            await tx.CommitAsync(ct);
+            await undo.CommitAsync(ct);
 
             foreach (var line in warnings)
                 _errors.Log("SdeImport", "Verification", line);
