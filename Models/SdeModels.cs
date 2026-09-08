@@ -183,6 +183,9 @@ public class SdeRegion
     public string Name       { get; set; } = "";
     public int?   FactionId  { get; set; }
     public bool   IsWormhole { get; set; }
+    public string Description { get; set; } = "";
+    public int?   NebulaId   { get; set; }
+    public int?   WormholeClassId { get; set; }
     public double X          { get; set; }
     public double Y          { get; set; }
     public double Z          { get; set; }
@@ -194,6 +197,7 @@ public class SdeConstellation
     public int    RegionId        { get; set; }
     public string Name            { get; set; } = "";
     public bool   IsWormhole      { get; set; }
+    public int?   WormholeClassId { get; set; }
     public double X               { get; set; }
     public double Y               { get; set; }
     public double Z               { get; set; }
@@ -221,6 +225,18 @@ public class SdeSolarSystem
 
     /// <summary>Single-letter class CCP uses to bucket systems for spawns and effects.</summary>
     public string SecurityClass  { get; set; } = "";
+
+    // Route shape and star, all of which the file has always carried.
+    public int?   WormholeClassId { get; set; }
+    public bool   Border        { get; set; }
+    public bool   Corridor      { get; set; }
+    public bool   Fringe        { get; set; }
+    public bool   Hub           { get; set; }
+    public bool   International { get; set; }
+    public bool   Regional      { get; set; }
+    public double Luminosity    { get; set; }
+    public string VisualEffect  { get; set; } = "";
+    public int?   StarId        { get; set; }
 
     /// <summary>Extent of the system in metres — the scale for an in-system view.</summary>
     public double Radius         { get; set; }
@@ -318,6 +334,14 @@ public class SdeStation
     /// the rest. See <see cref="SdeStationOperationService"/>.
     /// </summary>
     public int?   OperationId            { get; set; }
+    public int?   CelestialIndex         { get; set; }
+    public long?  OrbitId                { get; set; }
+    public int?   OrbitIndex             { get; set; }
+    public int?   ReprocessingHangarFlag { get; set; }
+    public bool   UseOperationName       { get; set; }
+    public double X                      { get; set; }
+    public double Y                      { get; set; }
+    public double Z                      { get; set; }
 }
 
 /// <summary>A station service: Market, Factory, Loyalty Point Store, Repair Facilities…</summary>
@@ -332,6 +356,21 @@ public class SdeStationOperation
 {
     public int    OperationId { get; set; }
     public string Name        { get; set; } = "";
+    public int?   ActivityId  { get; set; }
+    public string Description { get; set; } = "";
+
+    /// <summary>How much a station of this operation helps industry. ⚠️ These are the real
+    /// numbers behind station bonuses and nothing has been reading them.</summary>
+    public double ManufacturingFactor { get; set; }
+    public double ResearchFactor      { get; set; }
+    public double Ratio               { get; set; }
+
+    /// <summary>⚠️ Distribution weights, NOT flags — unlike the identically named fields on a
+    /// solar system, which are booleans. The SDE gives 0.0 to 0.7 here.</summary>
+    public double Border   { get; set; }
+    public double Corridor { get; set; }
+    public double Fringe   { get; set; }
+    public double Hub      { get; set; }
 }
 
 /// <summary>

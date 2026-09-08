@@ -60,6 +60,101 @@ public static class PostgresSchema
     [
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // â ï¸ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // Map and station fields the import was leaving in the file.
+        """
+        ALTER TABLE "SdeConstellations" ADD COLUMN IF NOT EXISTS "WormholeClassId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeRegions" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeRegions" ADD COLUMN IF NOT EXISTS "NebulaId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeRegions" ADD COLUMN IF NOT EXISTS "WormholeClassId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "WormholeClassId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Border" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Corridor" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Fringe" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Hub" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "International" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Regional" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Luminosity" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "VisualEffect" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "StarId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "ActivityId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "ManufacturingFactor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "ResearchFactor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Ratio" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Border" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Corridor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Fringe" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Hub" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "CelestialIndex" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "OrbitId" BIGINT NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "OrbitIndex" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "ReprocessingHangarFlag" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "UseOperationName" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "X" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "Y" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "Z" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+
         // Fields the SDE has always carried that the import did not read.
         // ⚠️ Additive only, and every NOT NULL carries a DEFAULT: an older build inserting
         // without naming these columns has to go on working against the same database.

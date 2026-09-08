@@ -719,6 +719,9 @@ public class SdeImportService
                 Name      = kv.Value.name?.en ?? "",
                 FactionId = kv.Value.factionID,
                 IsWormhole = kv.Key >= 11000000 && kv.Key < 12000000,
+                Description = kv.Value.description?.en ?? "",
+                NebulaId    = kv.Value.nebulaID,
+                WormholeClassId = kv.Value.wormholeClassID,
                 X = kv.Value.position?.x ?? 0,
                 Y = kv.Value.position?.y ?? 0,
                 Z = kv.Value.position?.z ?? 0,
@@ -772,6 +775,16 @@ public class SdeImportService
                 Y2D           = kv.Value.position2D?.y,
                 SecurityClass = kv.Value.securityClass ?? "",
                 Radius        = kv.Value.radius,
+                WormholeClassId = kv.Value.wormholeClassID,
+                Border        = kv.Value.border,
+                Corridor      = kv.Value.corridor,
+                Fringe        = kv.Value.fringe,
+                Hub           = kv.Value.hub,
+                International = kv.Value.international,
+                Regional      = kv.Value.regional,
+                Luminosity    = kv.Value.luminosity,
+                VisualEffect  = kv.Value.visualEffect ?? "",
+                StarId        = kv.Value.starID,
             });
             await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
@@ -1138,6 +1151,14 @@ public class SdeImportService
                     ReprocessingEfficiency = kv.Value.reprocessingEfficiency,
                     ReprocessingTax        = kv.Value.reprocessingStationsTake,
                     OperationId            = kv.Value.operationID,
+                    CelestialIndex         = kv.Value.celestialIndex,
+                    OrbitId                = kv.Value.orbitID,
+                    OrbitIndex             = kv.Value.orbitIndex,
+                    ReprocessingHangarFlag = kv.Value.reprocessingHangarFlag,
+                    UseOperationName       = kv.Value.useOperationName,
+                    X = kv.Value.position?.x ?? 0,
+                    Y = kv.Value.position?.y ?? 0,
+                    Z = kv.Value.position?.z ?? 0,
                 };
             });
             await SaveBatchesAsync(db, db.SdeStations, rows, "Stations", raw.Count, p, 0.875, 0.89, ct);
@@ -1731,12 +1752,16 @@ public class SdeImportService
     // New flat-universe DTOs
     private class MapRegionYaml
     {
+        public LocalizedString? description     { get; set; }
+        public int?             nebulaID        { get; set; }
+        public int?             wormholeClassID { get; set; }
         public LocalizedString? name      { get; set; }
         public int?             factionID { get; set; }
         public PositionYaml?    position  { get; set; }
     }
     private class MapConstellationYaml
     {
+        public int?             wormholeClassID { get; set; }
         public LocalizedString? name      { get; set; }
         public int              regionID  { get; set; }
         public int?             factionID { get; set; }
@@ -1749,6 +1774,16 @@ public class SdeImportService
 
     private class MapSolarSystemYaml
     {
+        public int?             wormholeClassID { get; set; }
+        public bool             border          { get; set; }
+        public bool             corridor        { get; set; }
+        public bool             fringe          { get; set; }
+        public bool             hub             { get; set; }
+        public bool             international   { get; set; }
+        public bool             regional        { get; set; }
+        public double           luminosity      { get; set; }
+        public string?          visualEffect    { get; set; }
+        public int?             starID          { get; set; }
         public LocalizedString? name           { get; set; }
         public int              constellationID { get; set; }
         public int              regionID        { get; set; }
@@ -1835,6 +1870,15 @@ public class SdeImportService
         {
             OperationId = kv.Key,
             Name        = kv.Value.operationName?.en ?? $"Operation {kv.Key}",
+            ActivityId  = kv.Value.activityID,
+            Description = kv.Value.description?.en ?? "",
+            ManufacturingFactor = kv.Value.manufacturingFactor,
+            ResearchFactor      = kv.Value.researchFactor,
+            Ratio               = kv.Value.ratio,
+            Border   = kv.Value.border,
+            Corridor = kv.Value.corridor,
+            Fringe   = kv.Value.fringe,
+            Hub      = kv.Value.hub,
         }));
 
         // Distinct guards against an operation listing the same service twice, which the
@@ -1851,6 +1895,15 @@ public class SdeImportService
     private class StationServiceYaml   { public LocalizedString? serviceName   { get; set; } }
     private class StationOperationYaml
     {
+        public int?             activityID          { get; set; }
+        public LocalizedString? description         { get; set; }
+        public double           manufacturingFactor { get; set; }
+        public double           researchFactor      { get; set; }
+        public double           ratio               { get; set; }
+        public double           border              { get; set; }
+        public double           corridor            { get; set; }
+        public double           fringe              { get; set; }
+        public double           hub                 { get; set; }
         public LocalizedString? operationName { get; set; }
         public List<int>?       services      { get; set; }
     }
@@ -1858,6 +1911,12 @@ public class SdeImportService
     // New npcStations.yaml DTO (dict format, no station name)
     private class NpcStationYaml
     {
+        public int?          celestialIndex         { get; set; }
+        public long?         orbitID                { get; set; }
+        public int?          orbitIndex             { get; set; }
+        public int?          reprocessingHangarFlag { get; set; }
+        public bool          useOperationName       { get; set; }
+        public PositionYaml? position               { get; set; }
         public int    solarSystemID            { get; set; }
         public int    typeID                   { get; set; }
         public int    ownerID                  { get; set; }
