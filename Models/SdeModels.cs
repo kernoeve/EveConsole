@@ -337,7 +337,41 @@ public class SdeNpcCorporation
     public int    CorporationId { get; set; }
     public string Name         { get; set; } = "";
     public int?   FactionId    { get; set; }
+
+    // ⚠️ npcCorporations.yaml carries thirty-two fields and the import used to read three, so
+    // none of the below reached the database and the NPC entity page could not show them.
+
+    /// <summary>⚠️ Where the corporation is BASED, which is not one of the stations it owns. A
+    /// militia corporation owns none and still has one: Malakim Zealots are headquartered in an
+    /// Archangels station.</summary>
+    public int?   StationId    { get; set; }
+    public int?   SolarSystemId { get; set; }
+
+    public string Ticker      { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int?   CeoId       { get; set; }
+    public double TaxRate     { get; set; }
+
+    /// <summary>Single letters in the SDE — T, S, M, L, H for size; C, L, N, G, R for extent.</summary>
+    public string Size        { get; set; } = "";
+    public string Extent      { get; set; } = "";
+
+    public int?   MemberLimit { get; set; }
+
+    /// <summary>What it takes to join: the security status floor and the standing floor. The
+    /// pirate militias read -10.0 and 0 respectively.</summary>
+    public double MinSecurity         { get; set; }
+    public int?   MinimumJoinStanding { get; set; }
+
+    public int?   EnemyId    { get; set; }
+    public int?   FriendId   { get; set; }
+    public int?   RaceId     { get; set; }
+    public int?   IconId     { get; set; }
+    public int?   MainActivityId      { get; set; }
+    public int?   SecondaryActivityId { get; set; }
+    public bool   Deleted    { get; set; }
 }
+
 
 public class SdeRace
 {

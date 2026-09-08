@@ -60,6 +60,63 @@ public static class PostgresSchema
     [
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // npcCorporations.yaml has thirty-two fields; the import read three. These are the rest
+        // of the ones worth having, and every existing database needs them added by hand.
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "StationId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "SolarSystemId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Ticker" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "CeoId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "TaxRate" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Size" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Extent" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MemberLimit" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MinSecurity" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MinimumJoinStanding" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "EnemyId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "FriendId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "RaceId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MainActivityId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "SecondaryActivityId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Deleted" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+
         """
         CREATE TABLE IF NOT EXISTS "EsiNpcCorpProfiles" (
             "CorporationId" BIGINT PRIMARY KEY,

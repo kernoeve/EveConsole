@@ -1198,7 +1198,30 @@ public class SdeImportService
         Report(p, "NPC Corporations", "Parsing…", 0.91);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, NpcCorpYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeNpcCorporation { CorporationId = kv.Key, Name = kv.Value.nameID?.en ?? kv.Value.name?.en ?? "", FactionId = kv.Value.factionID });
+        var rows = raw.Select(kv => new SdeNpcCorporation
+        {
+            CorporationId = kv.Key,
+            Name          = kv.Value.name?.en ?? "",
+            FactionId     = kv.Value.factionID,
+            StationId     = kv.Value.stationID,
+            SolarSystemId = kv.Value.solarSystemID,
+            Ticker        = kv.Value.tickerName ?? "",
+            Description   = kv.Value.description?.en ?? "",
+            CeoId         = kv.Value.ceoID,
+            TaxRate       = kv.Value.taxRate ?? 0,
+            Size          = kv.Value.size   ?? "",
+            Extent        = kv.Value.extent ?? "",
+            MemberLimit   = kv.Value.memberLimit,
+            MinSecurity   = kv.Value.minSecurity ?? 0,
+            MinimumJoinStanding = kv.Value.minimumJoinStanding,
+            EnemyId       = kv.Value.enemyID,
+            FriendId      = kv.Value.friendID,
+            RaceId        = kv.Value.raceID,
+            IconId        = kv.Value.iconID,
+            MainActivityId      = kv.Value.mainActivityID,
+            SecondaryActivityId = kv.Value.secondaryActivityID,
+            Deleted       = kv.Value.deleted,
+        });
         await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, "NPC Corporations", raw.Count, p, 0.91, 0.93, ct);
     }
 
@@ -1759,9 +1782,26 @@ public class SdeImportService
 
     private class NpcCorpYaml
     {
-        public LocalizedString? name      { get; set; }
-        public LocalizedString? nameID    { get; set; }
-        public int?             factionID { get; set; }
+        public LocalizedString? name        { get; set; }
+        public LocalizedString? description { get; set; }
+        public int?             factionID   { get; set; }
+        public int?             stationID   { get; set; }
+        public int?             solarSystemID { get; set; }
+        public string?          tickerName  { get; set; }
+        public int?             ceoID       { get; set; }
+        public double?          taxRate     { get; set; }
+        public string?          size        { get; set; }
+        public string?          extent      { get; set; }
+        public int?             memberLimit { get; set; }
+        public double?          minSecurity { get; set; }
+        public int?             minimumJoinStanding { get; set; }
+        public int?             enemyID     { get; set; }
+        public int?             friendID    { get; set; }
+        public int?             raceID      { get; set; }
+        public int?             iconID      { get; set; }
+        public int?             mainActivityID      { get; set; }
+        public int?             secondaryActivityID { get; set; }
+        public bool             deleted     { get; set; }
     }
     private class RaceYaml      { public LocalizedString? name { get; set; } public LocalizedString? description { get; set; } }
     private class MetaGroupYaml { public LocalizedString? name { get; set; } }

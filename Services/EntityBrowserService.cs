@@ -1036,19 +1036,30 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                            (SELECT COUNT(*) FROM "EsiLpStoreOffers" o WHERE o."CorporationId" = n."CorporationId") AS "LpOffers",
                            COALESCE((SELECT MAX(l."Points") FROM "EsiLoyaltyPoints" l WHERE l."CorporationId" = n."CorporationId"), 0) AS "LpHeld",
                            COALESCE((SELECT v."IskPerLp" FROM "LpCorpValues" v WHERE v."CorporationId" = n."CorporationId"), 0) AS "IskPerLp",
-                           COALESCE(n."FactionId", 0) AS "FactionId"
+                           COALESCE(n."FactionId", 0) AS "FactionId",
+                           COALESCE(n."Ticker",'') AS "Ticker", COALESCE(n."Description",'') AS "Description",
+                           COALESCE(n."StationId", 0) AS "StationId", COALESCE(hq."Name",'') AS "HqName",
+                           COALESCE(n."TaxRate", 0) AS "TaxRate",
+                           COALESCE(n."MinSecurity", 0) AS "MinSecurity",
+                           COALESCE(n."MinimumJoinStanding", 0) AS "JoinStanding"
                     FROM "SdeNpcCorporations" n
-                    LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
+                    LEFT JOIN "SdeFactions" f  ON f."FactionId" = n."FactionId"
+                    LEFT JOIN "SdeStations"  hq ON hq."StationId" = n."StationId"
                     WHERE n."CorporationId" = @id
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                var p  = await NpcCorpProfileAsync(id, ct);
-                var hq = p is null || p.HomeStationId <= 0 ? null
-                       : await db.SdeStations.AsNoTracking()
-                             .Where(s => s.StationId == p.HomeStationId)
-                             .Select(s => s.Name)
-                             .FirstOrDefaultAsync(ct);
+                var p = await NpcCorpProfileAsync(id, ct);
+
+                var ticker = r.Ticker.Length      > 0 ? r.Ticker      : p?.Ticker      ?? "";
+                var about  = r.Description.Length > 0 ? r.Description : p?.Description ?? "";
+                var hqId   = r.StationId > 0 ? r.StationId : p?.HomeStationId ?? 0;
+                var hqName = r.HqName.Length > 0 ? r.HqName
+                           : hqId <= 0 ? ""
+                           : await db.SdeStations.AsNoTracking()
+                                 .Where(s => s.StationId == hqId).Select(s => s.Name)
+                                 .FirstOrDefaultAsync(ct) ?? "";
+                var tax    = r.TaxRate > 0 ? r.TaxRate : p?.TaxRate ?? 0;
 
                 var facts = new List<EntityFact>
                 {
@@ -1056,20 +1067,24 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
                 };
 
-                if (p is { Ticker.Length: > 0 }) facts.Add(new("Ticker", p.Ticker));
+                if (ticker.Length > 0) facts.Add(new("Ticker", ticker));
 
-                // ⚠️ The headquarters is NOT one of the "Stations" below it, and the two disagreeing
-                // is the normal case rather than a fault. A militia corporation owns no station and
-                // is still based somewhere: Malakim Zealots run out of an Archangels station in
-                // G-0Q86. Both lines answer a question somebody actually asks.
-                if (hq is { Length: > 0 })
-                    facts.Add(new("Headquarters", hq, EntityKind.Station, p!.HomeStationId));
+                // ⚠️ The headquarters is NOT one of the "Stations" beside it, and the two
+                // disagreeing is the normal case rather than a fault. A militia corporation owns
+                // no station and is still based somewhere: Malakim Zealots run out of an
+                // Archangels station in G-0Q86.
+                if (hqName.Length > 0) facts.Add(new("Headquarters", hqName, EntityKind.Station, hqId));
 
                 facts.Add(new("Stations", r.Stations.ToString("N0")));
                 facts.Add(new("Agents",   r.Agents.ToString("N0")));
 
-                if (p is { MemberCount: > 0 }) facts.Add(new("Members",  p.MemberCount.ToString("N0")));
-                if (p is { TaxRate: > 0 })     facts.Add(new("Tax rate", p.TaxRate.ToString("P1")));
+                if (p is { MemberCount: > 0 }) facts.Add(new("Members", p.MemberCount.ToString("N0")));
+                if (tax > 0)                   facts.Add(new("Tax rate", tax.ToString("P1")));
+
+                // What it takes to join — the question anyone reading a militia corporation's page
+                // is actually asking.
+                if (r.JoinStanding != 0 || r.MinSecurity != 0)
+                    facts.Add(new("To join", $"standing {r.JoinStanding:N1}, security {r.MinSecurity:N1} or better"));
 
                 facts.Add(new("LP store",   r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"));
                 facts.Add(new("Your LP",    r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
@@ -1080,7 +1095,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 // The Description tab shows itself as soon as there is one to show.
                 return new EntityDetail(id, r.Name,
                     $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}",
-                    p?.Description ?? "", facts, url);
+                    about, facts, url);
             }
 
             default:
@@ -1241,7 +1256,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                   string Division, string Corporation, string Station, string Faction,
                                   long CorporationId, long FactionId, long StationId);
     private record NpcCorpDetailRaw(string Name, string Faction, int Stations, int Agents,
-                                    int LpOffers, int LpHeld, double IskPerLp, long FactionId);
+                                    int LpOffers, int LpHeld, double IskPerLp, long FactionId,
+                                    string Ticker, string Description, long StationId, string HqName,
+                                    double TaxRate, double MinSecurity, int JoinStanding);
     private record FactionDetailRaw(string Name, string Description, string MilitiaCorp,
                                     string HomeSystem, int Corporations, long MilitiaCorpId,
                                     int HomeSystemId);
