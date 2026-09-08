@@ -21,7 +21,9 @@
           <!-- logo_mark.png, not logo.png: the full logo has the "EVE Console"
                wordmark composited into its bottom eighth, which at 30px is under
                four pixels tall — illegible, and redundant beside the text label
-               to its right. This is the same emblem as the app icon. -->
+               to its right. This is the same emblem as the app icon.
+               logo.png itself is no longer an app resource and lives in media/,
+               since nothing rendered it and Assets/** ships wholesale. -->
           <Image Source="avares://EveConsole/Assets/logo_mark.png"
                  Width="30" Height="30"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
