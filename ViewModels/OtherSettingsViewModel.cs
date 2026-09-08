@@ -11,12 +11,12 @@ public class OtherSettingsViewModel : ReactiveObject
 {
     /// <summary>Sentinel entry in the dropdown; anything not matching a preset selects it
     /// and reveals the free-text box.</summary>
-    public const string CustomOption = "Custom URLâ¦";
+    public const string CustomOption = "Custom URL…";
 
     private readonly UiLinkSettings _settings;
     private bool _loading = true;
 
-    // ââ Appearance ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Appearance ────────────────────────────────────────────────────────────
 
     public IReadOnlyList<ThemeChoice> Themes { get; } = ThemeService.All;
 

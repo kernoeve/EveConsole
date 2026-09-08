@@ -15,7 +15,7 @@ public enum HaulReason { Unblocking, Restock, Refine, Surplus }
 /// changed, so this is the planner's own working shown.</para>
 /// </summary>
 /// <param name="OrderJobs">Materials for builds a customer order is waiting on.</param>
-/// <param name="Jobs">Materials for builds nothing is waiting on â restocking production.</param>
+/// <param name="Jobs">Materials for builds nothing is waiting on — restocking production.</param>
 /// <param name="InventoryLevels">The share of job demand that traces back to a stock target
 /// rather than to an order.</param>
 /// <param name="StationLevels">What a station level says should sit here regardless of jobs.</param>
@@ -23,9 +23,9 @@ public enum HaulReason { Unblocking, Restock, Refine, Surplus }
 /// One reason a station wants something: what is being made, and how much of this material it
 /// eats.
 ///
-/// <para><b>â ï¸ The driver is the product, not a queued EVE job.</b> Nothing here has been started
-/// â these are builds the worklist is suggesting â so the thing to name is what would be made.
-/// A row saying "Nidhoggur Ã2 needs 1,200,000 Tritanium" answers the question people actually ask
+/// <para><b>⚠️ The driver is the product, not a queued EVE job.</b> Nothing here has been started
+/// — these are builds the worklist is suggesting — so the thing to name is what would be made.
+/// A row saying "Nidhoggur ×2 needs 1,200,000 Tritanium" answers the question people actually ask
 /// of a need, which is not "how much" but "what for".</para>
 /// </summary>
 /// <param name="Kind">What sort of demand: a build, an invention, a blueprint the job needs
@@ -41,7 +41,7 @@ public sealed record NeedDriver(
     /// no product behind it.</summary>
     public string Label => DriverTypeId <= 0
         ? Kind
-        : Units > 1 ? $"{DriverName} Ã{Units:N0}" : DriverName;
+        : Units > 1 ? $"{DriverName} ×{Units:N0}" : DriverName;
 }
 
 public sealed record StationNeed(
@@ -67,7 +67,7 @@ public sealed record StationNeed(
     public long Total     => OrderJobs + Jobs + InventoryLevels + StationLevels;
 
     /// <summary>
-    /// â ï¸ Against what is HERE, and deliberately not against what is being built.
+    /// ⚠️ Against what is HERE, and deliberately not against what is being built.
     ///
     /// <para>Station Needs answers "what does this station hold against what it wants", and a job
     /// three days from delivering does not fill a hangar today.</para>
@@ -75,11 +75,11 @@ public sealed record StationNeed(
     public long Shortfall => Math.Max(0, Total - OnHand);
 
     /// <summary>
-    /// â ï¸ The same gap with production counted, which is the question the Item Needs tab asks.
+    /// ⚠️ The same gap with production counted, which is the question the Item Needs tab asks.
     ///
     /// <para>Titanium Carbide sat 16 million below its target with 19 million already in the
     /// reactors: short by the station's reckoning, and not actually short at all. Reading the one
-    /// number as the other is how a satisfied item looks like a crisis â and why no job was raised
+    /// number as the other is how a satisfied item looks like a crisis — and why no job was raised
     /// for it, correctly.</para>
     /// </summary>
     public long ShortAfterBuild => Math.Max(0, Total - OnHand - InBuild);
@@ -97,7 +97,7 @@ public sealed record StationNeed(
 /// diagnosis, not work. This turns it into the trip that fixes it.</para>
 ///
 /// <para><b>One task per pair of stations.</b> A hauler flying from Jita to ZD1-Z2 carries
-/// everything ZD1-Z2 needs from Jita, so the task lists items rather than being one task each â
+/// everything ZD1-Z2 needs from Jita, so the task lists items rather than being one task each —
 /// twenty rows for one round trip would be twenty times the reading for the same flying. Volume
 /// is deliberately ignored: how many trips it takes is the hauler's problem, and splitting by
 /// capacity would guess at ships and rigs the tool knows nothing about.</para>
@@ -105,7 +105,7 @@ public sealed record StationNeed(
 /// <para><b>A task is worth its best cargo.</b> If any part of a run unblocks a job, the whole
 /// run carries that urgency even when the rest is routine restocking. The trip happens once.</para>
 ///
-/// <para>Sources are ranked by distance â same system first, then gates â and a station is never
+/// <para>Sources are ranked by distance — same system first, then gates — and a station is never
 /// drawn below what it needs itself, so filling one structure cannot empty another.</para>
 /// </summary>
 public class LogisticsGenerator(
@@ -180,13 +180,13 @@ public class LogisticsGenerator(
         moves.AddRange(SurplusMoves(await SurplusHomesAsync(db, ct), want, stock));
 
         // Named from the moves themselves, not from the demand that produced most of them.
-        // Surplus exists precisely where nothing is wanted, so its types are never in `want` â
+        // Surplus exists precisely where nothing is wanted, so its types are never in `want` —
         // and a run mixing restocking with surplus takes the restock label while listing the
         // surplus items as bare type ids.
         var names = await NamesAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
 
-        // â ï¸ Drivers travel with the moves now. They are what the row's own tooltip means by
-        // "Jobs are waiting on this" â the builds that asked for the material â and without them
+        // ⚠️ Drivers travel with the moves now. They are what the row's own tooltip means by
+        // "Jobs are waiting on this" — the builds that asked for the material — and without them
         // the expansion could only list stopped worklist ROWS, which is a narrower set: a planned
         // build that has not become a row of its own asked for the haul and then did not appear
         // in the panel explaining it.
@@ -198,7 +198,7 @@ public class LogisticsGenerator(
     }
 
     /// <summary>
-    /// What every station wants and what it already holds â the input both the hauling plan and
+    /// What every station wants and what it already holds — the input both the hauling plan and
     /// the needs report are built from, gathered once here so neither can drift from the other.
     /// </summary>
     private async Task<(Dictionary<(long Station, int TypeId), Want> Want,
@@ -228,7 +228,7 @@ public class LogisticsGenerator(
                 .ToListAsync(ct))
             .Where(a => !wrapped.Contains(a.ItemId))
             // Every personal asset, whoever holds it. The scope is the player's own property, and
-            // which characters are set up to run jobs says nothing about what they own â filtering
+            // which characters are set up to run jobs says nothing about what they own — filtering
             // personal stock to the industry list hid 8,985 of 11,624 rows, including blueprints
             // bought by the trading alt and waiting in Jita to be moved.
             //
@@ -259,8 +259,8 @@ public class LogisticsGenerator(
             if (station <= 0 || qty <= 0) return;
             var key = (station, typeId);
 
-            // â ï¸ Kept alongside the running total, not derived from it afterwards. By the time a
-            // want is a number the job that asked for it is gone â the totals are what the
+            // ⚠️ Kept alongside the running total, not derived from it afterwards. By the time a
+            // want is a number the job that asked for it is gone — the totals are what the
             // hauling plan plans from, and a total cannot say who wanted it. Recorded here, at
             // the one place every demand passes through, or not at all.
             if (driverKind.Length > 0)
@@ -287,7 +287,7 @@ public class LogisticsGenerator(
         var meMap     = IndustryBlueprintService.BestMeByProduct(allPrints, ctx.BlueprintByProduct, owned);
 
         // Prints the blueprints table does not list but assets do. Without them a copy sitting in
-        // a structure that table omits is invisible here, so no move is ever raised for it â the
+        // a structure that table omits is invisible here, so no move is ever raised for it — the
         // job stays blocked for want of a print the player already owns and could simply carry.
         var printsInAssets = await blueprints.OwnedInAssetsAsync(
             ctx.BlueprintByProduct.Values.Select(b => b.TypeId).Distinct().ToList(), owned, ct);
@@ -321,8 +321,8 @@ public class LogisticsGenerator(
 
             var places = await PlaceNamesAsync(db, ct);
 
-            // â ï¸ Driver types too. A need's own type is in `want`, but the thing that ASKED for it
-            // usually is not â nobody hauls a Nidhoggur to the station that is building one â so
+            // ⚠️ Driver types too. A need's own type is in `want`, but the thing that ASKED for it
+            // usually is not — nobody hauls a Nidhoggur to the station that is building one — so
             // naming only the wanted types left every driver reading as a bare id.
             var typeIds = want.Keys.Select(k => k.TypeId)
                 .Concat(drivers.Values.SelectMany(l => l).Select(d => d.DriverTypeId))
@@ -331,11 +331,11 @@ public class LogisticsGenerator(
             var (prices, volumes) = await PriceAndVolumeAsync(db, typeIds, ct);
             // Units already coming out of a running job, by where that job delivers.
             //
-            // â ï¸ Keyed on FacilityId, not summed per type. Item Needs groups stations under an
+            // ⚠️ Keyed on FacilityId, not summed per type. Item Needs groups stations under an
             // item, so a type-wide figure repeated on every row would multiply itself down the
             // group; attributed to the structure the job runs in, the rows add up.
             //
-            // â ï¸ Runs Ã output-per-run, not runs. A reaction formula returns 10,000 units a run,
+            // ⚠️ Runs × output-per-run, not runs. A reaction formula returns 10,000 units a run,
             // so counting runs would report 1,891 units in build where 18,910,000 are.
             var activeJobs = await db.EsiIndustryJobs.AsNoTracking()
                 .Where(j => j.Status == "active" && j.ProductTypeId != null && j.FacilityId > 0)
@@ -349,8 +349,8 @@ public class LogisticsGenerator(
                 .GroupBy(p => (p.TypeId, p.ProductTypeId))
                 .ToDictionary(g => g.Key, g => Math.Max(1, g.First().Quantity));
 
-            // â ï¸ Per TYPE, not per facility. A job delivers where it runs, and the station that
-            // WANTS the material is usually a different one â Titanium Carbide is reacted at the
+            // ⚠️ Per TYPE, not per facility. A job delivers where it runs, and the station that
+            // WANTS the material is usually a different one — Titanium Carbide is reacted at the
             // Reactor and consumed at T2 Adv component-Ammo, so keying on the job's facility
             // matched nothing and the column read blank against 18.9 million units in the ovens.
             // Only items made and consumed in the same structure ever lined up, which is why
@@ -362,7 +362,7 @@ public class LogisticsGenerator(
                     g => g.Sum(j => (long)j.Runs
                                   * perRun.GetValueOrDefault((j.BlueprintTypeId, j.ProductTypeId), 1)));
 
-            // â ï¸ Then shared out across that type's station rows, in proportion to how short each
+            // ⚠️ Then shared out across that type's station rows, in proportion to how short each
             // one is. Item Needs groups stations under an item, so the type's whole figure repeated
             // on every row would multiply itself down the group; apportioned, the rows still add up
             // to what is actually being made.
@@ -462,7 +462,7 @@ public class LogisticsGenerator(
     /// <summary>One item moving between two stations.</summary>
     private sealed record Move(long From, long To, int TypeId, long Qty, HaulReason Reason, int Priority = 0);
 
-    // ââ Demand ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Demand ────────────────────────────────────────────────────────────────
 
     /// <summary>
     /// What the jobs planned at each park facility will consume there.
@@ -532,7 +532,7 @@ public class LogisticsGenerator(
 
             // The print is a precondition exactly as the materials are, so it is wanted here on
             // the same terms and rides the same hauling run. It is absent from root.Materials
-            // because a job consumes none of it â but a job with every input present and no
+            // because a job consumes none of it — but a job with every input present and no
             // blueprint is just as stuck, and nothing else in the tool would ever move one.
             //
             // In practice this is quiet: a print normally already sits at the structure that
@@ -554,7 +554,7 @@ public class LogisticsGenerator(
     ///
     /// <para>Registered here rather than in the invention generator because hauling is decided in
     /// one place. Without it the invention jobs sit permanently Blocked on datacores that nothing
-    /// ever moves or buys â the tool would name the problem and never route round it, which is
+    /// ever moves or buys — the tool would name the problem and never route round it, which is
     /// precisely the failure the worklist exists to prevent.</para>
     ///
     /// <para>The batch size is not worked out again here. It comes from the same
@@ -600,7 +600,7 @@ public class LogisticsGenerator(
             }
 
             // Source copies are wanted at the lab in their own right. One per concurrent job,
-            // since a copy is locked while its invention job runs â the same rule that governs
+            // since a copy is locked while its invention job runs — the same rule that governs
             // manufacturing prints, and the reason a batch cannot all run at once off one copy.
             var copies = PrintsWanted(allPrints, owned, printsInAssets,
                 new SdeBlueprintProduct
@@ -631,7 +631,7 @@ public class LogisticsGenerator(
     /// so a shortfall wanting more runs than one copy carries needs one copy per job.</para>
     ///
     /// <para>Zero when the player owns none. There is nothing to haul, and acquiring it is
-    /// Material Purchases' business â asking for a move of something that does not exist would
+    /// Material Purchases' business — asking for a move of something that does not exist would
     /// put an impossible task on the list beside the purchase that fixes it.</para>
     /// </summary>
     private static long PrintsWanted(
@@ -641,9 +641,9 @@ public class LogisticsGenerator(
     {
         var mine = allPrints.Where(p => p.TypeId == bpProd.TypeId && owned.Owns(p)).ToList();
 
-        // â ï¸ Assets are the fallback, not an addition. The blueprints table does not cover every
+        // ⚠️ Assets are the fallback, not an addition. The blueprints table does not cover every
         // structure the assets table does, so a copy there reads as owning none and no move is
-        // ever raised â the job sits blocked for a print already in a hangar. Counted at one run
+        // ever raised — the job sits blocked for a print already in a hangar. Counted at one run
         // apiece because an asset row carries no run count: the conservative reading, which asks
         // for the copies rather than assuming one of them covers the batch.
         if (mine.Count == 0)
@@ -669,12 +669,12 @@ public class LogisticsGenerator(
     /// <summary>
     /// Station levels: keep this group's stock at this station.
     ///
-    /// <para>The station is the scope, whatever scope the group itself carries â the row exists
+    /// <para>The station is the scope, whatever scope the group itself carries — the row exists
     /// to say "here", so counting stock elsewhere against it would defeat the point.</para>
     /// </summary>
     /// <para>The level itself is registered, not the shortfall against it. Everything in
-    /// <c>want</c> means "the total this station should hold" â a job registers what it consumes,
-    /// not what it is missing â and the spare calculation subtracts it from stock to decide what
+    /// <c>want</c> means "the total this station should hold" — a job registers what it consumes,
+    /// not what it is missing — and the spare calculation subtracts it from stock to decide what
     /// may be taken away. Registering a gap here broke that in both directions: a station already
     /// at its level registered nothing, so all of its stock read as spare and got hauled off, and
     /// one below its level registered only the difference, so part of what it did have could be
@@ -688,7 +688,7 @@ public class LogisticsGenerator(
 
         var groupIds = levels.Select(l => l.GroupId).Distinct().ToList();
 
-        // The multiplier is part of the target everywhere else it is read â see InvRuleShortfall â
+        // The multiplier is part of the target everywhere else it is read — see InvRuleShortfall —
         // so a group set to keep two of everything keeps two here too.
         var multipliers = await db.InvLevelGroups.AsNoTracking()
             .Where(g => groupIds.Contains(g.Id))
@@ -716,7 +716,7 @@ public class LogisticsGenerator(
     /// <summary>
     /// Ore, ice and gas sitting anywhere but the facility that processes it.
     ///
-    /// <para>Modelled as moves rather than as a need, because the quantity is whatever exists â
+    /// <para>Modelled as moves rather than as a need, because the quantity is whatever exists —
     /// a refinery does not want "200,000 Veldspar", it wants all of it. Moon ore is separated
     /// from asteroid ore by group, since the rigs are separate and so is the park assignment.</para>
     /// </summary>
@@ -724,7 +724,7 @@ public class LogisticsGenerator(
         AppDbContext db, ProductionContext ctx, int parkId,
         Dictionary<(long Station, int TypeId), long> stock, CancellationToken ct)
     {
-        // â ï¸ Shared with RefiningGenerator, which raises the task once this haul has landed. Two
+        // ⚠️ Shared with RefiningGenerator, which raises the task once this haul has landed. Two
         // copies of the routing could disagree, and the failure would be silent: material hauled
         // to a facility the other generator never looks at, sitting there with nothing ever saying
         // to process it.
@@ -755,11 +755,11 @@ public class LogisticsGenerator(
         return moves;
     }
 
-    // Routing, and where the park does each kind of processing, live in RefiningRoutes â shared
+    // Routing, and where the park does each kind of processing, live in RefiningRoutes — shared
     // with RefiningGenerator so the haul and the task that follows it cannot disagree.
 
 
-    // ââ Matching ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Matching ──────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Fills each station's wants from the nearest station that can spare the material.
@@ -794,8 +794,8 @@ public class LogisticsGenerator(
         //
         // The cost the player actually pays is a trip, not a unit. Once a run from A to B exists,
         // putting the next item on it is free, while sourcing that item from C makes a second
-        // trip for the same errand. Wants are walked destination by destination â the ordering
-        // below guarantees it â so this only has to remember the current one.
+        // trip for the same errand. Wants are walked destination by destination — the ordering
+        // below guarantees it — so this only has to remember the current one.
         var suppliers = new HashSet<long>();
         long currentDest = 0;
 
@@ -805,8 +805,8 @@ public class LogisticsGenerator(
         // it decides who gets scarce stock by which structure happens to have the smaller number:
         // 460 Capital Ship Maintenance Bays existed, two sites wanted 1,190 between them, and the
         // lower-id site took 299 to fill itself while the site building a customer's Avatar got
-        // the 161 left over. Priority already encodes what matters â the Avatar's materials carry
-        // the order's own rank â and it was simply not being consulted.
+        // the 161 left over. Priority already encodes what matters — the Avatar's materials carry
+        // the order's own rank — and it was simply not being consulted.
         //
         // Ranked per destination rather than per want, because the loop must still visit a
         // destination's wants together: the supplier-reuse rule below assumes it, and interleaving
@@ -849,7 +849,7 @@ public class LogisticsGenerator(
             //    of them being nearest changes nothing about that.
             // 2. Then one already sending something else to this destination, so the item rides
             //    a run that is happening anyway instead of starting another.
-            // 3. Then distance, then indifference â between two equal sources take from the one
+            // 3. Then distance, then indifference — between two equal sources take from the one
             //    with no use for the item rather than one holding it to a level, since the second
             //    is only spare until its own consumption catches up and the next refresh would
             //    ask for it back.
@@ -877,7 +877,7 @@ public class LogisticsGenerator(
         return moves;
     }
 
-    /// <summary>Gate distance, with unreachable sources sorted last rather than dropped â a long
+    /// <summary>Gate distance, with unreachable sources sorted last rather than dropped — a long
     /// haul is still an answer, and pretending the material is not there is not.</summary>
     private static int Distance(
         Dictionary<int, int> distances, Dictionary<long, int> systems, long station)
@@ -965,7 +965,7 @@ public class LogisticsGenerator(
         return homes;
     }
 
-    // ââ Output ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Output ────────────────────────────────────────────────────────────────
 
     private List<WorklistItem> Tasks(
         List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places,
@@ -989,10 +989,10 @@ public class LogisticsGenerator(
             var to   = places.GetValueOrDefault(run.Key.To,   $"Location {run.Key.To}");
 
             // What asked for this cargo at the destination. The planner recorded it when the need
-            // was raised â see the note on Need â because by the time a want is a number the build
+            // was raised — see the note on Need — because by the time a want is a number the build
             // that asked for it is gone, and a total cannot say who wanted it.
             //
-            // â ï¸ Products, not worklist rows. A driver is a build the worklist is SUGGESTING; it
+            // ⚠️ Products, not worklist rows. A driver is a build the worklist is SUGGESTING; it
             // may never have become a row of its own, which is exactly the case the expansion was
             // silent about. WorklistService replaces any of these it can match to a real stopped
             // job, because that one can say whether this load actually starts it.
@@ -1067,7 +1067,7 @@ public class LogisticsGenerator(
         return dash > 0 ? place[(dash + 3)..] : place;
     }
 
-    // ââ Lookups âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Lookups ───────────────────────────────────────────────────────────────
 
     private async Task<HashSet<long>?> ScopeAsync(AppDbContext db, CancellationToken ct)
     {
@@ -1123,7 +1123,7 @@ public class LogisticsGenerator(
                      .Select(s => new { s.StructureId, s.Name }).ToListAsync(ct))
             map[s.StructureId] = s.Name;
 
-        // Anything in space â an anchored container, a ship left on grid â roots to the system
+        // Anything in space — an anchored container, a ship left on grid — roots to the system
         // rather than a station. Saying "in space" beats printing a bare id, and it tells the
         // reader why the pickup has no station name.
         foreach (var s in await db.SdeSolarSystems.AsNoTracking()
