@@ -60,6 +60,19 @@ public static class PostgresSchema
     [
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // Where each structure and rig industry bonus actually comes from, which the app has been
+        // inferring from rig description text instead.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeIndustryModifierSources" (
+            "TypeId"           INTEGER NOT NULL,
+            "Activity"         TEXT    NOT NULL,
+            "BonusKind"        TEXT    NOT NULL,
+            "DogmaAttributeId" INTEGER NOT NULL,
+            "FilterId"         INTEGER NULL,
+            PRIMARY KEY ("TypeId", "Activity", "BonusKind", "DogmaAttributeId")
+        )
+        """,
+
         // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
         // figure, which is 115,000 against 10,000 for a Vexor.
         """

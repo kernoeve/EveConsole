@@ -109,6 +109,7 @@ public class SdeImportService
             await ImportAgentsAsync(archive, fsdRoot, db, progress, ct);
             await ImportFactionsAsync(archive, fsdRoot, db, progress, ct);
             await ImportNpcCorporationsAsync(archive, fsdRoot, db, progress, ct);
+            await ImportIndustryModifierSourcesAsync(archive, fsdRoot, db, progress, ct);
             await ImportRacesAsync(archive, fsdRoot, db, progress, ct);
             await ImportMetaGroupsAsync(archive, fsdRoot, db, progress, ct);
             await ImportCertificatesAsync(archive, fsdRoot, db, progress, ct);
@@ -1234,6 +1235,41 @@ public class SdeImportService
         await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, "NPC Corporations", raw.Count, p, 0.91, 0.93, ct);
     }
 
+    /// <summary>
+    /// Which dogma attribute carries each structure or rig industry bonus.
+    ///
+    /// <para>⚠️ Flattened on the way in. The file nests type → activity → kind → a list of
+    /// attributes, which is four levels of dictionary and awkward to query; one row per attribute
+    /// is the same information and joins to typeDogma directly.</para>
+    /// </summary>
+    private async Task ImportIndustryModifierSourcesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}industryModifierSources.yaml");
+        if (entry is null) { Report(p, "Industry Modifiers", "NOT FOUND in ZIP — skipped", 0.93); return; }
+        Report(p, "Industry Modifiers", "Parsing…", 0.93);
+
+        using var reader = OpenEntry(entry);
+        var raw = _yaml.Deserialize<Dictionary<int, Dictionary<string, Dictionary<string, List<IndustryModifierYaml>>>>>(reader) ?? [];
+
+        var rows = raw.SelectMany(type => type.Value
+            .SelectMany(activity => activity.Value
+                .SelectMany(kind => kind.Value.Select(mod => new SdeIndustryModifierSource
+                {
+                    TypeId           = type.Key,
+                    Activity         = activity.Key,
+                    BonusKind        = kind.Key,
+                    DogmaAttributeId = mod.dogmaAttributeID,
+                    FilterId         = mod.filterID,
+                }))))
+            // One type can name the same attribute twice under different filters; the key cannot
+            // carry both, and the narrower one is the one worth keeping.
+            .GroupBy(r => (r.TypeId, r.Activity, r.BonusKind, r.DogmaAttributeId))
+            .Select(g => g.OrderByDescending(r => r.FilterId ?? 0).First());
+
+        await SaveBatchesAsync(db, db.SdeIndustryModifierSources, rows, "Industry Modifiers", raw.Count, p, 0.93, 0.94, ct);
+    }
+
     private async Task ImportRacesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
@@ -1796,6 +1832,12 @@ public class SdeImportService
         public int?             corporationID        { get; set; }
         public int?             militiaCorporationID { get; set; }
         public int?             solarSystemID        { get; set; }
+    }
+
+    private class IndustryModifierYaml
+    {
+        public int  dogmaAttributeID { get; set; }
+        public int? filterID         { get; set; }
     }
 
     private class NpcCorpYaml

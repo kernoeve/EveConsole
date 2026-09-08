@@ -174,6 +174,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeStationOperationService> SdeStationOperationServices => Set<SdeStationOperationService>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
+    public DbSet<SdeIndustryModifierSource> SdeIndustryModifierSources => Set<SdeIndustryModifierSource>();
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
     public DbSet<SdeMetaGroup>          SdeMetaGroups          => Set<SdeMetaGroup>();
     public DbSet<SdeCertificate>        SdeCertificates        => Set<SdeCertificate>();
@@ -492,6 +493,10 @@ public class AppDbContext : DbContext
         mb.Entity<SdeFaction>(e => {
             e.HasKey(x => x.FactionId);
             e.Property(x => x.FactionId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeIndustryModifierSource>(e => {
+            e.HasKey(x => new { x.TypeId, x.Activity, x.BonusKind, x.DogmaAttributeId });
+            e.ToTable("SdeIndustryModifierSources"); });
 
         mb.Entity<SdeNpcCorporation>(e => {
             e.HasKey(x => x.CorporationId);

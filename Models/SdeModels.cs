@@ -393,6 +393,34 @@ public class SdeNpcCorporation
 }
 
 
+/// <summary>
+/// Where a structure or rig's industry bonus comes from: which dogma attribute carries it, for
+/// which activity, and which filter decides what it applies to.
+///
+/// <para>⚠️ This is the data behind rig bonuses, and the app has been reading rig DESCRIPTION TEXT
+/// to work the same thing out — "battleships, freighters and industrial command ships" parsed out
+/// of prose, in three places. This table plus typeDogma is the answer without the guesswork.</para>
+///
+/// <para>One row per attribute: a type has an entry per activity (manufacturing, copying,
+/// invention, researchTime, researchMaterial, reaction) and per kind of bonus within it (cost,
+/// time, material).</para>
+/// </summary>
+public class SdeIndustryModifierSource
+{
+    public int    TypeId           { get; set; }
+
+    /// <summary>manufacturing, copying, invention, researchTime, researchMaterial, reaction.</summary>
+    public string Activity         { get; set; } = "";
+
+    /// <summary>cost, time or material.</summary>
+    public string BonusKind        { get; set; } = "";
+
+    public int    DogmaAttributeId { get; set; }
+
+    /// <summary>Which target filter narrows what the bonus applies to, where one does.</summary>
+    public int?   FilterId         { get; set; }
+}
+
 public class SdeRace
 {
     public int    RaceId      { get; set; }
