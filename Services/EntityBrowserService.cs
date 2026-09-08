@@ -544,6 +544,22 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     }
 
     /// <summary>Stations an NPC corporation owns.</summary>
+
+    /// <summary>
+    /// The faction this corporation is the militia for, if it is one.
+    ///
+    /// <para>Asked only when a corporation turns out to own no stations, to tell the two cases
+    /// apart: a gap in the data, and a corporation that correctly has none.</para>
+    /// </summary>
+    public async Task<string?> MilitiaFactionAsync(long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.SdeFactions.AsNoTracking()
+            .Where(f => f.MilitiaCorporationId == (int)corpId)
+            .Select(f => f.Name)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<List<EntityStationRow>> NpcCorpStationsAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

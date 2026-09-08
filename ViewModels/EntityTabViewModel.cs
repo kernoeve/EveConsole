@@ -243,6 +243,38 @@ public class EntityTabViewModel : ReactiveObject
     /// panes differ only in their source and their noun, which is not enough to justify a
     /// method each.
     /// </summary>
+    /// <summary>
+    /// The corporation's NPC stations, and the reason when there are none.
+    ///
+    /// <para>⚠️ "No stations found." reads like a fault in the data, and for ten corporations
+    /// running a loyalty store it is the correct answer: a faction's MILITIA corporation has a
+    /// store and owns nowhere to run it from. Malakim Zealots sell the only Azariel blueprint in
+    /// the game and have no station anywhere, which is worth saying rather than leaving as an
+    /// empty grid under a line that sounds like something went wrong.</para>
+    /// </summary>
+    private async Task LoadStationsAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            var rows    = await _service.NpcCorpStationsAsync(id, ct);
+            var militia = rows.Count == 0 ? await _service.MilitiaFactionAsync(id, ct) : null;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Stations.Clear();
+                foreach (var r in rows) Stations.Add(r);
+
+                StationsStatus =
+                    rows.Count > 0  ? $"{rows.Count:N0} station(s)"
+                  : militia is null ? "No stations found."
+                  : $"No stations — this is the {militia} militia corporation, and a militia "
+                    + "loyalty store is not run from one.";
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { StationsStatus = $"Error: {ex.Message}"; }
+    }
+
     private async Task LoadListAsync<T>(ObservableCollection<T> target, Func<Task<List<T>>> load,
                                         Action<string> setStatus, string noun)
     {
@@ -368,8 +400,7 @@ public class EntityTabViewModel : ReactiveObject
             if (HasIntel)   _ = LoadIntelAsync(id, ct);
             if (HasMembers) _ = LoadMembersAsync(id, ct);
             if (HasHistory)  _ = LoadHistoryAsync(id, ct);
-            if (HasStations) _ = LoadListAsync(Stations, () => _service.NpcCorpStationsAsync(id, ct),
-                                               v => StationsStatus = v, "station");
+            if (HasStations) _ = LoadStationsAsync(id, ct);
             if (Kind is EntityKind.NpcCorp or EntityKind.PlayerCorp) _ = LoadOrdersAsync(id, ct);
             if (HasLpOffers) _ = LoadListAsync(LpOffers, () => _service.NpcCorpLpOffersAsync(id, ct),
                                                v => LpOffersStatus = v, "LP offer");
