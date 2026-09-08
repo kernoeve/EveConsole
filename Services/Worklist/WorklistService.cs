@@ -314,7 +314,18 @@ public class WorklistService(
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
 
-        if (unowned.Count == 0) return;
+        // ⚠️ And the same again over EVERY shortage, for the list rather than the ranking.
+        // MustBuy does not mean "nobody owns one" — it means the stock in scope is already
+        // claimed by an earlier job — so a purchase can be raised for a job whose shortage is not
+        // MustBuy at all. The buy for Gel-Matrix Biopaste said "for Programmable Purification
+        // Membrane" in its reason and then listed nothing underneath, because 23,229 sit in
+        // Tenerifis already spoken for. The reader still needs to see whose work it is for.
+        var shortOf = all
+            .SelectMany(x => x.Shortages.Select(h => (Job: x, h.TypeId)))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
+
+        if (shortOf.Count == 0) return;
 
         for (var si = 0; si < sections.Count; si++)
         {
@@ -331,7 +342,7 @@ public class WorklistService(
                     : new Dictionary<int, long> { [buy.TypeId] = buy.Quantity };
 
                 var touched = bought.Keys
-                    .SelectMany(t => unowned.GetValueOrDefault(t, []))
+                .SelectMany(t => shortOf.GetValueOrDefault(t, []))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
@@ -361,7 +372,15 @@ public class WorklistService(
                     .ThenBy(w => w.TypeName)
                     .ToList();
 
-                var freed = waiting.Where(w => w.Unblocked).ToList();
+                // ⚠️ Ranking still comes from the jobs this purchase can actually release on its
+                // own — the ones short of something nobody owns. A buy that merely tops up
+                // material sitting at another station releases nothing by itself; the haul does.
+                var releasable = bought.Keys
+                    .SelectMany(t => unowned.GetValueOrDefault(t, []))
+                    .Select(j => j.Key)
+                    .ToHashSet();
+
+                var freed = waiting.Where(w => w.Unblocked && releasable.Contains(w.Key)).ToList();
 
                 section.Items[n] = buy with
                 {
