@@ -68,19 +68,7 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private static bool IsSelectAll(TextBox box) =>
         (box.FindAncestorOfType<AutoCompleteBox>() as StyledElement ?? box).Classes.Contains("selectall");
 
-    /// <summary>
-    /// Opens and closes the manifest under a haul row.
-    ///
-    /// <para>Done here rather than by binding <see cref="DataGridRow.AreDetailsVisible"/> in a
-    /// style, because the DataGrid writes that property itself as it loads each row, and a local
-    /// write outranks a style setter — the binding would be overwritten on scroll. Setting it on
-    /// the row goes through the grid's own bookkeeping, which is keyed by item index and so
-    /// survives the row being recycled to a different position.</para>
-    ///
-    /// <para>The grid-wide mode stays Collapsed for the same reason the earlier attempt failed
-    /// visibly: <c>Visible</c> attaches a details presenter to every row, which skews the row
-    /// height estimate and paints blank bands into the middle of the list while scrolling.</para>
-    /// </summary>
+    /// <summary>The station a haul is bound for.</summary>
     private void OnOpenLocation(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenLocation();
 
@@ -114,20 +102,15 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenShortageItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as ItemShortageRowVm)?.Open();
 
-    /// <summary>Opens and closes the "asked for by" panel under a need. Same mechanism as the
+    /// <summary>Opens the "asked for by" panel over a need. Same mechanism as the
     /// haul manifest above, and for the same reasons — see OnManifestToggle.</summary>
     private void OnNeedToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not StationNeedRowVm vm || !vm.HasDrivers) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: StationNeedRowVm { HasDrivers: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
-    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the two toggles
-    /// above it — the glyph lives on the item so it survives row recycling.</summary>
+    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the toggles above it.</summary>
     /// <summary>
     /// Opens the tasks behind a contention row's counts.
     ///
@@ -144,23 +127,15 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     /// <summary>Opens the tasks behind a BPO / Formula row's counts.</summary>
     private void OnPrintToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not PrintPressureRowVm vm || !vm.HasTasks) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: PrintPressureRowVm { HasTasks: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
     /// <summary>Opens the tasks behind a Hauling row's counts.</summary>
     private void OnHaulToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not HaulPressureRowVm vm || !vm.HasTasks) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: HaulPressureRowVm { HasTasks: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
     private void OnOpenHaulItem(object? sender, RoutedEventArgs e)
@@ -174,36 +149,18 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     }
 
     /// <summary>
-    /// Restores a row's expanded state as the grid virtualises it back into view.
+    /// Opens and closes the manifest under a haul row.
     ///
-    /// <para>⚠️ LoadingRow, not a style binding. The note on OnManifestToggle is right that a style
-    /// setter loses to the local write the DataGrid makes itself — but it also assumed the grid's
-    /// own bookkeeping carries the details flag across recycling, and the symptom says otherwise:
-    /// scrolling UP through expanded rows sticks and flickers on every grid here, whatever the
-    /// details contain and however tall they are. Upward scrolling is where rows are recycled into
-    /// positions they did not previously hold, so a row arriving with the wrong details state
-    /// measures the wrong height and the offset is corrected after the fact.</para>
+    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else. What opens is a Popup bound to
+    /// that flag, not RowDetails — a drawer inside the row is what made rows wildly different
+    /// heights, and that is the whole reason scrolling up used to stick and jump. The note beside
+    /// the Popup in the XAML carries the mechanism; tools/gridsim carries the measurements.</para>
     ///
-    /// <para>This is the supported place to put it: the grid raises LoadingRow after attaching the
-    /// item and before measuring, so the state is right the first time rather than corrected.</para>
+    /// <para>⚠️ The flag lives on the item rather than the row because the grid recycles rows: one
+    /// keyed to the row would open against whatever item landed in it next.</para>
     /// </summary>
-    private void OnRowLoading(object? sender, DataGridRowEventArgs e)
-    {
-        if (e.Row.DataContext is IExpandableRow row && e.Row.AreDetailsVisible != row.IsExpanded)
-            e.Row.AreDetailsVisible = row.IsExpanded;
-    }
-
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
-
-
-
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-
-        // The glyph lives on the item so it stays correct when the row is recycled.
-        if (row.DataContext is WorklistRowVm vm) vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: WorklistRowVm vm }) vm.IsExpanded = !vm.IsExpanded;
     }
 }
