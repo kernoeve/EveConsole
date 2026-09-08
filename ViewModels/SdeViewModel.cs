@@ -11,6 +11,16 @@ public class SdeViewModel : ReactiveObject
 {
     private readonly SdeImportService  _sde;
     private readonly HoboImportService _hobo;
+    /// <summary>
+    /// ⚠️ Long-lived: created once for the window and never replaced, so its change tracker
+    /// outlives every import. Read through <c>AsNoTracking()</c> only.
+    ///
+    /// <para>FindAsync answers from the tracker BEFORE it touches the database, so the first read
+    /// of SdeBuildInfos pinned the values this screen showed for the life of the process. An
+    /// import writes through its own scope and context, which this one never hears about — so the
+    /// loaded build and Hoboleaks revision went on reporting whatever was true at startup, and
+    /// only a restart appeared to fix it.</para>
+    /// </summary>
     private readonly AppDbContext      _db;
 
     // ── SDE state ─────────────────────────────────────────────────────────
@@ -139,7 +149,7 @@ public class SdeViewModel : ReactiveObject
 
             LatestBuild = FormatBuild(latest.BuildNumber, latest.ReleaseDate);
 
-            var stored = await _db.SdeBuildInfos.FindAsync(1);
+            var stored = await _db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
             UpdateAvailable = stored is null || stored.BuildNumber != latest.BuildNumber;
 
             // Only here, where a real build number came back and was compared against ours.
@@ -173,7 +183,7 @@ public class SdeViewModel : ReactiveObject
 
             HoboLatest = $"revision {meta.Revision:N0}";
 
-            var stored = await _db.HoboBuildInfos.FindAsync(1);
+            var stored = await _db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
             HoboUpdateAvailable = stored is null
                 || (stored.Revision > 0 && stored.Revision != meta.Revision);
         }
@@ -187,7 +197,7 @@ public class SdeViewModel : ReactiveObject
 
     private async Task LoadStoredBuildAsync()
     {
-        var info = await _db.SdeBuildInfos.FindAsync(1);
+        var info = await _db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
         LoadedBuild = info is null
             ? "not imported"
             : FormatBuild(info.BuildNumber, info.ReleaseDate);
@@ -198,7 +208,7 @@ public class SdeViewModel : ReactiveObject
 
     private async Task LoadHoboInfoAsync()
     {
-        var info = await _db.HoboBuildInfos.FindAsync(1);
+        var info = await _db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
 
         // ⚠️ Revision 0 means "imported before the app recorded one", not "revision zero". Saying
         // that is better than printing a number nobody wrote.
@@ -216,7 +226,7 @@ public class SdeViewModel : ReactiveObject
 
     // True once the SDE has been imported at least once.
     public async Task<bool> IsSdeImportedAsync()
-        => await _db.SdeBuildInfos.FindAsync(1) is not null;
+        => await _db.SdeBuildInfos.AsNoTracking().AnyAsync(x => x.Id == 1);
 
     // Runs the SDE import followed by the Hoboleaks import, back to back. Used to
     // populate game data automatically the first time the application is launched.
