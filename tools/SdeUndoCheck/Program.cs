@@ -61,7 +61,7 @@ Console.WriteLine("Rollback:");
     using var db = new AppDbContext(opts);
     await SeedAsync(db, "OLD");
 
-    var undo = await SdeUndo.CreateAsync(db, Tables(db), progress, default);
+    var undo = await BulkImportUndo.CreateAsync(db, "sde", Tables(db), (_, _, _) => { }, default);
     Check("backup file exists once the copy is taken", File.Exists(bakPath));
 
     // The import's wipe, committed immediately on SQLite.
@@ -100,7 +100,7 @@ Console.WriteLine("Rollback:");
 Console.WriteLine("Commit:");
 {
     using var db = new AppDbContext(opts);
-    var undo = await SdeUndo.CreateAsync(db, Tables(db), progress, default);
+    var undo = await BulkImportUndo.CreateAsync(db, "sde", Tables(db), (_, _, _) => { }, default);
     foreach (var t in Tables(db))
         await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{t}\"");
     await SeedAsync(db, "NEW");
@@ -119,7 +119,7 @@ Console.WriteLine("Exception path (dispose without commit or rollback):");
     using var db = new AppDbContext(opts);
     await SeedAsync(db, "KEEP");
 
-    var undo = await SdeUndo.CreateAsync(db, Tables(db), progress, default);
+    var undo = await BulkImportUndo.CreateAsync(db, "sde", Tables(db), (_, _, _) => { }, default);
     foreach (var t in Tables(db))
         await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{t}\"");
     await undo.DisposeAsync();          // as `await using` would on the way out of a throw

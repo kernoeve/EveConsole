@@ -291,9 +291,11 @@
               <StackPanel Grid.Row="1" Margin="12 10 12 0" Spacing="4">
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                            Text="Blueprints, reprocessing, compression, and repackaged volumes — updated shortly after each TQ patch, often ahead of the official SDE." />
-                <Grid ColumnDefinitions="80,*" Margin="0 6 0 0">
-                  <TextBlock Grid.Column="0" Text="Status:" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
-                  <TextBlock Grid.Column="1" Text="{Binding SdeVm.HoboImportedAt}" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto" Margin="0 6 0 0">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Text="Loaded:" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SdeVm.HoboImportedAt}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                  <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SdeVm.HoboLatest}" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
                 </Grid>
               </StackPanel>
 

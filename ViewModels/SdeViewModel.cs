@@ -29,6 +29,13 @@ public class SdeViewModel : ReactiveObject
     public string LatestBuild     { get => _latestBuild;     private set => this.RaiseAndSetIfChanged(ref _latestBuild,     value); }
     public bool   UpdateAvailable { get => _updateAvailable; private set => this.RaiseAndSetIfChanged(ref _updateAvailable, value); }
 
+    private string _hoboLatest = "checking…";
+    private bool   _hoboUpdateAvailable;
+    private long   _loadedHoboRevision;
+
+    public string HoboLatest          { get => _hoboLatest;          private set => this.RaiseAndSetIfChanged(ref _hoboLatest,          value); }
+    public bool   HoboUpdateAvailable { get => _hoboUpdateAvailable; private set => this.RaiseAndSetIfChanged(ref _hoboUpdateAvailable, value); }
+
     /// <summary>
     /// The loaded build, short enough for the title bar: "SDE 2831234".
     ///
@@ -102,6 +109,7 @@ public class SdeViewModel : ReactiveObject
             await LoadHoboInfoAsync();
 
             await CheckLatestAsync();
+            await CheckHoboLatestAsync();
 
             // ⚠️ And again, hourly. The title bar's "update available" link is how somebody learns
             // a new SDE exists, and this application is left running for days at a time — a
@@ -114,7 +122,7 @@ public class SdeViewModel : ReactiveObject
             // to — the right way round for something whose failure is staying quiet.
             Observable.Interval(TimeSpan.FromHours(1))
                 .ObserveOnUi("Sde.AutoCheck")
-                .Subscribe(tick => { _ = CheckLatestAsync(); });
+                .Subscribe(tick => { _ = CheckLatestAsync(); _ = CheckHoboLatestAsync(); });
         }
         catch (Exception ex)
         {
@@ -147,6 +155,36 @@ public class SdeViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Whether Hoboleaks has published anything newer than what was imported.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Answers "unknown" rather than "up to date" in the two cases where it cannot tell: the
+    /// manifest was unreachable, or the stored data predates the app recording a revision at all.
+    /// Same argument as SdeUpToDate above — a failed check and a current import must not look
+    /// identical from the outside.
+    /// </remarks>
+    private async Task CheckHoboLatestAsync()
+    {
+        try
+        {
+            var meta = await _hobo.GetLatestMetaAsync();
+            if (meta is null || meta.Revision == 0) { HoboLatest = "unavailable"; return; }
+
+            HoboLatest = $"revision {meta.Revision:N0}";
+
+            var stored = await _db.HoboBuildInfos.FindAsync(1);
+            HoboUpdateAvailable = stored is null
+                || (stored.Revision > 0 && stored.Revision != meta.Revision);
+        }
+        catch (Exception ex)
+        {
+            // Leaves HoboUpdateAvailable alone: a re-check that could not reach the manifest must
+            // not undo a comparison that already succeeded.
+            HoboLatest = $"error: {ex.Message.Split('\n')[0]}";
+        }
+    }
+
     private async Task LoadStoredBuildAsync()
     {
         var info = await _db.SdeBuildInfos.FindAsync(1);
@@ -161,9 +199,16 @@ public class SdeViewModel : ReactiveObject
     private async Task LoadHoboInfoAsync()
     {
         var info = await _db.HoboBuildInfos.FindAsync(1);
+
+        // ⚠️ Revision 0 means "imported before the app recorded one", not "revision zero". Saying
+        // that is better than printing a number nobody wrote.
         HoboImportedAt = info is null
             ? "not imported"
-            : $"last imported {info.ImportedAt.ToLocalTime():yyyy-MM-dd HH:mm}";
+            : info.Revision > 0
+                ? $"revision {info.Revision:N0}, imported {info.ImportedAt.ToLocalTime():yyyy-MM-dd HH:mm}"
+                : $"last imported {info.ImportedAt.ToLocalTime():yyyy-MM-dd HH:mm} (revision not recorded)";
+
+        _loadedHoboRevision = info?.Revision ?? 0;
         HoboStatusText = HoboImportedAt;
     }
 
@@ -216,7 +261,7 @@ public class SdeViewModel : ReactiveObject
             StatusText = $"⚠ Update required — {ex.Message}";
             Fraction   = 0;
         }
-        catch (SdeVerificationException ex)
+        catch (ImportVerificationException ex)
         {
             // The archive read cleanly but lost a table, so the import was rolled back. Same
             // shape of outcome as above: nothing was changed, and saying so is the point.
@@ -255,14 +300,30 @@ public class SdeViewModel : ReactiveObject
 
         try
         {
-            await Task.Run(async () => await _hobo.ImportAsync(progress, _hoboCts.Token), _hoboCts.Token);
-            HoboStatusText = "Hoboleaks import complete.";
+            var warnings = await Task.Run(async () => await _hobo.ImportAsync(progress, _hoboCts.Token), _hoboCts.Token);
+
+            HoboStatusText = warnings.Count == 0
+                ? "Hoboleaks import complete."
+                : $"Hoboleaks import complete — {warnings.Count} table(s) worth a look, see Errors.";
             HoboFraction   = 1;
             await LoadHoboInfoAsync();
+            await CheckHoboLatestAsync();
+        }
+        catch (HoboCompatibilityException ex)
+        {
+            // A file this version reads is no longer published. Nothing was cleared.
+            HoboStatusText = $"⚠ Update required — {ex.Message}";
+        }
+        catch (ImportVerificationException ex)
+        {
+            // Read cleanly but lost a table, so it was rolled back.
+            HoboStatusText = $"⚠ Import rolled back — {ex.Message}";
         }
         catch (Exception ex)
         {
-            HoboStatusText = $"Error: {RootMessage(ex)}";
+            // The import is undoable as one unit, so whatever went wrong the previous data is
+            // still there.
+            HoboStatusText = $"Error: {RootMessage(ex)} — your previous Hoboleaks data has been kept.";
         }
         finally
         {

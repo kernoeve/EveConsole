@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace EveConsole.Services;
 
 /// <summary>
-/// A way to put the previous SDE back if an import does not finish.
+/// A way to put the previous data back if a wipe-and-refill import does not finish.
 /// </summary>
 /// <remarks>
 /// ⚠️ The obvious implementation — one transaction around the wipe and the refill — is right on
@@ -18,35 +18,47 @@ namespace EveConsole.Services;
 /// pinning the log open at the size of the data. Every background poller in this app would stall
 /// for its thirty-second busy_timeout and then throw, for the whole import.
 /// <c>WriteContentionInterceptor</c> exists because that shape of fault has already cost this app
-/// a 787 MB log and thirty-second stalls.</para>
+/// a 787 MB log and thirty-second stalls, and SQLite is the default backend.</para>
 ///
 /// <para>So PostgreSQL gets the transaction, which costs it nothing and additionally keeps every
-/// other client reading the previous SDE until the commit. SQLite copies the tables into an
-/// attached file instead: one statement per table, so the write lock is taken and released forty
-/// two times rather than held once. The trade is real and worth naming — on SQLite the wipe
-/// commits immediately, so anything reading the SDE during an import sees it empty, exactly as it
-/// did before any of this existed. What it no longer does is stay that way.</para>
+/// other client reading the previous data until the commit. SQLite copies the tables into an
+/// attached file instead: one statement per table, so the write lock is taken and released once
+/// per table rather than held once for all of them. The trade is real and worth naming — on SQLite
+/// the wipe commits immediately, so anything reading those tables during an import sees them
+/// empty, exactly as it did before any of this existed. What it no longer does is stay that
+/// way.</para>
+///
+/// <para>Used by both the SDE and the Hoboleaks imports; <c>tools/SdeUndoCheck</c> covers the
+/// SQLite half.</para>
 /// </remarks>
-public interface ISdeUndo : IAsyncDisposable
+public interface IBulkImportUndo : IAsyncDisposable
 {
     /// <summary>Keep the new data and discard the means of undoing it.</summary>
     Task CommitAsync(CancellationToken ct);
 
-    /// <summary>Put the previous SDE back.</summary>
+    /// <summary>Put the previous data back.</summary>
     Task RollbackAsync(CancellationToken ct);
 }
 
-public static class SdeUndo
+public static class BulkImportUndo
 {
+    /// <summary>What an undo tells the caller about its own slow parts: stage, detail, fraction.</summary>
+    /// <remarks>A fraction below zero means "leave the bar where it is".</remarks>
+    public delegate void Report(string stage, string detail, double fraction);
+
     /// <summary>Opens whichever undo the configured engine can afford. Call before the wipe.</summary>
-    public static async Task<ISdeUndo> CreateAsync(AppDbContext db, IReadOnlyList<string> tables,
-        IProgress<SdeImportProgress> p, CancellationToken ct)
+    /// <param name="name">
+    /// Distinguishes one import's backup file from another's, so the SDE and Hoboleaks cannot
+    /// collide over it.
+    /// </param>
+    public static async Task<IBulkImportUndo> CreateAsync(AppDbContext db, string name,
+        IReadOnlyList<string> tables, Report report, CancellationToken ct)
         => DbEngine.IsPostgres
             ? new TransactionUndo(await db.Database.BeginTransactionAsync(ct))
-            : await FileCopyUndo.CreateAsync(db, tables, p, ct);
+            : await FileCopyUndo.CreateAsync(db, name, tables, report, ct);
 
     /// <summary>PostgreSQL: the whole import is one transaction.</summary>
-    private sealed class TransactionUndo(IDbContextTransaction tx) : ISdeUndo
+    private sealed class TransactionUndo(IDbContextTransaction tx) : IBulkImportUndo
     {
         public Task CommitAsync(CancellationToken ct)   => tx.CommitAsync(ct);
         public Task RollbackAsync(CancellationToken ct) => tx.RollbackAsync(ct);
@@ -56,15 +68,15 @@ public static class SdeUndo
         public ValueTask DisposeAsync() => tx.DisposeAsync();
     }
 
-    /// <summary>SQLite: a copy of the SDE tables in a file beside the database.</summary>
+    /// <summary>SQLite: a copy of the tables in a file beside the database.</summary>
     private sealed class FileCopyUndo(AppDbContext db, IReadOnlyList<string> tables, string path,
-        IProgress<SdeImportProgress> p) : ISdeUndo
+        Report report) : IBulkImportUndo
     {
         private bool _settled;
         private bool _closed;
 
-        public static async Task<FileCopyUndo> CreateAsync(AppDbContext db, IReadOnlyList<string> tables,
-            IProgress<SdeImportProgress> p, CancellationToken ct)
+        public static async Task<FileCopyUndo> CreateAsync(AppDbContext db, string name,
+            IReadOnlyList<string> tables, Report report, CancellationToken ct)
         {
             // ⚠️ The connection is opened explicitly and held for the life of this object. ATTACH
             // is a property of a CONNECTION rather than of the database, and EF closes and reopens
@@ -76,14 +88,14 @@ public static class SdeUndo
             // Beside whichever file is actually open, asked of the connection rather than of
             // config: config says which database the app was told to use, the connection knows
             // which one it got.
-            var path = db.Database.GetDbConnection().DataSource + ".sdebak";
+            var path = $"{db.Database.GetDbConnection().DataSource}.{name}bak";
             Discard(path);   // whatever an import that died left behind
 
-            var undo = new FileCopyUndo(db, tables, path, p);
+            var undo = new FileCopyUndo(db, tables, path, report);
             try
             {
                 await db.Database.ExecuteSqlRawAsync(
-                    $"ATTACH DATABASE '{path.Replace("'", "''")}' AS sdebak", ct);
+                    $"ATTACH DATABASE '{path.Replace("'", "''")}' AS undobak", ct);
 
                 var n = 0;
                 foreach (var t in tables)
@@ -92,10 +104,9 @@ public static class SdeUndo
                     // in order and none of the indexes, which is all a restore needs: it is read
                     // back with INSERT INTO ... SELECT *, never queried on its own.
                     await db.Database.ExecuteSqlRawAsync(
-                        $"CREATE TABLE sdebak.\"{t}\" AS SELECT * FROM main.\"{t}\"", ct);
+                        $"CREATE TABLE undobak.\"{t}\" AS SELECT * FROM main.\"{t}\"", ct);
 
-                    p.Report(new SdeImportProgress("Preparing",
-                        $"Copying the current SDE aside… {++n}/{tables.Count}", 0.306));
+                    report("Preparing", $"Copying the current data aside… {++n}/{tables.Count}", -1);
                 }
             }
             catch
@@ -147,10 +158,9 @@ public static class SdeUndo
             {
                 await db.Database.ExecuteSqlRawAsync($"DELETE FROM main.\"{t}\"", ct);
                 await db.Database.ExecuteSqlRawAsync(
-                    $"INSERT INTO main.\"{t}\" SELECT * FROM sdebak.\"{t}\"", ct);
+                    $"INSERT INTO main.\"{t}\" SELECT * FROM undobak.\"{t}\"", ct);
 
-                p.Report(new SdeImportProgress("Restoring",
-                    $"Putting the previous SDE back… {++n}/{tables.Count}", 0.99));
+                report("Restoring", $"Putting the previous data back… {++n}/{tables.Count}", -1);
             }
         }
 
@@ -159,7 +169,7 @@ public static class SdeUndo
             if (_closed) return;
             _closed = true;
 
-            try { await db.Database.ExecuteSqlRawAsync("DETACH DATABASE sdebak"); } catch { /* never attached */ }
+            try { await db.Database.ExecuteSqlRawAsync("DETACH DATABASE undobak"); } catch { /* never attached */ }
             try { await db.Database.CloseConnectionAsync(); }  catch { /* already closed */ }
             Discard(path);
         }

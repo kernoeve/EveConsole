@@ -77,11 +77,15 @@
       <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                  Text="Blueprints, reprocessing, compression, and repackaged volumes updated shortly after each TQ patch — often ahead of the official SDE." />
 
-      <Grid ColumnDefinitions="70,*" RowDefinitions="Auto">
-        <TextBlock Grid.Column="0" Text="Status:"
+      <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Loaded:"
+                   Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding HoboImportedAt}"
+                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
-        <TextBlock Grid.Column="1" Text="{Binding HoboImportedAt}"
-                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HoboLatest}"
+                   Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
       </Grid>
 
       <!-- Hobo progress (visible while running) -->

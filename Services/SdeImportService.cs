@@ -28,25 +28,6 @@ public class SdeCompatibilityException : Exception
         $"Your existing SDE data has NOT been cleared.";
 }
 
-// Thrown when an import ran to completion but emptied a table that previously held data.
-// The transaction is rolled back before this is raised, so the previous SDE is still in place.
-public class SdeVerificationException : Exception
-{
-    public IReadOnlyList<string> LostTables { get; }
-
-    public SdeVerificationException(IReadOnlyList<string> lost)
-        : base(BuildMessage(lost))
-    {
-        LostTables = lost;
-    }
-
-    private static string BuildMessage(IReadOnlyList<string> lost) =>
-        $"The SDE archive was read without error, but {lost.Count} table(s) that held data " +
-        $"beforehand came back empty, which is what a changed file format looks like: " +
-        $"{string.Join(" ", lost)} " +
-        $"The import was rolled back and your existing SDE data has NOT been changed.";
-}
-
 public class SdeImportService
 {
     // CCP moved to a new URL and flat file structure (no fsd/ or bsd/ subdirectories).
@@ -96,7 +77,7 @@ public class SdeImportService
     /// after a clean import.
     /// </returns>
     /// <exception cref="SdeCompatibilityException">A required file is missing from the archive.</exception>
-    /// <exception cref="SdeVerificationException">
+    /// <exception cref="ImportVerificationException">
     /// The import ran to the end but lost a table that previously held data. Nothing was committed.
     /// </exception>
     public async Task<IReadOnlyList<string>> ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
@@ -132,8 +113,8 @@ public class SdeImportService
             // now holds none" rather than merely "races is empty" — which on a first import is the
             // plain truth and no cause for alarm.
             Report(progress, "Preparing", "Reading current row counts…", 0.305);
-            var tables = SdeTablesToClear(db).ToList();
-            var before = await CountSdeTablesAsync(db, ct);
+            var tables = BulkImport.TablesFor(db, "Sde", "SdeBuildInfos");
+            var before = await BulkImport.CountAsync(db, tables, ct);
 
             // ⚠️ The wipe and the refill are undoable as one unit. A failure anywhere — a changed
             // file format, a duplicate key, a cancelled run — now leaves the previous SDE exactly
@@ -147,10 +128,11 @@ public class SdeImportService
             // PostgreSQL this is one transaction, on SQLite a copy of the tables in an attached
             // file, because a transaction held for the length of an import blocks every other
             // writer in the app. SdeUndo has the measurements.
-            await using var undo = await SdeUndo.CreateAsync(db, tables, progress, ct);
+            await using var undo = await BulkImportUndo.CreateAsync(db, "sde", tables,
+                (stage, detail, frac) => progress.Report(new SdeImportProgress(stage, detail, frac)), ct);
 
             Report(progress, "Preparing", "Clearing existing SDE data…", 0.31);
-            await ClearSdeTablesAsync(db, ct);
+            await BulkImport.ClearAsync(db, tables, ct);
 
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -200,7 +182,8 @@ public class SdeImportService
             // Inside the transaction, so "this import lost a table" is still a decision and not
             // merely a note about something that has already happened.
             Report(progress, "Verifying", "Checking row counts…", 0.99);
-            var (lost, warnings) = await VerifyImportAsync(db, before, ct);
+            var (lost, warnings) = BulkImport.Compare(
+                before, await BulkImport.CountAsync(db, tables, ct));
 
             if (lost.Count > 0)
             {
@@ -209,7 +192,7 @@ public class SdeImportService
                 await undo.RollbackAsync(CancellationToken.None);
                 foreach (var line in lost)
                     _errors.Log("SdeImport", "Verification", line);
-                throw new SdeVerificationException(lost);
+                throw new ImportVerificationException("SDE", lost);
             }
 
             await undo.CommitAsync(ct);
@@ -226,87 +209,6 @@ public class SdeImportService
             // unless it was committed. Nothing here has to undo anything.
             if (File.Exists(tempPath)) File.Delete(tempPath);
         }
-    }
-
-    /// <summary>
-    /// Row counts for every table the import owns, as they stand at this moment.
-    /// </summary>
-    /// <remarks>
-    /// One statement per table rather than a single UNION, so a table the schema step has not
-    /// created yet costs one missing entry instead of blinding the whole sweep. Measured at a few
-    /// hundred milliseconds for all 42 — including ones of 646k and 476k rows — against an import
-    /// measured in minutes, and it runs twice.
-    /// </remarks>
-    private static async Task<Dictionary<string, long>> CountSdeTablesAsync(AppDbContext db, CancellationToken ct)
-    {
-        var counts = new Dictionary<string, long>(StringComparer.Ordinal);
-
-        foreach (var table in SdeTablesToClear(db))
-        {
-            try
-            {
-                counts[table] = await db.Database
-                    .SqlQueryRaw<long>($"SELECT CAST(COUNT(*) AS BIGINT) AS \"Value\" FROM \"{table}\"")
-                    .SingleAsync(ct);
-            }
-            catch
-            {
-                // Absent or unreadable. Left OUT of the dictionary rather than recorded as zero:
-                // the caller reports that as "could not be counted", which is the opposite claim
-                // to "empty" and must not be mistaken for it.
-            }
-        }
-
-        return counts;
-    }
-
-    /// <summary>
-    /// Compares the row counts after an import against the ones taken before the wipe.
-    /// </summary>
-    /// <returns>
-    /// <c>Lost</c> — tables that held rows before and hold none now, which is what a file whose
-    /// format changed underneath us looks like, and is treated as a failed import.
-    /// <c>Warnings</c> — tables merely worth a look, reported without rejecting the run.
-    /// </returns>
-    /// <remarks>
-    /// ⚠️ Only a fall to ZERO rejects an import. A table merely shrinking is ordinary — CCP retires
-    /// ships, merges groups, drops certificates — and any threshold on "how much smaller is too
-    /// much" is a guess that would one day block a legitimate update with no way past it. Falling
-    /// to nothing from something is not a guess: no SDE release empties a table this app requires,
-    /// so it means the parse has stopped matching the file.
-    ///
-    /// <para>A first import compares against all zeros, so nothing can be "lost" and a fresh
-    /// install cannot trip this.</para>
-    /// </remarks>
-    private static async Task<(List<string> Lost, List<string> Warnings)> VerifyImportAsync(
-        AppDbContext db, IReadOnlyDictionary<string, long> before, CancellationToken ct)
-    {
-        var after    = await CountSdeTablesAsync(db, ct);
-        var lost     = new List<string>();
-        var warnings = new List<string>();
-
-        foreach (var (table, was) in before.OrderBy(kv => kv.Key, StringComparer.Ordinal))
-        {
-            if (!after.TryGetValue(table, out var now))
-            {
-                warnings.Add($"{table}: could not be counted after the import.");
-                continue;
-            }
-
-            if (now == 0 && was > 0)
-                lost.Add($"{table}: held {was:N0} row(s) before this import and holds none now.");
-            else if (now == 0)
-                warnings.Add($"{table}: imported empty, and was empty beforehand too.");
-            else if (was > 0 && now < was / 2)
-                warnings.Add($"{table}: {now:N0} row(s), down from {was:N0} — under half what it held.");
-        }
-
-        foreach (var table in after.Keys.Except(before.Keys, StringComparer.Ordinal)
-                                        .OrderBy(t => t, StringComparer.Ordinal))
-            if (after[table] == 0)
-                warnings.Add($"{table}: new table, imported empty.");
-
-        return (lost, warnings);
     }
 
     private record BuildInfoDto(
@@ -535,36 +437,6 @@ public class SdeImportService
     /// required. If one is ever added this needs a topological sort, not a hand-written order
     /// that the next new table silently falls out of.</para>
     /// </remarks>
-    private static async Task ClearSdeTablesAsync(AppDbContext db, CancellationToken ct)
-    {
-        foreach (var table in SdeTablesToClear(db))
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM \"{table}\"", ct);
-    }
-
-    /// <summary>
-    /// Every "Sde" table in the model except the ones the import deliberately preserves.
-    /// </summary>
-    /// <remarks>
-    /// SdeBuildInfos is the single row saying which SDE build is installed. The import upserts it
-    /// rather than rewriting it, and the UI reads it to report what is loaded, so wiping it would
-    /// make a half-finished import look like no import at all.
-    /// </remarks>
-    private static IEnumerable<string> SdeTablesToClear(AppDbContext db)
-    {
-        var keep = new HashSet<string>(StringComparer.Ordinal) { "SdeBuildInfos" };
-
-        return db.Model.GetEntityTypes()
-            .Select(t => t.GetTableName())
-            .Where(n => n is not null && n.StartsWith("Sde", StringComparison.Ordinal) && !keep.Contains(n))
-            .Select(n => n!)
-            // A table name cannot be a parameter, so it is interpolated. It comes from our own
-            // compiled model and can come from nowhere else; this says so in code rather than
-            // only in a comment.
-            .Where(n => n.All(char.IsLetterOrDigit))
-            .Distinct()
-            .OrderBy(n => n, StringComparer.Ordinal);
-    }
-
     // -----------------------------------------------------------------------
     // Section importers
     // -----------------------------------------------------------------------
