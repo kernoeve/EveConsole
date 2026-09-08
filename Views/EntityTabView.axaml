@@ -376,7 +376,7 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="100"/>
-              <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="Points" FontSize="10" Width="70" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="ContestedFraction" FontSize="10" Width="70" CellStyleClasses="num"/>
               <DataGridTextColumn Header="Points"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90" CellStyleClasses="num"/>
               <DataGridTextColumn Header="Threshold" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*" CellStyleClasses="num"/>
             </DataGrid.Columns>

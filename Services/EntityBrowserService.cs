@@ -84,6 +84,11 @@ public record FactionWarfareRow(string System, string Region, string Contested, 
 {
     /// <summary>Progress toward a flip. The raw pair means little without the ratio.</summary>
     public string ContestedPercent => Threshold > 0 ? $"{(double)Points / Threshold * 100:0.#}%" : "";
+
+    /// <summary>The ratio itself, so the column sorts by what it shows. Ordered by raw points a
+    /// system at 300/400 sits below one at 500/5000, which is the opposite of contested.</summary>
+    public double ContestedFraction => Threshold > 0 ? (double)Points / Threshold : 0;
+
     public string PointsText       => Points.ToString("N0");
     public string ThresholdText    => Threshold.ToString("N0");
 
