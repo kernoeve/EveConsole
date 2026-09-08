@@ -232,36 +232,47 @@ jobs:
             exit 0
           fi
 
+          url="https://github.com/$REPO/releases/tag/$TAG"
           notes=$(gh release view "$TAG" --repo "$REPO" --json body -q .body)
 
           # The notes are "<changelog>\n\n---\n\n<install instructions>". Only the changelog is
-          # worth announcing: the install half is identical every release and the embed links
-          # straight to it. Split on the LAST '---' rather than the first, so a horizontal rule
-          # inside the changelog does not truncate it.
+          # worth announcing: the install half is identical every release. Split on the LAST
+          # separator so a horizontal rule inside the changelog cannot cut it short, and emit
+          # NOTHING when there is no separator at all — that means the merge carried no PR
+          # description, so the notes are install boilerplate on their own and announcing them
+          # would post the install instructions as though they were the changelog.
           changelog=$(printf '%s\n' "$notes" | awk '
             { line[NR] = $0; if ($0 == "---") last = NR }
-            END { stop = (last ? last - 1 : NR); for (i = 1; i <= stop; i++) print line[i] }')
+            END { if (last) for (i = 1; i < last; i++) print line[i] }')
 
-          if [ -z "$(printf '%s' "$changelog" | tr -d '[:space:]')" ]; then
-            changelog="_No changelog recorded for this release._"
+          # ⚠️ The lead-in, not the whole changelog. A real one runs past 10,000 characters
+          # against an embed description limit of 4,096 — and 6,000 across every embed in one
+          # message, so splitting rescues nothing. Cutting at a character count dropped two
+          # thirds of v0.9.12 mid-sentence. The text before the first heading is the summary the
+          # notes already open with, which is what an announcement wants; the title and the
+          # footer link carry people to the rest.
+          lead=$(printf '%s\n' "$changelog" | awk '/^## /{ exit } { print }')
+          [ -n "$(printf '%s' "$lead" | tr -d '[:space:]')" ] || lead="$changelog"
+
+          # Whole lines only, so it can never end mid-word.
+          summary=$(printf '%s\n' "$lead" | awk -v cap=1800 '
+            { if (n + length($0) + 1 > cap) exit; n += length($0) + 1; print }')
+
+          if [ -z "$(printf '%s' "$summary" | tr -d '[:space:]')" ]; then
+            summary="_No changelog recorded for this release._"
           fi
 
-          # jq builds the JSON, so quotes and newlines in the notes cannot break the payload, and
-          # the truncation counts codepoints rather than bytes — slicing 4096 BYTES could cut a
-          # character in half and produce invalid UTF-8. Discord's embed description caps at 4096.
+          # jq builds the JSON, so quotes and newlines in the notes cannot break the payload.
           payload=$(jq -n \
             --arg title "EVE Console $TAG" \
-            --arg url   "https://github.com/$REPO/releases/tag/$TAG" \
-            --arg body  "$changelog" \
+            --arg url   "$url" \
+            --arg body  "$summary" \
             '{
                username: "EVE Console",
                embeds: [{
                  title:       $title,
                  url:         $url,
-                 description: (if ($body | length) > 3800
-                               then ($body | .[0:3800]) + "\n\n…"
-                               else $body
-                               end),
+                 description: ($body + "\n\n**[Full release notes →](" + $url + ")**"),
                  color:       13150283
                }]
              }')
