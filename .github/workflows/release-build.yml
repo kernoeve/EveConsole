@@ -200,3 +200,73 @@ jobs:
           --token ${{ github.token }}
           --releaseName "EVE Console v${{ needs.build.outputs.version }}"
           --tag v${{ needs.build.outputs.version }}
+
+  # ══ Announce ══════════════════════════════════════════════════════════════
+  #
+  # ⚠️ A job in THIS workflow rather than a separate one on `release: published`. The release is
+  # created by vpk with GITHUB_TOKEN, and GitHub deliberately raises no workflow-triggering event
+  # for anything GITHUB_TOKEN does — a `release` workflow would never run, and would look like a
+  # broken webhook rather than a trigger that cannot fire.
+  announce:
+    needs: [build, linux]
+    # ⚠️ always(), so this still runs when the Linux job failed. That job's own note says its
+    # failure costs the Linux artifacts and not the release; a good Windows release that nobody
+    # hears about is the worse outcome. The guard keeps it to releases that actually happened.
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the release to Discord
+        env:
+          # ⚠️ Through env, not ${{ }} inside the script. Release notes are text this workflow did
+          # not write, and interpolating them into a shell line makes them executable.
+          WEBHOOK:  ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          GH_TOKEN: ${{ github.token }}
+          TAG:      v${{ needs.build.outputs.version }}
+          REPO:     ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # A fork, or a repository where nobody has set the secret, still releases normally.
+          if [ -z "${WEBHOOK}" ]; then
+            echo "DISCORD_RELEASE_WEBHOOK is not set — nothing announced."
+            exit 0
+          fi
+
+          notes=$(gh release view "$TAG" --repo "$REPO" --json body -q .body)
+
+          # The notes are "<changelog>\n\n---\n\n<install instructions>". Only the changelog is
+          # worth announcing: the install half is identical every release and the embed links
+          # straight to it. Split on the LAST '---' rather than the first, so a horizontal rule
+          # inside the changelog does not truncate it.
+          changelog=$(printf '%s\n' "$notes" | awk '
+            { line[NR] = $0; if ($0 == "---") last = NR }
+            END { stop = (last ? last - 1 : NR); for (i = 1; i <= stop; i++) print line[i] }')
+
+          if [ -z "$(printf '%s' "$changelog" | tr -d '[:space:]')" ]; then
+            changelog="_No changelog recorded for this release._"
+          fi
+
+          # jq builds the JSON, so quotes and newlines in the notes cannot break the payload, and
+          # the truncation counts codepoints rather than bytes — slicing 4096 BYTES could cut a
+          # character in half and produce invalid UTF-8. Discord's embed description caps at 4096.
+          payload=$(jq -n \
+            --arg title "EVE Console $TAG" \
+            --arg url   "https://github.com/$REPO/releases/tag/$TAG" \
+            --arg body  "$changelog" \
+            '{
+               username: "EVE Console",
+               embeds: [{
+                 title:       $title,
+                 url:         $url,
+                 description: (if ($body | length) > 3800
+                               then ($body | .[0:3800]) + "\n\n…"
+                               else $body
+                               end),
+                 color:       13150283
+               }]
+             }')
+
+          # -f so a refusal fails the step: an announcement that silently did not happen is the
+          # thing this job exists to prevent.
+          curl -sS -f -X POST -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"
+          echo "Announced $TAG to Discord."
