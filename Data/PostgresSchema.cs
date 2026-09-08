@@ -58,6 +58,290 @@ public static class PostgresSchema
     /// </summary>
     private static readonly string[] Tables =
     [
+        // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
+        // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
+        // Map and station fields the import was leaving in the file.
+        """
+        ALTER TABLE "SdeConstellations" ADD COLUMN IF NOT EXISTS "WormholeClassId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeRegions" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeRegions" ADD COLUMN IF NOT EXISTS "NebulaId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeRegions" ADD COLUMN IF NOT EXISTS "WormholeClassId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "WormholeClassId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Border" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Corridor" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Fringe" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Hub" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "International" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Regional" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Luminosity" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "VisualEffect" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "StarId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "ActivityId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "ManufacturingFactor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "ResearchFactor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Ratio" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Border" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Corridor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Fringe" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStationOperations" ADD COLUMN IF NOT EXISTS "Hub" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "CelestialIndex" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "OrbitId" BIGINT NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "OrbitIndex" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "ReprocessingHangarFlag" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "UseOperationName" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "X" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "Y" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeStations" ADD COLUMN IF NOT EXISTS "Z" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+
+        // Fields the SDE has always carried that the import did not read.
+        // ⚠️ Additive only, and every NOT NULL carries a DEFAULT: an older build inserting
+        // without naming these columns has to go on working against the same database.
+        """
+        ALTER TABLE "SdeCategories" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "MinAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "MaxAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "TooltipTitle" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "TooltipDescription" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "DataType" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "DisplayWhenZero" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "ChargeRechargeTimeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "ShortDescription" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "SizeFactor" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "UniqueName" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeGroups" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeGroups" ADD COLUMN IF NOT EXISTS "FittableNonSingleton" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeGroups" ADD COLUMN IF NOT EXISTS "UseBasePrice" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "IconSuffix" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeMetaGroups" ADD COLUMN IF NOT EXISTS "ColorHex" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeRaces" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeRaces" ADD COLUMN IF NOT EXISTS "ShipTypeId" INTEGER NULL
+        """,
+
+        // Where each structure and rig industry bonus actually comes from, which the app has been
+        // inferring from rig description text instead.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeIndustryModifierSources" (
+            "TypeId"           INTEGER NOT NULL,
+            "Activity"         TEXT    NOT NULL,
+            "BonusKind"        TEXT    NOT NULL,
+            "DogmaAttributeId" INTEGER NOT NULL,
+            "FilterId"         INTEGER NULL,
+            PRIMARY KEY ("TypeId", "Activity", "BonusKind", "DogmaAttributeId")
+        )
+        """,
+
+        // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
+        // figure, which is 115,000 against 10,000 for a Vexor.
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "PackagedVolume" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "MetaLevel" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "TechLevel" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "IsRepackable" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "IsDynamicType" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "Radius" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "VariationParentTypeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "SoundId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeTypes" ADD COLUMN IF NOT EXISTS "ShipTreeGroupId" INTEGER NULL
+        """,
+
+        // npcCorporations.yaml has thirty-two fields; the import read three. These are the rest
+        // of the ones worth having, and every existing database needs them added by hand.
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "StationId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "SolarSystemId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Ticker" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Description" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "CeoId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "TaxRate" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Size" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Extent" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MemberLimit" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MinSecurity" DOUBLE PRECISION NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MinimumJoinStanding" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "EnemyId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "FriendId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "RaceId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "MainActivityId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "SecondaryActivityId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeNpcCorporations" ADD COLUMN IF NOT EXISTS "Deleted" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+
+        """
+        CREATE TABLE IF NOT EXISTS "EsiNpcCorpProfiles" (
+            "CorporationId" BIGINT PRIMARY KEY,
+            "Ticker"        TEXT             NOT NULL DEFAULT '',
+            "Description"   TEXT             NOT NULL DEFAULT '',
+            "Url"           TEXT             NOT NULL DEFAULT '',
+            "CeoId"         BIGINT           NOT NULL DEFAULT 0,
+            "HomeStationId" BIGINT           NOT NULL DEFAULT 0,
+            "MemberCount"   INTEGER          NOT NULL DEFAULT 0,
+            "TaxRate"       DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "FetchedUtc"    TIMESTAMPTZ      NOT NULL DEFAULT NOW()
+        )
+        """,
+
         """
         CREATE TABLE IF NOT EXISTS "TradeOpportunitiesSettings" (
             "Id"                     INTEGER NOT NULL PRIMARY KEY,
@@ -110,6 +394,11 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "Headless" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+
+        // Packaged-only arrived after InvLevelGroups did.
+        """
+        ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "PackagedOnly" BOOLEAN NOT NULL DEFAULT FALSE
         """,
     ];
 

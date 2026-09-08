@@ -595,6 +595,75 @@
                       </ItemsControl>
                     </StackPanel>
 
+                    <!-- Produced by reprocessing. For a great many items this is the ONLY way they
+                         are made: nothing on Helium Isotopes said they come out of Clear Icicle. -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedFrom}" Spacing="8">
+                      <TextBlock Text="PRODUCED BY REPROCESSING" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                 Text="Reprocess one batch of these and this item is among what comes back. Each row is judged against its own ceiling — 90.6% for ore, ice and moon ore, 55% for everything else — so the amounts are the best case, not the SDE's 100% figures." />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedFrom}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ReprocessSourceVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding SourceTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding SourceName}"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                                          VerticalAlignment="Center">
+                                <TextBlock Text="{Binding BatchText}" FontSize="11"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding RateText}" FontSize="11" MinWidth="42"
+                                           TextAlignment="Right"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding YieldText}" FontSize="12" MinWidth="72"
+                                           TextAlignment="Right"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                              </StackPanel>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                    <!-- What this item yields when reprocessed. One rate for the section, because
+                         it is one item going in; the caption names it. -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedTo}" Spacing="8">
+                      <TextBlock Text="REPROCESSES TO" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                 Text="{Binding SelectedItem.RefineRateText, StringFormat='What one batch returns at {0}, the best this item can be refined at — a rigged Tatara in nullsec with the skills and implants for it. Ore, ice and moon ore top out at 90.6%; everything else is scrapmetal, where 55% is the ceiling however good the structure. Your own refine will return less.'}" />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedTo}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ReprocessOutputVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding OutputTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding OutputName}"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding YieldText}"
+                                         FontSize="12" MinWidth="72" TextAlignment="Right"
+                                         Foreground="{DynamicResource TextMutedBrush}"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
                     <!-- Used In -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasUsedIn}" Spacing="8">
                       <TextBlock Text="USED IN MANUFACTURING" FontSize="10" FontWeight="SemiBold"
@@ -640,7 +709,18 @@
                           Background="Transparent" GridLinesVisibility="None"
                           RowBackground="Transparent">
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" Width="220"/>
+                    <DataGridTemplateColumn Header="Corporation" Width="220" SortMemberPath="CorporationName">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <Button Classes="link" Click="OnOpenLpCorp" Padding="0"
+                                  HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                                  ToolTip.Tip="Open this corporation in NPC Entities">
+                            <TextBlock Text="{Binding CorporationName}" FontSize="11"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Button>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">

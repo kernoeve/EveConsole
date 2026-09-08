@@ -62,7 +62,12 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
     /// page or under a different character. An Asset Safety Wrap is the clearest case: the wrap
     /// and its contents routinely arrive separately.</para>
     /// </summary>
-    public async Task<int> PurgeNonStructuresAsync(CancellationToken ct = default)
+    /// <param name="removed">Filled with what was deleted and what each id actually is, so the
+    /// caller can say so. ⚠️ A bare count cannot be acted on: this ran hourly for weeks reporting
+    /// "Removed 1 row(s)" without ever saying which, and finding the source meant reconstructing
+    /// the candidate set by hand against the live database.</param>
+    public async Task<int> PurgeNonStructuresAsync(
+        List<string>? removed = null, CancellationToken ct = default)
     {
         try
         {
@@ -77,6 +82,14 @@ public class StructureSyncService(IDbContextFactory<AppDbContext> dbFactory, App
                 .ToList();
 
             if (doomed.Count == 0) return 0;
+
+            if (removed is not null)
+                removed.AddRange(await (
+                    from a in db.EsiAssets.AsNoTracking()
+                    join t in db.SdeTypes.AsNoTracking()  on a.TypeId  equals t.TypeId
+                    join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                    where doomed.Contains(a.ItemId)
+                    select a.ItemId + " is a " + t.Name).Distinct().Take(10).ToListAsync(ct));
 
             await db.EsiStructureNames.Where(s => doomed.Contains(s.StructureId)).ExecuteDeleteAsync(ct);
             await db.EsiStructureNameFailures.Where(f => doomed.Contains(f.StructureId)).ExecuteDeleteAsync(ct);

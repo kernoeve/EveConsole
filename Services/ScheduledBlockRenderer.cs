@@ -23,9 +23,17 @@ public sealed class MessageBlock
     public const string TypeSale    = "sale_posting";
     public const string TypeProjects = "standing_projects";
 
-    /// <summary>The two monthly trend charts. Pictures, not text.</summary>
+    /// <summary>
+    /// The monthly trend charts. Pictures, not text.
+    ///
+    /// <para>Kills and Mining split what the Activity chart plots on one pair of axes. Activity
+    /// is kept because it is what already-scheduled posts are set to, and quietly dropping the
+    /// mined line out of somebody's Monday post is not a rename.</para>
+    /// </summary>
     public const string TypeIskChart      = "corp_isk_chart";
     public const string TypeActivityChart = "corp_activity_chart";
+    public const string TypeKillChart     = "corp_kill_chart";
+    public const string TypeMiningChart   = "corp_mining_chart";
 
     public string Type { get; set; } = TypeText;
 
@@ -44,7 +52,7 @@ public sealed class MessageBlock
     /// <para>⚠️ A webhook cannot carry one. It posts JSON and has no way to attach a file, so a
     /// chart section only renders where the destination is a channel and the token can upload.</para>
     /// </summary>
-    public bool IsChart => Type is TypeIskChart or TypeActivityChart;
+    public bool IsChart => Type is TypeIskChart or TypeActivityChart or TypeKillChart or TypeMiningChart;
 
     /// <summary>Static text blocks: what to say.</summary>
     public string Text { get; set; } = "";
@@ -231,9 +239,13 @@ public class ScheduledBlockRenderer(
 
         var rows = await corp.GetMonthlyActivityAsync(b.CorpId, 12, ct);
 
-        var chart = b.Type == MessageBlock.TypeIskChart
-            ? CorpTrendChartReport.IskTrends(rows)
-            : CorpTrendChartReport.ActivityTrends(rows);
+        var chart = b.Type switch
+        {
+            MessageBlock.TypeIskChart    => CorpTrendChartReport.IskTrends(rows),
+            MessageBlock.TypeKillChart   => CorpTrendChartReport.KillTrends(rows),
+            MessageBlock.TypeMiningChart => CorpTrendChartReport.MiningTrends(rows),
+            _                            => CorpTrendChartReport.ActivityTrends(rows),
+        };
 
         if (chart is null) return null;
 

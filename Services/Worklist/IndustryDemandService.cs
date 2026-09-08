@@ -128,7 +128,10 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
 /// holds a pile decides who can take from it.</param>
 public sealed record ScopeStock(
     Dictionary<(int TypeId, long OwnerId), long> Corp,
-    Dictionary<(int TypeId, long OwnerId), long> Personal)
+    Dictionary<(int TypeId, long OwnerId), long> Personal,
+
+    /// <summary>Units already coming out of a running job, by what the job makes.</summary>
+    Dictionary<int, long>? InBuild = null)
 {
     /// <summary>
     /// What one character's job could actually draw on: their own hangar, plus the hangars of the
@@ -148,10 +151,18 @@ public sealed record ScopeStock(
     /// whether one character can start one job. A sub-assembly with no inventory rule has no
     /// group availability to fall back on, and counting only one alt's reach would ask for a
     /// second batch of something the corp already holds.
+    ///
+    /// <para>⚠️ Running jobs count. An item WITH an inventory rule already has them counted for it
+    /// — group availability includes industry jobs — but one without a rule lands here, and
+    /// assets alone do not know about work in flight. A 20-run Vexor installed for an Ishtar was
+    /// invisible and the planner asked for another twenty, against a tooltip that said "20 for
+    /// Ishtar … against 0 on hand". Every other job dropped off the list minutes after starting,
+    /// which is precisely the items that do have a rule.</para>
     /// </summary>
     public long Anywhere(int typeId) =>
         Corp.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
-        + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value);
+        + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
+        + (InBuild?.GetValueOrDefault(typeId) ?? 0);
 }
 
 /// What industry has to build, from every demand at once.
@@ -249,6 +260,10 @@ public class IndustryDemandService(
         HashSet<long>? corps, ScopeStock inScope, CancellationToken ct)
     {
         var gross = new Dictionary<int, Gross>();
+
+        // child type -> the types that consume it, one edge per material line. The ancestry
+        // closure below is computed from these once the whole walk has finished.
+        var consumers = new Dictionary<int, HashSet<int>>();
 
         Gross At(int typeId)
         {
@@ -464,11 +479,41 @@ public class IndustryDemandService(
                 }
 
                 child.Dependents.Add(typeId);
-                child.Dependents.UnionWith(g.Dependents);
+                if (!consumers.TryGetValue(m.MaterialTypeId, out var above))
+                    consumers[m.MaterialTypeId] = above = [];
+                above.Add(typeId);
 
                 pending.Enqueue(m.MaterialTypeId);
             }
         }
+
+        // ── Close the ancestry over the edges ─────────────────────────────────
+        //
+        // ⚠️ AFTER the walk, not during it. Every consumer edge is known by now, so an item that
+        // was expanded as a root before anything above it had been seen still ends up carrying its
+        // full ancestry — which is exactly the case that was losing the hulls.
+        //
+        // Breadth-first up the edges, each type visited once per closure. Cycles terminate on the
+        // visited set rather than on a depth cap, so a loop contributes what it reaches and no
+        // more.
+        foreach (var (typeId, g) in gross)
+        {
+            var seen  = new HashSet<int>(g.Dependents);
+            var queue2 = new Queue<int>(g.Dependents);
+
+            while (queue2.Count > 0)
+            {
+                var above = queue2.Dequeue();
+                if (!consumers.TryGetValue(above, out var next)) continue;
+
+                foreach (var a in next)
+                    if (a != typeId && seen.Add(a)) queue2.Enqueue(a);
+            }
+
+            g.Dependents.Clear();
+            g.Dependents.UnionWith(seen);
+        }
+
 
         // ── Net once ──────────────────────────────────────────────────────────
 

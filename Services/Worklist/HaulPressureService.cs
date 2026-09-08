@@ -109,7 +109,11 @@ public class HaulPressureService(
 
         var volumes = await db.SdeTypes.AsNoTracking()
             .Where(t => ids.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Volume, ct);
+            // ⚠️ PACKAGED, not assembled. A ship comes out of a job packaged and is hauled
+            // that way: a Vexor is 10,000 m³ packaged against 115,000 assembled, so every
+            // figure here was more than eleven times too large. Zero means the SDE gives no
+            // packaged figure, which is most items -- for those the two are the same.
+            .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
 
         // Where the material actually is. Scoped as the generator scopes it: stock the plan
         // cannot reach is not a pickup, it is somebody else's.
@@ -120,11 +124,17 @@ public class HaulPressureService(
         // all answered a question nobody asked: Tritanium is in thirteen hangars, and "13 other
         // place(s)" beside a job read as thirteen pickups when one of them covers the shortfall
         // outright. What a trip costs is the number of stops needed to COVER what is short.
+        // ⚠️ The same exclusions the haul plan applies, or a job reads as held in places the
+        // plan will never source from: asset-safety wraps, the contents of ships, and assembled
+        // hulls, which are a flown ship rather than a pickup.
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
+
         var held = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId) && a.Quantity > 0)
-                .Select(a => new { a.TypeId, a.RootLocationId, a.Quantity })
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.Quantity })
                 .ToListAsync(ct))
-            .Where(a => scope is null || scope.Contains(a.RootLocationId))
+            .Where(a => !wrapped.Contains(a.ItemId)
+                        && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(
                 g => g.Key,
@@ -206,7 +216,8 @@ public class HaulPressureService(
                     from.Count == 1 ? "1 stop" : $"{from.Count:N0} stops",
                     $"short {sh.Short:N0} of {sh.Wanted:N0}, "
                   + $"{sh.Short * volumes.GetValueOrDefault(sh.TypeId):N0} m3 — from {name}"
-                  + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""));
+                  + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""),
+                    sh.TypeId);
             }));
 
             detail.AddRange(moving.Select(h => new ShortageTask(

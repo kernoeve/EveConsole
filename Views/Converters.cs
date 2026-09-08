@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using EveConsole.Agent;
+using EveConsole.Services;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -13,11 +14,9 @@ namespace EveConsole.Views;
 public class SkillDotBrushConverter : IValueConverter
 {
     public static readonly SkillDotBrushConverter Instance = new();
-    private static readonly IBrush Filled = new SolidColorBrush(Color.Parse("#c8a84b"));
-    private static readonly IBrush Empty  = new SolidColorBrush(Color.Parse("#2a2a38"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is bool b && b ? Filled : Empty;
+        => value is bool b && b ? Palette.Accent : Palette.SurfaceRaised;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -26,17 +25,14 @@ public class SkillDotBrushConverter : IValueConverter
 public class IsSummaryBorderConverter : IValueConverter
 {
     public static readonly IsSummaryBorderConverter Instance = new();
-    private static readonly IBrush SummaryBrush = new SolidColorBrush(Color.Parse("#1a3a1a"));
-    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? SummaryBrush : Brushes.Transparent;
+    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? Palette.GoodSurface : Brushes.Transparent;
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
 }
 
 public class IsSummaryForegroundConverter : IValueConverter
 {
     public static readonly IsSummaryForegroundConverter Instance = new();
-    private static readonly IBrush SummaryFg = new SolidColorBrush(Color.Parse("#7a9a7a"));
-    private static readonly IBrush NormalFg  = new SolidColorBrush(Color.Parse("#c0c0cc"));
-    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? SummaryFg : NormalFg;
+    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? Palette.Good : Palette.TextPrimary;
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
 }
 
@@ -56,11 +52,12 @@ public class MessageRoleAlignmentConverter : IValueConverter
 public class MessageRoleBackgroundConverter : IValueConverter
 {
     public static readonly MessageRoleBackgroundConverter Instance = new();
-    private static readonly IBrush UserBrush      = new SolidColorBrush(Color.Parse("#1a2535"));
-    private static readonly IBrush AssistantBrush = new SolidColorBrush(Color.Parse("#111117"));
 
+    // The panel itself sits on SurfaceBase, so both bubbles read as raised against it and the
+    // one the reader wrote reads higher still. The ramp holds either way up: base is the darkest
+    // of the three on a dark theme and the darkest of the three on a light one.
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is MessageRole r && r == MessageRole.User ? UserBrush : AssistantBrush;
+        => value is MessageRole r && r == MessageRole.User ? Palette.SurfaceRaised : Palette.SurfacePanel;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -69,14 +66,11 @@ public class MessageRoleBackgroundConverter : IValueConverter
 public class SecurityStatusBrushConverter : IValueConverter
 {
     public static readonly SecurityStatusBrushConverter Instance = new();
-    private static readonly IBrush Positive = new SolidColorBrush(Color.Parse("#4caf6a"));
-    private static readonly IBrush Negative = new SolidColorBrush(Color.Parse("#cc4444"));
-    private static readonly IBrush Neutral  = new SolidColorBrush(Color.Parse("#888899"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is float f) return f > 0 ? Positive : f < 0 ? Negative : Neutral;
-        return Neutral;
+        if (value is float f) return f > 0 ? Palette.Good : f < 0 ? Palette.Bad : Palette.TextMuted;
+        return Palette.TextMuted;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -136,14 +130,11 @@ public class AgentProviderDisplayConverter : IValueConverter
 public class ProfitColorConverter : IValueConverter
 {
     public static readonly ProfitColorConverter Instance = new();
-    private static readonly IBrush Profit = new SolidColorBrush(Color.Parse("#4caf50"));
-    private static readonly IBrush Loss   = new SolidColorBrush(Color.Parse("#cc4444"));
-    private static readonly IBrush Zero   = new SolidColorBrush(Color.Parse("#888899"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is decimal d) return d > 0 ? Profit : d < 0 ? Loss : Zero;
-        return Zero;
+        if (value is decimal d) return d > 0 ? Palette.Good : d < 0 ? Palette.Bad : Palette.TextMuted;
+        return Palette.TextMuted;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -225,18 +216,14 @@ public class DbEngineLogoConverter : IValueConverter
 public class WorkerStateBrushConverter : IValueConverter
 {
     public static readonly WorkerStateBrushConverter Instance = new();
-    private static readonly IBrush Mine    = new SolidColorBrush(Color.Parse("#5a9a6a"));
-    private static readonly IBrush Other   = new SolidColorBrush(Color.Parse("#8a8a99"));
-    private static readonly IBrush Missing = new SolidColorBrush(Color.Parse("#c8884a"));
-    private static readonly IBrush Unknown = new SolidColorBrush(Color.Parse("#666677"));
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value switch
         {
-            WorkerOwnership.Mine  => Mine,
-            WorkerOwnership.Other => Other,
-            WorkerOwnership.None  => Missing,
-            _                     => Unknown,
+            WorkerOwnership.Mine  => Palette.Good,
+            WorkerOwnership.Other => Palette.TextMuted,
+            WorkerOwnership.None  => Palette.Warn,
+            _                     => Palette.TextFaint,
         };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -254,11 +241,9 @@ public class WorkerStateBrushConverter : IValueConverter
 public class AlarmMuteBrushConverter : IValueConverter
 {
     public static readonly AlarmMuteBrushConverter Instance = new();
-    private static readonly IBrush Muted  = new SolidColorBrush(Color.Parse("#c8884a"));
-    private static readonly IBrush Active = new SolidColorBrush(Color.Parse("#5a9a6a"));
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is true ? Muted : Active;
+        => value is true ? Palette.Warn : Palette.Good;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();

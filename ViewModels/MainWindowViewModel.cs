@@ -520,6 +520,25 @@ public class MainWindowViewModel : ReactiveObject
     public string EveTimeUrl    => _uiLinks?.EveTimeUrl ?? UiLinkSettings.EveOnlineTimeUrl;
     public string EveTimeLinkTip => $"EVE time (UTC) — click to open {EveTimeUrl}";
 
+    // ── Theme (shown on the title bar, beside the alarm beacon) ─────────────────
+
+    /// <summary>
+    /// The theme's name, for the label that also picks it.
+    ///
+    /// <para>Read from ThemeService rather than stored, so the bar and the Settings window can
+    /// never disagree about what is on — either can change it, and both follow the event.</para>
+    /// </summary>
+    public string ThemeName => ThemeService.All
+        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? "Theme";
+
+    public string ThemeTip => $"Theme: {ThemeName} — click to change";
+
+    private void OnThemeChanged()
+    {
+        this.RaisePropertyChanged(nameof(ThemeName));
+        this.RaisePropertyChanged(nameof(ThemeTip));
+    }
+
     // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
 
     private string _serverStatusText = "Online";
@@ -793,6 +812,7 @@ public class MainWindowViewModel : ReactiveObject
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
         DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
+        ThemeService.Changed += OnThemeChanged;
 
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);

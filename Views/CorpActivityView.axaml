@@ -424,7 +424,7 @@
 
       <!-- ══ Monthly Activity ═══════════════════════════════════════ -->
       <TabItem Header="MONTHLY ACTIVITY">
-        <Grid RowDefinitions="*,Auto,240,Auto,240" Margin="0">
+        <Grid RowDefinitions="*,Auto" Margin="0">
 
           <!-- Activity grid -->
           <DataGrid Grid.Row="0"
@@ -458,45 +458,70 @@
               <DataGridTextColumn Header="UNITS MINED"   Binding="{Binding UnitsMinedText}"   SortMemberPath="UnitsMinedRaw"    Width="100" />
               <DataGridTextColumn Header="KILLS"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
               <DataGridTextColumn Header="LOSSES"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
+              <DataGridTextColumn Header="ISK EFF"        Binding="{Binding IskEffText}"        SortMemberPath="IskEffRaw"        Width="75"  />
               <DataGridTextColumn Header="PLAYERS ACTIVE" Binding="{Binding PlayersActiveText}" SortMemberPath="PlayersActiveRaw" Width="110" />
             </DataGrid.Columns>
           </DataGrid>
 
-          <!-- ISK trends header -->
-          <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
-                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-            <TextBlock Text="ISK TRENDS (billions)"
-                       FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
-          </Border>
+          <!-- Three charts across, one band. Each keeps its own header so a column can be read
+               without counting across to work out which one it is. -->
+          <Grid Grid.Row="1" ColumnDefinitions="*,*,*">
 
-          <!-- ISK line chart -->
-          <lvc:CartesianChart Grid.Row="2"
-                              Series="{Binding MonthlyIskSeries}"
-                              XAxes="{Binding MonthlyXAxes}"
-                              YAxes="{Binding MonthlyIskYAxes}"
-                              LegendPosition="Top"
-                              TooltipPosition="Top"
-                              EasingFunction="{x:Null}"
-                              Background="Transparent"
-                              Margin="4 0 4 4" />
+            <!-- ISK trends -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,360">
+              <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                <TextBlock Text="ISK TRENDS (billions)" TextTrimming="CharacterEllipsis"
+                           FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" />
+              </Border>
+              <lvc:CartesianChart Grid.Row="1"
+                                  Series="{Binding MonthlyIskSeries}"
+                                  XAxes="{Binding MonthlyIskXAxes}"
+                                  YAxes="{Binding MonthlyIskYAxes}"
+                                  LegendPosition="Top" LegendTextSize="10"
+                                  TooltipPosition="Top"
+                                  EasingFunction="{x:Null}"
+                                  Background="Transparent"
+                                  Margin="4 0 4 4" />
+            </Grid>
 
-          <!-- Count trends header -->
-          <Border Grid.Row="3" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
-                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-            <TextBlock Text="ACTIVITY TRENDS (kills/losses — left axis; units mined — right axis)"
-                       FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-          </Border>
+            <!-- Kills and losses. YAxes[0] = counts, YAxes[1] = ISK efficiency pinned to 0-100% -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,360">
+              <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                <TextBlock Text="KILLS / LOSSES (ISK efficiency right)" TextTrimming="CharacterEllipsis"
+                           FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <lvc:CartesianChart Grid.Row="1"
+                                  Series="{Binding MonthlyKillSeries}"
+                                  XAxes="{Binding MonthlyKillXAxes}"
+                                  YAxes="{Binding MonthlyKillYAxes}"
+                                  LegendPosition="Top" LegendTextSize="10"
+                                  TooltipPosition="Top"
+                                  EasingFunction="{x:Null}"
+                                  Background="Transparent"
+                                  Margin="4 0 4 4" />
+            </Grid>
 
-          <!-- Activity count line chart (YAxes[0]=kills/losses, YAxes[1]=units mined) -->
-          <lvc:CartesianChart Grid.Row="4"
-                              Series="{Binding MonthlyCountSeries}"
-                              XAxes="{Binding MonthlyXAxes}"
-                              YAxes="{Binding MonthlyCountAndMineYAxes}"
-                              LegendPosition="Top"
-                              TooltipPosition="Top"
-                              EasingFunction="{x:Null}"
-                              Background="Transparent"
-                              Margin="4 0 4 4" />
+            <!-- Mining -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,360">
+              <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                <TextBlock Text="MINING (units)" TextTrimming="CharacterEllipsis"
+                           FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
+              </Border>
+              <lvc:CartesianChart Grid.Row="1"
+                                  Series="{Binding MonthlyMineSeries}"
+                                  XAxes="{Binding MonthlyMineXAxes}"
+                                  YAxes="{Binding MonthlyMineYAxes}"
+                                  LegendPosition="Top" LegendTextSize="10"
+                                  TooltipPosition="Top"
+                                  EasingFunction="{x:Null}"
+                                  Background="Transparent"
+                                  Margin="4 0 4 4" />
+            </Grid>
+
+          </Grid>
 
         </Grid>
       </TabItem>

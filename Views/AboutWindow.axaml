@@ -3,69 +3,117 @@
         x:Class="EveConsole.Views.AboutWindow"
         Title="About EVE Console"
         Icon="avares://EveConsole/Assets/ec.ico"
-        Width="400"
+        Width="700"
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource SurfaceBaseBrush}">
 
-  <StackPanel Margin="36 32 36 28" Spacing="0">
+  <Window.Styles>
+    <!-- The link treatment the character, killmail and corp activity views already use: no button
+         chrome at all, with the cursor and the hover underline carrying the affordance. Defined
+         here because that style is local to CharacterView rather than app-wide. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"      Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding"         Value="0" />
+      <Setter Property="MinHeight"       Value="0" />
+      <Setter Property="Cursor"          Value="Hand" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </Window.Styles>
 
-    <!-- Logo -->
-    <Image Source="avares://EveConsole/Assets/logo.png"
-           Width="160" Height="160"
-           HorizontalAlignment="Center"
-           RenderOptions.BitmapInterpolationMode="HighQuality"
-           Margin="0 0 0 16" />
+  <!-- No margin on the outer panel: the header runs to all three edges, and the padding belongs
+       to the content beneath it instead. -->
+  <StackPanel Spacing="0">
 
-    <!-- Two-tone app name -->
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 4">
-      <TextBlock Text="EVE "
-                 FontSize="26" FontWeight="Bold"
-                 Foreground="{DynamicResource TextBrightBrush}"
-                 LetterSpacing="4" />
-      <TextBlock Text="Console"
-                 FontSize="26" FontWeight="Bold"
-                 Foreground="{DynamicResource AccentBrush}"
-                 LetterSpacing="4" />
+    <!-- Header: the name set over the artwork, as the splash screen does it.
+         ⚠️ ClipToBounds, because UniformToFill renders past the panel it is measured into. Without
+         it the overflow paints down over the description rather than being cut at the header edge.
+         The name sits upper LEFT because that is the dark end of this artwork — the bright nebula
+         is away to the right — so it stays legible without the gradient the splash screen needs
+         under its own text. -->
+    <Panel Height="210" ClipToBounds="True">
+      <Image Source="avares://EveConsole/Assets/splash_background.png"
+             Stretch="UniformToFill"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center"
+             RenderOptions.BitmapInterpolationMode="HighQuality" />
+
+      <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top"
+                  Margin="20 17 0 0" Spacing="4">
+        <!-- Two-tone name: EVE in white, Console in amber. Same treatment as the splash, a size
+             down, because this window is narrower than that one. -->
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="EVE "
+                     FontSize="30" FontWeight="Bold"
+                     Foreground="{DynamicResource TextBrightBrush}"
+                     LetterSpacing="8" />
+          <TextBlock Text="Console"
+                     FontSize="30" FontWeight="Bold"
+                     Foreground="{DynamicResource AccentBrush}"
+                     LetterSpacing="8" />
+        </StackPanel>
+        <TextBlock x:Name="VersionText"
+                   Text=""
+                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                   HorizontalAlignment="Left" />
+      </StackPanel>
+    </Panel>
+
+    <StackPanel Margin="40 26 40 28" Spacing="0">
+
+      <!-- Description. No divider above it: the edge of the artwork already separates them. -->
+      <TextBlock Text="An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management."
+                 FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 LineHeight="20"
+                 Margin="0 0 0 20" />
+
+      <!-- Where to go next. Tag carries the URL so one handler serves all three. -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="14" Margin="0 0 0 22">
+        <Button Classes="link" Tag="https://eveconsole.com" Click="OnLinkClick"
+                ToolTip.Tip="eveconsole.com">
+          <TextBlock Text="Website" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+        </Button>
+        <TextBlock Text="·" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" />
+        <Button Classes="link" Tag="https://docs.eveconsole.com" Click="OnLinkClick"
+                ToolTip.Tip="docs.eveconsole.com">
+          <TextBlock Text="Documentation" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+        </Button>
+        <TextBlock Text="·" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" />
+        <Button Classes="link" Tag="https://discord.gg/H6NaAjJMar" Click="OnLinkClick"
+                ToolTip.Tip="Community chat and support">
+          <TextBlock Text="Discord" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+        </Button>
+      </StackPanel>
+
+      <!-- Divider -->
+      <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 0 0 16" />
+
+      <!-- CCP trademark notice -->
+      <TextBlock FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 LineHeight="17">
+        EVE Online and the EVE logo are the registered trademarks of CCP hf.
+        EVE Console is not affiliated with or endorsed by CCP hf.
+      </TextBlock>
+
+      <!-- Close button -->
+      <Button Content="Close"
+              HorizontalAlignment="Center"
+              Padding="28 6"
+              Margin="0 24 0 0"
+              Click="OnCloseClick" />
+
     </StackPanel>
-
-    <!-- Version -->
-    <TextBlock x:Name="VersionText"
-               Text=""
-               FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
-               HorizontalAlignment="Center"
-               Margin="0 0 0 24" />
-
-    <!-- Divider -->
-    <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 0 0 20" />
-
-    <!-- Description -->
-    <TextBlock Text="An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management."
-               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-               TextWrapping="Wrap"
-               TextAlignment="Center"
-               LineHeight="20"
-               Margin="0 0 0 24" />
-
-    <!-- Divider -->
-    <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 0 0 16" />
-
-    <!-- CCP trademark notice -->
-    <TextBlock FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
-               TextWrapping="Wrap"
-               TextAlignment="Center"
-               LineHeight="17">
-      EVE Online and the EVE logo are the registered trademarks of CCP hf.
-      EVE Console is not affiliated with or endorsed by CCP hf.
-    </TextBlock>
-
-    <!-- Close button -->
-    <Button Content="Close"
-            HorizontalAlignment="Center"
-            Padding="28 6"
-            Margin="0 24 0 0"
-            Click="OnCloseClick" />
 
   </StackPanel>
 

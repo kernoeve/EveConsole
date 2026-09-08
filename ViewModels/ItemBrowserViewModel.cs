@@ -64,6 +64,7 @@ public class TypeSearchResult
 /// than the sum.
 /// </summary>
 public record LpOfferVm(
+    long   CorporationId,
     string CorporationName,
     int    Quantity,
     int    LpCost,
@@ -73,6 +74,10 @@ public record LpOfferVm(
     IReadOnlyList<string> RequiredItems,
     double? IskPerLp)
 {
+    /// <summary>The NPC corporation running this store.</summary>
+    public void OpenCorporation() =>
+        EntityNavigator.Instance.Entity(EntityKind.NpcCorp, CorporationId);
+
     /// <summary>Blank when the offer could not be valued — no price on the item itself, or
     /// on something it consumes. Zero would read as "worthless", which is a different
     /// claim from "unknown".</summary>
@@ -110,6 +115,60 @@ public record AttrGroupVm(string CategoryName, IReadOnlyList<AttrDisplayVm> Attr
 public record BlueprintMatVm(string MaterialName, int MaterialTypeId, int Quantity);
 public record BlueprintVm(string BlueprintName, int BlueprintTypeId, IReadOnlyList<BlueprintMatVm> Materials);
 public record MaterialUseVm(string BlueprintName, int BlueprintTypeId, string ProductName);
+
+/// <summary>
+/// The refine ceilings, and which one an item is judged against.
+///
+/// <para>⚠️ Two of them, decided by the CATEGORY of the thing going in. Asteroid — ore, ice and
+/// moon ore alike — runs the ore formula and tops out around 90.6%: a rigged Tatara in nullsec
+/// with Reprocessing, Reprocessing Efficiency and the ore-specific skill at V, plus implants.
+/// Everything else is scrapmetal, where the only multiplier is Scrapmetal Processing V on a 50%
+/// base, so 55% is the ceiling however good the structure is.</para>
+///
+/// <para>⚠️ The SDE's own quantities are the 100% yields, which is what this tab used to print.
+/// Nobody ever gets them: the figure was optimistic for ore by a tenth and for a module by
+/// nearly half.</para>
+/// </summary>
+public static class RefineYield
+{
+    public const int    AsteroidCategoryId = 25;
+    public const double Ore                = 0.906;
+    public const double Scrapmetal         = 0.55;
+
+    public static double For(int categoryId) =>
+        categoryId == AsteroidCategoryId ? Ore : Scrapmetal;
+
+    public static long Apply(int baseQuantity, double rate) =>
+        (long)Math.Floor(baseQuantity * rate);
+}
+
+/// <summary>Something that yields this item when reprocessed, and how much actually comes back.</summary>
+/// <param name="PortionSize">⚠️ The batch. Ore reprocesses 100 at a time and ice one at a time,
+/// and the SDE quantity is per BATCH — printed as "per unit" it overstated Veldspar by a
+/// hundredfold.</param>
+public record ReprocessSourceVm(
+    string SourceName, int SourceTypeId, int PortionSize, int BaseQuantity, double Rate)
+{
+    public long   Yield     => RefineYield.Apply(BaseQuantity, Rate);
+
+    /// <summary>⚠️ "&lt;1" rather than "0". Clear Icicle returns one Strontium Clathrate at the
+    /// SDE's 100%, and a single batch at 90.6% floors to nothing — true of that batch, and a lie
+    /// about the item, which does yield strontium once you refine a stack of them.</summary>
+    public string YieldText => Yield == 0 && BaseQuantity > 0 ? "<1" : Yield.ToString("N0");
+
+    public string BatchText => PortionSize > 1 ? $"per {PortionSize:N0}" : "per unit";
+    public string RateText  => $"{Rate * 100:0.#}%";
+}
+
+/// <summary>One thing this item yields when reprocessed.</summary>
+public record ReprocessOutputVm(
+    string OutputName, int OutputTypeId, int BaseQuantity, double Rate)
+{
+    public long   Yield     => RefineYield.Apply(BaseQuantity, Rate);
+
+    /// <summary>⚠️ See ReprocessSourceVm.YieldText — a batch that floors to nothing still yields.</summary>
+    public string YieldText => Yield == 0 && BaseQuantity > 0 ? "<1" : Yield.ToString("N0");
+}
 
 // ── Blueprint detail models ────────────────────────────────────────────────────
 
@@ -236,9 +295,17 @@ public class ItemDisplayVm : ReactiveObject
     // Industry tab — when item is a regular item
     public IReadOnlyList<BlueprintVm>   ProducedBy  { get; init; } = [];
     public IReadOnlyList<MaterialUseVm> UsedIn      { get; init; } = [];
-    public bool HasProducedBy => ProducedBy.Count > 0;
-    public bool HasUsedIn    => UsedIn.Count > 0;
-    public bool HasIndustry  => HasProducedBy || HasUsedIn;
+    public IReadOnlyList<ReprocessSourceVm> ReprocessedFrom { get; init; } = [];
+    public IReadOnlyList<ReprocessOutputVm> ReprocessedTo   { get; init; } = [];
+    public bool HasProducedBy      => ProducedBy.Count > 0;
+    public bool HasUsedIn          => UsedIn.Count > 0;
+    public bool HasReprocessedFrom => ReprocessedFrom.Count > 0;
+    public bool HasReprocessedTo   => ReprocessedTo.Count > 0;
+    public bool HasIndustry        => HasProducedBy || HasUsedIn || HasReprocessedFrom || HasReprocessedTo;
+
+    /// <summary>The ceiling this item is refined at, for the caption that has to say so.</summary>
+    public string RefineRateText => ReprocessedTo.Count > 0
+        ? $"{ReprocessedTo[0].Rate * 100:0.#}%" : "";
 
     // Industry tab — when item is itself a blueprint / reaction formula
     public BlueprintDetailVm? BlueprintDetail { get; init; }
@@ -515,6 +582,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     }
 
                     return new LpOfferVm(
+                        o.CorporationId,
                         corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
                         o.Quantity, o.LpCost, o.IskCost, o.AkCost,
                         lpHeld.GetValueOrDefault(o.CorporationId),
@@ -795,6 +863,11 @@ public class ItemBrowserViewModel : ReactiveObject
                                 IDbContextFactory<AppDbContext>? dbFactory = null,
                                 AppPreferencesService? prefs = null)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _db             = db;
         _prefs          = prefs;
         _dbFactory      = dbFactory;
@@ -1439,7 +1512,7 @@ public class ItemBrowserViewModel : ReactiveObject
             var dogmaAttrs = await LoadDogmaAttrsAsync(typeId, ct);
 
             // Industry
-            var (producedBy, usedIn) = await LoadIndustryAsync(typeId, ct);
+            var (producedBy, usedIn, reprocessedFrom, reprocessedTo) = await LoadIndustryAsync(typeId, ct);
             var blueprintDetail       = await LoadBlueprintDetailAsync(typeId, ct);
 
             // Requirements (skills needed to use/build this item — any item can have these)
@@ -1512,6 +1585,8 @@ public class ItemBrowserViewModel : ReactiveObject
                 DogmaAttrs       = dogmaAttrs,
                 ProducedBy       = producedBy,
                 UsedIn           = usedIn,
+                ReprocessedFrom  = reprocessedFrom,
+                ReprocessedTo    = reprocessedTo,
                 BlueprintDetail  = blueprintDetail,
                 Requirements     = requirements,
                 IsSkill          = isSkill,
@@ -1843,67 +1918,130 @@ public class ItemBrowserViewModel : ReactiveObject
             .ToList();
     }
 
-    private async Task<(IReadOnlyList<BlueprintVm>, IReadOnlyList<MaterialUseVm>)>
+    /// <summary>
+    /// The three ways this item meets industry: what makes it, what it goes into, and what it
+    /// falls out of when something else is reprocessed.
+    ///
+    /// <para>⚠️ Bulk queries, one per relationship, joined in memory. This ran a name lookup and a
+    /// product lookup PER blueprint, which was survivable only because the lists were capped at
+    /// ten and thirty. Tritanium is an input to 1,689 blueprints; uncapped, the old shape would
+    /// have been three and a half thousand round trips to draw one tab.</para>
+    ///
+    /// <para>⚠️ And the caps are gone, which is the point. "… and 23 more blueprints" is the
+    /// answer to a question nobody asked — the list is there to be searched and read, and a
+    /// truncation hides exactly the entry somebody scrolled down for.</para>
+    /// </summary>
+    private async Task<(IReadOnlyList<BlueprintVm>, IReadOnlyList<MaterialUseVm>,
+                        IReadOnlyList<ReprocessSourceVm>, IReadOnlyList<ReprocessOutputVm>)>
         LoadIndustryAsync(int typeId, CancellationToken ct)
     {
-        // Blueprints that produce this item
+        // ── Blueprints that produce this item ─────────────────────────────────
         var bpIds = await _db.SdeBlueprintProducts.AsNoTracking()
             .Where(p => p.ProductTypeId == typeId && p.Activity == "manufacturing")
             .Select(p => p.TypeId)
+            .Distinct()
             .ToListAsync(ct);
 
-        var producedBy = new List<BlueprintVm>();
-        foreach (var bpId in bpIds.Take(10))
-        {
-            var bpName = await _db.SdeTypes.AsNoTracking()
-                .Where(t => t.TypeId == bpId)
-                .Select(t => t.Name)
-                .FirstOrDefaultAsync(ct) ?? $"Blueprint #{bpId}";
+        var bpNames = await _db.SdeTypes.AsNoTracking()
+            .Where(t => bpIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-            var mats = await _db.SdeBlueprintMaterials.AsNoTracking()
-                .Where(m => m.TypeId == bpId && m.Activity == "manufacturing")
+        var matsByBp = (await _db.SdeBlueprintMaterials.AsNoTracking()
+                .Where(m => bpIds.Contains(m.TypeId) && m.Activity == "manufacturing")
                 .Join(_db.SdeTypes, m => m.MaterialTypeId, t => t.TypeId,
-                      (m, t) => new { t.Name, m.MaterialTypeId, m.Quantity })
-                .OrderBy(x => x.Name)
-                .Select(x => new BlueprintMatVm(x.Name, x.MaterialTypeId, x.Quantity))
-                .ToListAsync(ct);
+                      (m, t) => new { m.TypeId, t.Name, m.MaterialTypeId, m.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<BlueprintMatVm>)[.. g.OrderBy(x => x.Name)
+                        .Select(x => new BlueprintMatVm(x.Name, x.MaterialTypeId, x.Quantity))]);
 
-            producedBy.Add(new BlueprintVm(bpName, bpId, mats));
-        }
+        var producedBy = bpIds
+            .Select(id => new BlueprintVm(
+                bpNames.GetValueOrDefault(id, $"Blueprint #{id}"), id,
+                matsByBp.GetValueOrDefault(id, [])))
+            .OrderBy(b => b.BlueprintName)
+            .ToList();
 
-        // Blueprints where this item is an input material
-        var usedInBpIds = await _db.SdeBlueprintMaterials.AsNoTracking()
+        // ── Blueprints this item is an input to ───────────────────────────────
+        var usedInIds = await _db.SdeBlueprintMaterials.AsNoTracking()
             .Where(m => m.MaterialTypeId == typeId && m.Activity == "manufacturing")
             .Select(m => m.TypeId)
             .Distinct()
-            .Take(30)
             .ToListAsync(ct);
 
-        var totalUsedIn = await _db.SdeBlueprintMaterials.AsNoTracking()
-            .Where(m => m.MaterialTypeId == typeId && m.Activity == "manufacturing")
-            .Select(m => m.TypeId)
-            .Distinct()
-            .CountAsync(ct);
+        var usedInNames = await _db.SdeTypes.AsNoTracking()
+            .Where(t => usedInIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-        var usedIn = new List<MaterialUseVm>();
-        foreach (var bpId in usedInBpIds)
-        {
-            var bpName = await _db.SdeTypes.AsNoTracking()
-                .Where(t => t.TypeId == bpId).Select(t => t.Name)
-                .FirstOrDefaultAsync(ct) ?? $"Blueprint #{bpId}";
+        var productOf = (await _db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => usedInIds.Contains(p.TypeId) && p.Activity == "manufacturing")
+                .Join(_db.SdeTypes, p => p.ProductTypeId, t => t.TypeId,
+                      (p, t) => new { p.TypeId, t.Name })
+                .ToListAsync(ct))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
 
-            var productName = await _db.SdeBlueprintProducts.AsNoTracking()
-                .Where(p => p.TypeId == bpId && p.Activity == "manufacturing")
-                .Join(_db.SdeTypes, p => p.ProductTypeId, t => t.TypeId, (p, t) => t.Name)
-                .FirstOrDefaultAsync(ct) ?? "";
+        var usedIn = usedInIds
+            .Select(id => new MaterialUseVm(
+                usedInNames.GetValueOrDefault(id, $"Blueprint #{id}"), id,
+                productOf.GetValueOrDefault(id, "")))
+            .OrderBy(u => u.BlueprintName)
+            .ToList();
 
-            usedIn.Add(new MaterialUseVm(bpName, bpId, productName));
-        }
+        // ── Reprocessing, both directions ─────────────────────────────────────
+        //
+        // ⚠️ The tab said nothing about this at all, and for a great many items it is the ONLY way
+        // they are produced: nothing on Helium Isotopes told you they come out of Clear Icicle.
+        // SdeTypeMaterials is the yield table and reads both ways — rows keyed on this type are
+        // what it becomes, rows naming it as the material are what it comes from.
 
-        if (totalUsedIn > 30)
-            usedIn.Add(new MaterialUseVm($"… and {totalUsedIn - 30} more blueprints", 0, ""));
+        var sourceRows = await _db.SdeTypeMaterials.AsNoTracking()
+            .Where(m => m.MaterialTypeId == typeId)
+            .Join(_db.SdeTypes, m => m.TypeId, t => t.TypeId,
+                  (m, t) => new { t.Name, SourceTypeId = m.TypeId, t.GroupId, t.PortionSize, m.Quantity })
+            .ToListAsync(ct);
 
-        return (producedBy, usedIn);
+        // ⚠️ Each source is judged against its OWN ceiling. A list mixing Clear Icicle with Helium
+        // Fuel Block is a list mixing 90.6% ore with 55% scrapmetal, and one rate across both
+        // would be wrong for half the rows.
+        var sourceGroupIds = sourceRows.Select(x => x.GroupId).Distinct().ToList();
+        var sourceCats = await _db.SdeGroups.AsNoTracking()
+            .Where(g => sourceGroupIds.Contains(g.GroupId))
+            .Select(g => new { g.GroupId, g.CategoryId })
+            .ToDictionaryAsync(g => g.GroupId, g => g.CategoryId, ct);
+
+        var reprocessedFrom = sourceRows
+            .Select(x => new ReprocessSourceVm(
+                x.Name, x.SourceTypeId, x.PortionSize, x.Quantity,
+                RefineYield.For(sourceCats.GetValueOrDefault(x.GroupId))))
+            .OrderByDescending(x => x.Yield)
+            .ThenBy(x => x.SourceName)
+            .ToList();
+
+        // What this item itself yields. One rate for the whole section, because it is one item
+        // going in — the caption says which and why.
+        var ownCategory = await _db.SdeTypes.AsNoTracking()
+            .Where(t => t.TypeId == typeId)
+            .Join(_db.SdeGroups, t => t.GroupId, g => g.GroupId, (t, g) => g.CategoryId)
+            .FirstOrDefaultAsync(ct);
+
+        var ownRate = RefineYield.For(ownCategory);
+
+        var reprocessedTo = (await _db.SdeTypeMaterials.AsNoTracking()
+                .Where(m => m.TypeId == typeId)
+                .Join(_db.SdeTypes, m => m.MaterialTypeId, t => t.TypeId,
+                      (m, t) => new { t.Name, OutputTypeId = m.MaterialTypeId, m.Quantity })
+                .ToListAsync(ct))
+            .Select(x => new ReprocessOutputVm(x.Name, x.OutputTypeId, x.Quantity, ownRate))
+            .OrderByDescending(x => x.Yield)
+            .ThenBy(x => x.OutputName)
+            .ToList();
+
+        return (producedBy, usedIn, reprocessedFrom, reprocessedTo);
     }
 
     private async Task<BlueprintDetailVm?> LoadBlueprintDetailAsync(int typeId, CancellationToken ct)

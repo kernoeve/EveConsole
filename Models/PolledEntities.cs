@@ -634,6 +634,33 @@ public class StandingEntry
     public float  Standing  { get; set; }
 }
 
+/// <summary>
+/// The public ESI profile of an NPC corporation.
+///
+/// <para>⚠️ Kept because the SDE import throws these away. NpcCorpYaml reads name and factionID
+/// and nothing else, so the headquarters, ticker, description and tax rate never reach the
+/// database — which is why the NPC entity page could not show them. ESI serves the same facts on
+/// a public route, one call per corporation, so they are fetched when a page is opened and kept.</para>
+///
+/// <para>NPC corporations do not change, so a stored row is used indefinitely.</para>
+/// </summary>
+public class NpcCorpProfile
+{
+    public long   CorporationId { get; set; }
+    public string Ticker        { get; set; } = "";
+    public string Description   { get; set; } = "";
+    public string Url           { get; set; } = "";
+    public long   CeoId         { get; set; }
+
+    /// <summary>⚠️ NOT one of the corporation's own stations. A militia corporation owns none and
+    /// is still headquartered somewhere: Malakim Zealots run out of an Archangels station.</summary>
+    public long   HomeStationId { get; set; }
+
+    public int    MemberCount   { get; set; }
+    public double TaxRate       { get; set; }
+    public DateTimeOffset FetchedUtc { get; set; }
+}
+
 public class CharacterTitle
 {
     public long   CharacterId { get; set; }

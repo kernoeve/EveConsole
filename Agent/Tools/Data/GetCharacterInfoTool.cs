@@ -40,7 +40,7 @@ public sealed class GetCharacterInfoTool : IAgentTool
             FROM   "Characters" c
             LEFT JOIN "Corporations" corp ON corp."Id" = c."CorporationId"
             LEFT JOIN "EsiWalletBalances" wb ON wb."OwnerId" = c."Id" AND wb."OwnerType" = 'character' AND wb."Division" = 0
-            WHERE  (CAST(@name AS TEXT) IS NULL OR c."Name" LIKE @name)
+            WHERE  (CAST(@name AS TEXT) IS NULL OR LOWER(c."Name") LIKE LOWER(@name))
             ORDER  BY c."Name"
             """;
 
@@ -81,7 +81,7 @@ public sealed class GetCharacterInfoTool : IAgentTool
                 LEFT   JOIN "SdeTypes" st ON st."TypeId"  = sq."SkillId"
                 LEFT   JOIN "EsiSkills" sk ON sk."CharacterId" = sq."CharacterId"
                                         AND sk."SkillId"     = sq."SkillId"
-                WHERE  c."Name" LIKE @name
+                WHERE  LOWER(c."Name") LIKE LOWER(@name)
                 ORDER  BY sq."QueuePosition"
                 LIMIT  50
                 """;

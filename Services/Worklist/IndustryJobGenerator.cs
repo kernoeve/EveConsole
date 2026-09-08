@@ -164,11 +164,41 @@ public class IndustryJobGenerator(
                                Qty = g.Sum(a => (long)a.Quantity) })
             .ToList();
 
+        // What is already on its way out of a machine. See ScopeStock.Anywhere for why this has
+        // to be here and not only in group availability.
+        //
+        // ⚠️ Runs times what a run YIELDS, not runs. A reaction turns 250 runs into 50,000 units,
+        // and netting off the run count would credit a two-hundredth of what is arriving.
+        var running = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                            && j.ProductTypeId != null)
+                .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId, j.BlueprintTypeId })
+                .ToListAsync(ct))
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
+            .ToList();
+
+        var runningPrints = running.Select(j => j.BlueprintTypeId).Distinct().ToList();
+
+        var runningYield = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => runningPrints.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(p => (p.TypeId, p.ProductTypeId))
+            .ToDictionary(x => x.Key, x => (long)Math.Max(1, x.Max(p => p.Quantity)));
+
+        var inBuild = running
+            .GroupBy(j => j.ProductTypeId!.Value)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Sum(j => j.Runs * runningYield.GetValueOrDefault(
+                                    (j.BlueprintTypeId, j.ProductTypeId!.Value), 1L)));
+
         var inScope = new ScopeStock(
             scopeRows.Where(a => a.OwnerType == "corporation")
                      .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
             scopeRows.Where(a => a.OwnerType != "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)));
+                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
+            inBuild);
 
         // Rig bonuses key off the item's category, which needs the SDE group tree.
         var typeToGroup = ctx.TypeGroupMap.ToDictionary(kv => kv.Key, kv => kv.Value.GroupId);
@@ -293,6 +323,20 @@ public class IndustryJobGenerator(
         // nobody can run would be a lie about the shelf.
         static bool StillShort(PlanState s) => s.Remaining > 0;
 
+        // Whether a dependent still has work that cannot run: either not yet written down, or
+        // written down and blocked.
+        //
+        // ⚠️ Deliberately NOT StillShort, which is the wrong question to ask about an ancestor.
+        // Remaining falls the moment a shortfall is REPORTED, blocked or not — right for a count
+        // that has to decay as the list grows, wrong for "is anything above me still stuck".
+        // Three Ark runs and a Salvation sat on the list blocked for want of Tungsten Carbide,
+        // and because their units had been reported their Remaining read zero: the hulls dropped
+        // out of the ancestry of their own bottleneck. Tungsten scored fin 0 with thirteen jobs
+        // stopped behind it and sat a band below items holding up one job each.
+        //
+        // Planned only moves for work that can actually start, which is exactly the question.
+        static bool StillWaiting(PlanState s) => s.Planned < s.Demand.Units;
+
         int BlockedNow(PlanState s)
         {
             var starving = Starving(s);
@@ -327,7 +371,7 @@ public class IndustryJobGenerator(
             var n = s.Demand.IsFinal ? 1 : 0;
 
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && StillShort(dep) && dep.Demand.IsFinal)
+                if (byType.TryGetValue(t, out var dep) && StillWaiting(dep) && dep.Demand.IsFinal)
                     n++;
             return (int)Math.Ceiling(n * starving);
         }
@@ -433,7 +477,7 @@ public class IndustryJobGenerator(
 
             foreach (var t in s.Demand.Dependents)
             {
-                if (!byType.TryGetValue(t, out var dep) || !StillShort(dep)) continue;
+                if (!byType.TryGetValue(t, out var dep) || !StillWaiting(dep)) continue;
 
                 // ⚠️ The ancestor's OWN priority, not its inherited one. Dependents is closed over
                 // the whole chain above an item, so the highest own-priority among the ancestors
@@ -1093,6 +1137,37 @@ public class IndustryJobGenerator(
                     }
                 }
         }
+        }
+
+
+        // ⚠️ Nothing demanded may vanish without saying so.
+        //
+        // Tungsten Carbide was 508,190 against a 20,000,000 Build rule, with seventeen free
+        // formula BPOs sitting in the very structure the park assigns react_composite to — and it
+        // produced no row of any kind: not ready, not waiting, not blocked. It was only noticed by
+        // running out of the material. A walk this deep has many ways to drop an entry, and every
+        // one of them was silent, so the tool answered a question it had not been asked ("here is
+        // what to do") while quietly not answering the one it had ("what about this?").
+        //
+        // This does not fix whatever dropped it. It makes the drop impossible to miss, and names
+        // the type, so the next occurrence is a lead rather than an absence.
+        var accounted = items.Select(i => i.TypeId).ToHashSet();
+
+        foreach (var s in queue.Where(s => !accounted.Contains(s.Demand.TypeId))
+                               .OrderByDescending(s => s.Demand.Units))
+        {
+            var name = names.GetValueOrDefault(s.Demand.TypeId, $"Type {s.Demand.TypeId}");
+            var made = ctx.BlueprintByProduct.ContainsKey(s.Demand.TypeId);
+
+            items.Add(Unstartable(
+                s.Demand.TypeId, name, LivePriority(s),
+                ctx.BlueprintByProduct.GetValueOrDefault(s.Demand.TypeId)?.Activity == "reaction"
+                    ? IndustryPool.Reaction : IndustryPool.Manufacturing,
+                s.Demand.Units,
+                $"{s.Demand.Head} Short {s.Demand.Units:N0}.",
+                made
+                    ? "The planner did not produce a task for this and did not say why — please report it"
+                    : "Nothing in the SDE makes this, so it can only be bought"));
         }
 
         return items;

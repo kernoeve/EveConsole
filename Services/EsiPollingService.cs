@@ -78,23 +78,28 @@ public class EsiPollingService : ReactiveObject
     private static readonly TimeSpan MinimumSpacing = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// The furthest ahead an Expires header is allowed to push the next poll.
-    ///
-    /// <para>⚠️ There was no ceiling at all, and one endpoint used it to stop for a year.
-    /// /corporations/{id}/projects answered 200 with Expires exactly 365 days out for the three
-    /// corporations that actually have projects, so the Call Schedule tab read "next poll
+    /// The longest expiry worth believing.
+    /// </summary>
+    /// <remarks>
+    /// <para>⚠️ There was no limit at all, and one endpoint used it to stop for a year.
+    /// /corporations/{id}/projects answers 200 with Expires exactly 365 days out for every
+    /// corporation that actually has projects, so the Call Schedule tab read "next poll
     /// 1 September 2027" and that data simply stopped updating. The app was doing as it was told;
     /// nothing told it that some instructions are not worth obeying.</para>
     ///
-    /// <para>A far-future expiry on a large mutable collection means "hold this and ask whether
-    /// it changed", not "do not ask again this year" — revalidation, which the ETag support
-    /// alongside this now performs. The ceiling is what makes that safe to get wrong: the worst
-    /// case becomes one wasted request rather than an endpoint going silent.</para>
+    /// <para>⚠️ Past this the header is DISBELIEVED, not trimmed to it. Trimming half-obeys a
+    /// value already judged wrong, and left corp projects six hours stale against an endpoint
+    /// whose own configured cycle is sixty minutes. An expiry we do not believe should count for
+    /// nothing at all, which means falling back to the interval exactly as for an endpoint that
+    /// sends no expiry.</para>
     ///
-    /// <para>Six hours, or the endpoint's own configured interval when that is longer, since a
-    /// user who asked for daily polling meant it.</para>
-    /// </summary>
-    private static readonly TimeSpan MaximumDeferral = TimeSpan.FromHours(6);
+    /// <para>Six hours, measured rather than picked: across the whole call log corp.projects is
+    /// the only endpoint that has ever answered with a window beyond two hours, so this governs
+    /// that one endpoint and leaves every other schedule alone. A genuinely long cache is still
+    /// obeyed up to here, and revalidated by ETag above it — where the server offers one, which
+    /// for this endpoint it does not.</para>
+    /// </remarks>
+    private static readonly TimeSpan LongestCredibleExpiry = TimeSpan.FromHours(6);
 
     /// <summary>
     /// Whether an endpoint is due.
@@ -141,11 +146,14 @@ public class EsiPollingService : ReactiveObject
             ? expiresAt.Value + ExpiryGrace
             : last + interval;
 
-        // ⚠️ Applied to the stored value at READ time rather than when it is written, so a
-        // record already carrying an absurd expiry is corrected without anyone repairing rows.
-        // The corporations stuck until 2027 come back on the next cycle.
-        var ceiling = last + (interval > MaximumDeferral ? interval : MaximumDeferral);
-        if (due > ceiling) due = ceiling;
+        // ⚠️ Applied to the stored value at READ time rather than when it is written, so a record
+        // already carrying an absurd expiry is corrected without anyone repairing rows. The
+        // corporations stuck until 2027 come back on the next cycle.
+        //
+        // The horizon rises with a long configured interval, so an endpoint somebody set to poll
+        // daily is not dragged forward to six hours by a header nobody believes either.
+        var horizon = interval > LongestCredibleExpiry ? interval : LongestCredibleExpiry;
+        if (expiresAt.HasValue && due > last + horizon) due = last + interval;
 
         // The hot-loop guard applies to the answer, not only to the interval branch: an expiry
         // already in the past would otherwise read as due on every cycle.
@@ -3213,12 +3221,21 @@ public class EsiPollingService : ReactiveObject
                 .Select(c => c.EndLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
             // Industry job facilities and blueprint/output locations.
+            //
+            // ⚠️ The same self-exclusion the assets branch above uses, and for a stronger reason:
+            // a job's blueprint and output locations are CONTAINERS by nature. ESI answers with the
+            // corp office or division the prints came from and the output went to, not the
+            // structure around them — twelve of the ids reachable this way are Offices, category 3.
+            // Anything that is itself an owned item is not the structure it sits in.
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.StationId > T)
-                .Select(j => j.StationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.StationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.BlueprintLocationId > T)
-                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.OutputLocationId > T)
-                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
 
             // Market orders and wallet transactions.
             foreach (var id in await db.EsiMarketOrders.Where(o => o.LocationId > T)
@@ -3268,11 +3285,13 @@ public class EsiPollingService : ReactiveObject
 
             // Clear out anything already in the table that our assets identify as not a structure,
             // before the sync copies it into the table the user is about to curate by hand.
-            var purged = await _structureSync.PurgeNonStructuresAsync(ct);
+            var removedWhat = new List<string>();
+            var purged = await _structureSync.PurgeNonStructuresAsync(removedWhat, ct);
             if (purged > 0)
                 _errorLogger.Log(nameof(EsiPollingService), "Structure hygiene",
                     $"Removed {purged:N0} row(s) our assets identify as ships, containers or " +
-                     "asset-safety wraps rather than structures.");
+                     "asset-safety wraps rather than structures: " +
+                     (removedWhat.Count > 0 ? string.Join("; ", removedWhat) : "id not in assets"));
 
             // Copy what ESI resolved into the app's own table, which is what the Structure Browser
             // reads and edits. One direction only — nothing the user types can travel back into

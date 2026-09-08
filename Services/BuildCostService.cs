@@ -522,7 +522,16 @@ public class BuildCostService
                 // cruiser-hulled at 115,000 m³. See IndyRigMatching.
                 (6, "Cruiser" or "Battlecruiser" or "Combat Battlecruiser"
                    or "Attack Battlecruiser" or "Special Edition Yachts")                   => "medium_ships",
-                (6, "Battleship" or "Freighter")                                            => "large_ships",
+                // ⚠️ Freighters and industrial command ships are LARGE here, and jump freighters are
+                // ADVANCED large. They are capital-sized to fly and capital-priced to buy, which is
+                // why they were filed under capitals, but manufacturing does not care and the rigs
+                // say so in CCP's own words:
+                //   Basic Large Ship     "battleships, freighters and industrial command ships"
+                //   Advanced Large Ship  "Tech 2 battleships and jump freighters"
+                //   Capital Ship         "capital ships"
+                // Filed as capitals, a freighter job in a large-ship yard read as unrigged and was
+                // costed without the bonus it was actually getting.
+                (6, "Battleship" or "Freighter" or "Industrial Command Ship")               => "large_ships",
                 // T2 frigates/destroyers; SDE group is "Interdictor" not "Interdiction Destroyer"
                 (6, "Interceptor" or "Assault Frigate" or "Covert Ops"
                    or "Electronic Attack Ship" or "Interdictor" or "Tactical Destroyer"
@@ -533,11 +542,9 @@ public class BuildCostService
                    or "Heavy Interdiction Cruiser" or "Logistics" or "Command Ship"
                    or "Strategic Cruiser" or "Blockade Runner" or "Deep Space Transport"
                    or "Flag Cruiser" or "Expedition Command Ship")                          => "adv_medium_ships",
-                (6, "Marauder" or "Black Ops")                                              => "adv_large_ships",
-                // Command Carrier (Ymir etc.) and Lancer Dreadnought are capital-class ships
+                (6, "Marauder" or "Black Ops" or "Jump Freighter")                          => "adv_large_ships",
                 (6, "Dreadnought" or "Carrier" or "Force Auxiliary" or "Capital Industrial Ship"
-                   or "Supercarrier" or "Titan" or "Command Carrier" or "Lancer Dreadnought"
-                   or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
+                   or "Supercarrier" or "Titan" or "Command Carrier" or "Lancer Dreadnought")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
 
@@ -1071,24 +1078,47 @@ public class BuildCostService
 
         using var handle = _log.StartCall(defaultPark.Name, "build.costs");
         var now     = DateTime.UtcNow;
+        // ⚠️ Rounded HERE, once, not wherever a column happens to show it. A chain cost is a
+        // division carried through however many tiers the item has — 277493.49010615459901787151515
+        // for a rig — and every screen reading the table would otherwise have to remember to trim
+        // it, which the asset grid did not. ISK is quoted to two places in game; the stored figure
+        // now says the same.
+        //
+        // Away from zero rather than the default banker's rounding: a cost is money, and a half
+        // ISK that sometimes rounds down and sometimes up is harder to reconcile than one that
+        // always rounds the same way.
+        static decimal Isk(decimal v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
+
         var results = productMap.Keys
             .Where(tid => unitCosts.ContainsKey(tid))
             .Select(tid => new BuildCost
             {
                 TypeId       = tid,
                 TypeName     = typeNames.TryGetValue(tid, out var n) ? n : "",
-                TotalCost    = unitCosts[tid],
-                MaterialCost = rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m,
-                JobCost      = totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m,
+                TotalCost    = Isk(unitCosts[tid]),
+                MaterialCost = Isk(rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m),
+                JobCost      = Isk(totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m),
                 BuildSeconds = buildSeconds.TryGetValue(tid, out var bs) ? bs : 0.0,
                 Bought       = boughtTypes.Contains(tid),
                 UpdatedAt    = now,
             })
             .ToList();
 
+        // ⚠️ One transaction, or there is a moment with no costs at all. ExecuteDeleteAsync
+        // commits on its own, so between it and the insert every reader sees an empty table — and
+        // the readers here are the asset grid, the worklist purchase pass and every gap-filled
+        // price that falls back to build cost. A pass landing in that gap does not read a stale
+        // number, it reads nothing, which is the worse of the two.
+        //
+        // No extra lock time worth speaking of: the delete and the insert already ran back to
+        // back, each taking the write lock in turn. This merges them rather than adding anything.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.BuildCosts.ExecuteDeleteAsync(ct);
         db.BuildCosts.AddRange(results);
         await db.SaveChangesAsync(ct);
+
+        await tx.CommitAsync(ct);
 
         handle.Complete(true, results.Count, $"{results.Count:N0} items");
         StatusText = $"Build costs: last updated {DateTimeOffset.Now:t} ({results.Count:N0} items)";

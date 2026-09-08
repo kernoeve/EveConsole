@@ -17,6 +17,7 @@ public class SdeBuildInfo
 public class SdeCategory
 {
     public int    CategoryId { get; set; }
+    public int?   IconId     { get; set; }
     public string Name       { get; set; } = "";
     public bool   Published  { get; set; }
 }
@@ -29,6 +30,12 @@ public class SdeGroup
     public bool   Published  { get; set; }
     public bool   Anchorable { get; set; }
     public bool   Anchored   { get; set; }
+    public int?   IconId     { get; set; }
+
+    /// <summary>Whether a stack of these can be fitted without unstacking, and whether the
+    /// group prices off basePrice rather than the market.</summary>
+    public bool   FittableNonSingleton { get; set; }
+    public bool   UseBasePrice         { get; set; }
 }
 
 public class SdeType
@@ -38,6 +45,26 @@ public class SdeType
     public string  Name          { get; set; } = "";
     public string  Description   { get; set; } = "";
     public double  Volume        { get; set; }
+
+    /// <summary>
+    /// What it takes up PACKAGED, which for anything with an interior is a different number.
+    ///
+    /// <para>⚠️ A Vexor is 115,000 m³ assembled and 10,000 packaged, and a ship comes out of a job
+    /// packaged — so every haul volume, courier size and cubic-metre total computed from
+    /// <see cref="Volume"/> was more than eleven times too large. Zero where the SDE gives none,
+    /// which is most items: for those the two are the same and Volume is the answer.</para>
+    /// </summary>
+    public double  PackagedVolume { get; set; }
+
+    /// <summary>Meta level and tech level, which the type list has always had and nothing read.</summary>
+    public int?    MetaLevel     { get; set; }
+    public int?    TechLevel     { get; set; }
+    public bool    IsRepackable  { get; set; }
+    public bool    IsDynamicType { get; set; }
+    public double  Radius        { get; set; }
+    public int?    VariationParentTypeId { get; set; }
+    public int?    SoundId       { get; set; }
+    public int?    ShipTreeGroupId { get; set; }
     public double  Mass          { get; set; }
     public double  Capacity      { get; set; }
     public int     PortionSize   { get; set; }
@@ -70,6 +97,15 @@ public class SdeDogmaAttributeCategory
 public class SdeDogmaAttribute
 {
     public int     AttributeId  { get; set; }
+    public string  Description  { get; set; } = "";
+    public int?    IconId       { get; set; }
+    public int?    MinAttributeId { get; set; }
+    public int?    MaxAttributeId { get; set; }
+    public string  TooltipTitle       { get; set; } = "";
+    public string  TooltipDescription { get; set; } = "";
+    public int?    DataType     { get; set; }
+    public bool    DisplayWhenZero { get; set; }
+    public int?    ChargeRechargeTimeId { get; set; }
     public string  Name         { get; set; } = "";
     public string  DisplayName  { get; set; } = "";
     public int?    CategoryId   { get; set; }
@@ -147,6 +183,9 @@ public class SdeRegion
     public string Name       { get; set; } = "";
     public int?   FactionId  { get; set; }
     public bool   IsWormhole { get; set; }
+    public string Description { get; set; } = "";
+    public int?   NebulaId   { get; set; }
+    public int?   WormholeClassId { get; set; }
     public double X          { get; set; }
     public double Y          { get; set; }
     public double Z          { get; set; }
@@ -158,6 +197,7 @@ public class SdeConstellation
     public int    RegionId        { get; set; }
     public string Name            { get; set; } = "";
     public bool   IsWormhole      { get; set; }
+    public int?   WormholeClassId { get; set; }
     public double X               { get; set; }
     public double Y               { get; set; }
     public double Z               { get; set; }
@@ -185,6 +225,18 @@ public class SdeSolarSystem
 
     /// <summary>Single-letter class CCP uses to bucket systems for spawns and effects.</summary>
     public string SecurityClass  { get; set; } = "";
+
+    // Route shape and star, all of which the file has always carried.
+    public int?   WormholeClassId { get; set; }
+    public bool   Border        { get; set; }
+    public bool   Corridor      { get; set; }
+    public bool   Fringe        { get; set; }
+    public bool   Hub           { get; set; }
+    public bool   International { get; set; }
+    public bool   Regional      { get; set; }
+    public double Luminosity    { get; set; }
+    public string VisualEffect  { get; set; } = "";
+    public int?   StarId        { get; set; }
 
     /// <summary>Extent of the system in metres — the scale for an in-system view.</summary>
     public double Radius         { get; set; }
@@ -282,6 +334,14 @@ public class SdeStation
     /// the rest. See <see cref="SdeStationOperationService"/>.
     /// </summary>
     public int?   OperationId            { get; set; }
+    public int?   CelestialIndex         { get; set; }
+    public long?  OrbitId                { get; set; }
+    public int?   OrbitIndex             { get; set; }
+    public int?   ReprocessingHangarFlag { get; set; }
+    public bool   UseOperationName       { get; set; }
+    public double X                      { get; set; }
+    public double Y                      { get; set; }
+    public double Z                      { get; set; }
 }
 
 /// <summary>A station service: Market, Factory, Loyalty Point Store, Repair Facilities…</summary>
@@ -296,6 +356,21 @@ public class SdeStationOperation
 {
     public int    OperationId { get; set; }
     public string Name        { get; set; } = "";
+    public int?   ActivityId  { get; set; }
+    public string Description { get; set; } = "";
+
+    /// <summary>How much a station of this operation helps industry. ⚠️ These are the real
+    /// numbers behind station bonuses and nothing has been reading them.</summary>
+    public double ManufacturingFactor { get; set; }
+    public double ResearchFactor      { get; set; }
+    public double Ratio               { get; set; }
+
+    /// <summary>⚠️ Distribution weights, NOT flags — unlike the identically named fields on a
+    /// solar system, which are booleans. The SDE gives 0.0 to 0.7 here.</summary>
+    public double Border   { get; set; }
+    public double Corridor { get; set; }
+    public double Fringe   { get; set; }
+    public double Hub      { get; set; }
 }
 
 /// <summary>
@@ -330,6 +405,10 @@ public class SdeFaction
     public int?   CorporationId         { get; set; }
     public int?   MilitiaCorporationId  { get; set; }
     public int?   SolarSystemId         { get; set; }
+    public int?   IconId                { get; set; }
+    public string ShortDescription      { get; set; } = "";
+    public double SizeFactor            { get; set; }
+    public bool   UniqueName            { get; set; }
 }
 
 public class SdeNpcCorporation
@@ -337,11 +416,75 @@ public class SdeNpcCorporation
     public int    CorporationId { get; set; }
     public string Name         { get; set; } = "";
     public int?   FactionId    { get; set; }
+
+    // ⚠️ npcCorporations.yaml carries thirty-two fields and the import used to read three, so
+    // none of the below reached the database and the NPC entity page could not show them.
+
+    /// <summary>⚠️ Where the corporation is BASED, which is not one of the stations it owns. A
+    /// militia corporation owns none and still has one: Malakim Zealots are headquartered in an
+    /// Archangels station.</summary>
+    public int?   StationId    { get; set; }
+    public int?   SolarSystemId { get; set; }
+
+    public string Ticker      { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int?   CeoId       { get; set; }
+    public double TaxRate     { get; set; }
+
+    /// <summary>Single letters in the SDE — T, S, M, L, H for size; C, L, N, G, R for extent.</summary>
+    public string Size        { get; set; } = "";
+    public string Extent      { get; set; } = "";
+
+    public int?   MemberLimit { get; set; }
+
+    /// <summary>What it takes to join: the security status floor and the standing floor. The
+    /// pirate militias read -10.0 and 0 respectively.</summary>
+    public double MinSecurity         { get; set; }
+    public int?   MinimumJoinStanding { get; set; }
+
+    public int?   EnemyId    { get; set; }
+    public int?   FriendId   { get; set; }
+    public int?   RaceId     { get; set; }
+    public int?   IconId     { get; set; }
+    public int?   MainActivityId      { get; set; }
+    public int?   SecondaryActivityId { get; set; }
+    public bool   Deleted    { get; set; }
+}
+
+
+/// <summary>
+/// Where a structure or rig's industry bonus comes from: which dogma attribute carries it, for
+/// which activity, and which filter decides what it applies to.
+///
+/// <para>⚠️ This is the data behind rig bonuses, and the app has been reading rig DESCRIPTION TEXT
+/// to work the same thing out — "battleships, freighters and industrial command ships" parsed out
+/// of prose, in three places. This table plus typeDogma is the answer without the guesswork.</para>
+///
+/// <para>One row per attribute: a type has an entry per activity (manufacturing, copying,
+/// invention, researchTime, researchMaterial, reaction) and per kind of bonus within it (cost,
+/// time, material).</para>
+/// </summary>
+public class SdeIndustryModifierSource
+{
+    public int    TypeId           { get; set; }
+
+    /// <summary>manufacturing, copying, invention, researchTime, researchMaterial, reaction.</summary>
+    public string Activity         { get; set; } = "";
+
+    /// <summary>cost, time or material.</summary>
+    public string BonusKind        { get; set; } = "";
+
+    public int    DogmaAttributeId { get; set; }
+
+    /// <summary>Which target filter narrows what the bonus applies to, where one does.</summary>
+    public int?   FilterId         { get; set; }
 }
 
 public class SdeRace
 {
     public int    RaceId      { get; set; }
+    public int?   IconId      { get; set; }
+    public int?   ShipTypeId  { get; set; }
     public string Name        { get; set; } = "";
     public string Description { get; set; } = "";
 }
@@ -350,6 +493,13 @@ public class SdeMetaGroup
 {
     public int    MetaGroupId { get; set; }
     public string Name        { get; set; } = "";
+    public string Description { get; set; } = "";
+    public int?   IconId      { get; set; }
+    public string IconSuffix  { get; set; } = "";
+
+    /// <summary>The meta group's colour, which the SDE gives as r/g/b floats and this keeps
+    /// as the hex a UI can actually use.</summary>
+    public string ColorHex    { get; set; } = "";
 }
 
 public class SdeCertificate

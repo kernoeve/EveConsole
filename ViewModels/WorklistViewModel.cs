@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using EveConsole.Services;
 using System.Reactive;
 using Avalonia.Collections;
@@ -13,8 +14,11 @@ namespace EveConsole.ViewModels;
 public sealed record SummaryStatVm(string Label, string Value);
 
 /// <summary>One row on the worklist.</summary>
-public class WorklistRowVm : ReactiveObject
+public class WorklistRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => Key;
+
     private readonly WorklistItem _item;
 
     /// <summary>The item behind the row, for analysis that reads the list rather than the grid.</summary>
@@ -80,6 +84,44 @@ public class WorklistRowVm : ReactiveObject
 
     public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
+
+    // ── Icon ──────────────────────────────────────────────────────────────────
+    //
+    // ⚠️ What the icon shows differs by kind, and each is the thing the row is ABOUT rather than
+    // the thing it touches: a buy shows what is being bought, a job shows what it PRODUCES rather
+    // than the blueprint or a material, and a corporation project shows what has to be delivered.
+    // The generators already carry that type on the item for the name link, so nothing new is
+    // looked up — the icon and the link cannot disagree, because they read the same field.
+
+    private Bitmap? _icon;
+    public Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>
+    /// ⚠️ Blueprints have their own render, reached by a path segment rather than a parameter —
+    /// asking for /icon on a blueprint returns the generic paper sheet, so every print in a buy
+    /// list would look like every other print.
+    /// </summary>
+    private string IconVariant => _item.TitleTag == "BPO/BPC" ? "bp" : "icon";
+
+    /// <summary>
+    /// Fetches the icon. Cheap after the first time: <see cref="EveImageCache"/> keeps them.
+    ///
+    /// <para>Awaited by the caller in a batch rather than started in the constructor, so a list
+    /// rebuild does not fire several hundred requests from inside a property setter.</para>
+    /// </summary>
+    public async Task LoadIconAsync()
+    {
+        if (_item.TypeId <= 0) return;
+
+        var bmp = await EveImageCache.GetAsync(
+            $"https://images.evetech.net/types/{_item.TypeId}/{IconVariant}?size=32");
+
+        if (bmp is not null) Dispatcher.UIThread.Post(() => Icon = bmp);
+    }
     public int    Priority      => _item.Priority;
 
     /// <summary>How many stopped tasks this one would release. Set for hauls and purchases by
@@ -239,8 +281,29 @@ public class WorklistRowVm : ReactiveObject
         : $"{_item.Volume:N1} m³";
 
     /// <summary>The manifest, shown by expanding the row. Empty for single-item tasks.</summary>
-    public IReadOnlyList<WorklistLine> Lines => _item.Lines;
+    private IReadOnlyList<WorklistLineVm>? _lines;
+    public IReadOnlyList<WorklistLineVm> Lines =>
+        _lines ??= [.. _item.Lines.Select(l => new WorklistLineVm(l))];
     public bool HasLines => _item.Lines.Count > 0;
+
+    /// <summary>The stopped jobs waiting on something this haul carries.</summary>
+    private IReadOnlyList<WorklistWaitingJobVm>? _waiting;
+    public IReadOnlyList<WorklistWaitingJobVm> WaitingJobs =>
+        _waiting ??= [.. _item.WaitingJobs
+            // Same item, same verdict, one line. Several jobs can be behind one print, and the
+            // reader wants to know what is waiting and how much of it, not to count rows.
+            .GroupBy(w => (w.TypeId, w.StatusText))
+            .Select(g => new WorklistWaitingJobVm(g.First(), g.Count()))];
+    public bool HasWaitingJobs => _item.WaitingJobs.Count > 0;
+
+    /// <summary>Whether the row has anything to open. Not hauls only any more: a job lists what
+    /// waits on its output, and a purchase lists what it would release.</summary>
+    /// <summary>⚠️ HasDetail counts. Every task has a reason it is on the list — the level it
+    /// fills, the bid it is behind, the orders behind that — and a purchase with nothing waiting
+    /// on it still has one. Gating on cargo and waiting jobs left those rows unopenable while
+    /// their neighbours opened, which reads as missing data rather than as no data.</summary>
+    public bool CanExpand => HasLines || HasWaitingJobs || HasDetail;
+    public bool HasDetail => _item.Detail.Length > 0;
 
     /// <summary>
     /// Whether the manifest is showing. Collapsed by default and toggled by the row's own +/−,
@@ -259,6 +322,9 @@ public class WorklistRowVm : ReactiveObject
     }
 
     public string ExpandGlyph => _isExpanded ? "−" : "+";
+
+    /// <summary>Startable now — what the Overview lists, whatever the tool is filtered to.</summary>
+    public bool IsReady => _item.Readiness == WorklistReadiness.Ready;
 
     public string ReadinessText => _item.Readiness switch
     {
@@ -441,8 +507,27 @@ public sealed class SlotPressureRowVm(SlotPressure p)
 /// whether a buffer is the right size.</para>
 /// </summary>
 /// <summary>One line of the expanded contention row.</summary>
-public sealed class ShortageTaskRowVm(ShortageTask t)
+public sealed class ShortageTaskRowVm : ReactiveObject
 {
+    private readonly ShortageTask t;
+
+    public ShortageTaskRowVm(ShortageTask task)
+    {
+        t = task;
+        _ = ItemIcons.LoadAsync(t.TypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>⚠️ The SLOT, not the arrival. Reserved from the first measure so the picture
+    /// landing later cannot change the size of a row the grid has already sized.</summary>
+    public bool HasIcon => t.TypeId > 0;
+
     public string Title => t.Title;
     public string Why   => t.Why;
     public string State => t.State;
@@ -473,8 +558,27 @@ public sealed class ShortageTaskRowVm(ShortageTask t)
     };
 }
 
-public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
+public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => s.TypeId.ToString();
+
+    private readonly ItemShortage s;
+
+    public ItemShortageRowVm(ItemShortage shortage)
+    {
+        s     = shortage;
+        Tasks = [.. (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t))];
+        _ = ItemIcons.LoadAsync(s.TypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
     private bool _isExpanded;
 
     /// <summary>Whether the task list is open. Lives on the item, not the row, so the
@@ -524,8 +628,7 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
     /// <para>A count nobody can take apart is a count nobody can act on: "Blocking 4" becomes
     /// useful at the moment it can be read as four named tasks.</para>
     /// </summary>
-    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
-        (s.Tasks ?? []).Select(t => new ShortageTaskRowVm(t)).ToList();
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
     public bool HasTasks => s.Tasks is { Count: > 0 };
 
@@ -580,11 +683,118 @@ public sealed class ItemShortageRowVm(ItemShortage s) : ReactiveObject
 /// 0.28 a day against 0.81 a day consumed" says what to buy.</para>
 /// </summary>
 /// <summary>One finding on the Summary tab. Prose, so there is almost nothing to format.</summary>
+/// <summary>One line of a summary finding, with the item it names.</summary>
+/// <summary>
+/// One entry in a row's "waiting on this" panel, with the item's picture.
+///
+/// <para>⚠️ A view model rather than a property on WorklistWaitingJob, for the same reason the
+/// manifest lines needed one: that is an immutable record rebuilt on every refresh, and an icon
+/// arrives asynchronously and has to raise a change when it does.</para>
+/// </summary>
+public sealed class WorklistWaitingJobVm : ReactiveObject
+{
+    private readonly WorklistWaitingJob _w;
+    private readonly int _count;
+
+    public WorklistWaitingJobVm(WorklistWaitingJob w, int count = 1)
+    {
+        _w     = w;
+        _count = count;
+        _ = ItemIcons.LoadAsync(w.TypeId, b => Icon = b);
+    }
+
+    /// <summary>
+    /// ⚠️ The product and a count, not one line per job. Twenty Fullerides jobs queued behind the
+    /// same print listed twenty identical rows saying the same thing — a wall of text that told
+    /// the reader nothing the first line had not, and made the expanded row taller than the grid.
+    /// </summary>
+    public string TypeName => _count > 1 ? $"{_w.TypeName} × {_count:N0}" : _w.TypeName;
+    public string StatusText  => _w.StatusText;
+    public string StatusTip   => _w.StatusTip;
+    public IBrush StatusColor => _w.StatusColor;
+    public bool   HasItemLink => _w.HasItemLink;
+    public void   OpenItem()  => _w.OpenItem();
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+}
+
+/// <summary>
+/// One manifest line, with the item's picture.
+///
+/// <para>⚠️ A view model rather than a property on WorklistLine. That is a record in the service
+/// layer, created fresh on every refresh and immutable — an icon arrives asynchronously and has to
+/// raise a change when it does, which a record cannot.</para>
+/// </summary>
+public sealed class WorklistLineVm : ReactiveObject
+{
+    private readonly WorklistLine _line;
+
+    public WorklistLineVm(WorklistLine line)
+    {
+        _line = line;
+        _ = ItemIcons.LoadAsync(line.TypeId, b => Icon = b);
+    }
+
+    public WorklistLine Line => _line;
+
+    public string TypeName   => _line.TypeName;
+    public long   Quantity   => _line.Quantity;
+    public string ValueText  => _line.ValueText;
+    public string VolumeText => _line.VolumeText;
+    public bool   HasItemLink => _line.HasItemLink;
+    public void   OpenItem()  => _line.OpenItem();
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+}
+
+public sealed class ObservationPointVm : ReactiveObject
+{
+    private readonly ObservationPoint _p;
+
+    public ObservationPointVm(ObservationPoint p)
+    {
+        _p = p;
+        if (p.TypeId > 0) _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b);
+    }
+
+    public string Text => _p.Text;
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>⚠️ Only once the picture is actually here. Reserving the space up front leaves a
+    /// hole beside every slot finding, which is about no item at all and has nothing to draw.</summary>
+    public bool HasIcon => _icon is not null;
+
+    /// <summary>Whether this line is about an item at all. A slot finding names none.</summary>
+    public bool HasItem => _p.TypeId > 0;
+
+    public void Open() { if (_p.TypeId > 0) EntityNavigator.Instance.Item(_p.TypeId); }
+}
+
+
+// ── Icon plumbing shared by the bottleneck grids ─────────────────────────────
+
 public sealed class ObservationVm(Observation o)
 {
     public string Headline => o.Headline;
     public string Body     => o.Body;
-    public IReadOnlyList<string> Points => o.Points;
+    public IReadOnlyList<ObservationPointVm> Points { get; } =
+        [.. o.Points.Select(p => new ObservationPointVm(p))];
 
     public bool HasPoints => o.Points.Count > 0;
 
@@ -607,8 +817,27 @@ public sealed class ObservationVm(Observation o)
 
 /// <summary>One stopped job on the Hauling tab.</summary>
 
-public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
+public sealed class HaulPressureRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => h.TaskKey;
+
+    private readonly HaulBlock h;
+
+    public HaulPressureRowVm(HaulBlock block)
+    {
+        h     = block;
+        Tasks = [.. h.Tasks.Select(t => new ShortageTaskRowVm(t))];
+        _ = ItemIcons.LoadAsync(h.TypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
     private bool _isExpanded;
 
     public bool IsExpanded
@@ -641,8 +870,7 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
         _                => Palette.Good,
     };
 
-    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
-        h.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
     public bool HasTasks => h.Tasks.Count > 0;
 
@@ -663,9 +891,31 @@ public sealed class HaulPressureRowVm(HaulBlock h) : ReactiveObject
     }
 }
 
-public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
-
+public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => p.ProductTypeId.ToString();
+
+    private readonly ItemBandwidth p;
+
+    public PrintPressureRowVm(ItemBandwidth bandwidth)
+    {
+        p     = bandwidth;
+        Tasks = [.. p.Tasks.Select(t => new ShortageTaskRowVm(t))];
+
+        // ⚠️ The PRODUCT's icon, not a blueprint one. This grid is named for the print but every
+        // row is identified by what it makes, and the image server has no blueprint art for a
+        // product id — asking for one returns nothing at all.
+        _ = ItemIcons.LoadAsync(p.ProductTypeId, b => Icon = b);
+    }
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
     private bool _isExpanded;
 
     /// <summary>Whether the task list is open. On the item, not the row, so the glyph
@@ -687,8 +937,7 @@ public sealed class PrintPressureRowVm(ItemBandwidth p) : ReactiveObject
     /// </summary>
     public string Blocking => p.StalledTasks > 0 ? p.StalledTasks.ToString("N0") : "";
 
-    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; } =
-        p.Tasks.Select(t => new ShortageTaskRowVm(t)).ToList();
+    public IReadOnlyList<ShortageTaskRowVm> Tasks { get; }
 
     public bool HasTasks => p.Tasks.Count > 0;
 
@@ -771,8 +1020,11 @@ public sealed class NeedDriverRowVm(NeedDriver d)
     public void Open()  { if (d.DriverTypeId > 0) EntityNavigator.Instance.Item(d.DriverTypeId); }
 }
 
-public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
+public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandableRow
 {
+    /// <summary>Identifies this row across a rebuild, so a refresh does not close it.</summary>
+    public string ExpandKey => $"{n.StationId}/{n.TypeId}";
+
     private bool _isExpanded;
 
     /// <summary>Whether the "asked for by" panel is open. Lives on the item, not the row, so the
@@ -812,6 +1064,16 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject
 
     public long   ShortRaw  => n.Shortfall;
     public string Short     => n.Shortfall > 0 ? n.Shortfall.ToString("N0") : "";
+
+    // ⚠️ Station Needs keeps the shortfall above, which is measured against what is HERE. These
+    // two are for Item Needs, which asks a different question — what still has to be MADE — and
+    // has to count the reactors. Titanium Carbide read 16 million short with 19 million already
+    // running, which is what sent somebody looking for a job the planner was right not to raise.
+    public long   InBuildRaw => n.InBuild;
+    public string InBuild    => n.InBuild > 0 ? n.InBuild.ToString("N0") : "";
+
+    public long   ShortAfterBuildRaw => n.ShortAfterBuild;
+    public string ShortAfterBuild    => n.ShortAfterBuild > 0 ? n.ShortAfterBuild.ToString("N0") : "";
     /// <summary>Red only where the station is actually short; a covered need is not a problem.</summary>
     public IBrush ShortColor => n.Shortfall > 0 ? Palette.Bad : Palette.TextFaint;
 
@@ -1001,14 +1263,25 @@ public class WorklistViewModel : ReactiveObject
                 SlotPressure.Clear();
                 foreach (var s in slots) SlotPressure.Add(new SlotPressureRowVm(s));
 
+                // Built first, carried, then swapped in. Every row here is a new object, so what
+                // the reader had open is only recoverable from the OLD rows -- which is why the
+                // fill cannot start with Clear().
+                var printRows = prints.Select(p => new PrintPressureRowVm(p)).ToList();
+                var shortRows = shorts.Select(s => new ItemShortageRowVm(s)).ToList();
+                var haulRows  = hauls .Select(h => new HaulPressureRowVm(h)).ToList();
+
+                RowExpansion.Carry(PrintPressure, printRows);
+                RowExpansion.Carry(ItemShortages, shortRows);
+                RowExpansion.Carry(HaulPressures, haulRows);
+
                 PrintPressure.Clear();
-                foreach (var p in prints) PrintPressure.Add(new PrintPressureRowVm(p));
+                foreach (var p in printRows) PrintPressure.Add(p);
 
                 ItemShortages.Clear();
-                foreach (var s in shorts) ItemShortages.Add(new ItemShortageRowVm(s));
+                foreach (var s in shortRows) ItemShortages.Add(s);
 
                 HaulPressures.Clear();
-                foreach (var h in hauls) HaulPressures.Add(new HaulPressureRowVm(h));
+                foreach (var h in haulRows) HaulPressures.Add(h);
 
                 SharedTrips.Clear();
                 foreach (var t in SharedHauls.Find(hauls).Take(6)) SharedTrips.Add(t.Line);
@@ -1060,7 +1333,16 @@ public class WorklistViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _outerTabIndex, value);
-            if (value == StationNeedsTab && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+            // Either needs tab fills the same rows — one query answers both — so opening Item
+            // Needs no longer requires a detour through Station Needs to populate it.
+            if (value is StationNeedsTab or ItemNeedsTab
+             && Needs.Count == 0 && !NeedsLoading) _ = LoadNeedsAsync();
+
+            if (value == ItemNeedsTab)
+            {
+                _itemNeedsSeen = true;
+                if (_itemNeedsStale) { _itemNeedsStale = false; ItemNeedsView.Refresh(); }
+            }
 
             // ⚠️ Loaded when the tab is opened, not at startup. It reads every industry job the
             // operation has ever run and the whole price history for those types, which is not
@@ -1072,7 +1354,13 @@ public class WorklistViewModel : ReactiveObject
     }
 
     private const int StationNeedsTab  = 1;
+    private const int ItemNeedsTab     = 2;
     private const int FinalProductsTab = 4;
+
+    // Whether the Item Needs tab has ever been opened, and whether its grouped view still owes a
+    // rebuild from a load that happened while it had not been.
+    private bool _itemNeedsSeen;
+    private bool _itemNeedsStale;
 
     /// <summary>Selects the Station Needs tab — what the Overview's link to it needs, so that
     /// following it lands on the report rather than on whatever tab was last open.</summary>
@@ -1129,16 +1417,26 @@ public class WorklistViewModel : ReactiveObject
             var rows = await logistics.NeedsAsync();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                var needRows = rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName)
+                                   .Select(r => new StationNeedRowVm(r)).ToList();
+                RowExpansion.Carry(Needs, needRows);
+
                 Needs.Clear();
-                foreach (var r in rows.OrderByDescending(r => r.Shortfall).ThenBy(r => r.StationName))
-                    Needs.Add(new StationNeedRowVm(r));
+                foreach (var r in needRows) Needs.Add(r);
 
                 // ⚠️ Both views, explicitly. A DataGridCollectionView groups what it is holding
                 // when it is asked to, and a view whose grid has never been realised is not asked
                 // — so the Item Needs tab drew a flat list on first open and grouped itself only
                 // after being left and returned to, which is the grid attaching a second time.
                 NeedsView.Refresh();
-                ItemNeedsView.Refresh();
+
+                // ⚠️ Item Needs is grouped, and grouping a few thousand rows is the expensive half
+                // of this. Opening Station Needs used to pay for it, which is work on behalf of a
+                // tab nobody has looked at. It is done when that tab is first opened instead —
+                // and again on every reload after that, since by then the grid is realised and
+                // the note above applies.
+                if (_itemNeedsSeen) ItemNeedsView.Refresh();
+                else               _itemNeedsStale = true;
 
                 var stations = rows.Select(r => r.StationId).Distinct().Count();
                 var short_   = rows.Count(r => r.Shortfall > 0);
@@ -1734,12 +2032,24 @@ public class WorklistViewModel : ReactiveObject
                 // rows are plain view models until something binds to them.
                 var rows = visible.Select((i, n) => new WorklistRowVm(i, n + 1)).ToList();
 
+                // Icons fetched together rather than one per row as the grid realises them: they
+                // come from a cache that dedupes across refreshes, so a rebuild costs nothing
+                // after the first, and starting them here means the column is filled by the time
+                // anybody has finished reading the first screen. Not awaited — a missing icon is
+                // a blank cell, never a reason to hold up the list.
+                _ = Task.WhenAll(rows.Select(r => r.LoadIconAsync()));
+
                 return (built, alive, rows,
                         built.Sections.Where(s => s.Error is not null).ToList());
             });
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                // What the reader had open, carried onto the rebuilt rows before anything binds
+                // to them. Rows are new objects every refresh, so a timed regeneration otherwise
+                // closes every drawer under somebody mid-read.
+                RowExpansion.Carry(_pool, pool);
+
                 _pool     = pool;
                 _runItems = run.AllItems.ToList();
 
@@ -1747,10 +2057,18 @@ public class WorklistViewModel : ReactiveObject
                 // their own, and inheriting whatever the tool happened to be filtered to would make
                 // a dashboard panel change behind the user for reasons not visible on it.
                 //
+                // ⚠️ READY only, and NOT _pool. The pool is what the two CHECKBOXES allow through,
+                // so ticking "show blocked / waiting" in the tool silently filled the dashboard
+                // with work nobody can start — the same leak the paragraph above warns about,
+                // through a control the Overview does not show either. The Overview asks "what is
+                // there to do", which is one question with one answer whatever the tool is set to.
+                // Snoozed rows go for the same reason: set aside is set aside, and the show-snoozed
+                // box is another tool control the dashboard cannot explain.
+                //
                 // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
                 // bound collections whenever this changes, so an item-by-item fill here was
                 // quadratic — see BulkObservableCollection.
-                PoolRows.ResetTo(_pool);
+                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
                 RefreshedText   = $"Refreshed {DateTime.Now:HH:mm}";
 

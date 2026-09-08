@@ -166,8 +166,7 @@
 
     <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
-              Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
-              AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed">
+              Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 
       <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background straight from
            this brush in the stock template, so `Selector="DataGridRow /template/
@@ -176,9 +175,6 @@
            than the grid across the full width of the expanded row, while the manifest panel
            inside is narrow and left-aligned, so the grey read as a selection highlight rather
            than as an expanded detail. -->
-      <DataGrid.Resources>
-        <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-      </DataGrid.Resources>
 
       <DataGrid.Styles>
         <!-- Group header: the task name once, with its count and total, instead of a Task column
@@ -257,49 +253,6 @@
            as a broken layout rather than a short list. Now the name column takes what it needs
            and the quantity sits against it, with a minimum so a list of short names still lines
            up its figures. -->
-      <DataGrid.RowDetailsTemplate>
-        <DataTemplate x:DataType="vm:WorklistRowVm">
-          <Border Margin="70 0 0 8" Padding="12 8"
-                  Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                  CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
-            <StackPanel Spacing="5">
-              <TextBlock Text="MANIFEST" FontSize="11" FontWeight="SemiBold"
-                         Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-              <ItemsControl ItemsSource="{Binding Lines}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="wl:WorklistLine">
-                    <!-- Count, then value, then volume — each in its own fixed column so the
-                         figures line up down the list rather than drifting with name length.
-                         Value and volume are dimmer than the count: the count is what the task
-                         is about, the other two are what it costs to do. -->
-                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
-                      <Panel Grid.Column="0" Margin="0 0 24 0">
-                        <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                     FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </Button>
-                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                   FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                      </Panel>
-                      <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                 FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
-                                 MinWidth="60" TextAlignment="Right"/>
-                      <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                 FontSize="14" Foreground="{DynamicResource TextDimBrush}"
-                                 MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
-                      <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                 FontSize="14" Foreground="{DynamicResource TextDimBrush}"
-                                 MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
-                    </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </StackPanel>
-          </Border>
-        </DataTemplate>
-      </DataGrid.RowDetailsTemplate>
-
       <DataGrid.Columns>
 
         <!-- State, as the row's leading edge rather than a column of words.
@@ -340,14 +293,137 @@
         <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
-              <Button Classes="expander" Click="OnManifestToggle"
-                      IsVisible="{Binding HasLines}"
-                      Content="{Binding ExpandGlyph}" FontSize="14" FontWeight="Bold"
-                      Padding="0" Width="16" Height="16" MinWidth="0" MinHeight="0"
-                      Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}" Cursor="Hand"
-                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                      ToolTip.Tip="Show the items on this task"/>
+              <Panel>
+                <Button Classes="expander" Click="OnManifestToggle"
+                        IsVisible="{Binding CanExpand}"
+                        Content="{Binding ExpandGlyph}" FontSize="14" FontWeight="Bold"
+                        Padding="0" Width="16" Height="16" MinWidth="0" MinHeight="0"
+                        Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}" Cursor="Hand"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        ToolTip.Tip="Show what this task carries, and what is waiting on it"/>
+
+                <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
+                     inside a row makes rows wildly different heights, and the DataGrid prices
+                     every row it has not realised from a single average of them; it also reuses
+                     a row between an open one and a closed one and measures it before the
+                     drawer has caught up. Both are why scrolling up used to stick and jump.
+                     See tools/gridsim. Floating the detail leaves every row one height, so
+                     there is nothing left to estimate wrongly.
+                
+                     ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
+                     back. The flag still lives on the ITEM, not the row: the grid recycles
+                     rows, and a popup keyed to the row would open against whatever item
+                     landed in it next. -->
+                <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
+                       Placement="BottomEdgeAlignedLeft"
+                       HorizontalOffset="-70"
+                       IsLightDismissEnabled="True">
+                  <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                       full height of the screen and off the bottom of it. -->
+                  <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+                  <!-- ⚠️ No height constraint here, deliberately. Three attempts to cure the scroll
+                       flicker by controlling this box all failed — a 320px cap, shorter panels, and a
+                       fixed 220px drawer — which between them rule out the size of the details as the
+                       cause. Leaving it natural until the mechanism is actually known beats carrying a
+                       constraint that costs the look and buys nothing. -->
+                  <Border Margin="70 0 0 8" Padding="12 8"
+                          Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                          CornerRadius="3" HorizontalAlignment="Left" MinWidth="260">
+                    <StackPanel Spacing="8">
+
+                      <!-- ⚠️ What put the task on the list, above the detail of it. On a job or a purchase
+                           this is the whole answer to "why am I being asked for this" — the stock level it
+                           is filling, the orders behind it, and the arithmetic between them — and it was
+                           only ever readable by hovering the marker. -->
+                      <TextBlock Text="{Binding Detail}" IsVisible="{Binding HasDetail}"
+                                 FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                                 TextWrapping="Wrap" MaxWidth="720"/>
+
+                      <Grid ColumnDefinitions="Auto,Auto">
+
+                      <StackPanel Grid.Column="0" Spacing="5" Margin="0 0 28 0"
+                                  IsVisible="{Binding HasWaitingJobs}">
+                        <TextBlock Text="WAITING ON THIS" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                        <ItemsControl ItemsSource="{Binding WaitingJobs}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:WorklistWaitingJobVm">
+                              <Grid ColumnDefinitions="*,Auto" Margin="0 2">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+                                            Margin="0 0 24 0">
+                                  <Image Source="{Binding Icon}" Width="18" Height="18"
+                                         VerticalAlignment="Center"/>
+                                  <Panel>
+                                    <Button Classes="link" Click="OnOpenWaitingJob" IsVisible="{Binding HasItemLink}"
+                                            ToolTip.Tip="Open in the Item Browser">
+                                      <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                                 FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    </Button>
+                                    <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                               FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                  </Panel>
+                                </StackPanel>
+
+                                <!-- ⚠️ Says which of the two it is rather than ticking only the good case.
+                                     A blank beside a job reads as "not checked yet"; naming what it is
+                                     still short of is the difference between a promise and a fact. -->
+                                <TextBlock Grid.Column="1" Text="{Binding StatusText}"
+                                           FontSize="13" MinWidth="176" TextAlignment="Right"
+                                           Foreground="{Binding StatusColor}"
+                                           ToolTip.Tip="{Binding StatusTip}"/>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
+                      <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding HasLines}">
+                        <TextBlock Text="MANIFEST" FontSize="11" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                        <ItemsControl ItemsSource="{Binding Lines}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:WorklistLineVm">
+                              <!-- Count, then value, then volume — each in its own fixed column so the
+                                   figures line up down the list rather than drifting with name length.
+                                   Value and volume are dimmer than the count: the count is what the task
+                                   is about, the other two are what it costs to do. -->
+                              <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 2">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6"
+                                            Margin="0 0 24 0">
+                                  <Image Source="{Binding Icon}" Width="18" Height="18"
+                                         VerticalAlignment="Center"/>
+                                  <Panel>
+                                    <Button Classes="link" Click="OnOpenLineItem" IsVisible="{Binding HasItemLink}"
+                                            ToolTip.Tip="Open in the Item Browser">
+                                      <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                                                 FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    </Button>
+                                    <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                                               FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                  </Panel>
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
+                                           FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
+                                           MinWidth="60" TextAlignment="Right"/>
+                                <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                           FontSize="14" Foreground="{DynamicResource TextDimBrush}"
+                                           MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
+                                <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
+                                           FontSize="14" Foreground="{DynamicResource TextDimBrush}"
+                                           MinWidth="76" TextAlignment="Right" Margin="16 0 0 0"/>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
+                    </Grid>
+                    </StackPanel>
+                  </Border>
+                  </ScrollViewer>
+                </Popup>
+              </Panel>
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
@@ -357,6 +433,23 @@
                             IsReadOnly="True"/>
 
         <!-- No Task column: it is the group header now. -->
+
+        <!-- What the row is about, in a picture. ⚠️ The type shown differs by kind and is chosen
+             to be the SUBJECT rather than anything the task merely touches: a buy shows what is
+             being bought, a job shows what it produces rather than its blueprint or a material,
+             and a corporation project shows what has to be delivered. Every one of those comes
+             from the same TypeId the name link uses, so the picture and the link cannot disagree.
+             Rows with no type — a haul of several things, a skill queue — leave the cell empty
+             rather than showing a placeholder that would read as a kind of its own. -->
+        <DataGridTemplateColumn Header="" Width="30" IsReadOnly="True" CanUserSort="False"
+                                CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Image Source="{Binding Icon}" Width="24" Height="24"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
 
         <!-- The task itself, drawn per kind.
              ⚠️ One cell rather than the Description / Character / Location 1 / Location 2 / Note
@@ -387,8 +480,19 @@
 
                 <!-- Job: what is being made, by whom, and where — one line, like the rest. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsJob}">
-                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
-                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <!-- ⚠️ The name links but does not LOOK like a link: same brush and size it had.
+                       It is the row's headline, and underlining the biggest text on every row
+                       would turn a plan into a page of hyperlinks. -->
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open this item">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Title}" IsVisible="{Binding !HasItemLink}"
+                               Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  </Panel>
                   <!-- The efficiency the materials were planned at. Sits with the station and the
                        character because it is the same sort of fact — context for the job rather
                        than part of its name. Manufacturing only; see BlueprintMeText. -->
@@ -419,8 +523,16 @@
                 <!-- Buy: what to buy, where, and who places it. The reasoning is a paragraph, so
                      it lives on the marker rather than on the row. -->
                 <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsBuy}">
-                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
-                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open this item">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <TextBlock Text="{Binding Title}" IsVisible="{Binding !HasItemLink}"
+                               Foreground="{DynamicResource TextBrightBrush}" FontSize="16"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}"/>
+                  </Panel>
                   <Panel>
                     <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="Open this station or structure">
@@ -496,22 +608,23 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-
-        <!-- The planner's sort keys, in the order it applies them. Hidden rather than removed:
-             they explain an ordering that cannot be audited from the outside, and the next
-             question about why one job outranks another is answered by switching them back on.
+        <!-- The planner's sort keys, in the order it applies them. Hidden again now the ordering
+             question they were switched on for is answered. They explain an ordering that cannot
+             be audited from the outside and there is no column picker, so bringing them back
+             means clearing IsVisible on the six columns below and rebuilding — worth doing the
+             moment "why is this above that" comes up, because nothing else can answer it.
              ⚠️ SortPriority is NOT debug-only — the row order itself sorts on it, since the
              stamped priority and the one the planner used are different numbers. -->
         <DataGridTextColumn Binding="{Binding DbgPriority}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="prio" IsVisible="False"/>
+                            CellStyleClasses="num" Header="prio" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgFinal}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="fin" IsVisible="False"/>
+                            CellStyleClasses="num" Header="fin" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgBlocked}" FontSize="11" Width="55"
-                            CellStyleClasses="num" Header="blkd" IsVisible="False"/>
+                            CellStyleClasses="num" Header="blkd" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgCoverage}" FontSize="11" Width="65"
-                            CellStyleClasses="num" Header="cover" IsVisible="False"/>
+                            CellStyleClasses="num" Header="cover" IsVisible="False" />
         <DataGridTextColumn Binding="{Binding DbgSeq}" FontSize="11" Width="50"
-                            CellStyleClasses="num" Header="seq" IsVisible="False"/>
+                            CellStyleClasses="num" Header="seq" IsVisible="False" />
 
         <!-- How many stopped tasks this row would release: the key that separates hauls and
              purchases from each other, blank on everything else. Hidden alongside the keys above,
@@ -520,7 +633,7 @@
              delivery or market order outranks another. Sorted on the number so 9 does not
              outrank 50. -->
         <DataGridTextColumn Binding="{Binding UnblocksText}" FontSize="11" Width="70"
-                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" IsVisible="False"/>
+                            SortMemberPath="Unblocks" CellStyleClasses="num" Header="frees" IsVisible="False" />
 
         <!-- Value and Volume: the two figures worth comparing across every kind, and the pair a
              hauler and a buyer each reach for. Blank rather than zero when unpriced — a science
@@ -579,7 +692,6 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
-                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -629,14 +741,64 @@
                          the glyph instead: the line box the character is drawn in is taller than
                          its ink, so clipping the box clips the triangle. A square button with no
                          padding holds it whole. -->
-                    <Button Classes="expander" Click="OnNeedToggle"
-                            Background="Transparent" BorderThickness="0" Cursor="Hand"
-                            Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                            FontSize="20" Foreground="{DynamicResource TextMutedBrush}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
-                            ToolTip.Tip="What is asking for this"/>
+                    <Panel>
+                      <Button Classes="expander" Click="OnNeedToggle"
+                              Background="Transparent" BorderThickness="0" Cursor="Hand"
+                              Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                              FontSize="20" Foreground="{DynamicResource TextMutedBrush}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                              IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                              ToolTip.Tip="What is asking for this"/>
+
+                      <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
+                           inside a row makes rows wildly different heights, and the DataGrid prices
+                           every row it has not realised from a single average of them; it also reuses
+                           a row between an open one and a closed one and measures it before the
+                           drawer has caught up. Both are why scrolling up used to stick and jump.
+                           See tools/gridsim. Floating the detail leaves every row one height, so
+                           there is nothing left to estimate wrongly.
+                      
+                           ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
+                           back. The flag still lives on the ITEM, not the row: the grid recycles
+                           rows, and a popup keyed to the row would open against whatever item
+                           landed in it next. -->
+                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
+                             Placement="BottomEdgeAlignedLeft"
+                             IsLightDismissEnabled="True">
+                        <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                             full height of the screen and off the bottom of it. -->
+                        <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+                        <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
+                                Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
+                          <StackPanel Spacing="4">
+                            <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                            <ItemsControl ItemsSource="{Binding Drivers}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:NeedDriverRowVm">
+                                  <Grid ColumnDefinitions="240,110,*" Margin="0 1">
+                                    <Panel Grid.Column="0">
+                                      <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
+                                              ToolTip.Tip="Open this item">
+                                        <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
+                                      </Button>
+                                      <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
+                                                 FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    </Panel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
+                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                  </Grid>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </StackPanel>
+                        </Border>
+                        </ScrollViewer>
+                      </Popup>
+                    </Panel>
                     <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
                                ToolTip.Tip="Nothing itemised this need"/>
@@ -706,37 +868,6 @@
                know what it is for, and "what is this for" is asked of one row at a time — so it
                opens under the row rather than taking a column that would be empty on most of
                them. -->
-          <DataGrid.RowDetailsTemplate>
-            <DataTemplate x:DataType="vm:StationNeedRowVm">
-              <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
-                      Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
-                <StackPanel Spacing="4">
-                  <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-                  <ItemsControl ItemsSource="{Binding Drivers}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:NeedDriverRowVm">
-                        <Grid ColumnDefinitions="240,110,*" Margin="0 1">
-                          <Panel Grid.Column="0">
-                            <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
-                                    ToolTip.Tip="Open this item">
-                              <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
-                            </Button>
-                            <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
-                                       FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                          </Panel>
-                          <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
-                                     Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
-                          <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
-                                     Foreground="{DynamicResource TextDimBrush}"/>
-                        </Grid>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </StackPanel>
-              </Border>
-            </DataTemplate>
-          </DataGrid.RowDetailsTemplate>
         </DataGrid>
       </Grid>
     </TabItem>
@@ -761,7 +892,6 @@
         <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
-                  AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <DataGrid.Styles>
             <Style Selector="DataGridCell TextBlock">
@@ -811,14 +941,64 @@
                          the glyph instead: the line box the character is drawn in is taller than
                          its ink, so clipping the box clips the triangle. A square button with no
                          padding holds it whole. -->
-                    <Button Classes="expander" Click="OnNeedToggle"
-                            Background="Transparent" BorderThickness="0" Cursor="Hand"
-                            Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                            FontSize="20" Foreground="{DynamicResource TextMutedBrush}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                            IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
-                            ToolTip.Tip="What is asking for this"/>
+                    <Panel>
+                      <Button Classes="expander" Click="OnNeedToggle"
+                              Background="Transparent" BorderThickness="0" Cursor="Hand"
+                              Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                              FontSize="20" Foreground="{DynamicResource TextMutedBrush}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                              IsVisible="{Binding HasDrivers}" Content="{Binding Glyph}"
+                              ToolTip.Tip="What is asking for this"/>
+
+                      <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
+                           inside a row makes rows wildly different heights, and the DataGrid prices
+                           every row it has not realised from a single average of them; it also reuses
+                           a row between an open one and a closed one and measures it before the
+                           drawer has caught up. Both are why scrolling up used to stick and jump.
+                           See tools/gridsim. Floating the detail leaves every row one height, so
+                           there is nothing left to estimate wrongly.
+                      
+                           ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
+                           back. The flag still lives on the ITEM, not the row: the grid recycles
+                           rows, and a popup keyed to the row would open against whatever item
+                           landed in it next. -->
+                      <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
+                             Placement="BottomEdgeAlignedLeft"
+                             IsLightDismissEnabled="True">
+                        <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                             full height of the screen and off the bottom of it. -->
+                        <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+                        <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
+                                Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
+                          <StackPanel Spacing="4">
+                            <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
+                            <ItemsControl ItemsSource="{Binding Drivers}">
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:NeedDriverRowVm">
+                                  <Grid ColumnDefinitions="240,110,*" Margin="0 1">
+                                    <Panel Grid.Column="0">
+                                      <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
+                                              ToolTip.Tip="Open this item">
+                                        <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
+                                      </Button>
+                                      <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
+                                                 FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    </Panel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
+                                               Foreground="{DynamicResource TextDimBrush}"/>
+                                  </Grid>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                          </StackPanel>
+                        </Border>
+                        </ScrollViewer>
+                      </Popup>
+                    </Panel>
                     <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource TextFaintBrush}" Margin="6 0"
                                VerticalAlignment="Center" IsVisible="{Binding !HasDrivers}"
                                ToolTip.Tip="Nothing itemised this need"/>
@@ -863,10 +1043,15 @@
             <DataGridTextColumn Header="Total"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
             <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
 
-            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortRaw">
+            <!-- ⚠️ Item Needs only. This tab asks what still has to be MADE, so production
+                 counts; Station Needs asks what a station holds against what it wants, and a
+                 job three days from delivering does not fill a hangar today. -->
+            <DataGridTextColumn Header="In build" Binding="{Binding InBuild}"
+                                SortMemberPath="InBuildRaw" Width="110"/>
+            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortAfterBuildRaw">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
-                  <TextBlock Text="{Binding Short}" Foreground="{Binding ShortColor}"
+                  <TextBlock Text="{Binding ShortAfterBuild}" Foreground="{Binding ShortColor}"
                              FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
@@ -888,37 +1073,6 @@
                know what it is for, and "what is this for" is asked of one row at a time — so it
                opens under the row rather than taking a column that would be empty on most of
                them. -->
-          <DataGrid.RowDetailsTemplate>
-            <DataTemplate x:DataType="vm:StationNeedRowVm">
-              <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1"
-                      Padding="24 6 8 8" IsVisible="{Binding HasDrivers}">
-                <StackPanel Spacing="4">
-                  <TextBlock Text="ASKED FOR BY" FontSize="9" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"/>
-                  <ItemsControl ItemsSource="{Binding Drivers}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:NeedDriverRowVm">
-                        <Grid ColumnDefinitions="240,110,*" Margin="0 1">
-                          <Panel Grid.Column="0">
-                            <Button Classes="link" Click="OnOpenNeedDriver" IsVisible="{Binding HasLink}"
-                                    ToolTip.Tip="Open this item">
-                              <TextBlock Text="{Binding Driver}" Classes="linktext" FontSize="10"/>
-                            </Button>
-                            <TextBlock Text="{Binding Driver}" IsVisible="{Binding !HasLink}"
-                                       FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                          </Panel>
-                          <TextBlock Grid.Column="1" Text="{Binding Qty}" FontSize="10"
-                                     Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" Margin="0 0 12 0"/>
-                          <TextBlock Grid.Column="2" Text="{Binding Kind}" FontSize="10"
-                                     Foreground="{DynamicResource TextDimBrush}"/>
-                        </Grid>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </StackPanel>
-              </Border>
-            </DataTemplate>
-          </DataGrid.RowDetailsTemplate>
         </DataGrid>
       </Grid>
     </TabItem>
@@ -992,12 +1146,31 @@
                           <ItemsControl ItemsSource="{Binding Points}" IsVisible="{Binding HasPoints}"
                                         Margin="0 4 0 0">
                             <ItemsControl.ItemTemplate>
-                              <DataTemplate x:DataType="x:String">
-                                <Grid ColumnDefinitions="14,*" Margin="0 0 0 4">
+                              <DataTemplate x:DataType="vm:ObservationPointVm">
+                                <Grid ColumnDefinitions="24,*" Margin="0 0 0 4">
+                                  <!-- The item's picture where the line is about one, the bullet
+                                       where it is not: a slot finding names no item. -->
                                   <TextBlock Grid.Column="0" Text="·" FontSize="14"
+                                             IsVisible="{Binding !HasIcon}"
                                              Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Top"/>
-                                  <TextBlock Grid.Column="1" Text="{Binding}" FontSize="13"
+                                  <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                         IsVisible="{Binding HasIcon}" HorizontalAlignment="Left"
+                                         VerticalAlignment="Top" Margin="0 1 0 0"/>
+                                  <!-- ⚠️ The whole line, not just the name inside it. The finding
+                                       is written as one sentence about one item, and picking the
+                                       name back out of it would mean splitting prose on a dash. The
+                                       link style adds a cursor and a hover underline and leaves the
+                                       colour alone, so a bullet still reads as a bullet. -->
+                                  <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="13"
+                                             IsVisible="{Binding !HasItem}"
                                              Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="19"/>
+                                  <Button Grid.Column="1" Classes="link" Click="OnOpenPoint"
+                                          IsVisible="{Binding HasItem}" Padding="0"
+                                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                          ToolTip.Tip="Open this item in the Item Browser">
+                                    <TextBlock Text="{Binding Text}" FontSize="13"
+                                               Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" LineHeight="19"/>
+                                  </Button>
                                 </Grid>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -1110,56 +1283,73 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-                <!-- ⚠️ A resource, not a style. The details presenter reads this brush straight
-                     from the stock template, so a style selector on it never wins and the row
-                     paints a grey that reads as a selection highlight. -->
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
-
-                <!-- The tasks the counts are made of, shown while the row's own glyph is open. -->
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:ItemShortageRowVm">
-                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
-                      <ItemsControl ItemsSource="{Binding Tasks}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
-                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
-                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
-                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
-                                         Margin="{Binding Indent}" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
-                                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
                 <DataGrid.Columns>
                   <!-- Expander. Only drawn where there are tasks to show, so an empty cell reads
                        as "nothing to open" rather than as a control that does nothing. -->
                   <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
-                        <Button Classes="expander" Click="OnShortageToggle"
-                                IsVisible="{Binding HasTasks}"
-                                Content="{Binding Glyph}" FontSize="20"
-                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand"
-                                HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 3 0 0"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the tasks behind these counts"/>
+                        <Panel>
+                          <Button Classes="expander" Click="OnShortageToggle"
+                                  IsVisible="{Binding HasTasks}"
+                                  Content="{Binding Glyph}" FontSize="20"
+                                  Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                  Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
+                                  Cursor="Hand"
+                                  HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0 3 0 0"
+                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                  ToolTip.Tip="Show the tasks behind these counts"/>
+
+                          <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point.
+                               A drawer inside a row makes rows wildly different heights, and the
+                               DataGrid prices every row it has not realised from a single average
+                               of them; it also reuses a row between an open one and a closed one
+                               and measures it before the drawer has caught up. Both are why
+                               scrolling up used to stick and jump. See tools/gridsim. Floating the
+                               detail leaves every row the same height, so there is nothing left to
+                               estimate wrongly.
+
+                               ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the
+                               glyph back. The flag still lives on the ITEM, not the row: the grid
+                               recycles rows, and a popup keyed to the row would open against
+                               whatever item landed in it next. -->
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
+                                 Placement="BottomEdgeAlignedLeft"
+                                 IsLightDismissEnabled="True">
+                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                                 full height of the screen and off the bottom of it. -->
+                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+                            <Border Padding="10 7" MinWidth="720"
+                                    Background="{DynamicResource SurfaceBaseBrush}"
+                                    BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                                    CornerRadius="3">
+                                <ItemsControl ItemsSource="{Binding Tasks}">
+                                  <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                                      <Grid ColumnDefinitions="90,70,320,*" Margin="0 1">
+                                        <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                                   Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                                   Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5"
+                                                    Margin="{Binding Indent}" VerticalAlignment="Center">
+                                          <Image Source="{Binding Icon}" Width="14" Height="14"
+                                                 IsVisible="{Binding HasIcon}" VerticalAlignment="Center"/>
+                                          <TextBlock Text="{Binding Title}" FontSize="10"
+                                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                                     TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                      </Grid>
+                                    </DataTemplate>
+                                  </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                            </ScrollViewer>
+                          </Popup>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1169,14 +1359,18 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
-                        <Panel>
-                          <Button Classes="link" Click="OnOpenShortageItem" IsVisible="{Binding HasLink}"
-                                  ToolTip.Tip="Open this item">
-                            <TextBlock Text="{Binding Item}" Classes="linktext"/>
-                          </Button>
-                          <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
-                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
-                        </Panel>
+                        <Grid ColumnDefinitions="Auto,*">
+                          <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                 Margin="0 0 6 0" VerticalAlignment="Center"/>
+                          <Panel Grid.Column="1">
+                            <Button Classes="link" Click="OnOpenShortageItem" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Item}" Classes="linktext"/>
+                            </Button>
+                            <TextBlock Text="{Binding Item}" IsVisible="{Binding !HasLink}"
+                                       VerticalAlignment="Center"/>
+                          </Panel>
+                        </Grid>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1306,53 +1500,74 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
 
                 <!-- The tasks the counts are made of, same shape as Item Contention. -->
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:PrintPressureRowVm">
-                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
-                      <ItemsControl ItemsSource="{Binding Tasks}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                            <Grid ColumnDefinitions="90,70,230,*" Margin="0 1">
-                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
-                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
-                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
-                                         Margin="{Binding Indent}" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
-                                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
-
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Header="" Width="24" MinWidth="24"
                                           CanUserSort="False" CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
-                        <Button Classes="expander" Click="OnPrintToggle"
-                                IsVisible="{Binding HasTasks}"
-                                Content="{Binding Glyph}" FontSize="20"
-                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the tasks behind these counts"/>
+                        <Panel>
+                          <Button Classes="expander" Click="OnPrintToggle"
+                                  IsVisible="{Binding HasTasks}"
+                                  Content="{Binding Glyph}" FontSize="20"
+                                  Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                  Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
+                                  Cursor="Hand"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                  ToolTip.Tip="Show the tasks behind these counts"/>
+
+                          <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
+                               inside a row makes rows wildly different heights, and the DataGrid prices
+                               every row it has not realised from a single average of them; it also reuses
+                               a row between an open one and a closed one and measures it before the
+                               drawer has caught up. Both are why scrolling up used to stick and jump.
+                               See tools/gridsim. Floating the detail leaves every row one height, so
+                               there is nothing left to estimate wrongly.
+                          
+                               ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
+                               back. The flag still lives on the ITEM, not the row: the grid recycles
+                               rows, and a popup keyed to the row would open against whatever item
+                               landed in it next. -->
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
+                                 Placement="BottomEdgeAlignedLeft"
+                                 IsLightDismissEnabled="True">
+                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                                 full height of the screen and off the bottom of it. -->
+                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+                            <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                                    Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                                    CornerRadius="3" HorizontalAlignment="Left" MinWidth="560">
+                              <ItemsControl ItemsSource="{Binding Tasks}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                                    <Grid ColumnDefinitions="90,70,320,*" Margin="0 1">
+                                      <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Top" Margin="0 3 0 0"/>
+                                      <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                                 Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5"
+                                                  Margin="{Binding Indent}" VerticalAlignment="Center">
+                                        <!-- Fixed slot, drawn or not — the picture arrives after the grid
+                                             has sized the row, so it must not change the size when it does. -->
+                                        <Image Source="{Binding Icon}" Width="14" Height="14"
+                                               IsVisible="{Binding HasIcon}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Title}" FontSize="10"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                      </StackPanel>
+                                      <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10"
+                                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </Border>
+                            </ScrollViewer>
+                          </Popup>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1362,14 +1577,18 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
-                        <Panel>
-                          <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
-                                  ToolTip.Tip="Open this item">
-                            <TextBlock Text="{Binding Product}" Classes="linktext"/>
-                          </Button>
-                          <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
-                                     VerticalAlignment="Top" Margin="0 3 0 0"/>
-                        </Panel>
+                        <Grid ColumnDefinitions="Auto,*">
+                          <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                 Margin="0 0 6 0" VerticalAlignment="Center"/>
+                          <Panel Grid.Column="1">
+                            <Button Classes="link" Click="OnOpenPrintProduct" IsVisible="{Binding HasLink}"
+                                    ToolTip.Tip="Open this item">
+                              <TextBlock Text="{Binding Product}" Classes="linktext"/>
+                            </Button>
+                            <TextBlock Text="{Binding Product}" IsVisible="{Binding !HasLink}"
+                                       VerticalAlignment="Center"/>
+                          </Panel>
+                        </Grid>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1516,52 +1735,73 @@
 
               <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
-
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:HaulPressureRowVm">
-                    <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
-                      <ItemsControl ItemsSource="{Binding Tasks}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:ShortageTaskRowVm">
-                            <Grid ColumnDefinitions="70,70,240,*" Margin="0 1">
-                              <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
-                                         Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
-                                         Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="2" Text="{Binding Title}" FontSize="10"
-                                         Margin="{Binding Indent}" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                              <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10" TextWrapping="Wrap"
-                                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
 
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Width="24" MinWidth="24"
                                           CanUserSort="False" CanUserResize="False">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
-                        <Button Classes="expander" Click="OnHaulToggle"
-                                IsVisible="{Binding HasTasks}"
-                                Content="{Binding Glyph}" FontSize="20"
-                                Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the tasks behind these counts"/>
+                        <Panel>
+                          <Button Classes="expander" Click="OnHaulToggle"
+                                  IsVisible="{Binding HasTasks}"
+                                  Content="{Binding Glyph}" FontSize="20"
+                                  Padding="0" Width="24" Height="24" MinWidth="0" MinHeight="0"
+                                  Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
+                                  Cursor="Hand"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                  ToolTip.Tip="Show the tasks behind these counts"/>
+
+                          <!-- ⚠️ A popup, NOT RowDetails, and the difference is the whole point. A drawer
+                               inside a row makes rows wildly different heights, and the DataGrid prices
+                               every row it has not realised from a single average of them; it also reuses
+                               a row between an open one and a closed one and measures it before the
+                               drawer has caught up. Both are why scrolling up used to stick and jump.
+                               See tools/gridsim. Floating the detail leaves every row one height, so
+                               there is nothing left to estimate wrongly.
+                          
+                               ⚠️ Light dismiss with a TwoWay binding, so clicking away puts the glyph
+                               back. The flag still lives on the ITEM, not the row: the grid recycles
+                               rows, and a popup keyed to the row would open against whatever item
+                               landed in it next. -->
+                          <Popup IsOpen="{Binding IsExpanded}" Closed="OnDetailClosed" DetachedFromVisualTree="OnDetailDetached"
+                                 Placement="BottomEdgeAlignedLeft"
+                                 IsLightDismissEnabled="True">
+                            <!-- ⚠️ A ceiling, with the scrolling inside it. A blueprint list ran the
+                                 full height of the screen and off the bottom of it. -->
+                            <ScrollViewer MaxHeight="560" HorizontalScrollBarVisibility="Disabled">
+                            <Border Margin="20 0 0 6" Padding="10 7" IsVisible="{Binding HasTasks}"
+                                    Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                                    CornerRadius="3" HorizontalAlignment="Left" MinWidth="900">
+                              <ItemsControl ItemsSource="{Binding Tasks}">
+                                <ItemsControl.ItemTemplate>
+                                  <DataTemplate x:DataType="vm:ShortageTaskRowVm">
+                                    <Grid ColumnDefinitions="70,70,240,*" Margin="0 1">
+                                      <TextBlock Grid.Column="0" Text="{Binding Role}" FontSize="10"
+                                                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"/>
+                                      <TextBlock Grid.Column="1" Text="{Binding State}" FontSize="10"
+                                                 Foreground="{Binding StateColor}" VerticalAlignment="Center"/>
+                                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5"
+                                                  Margin="{Binding Indent}" VerticalAlignment="Center">
+                                        <!-- Fixed slot, drawn or not — the picture arrives after the grid
+                                             has sized the row, so it must not change the size when it does. -->
+                                        <Image Source="{Binding Icon}" Width="14" Height="14"
+                                               IsVisible="{Binding HasIcon}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Title}" FontSize="10"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                      </StackPanel>
+                                      <TextBlock Grid.Column="3" Text="{Binding Why}" FontSize="10" TextWrapping="Wrap"
+                                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                  </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                            </Border>
+                            </ScrollViewer>
+                          </Popup>
+                        </Panel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
@@ -1573,14 +1813,18 @@
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
-                        <Panel>
-                          <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
-                                  ToolTip.Tip="Open what this job makes">
-                            <TextBlock Text="{Binding Task}" Classes="linktext"/>
-                          </Button>
-                          <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
-                                     VerticalAlignment="Center"/>
-                        </Panel>
+                        <Grid ColumnDefinitions="Auto,*">
+                          <Image Grid.Column="0" Source="{Binding Icon}" Width="18" Height="18"
+                                 Margin="0 0 6 0" VerticalAlignment="Center"/>
+                          <Panel Grid.Column="1">
+                            <Button Classes="link" Click="OnOpenHaulItem" IsVisible="{Binding HasItemLink}"
+                                    ToolTip.Tip="Open what this job makes">
+                              <TextBlock Text="{Binding Task}" Classes="linktext"/>
+                            </Button>
+                            <TextBlock Text="{Binding Task}" IsVisible="{Binding !HasItemLink}"
+                                       VerticalAlignment="Center"/>
+                          </Panel>
+                        </Grid>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>

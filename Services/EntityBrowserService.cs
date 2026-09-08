@@ -70,12 +70,25 @@ public record NpcOrderItemRow(bool IsBuyOrder, int TypeId, string Item,
     public string LowText  => LowPrice.ToString("N2");
     public string HighText => HighPrice.ToString("N2");
 }
-public record LpOfferRow(string Item, int TypeId, int Quantity, string LpCost, string IskCost, string Required);
+public record LpOfferRow(string Item, int TypeId, int Quantity, int LpCost, long IskCost, string Required)
+{
+    // ⚠️ Numbers, not the formatted strings this used to hand over. A grid sorts on what it is
+    // bound to, so "1,200,000" sorted before "800" and the LP and ISK columns ordered offers by
+    // the shape of their digits rather than their size. Formatting is for display only now, with
+    // the columns sorting through SortMemberPath.
+    public string LpText  => LpCost.ToString("N0");
+    public string IskText => IskCost > 0 ? IskCost.ToString("N0") : "—";
+}
 public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold,
                                 string Role, string Owner, string Occupier)
 {
     /// <summary>Progress toward a flip. The raw pair means little without the ratio.</summary>
     public string ContestedPercent => Threshold > 0 ? $"{(double)Points / Threshold * 100:0.#}%" : "";
+
+    /// <summary>The ratio itself, so the column sorts by what it shows. Ordered by raw points a
+    /// system at 300/400 sits below one at 500/5000, which is the opposite of contested.</summary>
+    public double ContestedFraction => Threshold > 0 ? (double)Points / Threshold : 0;
+
     public string PointsText       => Points.ToString("N0");
     public string ThresholdText    => Threshold.ToString("N0");
 
@@ -123,8 +136,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 SELECT "EntityId" AS "Id", "Name",
                        '' AS "Subtitle"
                 FROM "UniverseNames"
-                WHERE "Category" = @cat AND "Name" LIKE @q
-                ORDER BY CASE WHEN "Name" LIKE @prefix THEN 0 ELSE 1 END, LENGTH("Name"), "Name"
+                WHERE "Category" = @cat AND LOWER("Name") LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER("Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, LENGTH("Name"), "Name"
                 LIMIT @lim
                 """,
 
@@ -137,8 +150,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 LEFT JOIN "SdeCorpDivisions"   d ON d."DivisionId"    = a."DivisionId"
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
-                WHERE a."Name" LIKE @q OR COALESCE(n."Name",'') LIKE @q OR COALESCE(s."Name",'') LIKE @q
-                ORDER BY CASE WHEN a."Name" LIKE @prefix THEN 0 ELSE 1 END, a."Level" DESC, a."Name"
+                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER(a."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, a."Level" DESC, a."Name"
                 LIMIT @lim
                 """,
 
@@ -147,8 +160,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                        COALESCE(f."Name",'') AS "Subtitle"
                 FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
-                WHERE n."Name" LIKE @q OR COALESCE(f."Name",'') LIKE @q
-                ORDER BY CASE WHEN n."Name" LIKE @prefix THEN 0 ELSE 1 END, n."Name"
+                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER(n."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, n."Name"
                 LIMIT @lim
                 """,
 
@@ -161,16 +174,16 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 FROM "SdeStations" s
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = s."CorporationId"
                 LEFT JOIN "SdeRegions"         r ON r."RegionId"      = s."RegionId"
-                WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
-                ORDER BY CASE WHEN s."Name" LIKE @prefix THEN 0 ELSE 1 END, s."Name"
+                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER(s."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, s."Name"
                 LIMIT @lim
                 """,
 
             _ => """
                 SELECT "FactionId" AS "Id", "Name", '' AS "Subtitle"
                 FROM "SdeFactions"
-                WHERE "Name" LIKE @q
-                ORDER BY CASE WHEN "Name" LIKE @prefix THEN 0 ELSE 1 END, "Name"
+                WHERE LOWER("Name") LIKE LOWER(@q)
+                ORDER BY CASE WHEN LOWER("Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, "Name"
                 LIMIT @lim
                 """,
         };
@@ -196,24 +209,24 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         var sql = kind switch
         {
             EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance =>
-                """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND "Name" LIKE @q""",
+                """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND LOWER("Name") LIKE LOWER(@q)""",
             EntityKind.Agent => """
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeAgents" a
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
-                WHERE a."Name" LIKE @q OR COALESCE(n."Name",'') LIKE @q OR COALESCE(s."Name",'') LIKE @q
+                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q)
                 """,
             EntityKind.NpcCorp => """
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
-                WHERE n."Name" LIKE @q OR COALESCE(f."Name",'') LIKE @q
+                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q)
                 """,
             EntityKind.Station => """
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeStations" s
                 LEFT JOIN "SdeRegions" r ON r."RegionId" = s."RegionId"
-                WHERE s."Name" LIKE @q OR COALESCE(r."Name",'') LIKE @q
+                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q)
                 """,
-            _ => """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE "Name" LIKE @q""",
+            _ => """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE LOWER("Name") LIKE LOWER(@q)""",
         };
 
         return (await db.Database.SqlQueryRaw<int>(sql,
@@ -544,6 +557,69 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     }
 
     /// <summary>Stations an NPC corporation owns.</summary>
+
+    /// <summary>
+    /// The faction this corporation is the militia for, if it is one.
+    ///
+    /// <para>Asked only when a corporation turns out to own no stations, to tell the two cases
+    /// apart: a gap in the data, and a corporation that correctly has none.</para>
+    /// </summary>
+    public async Task<string?> MilitiaFactionAsync(long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.SdeFactions.AsNoTracking()
+            .Where(f => f.MilitiaCorporationId == (int)corpId)
+            .Select(f => f.Name)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    /// <summary>
+    /// The public ESI profile of an NPC corporation, kept once fetched.
+    ///
+    /// <para>⚠️ The SDE has all of this and the import drops it: NpcCorpYaml reads name and
+    /// factionID and nothing else, so the headquarters, ticker, description and tax rate never
+    /// reach the database. Rather than widen an import that runs for twenty minutes and has to be
+    /// re-run to take effect, the same facts come off a public ESI route, one call, the first time
+    /// a page is opened.</para>
+    ///
+    /// <para>NPC corporations do not change, so a stored row is used indefinitely. A failed fetch
+    /// stores nothing and is simply tried again next time.</para>
+    /// </summary>
+    public async Task<NpcCorpProfile?> NpcCorpProfileAsync(long corpId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        var cached = await db.EsiNpcCorpProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.CorporationId == corpId, ct);
+        if (cached is not null) return cached;
+
+        if (esi is null) return null;
+
+        var live = await esi.GetCorporationPublicAsync((int)corpId, ct);
+        if (live is null) return null;
+
+        var row = new NpcCorpProfile
+        {
+            CorporationId = corpId,
+            Ticker        = live.Ticker,
+            Description   = live.Description,
+            Url           = live.Url,
+            CeoId         = live.CeoId,
+            HomeStationId = live.HomeStationId ?? 0,
+            MemberCount   = live.MemberCount,
+            TaxRate       = live.TaxRate,
+            FetchedUtc    = DateTimeOffset.UtcNow,
+        };
+
+        db.EsiNpcCorpProfiles.Add(row);
+
+        // Two tabs opening the same corporation at once both fetch and both insert; the loser of
+        // that race has nothing to fix, because they wrote the same row.
+        try { await db.SaveChangesAsync(ct); } catch { }
+
+        return row;
+    }
+
     public async Task<List<EntityStationRow>> NpcCorpStationsAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -684,9 +760,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => $"{x.Quantity:N0} × {x.Item}")));
 
         return offers.Select(o => new LpOfferRow(
-            o.Item, o.TypeId, o.Quantity,
-            o.LpCost.ToString("N0"),
-            o.IskCost > 0 ? o.IskCost.ToString("N0") : "—",
+            o.Item, o.TypeId, o.Quantity, o.LpCost, o.IskCost,
             required.GetValueOrDefault(o.OfferId, "—"))).ToList();
     }
 
@@ -973,23 +1047,66 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                            (SELECT COUNT(*) FROM "EsiLpStoreOffers" o WHERE o."CorporationId" = n."CorporationId") AS "LpOffers",
                            COALESCE((SELECT MAX(l."Points") FROM "EsiLoyaltyPoints" l WHERE l."CorporationId" = n."CorporationId"), 0) AS "LpHeld",
                            COALESCE((SELECT v."IskPerLp" FROM "LpCorpValues" v WHERE v."CorporationId" = n."CorporationId"), 0) AS "IskPerLp",
-                           COALESCE(n."FactionId", 0) AS "FactionId"
+                           COALESCE(n."FactionId", 0) AS "FactionId",
+                           COALESCE(n."Ticker",'') AS "Ticker", COALESCE(n."Description",'') AS "Description",
+                           COALESCE(n."StationId", 0) AS "StationId", COALESCE(hq."Name",'') AS "HqName",
+                           COALESCE(n."TaxRate", 0) AS "TaxRate",
+                           COALESCE(n."MinSecurity", 0) AS "MinSecurity",
+                           COALESCE(n."MinimumJoinStanding", 0) AS "JoinStanding"
                     FROM "SdeNpcCorporations" n
-                    LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
+                    LEFT JOIN "SdeFactions" f  ON f."FactionId" = n."FactionId"
+                    LEFT JOIN "SdeStations"  hq ON hq."StationId" = n."StationId"
                     WHERE n."CorporationId" = @id
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                return new EntityDetail(id, r.Name, $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}", "",
-                    [
-                        new("Corporation ID", id.ToString("N0")),
-                        new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
-                        new("Stations",       r.Stations.ToString("N0")),
-                        new("Agents",         r.Agents.ToString("N0")),
-                        new("LP store",       r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"),
-                        new("Your LP",        r.LpHeld > 0 ? $"{r.LpHeld:N0}" : "—"),
-                        new("ISK per LP",     r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"),
-                    ], url);
+                var p = await NpcCorpProfileAsync(id, ct);
+
+                var ticker = r.Ticker.Length      > 0 ? r.Ticker      : p?.Ticker      ?? "";
+                var about  = r.Description.Length > 0 ? r.Description : p?.Description ?? "";
+                var hqId   = r.StationId > 0 ? r.StationId : p?.HomeStationId ?? 0;
+                var hqName = r.HqName.Length > 0 ? r.HqName
+                           : hqId <= 0 ? ""
+                           : await db.SdeStations.AsNoTracking()
+                                 .Where(s => s.StationId == hqId).Select(s => s.Name)
+                                 .FirstOrDefaultAsync(ct) ?? "";
+                var tax    = r.TaxRate > 0 ? r.TaxRate : p?.TaxRate ?? 0;
+
+                var facts = new List<EntityFact>
+                {
+                    new("Corporation ID", id.ToString("N0")),
+                    new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
+                };
+
+                if (ticker.Length > 0) facts.Add(new("Ticker", ticker));
+
+                // ⚠️ The headquarters is NOT one of the "Stations" beside it, and the two
+                // disagreeing is the normal case rather than a fault. A militia corporation owns
+                // no station and is still based somewhere: Malakim Zealots run out of an
+                // Archangels station in G-0Q86.
+                if (hqName.Length > 0) facts.Add(new("Headquarters", hqName, EntityKind.Station, hqId));
+
+                facts.Add(new("Stations", r.Stations.ToString("N0")));
+                facts.Add(new("Agents",   r.Agents.ToString("N0")));
+
+                if (p is { MemberCount: > 0 }) facts.Add(new("Members", p.MemberCount.ToString("N0")));
+                if (tax > 0)                   facts.Add(new("Tax rate", tax.ToString("P1")));
+
+                // What it takes to join — the question anyone reading a militia corporation's page
+                // is actually asking.
+                if (r.JoinStanding != 0 || r.MinSecurity != 0)
+                    facts.Add(new("To join", $"standing {r.JoinStanding:N1}, security {r.MinSecurity:N1} or better"));
+
+                facts.Add(new("LP store",   r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"));
+                facts.Add(new("Your LP",    r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
+                facts.Add(new("ISK per LP", r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"));
+
+                if (p is { Url.Length: > 0 }) facts.Add(new("Website", p.Url, Url: p.Url));
+
+                // The Description tab shows itself as soon as there is one to show.
+                return new EntityDetail(id, r.Name,
+                    $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}",
+                    about, facts, url);
             }
 
             default:
@@ -1150,7 +1267,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                   string Division, string Corporation, string Station, string Faction,
                                   long CorporationId, long FactionId, long StationId);
     private record NpcCorpDetailRaw(string Name, string Faction, int Stations, int Agents,
-                                    int LpOffers, int LpHeld, double IskPerLp, long FactionId);
+                                    int LpOffers, int LpHeld, double IskPerLp, long FactionId,
+                                    string Ticker, string Description, long StationId, string HqName,
+                                    double TaxRate, double MinSecurity, int JoinStanding);
     private record FactionDetailRaw(string Name, string Description, string MilitiaCorp,
                                     string HomeSystem, int Corporations, long MilitiaCorpId,
                                     int HomeSystemId);

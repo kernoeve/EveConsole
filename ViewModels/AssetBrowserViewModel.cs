@@ -28,6 +28,25 @@ public class AssetBrowserViewModel : ReactiveObject
         "Owner Id", "Item Id", "Type Id", "Location Id",
     ];
 
+    /// <summary>
+    /// The columns read by magnitude, which are right-justified so their digits line up.
+    ///
+    /// <para>⚠️ Ids are in here too. They are numbers and they align like numbers; that they are
+    /// labels rather than quantities does not make a ragged right edge easier to scan.</para>
+    ///
+    /// <para>⚠️ Security is NOT, despite being a number. It is one signed digit and a decimal
+    /// beside a system name, read as a property of that name rather than compared down the column
+    /// — and pushed to the right edge it separates from the thing it describes.</para>
+    /// </summary>
+    public static readonly HashSet<string> NumericColumns =
+    [
+        "Quantity", "Item Count",
+        "Value Per Unit", "Value", "Total Value", "Build Cost", "ISK/m³",
+        "Volume", "Total Volume",
+        "Owner Id", "Item Id", "Type Id", "Location Id", "Solar System Id", "Region Id",
+        "Root Location Id",
+    ];
+
     public static readonly HashSet<string> HiddenColumns =
     [
         "Owner Id", "Root Location Id",
@@ -394,6 +413,14 @@ public class AssetBrowserViewModel : ReactiveObject
                 COALESCE(NULLIF(sn_f."Name",''), st_f."Name", CAST(j."FacilityId" AS TEXT)) AS FacilityName,
                 COALESCE(ss_st_f."Name", ss_sn_f."Name", '')  AS FacilitySolarSystem,
                 COALESCE(r_st_f."Name",  r_sn_f."Name",  '')  AS FacilityRegion,
+                -- The IDS as well as the names. Everything needed was already joined here and only the
+                -- names were taken, so a job row carried system and region text with a zero id.
+                -- That is a grouping key: By Location groups on it, and a structure holding both
+                -- assets and a running job came out as two rows for the same Location Id, each
+                -- with part of the total. The same failure as the Security rounding below.
+                COALESCE(ss_st_f."SolarSystemId", ss_sn_f."SolarSystemId", 0) AS FacilitySolarSystemId,
+                COALESCE(r_st_f."RegionId",       r_sn_f."RegionId",       0) AS FacilityRegionId,
+                CASE WHEN st_f."StationId" IS NOT NULL THEN 1 ELSE 0 END      AS FacilityIsStation,
                 CAST(ROUND(CAST(COALESCE(ss_st_f."Security", ss_sn_f."Security", 0.0) AS NUMERIC), 1) AS TEXT) AS FacilitySecurity
             FROM "EsiIndustryJobs" j
             LEFT JOIN "EsiBlueprints"     bl     ON bl."ItemId"      = j."BlueprintId"  AND bl."OwnerId" = j."OwnerId" AND bl."OwnerType" = j."OwnerType"
@@ -571,12 +598,11 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
                 -- on screen and each holding part of the total.
                 ROUND(CAST(jf.FacilitySecurity AS NUMERIC), 1)                                      AS "Security",
-                -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
-                -- named but never resolved to ids here, so these are zero: such a row still shows
-                -- its system and region, they simply are not links.
-                0                                                                  AS "Solar System Id",
-                0                                                                  AS "Region Id",
-                0                                                                  AS "Is Station",
+                -- Resolved in JobFacilities, not zeroed here. These are grouping keys as well as
+                -- links, and a zero split a facility that also holds assets into two rows.
+                jf.FacilitySolarSystemId                                           AS "Solar System Id",
+                jf.FacilityRegionId                                                AS "Region Id",
+                jf.FacilityIsStation                                               AS "Is Station",
                 'item'                                                             AS "Location Type",
                 bt."Volume"                                                          AS "Volume",
                 bt."Volume"                                                          AS "Total Volume",
@@ -617,12 +643,11 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- unrounded -0.29999 and a rounded -0.3 became two rows for one system, identical
                 -- on screen and each holding part of the total.
                 ROUND(CAST(jf.FacilitySecurity AS NUMERIC), 1)                                      AS "Security",
-                -- Hidden ids, matching the asset branch so the UNION lines up. A job facility is
-                -- named but never resolved to ids here, so these are zero: such a row still shows
-                -- its system and region, they simply are not links.
-                0                                                                  AS "Solar System Id",
-                0                                                                  AS "Region Id",
-                0                                                                  AS "Is Station",
+                -- Resolved in JobFacilities, not zeroed here. These are grouping keys as well as
+                -- links, and a zero split a facility that also holds assets into two rows.
+                jf.FacilitySolarSystemId                                           AS "Solar System Id",
+                jf.FacilityRegionId                                                AS "Region Id",
+                jf.FacilityIsStation                                               AS "Is Station",
                 'item'                                                             AS "Location Type",
                 pt."Volume"                                                          AS "Volume",
                 pt."Volume" * CAST(jf.ItemsProduced AS DOUBLE PRECISION)                        AS "Total Volume",
@@ -731,7 +756,7 @@ public class AssetBrowserViewModel : ReactiveObject
     private string BuildWhere()
     {
         if (_activeFilters.Count == 0) return "";
-        var clauses = _activeFilters.Select((f, i) => $"\"{f.Column}\" {f.Op.Sql} @fv{i}");
+        var clauses = _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i));
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
@@ -740,8 +765,7 @@ public class AssetBrowserViewModel : ReactiveObject
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
-            var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", SqlFilter.Value(f.Op, f.Value));
         }
     }
 

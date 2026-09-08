@@ -174,7 +174,7 @@
               <DataGridTextColumn Header="Details"  Binding="{Binding Subtitle}" FontSize="10" Width="*"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowMemberSubtitle}"/>
               <DataGridTextColumn Header="Lvl"      Binding="{Binding Level}"    FontSize="10" Width="55"
-                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
+                                  IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}" CellStyleClasses="num"/>
               <DataGridTextColumn Header="Division" Binding="{Binding Division}" FontSize="10" Width="140"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
               <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Station"
@@ -191,7 +191,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="ID"      Binding="{Binding Id}" FontSize="10"       Width="110"/>
+              <DataGridTextColumn Header="ID"      Binding="{Binding Id}" FontSize="10"       Width="110" CellStyleClasses="num"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -250,7 +250,7 @@
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
-              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security">
+              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security" CellStyleClasses="num">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityStationRow">
                     <TextBlock Text="{Binding SecurityText}" Foreground="{Binding SecurityColor}"
@@ -259,7 +259,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}" FontSize="10"   Width="70"/>
+              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}" FontSize="10"   Width="70" CellStyleClasses="num"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -291,8 +291,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110"/>
-                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110" CellStyleClasses="num"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110" CellStyleClasses="num"/>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -317,8 +317,8 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110"/>
-                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110"/>
+                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110" CellStyleClasses="num"/>
+                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110" CellStyleClasses="num"/>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -346,9 +346,9 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" FontSize="10" Width="80"/>
-              <DataGridTextColumn Header="LP"       Binding="{Binding LpCost}" FontSize="10"   Width="110"/>
-              <DataGridTextColumn Header="ISK"      Binding="{Binding IskCost}" FontSize="10"  Width="130"/>
+              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" FontSize="10" Width="80" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="LP"       Binding="{Binding LpText}" SortMemberPath="LpCost" FontSize="10"   Width="110" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="ISK"      Binding="{Binding IskText}" SortMemberPath="IskCost" FontSize="10"  Width="130" CellStyleClasses="num"/>
               <DataGridTextColumn Header="Requires" Binding="{Binding Required}" FontSize="10" Width="300"/>
             </DataGrid.Columns>
           </DataGrid>
@@ -376,9 +376,9 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="100"/>
-              <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="Points" FontSize="10" Width="70"/>
-              <DataGridTextColumn Header="Points"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90"/>
-              <DataGridTextColumn Header="Threshold" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*"/>
+              <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="ContestedFraction" FontSize="10" Width="70" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="Points"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="Threshold" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*" CellStyleClasses="num"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

@@ -11,7 +11,7 @@ using SkiaSharp;
 namespace EveConsole.Services;
 
 /// <summary>
-/// The two monthly trend charts, as series and as a picture.
+/// The monthly trend charts, as series and as a picture.
 ///
 /// <para>⚠️ The ONE definition of what those charts plot. It was built inside the Corp Activity
 /// view model, which meant a scheduled post could only have had a second copy — and a chart that
@@ -40,6 +40,25 @@ public static class CorpTrendChartReport
 
     private static LineSeries<double> Line(
         string name, IEnumerable<double> values, SKColor color, int scalesYAt = 0) =>
+        new()
+        {
+            Name           = name,
+            Values         = values.ToArray(),
+            Stroke         = new SolidColorPaint(color, 2),
+            Fill           = null,
+            GeometrySize   = 0,
+            EasingFunction = null,
+            ScalesYAt      = scalesYAt,
+        };
+
+    /// <summary>
+    /// A line that BREAKS where there is no value, instead of dropping to the floor.
+    ///
+    /// <para>⚠️ LineSeries&lt;double?&gt;, not a zero substituted upstream. A ratio has no value in a
+    /// month that saw no fighting, and zero is a different and much stronger claim than silence.</para>
+    /// </summary>
+    private static LineSeries<double?> Gapped(
+        string name, IEnumerable<double?> values, SKColor color, int scalesYAt = 0) =>
         new()
         {
             Name           = name,
@@ -95,6 +114,10 @@ public static class CorpTrendChartReport
     ///
     /// <para>Two Y axes on purpose: mined units run to the millions and would flatten a kill count
     /// to a line along the floor if they shared a scale.</para>
+    ///
+    /// <para>⚠️ Not on screen any more, where this is two charts — KillTrends and MiningTrends.
+    /// It is kept because already-scheduled posts are set to it, and silently dropping the mined
+    /// line out of somebody's Monday post is not something a refactor gets to do.</para>
     /// </summary>
     public static Chart? ActivityTrends(IReadOnlyList<MonthlyActivityRow> rows)
     {
@@ -134,6 +157,80 @@ public static class CorpTrendChartReport
 
         return new Chart(series, [XAxis(labels)], yAxes,
                          "Activity Trends (kills and losses left, units mined right)");
+    }
+
+    /// <summary>
+    /// Kills, losses, and how much of the ISK that changed hands was theirs.
+    ///
+    /// <para>Efficiency rides a second axis pinned to 0-100 rather than sharing the count scale:
+    /// it is a percentage, and letting it float would make a quiet month of two kills look like a
+    /// collapse against a busy one.</para>
+    /// </summary>
+    public static Chart? KillTrends(IReadOnlyList<MonthlyActivityRow> rows)
+    {
+        if (rows.Count == 0) return null;
+
+        var ordered = rows.OrderBy(r => r.Month).ToList();
+        var labels  = ordered.Select(r => r.Month).ToArray();
+
+        ISeries[] series =
+        [
+            Line("Kills",  ordered.Select(r => (double)r.Kills),  Green, 0),
+            Line("Losses", ordered.Select(r => (double)r.Losses), Red,   0),
+
+            // ⚠️ Nullable, so a month with no fighting leaves a GAP rather than a point at zero.
+            // Plotted as 0% it would read as "everything we flew was destroyed and we killed
+            // nothing", which is the opposite of "nothing happened".
+            Gapped("ISK Efficiency", ordered.Select(r => r.IskEfficiency), Gold, 1),
+        ];
+
+        Axis[] yAxes =
+        [
+            new Axis
+            {
+                TextSize = 9, MinLimit = 0,
+                LabelsPaint     = new SolidColorPaint(Label),
+                SeparatorsPaint = new SolidColorPaint(Grid),
+            },
+            new Axis
+            {
+                TextSize = 9, MinLimit = 0, MaxLimit = 100,
+                Position        = LiveChartsCore.Measure.AxisPosition.End,
+                LabelsPaint     = new SolidColorPaint(Label),
+                // Transparent, or the second axis draws its own grid over the first one's.
+                SeparatorsPaint = new SolidColorPaint(SKColors.Transparent),
+                Labeler         = v => $"{v:F0}%",
+            },
+        ];
+
+        return new Chart(series, [XAxis(labels)], yAxes,
+                         "Kills and Losses (ISK efficiency on the right)");
+    }
+
+    /// <summary>Units mined, on its own scale.</summary>
+    public static Chart? MiningTrends(IReadOnlyList<MonthlyActivityRow> rows)
+    {
+        if (rows.Count == 0) return null;
+
+        var ordered = rows.OrderBy(r => r.Month).ToList();
+        var labels  = ordered.Select(r => r.Month).ToArray();
+
+        ISeries[] series = [Line("Units Mined", ordered.Select(r => (double)r.UnitsMined), Gold)];
+
+        Axis[] yAxes =
+        [
+            new Axis
+            {
+                TextSize = 9, MinLimit = 0,
+                LabelsPaint     = new SolidColorPaint(Label),
+                SeparatorsPaint = new SolidColorPaint(Grid),
+                // ⚠️ One decimal on the millions. F0 rounded 1.2M and 1.4M to the same string,
+                // so two gridlines carried the identical label.
+                Labeler         = v => v >= 1_000_000 ? $"{v / 1_000_000:F1}M" : $"{v:N0}",
+            },
+        ];
+
+        return new Chart(series, [XAxis(labels)], yAxes, "Units Mined");
     }
 
     /// <summary>

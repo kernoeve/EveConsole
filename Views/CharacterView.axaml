@@ -3,7 +3,6 @@
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
-             xmlns:wl="clr-namespace:EveConsole.Services.Worklist"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.CharacterView"
              x:DataType="vm:OverviewViewModel"
@@ -422,7 +421,7 @@
                                 Command="{Binding ToggleCommand}"
                                 HorizontalAlignment="Left">
                           <TextBlock Text="{Binding ExpandLabel}"
-                                     FontSize="10" Foreground="{DynamicResource InfoSurfaceBrush}" />
+                                     FontSize="10" Foreground="{DynamicResource InfoBrush}" />
                         </Button>
 
                       </StackPanel>
@@ -912,73 +911,9 @@
                    that. It refreshes with the rest of the Overview. -->
               <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistAllView}" Classes="wl"
                         AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         CanUserReorderColumns="False" CanUserResizeColumns="True"
                         CanUserSortColumns="True" Background="Transparent">
-                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
-                     straight from this brush in the stock template, so a style selector on it never
-                     wins. Left at the theme default it paints a grey several steps lighter than the
-                     grid across the full width of the expanded row, which reads as a selection
-                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
-
-                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
-                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:WorklistRowVm">
-                    <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
-                      <ItemsControl ItemsSource="{Binding Lines}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="wl:WorklistLine">
-                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
-                              <Panel Grid.Column="0" Margin="0 0 16 0">
-                                <Button Classes="link" Click="OnOpenManifestItem"
-                                        IsVisible="{Binding HasItemLink}"
-                                        ToolTip.Tip="Open in the Item Browser">
-                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                </Button>
-                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                              </Panel>
-                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                         MinWidth="48" TextAlignment="Right"/>
-                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
-
                 <DataGrid.Columns>
-                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
-                       expand" rather than a broken button. -->
-                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:WorklistRowVm">
-                        <Button Classes="expander" Click="OnOverviewManifestToggle"
-                                IsVisible="{Binding HasLines}"
-                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
-                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the items on this task"/>
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
                   <!-- One column carrying whatever the row's kind actually needs, as the tool's
                        grid does. Separate station and character columns were mostly empty: a haul
                        has two stations and no character, a job has a character and one station, a
@@ -1065,73 +1000,9 @@
                    that. It refreshes with the rest of the Overview. -->
               <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistBuy}" Classes="wl"
                         AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         CanUserReorderColumns="False" CanUserResizeColumns="True"
                         CanUserSortColumns="True" Background="Transparent">
-                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
-                     straight from this brush in the stock template, so a style selector on it never
-                     wins. Left at the theme default it paints a grey several steps lighter than the
-                     grid across the full width of the expanded row, which reads as a selection
-                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
-
-                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
-                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:WorklistRowVm">
-                    <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
-                      <ItemsControl ItemsSource="{Binding Lines}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="wl:WorklistLine">
-                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
-                              <Panel Grid.Column="0" Margin="0 0 16 0">
-                                <Button Classes="link" Click="OnOpenManifestItem"
-                                        IsVisible="{Binding HasItemLink}"
-                                        ToolTip.Tip="Open in the Item Browser">
-                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                </Button>
-                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                              </Panel>
-                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                         MinWidth="48" TextAlignment="Right"/>
-                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
-
                 <DataGrid.Columns>
-                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
-                       expand" rather than a broken button. -->
-                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:WorklistRowVm">
-                        <Button Classes="expander" Click="OnOverviewManifestToggle"
-                                IsVisible="{Binding HasLines}"
-                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
-                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the items on this task"/>
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
                   <!-- One column carrying whatever the row's kind actually needs, as the tool's
                        grid does. Separate station and character columns were mostly empty: a haul
                        has two stations and no character, a job has a character and one station, a
@@ -1207,73 +1078,9 @@
                    that. It refreshes with the rest of the Overview. -->
               <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistHaul}" Classes="wl"
                         AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         CanUserReorderColumns="False" CanUserResizeColumns="True"
                         CanUserSortColumns="True" Background="Transparent">
-                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
-                     straight from this brush in the stock template, so a style selector on it never
-                     wins. Left at the theme default it paints a grey several steps lighter than the
-                     grid across the full width of the expanded row, which reads as a selection
-                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
-
-                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
-                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:WorklistRowVm">
-                    <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
-                      <ItemsControl ItemsSource="{Binding Lines}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="wl:WorklistLine">
-                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
-                              <Panel Grid.Column="0" Margin="0 0 16 0">
-                                <Button Classes="link" Click="OnOpenManifestItem"
-                                        IsVisible="{Binding HasItemLink}"
-                                        ToolTip.Tip="Open in the Item Browser">
-                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                </Button>
-                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                              </Panel>
-                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                         MinWidth="48" TextAlignment="Right"/>
-                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
-
                 <DataGrid.Columns>
-                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
-                       expand" rather than a broken button. -->
-                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:WorklistRowVm">
-                        <Button Classes="expander" Click="OnOverviewManifestToggle"
-                                IsVisible="{Binding HasLines}"
-                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
-                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the items on this task"/>
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
                   <!-- One column carrying whatever the row's kind actually needs, as the tool's
                        grid does. Separate station and character columns were mostly empty: a haul
                        has two stations and no character, a job has a character and one station, a
@@ -1349,73 +1156,9 @@
                    that. It refreshes with the rest of the Overview. -->
               <DataGrid Grid.Row="1" ItemsSource="{Binding WorklistJobs}" Classes="wl"
                         AutoGenerateColumns="False" IsReadOnly="True" RowHeight="19"
-                        AreRowDetailsFrozen="False" RowDetailsVisibilityMode="Collapsed"
                         CanUserReorderColumns="False" CanUserResizeColumns="True"
                         CanUserSortColumns="True" Background="Transparent">
-                <!-- ⚠️ A resource, not a style. DataGridDetailsPresenter takes its background
-                     straight from this brush in the stock template, so a style selector on it never
-                     wins. Left at the theme default it paints a grey several steps lighter than the
-                     grid across the full width of the expanded row, which reads as a selection
-                     highlight rather than an expanded detail. Same fix as the Worklist tool. -->
-                <DataGrid.Resources>
-                  <SolidColorBrush x:Key="DataGridDetailsPresenterBackgroundBrush" Color="Transparent" />
-                </DataGrid.Resources>
-
-                <!-- The task's items, shown on demand — same manifest the tool expands, sized for a
-                     dashboard cell. Collapsed by default: the point of the panel is the task list. -->
-                <DataGrid.RowDetailsTemplate>
-                  <DataTemplate x:DataType="vm:WorklistRowVm">
-                    <Border Margin="30 0 0 6" Padding="8 6"
-                            Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" HorizontalAlignment="Left" MinWidth="220">
-                      <ItemsControl ItemsSource="{Binding Lines}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="wl:WorklistLine">
-                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 1">
-                              <Panel Grid.Column="0" Margin="0 0 16 0">
-                                <Button Classes="link" Click="OnOpenManifestItem"
-                                        IsVisible="{Binding HasItemLink}"
-                                        ToolTip.Tip="Open in the Item Browser">
-                                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
-                                             FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                </Button>
-                                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
-                                           FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                              </Panel>
-                              <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat={}{0:N0}}"
-                                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                         MinWidth="48" TextAlignment="Right"/>
-                              <TextBlock Grid.Column="2" Text="{Binding ValueText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                              <TextBlock Grid.Column="3" Text="{Binding VolumeText}"
-                                         FontSize="10" Foreground="{DynamicResource TextDimBrush}"
-                                         MinWidth="62" TextAlignment="Right" Margin="10 0 0 0"/>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Border>
-                  </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
-
                 <DataGrid.Columns>
-                  <!-- Only drawn where there is a manifest, so an empty cell reads as "nothing to
-                       expand" rather than a broken button. -->
-                  <DataGridTemplateColumn Header="" Width="18" CanUserSort="False" CanUserResize="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:WorklistRowVm">
-                        <Button Classes="expander" Click="OnOverviewManifestToggle"
-                                IsVisible="{Binding HasLines}"
-                                Content="{Binding ExpandGlyph}" FontSize="11" FontWeight="Bold"
-                                Padding="0" Width="14" Height="14" MinWidth="0" MinHeight="0"
-                                Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextMutedBrush}"
-                                Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                ToolTip.Tip="Show the items on this task"/>
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
                   <!-- One column carrying whatever the row's kind actually needs, as the tool's
                        grid does. Separate station and character columns were mostly empty: a haul
                        has two stations and no character, a job has a character and one station, a

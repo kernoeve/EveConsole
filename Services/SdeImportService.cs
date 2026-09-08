@@ -39,11 +39,13 @@ public class SdeImportService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory   _httpFactory;
     private readonly IDeserializer        _yaml;
+    private readonly AppErrorLogger       _errors;
 
     public SdeImportService(IServiceScopeFactory scopeFactory, IHttpClientFactory httpFactory)
     {
         _scopeFactory = scopeFactory;
         _httpFactory  = httpFactory;
+        _errors = new AppErrorLogger(scopeFactory);
         _yaml = new DeserializerBuilder()
             .IgnoreUnmatchedProperties()
             .Build();
@@ -67,7 +69,18 @@ public class SdeImportService
         catch { return null; }
     }
 
-    public async Task ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
+    /// <summary>
+    /// Downloads the current SDE and replaces every table the app derives from it.
+    /// </summary>
+    /// <returns>
+    /// Warnings about tables that imported oddly but not badly enough to reject the run. Empty
+    /// after a clean import.
+    /// </returns>
+    /// <exception cref="SdeCompatibilityException">A required file is missing from the archive.</exception>
+    /// <exception cref="ImportVerificationException">
+    /// The import ran to the end but lost a table that previously held data. Nothing was committed.
+    /// </exception>
+    public async Task<IReadOnlyList<string>> ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
     {
         Report(progress, "Preparing", "Fetching build info…", 0.01);
         var buildInfo = await GetLatestBuildInfoAsync(ct);
@@ -78,6 +91,8 @@ public class SdeImportService
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // SQLite PRAGMAs, and journal_mode cannot be set inside a transaction — so this stays
+            // above the one opened below.
             await AppDb.TuneForBulkImportAsync(db.Database, ct);
 
             // Open archive and validate BEFORE touching any existing data.
@@ -87,11 +102,37 @@ public class SdeImportService
             var fsdRoot = DetectRoot(archive, progress);
             ValidateArchive(archive, fsdRoot, progress);
 
+            // Schema first, and outside the transaction: the statements are all IF NOT EXISTS, they
+            // describe the shape rather than the contents, and a new column is wanted whether or
+            // not the rows that follow survive.
             Report(progress, "Preparing", "Creating schema…",            0.30);
             await EnsureSdeSchemaAsync(db, ct);
 
+            // Read before the wipe destroys it. This is what the verification at the end compares
+            // against, so a table that quietly stops being filled reads as "races held 11 rows and
+            // now holds none" rather than merely "races is empty" — which on a first import is the
+            // plain truth and no cause for alarm.
+            Report(progress, "Preparing", "Reading current row counts…", 0.305);
+            var tables = BulkImport.TablesFor(db, "Sde", "SdeBuildInfos");
+            var before = await BulkImport.CountAsync(db, tables, ct);
+
+            // ⚠️ The wipe and the refill are undoable as one unit. A failure anywhere — a changed
+            // file format, a duplicate key, a cancelled run — now leaves the previous SDE exactly
+            // as it was.
+            //
+            // Before this, a stage that threw left every table after it empty, and since the whole
+            // import is a wipe followed by a refill there was no way to tell that from "CCP removed
+            // it". One duplicate key cost ten tables, reprocessing among them.
+            //
+            // ⚠️ HOW it is undoable differs by engine, and the difference is not cosmetic: on
+            // PostgreSQL this is one transaction, on SQLite a copy of the tables in an attached
+            // file, because a transaction held for the length of an import blocks every other
+            // writer in the app. SdeUndo has the measurements.
+            await using var undo = await BulkImportUndo.CreateAsync(db, "sde", tables,
+                (stage, detail, frac) => progress.Report(new SdeImportProgress(stage, detail, frac)), ct);
+
             Report(progress, "Preparing", "Clearing existing SDE data…", 0.31);
-            await ClearSdeTablesAsync(db, ct);
+            await BulkImport.ClearAsync(db, tables, ct);
 
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -109,6 +150,7 @@ public class SdeImportService
             await ImportAgentsAsync(archive, fsdRoot, db, progress, ct);
             await ImportFactionsAsync(archive, fsdRoot, db, progress, ct);
             await ImportNpcCorporationsAsync(archive, fsdRoot, db, progress, ct);
+            await ImportIndustryModifierSourcesAsync(archive, fsdRoot, db, progress, ct);
             await ImportRacesAsync(archive, fsdRoot, db, progress, ct);
             await ImportMetaGroupsAsync(archive, fsdRoot, db, progress, ct);
             await ImportCertificatesAsync(archive, fsdRoot, db, progress, ct);
@@ -137,10 +179,34 @@ public class SdeImportService
                 await db.SaveChangesAsync(ct);
             }
 
+            // Inside the transaction, so "this import lost a table" is still a decision and not
+            // merely a note about something that has already happened.
+            Report(progress, "Verifying", "Checking row counts…", 0.99);
+            var (lost, warnings) = BulkImport.Compare(
+                before, await BulkImport.CountAsync(db, tables, ct));
+
+            if (lost.Count > 0)
+            {
+                // CancellationToken.None: whatever else has gone wrong, undoing this is exactly
+                // what still needs to happen.
+                await undo.RollbackAsync(CancellationToken.None);
+                foreach (var line in lost)
+                    _errors.Log("SdeImport", "Verification", line);
+                throw new ImportVerificationException("SDE", lost);
+            }
+
+            await undo.CommitAsync(ct);
+
+            foreach (var line in warnings)
+                _errors.Log("SdeImport", "Verification", line);
+
             Report(progress, "Done", "SDE import complete.", 1.0);
+            return warnings;
         }
         finally
         {
+            // The transaction is disposed on the way out of the block above, which rolls it back
+            // unless it was committed. Nothing here has to undo anything.
             if (File.Exists(tempPath)) File.Delete(tempPath);
         }
     }
@@ -188,6 +254,7 @@ public class SdeImportService
         {
             "dogmaAttributeCategories.yaml", "races.yaml", "certificates.yaml",
             "typeMaterials.yaml", "planetSchematics.yaml",
+            "industryModifierSources.yaml",
             "dogmaUnits.yaml", "icons.yaml", "graphics.yaml", "skins.yaml", "skinLicenses.yaml",
             "npcStations.yaml", "stationServices.yaml", "stationOperations.yaml",
         };
@@ -355,39 +422,21 @@ public class SdeImportService
         }
     }
 
-    private static async Task ClearSdeTablesAsync(AppDbContext db, CancellationToken ct)
-    {
-        // Delete in leaf-first order so FK constraints (if any ever get added) don't block.
-        var deletes = new[]
-        {
-            "DELETE FROM \"SdeTypeDogmaAttributes\"", "DELETE FROM \"SdeTypeDogmaEffects\"",
-            "DELETE FROM \"SdeBlueprintMaterials\"",  "DELETE FROM \"SdeBlueprintProducts\"",
-            "DELETE FROM \"SdeBlueprintSkills\"",     "DELETE FROM \"SdeBlueprints\"",
-            "DELETE FROM \"SdeStargates\"",           "DELETE FROM \"SdeStations\"",
-            "DELETE FROM \"SdeStationServices\"",     "DELETE FROM \"SdeStationOperations\"",
-            "DELETE FROM \"SdeStationOperationServices\"",
-            "DELETE FROM \"SdePlanetResources\"",
-            "DELETE FROM \"SdeAgents\"", "DELETE FROM \"SdeAgentTypes\"",
-            "DELETE FROM \"SdeCorpDivisions\"",
-            "DELETE FROM \"SdeCelestials\"",
-            "DELETE FROM \"SdeSolarSystems\"",        "DELETE FROM \"SdeConstellations\"",
-            "DELETE FROM \"SdeRegions\"",             "DELETE FROM \"SdeTypes\"",
-            "DELETE FROM \"SdeGroups\"",              "DELETE FROM \"SdeCategories\"",
-            "DELETE FROM \"SdeMarketGroups\"",        "DELETE FROM \"SdeDogmaAttributeCategories\"",
-            "DELETE FROM \"SdeDogmaAttributes\"",
-            "DELETE FROM \"SdeDogmaEffects\"",        "DELETE FROM \"SdeFactions\"",
-            "DELETE FROM \"SdeNpcCorporations\"",     "DELETE FROM \"SdeRaces\"",
-            "DELETE FROM \"SdeMetaGroups\"",          "DELETE FROM \"SdeCertificates\"",
-            "DELETE FROM \"SdeTypeMaterials\"",       "DELETE FROM \"SdePlanetSchematicTypes\"",
-            "DELETE FROM \"SdePlanetSchematics\"",    "DELETE FROM \"SdeDogmaUnits\"",
-            "DELETE FROM \"SdeIcons\"",               "DELETE FROM \"SdeGraphics\"",
-            "DELETE FROM \"SdeSkinTypes\"",           "DELETE FROM \"SdeSkins\"",
-            "DELETE FROM \"SdeSkinLicenses\"",
-        };
-        foreach (var sql in deletes)
-            await db.Database.ExecuteSqlRawAsync(sql, ct);
-    }
-
+    /// <summary>
+    /// Empties every table this import refills, immediately before it refills them.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Derived from the model rather than hand-listed, because a hand-list is one line that
+    /// gets forgotten. When SdeIndustryModifierSources was added to the import and not added
+    /// here, the next import inserted its rows on top of the previous run's, violated the primary
+    /// key and threw — and because this whole import is a WIPE followed by a refill, every stage
+    /// after that one never ran and its table stayed empty. Ten tables came back blank from one
+    /// missing line, type materials among them, which is reprocessing.
+    ///
+    /// <para>No foreign key is configured between any two of these, so no delete order is
+    /// required. If one is ever added this needs a topological sort, not a hand-written order
+    /// that the next new table silently falls out of.</para>
+    /// </remarks>
     // -----------------------------------------------------------------------
     // Section importers
     // -----------------------------------------------------------------------
@@ -400,7 +449,7 @@ public class SdeImportService
         Report(p, "Categories", "Parsing…", 0.32);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, CategoryYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeCategory { CategoryId = kv.Key, Name = kv.Value.name?.en ?? "", Published = kv.Value.published });
+        var rows = raw.Select(kv => new SdeCategory { CategoryId = kv.Key, Name = kv.Value.name?.en ?? "", Published = kv.Value.published, IconId = kv.Value.iconID });
         await SaveBatchesAsync(db, db.SdeCategories, rows, "Categories", raw.Count, p, 0.32, 0.33, ct);
     }
 
@@ -421,6 +470,9 @@ public class SdeImportService
             Published  = kv.Value.published,
             Anchorable = kv.Value.anchorable,
             Anchored   = kv.Value.anchored,
+            IconId     = kv.Value.iconID,
+            FittableNonSingleton = kv.Value.fittableNonSingleton,
+            UseBasePrice         = kv.Value.useBasePrice,
         });
         await SaveBatchesAsync(db, db.SdeGroups, rows, "Groups", raw.Count, p, 0.335, 0.35, ct);
     }
@@ -459,6 +511,15 @@ public class SdeImportService
             Name          = kv.Value.nameID?.en        ?? kv.Value.name?.en        ?? "",
             Description   = kv.Value.descriptionID?.en ?? kv.Value.description?.en ?? "",
             Volume        = kv.Value.volume,
+            PackagedVolume = kv.Value.packagedVolume ?? 0,
+            MetaLevel      = kv.Value.metaLevel,
+            TechLevel      = kv.Value.techLevel,
+            IsRepackable   = kv.Value.isRepackable  ?? false,
+            IsDynamicType  = kv.Value.isDynamicType ?? false,
+            Radius         = kv.Value.radius ?? 0,
+            VariationParentTypeId = kv.Value.variationParentTypeID,
+            SoundId        = kv.Value.soundID,
+            ShipTreeGroupId = kv.Value.shipTreeGroupID,
             Mass          = kv.Value.mass,
             Capacity      = kv.Value.capacity,
             PortionSize   = kv.Value.portionSize,
@@ -537,6 +598,15 @@ public class SdeImportService
             Stackable    = kv.Value.stackable,
             UnitId       = kv.Value.unitID,
             Published    = kv.Value.published,
+            Description  = kv.Value.description ?? "",
+            IconId       = kv.Value.iconID,
+            MinAttributeId = kv.Value.minAttributeID,
+            MaxAttributeId = kv.Value.maxAttributeID,
+            TooltipTitle       = kv.Value.tooltipTitleID?.en ?? "",
+            TooltipDescription = kv.Value.tooltipDescriptionID?.en ?? "",
+            DataType     = kv.Value.dataType,
+            DisplayWhenZero = kv.Value.displayWhenZero,
+            ChargeRechargeTimeId = kv.Value.chargeRechargeTimeID,
         });
         await SaveBatchesAsync(db, db.SdeDogmaAttributes, rows, "Dogma Attributes", raw.Count, p, 0.50, 0.52, ct);
     }
@@ -697,6 +767,9 @@ public class SdeImportService
                 Name      = kv.Value.name?.en ?? "",
                 FactionId = kv.Value.factionID,
                 IsWormhole = kv.Key >= 11000000 && kv.Key < 12000000,
+                Description = kv.Value.description?.en ?? "",
+                NebulaId    = kv.Value.nebulaID,
+                WormholeClassId = kv.Value.wormholeClassID,
                 X = kv.Value.position?.x ?? 0,
                 Y = kv.Value.position?.y ?? 0,
                 Z = kv.Value.position?.z ?? 0,
@@ -750,6 +823,16 @@ public class SdeImportService
                 Y2D           = kv.Value.position2D?.y,
                 SecurityClass = kv.Value.securityClass ?? "",
                 Radius        = kv.Value.radius,
+                WormholeClassId = kv.Value.wormholeClassID,
+                Border        = kv.Value.border,
+                Corridor      = kv.Value.corridor,
+                Fringe        = kv.Value.fringe,
+                Hub           = kv.Value.hub,
+                International = kv.Value.international,
+                Regional      = kv.Value.regional,
+                Luminosity    = kv.Value.luminosity,
+                VisualEffect  = kv.Value.visualEffect ?? "",
+                StarId        = kv.Value.starID,
             });
             await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
@@ -1116,6 +1199,14 @@ public class SdeImportService
                     ReprocessingEfficiency = kv.Value.reprocessingEfficiency,
                     ReprocessingTax        = kv.Value.reprocessingStationsTake,
                     OperationId            = kv.Value.operationID,
+                    CelestialIndex         = kv.Value.celestialIndex,
+                    OrbitId                = kv.Value.orbitID,
+                    OrbitIndex             = kv.Value.orbitIndex,
+                    ReprocessingHangarFlag = kv.Value.reprocessingHangarFlag,
+                    UseOperationName       = kv.Value.useOperationName,
+                    X = kv.Value.position?.x ?? 0,
+                    Y = kv.Value.position?.y ?? 0,
+                    Z = kv.Value.position?.z ?? 0,
                 };
             });
             await SaveBatchesAsync(db, db.SdeStations, rows, "Stations", raw.Count, p, 0.875, 0.89, ct);
@@ -1186,6 +1277,10 @@ public class SdeImportService
             Name = kv.Value.nameID?.en ?? kv.Value.name?.en ?? "",
             Description = kv.Value.descriptionID?.en ?? kv.Value.description?.en ?? "",
             CorporationId = kv.Value.corporationID, MilitiaCorporationId = kv.Value.militiaCorporationID, SolarSystemId = kv.Value.solarSystemID,
+            IconId           = kv.Value.iconID,
+            ShortDescription = kv.Value.shortDescriptionID?.en ?? kv.Value.shortDescription?.en ?? "",
+            SizeFactor       = kv.Value.sizeFactor ?? 0,
+            UniqueName       = kv.Value.uniqueName,
         });
         await SaveBatchesAsync(db, db.SdeFactions, rows, "Factions", raw.Count, p, 0.89, 0.91, ct);
     }
@@ -1198,8 +1293,66 @@ public class SdeImportService
         Report(p, "NPC Corporations", "Parsing…", 0.91);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, NpcCorpYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeNpcCorporation { CorporationId = kv.Key, Name = kv.Value.nameID?.en ?? kv.Value.name?.en ?? "", FactionId = kv.Value.factionID });
+        var rows = raw.Select(kv => new SdeNpcCorporation
+        {
+            CorporationId = kv.Key,
+            Name          = kv.Value.name?.en ?? "",
+            FactionId     = kv.Value.factionID,
+            StationId     = kv.Value.stationID,
+            SolarSystemId = kv.Value.solarSystemID,
+            Ticker        = kv.Value.tickerName ?? "",
+            Description   = kv.Value.description?.en ?? "",
+            CeoId         = kv.Value.ceoID,
+            TaxRate       = kv.Value.taxRate ?? 0,
+            Size          = kv.Value.size   ?? "",
+            Extent        = kv.Value.extent ?? "",
+            MemberLimit   = kv.Value.memberLimit,
+            MinSecurity   = kv.Value.minSecurity ?? 0,
+            MinimumJoinStanding = kv.Value.minimumJoinStanding,
+            EnemyId       = kv.Value.enemyID,
+            FriendId      = kv.Value.friendID,
+            RaceId        = kv.Value.raceID,
+            IconId        = kv.Value.iconID,
+            MainActivityId      = kv.Value.mainActivityID,
+            SecondaryActivityId = kv.Value.secondaryActivityID,
+            Deleted       = kv.Value.deleted,
+        });
         await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, "NPC Corporations", raw.Count, p, 0.91, 0.93, ct);
+    }
+
+    /// <summary>
+    /// Which dogma attribute carries each structure or rig industry bonus.
+    ///
+    /// <para>⚠️ Flattened on the way in. The file nests type → activity → kind → a list of
+    /// attributes, which is four levels of dictionary and awkward to query; one row per attribute
+    /// is the same information and joins to typeDogma directly.</para>
+    /// </summary>
+    private async Task ImportIndustryModifierSourcesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}industryModifierSources.yaml");
+        if (entry is null) { Report(p, "Industry Modifiers", "NOT FOUND in ZIP — skipped", 0.93); return; }
+        Report(p, "Industry Modifiers", "Parsing…", 0.93);
+
+        using var reader = OpenEntry(entry);
+        var raw = _yaml.Deserialize<Dictionary<int, Dictionary<string, Dictionary<string, List<IndustryModifierYaml>>>>>(reader) ?? [];
+
+        var rows = raw.SelectMany(type => type.Value
+            .SelectMany(activity => activity.Value
+                .SelectMany(kind => kind.Value.Select(mod => new SdeIndustryModifierSource
+                {
+                    TypeId           = type.Key,
+                    Activity         = activity.Key,
+                    BonusKind        = kind.Key,
+                    DogmaAttributeId = mod.dogmaAttributeID,
+                    FilterId         = mod.filterID,
+                }))))
+            // One type can name the same attribute twice under different filters; the key cannot
+            // carry both, and the narrower one is the one worth keeping.
+            .GroupBy(r => (r.TypeId, r.Activity, r.BonusKind, r.DogmaAttributeId))
+            .Select(g => g.OrderByDescending(r => r.FilterId ?? 0).First());
+
+        await SaveBatchesAsync(db, db.SdeIndustryModifierSources, rows, "Industry Modifiers", raw.Count, p, 0.93, 0.94, ct);
     }
 
     private async Task ImportRacesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1210,7 +1363,14 @@ public class SdeImportService
         Report(p, "Races", "Parsing…", 0.93);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, RaceYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeRace { RaceId = kv.Key, Name = kv.Value.name?.en ?? "", Description = kv.Value.description?.en ?? "" });
+        var rows = raw.Select(kv => new SdeRace
+        {
+            RaceId      = kv.Key,
+            Name        = kv.Value.name?.en ?? "",
+            Description = kv.Value.description?.en ?? "",
+            IconId      = kv.Value.iconID,
+            ShipTypeId  = kv.Value.shipTypeID,
+        });
         await SaveBatchesAsync(db, db.SdeRaces, rows, "Races", raw.Count, p, 0.93, 0.94, ct);
     }
 
@@ -1222,7 +1382,15 @@ public class SdeImportService
         Report(p, "Meta Groups", "Parsing…", 0.94);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, MetaGroupYaml>>(reader) ?? [];
-        var rows = raw.Select(kv => new SdeMetaGroup { MetaGroupId = kv.Key, Name = kv.Value.name?.en ?? "" });
+        var rows = raw.Select(kv => new SdeMetaGroup
+        {
+            MetaGroupId = kv.Key,
+            Name        = kv.Value.name?.en ?? "",
+            Description = kv.Value.description?.en ?? "",
+            IconId      = kv.Value.iconID,
+            IconSuffix  = kv.Value.iconSuffix ?? "",
+            ColorHex    = kv.Value.color?.Hex ?? "",
+        });
         await SaveBatchesAsync(db, db.SdeMetaGroups, rows, "Meta Groups", raw.Count, p, 0.94, 0.96, ct);
     }
 
@@ -1374,7 +1542,7 @@ public class SdeImportService
     // Batch save helper
     // -----------------------------------------------------------------------
 
-    private static async Task SaveBatchesAsync<T>(
+    private async Task SaveBatchesAsync<T>(
         AppDbContext db,
         DbSet<T> set,
         IEnumerable<T> source,
@@ -1416,6 +1584,17 @@ public class SdeImportService
         }
 
         p.Report(new SdeImportProgress(stage, $"{saved:N0} rows saved", fracEnd));
+
+        // ⚠️ A stage that stores NOTHING from a file that exists is a silent failure, and this
+        // import is a wipe followed by a refill: whatever it fails to store is simply gone. Ten
+        // tables came back empty after a clean import — races, meta groups, certificates, type
+        // materials, planet schematics, dogma units, icons, graphics, skins and skin licences —
+        // and nothing anywhere said so. Type materials alone is reprocessing.
+        if (saved == 0)
+            _errors.Log("SdeImport", stage,
+                estimatedTotal > 0
+                    ? $"Stored 0 of {estimatedTotal:N0} row(s) parsed. The file was read and nothing reached the database."
+                    : "Stored 0 rows: the file was found but parsed to nothing.");
     }
 
     // -----------------------------------------------------------------------
@@ -1443,7 +1622,7 @@ public class SdeImportService
 
     private class LocalizedString { public string? en { get; set; } }
 
-    private class CategoryYaml { public LocalizedString? name { get; set; } public bool published { get; set; } }
+    private class CategoryYaml { public LocalizedString? name { get; set; } public bool published { get; set; } public int? iconID { get; set; } }
     private class GroupYaml
     {
         public int              categoryID  { get; set; }
@@ -1451,6 +1630,9 @@ public class SdeImportService
         public bool             published   { get; set; }
         public bool             anchorable  { get; set; }
         public bool             anchored    { get; set; }
+        public int?             iconID      { get; set; }
+        public bool             fittableNonSingleton { get; set; }
+        public bool             useBasePrice { get; set; }
     }
 
     private class MarketGroupYaml
@@ -1472,6 +1654,15 @@ public class SdeImportService
         public LocalizedString? description   { get; set; }
         public LocalizedString? descriptionID { get; set; }
         public double           volume        { get; set; }
+        public double?          packagedVolume { get; set; }
+        public int?             metaLevel      { get; set; }
+        public int?             techLevel      { get; set; }
+        public bool?            isRepackable   { get; set; }
+        public bool?            isDynamicType  { get; set; }
+        public double?          radius         { get; set; }
+        public int?             variationParentTypeID { get; set; }
+        public int?             soundID        { get; set; }
+        public int?             shipTreeGroupID { get; set; }
         public double           mass          { get; set; }
         public double           capacity      { get; set; }
         public int              portionSize   { get; set; }
@@ -1500,6 +1691,15 @@ public class SdeImportService
         public bool             highIsGood          { get; set; }
         public bool             stackable           { get; set; }
         public int?             unitID              { get; set; }
+        public string?          description         { get; set; }
+        public int?             iconID              { get; set; }
+        public int?             minAttributeID      { get; set; }
+        public int?             maxAttributeID      { get; set; }
+        public LocalizedString? tooltipTitleID       { get; set; }
+        public LocalizedString? tooltipDescriptionID { get; set; }
+        public int?             dataType            { get; set; }
+        public bool             displayWhenZero     { get; set; }
+        public int?             chargeRechargeTimeID { get; set; }
         public bool             published           { get; set; }
     }
 
@@ -1611,12 +1811,16 @@ public class SdeImportService
     // New flat-universe DTOs
     private class MapRegionYaml
     {
+        public LocalizedString? description     { get; set; }
+        public int?             nebulaID        { get; set; }
+        public int?             wormholeClassID { get; set; }
         public LocalizedString? name      { get; set; }
         public int?             factionID { get; set; }
         public PositionYaml?    position  { get; set; }
     }
     private class MapConstellationYaml
     {
+        public int?             wormholeClassID { get; set; }
         public LocalizedString? name      { get; set; }
         public int              regionID  { get; set; }
         public int?             factionID { get; set; }
@@ -1629,6 +1833,16 @@ public class SdeImportService
 
     private class MapSolarSystemYaml
     {
+        public int?             wormholeClassID { get; set; }
+        public bool             border          { get; set; }
+        public bool             corridor        { get; set; }
+        public bool             fringe          { get; set; }
+        public bool             hub             { get; set; }
+        public bool             international   { get; set; }
+        public bool             regional        { get; set; }
+        public double           luminosity      { get; set; }
+        public string?          visualEffect    { get; set; }
+        public int?             starID          { get; set; }
         public LocalizedString? name           { get; set; }
         public int              constellationID { get; set; }
         public int              regionID        { get; set; }
@@ -1715,6 +1929,15 @@ public class SdeImportService
         {
             OperationId = kv.Key,
             Name        = kv.Value.operationName?.en ?? $"Operation {kv.Key}",
+            ActivityId  = kv.Value.activityID,
+            Description = kv.Value.description?.en ?? "",
+            ManufacturingFactor = kv.Value.manufacturingFactor,
+            ResearchFactor      = kv.Value.researchFactor,
+            Ratio               = kv.Value.ratio,
+            Border   = kv.Value.border,
+            Corridor = kv.Value.corridor,
+            Fringe   = kv.Value.fringe,
+            Hub      = kv.Value.hub,
         }));
 
         // Distinct guards against an operation listing the same service twice, which the
@@ -1731,6 +1954,15 @@ public class SdeImportService
     private class StationServiceYaml   { public LocalizedString? serviceName   { get; set; } }
     private class StationOperationYaml
     {
+        public int?             activityID          { get; set; }
+        public LocalizedString? description         { get; set; }
+        public double           manufacturingFactor { get; set; }
+        public double           researchFactor      { get; set; }
+        public double           ratio               { get; set; }
+        public double           border              { get; set; }
+        public double           corridor            { get; set; }
+        public double           fringe              { get; set; }
+        public double           hub                 { get; set; }
         public LocalizedString? operationName { get; set; }
         public List<int>?       services      { get; set; }
     }
@@ -1738,6 +1970,12 @@ public class SdeImportService
     // New npcStations.yaml DTO (dict format, no station name)
     private class NpcStationYaml
     {
+        public int?          celestialIndex         { get; set; }
+        public long?         orbitID                { get; set; }
+        public int?          orbitIndex             { get; set; }
+        public int?          reprocessingHangarFlag { get; set; }
+        public bool          useOperationName       { get; set; }
+        public PositionYaml? position               { get; set; }
         public int    solarSystemID            { get; set; }
         public int    typeID                   { get; set; }
         public int    ownerID                  { get; set; }
@@ -1755,16 +1993,65 @@ public class SdeImportService
         public int?             corporationID        { get; set; }
         public int?             militiaCorporationID { get; set; }
         public int?             solarSystemID        { get; set; }
+        public int?             iconID               { get; set; }
+        public LocalizedString? shortDescription     { get; set; }
+        public LocalizedString? shortDescriptionID   { get; set; }
+        public double?          sizeFactor           { get; set; }
+        public bool             uniqueName           { get; set; }
+    }
+
+    private class IndustryModifierYaml
+    {
+        public int  dogmaAttributeID { get; set; }
+        public int? filterID         { get; set; }
     }
 
     private class NpcCorpYaml
     {
-        public LocalizedString? name      { get; set; }
-        public LocalizedString? nameID    { get; set; }
-        public int?             factionID { get; set; }
+        public LocalizedString? name        { get; set; }
+        public LocalizedString? description { get; set; }
+        public int?             factionID   { get; set; }
+        public int?             stationID   { get; set; }
+        public int?             solarSystemID { get; set; }
+        public string?          tickerName  { get; set; }
+        public int?             ceoID       { get; set; }
+        public double?          taxRate     { get; set; }
+        public string?          size        { get; set; }
+        public string?          extent      { get; set; }
+        public int?             memberLimit { get; set; }
+        public double?          minSecurity { get; set; }
+        public int?             minimumJoinStanding { get; set; }
+        public int?             enemyID     { get; set; }
+        public int?             friendID    { get; set; }
+        public int?             raceID      { get; set; }
+        public int?             iconID      { get; set; }
+        public int?             mainActivityID      { get; set; }
+        public int?             secondaryActivityID { get; set; }
+        public bool             deleted     { get; set; }
     }
-    private class RaceYaml      { public LocalizedString? name { get; set; } public LocalizedString? description { get; set; } }
-    private class MetaGroupYaml { public LocalizedString? name { get; set; } }
+    private class RaceYaml
+    {
+        public LocalizedString? name        { get; set; }
+        public LocalizedString? description { get; set; }
+        public int?             iconID      { get; set; }
+        public int?             shipTypeID  { get; set; }
+    }
+    private class MetaGroupYaml
+    {
+        public LocalizedString? name        { get; set; }
+        public LocalizedString? description { get; set; }
+        public int?             iconID      { get; set; }
+        public string?          iconSuffix  { get; set; }
+        public MetaColorYaml?   color       { get; set; }
+    }
+
+    private class MetaColorYaml
+    {
+        public double r { get; set; }
+        public double g { get; set; }
+        public double b { get; set; }
+        public string Hex => $"#{(int)Math.Round(r * 255):X2}{(int)Math.Round(g * 255):X2}{(int)Math.Round(b * 255):X2}";
+    }
 
     private class CertificateYaml
     {

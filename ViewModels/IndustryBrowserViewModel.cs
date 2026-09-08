@@ -57,6 +57,18 @@ public class IndustryBrowserViewModel : ReactiveObject
         "Created", "Completed",
     ];
 
+    /// <summary>
+    /// Columns read by magnitude rather than by name, and so right-justified.
+    ///
+    /// <para>⚠️ Time Remaining is NOT one of them, though it is a number. It is read against the
+    /// rows above and below to see what finishes first, and a duration is already ordered by its
+    /// leading digit — pushed right it separates from the status word it qualifies.</para>
+    /// </summary>
+    public static readonly HashSet<string> NumericColumns =
+    [
+        "Runs", "Successful Runs", "Items Produced", "Build Cost", "Market Value",
+    ];
+
     /// <summary>Populated after the query from IndyFacilityCheckService — see
     /// ApplyFacilityRigNotesAsync.</summary>
     public const string ColNote = "Note";
@@ -236,11 +248,19 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
             conds.Add("\"Status\" = @status");
         if (!string.IsNullOrEmpty(search))
-            conds.Add("(Blueprint LIKE @search OR Product LIKE @search)");
+            // ⚠️ QUOTED, like every other condition here. These are quoted aliases in the select
+            // list, and PostgreSQL folds an unquoted Blueprint to "blueprint", which does not
+            // exist — the query threw and the grid kept whatever it was already showing, which
+            // looks exactly like a filter that does nothing. SQLite matched it case-insensitively
+            // and hid the bug.
+            //
+            // ⚠️ LOWER on both sides too: PostgreSQL LIKE is case-SENSITIVE where SQLite is not,
+            // so "isotropic" would still have missed "Isotropic Neofullerene".
+            conds.Add("(LOWER(\"Blueprint\") LIKE LOWER(@search) OR LOWER(\"Product\") LIKE LOWER(@search))");
         if (startedFrom.HasValue)
-            conds.Add("Start Date >= @startedFrom");
+            conds.Add("\"Start Date\" >= @startedFrom");
         if (startedThru.HasValue)
-            conds.Add("Start Date < @startedThru");
+            conds.Add("\"Start Date\" < @startedThru");
         if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
             conds.Add("\"Owner\" = @owner");
 
@@ -285,8 +305,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             var jobStatus = dict.GetValueOrDefault("Status", "");
             dict["Time Remaining"] = "";
             if (dict.TryGetValue("End Date Raw", out var endRaw)
-                && DateTimeOffset.TryParse(endRaw, null,
-                    System.Globalization.DateTimeStyles.RoundtripKind, out var endDate))
+                && DateTimeOffset.TryParse(endRaw, null, UtcParse, out var endDate))
             {
                 var rem = endDate.ToUniversalTime() - DateTimeOffset.UtcNow;
                 var sl  = jobStatus.ToLowerInvariant();
@@ -345,8 +364,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (status == "ready") return 0L;
         var raw = row["End Date Raw"];
         if (string.IsNullOrEmpty(raw)) return long.MaxValue - 1;
-        if (!DateTimeOffset.TryParse(raw, null,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var end))
+        if (!DateTimeOffset.TryParse(raw, null, UtcParse, out var end))
             return long.MaxValue - 1;
         var secs = (long)(end.ToUniversalTime() - DateTimeOffset.UtcNow).TotalSeconds;
         return secs < 0 ? 0L : secs;
@@ -479,6 +497,34 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (val is decimal m)
             return m.ToString("N2");
 
+        // ⚠️ Dates BEFORE the string branch, because only one of the two engines sends them as
+        // text. SQLite stores them as TEXT and the parse below has always worked; Npgsql hands
+        // back a DateTime, which fell past every branch to val.ToString() — a culture-formatted
+        // string with no zone on it at all.
+        //
+        // That is not merely ugly. "End Date Raw" feeds the live countdown, which parses it back:
+        // with no offset the parse assumes LOCAL, so a job due at 17:48 UTC read as 17:48 local
+        // and the column said six hours remained on a job that was already done.
+        if (val is DateTime or DateTimeOffset)
+        {
+            var utc = val switch
+            {
+                DateTimeOffset o                       => o.UtcDateTime,
+                DateTime { Kind: DateTimeKind.Utc } u   => u,
+                DateTime { Kind: DateTimeKind.Local } l => l.ToUniversalTime(),
+                // Unspecified: every date this app stores is UTC, so say so rather than letting
+                // the machine's zone decide.
+                DateTime other                         => DateTime.SpecifyKind(other, DateTimeKind.Utc),
+                _                                      => default,
+            };
+
+            // Round-trippable for the raw columns — "o" on a UTC DateTime carries the Z that lets
+            // the countdown recover the zone. Everything else is for reading.
+            return col.EndsWith(" Raw", StringComparison.Ordinal)
+                ? utc.ToString("o")
+                : utc.ToString("yyyy-MM-dd HH:mm");
+        }
+
         if (val is string s)
         {
             if (col == "Cost"
@@ -487,8 +533,7 @@ public class IndustryBrowserViewModel : ReactiveObject
                 return cost.ToString("N2");
 
             if ((col is "Start Date" or "End Date" or "Completed Date" or "Created" or "Completed")
-                && DateTimeOffset.TryParse(s, null,
-                    System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
+                && DateTimeOffset.TryParse(s, null, UtcParse, out var dt))
                 return dt.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
 
             if (col == "Status" && s.Length > 0)
@@ -499,6 +544,13 @@ public class IndustryBrowserViewModel : ReactiveObject
 
         return val.ToString()!;
     }
+
+    /// <summary>⚠️ AssumeUniversal, not RoundtripKind. A string that carries an offset is
+    /// unaffected; one that does not is UTC, because that is what this app stores. Read as local
+    /// instead, a job due at 17:48 UTC looked six hours away on a machine in UTC-6.</summary>
+    private const System.Globalization.DateTimeStyles UtcParse =
+        System.Globalization.DateTimeStyles.AssumeUniversal
+      | System.Globalization.DateTimeStyles.AdjustToUniversal;
 
     private static string FormatDuration(TimeSpan ts)
     {

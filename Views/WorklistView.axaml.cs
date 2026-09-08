@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
 
@@ -30,6 +32,8 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         base.OnLoaded(e);
         if (DataContext is WorklistViewModel vm && vm.TakeRequestedTab() is { } tab)
             vm.OuterTabIndex = tab;
+
+        Dispatcher.UIThread.Post(ReopenPanels, DispatcherPriority.Background);
     }
 
     /// <summary>Set when a click focused a select-all field, so the selection can be reapplied
@@ -68,28 +72,24 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private static bool IsSelectAll(TextBox box) =>
         (box.FindAncestorOfType<AutoCompleteBox>() as StyledElement ?? box).Classes.Contains("selectall");
 
-    /// <summary>
-    /// Opens and closes the manifest under a haul row.
-    ///
-    /// <para>Done here rather than by binding <see cref="DataGridRow.AreDetailsVisible"/> in a
-    /// style, because the DataGrid writes that property itself as it loads each row, and a local
-    /// write outranks a style setter — the binding would be overwritten on scroll. Setting it on
-    /// the row goes through the grid's own bookkeeping, which is keyed by item index and so
-    /// survives the row being recycled to a different position.</para>
-    ///
-    /// <para>The grid-wide mode stays Collapsed for the same reason the earlier attempt failed
-    /// visibly: <c>Visible</c> attaches a details presenter to every row, which skews the row
-    /// height estimate and paints blank bands into the middle of the list while scrolling.</para>
-    /// </summary>
+    /// <summary>The station a haul is bound for.</summary>
     private void OnOpenLocation(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenLocation();
 
     private void OnOpenCharacter(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenCharacter();
 
+    /// <summary>The row's own item — what a job makes, or what a buy order is for.</summary>
+    private void OnOpenRowItem(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenItem();
+
     /// <summary>A manifest line, which is a WorklistLine rather than a row.</summary>
     private void OnOpenLineItem(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as EveConsole.Services.Worklist.WorklistLine)?.OpenItem();
+        => ((sender as Control)?.DataContext as WorklistLineVm)?.OpenItem();
+
+    /// <summary>A job waiting on this cargo. Opens the item it would produce.</summary>
+    private void OnOpenWaitingJob(object? sender, RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as WorklistWaitingJobVm)?.OpenItem();
 
     private void OnOpenNeedStation(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as StationNeedRowVm)?.OpenStation();
@@ -106,50 +106,40 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     private void OnOpenShortageItem(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as ItemShortageRowVm)?.Open();
 
-    /// <summary>Opens and closes the "asked for by" panel under a need. Same mechanism as the
+    /// <summary>Opens the "asked for by" panel over a need. Same mechanism as the
     /// haul manifest above, and for the same reasons — see OnManifestToggle.</summary>
     private void OnNeedToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not StationNeedRowVm vm || !vm.HasDrivers) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: StationNeedRowVm { HasDrivers: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
-    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the two toggles
-    /// above it — the glyph lives on the item so it survives row recycling.</summary>
+    /// <summary>Opens the tasks behind a contention row's counts. Same shape as the toggles above it.</summary>
+    /// <summary>
+    /// Opens the tasks behind a contention row's counts.
+    ///
+    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else. What opens is a Popup bound to
+    /// that flag, not RowDetails — see the note beside the Popup in the XAML for why the drawer had
+    /// to go, and tools/gridsim for the measurements.</para>
+    /// </summary>
     private void OnShortageToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not ItemShortageRowVm vm || !vm.HasTasks) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: ItemShortageRowVm { HasTasks: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
     /// <summary>Opens the tasks behind a BPO / Formula row's counts.</summary>
     private void OnPrintToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not PrintPressureRowVm vm || !vm.HasTasks) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: PrintPressureRowVm { HasTasks: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
     /// <summary>Opens the tasks behind a Hauling row's counts.</summary>
     private void OnHaulToggle(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-        if (row.DataContext is not HaulPressureRowVm vm || !vm.HasTasks) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-        vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: HaulPressureRowVm { HasTasks: true } vm })
+            vm.IsExpanded = !vm.IsExpanded;
     }
 
     private void OnOpenHaulItem(object? sender, RoutedEventArgs e)
@@ -162,17 +152,75 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         if (sender is Control { DataContext: HaulPressureRowVm vm }) vm.OpenStation();
     }
 
+    /// <summary>
+    /// Opens and closes the manifest under a haul row.
+    ///
+    /// <para>⚠️ Flips the flag on the ITEM and touches nothing else. What opens is a Popup bound to
+    /// that flag, not RowDetails — a drawer inside the row is what made rows wildly different
+    /// heights, and that is the whole reason scrolling up used to stick and jump. The note beside
+    /// the Popup in the XAML carries the mechanism; tools/gridsim carries the measurements.</para>
+    ///
+    /// <para>⚠️ The flag lives on the item rather than the row because the grid recycles rows: one
+    /// keyed to the row would open against whatever item landed in it next.</para>
+    /// </summary>
     private void OnManifestToggle(object? sender, RoutedEventArgs e)
-
-
-
     {
-        if (sender is not Control control) return;
-        if (control.FindAncestorOfType<DataGridRow>() is not { } row) return;
-
-        row.AreDetailsVisible = !row.AreDetailsVisible;
-
-        // The glyph lives on the item so it stays correct when the row is recycled.
-        if (row.DataContext is WorklistRowVm vm) vm.IsExpanded = row.AreDetailsVisible;
+        if (sender is Control { DataContext: WorklistRowVm vm }) vm.IsExpanded = !vm.IsExpanded;
     }
+    /// <summary>
+    /// A detail panel closed. Clears the flag only if this tool is still on screen.
+    ///
+    /// <para>⚠️ Not a TwoWay binding on IsOpen, which is what it looks like it ought to be. Clicking
+    /// an item link switches to the Item Browser tab, and that detaches this view and closes every
+    /// popup with it — a TwoWay binding writes that back, so returning to the Worklist found the
+    /// panel shut. A popup whose row is scrolled out of view closes the same way.</para>
+    ///
+    /// <para>Light dismiss inside the tool still closes it, because the view is attached when that
+    /// happens. That is the whole difference between the two cases.</para>
+    /// </summary>
+    private void OnDetailClosed(object? sender, EventArgs e)
+    {
+        if (sender is Popup { DataContext: IExpandableRow row } popup && popup.GetVisualRoot() is not null)
+            row.IsExpanded = false;
+    }
+
+    /// <summary>
+    /// Reopens what was open, once this view is attached again.
+    ///
+    /// <para>⚠️ Needed because the binding is one-way and its source never changed, so nothing
+    /// tells the popup to come back on its own. Posted rather than run inline, so the grid has
+    /// realised its rows and there are popups to open.</para>
+    /// </summary>
+    private void ReopenPanels()
+    {
+        var opened = new HashSet<string>();
+
+        foreach (var popup in this.GetVisualDescendants().OfType<Popup>())
+            if (popup.DataContext is IExpandableRow { IsExpanded: true } row && opened.Add(row.ExpandKey))
+                popup.SetCurrentValue(Popup.IsOpenProperty, true);
+    }
+
+    /// <summary>A summary finding that names an item.</summary>
+    private void OnOpenPoint(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ObservationPointVm vm }) vm.Open();
+    }
+
+    /// <summary>
+    /// The row under a panel went away. Shuts the panel without forgetting it was open.
+    ///
+    /// <para>⚠️ Needed the moment IsOpen stopped being TwoWay. A popup renders in its own overlay,
+    /// so one whose row has been recycled or filtered away does not vanish with it — it hangs
+    /// there at the old anchor, and the binding, which still reads true, keeps it there. Filtering
+    /// the list to one station drew the same manifest twice: once under its row and once where
+    /// that row used to be.</para>
+    ///
+    /// <para>⚠️ SetCurrentValue, not the property. Assigning IsOpen directly would outrank the
+    /// binding and the panel could never come back.</para>
+    /// </summary>
+    private void OnDetailDetached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (sender is Popup popup) popup.SetCurrentValue(Popup.IsOpenProperty, false);
+    }
+
 }

@@ -34,18 +34,32 @@ public static class ThemeService
         new("pink-light",  "Pink (light)", AppThemes.PinkLight),
         new("beige-dark",  "Beige (dark)", AppThemes.BeigeDark),
         new("beige-light", "Beige (light)",AppThemes.BeigeLight),
-
-        new("system",      "Follow the desktop", ThemeVariant.Default),
     ];
 
     /// <summary>
-    /// ⚠️ Dark, not "follow the desktop". This application has only ever been dark, so defaulting
-    /// to the desktop's setting would turn it white for everyone whose desktop is light — an
-    /// upgrade that changes how the app looks without being asked to.
+    /// ⚠️ Dark. This application has only ever been dark, so anything else would change how it
+    /// looks for everyone on upgrade, without being asked to.
+    ///
+    /// <para>⚠️ Also where an UNKNOWN key lands, which is what retires a theme safely. There was a
+    /// "Follow the desktop" entry, and it could only ever have followed two of the eight: the
+    /// desktop says light or dark and has no opinion about blue, pink or beige, so choosing it
+    /// silently discarded the tint. Anyone still holding "system" arrives here.</para>
     /// </summary>
     public const string DefaultKey = "dark";
 
     public static string Current { get; private set; } = DefaultKey;
+
+    /// <summary>
+    /// Raised after a theme has been applied.
+    ///
+    /// <para>⚠️ There are two pickers now — the Settings window and the label on the title bar —
+    /// and each has to follow the other. Without this, changing the theme from the bar left the
+    /// Settings combo naming the theme that used to be on.</para>
+    ///
+    /// <para>Subscribers are static-rooted, so anything that lives shorter than the application
+    /// must unsubscribe. Both current subscribers outlive it.</para>
+    /// </summary>
+    public static event Action? Changed;
 
     /// <summary>Reads the saved choice and puts it on. Called once, before the first window.</summary>
     public static void ApplySaved()
@@ -64,7 +78,14 @@ public static class ThemeService
 
         if (Application.Current is { } app) app.RequestedThemeVariant = choice.Variant;
 
+        // ⚠️ Charts do not follow on their own. LiveCharts draws through Skia and takes a colour
+        // value, so an axis keeps whatever it was built with until something replaces it — the
+        // rest of the window would turn and the chart frames would not.
+        ChartPaint.Restyle();
+
         UiState.Set(UiState.Theme, choice.Key);
+
+        Changed?.Invoke();
     }
 
     private static ThemeChoice? Find(string key) =>

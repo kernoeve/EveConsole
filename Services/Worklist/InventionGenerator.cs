@@ -84,8 +84,7 @@ public class InventionGenerator(
         // Where the park says these activities happen. Both are Indy Parks categories already, so
         // a park that has assigned Blueprint Copying and Blueprint Invention needs nothing more
         // said here — and one that has not gets no jobs rather than a guess.
-        var inventionLab = await InventionService.LabAsync(db, parkId, InventionService.InventionCategory, ct);
-        var copyLab      = await InventionService.LabAsync(db, parkId, InventionService.CopyingCategory, ct);
+        var (inventionLab, copyLab) = await InventionService.LabsAsync(db, parkId, ct);
         if (inventionLab is null || copyLab is null) return [];
 
         // Products, datacores and decryptors together — a decryptor is a material of the job like

@@ -85,7 +85,7 @@
     <!-- Footer -->
     <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0 10 0 0">
       <TextBlock Grid.Column="0" x:Name="StatusLabel"
-                 FontSize="11" Foreground="{DynamicResource InfoSurfaceBrush}" VerticalAlignment="Center" />
+                 FontSize="11" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
       <Button Grid.Column="1" Content="Cancel"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"

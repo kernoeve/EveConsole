@@ -132,7 +132,8 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
             {
                 Header = c, Tag = c, IsReadOnly = true, CanUserSort = true,
                 CellTemplate = new FuncDataTemplate<GridRow>(
-                    (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc, onClick)),
+                    (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc, onClick,
+                                                 IndustryBrowserViewModel.NumericColumns.Contains(c))),
             });
         }
     }

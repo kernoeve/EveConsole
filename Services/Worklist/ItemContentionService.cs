@@ -26,13 +26,16 @@ namespace EveConsole.Services.Worklist;
 /// those, and so on. -1 for the tasks that make it, which are not on the chain.</param>
 /// <param name="Why">Why this task is on the list — the shortfall that stopped it, or what
 /// is in the way of making it.</param>
+/// <param name="TypeId">⚠️ For the icon, and 0 where the row is not about an item — a trip
+/// already on the list, or a job already installed. Those rows carry no TypeName either.</param>
 public sealed record ShortageTask(
     string Role,
     int    Hop,
     string TypeName,
     string Title,
     string State,
-    string Why);
+    string Why,
+    int    TypeId = 0);
 
 public sealed record ItemShortage(
     int    TypeId,
@@ -402,11 +405,17 @@ public class ItemContentionService(
             scope.UnionWith(await db.WorklistIndyScopeStations.AsNoTracking()
                 .Select(s => s.LocationId).ToListAsync(ct));
 
+        // ⚠️ The same exclusions the worklist itself applies, or this tab reports contention
+        // over stock the plan will not touch: asset-safety wraps, the contents of ships, and
+        // assembled hulls, which are somebody's flown ship rather than material.
+        var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
+
         var onHand = (await db.EsiAssets.AsNoTracking()
                 .Where(a => ids.Contains(a.TypeId))
-                .Select(a => new { a.TypeId, a.Quantity, a.RootLocationId })
+                .Select(a => new { a.ItemId, a.TypeId, a.Quantity, a.RootLocationId })
                 .ToListAsync(ct))
-            .Where(a => scope is null || scope.Contains(a.RootLocationId))
+            .Where(a => !wrapped.Contains(a.ItemId)
+                        && (scope is null || scope.Contains(a.RootLocationId)))
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
@@ -444,7 +453,7 @@ public class ItemContentionService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Making", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install")).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install", i.TypeId)).ToList());
 
         var makes = items
             .Where(i => i.TypeId > 0 && i.Kind == WorklistKind.Job)

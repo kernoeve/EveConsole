@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<AgentResearch>              EsiAgentResearch        => Set<AgentResearch>();
     public DbSet<LoyaltyPoint>               EsiLoyaltyPoints        => Set<LoyaltyPoint>();
+    public DbSet<NpcCorpProfile>             EsiNpcCorpProfiles      => Set<NpcCorpProfile>();
     public DbSet<LpStoreOffer>               EsiLpStoreOffers        => Set<LpStoreOffer>();
     public DbSet<LpStoreOfferItem>           EsiLpStoreOfferItems    => Set<LpStoreOfferItem>();
     public DbSet<LpStoreCorp>                EsiLpStoreCorps         => Set<LpStoreCorp>();
@@ -173,6 +174,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeStationOperationService> SdeStationOperationServices => Set<SdeStationOperationService>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
+    public DbSet<SdeIndustryModifierSource> SdeIndustryModifierSources => Set<SdeIndustryModifierSource>();
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
     public DbSet<SdeMetaGroup>          SdeMetaGroups          => Set<SdeMetaGroup>();
     public DbSet<SdeCertificate>        SdeCertificates        => Set<SdeCertificate>();
@@ -492,6 +494,10 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.FactionId);
             e.Property(x => x.FactionId).ValueGeneratedNever(); });
 
+        mb.Entity<SdeIndustryModifierSource>(e => {
+            e.HasKey(x => new { x.TypeId, x.Activity, x.BonusKind, x.DogmaAttributeId });
+            e.ToTable("SdeIndustryModifierSources"); });
+
         mb.Entity<SdeNpcCorporation>(e => {
             e.HasKey(x => x.CorporationId);
             e.Property(x => x.CorporationId).ValueGeneratedNever(); });
@@ -803,6 +809,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.CorporationId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiLoyaltyPoints"); });
+
+        mb.Entity<NpcCorpProfile>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("EsiNpcCorpProfiles"); });
 
         mb.Entity<LpStoreOffer>(e => {
             e.HasKey(x => new { x.CorporationId, x.OfferId });

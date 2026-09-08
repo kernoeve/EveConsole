@@ -212,11 +212,19 @@ public class WorklistFinalProductsViewModel : ReactiveObject
                                           AppPreferencesService prefs,
                                           AppErrorLogger errorLogger)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _dbFactory   = dbFactory;
         _prefs       = prefs;
         _errorLogger = errorLogger;
 
-        _grain = Grains[0];
+        // ⚠️ Weekly, not Daily. Jobs land in ones and twos, so a daily chart is mostly gaps with
+        // the occasional spike — true, and unreadable as a trend. A week is the smallest bucket
+        // that usually has something in it.
+        _grain = Grains[1];
 
         // Restored rather than defaulted: which valuation someone works in is a standing
         // preference, not a per-visit choice, and re-picking it every session is friction.
@@ -457,8 +465,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             profit.Add(new DateTimePoint(day, hit.Profit));
         }
 
-        MarketSeries = [Bar("Market value",     market, new SKColor(0x55, 0x99, 0xaa))];
-        ProfitSeries = [Bar("Potential profit", profit, new SKColor(0x4a, 0x8a, 0x5a))];
+        MarketSeries = [Line("Market value",     market, new SKColor(0x55, 0x99, 0xaa))];
+        ProfitSeries = [Line("Potential profit", profit, new SKColor(0x4a, 0x8a, 0x5a))];
     }
 
     /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>
@@ -486,27 +494,32 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         "w" => day.AddDays(-(((int)day.DayOfWeek + 6) % 7)),
         _   => day,
     };
-
     /// <summary>
-    /// A bar per bucket.
+    /// One series of the value landing per bucket.
     ///
-    /// <para>⚠️ Bars rather than a line, because this is not a continuous quantity. Jobs land on
-    /// the day they land and nothing happens in between, and a line drawn through that invites
-    /// the eye to read the slope as a rate. A bar of zero height says what a zero-height bar
-    /// means; a line at zero looks like a measurement.</para>
+    /// <para>⚠️ A line, and the bucket is what makes that honest. Daily, this was bars on purpose:
+    /// jobs land on the day they land, nothing happens in between, and a line through that invites
+    /// the eye to read the slope as a rate it is not. Weekly — the default now — a bucket is a
+    /// period total rather than an event, consecutive buckets ARE comparable, and the slope
+    /// between them is the trend somebody opens this chart to see.</para>
+    ///
+    /// <para>Points are kept visible so a single week still reads as a value rather than as a
+    /// line going nowhere, and the fill is dropped: two overlapping filled areas hide each
+    /// other.</para>
     /// </summary>
-    private static ColumnSeries<DateTimePoint> Bar(string name, List<DateTimePoint> pts, SKColor color) =>
+    private static LineSeries<DateTimePoint> Line(string name, List<DateTimePoint> pts, SKColor color) =>
         new()
         {
-            Name         = name,
-            Values       = pts,
-            Fill         = new SolidColorPaint(color),
-            Stroke       = null,
-            // Roughly a bucket wide, less a hair, so neighbouring bars do not touch.
-            Padding      = 2,
+            Name           = name,
+            Values         = pts,
+            Stroke         = new SolidColorPaint(color, 2),
+            Fill           = null,
+            GeometrySize   = 6,
+            GeometryStroke = new SolidColorPaint(color, 2),
+            GeometryFill   = new SolidColorPaint(color),
+            EasingFunction = null,
             YToolTipLabelFormatter = p => $"{name}: {p.Coordinate.PrimaryValue:N0} ISK",
         };
-
     private static string FormatIskAxis(double v) =>
         Math.Abs(v) >= 1_000_000_000_000 ? $"{v / 1_000_000_000_000:N1}T"
       : Math.Abs(v) >= 1_000_000_000     ? $"{v / 1_000_000_000:N1}B"
