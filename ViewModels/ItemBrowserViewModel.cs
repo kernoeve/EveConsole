@@ -64,6 +64,7 @@ public class TypeSearchResult
 /// than the sum.
 /// </summary>
 public record LpOfferVm(
+    long   CorporationId,
     string CorporationName,
     int    Quantity,
     int    LpCost,
@@ -73,6 +74,10 @@ public record LpOfferVm(
     IReadOnlyList<string> RequiredItems,
     double? IskPerLp)
 {
+    /// <summary>The NPC corporation running this store.</summary>
+    public void OpenCorporation() =>
+        EntityNavigator.Instance.Entity(EntityKind.NpcCorp, CorporationId);
+
     /// <summary>Blank when the offer could not be valued — no price on the item itself, or
     /// on something it consumes. Zero would read as "worthless", which is a different
     /// claim from "unknown".</summary>
@@ -577,6 +582,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     }
 
                     return new LpOfferVm(
+                        o.CorporationId,
                         corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
                         o.Quantity, o.LpCost, o.IskCost, o.AkCost,
                         lpHeld.GetValueOrDefault(o.CorporationId),
