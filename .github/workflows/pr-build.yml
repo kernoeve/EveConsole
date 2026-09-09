@@ -8,7 +8,13 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      # ⚠️ fetch-depth: 0 is load-bearing, not tidiness. The upgrade check below reads the
+      # previous releases' schema out of their tags with `git show`, and the default shallow
+      # checkout carries no tags at all — the check would find no release to simulate and
+      # abort rather than pass.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
@@ -29,6 +35,17 @@ jobs:
       # startup or silently seed nothing.
       - name: Fresh-install check
         run: dotnet run --project tools/FreshInstallCheck/FreshInstallCheck.csproj -c Release
+
+      # And would it work for someone who ALREADY HAS one? The mirror of the check above,
+      # and the one that catches what it structurally cannot: on an existing database
+      # EnsureCreated does nothing, so a column added to the model and to no hand-written
+      # list is perfect on every fresh test install and missing for every real user.
+      #
+      # 0.9.13 shipped 81 such columns and two such tables. An existing database lost Wallet,
+      # Sales Tracker, Order Tracker and the Worklist to "no such column", and Update SDE —
+      # the one action that would have repaired the schema — died on the missing table first.
+      - name: Upgrade check
+        run: dotnet run --project tools/UpgradeCheck/UpgradeCheck.csproj -c Release
 
   # ⚠️ Does the Linux target still compile?
   #

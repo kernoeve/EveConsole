@@ -106,7 +106,7 @@ public class SdeImportService
             // describe the shape rather than the contents, and a new column is wanted whether or
             // not the rows that follow survive.
             Report(progress, "Preparing", "Creating schema…",            0.30);
-            await EnsureSdeSchemaAsync(db, ct);
+            EnsureSdeSchema(db);
 
             // Read before the wipe destroys it. This is what the verification at the end compares
             // against, so a table that quietly stops being filled reads as "races held 11 rows and
@@ -329,7 +329,28 @@ public class SdeImportService
     // Schema + clear
     // -----------------------------------------------------------------------
 
-    private static async Task EnsureSdeSchemaAsync(AppDbContext db, CancellationToken ct)
+    /// <summary>
+    /// Brings the SDE tables up to the shape the entity model expects.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Called from App startup as well as from the import, and startup is what matters. This
+    /// used to run ONLY while an import ran, which meant a database imported before a column
+    /// existed had EF querying a column the table lacked from the moment the app opened — and EF
+    /// throws on the whole entity, not just the missing value. v0.9.13 added 81 columns and two
+    /// tables to the model; on an existing install every one of them was absent, so Wallet, Sales
+    /// Tracker, Order Tracker and the Worklist all threw on their first query, and Update SDE —
+    /// the one action that would have repaired the schema — died on the missing table before it
+    /// got there. Running this at startup is what breaks that circle.
+    ///
+    /// <para>Synchronous because the startup path is inside a Task.Run and cannot await; this is
+    /// a few dozen DDL statements against a local file, so there is nothing to gain by splitting
+    /// it into two versions that then have to be kept in step.</para>
+    ///
+    /// <para>⚠️ Every statement here is idempotent — CREATE TABLE IF NOT EXISTS, or an ALTER whose
+    /// duplicate-column error is swallowed — so it is safe to run on every start, on any vintage
+    /// of database, in either order relative to EnsureCreated.</para>
+    /// </remarks>
+    internal static void EnsureSdeSchema(AppDbContext db)
     {
         // CREATE TABLE IF NOT EXISTS — idempotent for the full table definition
         var creates = new[]
@@ -382,9 +403,18 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeSkins" ("SkinId" INTEGER NOT NULL PRIMARY KEY, "InternalName" TEXT NOT NULL, "SkinMaterialId" INTEGER, "VisibleTranquility" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeSkinTypes" ("SkinId" INTEGER NOT NULL, "TypeId" INTEGER NOT NULL, PRIMARY KEY ("SkinId", "TypeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeSkinLicenses" ("LicenseTypeId" INTEGER NOT NULL PRIMARY KEY, "SkinId" INTEGER NOT NULL, "Duration" INTEGER NOT NULL)""",
+
+            // ── Tables added in 0.9.13 ──────────────────────────────────────────
+            // The import writes SdeIndustryModifierSources at stage 0.93, and on any database
+            // that predates it the import died there — after the wipe, so the rollback fired and
+            // the SDE could never move forward. EsiNpcCorpProfiles is filled from ESI rather than
+            // the SDE and is here only because it shares the fault: added to the model, and to
+            // PostgresSchema, and to no list SQLite reads.
+            """CREATE TABLE IF NOT EXISTS "SdeIndustryModifierSources" ("TypeId" INTEGER NOT NULL, "Activity" TEXT NOT NULL, "BonusKind" TEXT NOT NULL, "DogmaAttributeId" INTEGER NOT NULL, "FilterId" INTEGER NULL, CONSTRAINT "PK_SdeIndustryModifierSources" PRIMARY KEY ("TypeId", "Activity", "BonusKind", "DogmaAttributeId"))""",
+            """CREATE TABLE IF NOT EXISTS "EsiNpcCorpProfiles" ("CorporationId" INTEGER NOT NULL CONSTRAINT "PK_EsiNpcCorpProfiles" PRIMARY KEY, "Ticker" TEXT NOT NULL, "Description" TEXT NOT NULL, "Url" TEXT NOT NULL, "CeoId" INTEGER NOT NULL, "HomeStationId" INTEGER NOT NULL, "MemberCount" INTEGER NOT NULL, "TaxRate" REAL NOT NULL, "FetchedUtc" TEXT NOT NULL)""",
         };
         foreach (var sql in creates)
-            await db.Database.ExecuteSqlRawAsync(sql, ct);
+            db.Database.ExecuteSqlRaw(sql);
 
         // ALTER TABLE ADD COLUMN for tables that existed before these columns were added.
         // SQLite ALTER TABLE does not support IF NOT EXISTS, so we catch the duplicate-column error.
@@ -414,10 +444,109 @@ public class SdeImportService
             """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y2D" REAL""",
             """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "SecurityClass" TEXT NOT NULL DEFAULT ''""",
             """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
+
+            // ── Columns added in 0.9.13 ─────────────────────────────────────────
+            // Generated from the entity model rather than transcribed: a type written by
+            // hand that differs from the one EnsureCreated emits gives upgraded installs a
+            // different column type from fresh ones, and nothing throws to say so.
+            // -- SdeCategories (1)
+            """ALTER TABLE "SdeCategories" ADD COLUMN "IconId" INTEGER""",
+            // -- SdeConstellations (1)
+            """ALTER TABLE "SdeConstellations" ADD COLUMN "WormholeClassId" INTEGER""",
+            // -- SdeDogmaAttributes (9)
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "Description" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "IconId" INTEGER""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "MinAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "MaxAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "TooltipTitle" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "TooltipDescription" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "DataType" INTEGER""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "DisplayWhenZero" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "ChargeRechargeTimeId" INTEGER""",
+            // -- SdeFactions (4)
+            """ALTER TABLE "SdeFactions" ADD COLUMN "IconId" INTEGER""",
+            """ALTER TABLE "SdeFactions" ADD COLUMN "ShortDescription" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeFactions" ADD COLUMN "SizeFactor" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeFactions" ADD COLUMN "UniqueName" INTEGER NOT NULL DEFAULT 0""",
+            // -- SdeGroups (3)
+            """ALTER TABLE "SdeGroups" ADD COLUMN "IconId" INTEGER""",
+            """ALTER TABLE "SdeGroups" ADD COLUMN "FittableNonSingleton" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeGroups" ADD COLUMN "UseBasePrice" INTEGER NOT NULL DEFAULT 0""",
+            // -- SdeMetaGroups (4)
+            """ALTER TABLE "SdeMetaGroups" ADD COLUMN "Description" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeMetaGroups" ADD COLUMN "IconId" INTEGER""",
+            """ALTER TABLE "SdeMetaGroups" ADD COLUMN "IconSuffix" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeMetaGroups" ADD COLUMN "ColorHex" TEXT NOT NULL DEFAULT ''""",
+            // -- SdeNpcCorporations (18)
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "StationId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "SolarSystemId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "Ticker" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "Description" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "CeoId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "TaxRate" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "Size" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "Extent" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "MemberLimit" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "MinSecurity" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "MinimumJoinStanding" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "EnemyId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "FriendId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "RaceId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "IconId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "MainActivityId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "SecondaryActivityId" INTEGER""",
+            """ALTER TABLE "SdeNpcCorporations" ADD COLUMN "Deleted" INTEGER NOT NULL DEFAULT 0""",
+            // -- SdeRaces (2)
+            """ALTER TABLE "SdeRaces" ADD COLUMN "IconId" INTEGER""",
+            """ALTER TABLE "SdeRaces" ADD COLUMN "ShipTypeId" INTEGER""",
+            // -- SdeRegions (3)
+            """ALTER TABLE "SdeRegions" ADD COLUMN "Description" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeRegions" ADD COLUMN "NebulaId" INTEGER""",
+            """ALTER TABLE "SdeRegions" ADD COLUMN "WormholeClassId" INTEGER""",
+            // -- SdeSolarSystems (10)
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "WormholeClassId" INTEGER""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "Border" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "Corridor" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "Fringe" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "Hub" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "International" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "Regional" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "Luminosity" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "VisualEffect" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeSolarSystems" ADD COLUMN "StarId" INTEGER""",
+            // -- SdeStationOperations (9)
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "ActivityId" INTEGER""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "Description" TEXT NOT NULL DEFAULT ''""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "ManufacturingFactor" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "ResearchFactor" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "Ratio" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "Border" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "Corridor" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "Fringe" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStationOperations" ADD COLUMN "Hub" REAL NOT NULL DEFAULT 0""",
+            // -- SdeStations (8)
+            """ALTER TABLE "SdeStations" ADD COLUMN "CelestialIndex" INTEGER""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "OrbitId" INTEGER""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "OrbitIndex" INTEGER""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "ReprocessingHangarFlag" INTEGER""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "UseOperationName" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeStations" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
+            // -- SdeTypes (9)
+            """ALTER TABLE "SdeTypes" ADD COLUMN "PackagedVolume" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "MetaLevel" INTEGER""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "TechLevel" INTEGER""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "IsRepackable" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "IsDynamicType" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "VariationParentTypeId" INTEGER""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "SoundId" INTEGER""",
+            """ALTER TABLE "SdeTypes" ADD COLUMN "ShipTreeGroupId" INTEGER""",
         };
         foreach (var sql in alters)
         {
-            try { await db.Database.ExecuteSqlRawAsync(sql, ct); }
+            try { db.Database.ExecuteSqlRaw(sql); }
             catch { /* column already exists — idempotent */ }
         }
     }
