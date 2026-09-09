@@ -9,7 +9,7 @@
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <Version>0.9.13</Version>
+    <Version>0.9.14</Version>
   </PropertyGroup>
 
   <!--
