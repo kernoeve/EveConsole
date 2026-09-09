@@ -224,6 +224,18 @@ jobs:
     # hears about is the worse outcome. The guard keeps it to releases that actually happened.
     if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
+    # ⚠️ Required, not decoration. The webhook is an ENVIRONMENT secret now rather than a repository
+    # one, and only a job naming its environment can read it. Deleting this line does not fail the
+    # build — it silently stops the announcement, because the step below treats an empty webhook as
+    # "nothing to announce" and exits 0.
+    #
+    # ⚠️ Why it moved. A repository secret is handed to EVERY workflow run in the repo, including a
+    # pull_request run whose branch lives here rather than in a fork — and the workflow files that
+    # run for a PR are the ones on that branch. So anyone with push access could read the webhook by
+    # opening a PR that edits pr-build.yml, without merging anything and with nothing to approve.
+    # The `release` environment is restricted to the main branch, so a PR branch that asks for it
+    # never starts.
+    environment: release
     steps:
       - name: Post the release to Discord
         env:
