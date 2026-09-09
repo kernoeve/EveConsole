@@ -1,4 +1,6 @@
 using EveConsole.Services;
+using System.Globalization;
+using System.Reactive;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -14,7 +16,31 @@ public class OtherSettingsViewModel : ReactiveObject
     public const string CustomOption = "Custom URL…";
 
     private readonly UiLinkSettings _settings;
+    private readonly AppPreferencesService _prefs;
     private bool _loading = true;
+
+    public const double UiScaleMinimum = UiScaleService.MinimumScale;
+    public const double UiScaleMaximum = UiScaleService.MaximumScale;
+
+    public ReactiveCommand<object?, Unit> ApplyUiScaleCommand { get; }
+
+    private double _uiScale = UiScaleService.Scale;
+    public double UiScale
+    {
+        get => _uiScale;
+        set
+        {
+            var scale = Math.Clamp(value, UiScaleMinimum, UiScaleMaximum);
+            if (Math.Abs(scale - _uiScale) < 0.001) return;
+            this.RaiseAndSetIfChanged(ref _uiScale, scale);
+            UiScaleService.SetScale(scale);
+            this.RaisePropertyChanged(nameof(UiScaleLabel));
+            _ = _prefs.SetAsync(UiScaleService.PreferenceKey,
+                                scale.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+
+    public string UiScaleLabel => $"{UiScale:P0}";
 
     // ── Appearance ────────────────────────────────────────────────────────────
 
@@ -58,9 +84,11 @@ public class OtherSettingsViewModel : ReactiveObject
         CustomOption,
     ];
 
-    public OtherSettingsViewModel(UiLinkSettings settings)
+    public OtherSettingsViewModel(UiLinkSettings settings, AppPreferencesService prefs)
     {
         _settings = settings;
+        _prefs = prefs;
+        ApplyUiScaleCommand = ReactiveCommand.Create<object?>(ApplyUiScale);
 
         ThemeService.Changed += OnThemeChanged;
 
@@ -72,6 +100,15 @@ public class OtherSettingsViewModel : ReactiveObject
         _customEveTimeUrl    = isPreset ? "" : stored;
 
         _loading = false;
+    }
+
+    private void ApplyUiScale(object? value)
+    {
+        if (value is null) return;
+
+        if (double.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture,
+                            out var scale))
+            UiScale = scale;
     }
 
     private string _selectedEveTimeSite;

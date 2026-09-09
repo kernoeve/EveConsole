@@ -3105,6 +3105,7 @@ public class App : Application
         await timerSettings.LoadAsync();
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
+        UiScaleService.SetScale(ParseUiScale(appPrefs.Get(UiScaleService.PreferenceKey)));
 
         // ⚠️ Immediately after the preferences load and before anything reads a log directory.
         // The log setup used to live in the shared preferences; it is now this machine's own, and
@@ -3469,6 +3470,12 @@ public class App : Application
             catch (Exception ex) { return $"could not be read: {AppErrorLogger.Line("", ex)}"; }
         }
     }
+
+    private static double ParseUiScale(string? value)
+        => double.TryParse(value, System.Globalization.NumberStyles.Float,
+                           System.Globalization.CultureInfo.InvariantCulture, out var scale)
+            ? scale
+            : UiScaleService.DefaultScale;
 
 
     /// <summary>m:ss since a start time. Hand-formatted because ":" is a reserved character in

@@ -3270,8 +3270,25 @@
                             SelectedItem="{Binding SelectedTheme}" />
                 </Grid>
 
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="UI scale:" Foreground="{DynamicResource TextSecondaryBrush}"
+                             FontSize="12" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                    <Button Content="100%" Command="{Binding ApplyUiScaleCommand}" CommandParameter="1.0"
+                            Padding="12 4" />
+                    <Button Content="125%" Command="{Binding ApplyUiScaleCommand}" CommandParameter="1.25"
+                            Padding="12 4" />
+                    <Button Content="150%" Command="{Binding ApplyUiScaleCommand}" CommandParameter="1.5"
+                            Padding="12 4" />
+                    <Button Content="175%" Command="{Binding ApplyUiScaleCommand}" CommandParameter="1.75"
+                            Padding="12 4" />
+                    <Button Content="200%" Command="{Binding ApplyUiScaleCommand}" CommandParameter="2.0"
+                            Padding="12 4" />
+                  </StackPanel>
+                </Grid>
+
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="Applies immediately, and is remembered for this client only — a second client on the same database keeps its own." />
+                           Text="Applies immediately to windows and dialogs, and is remembered for this client only — a second client on the same database keeps its own." />
               </StackPanel>
             </StackPanel>
           </Border>

@@ -809,7 +809,7 @@ public class MainWindowViewModel : ReactiveObject
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
-        OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
+        OtherSettingsVm = new OtherSettingsViewModel(uiLinks, appPrefs);
         DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
         ThemeService.Changed += OnThemeChanged;
