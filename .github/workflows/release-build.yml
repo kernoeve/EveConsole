@@ -193,11 +193,21 @@ jobs:
           --mainExe EveConsole
           --icon Assets/logo_mark.png
 
+      # ⚠️ --merge, or this step fails the release. Without it `vpk upload github` insists on
+      # CREATING the release, and the windows job has already created and published this tag by
+      # the time we get here: "There is already an existing release tagged 'vX.Y.Z'". That is
+      # exactly what happened on v0.9.13 — the AppImage and releases.linux.json never landed, and
+      # only the tarball survived because it is attached with `gh release upload` above.
+      #
+      # ⚠️ Not reachable from the PR check either. pr-build.yml builds the linux target but never
+      # uploads, and the failure needs a release that already exists — so the first run of this
+      # step in anger was the first release that included it.
       - name: Upload to the existing GitHub release
         run: >
           vpk upload github
           --repoUrl https://github.com/${{ github.repository }}
           --token ${{ github.token }}
+          --merge
           --releaseName "EVE Console v${{ needs.build.outputs.version }}"
           --tag v${{ needs.build.outputs.version }}
 
