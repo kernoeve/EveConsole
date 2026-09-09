@@ -2983,34 +2983,12 @@ public class App : Application
                     // existed such an item aborted the whole calculation.
                     """ALTER TABLE "IndyParks" ADD COLUMN "DefaultStructureId" INTEGER NULL""",
 
-                    // ── SDE COLUMNS added after this database was last imported ─────────
-                    // Same problem as the tables above, one level down. SdeImportService adds
-                    // these with ALTER, but only while an import runs, so a database imported
-                    // before a column existed has EF querying a column the table lacks — and
-                    // that throws on the whole entity, not just the missing value. The
-                    // Production Calculator died on "no such column: s.Radius" this way.
-                    // Mirror of the alters list in SdeImportService.EnsureSdeSchemaAsync;
-                    // keep the two in step.
-                    """ALTER TABLE "SdeStations"       ADD COLUMN "OperationId" INTEGER""",
-                    """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchorable" INTEGER NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeGroups"         ADD COLUMN "Anchored"   INTEGER NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeTypes"          ADD COLUMN "GraphicId"  INTEGER""",
-                    """ALTER TABLE "SdeTypes"          ADD COLUMN "FactionId"  INTEGER""",
-                    """ALTER TABLE "SdeTypes"          ADD COLUMN "RaceId"     INTEGER""",
-                    """ALTER TABLE "SdeTypes"          ADD COLUMN "MetaGroupId" INTEGER""",
-                    """ALTER TABLE "SdeRegions"        ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeRegions"        ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeRegions"        ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeConstellations" ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeConstellations" ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeConstellations" ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Z" REAL NOT NULL DEFAULT 0""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "X2D" REAL""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Y2D" REAL""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "SecurityClass" TEXT NOT NULL DEFAULT ''""",
-                    """ALTER TABLE "SdeSolarSystems"   ADD COLUMN "Radius" REAL NOT NULL DEFAULT 0""",
+                    // ── SDE columns ─────────────────────────────────────────────────────
+                    // Deliberately NOT here any more. Twenty of them were mirrored into this
+                    // list from SdeImportService with an instruction to keep the two in step,
+                    // and the next four commits to touch the SDE schema did not — which is the
+                    // whole of why 0.9.13 could not open an existing database. There is now one
+                    // list, in SdeImportService.EnsureSdeSchema, called below.
 
                     // ── Intel channels ──────────────────────────────────────────────
                     // One-time removal of chat already stored twice — the same conversation logged
@@ -3104,6 +3082,20 @@ public class App : Application
                         """);
                 }
                 catch { /* nothing to repair on a database that has never had an SDE import */ }
+
+                // ── SDE schema ──────────────────────────────────────────────────────
+                //
+                // ⚠️ Here, and not only inside the import, which is where it used to live alone.
+                // The SDE tables are queried from the moment the app opens — Wallet, Sales
+                // Tracker, Order Tracker, the Worklist — and EF throws on the whole entity when
+                // one column is absent, so a model that has moved ahead of the file breaks those
+                // tools before the user can do anything about it. Leaving the patch inside the
+                // import also made it unreachable: the import is what repairs the schema, and a
+                // missing TABLE kills the import at stage 0.93, so the app could not fix itself.
+                //
+                // PostgreSQL never had this split — PostgresSchema.Apply covers SDE and non-SDE
+                // together, above — and this is SQLite catching up to that shape.
+                SdeImportService.EnsureSdeSchema(db);
             }
         }
         }); // end Task.Run — schema migration complete
