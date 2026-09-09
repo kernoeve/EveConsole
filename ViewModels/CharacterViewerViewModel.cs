@@ -9,6 +9,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -27,7 +28,7 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
 
     public bool   Online      => r.Online;
     public string OnlineText  => r.Online ? "Online" : "Offline";
-    public string OnlineColor => r.Online ? "#5aa469" : "#666677";
+    public IBrush OnlineColor => r.Online ? Palette.Good : Palette.TextDim;
 
     public string Location    => r.Location;
     public string Ship        => r.Ship;
@@ -56,9 +57,9 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
             : $"{r.QueueLength} · paused";
 
     /// <summary>Amber once the queue is inside a day, red when it has run dry.</summary>
-    public string QueueColor => r.QueueLength == 0 ? "#c85a5a"
-        : r.QueueEnds is { } e && e - DateTimeOffset.UtcNow < TimeSpan.FromDays(1) ? "#c8a84b"
-        : "#c8c8d8";
+    public IBrush QueueColor => r.QueueLength == 0 ? Palette.Bad
+        : r.QueueEnds is { } e && e - DateTimeOffset.UtcNow < TimeSpan.FromDays(1) ? Palette.Accent
+        : Palette.TextPrimary;
 
     // A dash where the worklist is not allowed to use that pool. The character may well have
     // eleven slots, but none of them are available to this tool, and printing the capacity would
@@ -73,12 +74,12 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
     public int ReactionFreeRaw      => r.UsesReaction      ? r.ReactionFree      : -1;
     public int ScienceFreeRaw       => r.UsesScience       ? r.ScienceFree       : -1;
 
-    public string ManufacturingColor => r.UsesManufacturing ? SlotColor(r.ManufacturingFree, r.ManufacturingTotal) : Unused;
-    public string ReactionColor      => r.UsesReaction      ? SlotColor(r.ReactionFree,      r.ReactionTotal)      : Unused;
-    public string ScienceColor       => r.UsesScience       ? SlotColor(r.ScienceFree,       r.ScienceTotal)       : Unused;
+    public IBrush ManufacturingColor => r.UsesManufacturing ? SlotColor(r.ManufacturingFree, r.ManufacturingTotal) : Unused;
+    public IBrush ReactionColor      => r.UsesReaction      ? SlotColor(r.ReactionFree,      r.ReactionTotal)      : Unused;
+    public IBrush ScienceColor       => r.UsesScience       ? SlotColor(r.ScienceFree,       r.ScienceTotal)       : Unused;
 
     /// <summary>Muted, so a dash reads as "not applicable" rather than as a state to act on.</summary>
-    private const string Unused = "#555566";
+    private static IBrush Unused => Palette.TextFaint;   // a property, not a const: a brush is not a compile-time constant
 
     /// <summary>
     /// Red when there is nothing free, amber below half, green above.
@@ -87,10 +88,10 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
     /// free slots is comfortable for an alt with three and nearly nothing for one with eleven, and
     /// the column is scanned to find who has room.</para>
     /// </summary>
-    private static string SlotColor(int free, int total) =>
-        free <= 0                ? "#c85a5a"
-        : total > 0 && free * 2 > total ? "#5aa469"
-        : "#e0902e";
+    private static IBrush SlotColor(int free, int total) =>
+        free <= 0                ? Palette.Bad
+        : total > 0 && free * 2 > total ? Palette.Good
+        : Palette.Warn;
 
     private static string Isk(double v) => v switch
     {

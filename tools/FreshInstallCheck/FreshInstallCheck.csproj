@@ -5,12 +5,12 @@
        compiled into the shipped application. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>EveConsole.Tools.FreshInstallCheck</RootNamespace>
     <AssemblyName>FreshInstallCheck</AssemblyName>
-    <!-- The app targets Windows; referencing it drags the platform check along. -->
+    <!-- Kept from when the app was net9.0-windows; harmless now and cheap insurance. -->
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 

@@ -1,0 +1,37 @@
+# Tables the entity model describes and no hand-written CREATE builds.
+#
+# These are legitimate: a database that already exists got them from EnsureCreated when it
+# was itself new, so an upgrading user is not missing them. They are listed rather than
+# inferred because the difference between "everyone already has this" and "nobody will ever
+# get this" cannot be read off the schema — it is a fact about when the table shipped.
+#
+# ⚠️ Adding a name here is a claim that every database still in use already has the table.
+# That is true for a table that predates the oldest supported install and false for one
+# added this cycle — EsiNpcCorpProfiles belonged in the second group, was in neither list,
+# and that is how 0.9.13 shipped a table no upgrading user would ever have received.
+# If a new name appears in this check's output, the fix is almost always a CREATE TABLE
+# IF NOT EXISTS in the startup path, NOT a new line here.
+
+Characters
+EveRefStructures
+HoboBlueprintActivities
+HoboBlueprintMaterials
+HoboBlueprintProducts
+HoboBlueprints
+HoboBlueprintSkills
+HoboBuildInfos
+HoboCompressibleTypes
+HoboRepackagedVolumes
+HoboTypeMaterials
+IndyStructureServices
+MapFactionWarfares
+MapIncursions
+MapIndustryIndices
+MapSovereignties
+MapSovStructures
+MapStatBuckets
+MapSystemDailies
+MapSystemJumps
+MapSystemKills
+StructureFittings
+Structures

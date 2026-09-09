@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using ReactiveUI;
+using Avalonia.Media;
 
 namespace EveConsole.Services;
 
@@ -77,7 +78,7 @@ public sealed class EveServerStatusService(
     }
 
     public string StatusText  => IsOnline ? "Online" : "Offline";
-    public string StatusColor => IsOnline ? "#70ad47" : "#cc5555";
+    public IBrush StatusColor => IsOnline ? Palette.Good : Palette.Bad;
 
     /// <summary>Blank while offline — a stale player count next to an "Offline" badge
     /// reads as though people are still logged in.</summary>

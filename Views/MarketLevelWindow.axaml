@@ -7,6 +7,6 @@
         Title="Market Levels"
         Width="1200" Height="800"
         MinWidth="800" MinHeight="500"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:MarketLevelView DataContext="{Binding}" />
 </Window>

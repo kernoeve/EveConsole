@@ -1,7 +1,9 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
+using EveConsole.Data;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -130,7 +132,7 @@ public sealed class IntelCondition : IAlarmCondition
         var minimum = Math.Max(1, ReadInt(config, "min_players") ?? 1);
         var skipNv  = ReadBool(config, "ignore_no_visual");
 
-        await using var conn = new SqliteConnection(ctx.ConnectionString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
 
         var watched = new HashSet<int>();
@@ -158,18 +160,18 @@ public sealed class IntelCondition : IAlarmCondition
                                DateTime At, int SystemId)>();
         await using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = $"""
+            cmd.CommandText = AppDb.CaseInsensitiveLike($"""
                 SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
                 FROM "IntelReports"
                 WHERE "ReportedAt" >= $cutoff
                   AND "SystemId" IN ({idList})
                   AND "PlayerCount" >= $minimum
-                  {(skipNv ? """AND "NoVisual" = 0""" : "")}
+                  {(skipNv ? """AND "NoVisual" = FALSE""" : "")}
                 ORDER BY "Id" DESC
                 LIMIT {MaxReports}
-                """;
-            cmd.Parameters.AddWithValue("$cutoff", cutoff);
-            cmd.Parameters.AddWithValue("$minimum", minimum);
+                """);
+            cmd.AddWithValue("$cutoff", cutoff);
+            cmd.AddWithValue("$minimum", minimum);
 
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
@@ -189,11 +191,11 @@ public sealed class IntelCondition : IAlarmCondition
         var pilots = new Dictionary<long, List<string>>();
         await using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = $"""
+            cmd.CommandText = AppDb.CaseInsensitiveLike($"""
                 SELECT "IntelReportId", "CharacterName", "ShipName"
                 FROM "IntelReportCharacters"
                 WHERE "IntelReportId" IN ({string.Join(",", reports.Select(x => x.Id))})
-                """;
+                """);
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
             {
@@ -241,17 +243,15 @@ public sealed class IntelCondition : IAlarmCondition
     }
 
     private static async Task<List<int>> ResolveSystemsAsync(
-        SqliteConnection conn, IReadOnlyList<string> names, CancellationToken ct)
+        DbConnection conn, IReadOnlyList<string> names, CancellationToken ct)
     {
         var ids = new List<int>();
         foreach (var name in names)
         {
             if (string.IsNullOrWhiteSpace(name)) continue;
 
-            await using var cmd = conn.CreateCommand();
-            cmd.CommandText =
-                """SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper($n) LIMIT 1""";
-            cmd.Parameters.AddWithValue("$n", name.Trim());
+            await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper($n) LIMIT 1""");
+            cmd.AddWithValue("$n", name.Trim());
 
             var result = await cmd.ExecuteScalarAsync(ct);
             if (result is not null and not DBNull) ids.Add(Convert.ToInt32(result));

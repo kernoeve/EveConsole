@@ -57,6 +57,25 @@ public class MaterialPurchaseGenerator(
             .Select(c => WorklistIndyCharReach.Of(c, corps))
             .ToList();
 
+        // ── Prints that are made rather than bought ───────────────────────────
+        //
+        // ⚠️ An inventable blueprint is NOT a purchase task. A missing Ark Blueprint was raised
+        // here as "BPO/BPC × 2" alongside the invention and copy jobs the invention generator
+        // raises for the same shortfall — two plans for one gap, and the wrong one first: a T2
+        // print is invented off its T1 original, not shopped for.
+        //
+        // ⚠️ Only stood down on when invention can actually run. With no scientist assigned or a
+        // park that has not said where copying and invention happen, that generator produces
+        // nothing at all — and standing down into silence would leave a blocked T2 job with no
+        // task against it whatsoever. Then buying really is the only way to get one, and the
+        // purchase row is the honest answer.
+        var canInvent = await InventionService.CanPlanAsync(
+            db, parkId, candidates.Any(c => c.Runs(IndustryPool.Science)), ct);
+
+        var inventable = canInvent
+            ? await InventionService.InventedBlueprintIdsAsync(db, ct)
+            : [];
+
         var scope = await ScopeAsync(db, ct);
         var reach = new ProductionCalculatorService.AssetReach(
             scope, await AssetExclusions.UnusableItemIdsAsync(db, ct),
@@ -152,7 +171,7 @@ public class MaterialPurchaseGenerator(
         var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
 
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls, inAssets, shelfWant,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls, inventable, inAssets, shelfWant,
                                   buyAt, buyName, alt));
 
         var onOrder = await OnOrderAsync(db, shortfalls.Select(s => s.TypeId).ToList(), ct);
@@ -191,6 +210,9 @@ public class MaterialPurchaseGenerator(
             // A blueprint is acquired, not market-ordered, so it is titled the way the print
             // tasks are — either a BPO or a copy will do, and which is the player's call.
             var isPrint = ctx.BpTypeIds.Contains(raw.TypeId);
+
+            // Invention raises this one, and raising it here as well would be two plans for one gap.
+            if (isPrint && inventable.Contains(raw.TypeId)) continue;
 
             items.Add(new WorklistItem
             {
@@ -438,7 +460,7 @@ public class MaterialPurchaseGenerator(
     private static List<WorklistItem> PrintTasks(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
-        HashSet<int> alreadyCounted, Dictionary<int, int> ownedInAssets,
+        HashSet<int> alreadyCounted, HashSet<int> inventable, Dictionary<int, int> ownedInAssets,
         Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
@@ -462,22 +484,37 @@ public class MaterialPurchaseGenerator(
         foreach (var bpTypeId in jobNeed.Keys.Concat(shelfWant.Keys).Distinct().OrderBy(id => id))
         {
             if (alreadyCounted.Contains(bpTypeId)) continue;   // the plan is already buying it
+            if (inventable.Contains(bpTypeId))     continue;   // and this one is invented, not bought
 
             // Supply from both tables. The blueprints table does not cover every structure the
             // assets table does — this corporation has 5,518 blueprint rows and none at UALX-3,
             // where assets list two Avatar copies — and "absent from that table" is not the same
-            // fact as "not owned". Assets contribute a count only: no runs, ME or TE on those
-            // rows, so they cannot be planned against, merely counted.
-            var held = allPrints.Count(p => p.TypeId == bpTypeId && owned.Owns(p));
-            if (held == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
+            // fact as "not owned".
+            var mine = allPrints.Where(p => p.TypeId == bpTypeId && owned.Owns(p)).ToList();
 
-            var jobs  = jobNeed.GetValueOrDefault(bpTypeId);
-            var shelf = shelfWant.GetValueOrDefault(bpTypeId);
+            var anyOriginal = mine.Any(p => p.IsOriginal);
 
-            // An original is never spent by the job it runs, so one covers every run — but it does
-            // not fill a shelf target, which asks for a print to be there.
-            var anyOriginal = allPrints.Any(p => p.TypeId == bpTypeId && p.IsOriginal && owned.Owns(p));
-            var demand      = (anyOriginal ? 0 : jobs) + shelf;
+            // ⚠️ RUNS, not copies, on both sides of the subtraction. A copy is not one blueprint's
+            // worth of anything: it carries runs, and a run is what a job spends and what a
+            // stocking rule on a blueprint asks for. Two Ark copies of two and three runs are five
+            // runs of production; counted as "2 owned" against a demand of four they asked the
+            // contract window for two more prints that were not needed.
+            var held = mine.Where(p => !p.IsOriginal).Sum(p => (long)p.Runs);
+
+            // ⚠️ The assets fallback carries no runs, ME or TE — those rows can be counted and not
+            // planned against. One run apiece is a floor, and deliberately the same floor the old
+            // count-only arithmetic assumed, so nothing gets worse where the blueprints table is
+            // the one with the gap.
+            if (mine.Count == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
+
+            var jobs  = jobNeed.GetValueOrDefault(bpTypeId);    // runs the queued builds spend
+            var shelf = shelfWant.GetValueOrDefault(bpTypeId);  // runs the stocking rule wants kept
+
+            // An original is never spent by the job it runs, so one covers every run there will
+            // ever be — but it does not fill a shelf target, which asks for copies to be there.
+            // Invention is the reason that distinction matters: it runs off a copy and cannot
+            // touch the original, however many runs the original is good for.
+            var demand = (anyOriginal ? 0 : jobs) + shelf;
 
             var stillNeeded = Math.Max(0, demand - held);
             if (stillNeeded <= 0) continue;
@@ -491,18 +528,21 @@ public class MaterialPurchaseGenerator(
             var parts = new List<string>(3);
             if (jobs  > 0) parts.Add($"{jobs:N0} for {forWhat.GetValueOrDefault(bpTypeId, "queued builds")}");
             if (shelf > 0) parts.Add($"{shelf:N0} to stock");
-            var haveText = held > 0 ? $", {held:N0} owned" : ", none owned";
+
+            var haveText = anyOriginal ? ", original owned"
+                         : held > 0    ? $", {held:N0} owned"
+                                       : ", none owned";
 
             items.Add(new WorklistItem
             {
                 Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = $"{bpName} — BPO/BPC × {stillNeeded:N0}",
+                Title         = $"{bpName} — BPO/BPC × {stillNeeded:N0} run(s)",
                 TitleTag      = "BPO/BPC",
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
-                Detail        = $"{string.Join(" + ", parts)}{haveText} — short {stillNeeded:N0}.{price}",
+                Detail        = $"{string.Join(" + ", parts)}{haveText} — short {stillNeeded:N0} run(s).{price}",
                 Readiness     = WorklistReadiness.Ready,
                 CharacterId   = alt?.CharacterId   ?? 0,
                 CharacterName = alt?.CharacterName ?? "",

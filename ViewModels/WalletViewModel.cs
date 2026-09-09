@@ -9,6 +9,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
@@ -39,7 +40,7 @@ public class WalletJournalRowVm
     public string          RefTypeText  { get; }
     public string          Description  { get; }
     public string          AmountText   { get; }
-    public string          AmountColor  { get; }
+    public IBrush          AmountColor  { get; }
     public string          BalanceText  { get; }
     public string          OwnerText    { get; }
     public string          DivisionText { get; }
@@ -67,7 +68,7 @@ public class WalletJournalRowVm
         Description  = e.Description ?? e.Reason ?? "";
         AmountRaw    = e.Amount;
         AmountText   = FormatAmount(e.Amount);
-        AmountColor  = e.Amount >= 0 ? "#5cb85c" : "#d9534f";
+        AmountColor  = e.Amount >= 0 ? Palette.Good : Palette.Bad;
         BalanceRaw   = e.Balance;
         BalanceText  = FormatIsk(e.Balance);
         OwnerText    = ownerNames.TryGetValue(e.OwnerId, out var n) ? n : "";
@@ -110,7 +111,7 @@ public class WalletTransactionRowVm
     public string  Quantity     { get; }
     public string  UnitPrice    { get; }
     public string  Total        { get; }
-    public string  TotalColor   { get; }
+    public IBrush  TotalColor   { get; }
     public string  Direction    { get; }
     public string  OwnerText    { get; }
     public string  DivisionText { get; }
@@ -152,7 +153,7 @@ public class WalletTransactionRowVm
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
         DateText     = t.Date.ToLocalTime().ToString("MMM d, HH:mm");
-        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : $"Type {t.TypeId}";
+        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : $"\"Type\" {t.TypeId}";
         QuantityRaw  = t.Quantity;
         Quantity     = t.Quantity.ToString("N0");
         UnitPriceRaw = t.UnitPrice;
@@ -160,7 +161,7 @@ public class WalletTransactionRowVm
         var gross    = (decimal)t.Quantity * t.UnitPrice;
         TotalRaw     = t.IsBuy ? -gross : gross;
         Total        = FormatIsk(gross);
-        TotalColor   = t.IsBuy ? "#d9534f" : "#5cb85c";
+        TotalColor   = t.IsBuy ? Palette.Bad : Palette.Good;
         Direction    = t.IsBuy ? "Buy" : "Sell";
         OwnerText    = ownerNames.TryGetValue(t.OwnerId, out var on) ? on : "";
         DivisionText = t.Division is > 0
@@ -313,11 +314,11 @@ public class WalletViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> JournalSortOptions { get; } =
     [
-        new("Date: newest first",   "Date DESC"),
-        new("Date: oldest first",   "Date ASC"),
-        new("Amount: high → low",   "CAST(Amount AS REAL) DESC"),
-        new("Amount: low → high",   "CAST(Amount AS REAL) ASC"),
-        new("Balance: high → low",  "CAST(Balance AS REAL) DESC"),
+        new("Date: newest first",   "\"Date\" DESC"),
+        new("Date: oldest first",   "\"Date\" ASC"),
+        new("Amount: high → low",   "CAST(\"Amount\" AS DOUBLE PRECISION) DESC"),
+        new("Amount: low → high",   "CAST(\"Amount\" AS DOUBLE PRECISION) ASC"),
+        new("Balance: high → low",  "CAST(\"Balance\" AS DOUBLE PRECISION) DESC"),
     ];
     private GridSortOption _selectedJournalSort;
     public GridSortOption SelectedJournalSort
@@ -328,12 +329,12 @@ public class WalletViewModel : ReactiveObject
 
     public IReadOnlyList<GridSortOption> TxnSortOptions { get; } =
     [
-        new("Date: newest first",     "Date DESC"),
-        new("Date: oldest first",     "Date ASC"),
-        new("Total: high → low",      "(Quantity * CAST(UnitPrice AS REAL)) DESC"),
-        new("Total: low → high",      "(Quantity * CAST(UnitPrice AS REAL)) ASC"),
-        new("Unit price: high → low", "CAST(UnitPrice AS REAL) DESC"),
-        new("Quantity: high → low",   "Quantity DESC"),
+        new("Date: newest first",     "\"Date\" DESC"),
+        new("Date: oldest first",     "\"Date\" ASC"),
+        new("Total: high → low",      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) DESC"),
+        new("Total: low → high",      "(\"Quantity\" * CAST(\"UnitPrice\" AS DOUBLE PRECISION)) ASC"),
+        new("Unit price: high → low", "CAST(\"UnitPrice\" AS DOUBLE PRECISION) DESC"),
+        new("Quantity: high → low",   "\"Quantity\" DESC"),
     ];
     private GridSortOption _selectedTxnSort;
     public GridSortOption SelectedTxnSort
@@ -465,7 +466,7 @@ public class WalletViewModel : ReactiveObject
 
         Periods =
         [
-            new("Last 24 Hours",  24),
+            new("Last 24 \"Hours\"",  24),
             new("Last 7 Days",    168),
             new("Last 30 Days",   720),
             new("Last 90 Days",   2160),
@@ -523,7 +524,11 @@ public class WalletViewModel : ReactiveObject
             _selectedOwner = options[0];
             this.RaisePropertyChanged(nameof(SelectedOwner));
         }
-        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "InitAsync", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("WalletViewModel", "InitAsync", ex);
+            StatusText = AppErrorLogger.Line("Error preparing the wallet view", ex);
+        }
 
         _initialized = true;
         await LoadAsync();
@@ -562,7 +567,7 @@ public class WalletViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("WalletViewModel", "LoadAsync", ex);
-            StatusText = "Error loading wallet data.";
+            StatusText = AppErrorLogger.Line("Error loading wallet data", ex);
         }
         finally { IsLoading = false; }
 
@@ -591,7 +596,7 @@ public class WalletViewModel : ReactiveObject
             var ot  = owner.OwnerType!;
             result = await db.Database.SqlQuery<BalanceSummary>(
                 $"""
-                 SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0) AS "Total"
+                 SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0) AS "Total"
                  FROM "EsiWalletBalances"
                  WHERE "OwnerId" = {oid} AND "OwnerType" = {ot}
                  """).SingleOrDefaultAsync();
@@ -604,7 +609,7 @@ public class WalletViewModel : ReactiveObject
             {
                 var r = await db.Database.SqlQuery<BalanceSummary>(
                     $"""
-                     SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0) AS "Total"
+                     SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0) AS "Total"
                      FROM "EsiWalletBalances"
                      WHERE "OwnerId" = {id} AND "OwnerType" = 'character'
                      """).SingleOrDefaultAsync();
@@ -614,7 +619,7 @@ public class WalletViewModel : ReactiveObject
             {
                 var r = await db.Database.SqlQuery<BalanceSummary>(
                     $"""
-                     SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0) AS "Total"
+                     SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0) AS "Total"
                      FROM "EsiWalletBalances"
                      WHERE "OwnerId" = {id} AND "OwnerType" = 'corporation'
                      """).SingleOrDefaultAsync();
@@ -640,7 +645,7 @@ public class WalletViewModel : ReactiveObject
 
             var (where, ps) = await BuildJournalWhereAsync(db, owner, cutoff);
             var pars = ps.ToArray();
-            string baseSql = $"SELECT * FROM EsiWalletJournal WHERE {where}";
+            string baseSql = $"SELECT * FROM \"EsiWalletJournal\" WHERE {where}";
 
 #pragma warning disable EF1002
             JournalPager.TotalCount = await db.EsiWalletJournal.FromSqlRaw(baseSql, pars).AsNoTracking().CountAsync();
@@ -658,7 +663,11 @@ public class WalletViewModel : ReactiveObject
             JournalRows.Clear();
             foreach (var r in entries) JournalRows.Add(new WalletJournalRowVm(r, names, divMap));
         }
-        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadJournalPageAsync", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("WalletViewModel", "LoadJournalPageAsync", ex);
+            StatusText = AppErrorLogger.Line("Error loading the journal", ex);
+        }
     }
 
     // Treats a picked calendar date as UTC midnight — a DateTimeOffset with a zero offset can't be
@@ -674,25 +683,29 @@ public class WalletViewModel : ReactiveObject
 
         if (owner?.OwnerId != null)
         {
-            int ti = ps.Count; ps.Add(owner.OwnerType!);       parts.Add($"OwnerType = {{{ti}}}");
-            int oi = ps.Count; ps.Add(owner.OwnerId.Value);    parts.Add($"OwnerId = {{{oi}}}");
+            int ti = ps.Count; ps.Add(owner.OwnerType!);       parts.Add($"\"OwnerType\" = {{{ti}}}");
+            int oi = ps.Count; ps.Add(owner.OwnerId.Value);    parts.Add($"\"OwnerId\" = {{{oi}}}");
         }
         else
         {
             var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
             var conds = new List<string>();
-            if (charIds.Count > 0) conds.Add($"(OwnerType='character' AND OwnerId IN ({string.Join(",", charIds)}))");
-            if (corpIds.Count > 0) conds.Add($"(OwnerType='corporation' AND OwnerId IN ({string.Join(",", corpIds)}))");
+            // ⚠️ Quoted. An unquoted identifier is folded to lower case by PostgreSQL, and
+            // the column is OwnerType, so the query failed with 'column "ownertype" does not
+            // exist' — the lower-case spelling in the error being the tell. SQLite is
+            // case-insensitive about it, which is why these two survived the quoting pass.
+            if (charIds.Count > 0) conds.Add($"(\"OwnerType\"='character' AND \"OwnerId\" IN ({string.Join(",", charIds)}))");
+            if (corpIds.Count > 0) conds.Add($"(\"OwnerType\"='corporation' AND \"OwnerId\" IN ({string.Join(",", corpIds)}))");
             parts.Add(conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0");
         }
 
-        int ci = ps.Count; ps.Add(cutoff); parts.Add($"Date >= {{{ci}}}");
+        int ci = ps.Count; ps.Add(cutoff); parts.Add($"\"Date\" >= {{{ci}}}");
 
         var typeF = _journalTypeFilter.Trim();
         if (typeF.Length > 0)
         {
             int i = ps.Count; ps.Add("%" + typeF.Replace(' ', '_') + "%");
-            parts.Add($"RefType LIKE {{{i}}}");
+            parts.Add($"\"RefType\" LIKE {{{i}}}");
         }
 
         var ownerF = _journalOwnerFilter.Trim();
@@ -700,8 +713,8 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + ownerF + "%");
             int j = ps.Count; ps.Add("%" + ownerF + "%");
-            parts.Add($"OwnerId IN (SELECT Id FROM Characters WHERE Name LIKE {{{i}}} "
-                    + $"UNION SELECT Id FROM Corporations WHERE Name LIKE {{{j}}})");
+            parts.Add($"\"OwnerId\" IN (SELECT \"Id\" FROM \"Characters\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"Id\" FROM \"Corporations\" WHERE \"Name\" LIKE {{{j}}})");
         }
 
         var divF = _journalDivFilter.Trim();
@@ -709,14 +722,14 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + divF + "%");
             int j = ps.Count; ps.Add("%" + divF + "%");
-            parts.Add($"(Division IN (SELECT Division FROM EsiCorpDivisions WHERE DivisionType='wallet' AND Name LIKE {{{i}}}) "
-                    + $"OR CAST(Division AS TEXT) LIKE {{{j}}})");
+            parts.Add($"(\"Division\" IN (SELECT \"Division\" FROM \"EsiCorpDivisions\" WHERE \"DivisionType\"='wallet' AND \"Name\" LIKE {{{i}}}) "
+                    + $"OR CAST(\"Division\" AS TEXT) LIKE {{{j}}})");
         }
 
         if (_journalFromDate is DateTime fd)
-        { int i = ps.Count; ps.Add(UtcMidnight(fd)); parts.Add($"Date >= {{{i}}}"); }
+        { int i = ps.Count; ps.Add(UtcMidnight(fd)); parts.Add($"\"Date\" >= {{{i}}}"); }
         if (_journalThruDate is DateTime td)
-        { int i = ps.Count; ps.Add(UtcMidnight(td.AddDays(1))); parts.Add($"Date < {{{i}}}"); }
+        { int i = ps.Count; ps.Add(UtcMidnight(td.AddDays(1))); parts.Add($"\"Date\" < {{{i}}}"); }
 
         return (string.Join(" AND ", parts), ps);
     }
@@ -758,7 +771,11 @@ public class WalletViewModel : ReactiveObject
             foreach (var r in rows)
                 TransactionRows.Add(new WalletTransactionRowVm(r, typeNames, ownerNames, locationNames, divMap));
         }
-        catch (Exception ex) { _errorLogger.Log("WalletViewModel", "LoadTxnPageAsync", ex); }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("WalletViewModel", "LoadTxnPageAsync", ex);
+            StatusText = AppErrorLogger.Line("Error loading transactions", ex);
+        }
     }
 
     // Base row set (owner + period), deduplicated across owners so a shared TransactionId shows once.
@@ -771,13 +788,13 @@ public class WalletViewModel : ReactiveObject
             int oi = ps.Count; ps.Add(owner.OwnerId.Value);
             int ti = ps.Count; ps.Add(owner.OwnerType!);
             int ci = ps.Count; ps.Add(cutoff);
-            return ($"SELECT * FROM EsiWalletTransactions WHERE OwnerId = {{{oi}}} AND OwnerType = {{{ti}}} AND Date >= {{{ci}}}", ps);
+            return ($"SELECT * FROM \"EsiWalletTransactions\" WHERE \"OwnerId\" = {{{oi}}} AND \"OwnerType\" = {{{ti}}} AND \"Date\" >= {{{ci}}}", ps);
         }
 
         var (charIds, corpIds) = await GetAllOwnerIdsAsync(db);
         var conds = new List<string>();
-        if (charIds.Count > 0) conds.Add($"(OwnerType='character' AND OwnerId IN ({string.Join(",", charIds)}))");
-        if (corpIds.Count > 0) conds.Add($"(OwnerType='corporation' AND OwnerId IN ({string.Join(",", corpIds)}))");
+        if (charIds.Count > 0) conds.Add($"(\"OwnerType\"='character' AND \"OwnerId\" IN ({string.Join(",", charIds)}))");
+        if (corpIds.Count > 0) conds.Add($"(\"OwnerType\"='corporation' AND \"OwnerId\" IN ({string.Join(",", corpIds)}))");
         string ownerCond = conds.Count > 0 ? "(" + string.Join(" OR ", conds) + ")" : "1=0";
         int cix = ps.Count; ps.Add(cutoff);
 
@@ -785,9 +802,9 @@ public class WalletViewModel : ReactiveObject
         string sql =
             "SELECT \"TransactionId\",\"OwnerId\",\"OwnerType\",\"Division\",\"Date\",\"ClientId\"," +
             "\"LocationId\",\"Quantity\",\"TypeId\",\"UnitPrice\",\"IsBuy\",\"IsPersonal\",\"JournalRefId\" " +
-            "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY TransactionId " +
-            "ORDER BY CASE WHEN OwnerType='corporation' THEN 0 ELSE 1 END) AS rn " +
-            $"FROM EsiWalletTransactions WHERE {ownerCond} AND Date >= {{{cix}}}) WHERE rn = 1";
+            "FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY \"TransactionId\" " +
+            "ORDER BY CASE WHEN \"OwnerType\"='corporation' THEN 0 ELSE 1 END) AS rn " +
+            $"FROM \"EsiWalletTransactions\" WHERE {ownerCond} AND \"Date\" >= {{{cix}}}) WHERE rn = 1";
         return (sql, ps);
     }
 
@@ -799,19 +816,19 @@ public class WalletViewModel : ReactiveObject
         if (itemF.Length > 0)
         {
             int i = ps.Count; ps.Add("%" + itemF + "%");
-            parts.Add($"x.TypeId IN (SELECT TypeId FROM SdeTypes WHERE Name LIKE {{{i}}})");
+            parts.Add($"x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}})");
         }
 
-        if (_txnDirectionFilter == "Buy")  parts.Add("x.IsBuy = 1");
-        else if (_txnDirectionFilter == "Sell") parts.Add("x.IsBuy = 0");
+        if (_txnDirectionFilter == "Buy")  parts.Add("x.\"IsBuy\" = TRUE");
+        else if (_txnDirectionFilter == "Sell") parts.Add("x.\"IsBuy\" = FALSE");
 
         var locF = _txnLocationFilter.Trim();
         if (locF.Length > 0)
         {
             int i = ps.Count; ps.Add("%" + locF + "%");
             int j = ps.Count; ps.Add("%" + locF + "%");
-            parts.Add($"x.LocationId IN (SELECT StationId FROM SdeStations WHERE Name LIKE {{{i}}} "
-                    + $"UNION SELECT StructureId FROM EsiStructureNames WHERE Name LIKE {{{j}}})");
+            parts.Add($"x.\"LocationId\" IN (SELECT \"StationId\" FROM \"SdeStations\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"StructureId\" FROM \"EsiStructureNames\" WHERE \"Name\" LIKE {{{j}}})");
         }
 
         var ownerF = _txnOwnerFilter.Trim();
@@ -819,8 +836,8 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + ownerF + "%");
             int j = ps.Count; ps.Add("%" + ownerF + "%");
-            parts.Add($"x.OwnerId IN (SELECT Id FROM Characters WHERE Name LIKE {{{i}}} "
-                    + $"UNION SELECT Id FROM Corporations WHERE Name LIKE {{{j}}})");
+            parts.Add($"x.\"OwnerId\" IN (SELECT \"Id\" FROM \"Characters\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"Id\" FROM \"Corporations\" WHERE \"Name\" LIKE {{{j}}})");
         }
 
         var divF = _txnDivFilter.Trim();
@@ -828,8 +845,8 @@ public class WalletViewModel : ReactiveObject
         {
             int i = ps.Count; ps.Add("%" + divF + "%");
             int j = ps.Count; ps.Add("%" + divF + "%");
-            parts.Add($"(x.Division IN (SELECT Division FROM EsiCorpDivisions WHERE DivisionType='wallet' AND Name LIKE {{{i}}}) "
-                    + $"OR CAST(x.Division AS TEXT) LIKE {{{j}}})");
+            parts.Add($"(x.\"Division\" IN (SELECT \"Division\" FROM \"EsiCorpDivisions\" WHERE \"DivisionType\"='wallet' AND \"Name\" LIKE {{{i}}}) "
+                    + $"OR CAST(x.\"Division\" AS TEXT) LIKE {{{j}}})");
         }
 
         return parts.Count > 0 ? string.Join(" AND ", parts) : "1=1";
@@ -872,7 +889,7 @@ public class WalletViewModel : ReactiveObject
             var ot  = owner.OwnerType!;
             var rows = await db.Database.SqlQuery<JournalGroup>(
                 $"""
-                 SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                 SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                  FROM "EsiWalletJournal"
                  WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                  GROUP BY "RefType"
@@ -892,7 +909,7 @@ public class WalletViewModel : ReactiveObject
                 var oid = c.Id; var ot = c.Type;
                 var rows = await db.Database.SqlQuery<JournalGroup>(
                     $"""
-                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                      FROM "EsiWalletJournal"
                      WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                      GROUP BY "RefType"
@@ -904,7 +921,7 @@ public class WalletViewModel : ReactiveObject
                 var oid = c.Id; var ot = c.Type;
                 var rows = await db.Database.SqlQuery<JournalGroup>(
                     $"""
-                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS REAL)), 0.0) AS "TotalAmount"
+                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
                      FROM "EsiWalletJournal"
                      WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
                      GROUP BY "RefType"
@@ -995,8 +1012,8 @@ public class WalletViewModel : ReactiveObject
         if (mktBuy      > 0) expSlices.Add(Slice("Market Purchases",   mktBuy,       new SKColor(200,  90,  90)));
         if (contractExp > 0) expSlices.Add(Slice("Contract Purchases", contractExp,  new SKColor(200, 120, 160)));
         if (brokerFee   > 0) expSlices.Add(Slice("Broker Fees",        brokerFee,    new SKColor(220, 150,  60)));
-        if (txnTax      > 0) expSlices.Add(Slice("Transaction Tax",    txnTax,       new SKColor(180, 180,  60)));
-        if (indyTax     > 0) expSlices.Add(Slice("Industry Tax",       indyTax,      new SKColor(100, 170, 200)));
+        if (txnTax      > 0) expSlices.Add(Slice("Transaction \"Tax\"",    txnTax,       new SKColor(180, 180,  60)));
+        if (indyTax     > 0) expSlices.Add(Slice("Industry \"Tax\"",       indyTax,      new SKColor(100, 170, 200)));
         if (otherExpense > 0) expSlices.Add(Slice("Other Expenses",    otherExpense, new SKColor(160, 100, 120)));
 
         IncomeSeries   = incSlices.Count > 0 ? incSlices : [];
@@ -1028,7 +1045,7 @@ public class WalletViewModel : ReactiveObject
             if (!balances.ContainsKey(i) && !divNames.ContainsKey(i)) continue;
             divNames.TryGetValue(i, out var rawName);
             var name = string.IsNullOrWhiteSpace(rawName)
-                ? (i == 1 ? "Master Wallet" : $"Division {i}")
+                ? (i == 1 ? "Master Wallet" : $"\"Division\" {i}")
                 : rawName;
             var balance = balances.TryGetValue(i, out var b) ? b : 0m;
             DivisionRows.Add(new WalletDivisionRowVm(i, name, balance));

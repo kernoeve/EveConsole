@@ -56,13 +56,33 @@ public sealed record StationNeed(
     long   StationLevels,
     double UnitPrice  = 0,
     double UnitVolume = 0,
-    IReadOnlyList<NeedDriver>? Drivers = null)
+    IReadOnlyList<NeedDriver>? Drivers = null,
+
+    /// <param name="InBuild">Units already coming out of a running job that delivers HERE.</param>
+    long   InBuild = 0)
 {
     /// <summary>What is asking for this, largest first. Empty when nothing itemised it.</summary>
     public IReadOnlyList<NeedDriver> Why => Drivers ?? [];
 
     public long Total     => OrderJobs + Jobs + InventoryLevels + StationLevels;
+
+    /// <summary>
+    /// ⚠️ Against what is HERE, and deliberately not against what is being built.
+    ///
+    /// <para>Station Needs answers "what does this station hold against what it wants", and a job
+    /// three days from delivering does not fill a hangar today.</para>
+    /// </summary>
     public long Shortfall => Math.Max(0, Total - OnHand);
+
+    /// <summary>
+    /// ⚠️ The same gap with production counted, which is the question the Item Needs tab asks.
+    ///
+    /// <para>Titanium Carbide sat 16 million below its target with 19 million already in the
+    /// reactors: short by the station's reckoning, and not actually short at all. Reading the one
+    /// number as the other is how a satisfied item looks like a crisis — and why no job was raised
+    /// for it, correctly.</para>
+    /// </summary>
+    public long ShortAfterBuild => Math.Max(0, Total - OnHand - InBuild);
 
     /// <summary>What closing the gap costs, and what it takes to carry. Priced and sized on the
     /// shortfall rather than the total, since the total is mostly stock already sitting there.</summary>
@@ -147,7 +167,7 @@ public class LogisticsGenerator(
     private async Task<List<WorklistItem>> BuildAsync(
         AppDbContext db, int parkId, CancellationToken ct)
     {
-        var (want, stock, _, ctx) = await GatherAsync(db, parkId, ct);
+        var (want, stock, drivers, ctx) = await GatherAsync(db, parkId, ct);
         if (ctx is null) return [];
 
         var refineMoves = await RefiningMovesAsync(db, ctx, parkId, stock, ct);
@@ -165,7 +185,16 @@ public class LogisticsGenerator(
         // surplus items as bare type ids.
         var names = await NamesAsync(db, moves.Select(m => m.TypeId).Distinct().ToList(), ct);
 
-        return Tasks(moves, names, places);
+        // ⚠️ Drivers travel with the moves now. They are what the row's own tooltip means by
+        // "Jobs are waiting on this" — the builds that asked for the material — and without them
+        // the expansion could only list stopped worklist ROWS, which is a narrower set: a planned
+        // build that has not become a row of its own asked for the haul and then did not appear
+        // in the panel explaining it.
+        var driverNames = await NamesAsync(db,
+            drivers.Values.SelectMany(l => l).Select(d => d.DriverTypeId).Where(t => t > 0)
+                   .Distinct().ToList(), ct);
+
+        return Tasks(moves, names, places, drivers, driverNames);
     }
 
     /// <summary>
@@ -300,6 +329,65 @@ public class LogisticsGenerator(
                 .Where(t => t > 0).Distinct().ToList();
             var names  = await NamesAsync(db, typeIds, ct);
             var (prices, volumes) = await PriceAndVolumeAsync(db, typeIds, ct);
+            // Units already coming out of a running job, by where that job delivers.
+            //
+            // ⚠️ Keyed on FacilityId, not summed per type. Item Needs groups stations under an
+            // item, so a type-wide figure repeated on every row would multiply itself down the
+            // group; attributed to the structure the job runs in, the rows add up.
+            //
+            // ⚠️ Runs × output-per-run, not runs. A reaction formula returns 10,000 units a run,
+            // so counting runs would report 1,891 units in build where 18,910,000 are.
+            var activeJobs = await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Status == "active" && j.ProductTypeId != null && j.FacilityId > 0)
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId })
+                .ToListAsync(ct);
+
+            var perRun = (await db.SdeBlueprintProducts.AsNoTracking()
+                    .Where(p => p.Activity == "manufacturing" || p.Activity == "reaction")
+                    .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                    .ToListAsync(ct))
+                .GroupBy(p => (p.TypeId, p.ProductTypeId))
+                .ToDictionary(g => g.Key, g => Math.Max(1, g.First().Quantity));
+
+            // ⚠️ Per TYPE, not per facility. A job delivers where it runs, and the station that
+            // WANTS the material is usually a different one — Titanium Carbide is reacted at the
+            // Reactor and consumed at T2 Adv component-Ammo, so keying on the job's facility
+            // matched nothing and the column read blank against 18.9 million units in the ovens.
+            // Only items made and consumed in the same structure ever lined up, which is why
+            // Titanium Chromide looked right and Titanium Carbide did not.
+            var inBuildByType = activeJobs
+                .GroupBy(j => j.ProductTypeId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(j => (long)j.Runs
+                                  * perRun.GetValueOrDefault((j.BlueprintTypeId, j.ProductTypeId), 1)));
+
+            // ⚠️ Then shared out across that type's station rows, in proportion to how short each
+            // one is. Item Needs groups stations under an item, so the type's whole figure repeated
+            // on every row would multiply itself down the group; apportioned, the rows still add up
+            // to what is actually being made.
+            var shortByType = want
+                .GroupBy(kv => kv.Key.TypeId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(kv => Math.Max(0, kv.Value.OrderJobs + kv.Value.Jobs
+                                               + kv.Value.RuleJobs + kv.Value.Level
+                                               - stock.GetValueOrDefault(kv.Key))));
+
+            long ShareOfBuild((long Station, int TypeId) key, Want w)
+            {
+                var total = inBuildByType.GetValueOrDefault(key.TypeId);
+                if (total <= 0) return 0;
+
+                var allShort = shortByType.GetValueOrDefault(key.TypeId);
+                if (allShort <= 0) return 0;
+
+                var mine = Math.Max(0, w.OrderJobs + w.Jobs + w.RuleJobs + w.Level
+                                     - stock.GetValueOrDefault(key));
+
+                return (long)((double)total * mine / allShort);
+            }
+
 
             return want
                 .Select(kv => new StationNeed(
@@ -322,7 +410,8 @@ public class LogisticsGenerator(
                                 : "",
                         })
                         .OrderByDescending(d => d.Qty)
-                        .ToList()))
+                        .ToList(),
+                    ShareOfBuild(kv.Key, kv.Value)))
                 .OrderBy(n => n.StationName).ThenBy(n => n.TypeName)
                 .ToList();
         }
@@ -348,7 +437,11 @@ public class LogisticsGenerator(
 
         var volumes = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Volume, ct);
+            // ⚠️ PACKAGED, not assembled. A ship comes out of a job packaged and is hauled
+            // that way: a Vexor is 10,000 m³ packaged against 115,000 assembled, so every
+            // figure here was more than eleven times too large. Zero means the SDE gives no
+            // packaged figure, which is most items -- for those the two are the same.
+            .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
 
         var settings = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
         if (settings?.AssetValueConfigId is not int configId) return ([], volumes);
@@ -875,7 +968,9 @@ public class LogisticsGenerator(
     // ── Output ────────────────────────────────────────────────────────────────
 
     private List<WorklistItem> Tasks(
-        List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places)
+        List<Move> moves, Dictionary<int, string> names, Dictionary<long, string> places,
+        Dictionary<(long Station, int TypeId), List<NeedDriver>> drivers,
+        Dictionary<int, string> driverNames)
     {
         var items = new List<WorklistItem>();
 
@@ -892,6 +987,29 @@ public class LogisticsGenerator(
 
             var from = places.GetValueOrDefault(run.Key.From, $"Location {run.Key.From}");
             var to   = places.GetValueOrDefault(run.Key.To,   $"Location {run.Key.To}");
+
+            // What asked for this cargo at the destination. The planner recorded it when the need
+            // was raised — see the note on Need — because by the time a want is a number the build
+            // that asked for it is gone, and a total cannot say who wanted it.
+            //
+            // ⚠️ Products, not worklist rows. A driver is a build the worklist is SUGGESTING; it
+            // may never have become a row of its own, which is exactly the case the expansion was
+            // silent about. WorklistService replaces any of these it can match to a real stopped
+            // job, because that one can say whether this load actually starts it.
+            var wanters = cargo
+                .SelectMany(c => drivers.GetValueOrDefault((run.Key.To, c.TypeId), []))
+                .Where(d => d.DriverTypeId > 0)
+                .GroupBy(d => d.DriverTypeId)
+                .Select(g => new WorklistWaitingJob(
+                    Key:   "",
+                    Title: driverNames.GetValueOrDefault(g.Key, $"Type {g.Key}"),
+                    TypeId:   g.Key,
+                    TypeName: driverNames.GetValueOrDefault(g.Key, $"Type {g.Key}"),
+                    Unblocked:    false,
+                    StillShortOf: [],
+                    WantsUnits:   g.Sum(d => d.Qty)))
+                .OrderByDescending(w => w.WantsUnits)
+                .ToList();
 
             items.Add(new WorklistItem
             {
@@ -913,6 +1031,7 @@ public class LogisticsGenerator(
                     .Select(c => new WorklistLine(
                         c.TypeId, names.GetValueOrDefault(c.TypeId, $"Type {c.TypeId}"), c.Qty))
                     .ToList(),
+                WaitingJobs  = wanters,
                 TypeId       = cargo[0].TypeId,
                 TypeName     = names.GetValueOrDefault(cargo[0].TypeId, ""),
                 // A run is worth its best cargo, and that now includes whose order the cargo

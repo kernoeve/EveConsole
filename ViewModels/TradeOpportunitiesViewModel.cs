@@ -3,6 +3,7 @@ using System.Reactive;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -148,10 +149,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""";
+        using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""");
         var raw = (await cmd.ExecuteScalarAsync()) as string ?? "";
 
         var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -161,8 +161,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             .ToList();
         if (ids.Count == 0) return;
 
-        using var nameCmd = conn.CreateCommand();
-        nameCmd.CommandText = $"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""";
+        using var nameCmd = conn.Command($"""SELECT "MarketGroupId", "Name" FROM "SdeMarketGroups" WHERE "MarketGroupId" IN ({string.Join(",", ids)})""");
         var names = new Dictionary<int, string>();
         using (var reader = await nameCmd.ExecuteReaderAsync())
             while (await reader.ReadAsync())
@@ -177,11 +176,10 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     private async Task SaveExcludedGroupsAsync()
     {
         var csv = string.Join(",", ExcludedMarketGroups.Select(g => g.MarketGroupId));
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = """UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""";
-        cmd.Parameters.AddWithValue("@ids", csv);
+        using var cmd = conn.Command("""UPDATE "TradeOpportunitiesSettings" SET "ExcludedMarketGroupIds" = @ids WHERE "Id" = 1""");
+        cmd.AddWithValue("@ids", csv);
         await cmd.ExecuteNonQueryAsync();
     }
 
@@ -252,11 +250,10 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadStationsAsync()
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = StationsSql;
+        using var cmd = conn.Command(StationsSql);
 
         Stations.Clear();
         using var reader = await cmd.ExecuteReaderAsync();
@@ -390,14 +387,13 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             ? $"""AND (t."MarketGroupId" IS NULL OR t."MarketGroupId" NOT IN ({string.Join(",", excludedGroupIds)})) """
             : "";
 
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = (SelectedMode.Kind == TradeMode.UndercutSellOrder
-            ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause);
-        cmd.Parameters.AddWithValue("@sourceId", sourceId);
-        cmd.Parameters.AddWithValue("@destId",   destId);
+        using var cmd = conn.Command((SelectedMode.Kind == TradeMode.UndercutSellOrder
+            ? UndercutSql : CandidateSql).Replace("/*EXCLUSION*/", exclusionClause));
+        cmd.AddWithValue("@sourceId", sourceId);
+        cmd.AddWithValue("@destId",   destId);
 
         var list = new List<Candidate>();
         using var reader = await cmd.ExecuteReaderAsync();
@@ -480,7 +476,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task<int?> GetRegionIdAsync(long locationId)
     {
-        using var conn = new SqliteConnection(_connString);
+        using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.CreateCommand();
@@ -489,38 +485,38 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         // populated now (by the importer, and by a startup repair for databases imported
         // before that fix), but the join is kept deliberately — it is correct whatever
         // state the column is in.
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "SdeStations"     s
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
             WHERE s."StationId" = @id AND s."SolarSystemId" != 0
-            """;
-        cmd.Parameters.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
+            """);
+        cmd.AddWithValue("@id", (int)Math.Min(locationId, int.MaxValue));
         var region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
         // Player structure path 1: resolved name record already has SolarSystemId
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "EsiStructureNames" sn
             JOIN "SdeSolarSystems"   ss ON ss."SolarSystemId" = sn."SolarSystemId"
             WHERE sn."StructureId" = @sid AND sn."SolarSystemId" != 0
-            """;
+            """);
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@sid", locationId);
+        cmd.AddWithValue("@sid", locationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
         // Player structure path 2: derive from any cached order at that location
-        cmd.CommandText = """
+        cmd.CommandText = AppDb.CaseInsensitiveLike("""
             SELECT ss."RegionId"
             FROM "MarketRawOrders" o
             JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = o."SystemId"
             WHERE o."LocationId" = @lid AND o."SystemId" != 0
             LIMIT 1
-            """;
+            """);
         cmd.Parameters.Clear();
-        cmd.Parameters.AddWithValue("@lid", locationId);
+        cmd.AddWithValue("@lid", locationId);
         region = ToRegionId(await cmd.ExecuteScalarAsync());
         if (region.HasValue) return region;
 
@@ -548,23 +544,24 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     // ── SQL ───────────────────────────────────────────────────────────────────
 
     private const string StationsSql = """
-        SELECT o.LocationId,
-               COALESCE(s."Name", sn."Name", 'Unknown (' || o.LocationId || ')') AS StationName
+        SELECT o."LocationId",
+               COALESCE(s."Name", sn."Name", 'Unknown (' || o."LocationId" || ')') AS "StationName"
         FROM (
             SELECT DISTINCT "LocationId" FROM "MarketRawOrders"
         ) o
-        LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o.LocationId AS INTEGER)
-        LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o.LocationId
-        ORDER BY StationName
+        LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o."LocationId" AS BIGINT)
+        LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o."LocationId"
+        ORDER BY "StationName"
         """;
 
-    private const string CandidateSql = """
+    // ⚠️ A property, not a const: it interpolates the engine-correct scalar-min function.
+    private static string CandidateSql => $$"""
         WITH src AS (
             SELECT "TypeId",
                    MIN("Price")        AS BestSell,
                    SUM("VolumeRemain") AS AvailSell
             FROM "MarketRawOrders"
-            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = 0
+            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = FALSE
             GROUP BY "TypeId"
         ),
         dst AS (
@@ -574,23 +571,23 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                    MAX(d."Price")        AS BestBuy,
                    SUM(d."VolumeRemain") AS AvailBuy
             FROM "MarketRawOrders" d
-            JOIN src s ON s.TypeId = d."TypeId"
+            JOIN src s ON s."TypeId" = d."TypeId"
                        AND d."Price" > s.BestSell
-            WHERE d."LocationId" = @destId AND d."IsBuyOrder" = 1
+            WHERE d."LocationId" = @destId AND d."IsBuyOrder" = TRUE
             GROUP BY d."TypeId"
         )
         SELECT
-            s.TypeId,
+            s."TypeId",
             t."Name",
-            CAST(s.BestSell AS REAL)                                 AS BestSell,
-            CAST(d.BestBuy  AS REAL)                                 AS BestBuy,
-            CAST(d.BestBuy - s.BestSell AS REAL)                     AS ProfitPerUnit,
-            CAST(t."Volume" AS REAL)                                 AS M3PerUnit,
-            CAST((d.BestBuy - s.BestSell) / t."Volume" AS REAL)     AS ProfitPerM3,
-            MIN(s.AvailSell, d.AvailBuy)                             AS MaxQty
+            CAST(s.BestSell AS DOUBLE PRECISION)                                 AS BestSell,
+            CAST(d.BestBuy  AS DOUBLE PRECISION)                                 AS BestBuy,
+            CAST(d.BestBuy - s.BestSell AS DOUBLE PRECISION)                     AS ProfitPerUnit,
+            CAST(t."Volume" AS DOUBLE PRECISION)                                 AS M3PerUnit,
+            CAST((d.BestBuy - s.BestSell) / t."Volume" AS DOUBLE PRECISION)     AS ProfitPerM3,
+            {{AppDb.LeastFn}}(s.AvailSell, d.AvailBuy)                             AS MaxQty
         FROM src s
-        JOIN dst d ON d.TypeId = s.TypeId
-        JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
+        JOIN dst d ON d."TypeId" = s."TypeId"
+        JOIN "SdeTypes" t ON t."TypeId" = s."TypeId"
         WHERE t."Volume" > 0
         /*EXCLUSION*/
         ORDER BY ProfitPerM3 DESC
@@ -602,28 +599,28 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                    MIN("Price")        AS BestSell,
                    SUM("VolumeRemain") AS AvailSell
             FROM "MarketRawOrders"
-            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = 0
+            WHERE "LocationId" = @sourceId AND "IsBuyOrder" = FALSE
             GROUP BY "TypeId"
         ),
         dst AS (
             SELECT "TypeId",
                    MIN("Price") AS DestSell
             FROM "MarketRawOrders"
-            WHERE "LocationId" = @destId AND "IsBuyOrder" = 0
+            WHERE "LocationId" = @destId AND "IsBuyOrder" = FALSE
             GROUP BY "TypeId"
         )
         SELECT
-            s.TypeId,
+            s."TypeId",
             t."Name",
-            CAST(s.BestSell  AS REAL)                                AS BestSell,
-            CAST(d.DestSell  AS REAL)                                AS DestSell,
-            CAST(d.DestSell - s.BestSell AS REAL)                    AS ProfitPerUnit,
-            CAST(t."Volume"  AS REAL)                                AS M3PerUnit,
-            CAST((d.DestSell - s.BestSell) / t."Volume" AS REAL)    AS ProfitPerM3,
+            CAST(s.BestSell  AS DOUBLE PRECISION)                                AS BestSell,
+            CAST(d.DestSell  AS DOUBLE PRECISION)                                AS DestSell,
+            CAST(d.DestSell - s.BestSell AS DOUBLE PRECISION)                    AS ProfitPerUnit,
+            CAST(t."Volume"  AS DOUBLE PRECISION)                                AS M3PerUnit,
+            CAST((d.DestSell - s.BestSell) / t."Volume" AS DOUBLE PRECISION)    AS ProfitPerM3,
             s.AvailSell                                              AS MaxQty
         FROM src s
-        JOIN dst d ON d.TypeId = s.TypeId
-        JOIN "SdeTypes" t ON t."TypeId" = s.TypeId
+        JOIN dst d ON d."TypeId" = s."TypeId"
+        JOIN "SdeTypes" t ON t."TypeId" = s."TypeId"
         WHERE d.DestSell > s.BestSell
           AND t."Volume" > 0
         /*EXCLUSION*/

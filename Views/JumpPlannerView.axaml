@@ -5,25 +5,25 @@
              xmlns:ctl="clr-namespace:EveConsole.Controls"
              x:Class="EveConsole.Views.JumpPlannerView"
              x:DataType="vm:JumpPlannerViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
     <Style Selector="TextBlock.flabel">
       <Setter Property="FontSize" Value="9.5" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#555566" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
       <Setter Property="Margin" Value="2 0 0 2" />
     </Style>
     <Style Selector="TextBlock.section">
       <Setter Property="FontSize" Value="11" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#5599aa" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
       <Setter Property="Margin" Value="0 0 0 6" />
     </Style>
     <Style Selector="Button.tool">
-      <Setter Property="Background" Value="#1a1a28" />
-      <Setter Property="Foreground" Value="#5599aa" />
-      <Setter Property="BorderBrush" Value="#2a3a44" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InfoSurfaceBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="Padding" Value="12 4" />
       <Setter Property="FontSize" Value="11" />
@@ -33,7 +33,7 @@
     <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
     <Style Selector="DataGridColumnHeader">
       <Setter Property="FontSize" Value="10" />
-      <Setter Property="Foreground" Value="#7788aa" />
+      <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
     </Style>
 
     <!-- A name that opens something. ⚠️ No Foreground: a link keeps whatever colour its column
@@ -59,7 +59,7 @@
   <Grid ColumnDefinitions="330,1,*">
 
     <!-- ── Setup ────────────────────────────────────────────────────────── -->
-    <ScrollViewer Grid.Column="0" Background="#0b0b10" Padding="12 12">
+    <ScrollViewer Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 12">
       <StackPanel Spacing="14">
 
         <TextBlock Classes="section" Text="SHIP" />
@@ -83,13 +83,13 @@
             </StackPanel>
           </Grid>
 
-          <TextBlock Text="{Binding RangeText}" FontSize="10.5" Foreground="#c8a84b" />
+          <TextBlock Text="{Binding RangeText}" FontSize="10.5" Foreground="{DynamicResource AccentBrush}" />
 
           <StackPanel>
             <TextBlock Classes="flabel" Text="JUMP THROUGH" />
             <ComboBox ItemsSource="{Binding MidpointOptions}" SelectedItem="{Binding SelectedMidpoints}"
                       HorizontalAlignment="Stretch" />
-            <TextBlock FontSize="9.5" Foreground="#556" TextWrapping="Wrap" Margin="2 3 0 0"
+            <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
                        Text="Limits where the route may stop, not where it may start or end. Station systems means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess." />
           </StackPanel>
         </StackPanel>
@@ -114,9 +114,9 @@
                 <DataTemplate x:DataType="vm:SystemMatch">
                   <Grid ColumnDefinitions="*,Auto" MinWidth="240">
                     <TextBlock Grid.Column="0" Text="{Binding Name}"
-                               FontSize="11.5" Foreground="#ddd" />
+                               FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <TextBlock Grid.Column="1" Text="{Binding Region}"
-                               FontSize="10" Foreground="#7a8896" Margin="10 0 0 0"
+                               FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="10 0 0 0"
                                VerticalAlignment="Center" />
                   </Grid>
                 </DataTemplate>
@@ -129,23 +129,23 @@
           <ItemsControl ItemsSource="{Binding Waypoints}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:WaypointVm">
-                <Border Background="#12121a" CornerRadius="3" Padding="8 5" Margin="0 0 0 4"
+                <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3" Padding="8 5" Margin="0 0 0 4"
                         Cursor="Hand"
                         PointerPressed="OnWaypointPressed"
                         DragDrop.AllowDrop="True"
                         DragDrop.DragOver="OnWaypointDragOver"
                         DragDrop.Drop="OnWaypointDrop">
                   <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="⋮⋮" FontSize="11" Foreground="#445"
+                    <TextBlock Grid.Column="0" Text="⋮⋮" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                VerticalAlignment="Center" Margin="0 0 8 0"
                                ToolTip.Tip="Drag to reorder" />
                     <StackPanel Grid.Column="1" Spacing="1">
-                      <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#ddd"
+                      <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
                                  FontWeight="SemiBold" />
-                      <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="#7a7a8a" />
+                      <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="{DynamicResource TextDimBrush}" />
                     </StackPanel>
                     <Button Grid.Column="2" Content="✕" FontSize="11"
-                            Background="Transparent" BorderThickness="0" Foreground="#667"
+                            Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextDimBrush}"
                             Padding="6 0" VerticalAlignment="Center"
                             Command="{Binding $parent[ItemsControl].((vm:JumpPlannerViewModel)DataContext).RemoveWaypointCommand}"
                             CommandParameter="{Binding}" />
@@ -162,22 +162,22 @@
           <Button Classes="tool" Content="Clear" Command="{Binding ClearCommand}" />
         </StackPanel>
 
-        <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="#8899aa"
+        <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{DynamicResource InfoBrush}"
                    TextWrapping="Wrap" />
       </StackPanel>
     </ScrollViewer>
 
-    <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+    <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Route ────────────────────────────────────────────────────────── -->
     <Grid Grid.Column="2" RowDefinitions="Auto,1,*,4,220">
 
-      <Border Grid.Row="0" Background="#12121a" Padding="12 8">
+      <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8">
         <TextBlock Text="{Binding TotalsText}" FontSize="12" FontWeight="SemiBold"
-                   Foreground="#c8a84b" VerticalAlignment="Center" />
+                   Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
       </Border>
 
-      <Rectangle Grid.Row="1" Fill="#1e1e2a" />
+      <Rectangle Grid.Row="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
       <!-- Map, with the alternatives picker laid over its right edge -->
       <Grid Grid.Row="2">
@@ -193,7 +193,7 @@
         <Border IsVisible="{Binding IsPickingAlternative}"
                 HorizontalAlignment="Right" VerticalAlignment="Stretch"
                 Width="250" Margin="0 10 10 10"
-                Background="#f012121a" BorderBrush="#2a3a44" BorderThickness="1" CornerRadius="3">
+                Background="#f012121a" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" CornerRadius="3">
           <Grid RowDefinitions="Auto,*,Auto" Margin="10">
             <TextBlock Grid.Row="0" Text="{Binding AlternativesTitle}" Classes="section" />
 
@@ -203,9 +203,9 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="svc:JumpAlternative">
                   <StackPanel Spacing="1" Margin="0 1">
-                    <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="#ddd"
+                    <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
                                FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="#7a7a8a" />
+                    <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="{DynamicResource TextDimBrush}" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -219,13 +219,13 @@
         </Border>
       </Grid>
 
-      <GridSplitter Grid.Row="3" Height="4" Background="#1e1e2a"
+      <GridSplitter Grid.Row="3" Height="4" Background="{DynamicResource BorderSubtleBrush}"
                     HorizontalAlignment="Stretch" ResizeDirection="Rows" />
 
       <DataGrid Grid.Row="4" ItemsSource="{Binding Legs}"
                 AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                 CanUserReorderColumns="False" CanUserSortColumns="False"
-                Background="#0d0d12">
+                Background="{DynamicResource SurfaceBaseBrush}">
         <DataGrid.Columns>
           <DataGridTextColumn Header="#"        Binding="{Binding Number}"       Width="44" />
           <DataGridTemplateColumn Header="From" Width="130" SortMemberPath="From">

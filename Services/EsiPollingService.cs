@@ -19,7 +19,9 @@ public record PollingResult(
     int?    ErrorLimitRemain   = null,
     int?    ErrorLimitReset    = null,
     /// <summary>When the server says its copy goes stale. Drives when this is next polled.</summary>
-    DateTimeOffset? Expires    = null);
+    DateTimeOffset? Expires    = null,
+    /// <summary>The server's ETag, sent back as If-None-Match on the next call.</summary>
+    string? ETag               = null);
 
 public record EndpointInfo(string Key, string DisplayName, int MinSeconds, int DefaultSeconds);
 
@@ -76,6 +78,30 @@ public class EsiPollingService : ReactiveObject
     private static readonly TimeSpan MinimumSpacing = TimeSpan.FromSeconds(60);
 
     /// <summary>
+    /// The longest expiry worth believing.
+    /// </summary>
+    /// <remarks>
+    /// <para>⚠️ There was no limit at all, and one endpoint used it to stop for a year.
+    /// /corporations/{id}/projects answers 200 with Expires exactly 365 days out for every
+    /// corporation that actually has projects, so the Call Schedule tab read "next poll
+    /// 1 September 2027" and that data simply stopped updating. The app was doing as it was told;
+    /// nothing told it that some instructions are not worth obeying.</para>
+    ///
+    /// <para>⚠️ Past this the header is DISBELIEVED, not trimmed to it. Trimming half-obeys a
+    /// value already judged wrong, and left corp projects six hours stale against an endpoint
+    /// whose own configured cycle is sixty minutes. An expiry we do not believe should count for
+    /// nothing at all, which means falling back to the interval exactly as for an endpoint that
+    /// sends no expiry.</para>
+    ///
+    /// <para>Six hours, measured rather than picked: across the whole call log corp.projects is
+    /// the only endpoint that has ever answered with a window beyond two hours, so this governs
+    /// that one endpoint and leaves every other schedule alone. A genuinely long cache is still
+    /// obeyed up to here, and revalidated by ETag above it — where the server offers one, which
+    /// for this endpoint it does not.</para>
+    /// </remarks>
+    private static readonly TimeSpan LongestCredibleExpiry = TimeSpan.FromHours(6);
+
+    /// <summary>
     /// Whether an endpoint is due.
     ///
     /// <para>The server's expiry wins where there is one, and the configured interval governs
@@ -92,16 +118,62 @@ public class EsiPollingService : ReactiveObject
     private bool IsDue(string callKey, string endpointKey, int defaultInterval, DateTimeOffset now)
     {
         if (!_lastCallTimes.TryGetValue(callKey, out var lastCalled)) return true;
-        if (now - lastCalled < MinimumSpacing) return false;
 
-        if (_expiresAt.TryGetValue(callKey, out var expires))
-            return now >= expires + ExpiryGrace;
+        DateTimeOffset? expires = _expiresAt.TryGetValue(callKey, out var e) ? e : null;
+        var due = NextDueAt(endpointKey, defaultInterval, lastCalled, expires);
+        return due is null || now >= due.Value;
+    }
 
-        return (now - lastCalled).TotalSeconds
-               >= _timerSettings.GetInterval(endpointKey, defaultInterval);
+    /// <summary>
+    /// When an endpoint next becomes due, by the rule described above.
+    ///
+    /// <para>⚠️ Public because the schedule display needs the same answer, and used to work it
+    /// out for itself as last-called plus the interval. That showed an hour's wait against a copy
+    /// the server said would lapse in twenty-nine minutes, and made a manual poll look like it
+    /// had pushed the next one an hour out when it had done nothing of the kind. One rule, asked
+    /// twice, rather than two rules that agree only while nobody edits either.</para>
+    ///
+    /// <para>Null means never called, which is due now.</para>
+    /// </summary>
+    public DateTimeOffset? NextDueAt(string endpointKey, int defaultInterval,
+                                     DateTimeOffset? lastCalled, DateTimeOffset? expiresAt)
+    {
+        if (lastCalled is not { } last) return null;
+
+        var interval = TimeSpan.FromSeconds(_timerSettings.GetInterval(endpointKey, defaultInterval));
+
+        var due = expiresAt.HasValue
+            ? expiresAt.Value + ExpiryGrace
+            : last + interval;
+
+        // ⚠️ Applied to the stored value at READ time rather than when it is written, so a record
+        // already carrying an absurd expiry is corrected without anyone repairing rows. The
+        // corporations stuck until 2027 come back on the next cycle.
+        //
+        // The horizon rises with a long configured interval, so an endpoint somebody set to poll
+        // daily is not dragged forward to six hours by a header nobody believes either.
+        var horizon = interval > LongestCredibleExpiry ? interval : LongestCredibleExpiry;
+        if (expiresAt.HasValue && due > last + horizon) due = last + interval;
+
+        // The hot-loop guard applies to the answer, not only to the interval branch: an expiry
+        // already in the past would otherwise read as due on every cycle.
+        var floor = last + MinimumSpacing;
+        return due < floor ? floor : due;
     }
     private readonly ConcurrentDictionary<string, GroupState>     _rateLimits     = new();
     private readonly ConcurrentDictionary<string, string>         _endpointGroups = new(); // endpoint→group
+
+    /// <summary>
+    /// When a specific endpoint may next be called, after it was refused.
+    ///
+    /// <para>⚠️ A safety net under the group-level block, because that one is conditional on a
+    /// header. UpdateRateLimitState only recorded a block when the response carried
+    /// X-Ratelimit-Group — so a 429 that arrived without it recorded nothing at all, the endpoint
+    /// came due again on its ordinary interval, and was refused again. That is a refusal every
+    /// cycle for as long as the condition lasts, which is precisely what corp killmails did for
+    /// two days.</para>
+    /// </summary>
+    private readonly ConcurrentDictionary<string, DateTimeOffset>  _endpointBlocks = new();
     private readonly ConcurrentDictionary<long, string>           _charNames      = new();
 
     // UTC ticks; 0 = not blocked. Written/read via Interlocked so parallel tasks see updates safely.
@@ -218,6 +290,13 @@ public class EsiPollingService : ReactiveObject
 
     public void Start()
     {
+        // ⚠️ Guarded. Without it a second Start overwrites _cts and abandons the first loop,
+        // still running on a token nothing holds any more: two polling loops in one process,
+        // doubling ESI traffic and racing each other\x{2019}s writes. That is the exact failure the
+        // worker lease exists to prevent, and it would have been reachable from inside a single
+        // client the moment the lease started driving Start.
+        if (_cts is not null) return;
+
         _cts         = new CancellationTokenSource();
         _pollingTask = Task.Run(() => RunPollingLoopAsync(_cts.Token));
     }
@@ -228,7 +307,8 @@ public class EsiPollingService : ReactiveObject
         await _cts.CancelAsync();
         if (_pollingTask is not null)
             try { await _pollingTask; } catch (OperationCanceledException) { }
-        _cts = null;
+        _cts         = null;
+        _pollingTask = null;
         StatusText = "Polling: Stopped";
     }
 
@@ -426,6 +506,10 @@ public class EsiPollingService : ReactiveObject
                 gs.BlockedUntil.HasValue && now < gs.BlockedUntil.Value)
                 continue;
 
+            // And the endpoint's own block, which is set whether or not the refusal named a group.
+            if (_endpointBlocks.TryGetValue(ep.Key, out var until) && now < until)
+                continue;
+
             // Re-check global error limit — a parallel task may have tripped it since cycle start.
             if (Interlocked.Read(ref _errorLimitBlockedUntilTicks) is var bt and > 0 && DateTimeOffset.UtcNow.UtcTicks < bt)
                 return;
@@ -451,7 +535,8 @@ public class EsiPollingService : ReactiveObject
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
             RecordExpiry(callKey, result);
-            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode, result.Expires, ct);
+            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode,
+                                         result.Expires, ETagFor(callKey), ct);
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
@@ -501,7 +586,26 @@ public class EsiPollingService : ReactiveObject
     {
         if (result.Success && result.Expires is { } e) _expiresAt[callKey] = e;
         else                                           _expiresAt.TryRemove(callKey, out _);
+
+        // ⚠️ Kept on a 304 as well as a 200. A revalidation that answers "unchanged" usually
+        // repeats the same ETag, but it is not obliged to send one at all, and dropping ours on
+        // an absent header would turn every later call back into a full download.
+        if (result.ETag is { Length: > 0 } tag) _etags[callKey] = tag;
     }
+
+    /// <summary>
+    /// The last ETag each endpoint gave us, so the next call can ask "has this changed?" rather
+    /// than fetch it again.
+    ///
+    /// <para>Alongside <c>_expiresAt</c> rather than passed to the handlers: a handler is a
+    /// lambda of (ownerId, db, ct), and threading a new argument through all of them would touch
+    /// every endpoint to serve the few that send long cache headers.</para>
+    /// </summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _etags = new();
+
+    /// <summary>The stored ETag for a call, or null when there is none yet.</summary>
+    public string? ETagFor(string callKey) =>
+        _etags.TryGetValue(callKey, out var tag) ? tag : null;
 
     private async Task LoadLastCallTimesAsync(CancellationToken ct)
     {
@@ -516,12 +620,14 @@ public class EsiPollingService : ReactiveObject
             // Survives a restart, so the app comes back already in phase with the server rather
             // than re-learning every schedule from a cold poll of everything.
             if (r.ExpiresAt is { } e) _expiresAt[key] = e;
+            if (r.ETag is { Length: > 0 } t) _etags[key] = t;
         }
     }
 
     private async Task PersistCallRecordAsync(
         long ownerId, string ownerType, string endpoint,
-        DateTimeOffset calledAt, int statusCode, DateTimeOffset? expiresAt, CancellationToken ct)
+        DateTimeOffset calledAt, int statusCode, DateTimeOffset? expiresAt, string? etag,
+        CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -539,6 +645,7 @@ public class EsiPollingService : ReactiveObject
                 LastCalledAt   = calledAt,
                 LastStatusCode = statusCode,
                 ExpiresAt      = expiresAt,
+                ETag           = etag,
             });
         }
         else
@@ -546,6 +653,10 @@ public class EsiPollingService : ReactiveObject
             existing.LastCalledAt   = calledAt;
             existing.LastStatusCode = statusCode;
             existing.ExpiresAt      = expiresAt;
+
+            // ⚠️ Only when we have one. Overwriting a good ETag with null on a call that did
+            // not carry one would quietly disable revalidation for that endpoint.
+            if (etag is { Length: > 0 }) existing.ETag = etag;
         }
 
         await db.SaveChangesAsync(ct);
@@ -553,6 +664,18 @@ public class EsiPollingService : ReactiveObject
 
     private void UpdateRateLimitState(string endpointKey, PollingResult result)
     {
+        // ⚠️ Outside the group check below, and that is the whole point of it being here. A refusal
+        // is a refusal whether or not the response troubled to say which group it belonged to.
+        if (result.StatusCode is 420 or 429)
+        {
+            var wait = result.RetryAfterSeconds ?? result.ErrorLimitReset ?? 60;
+            _endpointBlocks[endpointKey] = DateTimeOffset.UtcNow.AddSeconds(wait);
+        }
+        else
+        {
+            _endpointBlocks.TryRemove(endpointKey, out _);
+        }
+
         if (result.RateLimitGroup is not null)
         {
             _endpointGroups[endpointKey] = result.RateLimitGroup;
@@ -595,7 +718,7 @@ public class EsiPollingService : ReactiveObject
         new(r.IsSuccess, r.StatusCode,
             r.IsSuccess ? null : r.Error,
             r.RateLimitGroup, r.RateLimitRemaining, r.RetryAfterSeconds,
-            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires);
+            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires, r.ETag);
 
     // Walks the parent-chain for every asset and returns {ItemId → (RootLocationId, RootLocationType)}.
     // A terminal is reached when LocationType is not 'item', or when the LocationId is not found
@@ -1622,14 +1745,19 @@ public class EsiPollingService : ReactiveObject
 
     private async Task<PollingResult> FetchKillMailsAsync(long charId, AppDbContext db, CancellationToken ct)
     {
-        var r = await _esi.ExecuteAllPagesAsync<EsiKillMailRef>(charId,
-            $"characters/{charId}/killmails/recent/", ct);
-        if (!r.IsSuccess) return FromResult(r);
-
+        // What we already hold, read before paging — see the corporation variant. ⚠️ Nothing here
+        // deletes: these two calls exist to DISCOVER killmails, and a killmail already stored is
+        // simply not re-added. Stopping the walk early therefore cannot lose history; it only
+        // declines to re-download it.
         var existingIds = await db.EsiKillMailRefs
             .Where(k => k.OwnerId == charId && k.OwnerType == "character")
             .Select(k => k.KillMailId)
             .ToHashSetAsync(ct);
+
+        var r = await _esi.ExecuteAllPagesAsync<EsiKillMailRef>(charId,
+            $"characters/{charId}/killmails/recent/", ct,
+            stopAfterPage: page => page.All(k => existingIds.Contains(k.KillMailId)));
+        if (!r.IsSuccess) return FromResult(r);
 
         var newRefs = r.Data!
             .Where(k => !existingIds.Contains(k.KillMailId))
@@ -2023,7 +2151,8 @@ public class EsiPollingService : ReactiveObject
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
             RecordExpiry(callKey, result);
-            await PersistCallRecordAsync(corp.Id, "corporation", ep.Key, callTime, result.StatusCode, result.Expires, ct);
+            await PersistCallRecordAsync(corp.Id, "corporation", ep.Key, callTime, result.StatusCode,
+                                         result.Expires, ETagFor(callKey), ct);
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
@@ -2551,14 +2680,22 @@ public class EsiPollingService : ReactiveObject
 
     private async Task<PollingResult> FetchCorpKillMailsAsync(long corpId, AppDbContext db, CancellationToken ct)
     {
-        var r = await _esi.ExecuteCorpAllPagesAsync<EsiKillMailRef>(
-            corpId, $"corporations/{corpId}/killmails/recent/", ct);
-        if (!r.IsSuccess) return FromResult(r);
-
+        // ⚠️ Read what we already hold BEFORE paging, not after. ESI re-offers the corporation's
+        // whole killmail history on every poll, newest first, and this ran every five minutes: it
+        // downloaded every page, then threw away all but the handful it had not seen. For a
+        // corporation with a long history that was the entire rate limit for the route, spent on
+        // data already in the database — a steady 429 every cycle, for one corporation, for days.
         var existingIds = await db.EsiKillMailRefs
             .Where(k => k.OwnerId == corpId && k.OwnerType == "corporation")
             .Select(k => k.KillMailId)
             .ToHashSetAsync(ct);
+
+        // Newest first, so a page with nothing new means every page after it is older and older
+        // still — all of it already stored. Steady state is one page.
+        var r = await _esi.ExecuteCorpAllPagesAsync<EsiKillMailRef>(
+            corpId, $"corporations/{corpId}/killmails/recent/", ct,
+            stopAfterPage: page => page.All(k => existingIds.Contains(k.KillMailId)));
+        if (!r.IsSuccess) return FromResult(r);
 
         db.EsiKillMailRefs.AddRange(r.Data!
             .Where(k => !existingIds.Contains(k.KillMailId))
@@ -3084,12 +3221,21 @@ public class EsiPollingService : ReactiveObject
                 .Select(c => c.EndLocationId!.Value).Distinct().ToListAsync(ct)) ids.Add(id);
 
             // Industry job facilities and blueprint/output locations.
+            //
+            // ⚠️ The same self-exclusion the assets branch above uses, and for a stronger reason:
+            // a job's blueprint and output locations are CONTAINERS by nature. ESI answers with the
+            // corp office or division the prints came from and the output went to, not the
+            // structure around them — twelve of the ids reachable this way are Offices, category 3.
+            // Anything that is itself an owned item is not the structure it sits in.
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.StationId > T)
-                .Select(j => j.StationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.StationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.BlueprintLocationId > T)
-                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.BlueprintLocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
             foreach (var id in await db.EsiIndustryJobs.Where(j => j.OutputLocationId > T)
-                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct)) ids.Add(id);
+                .Select(j => j.OutputLocationId).Distinct().ToListAsync(ct))
+                if (!knownItemIds.Contains(id)) ids.Add(id);
 
             // Market orders and wallet transactions.
             foreach (var id in await db.EsiMarketOrders.Where(o => o.LocationId > T)
@@ -3139,11 +3285,13 @@ public class EsiPollingService : ReactiveObject
 
             // Clear out anything already in the table that our assets identify as not a structure,
             // before the sync copies it into the table the user is about to curate by hand.
-            var purged = await _structureSync.PurgeNonStructuresAsync(ct);
+            var removedWhat = new List<string>();
+            var purged = await _structureSync.PurgeNonStructuresAsync(removedWhat, ct);
             if (purged > 0)
                 _errorLogger.Log(nameof(EsiPollingService), "Structure hygiene",
                     $"Removed {purged:N0} row(s) our assets identify as ships, containers or " +
-                     "asset-safety wraps rather than structures.");
+                     "asset-safety wraps rather than structures: " +
+                     (removedWhat.Count > 0 ? string.Join("; ", removedWhat) : "id not in assets"));
 
             // Copy what ESI resolved into the app's own table, which is what the Structure Browser
             // reads and edits. One direction only — nothing the user types can travel back into
@@ -3529,10 +3677,19 @@ public class EsiPollingService : ReactiveObject
     private async Task<PollingResult> FetchCorpProjectsAsync(long corpId, AppDbContext db, CancellationToken ct)
     {
         // ── Page through project list (limit=100 reduces list-page call count) ──
+        // ⚠️ This endpoint answers 200 with an Expires one YEAR ahead once a corporation has
+        // projects, which stopped three of them updating until September 2027 before there was a
+        // ceiling on deferral. A cache that long means "ask whether it changed", so the first
+        // page carries If-None-Match and a 304 ends the poll without walking the pages at all.
+        // ESI does not count 304s against the error limit, so this is cheaper than polling.
+        var projectsKey = $"corp.projects:{corpId}:corporation";
+        var knownETag   = ETagFor(projectsKey);
+
         var allProjects = new List<EsiCorpProjectEntry>();
         string? beforeCursor = null;
         EsiCallResult<EsiCorpProjectsPage>? lastListResult = null;
         int? rateLimitRemaining = null;
+        var  firstPage = true;
 
         do
         {
@@ -3540,8 +3697,26 @@ public class EsiPollingService : ReactiveObject
                 ? $"https://esi.evetech.net/corporations/{corpId}/projects?state=All&limit=100&before={Uri.EscapeDataString(beforeCursor)}"
                 : $"https://esi.evetech.net/corporations/{corpId}/projects?state=All&limit=100";
 
+            // ⚠️ Only the first page is revalidated. An ETag identifies the response to ONE
+            // request, so a later page's cursor makes it a different resource and sending the
+            // first page's tag there would be asking the wrong question.
+            var headers = firstPage && knownETag is not null
+                ? new Dictionary<string, string>(s_projectsHeaders) { ["If-None-Match"] = knownETag }
+                : s_projectsHeaders;
+
             lastListResult = await _esi.ExecuteCorpAuthAsync<EsiCorpProjectsPage>(
-                corpId, listUrl, ct, extraHeaders: s_projectsHeaders);
+                corpId, listUrl, ct, extraHeaders: headers);
+            firstPage = false;
+
+            // ⚠️ Tested before IsSuccess, which spans 200-299 and so counts 304 as a failure.
+            // Unchanged is a good answer: keep what is stored and report success, or the call is
+            // logged as an error and the schedule never advances.
+            if (lastListResult.IsNotModified)
+                return new PollingResult(true, 304, null,
+                    lastListResult.RateLimitGroup, lastListResult.RateLimitRemaining,
+                    lastListResult.RetryAfterSeconds, lastListResult.ErrorLimitRemain,
+                    lastListResult.ErrorLimitReset, lastListResult.Expires,
+                    lastListResult.ETag ?? knownETag);
 
             if (!lastListResult.IsSuccess)
             {

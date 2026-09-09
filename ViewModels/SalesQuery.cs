@@ -16,13 +16,22 @@ public sealed record SalesLoadResult(
 // build/market value pulled from TypePriceSnapshots (nearest day).
 internal static class SalesQuery
 {
+    // ⚠️ The two date columns are CAST to TEXT because both queries read them into a string
+    // and parse it. On SQLite that was free: dates ARE text there, and the cast is a no-op. On a
+    // server they are timestamptz, and reading one as a string throws outright — "Reading as
+    // System.String is not supported for fields having DataTypeName timestamp with time zone".
+    //
+    // Safe to parse on both because the connection pins datestyle=ISO, so PostgreSQL renders
+    // exactly the layout DateTimeOffset.TryParse expects. That is the same guarantee the monthly
+    // bucketing relies on, and it is why it is pinned in the connection string rather than left
+    // to the server's locale.
     // Market sales: one row per sell transaction. Location = station/structure; buyer = the client.
     private const string MarketSql =
         """
-        SELECT t."TransactionId" AS SaleId, t."OwnerId" AS OwnerId, t."OwnerType" AS OwnerType,
-               t."Date" AS DateStr, t."TypeId" AS TypeId, t."Quantity" AS Quantity,
-               CAST(t."UnitPrice" AS REAL) AS UnitPrice, t."ClientId" AS BuyerId,
-               t."LocationId" AS LocationId,
+        SELECT t."TransactionId" AS "SaleId", t."OwnerId" AS "OwnerId", t."OwnerType" AS "OwnerType",
+               CAST(t."Date" AS TEXT) AS DateStr, t."TypeId" AS "TypeId", t."Quantity" AS "Quantity",
+               CAST(t."UnitPrice" AS DOUBLE PRECISION) AS "UnitPrice", t."ClientId" AS "BuyerId",
+               t."LocationId" AS "LocationId",
                -- Which tool the location link opens. An NPC station is an entity; a player
                -- structure has a browser of its own. Decided by which table actually named it
                -- rather than by the id, because the ranges are not a reliable tell.
@@ -30,36 +39,36 @@ internal static class SalesQuery
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = t."LocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = t."LocationId")) AS Location
         FROM "EsiWalletTransactions" t
-        WHERE t."IsBuy" = 0
+        WHERE t."IsBuy" = FALSE
           -- A corp trade a character executes is stored under both the character (is_personal=0)
           -- and the corporation. Keep the corp row; drop the character's duplicate.
-          AND (t."OwnerType" = 'corporation' OR t."IsPersonal" = 1)
+          AND (t."OwnerType" = 'corporation' OR t."IsPersonal" = TRUE)
         """;
 
     // Contract sales: item-exchange contracts finished for ISK, issued BY the tracked owner (so an
     // accepted purchase is excluded). Buyer = the acceptor; location = the items' location.
     private const string ContractSql =
         """
-        SELECT c."ContractId" AS SaleId, c."OwnerId" AS OwnerId, c."OwnerType" AS OwnerType,
-               c."DateCompleted" AS DateStr, CAST(c."Price" AS REAL) AS Price, COALESCE(c."AcceptorId", 0) AS BuyerId,
-               c."StartLocationId" AS LocationId, COALESCE(c."Title", '') AS Title,
+        SELECT c."ContractId" AS "SaleId", c."OwnerId" AS "OwnerId", c."OwnerType" AS "OwnerType",
+               CAST(c."DateCompleted" AS TEXT) AS DateStr, CAST(c."Price" AS DOUBLE PRECISION) AS "Price", COALESCE(c."AcceptorId", 0) AS "BuyerId",
+               c."StartLocationId" AS "LocationId", COALESCE(c."Title", '') AS "Title",
                (SELECT COUNT(*) FROM "SdeStations" WHERE "StationId" = c."StartLocationId") AS IsStation,
                COALESCE((SELECT "Name" FROM "SdeStations"       WHERE "StationId"   = c."StartLocationId"),
                         (SELECT "Name" FROM "EsiStructureNames" WHERE "StructureId" = c."StartLocationId")) AS Location
         FROM "EsiContracts" c
-        WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
+        WHERE c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS DOUBLE PRECISION) > 0
+          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = FALSE)
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;
 
     private const string ContractItemSql =
         """
-        SELECT ci."ContractId" AS ContractId, ci."TypeId" AS TypeId, ci."Quantity" AS Quantity
+        SELECT ci."ContractId" AS "ContractId", ci."TypeId" AS "TypeId", ci."Quantity" AS "Quantity"
         FROM "EsiContractItems" ci
         JOIN "EsiContracts" c ON c."ContractId" = ci."ContractId"
-        WHERE ci."IsIncluded" = 1
-          AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS REAL) > 0
-          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = 0)
+        WHERE ci."IsIncluded" = TRUE
+          AND c."Type" = 'item_exchange' AND c."Status" = 'finished' AND CAST(c."Price" AS DOUBLE PRECISION) > 0
+          AND ( (c."OwnerType" = 'character'   AND c."IssuerId" = c."OwnerId" AND c."ForCorporation" = FALSE)
              OR (c."OwnerType" = 'corporation' AND c."IssuerCorporationId" = c."OwnerId") )
         """;
 
@@ -136,7 +145,7 @@ internal static class SalesQuery
         string OwnerName(long id, string type) => type == "corporation"
             ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
             : (charNames.TryGetValue(id, out var pn) ? pn : $"Char {id}");
-        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"Type {id}";
+        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
 
         // Buyer names — external players. Resolve from local caches, fall back to ESI once and
         // persist to the shared UniverseNames cache so later loads stay offline.
@@ -239,7 +248,7 @@ internal static class SalesQuery
                 // once — a plain Add + SaveChanges then races on the unique EntityId. This makes the
                 // shared-cache write idempotent and race-safe.
                 await db.Database.ExecuteSqlAsync(
-                    $"INSERT OR IGNORE INTO UniverseNames (EntityId, Name, Category) VALUES ({kv.Key}, {kv.Value}, '')");
+                    $"INSERT INTO \"UniverseNames\" (\"EntityId\", \"Name\", \"Category\") VALUES ({kv.Key}, {kv.Value}, '') ON CONFLICT DO NOTHING");
             }
         }
         catch (Exception ex) { errorLogger.Log("SalesQuery", "ResolveBuyers", ex); }

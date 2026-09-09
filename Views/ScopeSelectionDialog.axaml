@@ -6,18 +6,18 @@
         Width="520" Height="580"
         MinWidth="400" MinHeight="420"
         WindowStartupLocation="CenterOwner"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <Grid RowDefinitions="Auto,Auto,*,Auto">
 
     <!-- Header -->
-    <Border Grid.Row="0" Background="#161620" Padding="18 14">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="18 14">
       <StackPanel Spacing="6">
         <TextBlock x:Name="DialogTitle"
                    FontSize="14" FontWeight="SemiBold"
-                   Foreground="#c8a84b" />
+                   Foreground="{DynamicResource AccentBrush}" />
         <TextBlock Text="A browser tab will open for you to log in and authorize access. Review the scopes below and uncheck any you do not want to grant. These choices apply to this authentication only."
-                   FontSize="11" Foreground="#888"
+                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" />
       </StackPanel>
     </Border>
@@ -33,7 +33,7 @@
                 Padding="10 3" FontSize="11" />
       </StackPanel>
       <TextBlock Text="Removing scopes will disable related features in this application. They can be re-granted at any time by running Update."
-                 FontSize="11" Foreground="#c8a84b"
+                 FontSize="11" Foreground="{DynamicResource AccentBrush}"
                  TextWrapping="Wrap" />
     </StackPanel>
 
@@ -47,7 +47,7 @@
               <!-- Group header — label only, not a scope itself -->
               <TextBlock Text="{Binding Category}"
                          FontWeight="SemiBold"
-                         Foreground="#c8a84b"
+                         Foreground="{DynamicResource AccentBrush}"
                          Margin="0 0 0 2" />
 
               <!-- Individual scope checkboxes -->
@@ -56,7 +56,7 @@
                   <DataTemplate x:DataType="vm:ScopeItem">
                     <CheckBox IsChecked="{Binding IsSelected}"
                               Content="{Binding FriendlyName}"
-                              Foreground="#bbb"
+                              Foreground="{DynamicResource TextSecondaryBrush}"
                               Margin="0 1" />
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -69,7 +69,7 @@
     </ScrollViewer>
 
     <!-- Action buttons -->
-    <Border Grid.Row="3" Background="#0d0d12" Padding="16 12">
+    <Border Grid.Row="3" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Right"
                   Spacing="10">

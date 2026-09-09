@@ -144,15 +144,32 @@ public class BuildCostService
         await db.SaveChangesAsync(ct);
     }
 
-    // EVE material consumption for a whole job: per-run adjusted quantity (base × ME/rig/role
-    // modifiers) rounded to 2 dp, × run count, ceilinged ONCE, floored at one per run. Must match
-    // ProductionCalculatorService.JobMaterialTotal so the two calculators agree.
-    private static int JobMaterialTotal(int baseQty, double factor, int runs)
+    /// <summary>
+    /// Forgets stored figures for types that cannot be costed, so nothing downstream keeps
+    /// reading them.
+    ///
+    /// <para>The build cost goes because the gap fill derives a market price from it. The
+    /// price goes with it — once the cost is gone the gap fill has nothing to correct that row
+    /// with, so leaving it would freeze the last bad value in place forever.</para>
+    ///
+    /// <para>⚠️ Including rows flagged as market-backed. That flag does not actually distinguish
+    /// them: Moon Harvesting Array carried 2.5e28 ISK under FromMarketData = 1, and no real order
+    /// can hold that — EVE's entire economy is orders of magnitude smaller. Deleting a price is
+    /// safe anyway; the next market refresh puts a real one back.</para>
+    /// </summary>
+    private static async Task PurgeUncostableAsync(
+        AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct)
     {
-        double perRun = Math.Round(baseQty * factor, 2);
-        double total  = Math.Round(perRun * runs, 4);
-        return Math.Max(runs, (int)Math.Ceiling(total));
+        var ids = typeIds.ToList();
+
+        await db.BuildCosts.Where(b => ids.Contains(b.TypeId)).ExecuteDeleteAsync(ct);
+        await db.MarketItemPrices.Where(p => ids.Contains(p.TypeId)).ExecuteDeleteAsync(ct);
     }
+
+    // What a whole job eats of one material. See IndustryMe.JobMaterialTotal — the same
+    // definition the plan uses, so a build cost and the plan it prices cannot disagree.
+    private static long JobMaterialTotal(int baseQty, double factor, long runs) =>
+        IndustryMe.JobMaterialTotal(baseQty, factor, runs);
 
     // ── Core calculation ──────────────────────────────────────────────────────
 
@@ -169,6 +186,36 @@ public class BuildCostService
             StatusText = "Build costs: no default park set — mark a park as default in Indy Parks";
             return;
         }
+
+        // —— Recipes that consume their own product ————
+        //
+        // ⚠️ A blueprint that lists its own product among its materials is not a build recipe,
+        // and costing one is circular by construction: cost(X) reads price(X), and the gap fill
+        // in MarketPricingService then writes price(X) = cost(X) × markup. Every recalculation
+        // multiplies by the markup and nothing bounds it.
+        //
+        // Catalyst Silo and Moon Harvesting Array are both like this in the SDE — each needs
+        // one of itself — and they reached 7.2e28 and 2.2e28 ISK. decimal stops at 7.9e28, so
+        // reading one back threw and four worklist generators died together: every haul,
+        // purchase, job and invention row gone.
+        //
+        // ⚠️ This runs FIRST, before anything reads BuildCosts. TotalCost is a decimal, so a
+        // poisoned row throws as it is materialised — purging it later in the pass is never
+        // reached, which is exactly how the first attempt at this failed. Detection is from the
+        // SDE alone and touches no stored figure.
+        var selfMaking = (await db.SdeBlueprintMaterials.AsNoTracking()
+                .Where(m => m.Activity == "manufacturing")
+                .Join(db.SdeBlueprintProducts.AsNoTracking().Where(bp => bp.Activity == "manufacturing"),
+                      m => m.TypeId, bp => bp.TypeId,
+                      (m, bp) => new { bp.ProductTypeId, m.MaterialTypeId })
+                .Where(x => x.ProductTypeId == x.MaterialTypeId)
+                .Select(x => x.ProductTypeId)
+                .Distinct()
+                .ToListAsync(ct))
+            .ToHashSet();
+
+        if (selfMaking.Count > 0)
+            await PurgeUncostableAsync(db, selfMaking, ct);
 
         // Load structures and their rigs.
         var structures = await db.IndyStructures.AsNoTracking()
@@ -475,7 +522,16 @@ public class BuildCostService
                 // cruiser-hulled at 115,000 m³. See IndyRigMatching.
                 (6, "Cruiser" or "Battlecruiser" or "Combat Battlecruiser"
                    or "Attack Battlecruiser" or "Special Edition Yachts")                   => "medium_ships",
-                (6, "Battleship" or "Freighter")                                            => "large_ships",
+                // ⚠️ Freighters and industrial command ships are LARGE here, and jump freighters are
+                // ADVANCED large. They are capital-sized to fly and capital-priced to buy, which is
+                // why they were filed under capitals, but manufacturing does not care and the rigs
+                // say so in CCP's own words:
+                //   Basic Large Ship     "battleships, freighters and industrial command ships"
+                //   Advanced Large Ship  "Tech 2 battleships and jump freighters"
+                //   Capital Ship         "capital ships"
+                // Filed as capitals, a freighter job in a large-ship yard read as unrigged and was
+                // costed without the bonus it was actually getting.
+                (6, "Battleship" or "Freighter" or "Industrial Command Ship")               => "large_ships",
                 // T2 frigates/destroyers; SDE group is "Interdictor" not "Interdiction Destroyer"
                 (6, "Interceptor" or "Assault Frigate" or "Covert Ops"
                    or "Electronic Attack Ship" or "Interdictor" or "Tactical Destroyer"
@@ -486,11 +542,9 @@ public class BuildCostService
                    or "Heavy Interdiction Cruiser" or "Logistics" or "Command Ship"
                    or "Strategic Cruiser" or "Blockade Runner" or "Deep Space Transport"
                    or "Flag Cruiser" or "Expedition Command Ship")                          => "adv_medium_ships",
-                (6, "Marauder" or "Black Ops")                                              => "adv_large_ships",
-                // Command Carrier (Ymir etc.) and Lancer Dreadnought are capital-class ships
+                (6, "Marauder" or "Black Ops" or "Jump Freighter")                          => "adv_large_ships",
                 (6, "Dreadnought" or "Carrier" or "Force Auxiliary" or "Capital Industrial Ship"
-                   or "Supercarrier" or "Titan" or "Command Carrier" or "Lancer Dreadnought"
-                   or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
+                   or "Supercarrier" or "Titan" or "Command Carrier" or "Lancer Dreadnought")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
 
@@ -923,8 +977,15 @@ public class BuildCostService
             // at a figure already recomputed in this same pass. Leftovers only arise where a
             // blueprint yields more than one unit per run, and those outputs always sit strictly
             // below their consumers in the material graph, so such an order exists.
+            // Recipes that make themselves are not costed at all — see the note at the top of
+            // this method. The topological pass below handles a genuine cycle by costing it last
+            // and falling back on the previous figure, which is right when that figure came from
+            // real materials; it cannot help here, because the previous figure IS this item's own
+            // inflated price.
             var builtTypes = productMap.Keys
-                .Where(t => !boughtTypes.Contains(t) && recMaterials.ContainsKey(t))
+                .Where(t => !boughtTypes.Contains(t)
+                         && !selfMaking.Contains(t)
+                         && recMaterials.ContainsKey(t))
                 .ToHashSet();
 
             var consumers = new Dictionary<int, List<int>>();
@@ -1017,24 +1078,47 @@ public class BuildCostService
 
         using var handle = _log.StartCall(defaultPark.Name, "build.costs");
         var now     = DateTime.UtcNow;
+        // ⚠️ Rounded HERE, once, not wherever a column happens to show it. A chain cost is a
+        // division carried through however many tiers the item has — 277493.49010615459901787151515
+        // for a rig — and every screen reading the table would otherwise have to remember to trim
+        // it, which the asset grid did not. ISK is quoted to two places in game; the stored figure
+        // now says the same.
+        //
+        // Away from zero rather than the default banker's rounding: a cost is money, and a half
+        // ISK that sometimes rounds down and sometimes up is harder to reconcile than one that
+        // always rounds the same way.
+        static decimal Isk(decimal v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
+
         var results = productMap.Keys
             .Where(tid => unitCosts.ContainsKey(tid))
             .Select(tid => new BuildCost
             {
                 TypeId       = tid,
                 TypeName     = typeNames.TryGetValue(tid, out var n) ? n : "",
-                TotalCost    = unitCosts[tid],
-                MaterialCost = rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m,
-                JobCost      = totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m,
+                TotalCost    = Isk(unitCosts[tid]),
+                MaterialCost = Isk(rawMatCosts.TryGetValue(tid, out var rm) ? rm : 0m),
+                JobCost      = Isk(totalJobCosts.TryGetValue(tid, out var tj) ? tj : 0m),
                 BuildSeconds = buildSeconds.TryGetValue(tid, out var bs) ? bs : 0.0,
                 Bought       = boughtTypes.Contains(tid),
                 UpdatedAt    = now,
             })
             .ToList();
 
+        // ⚠️ One transaction, or there is a moment with no costs at all. ExecuteDeleteAsync
+        // commits on its own, so between it and the insert every reader sees an empty table — and
+        // the readers here are the asset grid, the worklist purchase pass and every gap-filled
+        // price that falls back to build cost. A pass landing in that gap does not read a stale
+        // number, it reads nothing, which is the worse of the two.
+        //
+        // No extra lock time worth speaking of: the delete and the insert already ran back to
+        // back, each taking the write lock in turn. This merges them rather than adding anything.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.BuildCosts.ExecuteDeleteAsync(ct);
         db.BuildCosts.AddRange(results);
         await db.SaveChangesAsync(ct);
+
+        await tx.CommitAsync(ct);
 
         handle.Complete(true, results.Count, $"{results.Count:N0} items");
         StatusText = $"Build costs: last updated {DateTimeOffset.Now:t} ({results.Count:N0} items)";

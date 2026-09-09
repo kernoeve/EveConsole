@@ -314,6 +314,54 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
         return new Lab(id, name, s);
     }
 
+    /// <summary>
+    /// Both laboratories a T2 chain needs, together.
+    ///
+    /// <para>⚠️ One definition, because two callers ask the same question for opposite reasons.
+    /// The invention generator needs the labs to place its jobs; the purchase generator needs to
+    /// know whether that generator will run at all, because it stands down on any print invention
+    /// will raise and must not stand down into silence.</para>
+    /// </summary>
+    public static async Task<(Lab? Invention, Lab? Copying)> LabsAsync(
+        AppDbContext db, int parkId, CancellationToken ct = default)
+        => (await LabAsync(db, parkId, InventionCategory, ct),
+            await LabAsync(db, parkId, CopyingCategory,   ct));
+
+    /// <summary>
+    /// Whether the invention pipeline can actually raise tasks for this park.
+    ///
+    /// <para>The same three gates the generator opens with: somebody to run the jobs, and a park
+    /// that has said where copying and invention happen. False means a T2 blueprint genuinely has
+    /// to be acquired rather than made, and the purchase row for it is the honest answer.</para>
+    /// </summary>
+    public static async Task<bool> CanPlanAsync(
+        AppDbContext db, int parkId, bool anyScientist, CancellationToken ct = default)
+    {
+        if (!anyScientist || parkId <= 0) return false;
+        var (inventionLab, copyLab) = await LabsAsync(db, parkId, ct);
+        return inventionLab is not null && copyLab is not null;
+    }
+
+    /// <summary>
+    /// Every blueprint that is INVENTED rather than acquired.
+    ///
+    /// <para>⚠️ Asked of the SDE, not inferred from a name or a tech level. "Ark Blueprint" is the
+    /// product of an invention activity off "Providence Blueprint"; that row is the fact, and it
+    /// is the same row the invention planner runs from, so the two cannot disagree about which
+    /// prints are made and which are bought.</para>
+    ///
+    /// <para>⚠️ The whole set, unfiltered. It is 1,209 rows against 4,999 blueprints, so asking
+    /// for "these of mine" would send the larger side to the database as an IN list of several
+    /// thousand parameters to get back the smaller one.</para>
+    /// </summary>
+    public static async Task<HashSet<int>> InventedBlueprintIdsAsync(
+        AppDbContext db, CancellationToken ct = default) =>
+        [.. await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => p.Activity == InventionActivity)
+            .Select(p => p.ProductTypeId)
+            .Distinct()
+            .ToListAsync(ct)];
+
     /// <summary>One item's worth of invention work, with the demand entry that asked for it.</summary>
     /// <param name="ShortRuns">T2 runs the demand still wants after the runs already sitting on
     /// invented copies are netted off.</param>

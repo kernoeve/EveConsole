@@ -99,14 +99,31 @@ public class WorklistService(
 
         PromoteUnblockingBuys(sections, all);
 
-        // Jobs stopped for want of material that exists somewhere else, by where they run.
-        // MustBuy shortfalls are excluded: no haul fixes something nobody owns.
+        // Every job stopped for want of something, by where it runs and what it wants.
+        //
+        // ⚠️ MustBuy shortfalls are INCLUDED, and the flag is not what it sounds like. It means
+        // "not enough owned in scope that other jobs have not already claimed" — so with one
+        // Obelisk owned and three Anshar jobs wanting one each, the first job is a hauling
+        // problem and the other two are marked MustBuy. Filtering them out here dropped them
+        // from the panel entirely, which is why a haul carrying an Obelisk listed one job
+        // waiting on it and not the three that are.
+        //
+        // They are all waiting on this crate. Which of them the crate actually starts is a
+        // separate question, answered per job below and shown rather than filtered on.
         var stopped = all
             .Where(x => x.LocationId > 0)
-            .SelectMany(x => x.Shortages.Where(h => !h.MustBuy)
-                              .Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
+            .SelectMany(x => x.Shortages.Select(h => (Job: x, Key: (x.LocationId, h.TypeId))))
             .GroupBy(x => x.Key)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
+
+        // The same shortages indexed by TYPE alone, for the jobs pass: a job's output feeds
+        // whoever needs it wherever they are, unlike a delivery, which is judged where it lands.
+        var stoppedByType = all
+            .SelectMany(x => x.Shortages.Select(h => (Job: x, h.TypeId)))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).ToList());
+
+        PromoteBlockingJobs(sections, stoppedByType);
 
         if (stopped.Count == 0) return;
 
@@ -119,30 +136,153 @@ public class WorklistService(
                 var haul = section.Items[n];
                 if (haul.Kind != WorklistKind.Haul || haul.DestinationId <= 0) continue;
 
-                var carried = haul.Lines.Count > 0
-                    ? haul.Lines.Select(l => l.TypeId)
-                    : [haul.TypeId];
+                // What this one trip actually puts on the dock, by type and by how much.
+                //
+                // ⚠️ Quantities, not just a set of type ids. A move is capped by what the source
+                // station has free, so a destination short of 5,000 units can be served by several
+                // trips out of several stations, each of them its own row here. A trip carrying 200
+                // of those 5,000 is worth showing against the job, but it does not start it, and a
+                // test on type alone cannot tell the two apart.
+                var cargo = haul.Lines.Count > 0
+                    ? haul.Lines.GroupBy(l => l.TypeId)
+                          .ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity))
+                    : new Dictionary<int, long> { [haul.TypeId] = haul.Quantity };
 
-                var freed = carried
+                // Every job at the destination waiting on anything in this cargo. Relevant to the
+                // row, but not the same thing as restarted by it.
+                var touched = cargo.Keys
                     .SelectMany(t => stopped.GetValueOrDefault((haul.DestinationId, t), []))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
-                if (freed.Count == 0) continue;
+                // ⚠️ No longer a reason to leave the row alone. The generator has already put the
+                // planner's own drivers on it, and those are what the tooltip means by "Jobs are
+                // waiting on this" — so a haul with no matching stopped ROW still has something
+                // true to show, which is the case the panel used to be silent about.
+                if (touched.Count == 0) continue;
+
+                // ⚠️ A job is freed only when this cargo covers EVERYTHING it is short of, in full.
+                // The count used to be "jobs waiting on any of these items", which is a different
+                // and much larger number: a job short of three things and sent one of them stays
+                // exactly as stopped as it was.
+                //
+                // ⚠️ A MustBuy shortage is ALWAYS outstanding, whatever the manifest says. The
+                // flag means the owned stock is already spoken for by another job, and this crate
+                // came out of that same owned stock — so a second job wanting the same hull is
+                // queued behind the first, not served by the same trip. That is a different fact
+                // from "waiting on something else too", and the row says which.
+                var waiting = touched
+                    .Select(j =>
+                    {
+                        var outstanding = j.Shortages
+                            .Where(s => s.MustBuy || cargo.GetValueOrDefault(s.TypeId) < s.Short)
+                            .ToList();
+
+                        return new WorklistWaitingJob(
+                            j.Key, j.Title, j.TypeId, j.TypeName,
+                            Unblocked:   outstanding.Count == 0,
+                            StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
+                                                         .Select(s => s.TypeName).Distinct()],
+                            QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
+                    })
+                    .OrderByDescending(w => w.Unblocked)
+                    .ThenBy(w => w.StillShortOf.Count)
+                    .ThenBy(w => w.TypeName)
+                    .ToList();
+
+                var freed = waiting.Where(w => w.Unblocked).ToList();
+
+                // ⚠️ Merged, not replaced. A stopped row is the better answer where there is one —
+                // only it can say whether this load actually starts the job — but the planner's
+                // drivers cover builds that never became a row, and dropping those is what made
+                // the panel disagree with the tooltip beside it. Matched on the product.
+                var told = waiting.Select(w => w.TypeId).ToHashSet();
+                var also = haul.WaitingJobs.Where(w => w.IsPlanned && !told.Contains(w.TypeId)).ToList();
 
                 section.Items[n] = haul with
                 {
-                    Unblocks = freed.Count,
-                    Priority = Math.Max(haul.Priority, freed.Max(j => j.Priority)),
-                    Detail   = haul.Detail
-                             + $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
-                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
-                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                    WaitingJobs = [.. waiting, .. also],
+                    Unblocks    = freed.Count,
+
+                    // ⚠️ Priority still comes from the jobs it RESTARTS. Inheriting urgency from a
+                    // job this haul only partly serves would rank the trip by work it cannot
+                    // release.
+                    Priority = freed.Count > 0
+                        ? Math.Max(haul.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                        : haul.Priority,
+
+                    Detail = haul.Detail
+                           + (freed.Count > 0
+                                ? $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
+                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
+                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                : "")
+                           + (waiting.Count > freed.Count
+                                ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
+                                + "cargo but will not start on this load."
+                                : "")
+
+                           // ⚠️ The planner's drivers, merged in above, are counted here too, or
+                           // the sentence contradicts the list underneath it: eighteen items were
+                           // named while the prose said one. They are not jobs — nothing has been
+                           // written down for them yet — so they are counted as what they are.
+                           + (also.Count > 0
+                                ? $" {also.Count:N0} more item(s) here are wanted by planned work "
+                                + "that has no stopped job of its own."
+                                : ""),
                 };
             }
         }
     }
 
+
+    /// <summary>
+    /// What is waiting on a JOB's output, so the row can be opened like a haul.
+    ///
+    /// <para>⚠️ By TYPE, not by station. A haul is judged where it lands, but a job's output feeds
+    /// whoever needs it wherever they are — the Tungsten Carbide reacted at the Reactor is
+    /// consumed at T2 Adv component-Ammo, and keying on the producing station would have found
+    /// nothing.</para>
+    ///
+    /// <para>⚠️ A job never claims to START anything. Its own output is not on a dock yet, the
+    /// quantity is what the planner intends rather than what exists, and the consumer may be short
+    /// of three other things besides. So every entry reads as what it wants, and the promise of
+    /// "starts on arrival" is left to the deliveries that can actually keep it.</para>
+    /// </summary>
+    private static void PromoteBlockingJobs(
+        List<WorklistSection> sections,
+        Dictionary<int, List<WorklistItem>> stoppedByType)
+    {
+        for (var si = 0; si < sections.Count; si++)
+        {
+            var section = sections[si];
+
+            for (var n = 0; n < section.Items.Count; n++)
+            {
+                var job = section.Items[n];
+
+                if (job.Kind is not (WorklistKind.Job or WorklistKind.Refine or WorklistKind.Decompress)
+                 || job.TypeId <= 0
+                 || job.WaitingJobs.Count > 0) continue;
+
+                var waiting = stoppedByType.GetValueOrDefault(job.TypeId, [])
+                    // Not itself. A job is not waiting on its own output.
+                    .Where(j => j.Key != job.Key)
+                    .DistinctBy(j => j.Key)
+                    .Select(j => new WorklistWaitingJob(
+                        j.Key, j.Title, j.TypeId, j.TypeName,
+                        Unblocked:    false,
+                        StillShortOf: [],
+                        WantsUnits:   j.Shortages.Where(s => s.TypeId == job.TypeId).Sum(s => s.Short)))
+                    .OrderByDescending(w => w.WantsUnits)
+                    .ToList();
+
+                if (waiting.Count == 0) continue;
+
+                section.Items[n] = job with { WaitingJobs = waiting };
+            }
+        }
+    }
     /// <summary>
     /// Ranks each purchase by the work it would release, exactly as hauls are ranked.
     ///
@@ -174,7 +314,18 @@ public class WorklistService(
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
 
-        if (unowned.Count == 0) return;
+        // ⚠️ And the same again over EVERY shortage, for the list rather than the ranking.
+        // MustBuy does not mean "nobody owns one" — it means the stock in scope is already
+        // claimed by an earlier job — so a purchase can be raised for a job whose shortage is not
+        // MustBuy at all. The buy for Gel-Matrix Biopaste said "for Programmable Purification
+        // Membrane" in its reason and then listed nothing underneath, because 23,229 sit in
+        // Tenerifis already spoken for. The reader still needs to see whose work it is for.
+        var shortOf = all
+            .SelectMany(x => x.Shortages.Select(h => (Job: x, h.TypeId)))
+            .GroupBy(x => x.TypeId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Job).DistinctBy(j => j.Key).ToList());
+
+        if (shortOf.Count == 0) return;
 
         for (var si = 0; si < sections.Count; si++)
         {
@@ -186,24 +337,71 @@ public class WorklistService(
                 if (buy.Kind != WorklistKind.Buy) continue;
 
                 var bought = buy.Lines.Count > 0
-                    ? buy.Lines.Select(l => l.TypeId)
-                    : [buy.TypeId];
+                    ? buy.Lines.GroupBy(l => l.TypeId)
+                         .ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity))
+                    : new Dictionary<int, long> { [buy.TypeId] = buy.Quantity };
 
-                var freed = bought
-                    .SelectMany(t => unowned.GetValueOrDefault(t, []))
+                var touched = bought.Keys
+                .SelectMany(t => shortOf.GetValueOrDefault(t, []))
                     .DistinctBy(j => j.Key)
                     .ToList();
 
-                if (freed.Count == 0) continue;
+                if (touched.Count == 0) continue;
+
+                // ⚠️ Same rule as the hauls below, and for the same reason: a job is released only
+                // when this purchase covers every shortage it has, in full. Buying one of the three
+                // things a job needs leaves it exactly as stopped as it was, and the shortages that
+                // are NOT MustBuy count too — material that exists but sits at another station is
+                // just as much a reason the job has not started.
+                var waiting = touched
+                    .Select(j =>
+                    {
+                        var outstanding = j.Shortages
+                            .Where(s => bought.GetValueOrDefault(s.TypeId) < s.Short)
+                            .Select(s => s.TypeName)
+                            .Distinct()
+                            .ToList();
+
+                        return new WorklistWaitingJob(
+                            j.Key, j.Title, j.TypeId, j.TypeName,
+                            Unblocked: outstanding.Count == 0,
+                            StillShortOf: outstanding);
+                    })
+                    .OrderByDescending(w => w.Unblocked)
+                    .ThenBy(w => w.StillShortOf.Count)
+                    .ThenBy(w => w.TypeName)
+                    .ToList();
+
+                // ⚠️ Ranking still comes from the jobs this purchase can actually release on its
+                // own — the ones short of something nobody owns. A buy that merely tops up
+                // material sitting at another station releases nothing by itself; the haul does.
+                var releasable = bought.Keys
+                    .SelectMany(t => unowned.GetValueOrDefault(t, []))
+                    .Select(j => j.Key)
+                    .ToHashSet();
+
+                var freed = waiting.Where(w => w.Unblocked && releasable.Contains(w.Key)).ToList();
 
                 section.Items[n] = buy with
                 {
-                    Unblocks = freed.Count,
-                    Priority = Math.Max(buy.Priority, freed.Max(j => j.Priority)),
-                    Detail   = buy.Detail
-                             + $" Releases {freed.Count:N0} stopped job(s): "
-                             + string.Join(", ", freed.Take(3).Select(j => j.TypeName))
-                             + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : "."),
+                    WaitingJobs = waiting,
+                    Unblocks    = freed.Count,
+
+                    // Priority still comes from the jobs it actually releases.
+                    Priority = freed.Count > 0
+                        ? Math.Max(buy.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
+                        : buy.Priority,
+
+                    Detail = buy.Detail
+                           + (freed.Count > 0
+                                ? $" Releases {freed.Count:N0} stopped job(s): "
+                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
+                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                : "")
+                           + (waiting.Count > freed.Count
+                                ? $" {waiting.Count - freed.Count:N0} more job(s) want this but are "
+                                + "short of other things too."
+                                : ""),
                 };
             }
         }
@@ -360,7 +558,11 @@ public class WorklistService(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var volumes = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Volume, ct);
+            // ⚠️ PACKAGED, not assembled. A ship comes out of a job packaged and is hauled
+            // that way: a Vexor is 10,000 m³ packaged against 115,000 assembled, so every
+            // figure here was more than eleven times too large. Zero means the SDE gives no
+            // packaged figure, which is most items -- for those the two are the same.
+            .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
 
         // Priced here too, off the same one lookup and at whatever the asset valuation is set to
         // use — so what a task is worth and what the hangar it comes from is worth are the same

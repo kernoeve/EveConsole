@@ -4,7 +4,7 @@
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.ItemBrowserView"
              x:DataType="vm:ItemBrowserViewModel"
-             Background="#0d0d12">
+             Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
 
@@ -32,26 +32,26 @@
   <Grid RowDefinitions="*,Auto">
 
     <!-- Status bar -->
-    <Border Grid.Row="1" Background="#0d0d12" Padding="12 4" BorderThickness="0 1 0 0" BorderBrush="#1e1e2a">
-      <TextBlock Text="{Binding Status}" FontSize="11" Foreground="#555566" VerticalAlignment="Center" />
+    <Border Grid.Row="1" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 4" BorderThickness="0 1 0 0" BorderBrush="{DynamicResource BorderSubtleBrush}">
+      <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
     </Border>
 
     <!-- Main content: left tree + right detail -->
     <Grid Grid.Row="0" ColumnDefinitions="280,1,*">
 
       <!-- ── Left: nav toolbar + search + tree/results ───────────────────── -->
-      <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*" Background="#0d0d12">
+      <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*" Background="{DynamicResource SurfaceBaseBrush}">
 
         <!-- Back / Forward toolbar -->
-        <Border Grid.Row="0" Background="#10101a" Padding="6 5"
-                BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="6 5"
+                BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
           <StackPanel Orientation="Horizontal" Spacing="4">
             <Button Command="{Binding GoBackCommand}"
                     ToolTip.Tip="Go back"
                     Width="26" Height="22" Padding="2 0"
                     FontSize="14" FontWeight="SemiBold"
-                    Background="#1a1a28" Foreground="#aaaacc"
-                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextSecondaryBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                     CornerRadius="3"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
@@ -60,8 +60,8 @@
                     ToolTip.Tip="Go forward"
                     Width="26" Height="22" Padding="2 0"
                     FontSize="14" FontWeight="SemiBold"
-                    Background="#1a1a28" Foreground="#aaaacc"
-                    BorderBrush="#2a2a3a" BorderThickness="1"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextSecondaryBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                     CornerRadius="3"
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
@@ -70,16 +70,16 @@
         </Border>
 
         <!-- Search box -->
-        <Border Grid.Row="1" Background="#12121a" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+        <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
           <TextBox Text="{Binding SearchText}"
                    Watermark="Search items…"
-                   Background="#1a1a28"
-                   BorderBrush="#2a2a3a"
+                   Background="{DynamicResource SurfaceRaisedBrush}"
+                   BorderBrush="{DynamicResource BorderDefaultBrush}"
                    BorderThickness="1"
                    CornerRadius="3"
                    FontSize="12"
-                   Foreground="#ccccdd"
-                   CaretBrush="#c8a84b"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   CaretBrush="{DynamicResource AccentBrush}"
                    Padding="8 5" />
         </Border>
 
@@ -87,7 +87,7 @@
         <TextBlock Grid.Row="2"
                    IsVisible="{Binding IsLoading}"
                    Text="Loading categories…"
-                   FontSize="11" Foreground="#555566"
+                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                    Margin="12 8" />
 
         <!-- Fill area: tree OR search results, both fill row 3 -->
@@ -107,7 +107,7 @@
                 <Setter Property="FontSize"   Value="12" />
               </Style>
               <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-                <Setter Property="Background" Value="#1e2a1e" />
+                <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
               </Style>
             </TreeView.Styles>
           </TreeView>
@@ -126,8 +126,8 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TypeSearchResult">
                 <StackPanel Spacing="1">
-                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="#c8a84b" FontWeight="SemiBold" />
-                  <TextBlock Text="{Binding GroupPath}" FontSize="10" Foreground="#555566"
+                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding GroupPath}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                              TextTrimming="CharacterEllipsis" />
                 </StackPanel>
               </DataTemplate>
@@ -139,7 +139,7 @@
       </Grid>
 
       <!-- Vertical divider -->
-      <Rectangle Grid.Column="1" Fill="#1e1e2a" />
+      <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
       <!-- ── Right: item info ───────────────────────────────────────────── -->
       <Grid Grid.Column="2">
@@ -147,7 +147,7 @@
         <!-- Empty state -->
         <TextBlock IsVisible="{Binding NoItem}"
                    Text="Select an item from the tree or search to view its details."
-                   Foreground="#333344" FontSize="13"
+                   Foreground="{DynamicResource TextFaintBrush}" FontSize="13"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    TextWrapping="Wrap" Margin="40" />
 
@@ -155,44 +155,44 @@
         <Grid IsVisible="{Binding HasItem}" RowDefinitions="Auto,*">
 
           <!-- Header -->
-          <Border Grid.Row="0" Background="#12121a" Padding="16 12"
-                  BorderThickness="0 0 0 1" BorderBrush="#1e1e2a">
+          <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="16 12"
+                  BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
             <Grid ColumnDefinitions="72,*" DataContext="{Binding SelectedItem}">
 
               <!-- Icon -->
               <Border Grid.Column="0" Width="64" Height="64" CornerRadius="4"
-                      Background="#1a1a28" ClipToBounds="True" Margin="0 0 14 0">
+                      Background="{DynamicResource SurfaceRaisedBrush}" ClipToBounds="True" Margin="0 0 14 0">
                 <Image Source="{Binding Icon}" Stretch="UniformToFill" />
               </Border>
 
               <!-- Name + path + stats -->
               <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" Foreground="#e8e8f0" />
-                <TextBlock Text="{Binding GroupPath}" FontSize="11" Foreground="#555566" />
+                <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextBrightBrush}" />
+                <TextBlock Text="{Binding GroupPath}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                 <StackPanel Orientation="Horizontal" Spacing="16" Margin="0 4 0 0">
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding VolumeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="Volume:" FontSize="12" Foreground="#666677" />
-                    <TextBlock Text="{Binding VolumeText}" FontSize="12" Foreground="#c8a84b" />
+                    <TextBlock Text="Volume:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{Binding VolumeText}" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding MarketValueText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="{Binding MarketValueLabel}" FontSize="12" Foreground="#666677" />
-                    <TextBlock Text="{Binding MarketValueText}"  FontSize="12" Foreground="#c8a84b" />
+                    <TextBlock Text="{Binding MarketValueLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{Binding MarketValueText}"  FontSize="12" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding HasBuildCost}">
-                    <TextBlock Text="Build Cost:" FontSize="12" Foreground="#666677" />
+                    <TextBlock Text="Build Cost:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
                     <TextBlock Text="{Binding BuildCostText}"
-                               FontSize="12" Foreground="#c8a84b"
+                               FontSize="12" Foreground="{DynamicResource AccentBrush}"
                                IsVisible="{Binding BuildCostText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                    <TextBlock Text="—" FontSize="12" Foreground="#444455"
+                    <TextBlock Text="—" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                                IsVisible="{Binding BuildCostText, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding ReprocessedValueText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="Reproc Value:" FontSize="12" Foreground="#666677" />
-                    <TextBlock Text="{Binding ReprocessedValueText}" FontSize="12" Foreground="#c8a84b" />
+                    <TextBlock Text="Reproc Value:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{Binding ReprocessedValueText}" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                 </StackPanel>
               </StackPanel>
@@ -216,16 +216,16 @@
                    BorderThickness underline on top of it gives the tab two lines. Colour only. -->
               <Style Selector="TabItem">
                 <Setter Property="FontSize" Value="13" />
-                <Setter Property="Foreground" Value="#666677" />
+                <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
                 <Setter Property="Padding" Value="12 8" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Margin" Value="0" />
               </Style>
               <Style Selector="TabItem:selected">
-                <Setter Property="Foreground" Value="#c8a84b" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
               </Style>
               <Style Selector="TabItem:pointerover">
-                <Setter Property="Foreground" Value="#e8d870" />
+                <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
               </Style>
             </TabControl.Styles>
 
@@ -233,7 +233,7 @@
             <TabItem Header="Description">
               <ScrollViewer Padding="20 16">
                 <TextBlock Text="{Binding SelectedItem.Description}"
-                           FontSize="13" Foreground="#aaaabc"
+                           FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                            TextWrapping="Wrap"
                            LineHeight="20" />
               </ScrollViewer>
@@ -249,16 +249,16 @@
                       <DataTemplate x:DataType="vm:AttrDisplayVm">
                         <Grid ColumnDefinitions="*,Auto" Margin="4 3">
                           <TextBlock Grid.Column="0" Text="{Binding Name}"
-                                     FontSize="12" Foreground="#888899" />
+                                     FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                           <TextBlock Grid.Column="1" Text="{Binding ValueText}"
-                                     FontSize="12" Foreground="#c8a84b"
+                                     FontSize="12" Foreground="{DynamicResource AccentBrush}"
                                      HorizontalAlignment="Right" />
                         </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
 
-                  <Rectangle IsVisible="{Binding SelectedItem.HasDogmaAttrs}" Height="1" Fill="#1e1e2a" Margin="4 6" />
+                  <Rectangle IsVisible="{Binding SelectedItem.HasDogmaAttrs}" Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="4 6" />
                   <ItemsControl IsVisible="{Binding SelectedItem.HasDogmaAttrs}" ItemsSource="{Binding SelectedItem.DogmaAttrs}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:AttrGroupVm">
@@ -266,16 +266,16 @@
                           <TextBlock
                             IsVisible="{Binding CategoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Text="{Binding CategoryName}"
-                            FontSize="10" FontWeight="SemiBold" Foreground="#555566"
+                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}"
                             Margin="4 0 0 2" />
                           <ItemsControl ItemsSource="{Binding Attrs}">
                             <ItemsControl.ItemTemplate>
                               <DataTemplate x:DataType="vm:AttrDisplayVm">
                                 <Grid ColumnDefinitions="*,Auto" Margin="4 2">
                                   <TextBlock Grid.Column="0" Text="{Binding Name}"
-                                             FontSize="12" Foreground="#888899" />
+                                             FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                   <TextBlock Grid.Column="1" Text="{Binding ValueText}"
-                                             FontSize="12" Foreground="#c8a84b"
+                                             FontSize="12" Foreground="{DynamicResource AccentBrush}"
                                              HorizontalAlignment="Right" />
                                 </Grid>
                               </DataTemplate>
@@ -304,10 +304,10 @@
                                   Background="Transparent" BorderThickness="0"
                                   Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                             <TextBlock Text="{Binding SkillName}"
-                                       FontSize="13" Foreground="#aaaabc" TextDecorations="Underline" />
+                                       FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextDecorations="Underline" />
                           </Button>
                           <TextBlock Grid.Column="1" Text="{Binding LevelRoman}"
-                                     FontSize="13" Foreground="#c8a84b" FontWeight="SemiBold"
+                                     FontSize="13" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"
                                      HorizontalAlignment="Right" MinWidth="20" TextAlignment="Right" />
                         </Grid>
                       </DataTemplate>
@@ -316,7 +316,7 @@
 
                   <TextBlock IsVisible="{Binding !SelectedItem.HasRequirements}"
                              Text="No skill requirements."
-                             FontSize="12" Foreground="#555566" FontStyle="Italic" />
+                             FontSize="12" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic" />
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
@@ -332,20 +332,20 @@
                     <Style Selector="Button.levelbtn">
                       <Setter Property="Width" Value="34" />
                       <Setter Property="Padding" Value="0 6" />
-                      <Setter Property="Background" Value="#1a1a28" />
-                      <Setter Property="Foreground" Value="#555560" />
-                      <Setter Property="BorderBrush" Value="#2a2a3a" />
+                      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+                      <Setter Property="Foreground" Value="{DynamicResource SurfaceRaisedBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
                       <Setter Property="BorderThickness" Value="1" />
                       <Setter Property="HorizontalContentAlignment" Value="Center" />
                     </Style>
                     <Style Selector="Button.levelbtn.haveitems">
-                      <Setter Property="Foreground" Value="#c8c8d8" />
-                      <Setter Property="BorderBrush" Value="#3a3a50" />
+                      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SurfaceRaisedBrush}" />
                     </Style>
                     <Style Selector="Button.levelbtn.active">
-                      <Setter Property="Background" Value="#2a2440" />
-                      <Setter Property="Foreground" Value="#c8a84b" />
-                      <Setter Property="BorderBrush" Value="#c8a84b" />
+                      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+                      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                     </Style>
                   </StackPanel.Styles>
                   <Button Classes="levelbtn" Classes.haveitems="{Binding HasItemsAtLevel1}" Classes.active="{Binding IsRequiredForLevel1}"
@@ -368,7 +368,7 @@
                           <StackPanel Spacing="2" Margin="0 0 0 10">
                             <TextBlock Text="{Binding CategoryName}"
                                        FontSize="10" FontWeight="SemiBold"
-                                       Foreground="#555566" LetterSpacing="1" Margin="4 0 0 2" />
+                                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="4 0 0 2" />
                             <ItemsControl ItemsSource="{Binding Items}">
                               <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:RequiredForItemVm">
@@ -379,7 +379,7 @@
                                           Padding="4 3" Cursor="Hand" HorizontalContentAlignment="Left"
                                           HorizontalAlignment="Stretch">
                                     <TextBlock Text="{Binding ItemName}"
-                                               FontSize="13" Foreground="#aaaabc" TextDecorations="Underline" />
+                                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextDecorations="Underline" />
                                   </Button>
                                 </DataTemplate>
                               </ItemsControl.ItemTemplate>
@@ -391,7 +391,7 @@
 
                     <TextBlock IsVisible="{Binding !HasRequiredForGroups}"
                                Text="Nothing requires this skill at this level."
-                               FontSize="12" Foreground="#555566" FontStyle="Italic" />
+                               FontSize="12" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic" />
                   </StackPanel>
                 </ScrollViewer>
               </Grid>
@@ -417,7 +417,7 @@
                       <ListBox.Styles>
                         <Style Selector="ListBoxItem">
                           <Setter Property="Padding"         Value="14 8" />
-                          <Setter Property="Foreground"      Value="#555566" />
+                          <Setter Property="Foreground"      Value="{DynamicResource TextFaintBrush}" />
                           <Setter Property="FontSize"        Value="12" />
                           <Setter Property="Background"      Value="Transparent" />
                           <Setter Property="BorderThickness" Value="0 0 0 2" />
@@ -427,14 +427,14 @@
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
                         <Style Selector="ListBoxItem:selected">
-                          <Setter Property="Foreground"  Value="#c8a84b" />
-                          <Setter Property="BorderBrush" Value="#c8a84b" />
+                          <Setter Property="Foreground"  Value="{DynamicResource AccentBrush}" />
+                          <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                         </Style>
                         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
                         <Style Selector="ListBoxItem:pointerover">
-                          <Setter Property="Foreground" Value="#e8d870" />
+                          <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
                         </Style>
                       </ListBox.Styles>
                       <ListBox.ItemsPanel>
@@ -449,14 +449,14 @@
                       </ListBox.ItemTemplate>
                     </ListBox>
 
-                    <Rectangle Height="1" Fill="#1c1c28" Margin="0 0 0 16" />
+                    <Rectangle Height="1" Fill="{DynamicResource SurfaceRaisedBrush}" Margin="0 0 0 16" />
 
                     <!-- Outcome / Products -->
                     <StackPanel x:CompileBindings="False"
                                 IsVisible="{Binding SelectedBpActivity.HasProducts}"
                                 Spacing="6" Margin="0 0 0 20">
                       <TextBlock Text="OUTCOME" FontSize="10" FontWeight="SemiBold"
-                                 Foreground="#555566" LetterSpacing="1" Margin="0 0 0 2" />
+                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 2" />
                       <ItemsControl ItemsSource="{Binding SelectedBpActivity.Products}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:BpProductVm">
@@ -469,17 +469,17 @@
                                       Padding="0" Cursor="Hand"
                                       HorizontalAlignment="Left" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding ProductName}"
-                                           FontSize="12" Foreground="#c8a84b"
+                                           FontSize="12" Foreground="{DynamicResource AccentBrush}"
                                            TextDecorations="Underline" />
                               </Button>
                               <TextBlock Grid.Column="1"
                                          Text="{Binding QuantityText, StringFormat=×{0}}"
-                                         FontSize="12" Foreground="#aaaabc"
+                                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                          VerticalAlignment="Center" Margin="10 0 0 0" />
                               <TextBlock Grid.Column="2"
                                          IsVisible="{Binding HasProbability}"
                                          Text="{Binding ProbabilityText}"
-                                         FontSize="11" Foreground="#888855"
+                                         FontSize="11" Foreground="{DynamicResource WarnBrush}"
                                          VerticalAlignment="Center" Margin="8 0 0 0" />
                             </Grid>
                           </DataTemplate>
@@ -492,7 +492,7 @@
                                 IsVisible="{Binding SelectedBpActivity.HasSkills}"
                                 Spacing="6" Margin="0 0 0 20">
                       <TextBlock Text="REQUIRED SKILLS" FontSize="10" FontWeight="SemiBold"
-                                 Foreground="#555566" LetterSpacing="1" Margin="0 0 0 2" />
+                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 2" />
                       <ItemsControl ItemsSource="{Binding SelectedBpActivity.Skills}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:BpSkillVm">
@@ -503,10 +503,10 @@
                                       Background="Transparent" BorderThickness="0"
                                       Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                                 <TextBlock Text="{Binding SkillName}"
-                                           FontSize="12" Foreground="#aaaabc" TextDecorations="Underline" />
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextDecorations="Underline" />
                               </Button>
                               <TextBlock Grid.Column="1" Text="{Binding LevelRoman}"
-                                         FontSize="12" Foreground="#c8a84b" FontWeight="SemiBold"
+                                         FontSize="12" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"
                                          HorizontalAlignment="Right" MinWidth="20" TextAlignment="Right" />
                             </Grid>
                           </DataTemplate>
@@ -519,7 +519,7 @@
                                 IsVisible="{Binding SelectedBpActivity.HasMaterials}"
                                 Spacing="6">
                       <TextBlock Text="INPUT MATERIALS" FontSize="10" FontWeight="SemiBold"
-                                 Foreground="#555566" LetterSpacing="1" Margin="0 0 0 2" />
+                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 2" />
                       <ItemsControl ItemsSource="{Binding SelectedBpActivity.Materials}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:BlueprintMatVm">
@@ -530,10 +530,10 @@
                                       Background="Transparent" BorderThickness="0"
                                       Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                                 <TextBlock Text="{Binding MaterialName}"
-                                           FontSize="12" Foreground="#aaaabc" TextDecorations="Underline" />
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextDecorations="Underline" />
                               </Button>
                               <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat=×{0:N0}}"
-                                         FontSize="12" Foreground="#888899" />
+                                         FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                             </Grid>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -547,17 +547,17 @@
 
                     <TextBlock IsVisible="{Binding !SelectedItem.HasIndustry}"
                                Text="No blueprint data available for this item."
-                               FontSize="12" Foreground="#555566"
+                               FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                                Margin="4 8" />
 
                     <!-- Produced By -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasProducedBy}" Spacing="8">
                       <TextBlock Text="PRODUCED BY" FontSize="10" FontWeight="SemiBold"
-                                 Foreground="#666677" LetterSpacing="1" />
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <ItemsControl ItemsSource="{Binding SelectedItem.ProducedBy}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:BlueprintVm">
-                            <Border Background="#12121a" CornerRadius="4" Padding="12 10" Margin="0 4">
+                            <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="12 10" Margin="0 4">
                               <StackPanel Spacing="8">
                                 <!-- Blueprint name — click to navigate to the blueprint item -->
                                 <Button x:CompileBindings="False"
@@ -567,9 +567,9 @@
                                         Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                                   <TextBlock Text="{Binding BlueprintName}"
                                              FontSize="13" FontWeight="SemiBold"
-                                             Foreground="#c8a84b" TextDecorations="Underline" />
+                                             Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline" />
                                 </Button>
-                                <TextBlock Text="Required Materials:" FontSize="11" Foreground="#555566" />
+                                <TextBlock Text="Required Materials:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                                 <ItemsControl ItemsSource="{Binding Materials}">
                                   <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:BlueprintMatVm">
@@ -580,10 +580,10 @@
                                                 Background="Transparent" BorderThickness="0"
                                                 Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                                           <TextBlock Text="{Binding MaterialName}"
-                                                     FontSize="12" Foreground="#aaaabc" TextDecorations="Underline" />
+                                                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextDecorations="Underline" />
                                         </Button>
                                         <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat=×{0:N0}}"
-                                                   FontSize="12" Foreground="#888899" />
+                                                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                       </Grid>
                                     </DataTemplate>
                                   </ItemsControl.ItemTemplate>
@@ -595,10 +595,79 @@
                       </ItemsControl>
                     </StackPanel>
 
+                    <!-- Produced by reprocessing. For a great many items this is the ONLY way they
+                         are made: nothing on Helium Isotopes said they come out of Clear Icicle. -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedFrom}" Spacing="8">
+                      <TextBlock Text="PRODUCED BY REPROCESSING" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                 Text="Reprocess one batch of these and this item is among what comes back. Each row is judged against its own ceiling — 90.6% for ore, ice and moon ore, 55% for everything else — so the amounts are the best case, not the SDE's 100% figures." />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedFrom}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ReprocessSourceVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding SourceTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding SourceName}"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                                          VerticalAlignment="Center">
+                                <TextBlock Text="{Binding BatchText}" FontSize="11"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding RateText}" FontSize="11" MinWidth="42"
+                                           TextAlignment="Right"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding YieldText}" FontSize="12" MinWidth="72"
+                                           TextAlignment="Right"
+                                           Foreground="{DynamicResource TextMutedBrush}" />
+                              </StackPanel>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
+                    <!-- What this item yields when reprocessed. One rate for the section, because
+                         it is one item going in; the caption names it. -->
+                    <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedTo}" Spacing="8">
+                      <TextBlock Text="REPROCESSES TO" FontSize="10" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
+                      <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                 Text="{Binding SelectedItem.RefineRateText, StringFormat='What one batch returns at {0}, the best this item can be refined at — a rigged Tatara in nullsec with the skills and implants for it. Ore, ice and moon ore top out at 90.6%; everything else is scrapmetal, where 55% is the ceiling however good the structure. Your own refine will return less.'}" />
+                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedTo}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ReprocessOutputVm">
+                            <Grid ColumnDefinitions="*,Auto" Margin="4 3">
+                              <Button Grid.Column="0"
+                                      x:CompileBindings="False"
+                                      Command="{Binding $parent[UserControl].DataContext.NavigateToItemCommand}"
+                                      CommandParameter="{Binding OutputTypeId}"
+                                      Background="Transparent" BorderThickness="0"
+                                      Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="{Binding OutputName}"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextDecorations="Underline" />
+                              </Button>
+                              <TextBlock Grid.Column="1" Text="{Binding YieldText}"
+                                         FontSize="12" MinWidth="72" TextAlignment="Right"
+                                         Foreground="{DynamicResource TextMutedBrush}"
+                                         VerticalAlignment="Center" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+
                     <!-- Used In -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasUsedIn}" Spacing="8">
                       <TextBlock Text="USED IN MANUFACTURING" FontSize="10" FontWeight="SemiBold"
-                                 Foreground="#666677" LetterSpacing="1" />
+                                 Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <ItemsControl ItemsSource="{Binding SelectedItem.UsedIn}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:MaterialUseVm">
@@ -610,11 +679,11 @@
                                       Background="Transparent" BorderThickness="0"
                                       Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                                 <TextBlock Text="{Binding BlueprintName}"
-                                           FontSize="12" Foreground="#aaaabc"
+                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                                            TextDecorations="Underline" />
                               </Button>
                               <TextBlock Grid.Column="1" Text="{Binding ProductName}"
-                                         FontSize="12" Foreground="#555566"
+                                         FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                                          VerticalAlignment="Center" />
                             </Grid>
                           </DataTemplate>
@@ -632,7 +701,7 @@
             <TabItem Header="LP Store" IsVisible="{Binding HasLpOffers}">
               <Grid RowDefinitions="Auto,8,*" Margin="16 12">
 
-                <TextBlock Grid.Row="0" FontSize="11" Foreground="#555566" TextWrapping="Wrap"
+                <TextBlock Grid.Row="0" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                            Text="Offered by the loyalty point stores below. An item can be sold by several corporations at different rates — the one worth using is whichever you hold LP with. Your balance is the highest any single character holds."/>
 
                 <DataGrid Grid.Row="2" ItemsSource="{Binding LpOffers}"
@@ -640,11 +709,22 @@
                           Background="Transparent" GridLinesVisibility="None"
                           RowBackground="Transparent">
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="Corporation" Binding="{Binding CorporationName}" Width="220"/>
+                    <DataGridTemplateColumn Header="Corporation" Width="220" SortMemberPath="CorporationName">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:LpOfferVm">
+                          <Button Classes="link" Click="OnOpenLpCorp" Padding="0"
+                                  HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+                                  ToolTip.Tip="Open this corporation in NPC Entities">
+                            <TextBlock Text="{Binding CorporationName}" FontSize="11"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Button>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
-                          <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="#ccc"
+                          <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
@@ -652,7 +732,7 @@
                     <DataGridTemplateColumn Header="LP Cost" Width="110" SortMemberPath="LpCost">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
-                          <TextBlock Text="{Binding LpText}" FontSize="11" Foreground="#c8a84b"
+                          <TextBlock Text="{Binding LpText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
                                      TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
@@ -660,7 +740,7 @@
                     <DataGridTemplateColumn Header="ISK Cost" Width="140" SortMemberPath="IskCost">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
-                          <TextBlock Text="{Binding IskText}" FontSize="11" Foreground="#ccc"
+                          <TextBlock Text="{Binding IskText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"/>
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
@@ -696,7 +776,7 @@
               <Grid RowDefinitions="Auto,8,*,8,*" Margin="16 12">
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Source:" FontSize="12" Foreground="#666677"
+                  <TextBlock Text="Source:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox ItemsSource="{Binding MarketConfigs}"
                             SelectedItem="{Binding SelectedMarketConfig}"
@@ -709,13 +789,13 @@
                 <TextBlock Grid.Row="0" Grid.RowSpan="5"
                            IsVisible="{Binding !HasMarketConfigs}"
                            Text="No ESI market sources configured. Add an ESI Region or ESI Structure source in Settings → Market."
-                           FontSize="12" Foreground="#555566"
+                           FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
 
                 <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
                   <TextBlock Grid.Row="0" Text="SELL ORDERS" FontSize="11" FontWeight="SemiBold"
-                             Foreground="#cc4444" LetterSpacing="1" Margin="0 0 0 4" />
+                             Foreground="{DynamicResource BadBrush}" LetterSpacing="1" Margin="0 0 0 4" />
                   <DataGrid Grid.Row="1"
                             ItemsSource="{Binding SellOrders}"
                             CanUserSortColumns="True"
@@ -776,7 +856,7 @@
 
                 <Grid Grid.Row="4" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
                   <TextBlock Grid.Row="0" Text="BUY ORDERS" FontSize="11" FontWeight="SemiBold"
-                             Foreground="#44aa44" LetterSpacing="1" Margin="0 0 0 4" />
+                             Foreground="{DynamicResource GoodBrush}" LetterSpacing="1" Margin="0 0 0 4" />
                   <DataGrid Grid.Row="1"
                             ItemsSource="{Binding BuyOrders}"
                             CanUserSortColumns="True"
@@ -853,7 +933,7 @@
 
                 <!-- Header row: region picker + period picker + loading indicator -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Region:" FontSize="12" Foreground="#666677"
+                  <TextBlock Text="Region:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox x:CompileBindings="False"
                             ItemsSource="{Binding HistoryRegions}"
@@ -865,7 +945,7 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <TextBlock Text="Period:" FontSize="12" Foreground="#666677"
+                  <TextBlock Text="Period:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox x:CompileBindings="False"
                             ItemsSource="{Binding PeriodOptions}"
@@ -886,7 +966,7 @@
                 <TextBlock Grid.Row="2"
                            IsVisible="{Binding HistoryIsEmpty}"
                            Text="No price history available for this item in the selected region."
-                           FontSize="12" Foreground="#555566"
+                           FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
 
@@ -898,12 +978,12 @@
                     <!-- Colour only — Fluent's own pipe is the underline. -->
                     <Style Selector="TabItem">
                       <Setter Property="FontSize" Value="12" />
-                      <Setter Property="Foreground" Value="#555566" />
+                      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
                       <Setter Property="Padding" Value="10 6" />
                       <Setter Property="Background" Value="Transparent" />
                     </Style>
                     <Style Selector="TabItem:selected">
-                      <Setter Property="Foreground" Value="#c8a84b" />
+                      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                     </Style>
                   </TabControl.Styles>
 
@@ -946,7 +1026,7 @@
 
                 <!-- Header row: period picker + loading indicator -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Period:" FontSize="12" Foreground="#666677"
+                  <TextBlock Text="Period:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox x:CompileBindings="False"
                             ItemsSource="{Binding PeriodOptions}"
@@ -967,7 +1047,7 @@
                 <TextBlock Grid.Row="2"
                            IsVisible="{Binding DerivedIsEmpty}"
                            Text="No derived price history recorded for this item yet. A daily snapshot of market, build, and contract value is captured automatically as prices refresh."
-                           FontSize="12" Foreground="#555566"
+                           FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
 

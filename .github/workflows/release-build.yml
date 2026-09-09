@@ -10,6 +10,11 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    # The Linux job needs the same number, and must not compute it again: the tag it derives
+    # from already exists by then, so a second run of the same arithmetic returns the NEXT
+    # patch and the two halves of one release would disagree about what they are.
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +58,9 @@ jobs:
         continue-on-error: true
         run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }}
 
+      # --icon is for Setup.exe and Update.exe, which otherwise carry Velopack's own. The app's
+      # own shortcut takes its icon from the executable, which already has one through
+      # ApplicationIcon in the csproj.
       - name: Pack Velopack release
         run: >
           vpk pack
@@ -61,6 +69,7 @@ jobs:
           --packVersion ${{ steps.version.outputs.version }}
           --packDir publish
           --mainExe EveConsole.exe
+          --icon Assets\ec.ico
 
       - name: Upload to GitHub release
         run: >
@@ -83,7 +92,16 @@ jobs:
             '- **Installer (recommended):** download `EveConsole-win-Setup.exe` and run it. It installs EVE Console and keeps it updated automatically.',
             '- **Portable:** download `EveConsole-win-Portable.zip`, extract it anywhere, and run `EveConsole.exe`.',
             '',
-            'No .NET install is required — the runtime is bundled.',
+            '### Linux',
+            '',
+            '- **AppImage:** download the `.AppImage`, `chmod +x` it, and run it. It keeps itself updated.',
+            '- **Tarball:** download `EveConsole-linux-x64.tar.gz`, extract it anywhere, and run `./EveConsole`.',
+            '',
+            'Alarm sounds and speech need VLC on the system — the `vlc` package on most',
+            'distributions (Debian and Ubuntu also accept `libvlc-dev`). It is the one piece the',
+            'build cannot carry itself; everything else works without it.',
+            '',
+            'No .NET install is required on either platform — the runtime is bundled.',
             '',
             '### First launch (Windows SmartScreen)',
             'EVE Console is not code-signed yet, so Windows may show a "Windows protected your PC" warning the first time you run it. This is expected for a new indie app.',
@@ -100,3 +118,166 @@ jobs:
           }
           Set-Content -Path release_notes.md -Value $notes -Encoding utf8
           gh release edit $tag --notes-file release_notes.md
+
+  # ══ Linux ═════════════════════════════════════════════════════════════════
+  #
+  # ⚠️ A separate job on a Linux runner, not a second publish from the Windows one.
+  # Velopack's packer is platform-specific: `vpk pack` produces an AppImage only when it runs
+  # on Linux, and there is no cross-target equivalent.
+  #
+  # ⚠️ Runs after the Windows job rather than beside it. That job creates the release and the
+  # tag; this one adds to what already exists. In parallel they would race to create it.
+  # A failure here therefore costs the Linux artifacts, not the Windows release.
+  linux:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # libvlc is the one dependency the app cannot carry itself — LibVLCSharp loads the
+      # system copy. Needed on the runner so the build's own checks can see it; users install
+      # it through their own package manager.
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y libvlc-dev
+
+      - name: Install Velopack CLI
+        run: dotnet tool install -g vpk --version 1.2.0
+
+      - name: Publish (self-contained linux-x64)
+        run: >
+          dotnet publish EveConsole.csproj
+          -c Release
+          -r linux-x64
+          --self-contained true
+          -p:Version=${{ needs.build.outputs.version }}
+          -o publish-linux
+
+      # The plain tarball: extract anywhere and run. No install step, no update mechanism —
+      # the option for anyone who would rather not have either.
+      - name: Build tarball
+        run: |
+          chmod +x publish-linux/EveConsole
+          tar -czf EveConsole-linux-x64.tar.gz -C publish-linux .
+
+      - name: Attach tarball to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload v${{ needs.build.outputs.version }} EveConsole-linux-x64.tar.gz --clobber
+
+      # Velopack again, for the AppImage and the Linux update feed. It keeps its own
+      # releases.linux.json alongside the Windows one, so the two do not overwrite each other.
+      - name: Download previous release
+        continue-on-error: true
+        run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ github.token }}
+
+      # ⚠️ --icon, or the AppImage gets Velopack's placeholder — an upside-down triangle, which is
+      # what shipped until somebody ran one and noticed. Nothing carries it implicitly here: the
+      # Windows build has its icon compiled into the executable through ApplicationIcon and there
+      # is no equivalent on Linux, so the packer has to be handed one. logo_mark rather than logo,
+      # because the full logo has the "EVE Console" wordmark across it and that is illegible at 32
+      # pixels.
+      - name: Pack Velopack release
+        run: >
+          vpk pack
+          --packId EveConsole
+          --packTitle "EVE Console"
+          --packVersion ${{ needs.build.outputs.version }}
+          --packDir publish-linux
+          --mainExe EveConsole
+          --icon Assets/logo_mark.png
+
+      - name: Upload to the existing GitHub release
+        run: >
+          vpk upload github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token ${{ github.token }}
+          --releaseName "EVE Console v${{ needs.build.outputs.version }}"
+          --tag v${{ needs.build.outputs.version }}
+
+  # ══ Announce ══════════════════════════════════════════════════════════════
+  #
+  # ⚠️ A job in THIS workflow rather than a separate one on `release: published`. The release is
+  # created by vpk with GITHUB_TOKEN, and GitHub deliberately raises no workflow-triggering event
+  # for anything GITHUB_TOKEN does — a `release` workflow would never run, and would look like a
+  # broken webhook rather than a trigger that cannot fire.
+  announce:
+    needs: [build, linux]
+    # ⚠️ always(), so this still runs when the Linux job failed. That job's own note says its
+    # failure costs the Linux artifacts and not the release; a good Windows release that nobody
+    # hears about is the worse outcome. The guard keeps it to releases that actually happened.
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the release to Discord
+        env:
+          # ⚠️ Through env, not ${{ }} inside the script. Release notes are text this workflow did
+          # not write, and interpolating them into a shell line makes them executable.
+          WEBHOOK:  ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          GH_TOKEN: ${{ github.token }}
+          TAG:      v${{ needs.build.outputs.version }}
+          REPO:     ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # A fork, or a repository where nobody has set the secret, still releases normally.
+          if [ -z "${WEBHOOK}" ]; then
+            echo "DISCORD_RELEASE_WEBHOOK is not set — nothing announced."
+            exit 0
+          fi
+
+          url="https://github.com/$REPO/releases/tag/$TAG"
+          notes=$(gh release view "$TAG" --repo "$REPO" --json body -q .body)
+
+          # The notes are "<changelog>\n\n---\n\n<install instructions>". Only the changelog is
+          # worth announcing: the install half is identical every release. Split on the LAST
+          # separator so a horizontal rule inside the changelog cannot cut it short, and emit
+          # NOTHING when there is no separator at all — that means the merge carried no PR
+          # description, so the notes are install boilerplate on their own and announcing them
+          # would post the install instructions as though they were the changelog.
+          changelog=$(printf '%s\n' "$notes" | awk '
+            { line[NR] = $0; if ($0 == "---") last = NR }
+            END { if (last) for (i = 1; i < last; i++) print line[i] }')
+
+          # ⚠️ The lead-in, not the whole changelog. A real one runs past 10,000 characters
+          # against an embed description limit of 4,096 — and 6,000 across every embed in one
+          # message, so splitting rescues nothing. Cutting at a character count dropped two
+          # thirds of v0.9.12 mid-sentence. The text before the first heading is the summary the
+          # notes already open with, which is what an announcement wants; the title and the
+          # footer link carry people to the rest.
+          lead=$(printf '%s\n' "$changelog" | awk '/^## /{ exit } { print }')
+          [ -n "$(printf '%s' "$lead" | tr -d '[:space:]')" ] || lead="$changelog"
+
+          # Whole lines only, so it can never end mid-word.
+          summary=$(printf '%s\n' "$lead" | awk -v cap=1800 '
+            { if (n + length($0) + 1 > cap) exit; n += length($0) + 1; print }')
+
+          if [ -z "$(printf '%s' "$summary" | tr -d '[:space:]')" ]; then
+            summary="_No changelog recorded for this release._"
+          fi
+
+          # jq builds the JSON, so quotes and newlines in the notes cannot break the payload.
+          payload=$(jq -n \
+            --arg title "EVE Console $TAG" \
+            --arg url   "$url" \
+            --arg body  "$summary" \
+            '{
+               username: "EVE Console",
+               embeds: [{
+                 title:       $title,
+                 url:         $url,
+                 description: ($body + "\n\n**[Full release notes →](" + $url + ")**"),
+                 color:       13150283
+               }]
+             }')
+
+          # -f so a refusal fails the step: an announcement that silently did not happen is the
+          # thing this job exists to prevent.
+          curl -sS -f -X POST -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"
+          echo "Announced $TAG to Discord."

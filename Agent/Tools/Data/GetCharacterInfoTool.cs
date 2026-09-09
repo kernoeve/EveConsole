@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -29,26 +30,25 @@ public sealed class GetCharacterInfoTool : IAgentTool
         var nameFilter = input.TryGetProperty("character_name", out var n) ? n.GetString() : null;
 
         const string sql = """
-            SELECT c.Name,
-                   c.TotalSp,
-                   c.UnallocatedSp,
-                   c.SecurityStatus,
-                   corp.Name  AS CorpName,
-                   corp.Ticker,
-                   wb.Balance
-            FROM   Characters c
-            LEFT JOIN Corporations corp ON corp.Id = c.CorporationId
-            LEFT JOIN EsiWalletBalances wb ON wb.OwnerId = c.Id AND wb.OwnerType = 'character' AND wb.Division = 0
-            WHERE  (@name IS NULL OR c.Name LIKE @name)
-            ORDER  BY c.Name
+            SELECT c."Name",
+                   c."TotalSp",
+                   c."UnallocatedSp",
+                   c."SecurityStatus",
+                   corp."Name"  AS CorpName,
+                   corp."Ticker",
+                   wb."Balance"
+            FROM   "Characters" c
+            LEFT JOIN "Corporations" corp ON corp."Id" = c."CorporationId"
+            LEFT JOIN "EsiWalletBalances" wb ON wb."OwnerId" = c."Id" AND wb."OwnerType" = 'character' AND wb."Division" = 0
+            WHERE  (CAST(@name AS TEXT) IS NULL OR LOWER(c."Name") LIKE LOWER(@name))
+            ORDER  BY c."Name"
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@name", nameFilter is null ? (object)DBNull.Value : $"%{nameFilter}%");
+        await using var cmd = conn.Command(sql);
+        cmd.AddWithValue("@name", nameFilter is null ? (object)DBNull.Value : $"%{nameFilter}%");
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))
         {
@@ -70,26 +70,25 @@ public sealed class GetCharacterInfoTool : IAgentTool
         if (nameFilter is not null && rows.Count == 1)
         {
             const string queueSql = """
-                SELECT sq.QueuePosition,
-                       COALESCE(st.Name, 'Unknown Skill') AS SkillName,
-                       sq.FinishedLevel   AS TargetLevel,
-                       COALESCE(sk.ActiveSkillLevel, 0) AS CurrentLevel,
-                       sq.StartDate,
-                       sq.FinishDate
-                FROM   EsiSkillQueue sq
-                JOIN   Characters c ON c.Id = sq.CharacterId
-                LEFT   JOIN SdeTypes st ON st.TypeId  = sq.SkillId
-                LEFT   JOIN EsiSkills sk ON sk.CharacterId = sq.CharacterId
-                                        AND sk.SkillId     = sq.SkillId
-                WHERE  c.Name LIKE @name
-                ORDER  BY sq.QueuePosition
+                SELECT sq."QueuePosition",
+                       COALESCE(st."Name", 'Unknown Skill') AS SkillName,
+                       sq."FinishedLevel"   AS TargetLevel,
+                       COALESCE(sk."ActiveSkillLevel", 0) AS CurrentLevel,
+                       sq."StartDate",
+                       sq."FinishDate"
+                FROM   "EsiSkillQueue" sq
+                JOIN   "Characters" c ON c."Id" = sq."CharacterId"
+                LEFT   JOIN "SdeTypes" st ON st."TypeId"  = sq."SkillId"
+                LEFT   JOIN "EsiSkills" sk ON sk."CharacterId" = sq."CharacterId"
+                                        AND sk."SkillId"     = sq."SkillId"
+                WHERE  LOWER(c."Name") LIKE LOWER(@name)
+                ORDER  BY sq."QueuePosition"
                 LIMIT  50
                 """;
 
             var queue = new List<object>();
-            await using var cmd2 = conn.CreateCommand();
-            cmd2.CommandText = queueSql;
-            cmd2.Parameters.AddWithValue("@name", $"%{nameFilter}%");
+            await using var cmd2 = conn.Command(queueSql);
+            cmd2.AddWithValue("@name", $"%{nameFilter}%");
             await using var rdr2 = await cmd2.ExecuteReaderAsync(ct);
             while (await rdr2.ReadAsync(ct))
             {

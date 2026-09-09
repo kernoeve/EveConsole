@@ -387,6 +387,14 @@ public sealed class ChatLogImportService : ReactiveObject
         }
         catch (OperationCanceledException) { throw; }
         catch (IOException) { return 0; }   // locked or vanished; next pass retries
+        catch (Exception ex) when (AppDb.IsUniqueViolation(ex))
+        {
+            // ⚠️ Another client tailing the same folder wrote these lines first. Not a fault: the
+            // unique index on (SourceFile, LineNumber) is precisely what stops two importers
+            // duplicating each other, and the cursor rides in the same failed save, so nothing was
+            // consumed here either. Both read on from the winner's offset next pass.
+            return 0;
+        }
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(ChatLogImportService), $"Import {fi.Name}", ex);

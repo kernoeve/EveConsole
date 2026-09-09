@@ -5,6 +5,17 @@ public class HoboBuildInfo
 {
     public int            Id         { get; set; } = 1;
     public DateTimeOffset ImportedAt { get; set; }
+
+    /// <summary>
+    /// Which Hoboleaks publication this data came from, so the app can say whether there is a
+    /// newer one.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Zero on every database written before this existed, and on any import that predates it.
+    /// Treated as "unknown" rather than "revision zero": an update check must not claim you are
+    /// behind, or up to date, on the strength of a number nobody ever wrote.
+    /// </remarks>
+    public long Revision { get; set; }
 }
 
 // hoboleaks blueprints.json — mirrors SdeBlueprint* but sourced from Hoboleaks

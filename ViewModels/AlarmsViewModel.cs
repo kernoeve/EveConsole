@@ -143,6 +143,13 @@ public sealed class AlarmActionVm : ReactiveObject
 {
     private readonly AlarmSoundService _sounds;
 
+    /// <summary>Shown above the alarm list when this machine cannot play a sound at all.</summary>
+    public bool   AudioUnavailable     => !AlarmSoundService.IsAvailable
+                                        || AlarmSoundService.LastError is not null;
+    public string AudioUnavailableText => AlarmSoundService.IsAvailable
+                                        ? AlarmSoundService.LastError ?? ""
+                                        : AlarmSoundService.UnavailableReason;
+
     public AlarmActionVm(
         AlarmSoundService                 sounds,
         ObservableCollection<AlarmSound>  catalog,
@@ -335,11 +342,32 @@ public sealed class AlarmsViewModel : ReactiveObject
     private readonly AlarmService                    _service;
     private readonly AlarmSoundService               _sounds;
 
+    // ── Muting this machine ───────────────────────────────────────────────────
+
+    private readonly AlarmMuteState _mute;
+
+    /// <summary>
+    /// ⚠️ Reads through the shared state rather than keeping a copy, so this button and the
+    /// beacon's right-click menu can never disagree about whether the machine is quiet.
+    /// </summary>
+    public bool   AlarmsMuted    => _mute.Muted;
+    public string AlarmsMuteText => _mute.ToggleText;
+
+    public void ToggleMute() => _mute.Toggle();
+
     public AlarmsViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
         AlarmService                    service,
-        AlarmSoundService               sounds)
+        AlarmSoundService               sounds,
+        AlarmMuteState                  mute)
     {
+        _mute = mute;
+        mute.Changed += () =>
+        {
+            this.RaisePropertyChanged(nameof(AlarmsMuted));
+            this.RaisePropertyChanged(nameof(AlarmsMuteText));
+        };
+
         _dbFactory = dbFactory;
         _service   = service;
         _sounds    = sounds;
@@ -528,7 +556,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
             await db.Database.ExecuteSqlRawAsync(
-                """UPDATE "AlarmAlerts" SET "Dismissed" = 1, "DismissedAt" = {0} WHERE "Id" = {1}""",
+                """UPDATE "AlarmAlerts" SET "Dismissed" = TRUE, "DismissedAt" = {0} WHERE "Id" = {1}""",
                 DateTimeOffset.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "+00:00",
                 id);
         });

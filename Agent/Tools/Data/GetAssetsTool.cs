@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -35,43 +36,48 @@ public sealed class GetAssetsTool : IAgentTool
 
         const string sql = """
             SELECT
-                st.Name                                                     AS item,
-                SUM(a.Quantity)                                             AS quantity,
-                COALESCE(sn.Name, ss.Name, CAST(a.RootLocationId AS TEXT)) AS location,
-                COALESCE(c.Name, corp.Name, CAST(a.OwnerId AS TEXT))       AS owner,
+                st."Name"                                                     AS item,
+                SUM(a."Quantity")                                             AS quantity,
+                COALESCE(sn."Name", ss."Name", CAST(a."RootLocationId" AS TEXT)) AS location,
+                COALESCE(c."Name", corp."Name", CAST(a."OwnerId" AS TEXT))       AS owner,
                 COALESCE(
-                    ROUND(mip.Midpoint * SUM(a.Quantity), 2),
+                    ROUND(CAST(mip."Midpoint" * SUM(a."Quantity") AS NUMERIC), 2),
                     0
                 )                                                           AS estimated_value
-            FROM EsiAssets a
-            JOIN SdeTypes  st   ON st.TypeId   = a.TypeId
-            LEFT JOIN Characters    c    ON c.Id    = a.OwnerId  AND a.OwnerType = 'character'
-            LEFT JOIN Corporations  corp ON corp.Id = a.OwnerId  AND a.OwnerType = 'corp'
-            LEFT JOIN SdeStations        ss ON ss.StationId     = a.RootLocationId
-            LEFT JOIN EsiStructureNames  sn ON sn.StructureId   = a.RootLocationId
+            FROM "EsiAssets" a
+            JOIN "SdeTypes"  st   ON st."TypeId"   = a."TypeId"
+            LEFT JOIN "Characters"    c    ON c."Id"    = a."OwnerId"  AND a."OwnerType" = 'character'
+            LEFT JOIN "Corporations"  corp ON corp."Id" = a."OwnerId"  AND a."OwnerType" = 'corp'
+            LEFT JOIN "SdeStations"        ss ON ss."StationId"     = a."RootLocationId"
+            LEFT JOIN "EsiStructureNames"  sn ON sn."StructureId"   = a."RootLocationId"
             LEFT JOIN (
-                SELECT mip2.TypeId, mip2.Midpoint
-                FROM   MarketItemPrices     mip2
-                JOIN   MarketPricingConfigs mpc  ON mpc.Id = mip2.ConfigId AND mpc.IsEnabled = 1
-                ORDER  BY mpc.SortOrder
-            ) mip ON mip.TypeId = a.TypeId
-            WHERE  (@char IS NULL OR c.Name LIKE @char OR corp.Name LIKE @char)
-              AND  (@item IS NULL OR st.Name LIKE @item)
-              AND  (@loc  IS NULL OR sn.Name LIKE @loc OR ss.Name LIKE @loc)
-            GROUP BY a.TypeId, a.RootLocationId, a.OwnerId, a.OwnerType
+                SELECT mip2."TypeId", mip2."Midpoint"
+                FROM   "MarketItemPrices"     mip2
+                JOIN   "MarketPricingConfigs" mpc  ON mpc."Id" = mip2."ConfigId" AND mpc."IsEnabled" = TRUE
+                ORDER  BY mpc."SortOrder"
+            ) mip ON mip."TypeId" = a."TypeId"
+            WHERE  (CAST(@char AS TEXT) IS NULL OR LOWER(c."Name") LIKE LOWER(@char) OR LOWER(corp."Name") LIKE LOWER(@char))
+              AND  (CAST(@item AS TEXT) IS NULL OR LOWER(st."Name") LIKE LOWER(@item))
+              AND  (CAST(@loc AS TEXT)  IS NULL OR LOWER(sn."Name") LIKE LOWER(@loc) OR LOWER(ss."Name") LIKE LOWER(@loc))
+            -- ⚠️ Every selected column is grouped, not only the ids. SQLite takes a bare column
+            -- from an arbitrary row of the group; PostgreSQL rejects the statement unless the
+            -- grouping key is the table's own primary key, and these names arrive through joins.
+            -- Each is one-to-one with an id already in the key, so this changes no result — it
+            -- states what SQLite was quietly assuming.
+            GROUP BY a."TypeId", a."RootLocationId", a."OwnerId", a."OwnerType",
+                     st."Name", sn."Name", ss."Name", c."Name", corp."Name", mip."Midpoint"
             ORDER BY estimated_value DESC, quantity DESC
             LIMIT @limit
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@char",  charFilter is null ? (object)DBNull.Value : $"%{charFilter}%");
-        cmd.Parameters.AddWithValue("@item",  itemFilter is null ? (object)DBNull.Value : $"%{itemFilter}%");
-        cmd.Parameters.AddWithValue("@loc",   locFilter  is null ? (object)DBNull.Value : $"%{locFilter}%");
-        cmd.Parameters.AddWithValue("@limit", limit);
+        await using var cmd = conn.Command(sql);
+        cmd.AddWithValue("@char",  charFilter is null ? (object)DBNull.Value : $"%{charFilter}%");
+        cmd.AddWithValue("@item",  itemFilter is null ? (object)DBNull.Value : $"%{itemFilter}%");
+        cmd.AddWithValue("@loc",   locFilter  is null ? (object)DBNull.Value : $"%{locFilter}%");
+        cmd.AddWithValue("@limit", limit);
 
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))

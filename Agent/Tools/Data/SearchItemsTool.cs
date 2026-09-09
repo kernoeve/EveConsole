@@ -1,4 +1,5 @@
 using System.Text;
+using EveConsole.Data;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 
@@ -33,22 +34,21 @@ public sealed class SearchItemsTool : IAgentTool
         if (string.IsNullOrWhiteSpace(query)) return "No search query provided.";
 
         const string sql = """
-            SELECT st.TypeId, st.Name, sg.Name as GroupName, sc.Name as CategoryName
-            FROM SdeTypes     st
-            JOIN SdeGroups    sg ON sg.GroupId    = st.GroupId
-            JOIN SdeCategories sc ON sc.CategoryId = sg.CategoryId
-            WHERE st.Name LIKE @q AND st.Published = 1
-            ORDER BY LENGTH(st.Name), st.Name
+            SELECT st."TypeId", st."Name", sg."Name" as GroupName, sc."Name" as CategoryName
+            FROM "SdeTypes"     st
+            JOIN "SdeGroups"    sg ON sg."GroupId"    = st."GroupId"
+            JOIN "SdeCategories" sc ON sc."CategoryId" = sg."CategoryId"
+            WHERE LOWER(st."Name") LIKE LOWER(@q) AND st."Published" = TRUE
+            ORDER BY LENGTH(st."Name"), st."Name"
             LIMIT @limit
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@q",     $"%{query}%");
-        cmd.Parameters.AddWithValue("@limit", limit);
+        await using var cmd = conn.Command(sql);
+        cmd.AddWithValue("@q",     $"%{query}%");
+        cmd.AddWithValue("@limit", limit);
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))
             rows.Add(new { type_id = rdr.GetInt32(0), name = rdr.GetString(1), group = rdr.GetString(2), category = rdr.GetString(3) });

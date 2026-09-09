@@ -321,7 +321,15 @@ public sealed class IntelService(
 
             return $"Intel: up to date — {total:N0} sightings, newest {newest.Replace('T', ' ').TrimEnd('Z')}";
         }
-        catch { return "Intel: up to date"; }
+        catch (Exception ex)
+        {
+            // ⚠️ Not "up to date". The count did not come back, so whether the intel is
+            // current is exactly what is not known -- and saying it is, is the same false
+            // reassurance the mining tab gave when it blamed a polling setting for a broken
+            // query. Say the status could not be read, and log why.
+            errorLogger.Log(nameof(IntelService), "status", ex);
+            return "Intel: status unavailable";
+        }
     }
 
     // ── Writing ──────────────────────────────────────────────────────────────
@@ -427,12 +435,14 @@ public sealed class IntelService(
     /// second and a pilot really does get called in two systems within one.
     /// </summary>
     private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct) =>
-        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow.ToString("O")], ct);
+        // ⚠️ The value, not a rendering of it. ObsoleteSetOn is a timestamptz on a server,
+        // and text does not implicitly convert into one.
+        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow], ct);
 
     private const string SupersedeSql = """
         UPDATE "IntelReports"
-        SET "Obsolete" = 1, "ObsoleteSetOn" = {0}
-        WHERE "Obsolete" = 0
+        SET "Obsolete" = TRUE, "ObsoleteSetOn" = {0}
+        WHERE "Obsolete" = FALSE
           AND EXISTS (
             SELECT 1
             FROM "IntelReportCharacters" c1
@@ -467,6 +477,9 @@ public sealed class IntelService(
     /// </summary>
     private static async Task CheckpointAsync(AppDbContext db, CancellationToken ct)
     {
+        // A write-ahead log is SQLite's; there is nothing to checkpoint on a server.
+        if (!DbEngine.IsSqlite) return;
+
         try { await db.Database.ExecuteSqlRawAsync("PRAGMA wal_checkpoint(PASSIVE)", ct); }
         catch { }
     }

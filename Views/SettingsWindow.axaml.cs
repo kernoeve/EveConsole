@@ -30,6 +30,11 @@ public partial class SettingsWindow : Window
 
         if (DataContext is not SettingsViewModel vm) return;
 
+        // ⚠️ Read every time the window opens, not once at construction. The service can be started,
+        // stopped or removed from services.msc while this window is closed, and a stale switch is
+        // one that lies about a thing the user is about to act on.
+        vm.PollingVm.RefreshServiceState();
+
         var scopeHandler = vm.CharacterVm.ScopeSelectionInteraction.RegisterHandler(async ctx =>
         {
             var dialog = new ScopeSelectionDialog(ctx.Input) { DataContext = vm.CharacterVm };
@@ -58,6 +63,27 @@ public partial class SettingsWindow : Window
 
     private DatabaseSettingsViewModel? _dbVm;
 
+    // ── Windows service ───────────────────────────────────────────────────────
+    //
+    // The view model owns the work and the reporting; these only say which verb was asked for.
+
+    private PollingSettingsViewModel? PollingVm => (DataContext as SettingsViewModel)?.PollingVm;
+
+    private void OnServiceInstallClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.InstallServiceAsync();
+
+    private void OnServiceRemoveClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.UninstallServiceAsync();
+
+    private void OnServiceRepointClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.RepointServiceAsync();
+
+    private void OnServiceStartClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.SetServiceRunningAsync(true);
+
+    private void OnServiceStopClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = PollingVm?.SetServiceRunningAsync(false);
+
     private void OnRelocateDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.RelocateDatabaseAsync();
 
@@ -73,6 +99,24 @@ public partial class SettingsWindow : Window
 
     private void OnShrinkDatabaseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = _dbVm?.ShrinkDatabaseAsync();
+
+    private void OnTestPostgresClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.TestPostgresAsync();
+
+    private void OnSaveDbChoiceClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.SaveDatabaseChoiceAsync();
+
+    private void OnCopyToPostgresClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.CopyToPostgresAsync();
+
+    private void OnCancelCopyClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.CancelCopyAsync();
+
+    private void OnCheckPgDumpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.CheckPgDumpAsync();
+
+    private void OnRestoreDumpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = _dbVm?.RestoreFromDumpAsync();
 
     // One handler per retention section; each drives its own RetentionSectionVm.
     private DataRetentionSettingsViewModel? Retention => (DataContext as SettingsViewModel)?.RetentionVm;
@@ -144,24 +188,30 @@ public partial class SettingsWindow : Window
             return await dlg.ShowDialog<bool>(this);
         };
 
+        dbVm.ShowTypedConfirmDialog = async (title, message, phrase) =>
+        {
+            var dlg = new ConfirmDialog(message, phrase) { Title = title };
+            return await dlg.ShowDialog<bool>(this);
+        };
+
         dbVm.RequestRestart = () =>
         {
-            var exe = Process.GetCurrentProcess().MainModule?.FileName;
-            if (exe is not null)
-            {
-                // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This
-                // process is still alive for a moment after Process.Start, so without the release
-                // the new instance sees the lock held, focuses this window and exits — and then
-                // this one exits too, leaving nothing running. The argument makes the newcomer
-                // wait for the handover rather than treat it as a rival.
-                SingleInstance.Release();
-                Process.Start(new ProcessStartInfo(exe)
-                {
-                    UseShellExecute = true,
-                    Arguments       = SingleInstance.RestartingArgument,
-                });
-            }
-            Environment.Exit(0);
+            // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This process
+            // is still alive for a moment after Process.Start, so without the release the new
+            // instance sees the lock held, focuses this window and exits — and then this one exits
+            // too, leaving nothing running. The argument makes the newcomer wait for the handover
+            // rather than treat it as a rival.
+            SingleInstance.Release();
+
+            // ⚠️ Through AppLauncher rather than MainModule.FileName, which under an AppImage names
+            // the binary inside a temporary mount: starting that directly skips the AppImage's own
+            // runtime, and the replacement comes up without the environment its bundled libraries
+            // are found through.
+            AppLauncher.Start(SingleInstance.RestartingArgument);
+
+            // ⚠️ Not Environment.Exit: on Linux that ran libc's atexit handlers from the UI thread
+            // and did not come back, leaving a client that ignored SIGTERM too. See AppLauncher.
+            AppLauncher.ExitNow();
         };
     }
 }

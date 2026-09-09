@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Data;
 using Microsoft.Data.Sqlite;
 
 namespace EveConsole.Agent.Tools.Data;
@@ -59,45 +60,44 @@ public sealed class GetIndustryJobsTool : IAgentTool
 
         const string sql = """
             SELECT
-                j.JobId,
-                j.ActivityId,
-                j.Runs,
-                j.Status,
-                j.EndDate,
-                j.Cost,
-                COALESCE(c.Name,  corp.Name,  CAST(j.OwnerId   AS TEXT)) AS owner,
-                COALESCE(inst.Name, CAST(j.InstallerId AS TEXT))          AS installer,
-                COALESCE(bp_st.Name,  un_bp.Name,  CAST(j.BlueprintTypeId AS TEXT))  AS blueprint,
-                COALESCE(prod_st.Name, un_p.Name,  CAST(j.ProductTypeId   AS TEXT))  AS product,
-                COALESCE(NULLIF(sn_f.Name,''), ss_f.Name, CAST(j.FacilityId AS TEXT)) AS facility
-            FROM  EsiIndustryJobs  j
-            LEFT JOIN Characters   c    ON c.Id    = j.OwnerId AND j.OwnerType = 'character'
-            LEFT JOIN Corporations corp ON corp.Id = j.OwnerId AND j.OwnerType = 'corporation'
-            LEFT JOIN Characters   inst ON inst.Id = j.InstallerId
-            LEFT JOIN SdeTypes     bp_st   ON bp_st.TypeId   = j.BlueprintTypeId
-            LEFT JOIN SdeTypes     prod_st ON prod_st.TypeId = j.ProductTypeId
-            LEFT JOIN UniverseNames un_bp  ON un_bp.EntityId  = j.BlueprintTypeId
-            LEFT JOIN UniverseNames un_p   ON un_p.EntityId   = j.ProductTypeId
-            LEFT JOIN SdeStations       ss_f ON ss_f.StationId   = j.FacilityId
-            LEFT JOIN EsiStructureNames sn_f ON sn_f.StructureId = j.FacilityId
-            WHERE  (@status IS NULL OR j.Status = @status)
-              AND  (@inProgress = 0 OR j.Status IN ('active', 'ready'))
-              AND  (@owner IS NULL OR c.Name LIKE @owner OR corp.Name LIKE @owner)
+                j."JobId",
+                j."ActivityId",
+                j."Runs",
+                j."Status",
+                j."EndDate",
+                j."Cost",
+                COALESCE(c."Name",  corp."Name",  CAST(j."OwnerId"   AS TEXT)) AS owner,
+                COALESCE(inst."Name", CAST(j."InstallerId" AS TEXT))          AS installer,
+                COALESCE(bp_st."Name",  un_bp."Name",  CAST(j."BlueprintTypeId" AS TEXT))  AS blueprint,
+                COALESCE(prod_st."Name", un_p."Name",  CAST(j."ProductTypeId"   AS TEXT))  AS product,
+                COALESCE(NULLIF(sn_f."Name",''), ss_f."Name", CAST(j."FacilityId" AS TEXT)) AS facility
+            FROM  "EsiIndustryJobs"  j
+            LEFT JOIN "Characters"   c    ON c."Id"    = j."OwnerId" AND j."OwnerType" = 'character'
+            LEFT JOIN "Corporations" corp ON corp."Id" = j."OwnerId" AND j."OwnerType" = 'corporation'
+            LEFT JOIN "Characters"   inst ON inst."Id" = j."InstallerId"
+            LEFT JOIN "SdeTypes"     bp_st   ON bp_st."TypeId"   = j."BlueprintTypeId"
+            LEFT JOIN "SdeTypes"     prod_st ON prod_st."TypeId" = j."ProductTypeId"
+            LEFT JOIN "UniverseNames" un_bp  ON un_bp."EntityId"  = j."BlueprintTypeId"
+            LEFT JOIN "UniverseNames" un_p   ON un_p."EntityId"   = j."ProductTypeId"
+            LEFT JOIN "SdeStations"       ss_f ON ss_f."StationId"   = j."FacilityId"
+            LEFT JOIN "EsiStructureNames" sn_f ON sn_f."StructureId" = j."FacilityId"
+            WHERE  (CAST(@status AS TEXT) IS NULL OR j."Status" = @status)
+              AND  (@inProgress = 0 OR j."Status" IN ('active', 'ready'))
+              AND  (CAST(@owner AS TEXT) IS NULL OR LOWER(c."Name") LIKE LOWER(@owner) OR LOWER(corp."Name") LIKE LOWER(@owner))
             ORDER BY
-                CASE j.Status WHEN 'ready' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END,
-                j.EndDate
+                CASE j."Status" WHEN 'ready' THEN 0 WHEN 'active' THEN 1 WHEN 'paused' THEN 2 ELSE 3 END,
+                j."EndDate"
             LIMIT @limit
             """;
 
         var rows = new List<object>();
-        await using var conn = new SqliteConnection(_connString);
+        await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@status",     status is null ? (object)DBNull.Value : status);
-        cmd.Parameters.AddWithValue("@inProgress", inProgress ? 1 : 0);
-        cmd.Parameters.AddWithValue("@owner",      ownerFilter is null ? (object)DBNull.Value : $"%{ownerFilter}%");
-        cmd.Parameters.AddWithValue("@limit",      limit);
+        await using var cmd = conn.Command(sql);
+        cmd.AddWithValue("@status",     status is null ? (object)DBNull.Value : status);
+        cmd.AddWithValue("@inProgress", inProgress ? 1 : 0);
+        cmd.AddWithValue("@owner",      ownerFilter is null ? (object)DBNull.Value : $"%{ownerFilter}%");
+        cmd.AddWithValue("@limit",      limit);
 
         await using var rdr = await cmd.ExecuteReaderAsync(ct);
         while (await rdr.ReadAsync(ct))
@@ -133,8 +133,10 @@ public sealed class GetIndustryJobsTool : IAgentTool
         if (status is "delivered" or "cancelled" or "reverted") return "Completed";
         if (status == "ready") return "Ready to deliver";
         if (endDateRaw is null) return "Unknown";
+        // Same rule as the grid: a raw date with no offset is UTC, not local.
         if (!DateTimeOffset.TryParse(endDateRaw, null,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var end))
+                System.Globalization.DateTimeStyles.AssumeUniversal
+              | System.Globalization.DateTimeStyles.AdjustToUniversal, out var end))
             return "Unknown";
         var remaining = end.ToUniversalTime() - DateTimeOffset.UtcNow;
         if (remaining.TotalSeconds <= 0) return "Ready";

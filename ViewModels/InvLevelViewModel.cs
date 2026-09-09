@@ -25,6 +25,7 @@ public record InvGroupDialogResult(
     bool   IncludeIndustryJobs,
     bool   IncludeMarketBuyOrders,
     bool   IncludeContractsBuying,
+    bool   PackagedOnly,
     int    Multiplier,
     int?   CollectionId = null);
 
@@ -37,8 +38,24 @@ public record CollectionOption(int? CollectionId, string Name)
 
 public class InvCollectionRow : ReactiveObject
 {
-    private static readonly SolidColorBrush RowBrush = new(Color.Parse("#0e0e1a"));
-    public IBrush RowBackground => RowBrush;
+    /// <summary>
+    /// The worst shortfall among the rows this one is hiding, as a tint.
+    ///
+    /// <para>⚠️ Only while COLLAPSED. Expanded, the rows say it themselves and colouring the
+    /// header as well would double the signal; collapsed, the header is the only thing on screen
+    /// and a group that is fine looked identical to one hiding a red row.</para>
+    /// </summary>
+    public IBrush RowBackground =>
+        IsExpanded || WorstSeverity == 0 ? Palette.SurfaceBase
+      : WorstSeverity >= 2                ? Palette.BadSurface
+                                          : Palette.WarnSurface;
+
+    private int _worstSeverity;
+    public int WorstSeverity
+    {
+        get => _worstSeverity;
+        set { this.RaiseAndSetIfChanged(ref _worstSeverity, value); this.RaisePropertyChanged(nameof(RowBackground)); }
+    }
 
     public bool IsCollection => true;
     public bool IsGroup      => false;
@@ -62,6 +79,7 @@ public class InvCollectionRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpanderIcon));
+            this.RaisePropertyChanged(nameof(RowBackground));
         }
     }
     public string ExpanderIcon => IsExpanded ? "▼" : "▶";
@@ -93,8 +111,27 @@ public class InvCollectionRow : ReactiveObject
 
 public class InvGroupRow : ReactiveObject
 {
-    private static readonly SolidColorBrush RowBrush = new(Color.Parse("#141420"));
-    public IBrush RowBackground => RowBrush;
+    /// <summary>
+    /// The worst shortfall among the rows this one is hiding, as a tint.
+    ///
+    /// <para>⚠️ Only while COLLAPSED. Expanded, the rows say it themselves and colouring the
+    /// header as well would double the signal; collapsed, the header is the only thing on screen
+    /// and a group that is fine looked identical to one hiding a red row.</para>
+    /// </summary>
+    public IBrush RowBackground =>
+        IsExpanded || WorstSeverity == 0 ? Palette.SurfacePanelAlt
+      : WorstSeverity >= 2                ? Palette.BadSurface
+                                          : Palette.WarnSurface;
+
+    /// <summary>The worst Severity among AllItems, pushed in by the view model after every
+    /// availability refresh — the items know their own state, but only the tree knows which of
+    /// them belong to whom.</summary>
+    private int _worstSeverity;
+    public int WorstSeverity
+    {
+        get => _worstSeverity;
+        set { this.RaiseAndSetIfChanged(ref _worstSeverity, value); this.RaisePropertyChanged(nameof(RowBackground)); }
+    }
 
     public bool IsCollection => false;
     public bool IsGroup      => true;
@@ -109,6 +146,7 @@ public class InvGroupRow : ReactiveObject
     public bool   IncludeIndustryJobs    { get; private set; }
     public bool   IncludeMarketBuyOrders { get; private set; }
     public bool   IncludeContractsBuying { get; private set; }
+    public bool   PackagedOnly           { get; private set; }
 
     public List<InvItemRow> AllItems { get; } = [];
 
@@ -127,6 +165,7 @@ public class InvGroupRow : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _isExpanded, value);
             this.RaisePropertyChanged(nameof(ExpanderIcon));
+            this.RaisePropertyChanged(nameof(RowBackground));
         }
     }
     public string ExpanderIcon => IsExpanded ? "▼" : "▶";
@@ -195,6 +234,7 @@ public class InvGroupRow : ReactiveObject
             if (IncludeIndustryJobs)    parts.Add("IJ");
             if (IncludeMarketBuyOrders) parts.Add("Orders");
             if (IncludeContractsBuying) parts.Add("Contracts");
+            if (PackagedOnly)           parts.Add("packaged only");
             return parts.Count > 0 ? string.Join(", ", parts) : "None";
         }
     }
@@ -221,6 +261,21 @@ public class InvGroupRow : ReactiveObject
         AddItemCommand = ReactiveCommand.CreateFromTask(addItem);
     }
 
+    /// <summary>
+    /// The row, from what the dialog returned.
+    ///
+    /// <para>⚠️ Through the service's one mapping, not a literal rebuilt here. A field left out of
+    /// the literal that used to sit in EditGroupAsync did not merely fail to show — the Multiplier
+    /// setter re-saves the whole group FROM THIS ROW, so the stale value went straight back over
+    /// what had just been written. That is why packaged-only would not save.</para>
+    /// </summary>
+    public void ApplyGroupData(InvGroupDialogResult r)
+    {
+        var g = new InvLevelGroup();
+        InvLevelService.ApplyTo(g, r);
+        ApplyGroupData(g);
+    }
+
     public void ApplyGroupData(InvLevelGroup g)
     {
         Scope                  = g.Scope;
@@ -230,6 +285,7 @@ public class InvGroupRow : ReactiveObject
         IncludeIndustryJobs    = g.IncludeIndustryJobs;
         IncludeMarketBuyOrders = g.IncludeMarketBuyOrders;
         IncludeContractsBuying = g.IncludeContractsBuying;
+        PackagedOnly           = g.PackagedOnly;
         this.RaisePropertyChanged(nameof(ScopeDisplay));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(LocationName));
@@ -250,12 +306,12 @@ public class InvItemRow : ReactiveObject
     // Whole-row background tint when the item is under target: orange from 0% down to -50%,
     // red once the shortfall is worse than -50%. Transparent lets the base row colour show.
     private static readonly SolidColorBrush RowClear  = new(Colors.Transparent);
-    private static readonly SolidColorBrush RowOrange = new(Color.Parse("#3a2a12"));
-    private static readonly SolidColorBrush RowRed    = new(Color.Parse("#3a1616"));
+    private static IBrush RowOrange => Palette.WarnSurface;
+    private static IBrush RowRed    => Palette.BadSurface;
 
     /// <summary>Alternating shade for a row carrying no warning. A small step from the grid's own
     /// #0d0d12, matching the shared banding elsewhere in the app.</summary>
-    private static readonly SolidColorBrush RowBand = new(Color.Parse("#111118"));
+    private static IBrush RowBand => Palette.SurfacePanelAlt;
 
     private readonly InvLevelService _svc;
 
@@ -288,14 +344,17 @@ public class InvItemRow : ReactiveObject
     private long _availAssets;
     private long _availIJ;
     private long _availOrders;
+    private long _availContracts;
 
     public long AssetsQty       => _availAssets;
     public long IndustryJobsQty => _availIJ;
     public long BuyOrdersQty    => _availOrders;
+    public long ContractsQty    => _availContracts;
 
     public string AssetsText       => FormatQty(_availAssets);
     public string IndustryJobsText => FormatQty(_availIJ);
     public string BuyOrdersText    => FormatQty(_availOrders);
+    public string ContractsText    => FormatQty(_availContracts);
 
     private int _groupMultiplier = 1;
     public int GroupMultiplier
@@ -359,10 +418,22 @@ public class InvItemRow : ReactiveObject
     /// shows that, and only a healthy row is banded.</para>
     /// </summary>
     public IBrush RowBackground =>
-        Diff <  0 && DiffPct <  -50 ? RowRed
-      : Diff <  0                   ? RowOrange
-      : IsAltRow                    ? RowBand
-                                    : RowClear;
+        Severity >= 2 ? RowRed
+      : Severity >= 1 ? RowOrange
+      : IsAltRow      ? RowBand
+                      : RowClear;
+
+    /// <summary>
+    /// How badly this row is short: 0 fine, 1 under target, 2 under by more than half.
+    ///
+    /// <para>The tint as a NUMBER, so a collapsed group can take the worst of the rows it is
+    /// hiding. Two places deriving the same three bands from Diff and DiffPct is how they end up
+    /// disagreeing about where amber becomes red.</para>
+    /// </summary>
+    public int Severity =>
+        Diff < 0 && DiffPct < -50 ? 2
+      : Diff < 0                  ? 1
+                                  : 0;
 
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
@@ -379,7 +450,37 @@ public class InvItemRow : ReactiveObject
         _targetQty       = item.TargetQuantity;
         _groupMultiplier = Math.Max(1, groupMultiplier);
         _svc             = svc;
+        _isBlueprint     = meta.IsBlueprint;
         DeleteCommand    = ReactiveCommand.CreateFromTask(delete);
+    }
+
+    // ── Icon ──────────────────────────────────────────────────────────────────
+
+    private readonly bool _isBlueprint;
+
+    private Avalonia.Media.Imaging.Bitmap? _icon;
+    public Avalonia.Media.Imaging.Bitmap? Icon
+    {
+        get => _icon;
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
+
+    /// <summary>
+    /// Fetches the item image, off the UI thread, once.
+    ///
+    /// <para>⚠️ /bp for a blueprint and /icon for everything else. The image server does not fall
+    /// back between them: ask for the wrong one and the row gets a blank rather than a
+    /// placeholder, which is how a grid of blueprints ends up with no pictures at all.</para>
+    /// </summary>
+    public async Task LoadIconAsync()
+    {
+        if (TypeId <= 0 || _icon is not null) return;
+
+        var variant = _isBlueprint ? "bp" : "icon";
+        var bmp = await EveImageCache.GetAsync(
+            $"https://images.evetech.net/types/{TypeId}/{variant}?size=32");
+
+        if (bmp is not null) Avalonia.Threading.Dispatcher.UIThread.Post(() => Icon = bmp);
     }
 
     public void UpdateAvailable(InvAvailability avail)
@@ -387,6 +488,7 @@ public class InvItemRow : ReactiveObject
         _availAssets  = avail.Assets;
         _availIJ      = avail.IndustryJobs;
         _availOrders  = avail.BuyOrders;
+        _availContracts = avail.Contracts;
         RaiseDiffDependents();
     }
 
@@ -397,9 +499,11 @@ public class InvItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(AssetsQty));
         this.RaisePropertyChanged(nameof(IndustryJobsQty));
         this.RaisePropertyChanged(nameof(BuyOrdersQty));
+        this.RaisePropertyChanged(nameof(ContractsQty));
         this.RaisePropertyChanged(nameof(AssetsText));
         this.RaisePropertyChanged(nameof(IndustryJobsText));
         this.RaisePropertyChanged(nameof(BuyOrdersText));
+        this.RaisePropertyChanged(nameof(ContractsText));
         this.RaisePropertyChanged(nameof(TargetTotal));
         this.RaisePropertyChanged(nameof(TargetTotalText));
         this.RaisePropertyChanged(nameof(Diff));
@@ -620,6 +724,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 var m = meta.GetValueOrDefault(item.TypeId,
                     new InvTypeMeta(item.TypeId.ToString(), 0, null, null));
                 var itemRow = new InvItemRow(item, m, _svc, () => DeleteItemAsync(item.Id), g.Multiplier);
+                _ = itemRow.LoadIconAsync();
                 row.AllItems.Add(itemRow);
             }
             SortItemsAlpha(row);
@@ -678,6 +783,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             var a = avail.GetValueOrDefault(itemRow.TypeId, new InvAvailability(0, 0, 0));
             itemRow.UpdateAvailable(a);
         }
+
+        RefreshRowTints();
     }
 
     // ── Fit selector helpers ──────────────────────────────────────────────────
@@ -762,7 +869,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (pick == null) return;
 
         StatusText = "Calculating materials…";
-        Dictionary<int, (int Qty, string Name)> mats;
+        Dictionary<int, (long Qty, string Name)> mats;
         try
         {
             if (pick.WholeChain)
@@ -787,7 +894,11 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var targetGroup = GetContextGroup();
         if (targetGroup == null) { StatusText = "No group selected."; return; }
 
-        var itemsWithQty  = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Qty);
+        // ⚠️ Chain quantities are long; an inventory level is an int column in the rules
+        // table. Clamped rather than cast, so an absurd plan produces a capped level instead
+        // of a negative one.
+        var itemsWithQty  = mats.ToDictionary(kv => kv.Key,
+                                              kv => (int)Math.Clamp(kv.Value.Qty, 0, int.MaxValue));
         var nameOverrides = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Name);
         await AddItemsToGroupAsync(targetGroup, itemsWithQty, pick.ProductName, nameOverrides);
     }
@@ -835,6 +946,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
             var itemRow = new InvItemRow(item, meta, _svc,
                 () => DeleteItemAsync(item.Id), groupRow.Multiplier);
+            _ = itemRow.LoadIconAsync();
             groupRow.AllItems.Add(itemRow);
             added++;
         }
@@ -858,6 +970,14 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     public Func<string, int, Task<bool>>? ShowConfirmLargeGroup { get; set; }
+
+    /// <summary>Yes/no from the view, for the destructive things. True when there is no view
+    /// wired — a headless caller has nobody to ask, and refusing every delete would be worse
+    /// than doing what was requested.</summary>
+    public Func<string, Task<bool>>? ShowConfirm { get; set; }
+
+    private async Task<bool> ConfirmAsync(string message) =>
+        ShowConfirm is null || await ShowConfirm(message);
 
     private InvGroupRow? GetContextGroup()
     {
@@ -912,16 +1032,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         // Multiplier setter re-saves the whole group from the row's current state, so if
         // the row still held the old scope it would clobber the just-saved new scope in
         // the DB (the bug where scope changes reverted after restart).
-        row.ApplyGroupData(new InvLevelGroup
-        {
-            Scope                  = result.Scope,
-            LocationId             = result.LocationId,
-            LocationName           = result.LocationName,
-            IncludeAssets          = result.IncludeAssets,
-            IncludeIndustryJobs    = result.IncludeIndustryJobs,
-            IncludeMarketBuyOrders = result.IncludeMarketBuyOrders,
-            IncludeContractsBuying = result.IncludeContractsBuying,
-        });
+        row.ApplyGroupData(result);
         row.Multiplier   = result.Multiplier;
 
         // Ensure/remove synthetic Default row based on whether any group is uncollected
@@ -937,6 +1048,13 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task DeleteGroupAsync(InvGroupRow row)
     {
+        // ⚠️ Asked before doing it, not offered as an undo afterwards. Delete sits inches from
+        // Edit on the group line and takes the items with it; there is nothing to put back.
+        var items = row.AllItems.Count;
+        var what  = items == 0 ? "" : items == 1 ? " and its 1 item" : $" and its {items:N0} items";
+        if (!await ConfirmAsync($"Delete the group '{row.GroupName}'{what}? This cannot be undone."))
+            return;
+
         await _svc.DeleteGroupAsync(row.GroupId);
         _allGroups.Remove(row);
         RebuildGridRows();
@@ -975,6 +1093,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             .GetValueOrDefault(result.TypeId, new InvTypeMeta(result.TypeName, 0, null, null));
         var row = new InvItemRow(item, meta, _svc,
             () => DeleteItemAsync(item.Id), groupRow.Multiplier);
+        _ = row.LoadIconAsync();
         groupRow.AllItems.Add(row);
         SortItemsAlpha(groupRow);
 
@@ -1095,8 +1214,34 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 item.IsAltRow = n++ % 2 == 1;
     }
 
+    /// <summary>
+    /// Rolls each group's worst shortfall up to it, and each collection's worst group up to that.
+    ///
+    /// <para>⚠️ Pushed rather than computed by the rows. An item knows how short it is and a group
+    /// knows which items are its own, but only here is it known which groups belong to which
+    /// collection — the collection row holds an id, not a list.</para>
+    /// </summary>
+    private void RefreshRowTints()
+    {
+        foreach (var g in _allGroups)
+            g.WorstSeverity = g.AllItems.Count == 0 ? 0 : g.AllItems.Max(i => i.Severity);
+
+        int WorstOf(int? collectionId)
+        {
+            var groups = _allGroups.Where(g => g.CollectionId == collectionId).ToList();
+            return groups.Count == 0 ? 0 : groups.Max(g => g.WorstSeverity);
+        }
+
+        foreach (var col in _allCollections)
+            col.WorstSeverity = WorstOf(col.CollectionId);
+
+        if (_defaultCollRow is not null) _defaultCollRow.WorstSeverity = WorstOf(null);
+    }
+
     private void RebuildGridRows()
     {
+        RefreshRowTints();
+
         var desired = new List<object>();
 
         void AddGroupWithItems(InvGroupRow g)
@@ -1173,22 +1318,22 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     // ── Expansion state ───────────────────────────────────────────────────────
     //
     // Which groups and collections are folded shut is a view preference, not data, so it lives in
-    // AppPreferences rather than the group tables. Collapsed ids are stored rather than expanded
+    // the local config rather than the group tables. Collapsed ids are stored rather than expanded
     // ones so that anything newly created — by this app or an import — starts open.
 
-    private const string CollapsedGroupsKey      = "invlevels.collapsed_groups";
-    private const string CollapsedCollectionsKey = "invlevels.collapsed_collections";
+    // ⚠️ Local, not the shared preference table: what someone left collapsed on this screen is a
+    // fact about this screen. Collapsing a group on the desktop used to collapse it on the laptop.
     private const string DefaultCollectionToken  = "default";
 
     private bool _expansionRestored;
 
     private void ApplyStoredExpansion()
     {
-        var groups = Ids(_prefs.Get(CollapsedGroupsKey) ?? "");
+        var groups = Ids(UiState.Get(UiState.CollapsedGroups, _prefs) ?? "");
         foreach (var g in _allGroups)
             g.IsExpanded = !groups.Contains(g.GroupId.ToString());
 
-        var colls = Ids(_prefs.Get(CollapsedCollectionsKey) ?? "");
+        var colls = Ids(UiState.Get(UiState.CollapsedCollections, _prefs) ?? "");
         foreach (var c in _allCollections)
             c.IsExpanded = !colls.Contains(c.CollectionId!.Value.ToString());
         if (_defaultCollRow is not null)
@@ -1213,8 +1358,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                                    .ToList();
         if (_defaultCollRow is { IsExpanded: false }) colls.Add(DefaultCollectionToken);
 
-        _ = _prefs.SetAsync(CollapsedGroupsKey, groups);
-        _ = _prefs.SetAsync(CollapsedCollectionsKey, string.Join(',', colls));
+        UiState.Set(UiState.CollapsedGroups,      groups);
+        UiState.Set(UiState.CollapsedCollections, string.Join(',', colls));
     }
 
     private static InvGroupDialogResult BuildResultFromRow(InvGroupRow row, int? multiplierOverride = null) =>
@@ -1227,6 +1372,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             row.IncludeIndustryJobs,
             row.IncludeMarketBuyOrders,
             row.IncludeContractsBuying,
+            row.PackagedOnly,
             multiplierOverride ?? row.Multiplier,
             row.CollectionId);
 
@@ -1266,6 +1412,17 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
                 if (isSynthetic || !collectionId.HasValue) return;
                 var collRow = _allCollections.FirstOrDefault(c => c.CollectionId == collectionId);
                 if (collRow == null) return;
+
+                // The groups SURVIVE — DeleteCollectionAsync clears their CollectionId rather than
+                // removing them, so they reappear under Default. Worth saying in the prompt: the
+                // fear when deleting a folder is losing what is in it.
+                var kept = _allGroups.Count(g => g.CollectionId == collectionId.Value);
+                var fate = kept == 0 ? ""
+                    : kept == 1 ? " Its 1 group moves to Default and is not deleted."
+                    : $" Its {kept:N0} groups move to Default and are not deleted.";
+                if (!await ConfirmAsync($"Delete the collection '{collRow.CollectionName}'?{fate}"))
+                    return;
+
                 await _svc.DeleteCollectionAsync(collectionId.Value);
                 foreach (var g in _allGroups.Where(g => g.CollectionId == collectionId.Value))
                     g.CollectionId = null;

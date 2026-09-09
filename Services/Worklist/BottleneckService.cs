@@ -485,7 +485,7 @@ public class BottleneckService(
             .GroupBy(i => i.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(i => new ShortageTask(
                 "Using", -1, i.TypeName, i.Title, i.Readiness.ToString(),
-                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install")).ToList());
+                i.BlockedBy.Length > 0 ? i.BlockedBy : "ready to install", i.TypeId)).ToList());
 
         var wantedNow = items
             .Where(i => i.Kind == WorklistKind.Job && i.TypeId > 0)

@@ -32,6 +32,13 @@ namespace EveConsole.Services.Worklist;
 /// whole reason the tool exists: logging in to start a job and finding the inputs elsewhere is
 /// the cost being paid today.</para>
 /// </summary>
+/// <summary>ESI's activity ids for the two activities that consume a bill of materials.</summary>
+file static class IndustryActivity
+{
+    public const int Manufacturing = 1;
+    public const int Reaction      = 9;
+}
+
 public class IndustryJobGenerator(
     IDbContextFactory<AppDbContext> dbFactory,
     IndustryAssignmentService       assignment,
@@ -157,11 +164,41 @@ public class IndustryJobGenerator(
                                Qty = g.Sum(a => (long)a.Quantity) })
             .ToList();
 
+        // What is already on its way out of a machine. See ScopeStock.Anywhere for why this has
+        // to be here and not only in group availability.
+        //
+        // ⚠️ Runs times what a run YIELDS, not runs. A reaction turns 250 runs into 50,000 units,
+        // and netting off the run count would credit a two-hundredth of what is arriving.
+        var running = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                            && j.ProductTypeId != null)
+                .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId, j.BlueprintTypeId })
+                .ToListAsync(ct))
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
+            .ToList();
+
+        var runningPrints = running.Select(j => j.BlueprintTypeId).Distinct().ToList();
+
+        var runningYield = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => runningPrints.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(p => (p.TypeId, p.ProductTypeId))
+            .ToDictionary(x => x.Key, x => (long)Math.Max(1, x.Max(p => p.Quantity)));
+
+        var inBuild = running
+            .GroupBy(j => j.ProductTypeId!.Value)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Sum(j => j.Runs * runningYield.GetValueOrDefault(
+                                    (j.BlueprintTypeId, j.ProductTypeId!.Value), 1L)));
+
         var inScope = new ScopeStock(
             scopeRows.Where(a => a.OwnerType == "corporation")
                      .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
             scopeRows.Where(a => a.OwnerType != "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)));
+                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
+            inBuild);
 
         // Rig bonuses key off the item's category, which needs the SDE group tree.
         var typeToGroup = ctx.TypeGroupMap.ToDictionary(kv => kv.Key, kv => kv.Value.GroupId);
@@ -185,6 +222,13 @@ public class IndustryJobGenerator(
         // type. Without it every job in a split would compare against the same untouched pile
         // and all five would report Ready off one job's worth of stock.
         var committed = new Dictionary<(long Site, int TypeId), long>();
+
+        // Jobs that have already started have eaten their materials in the game, and the asset
+        // snapshot will not say so for up to an hour. Seeded into the same ledger the pass uses
+        // for its own reservations, because it is the same fact — material already spoken for
+        // — and every question downstream then nets it off without knowing it is there.
+        foreach (var (key, qty) in await AlreadyConsumedAsync(db, ctx, siteIds, ct))
+            committed[key] = committed.GetValueOrDefault(key) + qty;
 
         // Planning is pure given the context, so the same item at the same size and ME always
         // costs the same. A split is mostly equal-sized jobs off one print, so this collapses a
@@ -279,6 +323,20 @@ public class IndustryJobGenerator(
         // nobody can run would be a lie about the shelf.
         static bool StillShort(PlanState s) => s.Remaining > 0;
 
+        // Whether a dependent still has work that cannot run: either not yet written down, or
+        // written down and blocked.
+        //
+        // ⚠️ Deliberately NOT StillShort, which is the wrong question to ask about an ancestor.
+        // Remaining falls the moment a shortfall is REPORTED, blocked or not — right for a count
+        // that has to decay as the list grows, wrong for "is anything above me still stuck".
+        // Three Ark runs and a Salvation sat on the list blocked for want of Tungsten Carbide,
+        // and because their units had been reported their Remaining read zero: the hulls dropped
+        // out of the ancestry of their own bottleneck. Tungsten scored fin 0 with thirteen jobs
+        // stopped behind it and sat a band below items holding up one job each.
+        //
+        // Planned only moves for work that can actually start, which is exactly the question.
+        static bool StillWaiting(PlanState s) => s.Planned < s.Demand.Units;
+
         int BlockedNow(PlanState s)
         {
             var starving = Starving(s);
@@ -313,7 +371,7 @@ public class IndustryJobGenerator(
             var n = s.Demand.IsFinal ? 1 : 0;
 
             foreach (var t in s.Demand.Dependents)
-                if (byType.TryGetValue(t, out var dep) && StillShort(dep) && dep.Demand.IsFinal)
+                if (byType.TryGetValue(t, out var dep) && StillWaiting(dep) && dep.Demand.IsFinal)
                     n++;
             return (int)Math.Ceiling(n * starving);
         }
@@ -419,7 +477,7 @@ public class IndustryJobGenerator(
 
             foreach (var t in s.Demand.Dependents)
             {
-                if (!byType.TryGetValue(t, out var dep) || !StillShort(dep)) continue;
+                if (!byType.TryGetValue(t, out var dep) || !StillWaiting(dep)) continue;
 
                 // ⚠️ The ancestor's OWN priority, not its inherited one. Dependents is closed over
                 // the whole chain above an item, so the highest own-priority among the ancestors
@@ -1081,6 +1139,37 @@ public class IndustryJobGenerator(
         }
         }
 
+
+        // ⚠️ Nothing demanded may vanish without saying so.
+        //
+        // Tungsten Carbide was 508,190 against a 20,000,000 Build rule, with seventeen free
+        // formula BPOs sitting in the very structure the park assigns react_composite to — and it
+        // produced no row of any kind: not ready, not waiting, not blocked. It was only noticed by
+        // running out of the material. A walk this deep has many ways to drop an entry, and every
+        // one of them was silent, so the tool answered a question it had not been asked ("here is
+        // what to do") while quietly not answering the one it had ("what about this?").
+        //
+        // This does not fix whatever dropped it. It makes the drop impossible to miss, and names
+        // the type, so the next occurrence is a lead rather than an absence.
+        var accounted = items.Select(i => i.TypeId).ToHashSet();
+
+        foreach (var s in queue.Where(s => !accounted.Contains(s.Demand.TypeId))
+                               .OrderByDescending(s => s.Demand.Units))
+        {
+            var name = names.GetValueOrDefault(s.Demand.TypeId, $"Type {s.Demand.TypeId}");
+            var made = ctx.BlueprintByProduct.ContainsKey(s.Demand.TypeId);
+
+            items.Add(Unstartable(
+                s.Demand.TypeId, name, LivePriority(s),
+                ctx.BlueprintByProduct.GetValueOrDefault(s.Demand.TypeId)?.Activity == "reaction"
+                    ? IndustryPool.Reaction : IndustryPool.Manufacturing,
+                s.Demand.Units,
+                $"{s.Demand.Head} Short {s.Demand.Units:N0}.",
+                made
+                    ? "The planner did not produce a task for this and did not say why — please report it"
+                    : "Nothing in the SDE makes this, so it can only be bought"));
+        }
+
         return items;
     }
 
@@ -1170,7 +1259,7 @@ public class IndustryJobGenerator(
     /// checking materials at ME10 asks for less than the job will actually eat.</para>
     /// </summary>
     private async Task<Dictionary<int, long>> MaterialsForAsync(
-        ProductionContext ctx, int productTypeId, long quantity, int me, CancellationToken ct)
+        ProductionContext ctx, int productTypeId, long quantity, int? me, CancellationToken ct)
     {
         var root = await PlanRootJobAsync(ctx, productTypeId, quantity, me, ct);
         return root is null
@@ -1212,6 +1301,98 @@ public class IndustryJobGenerator(
     /// drawing the pile down as it is spent is what lets a five-job split report the first two
     /// Ready and the rest waiting.</para>
     /// </summary>
+    /// <summary>
+    /// Materials that jobs already running have consumed but the asset snapshot has yet to
+    /// notice, keyed like the pass's own reservations.
+    ///
+    /// <para>⚠️ Assets are polled hourly; industry jobs every five minutes. Starting a job
+    /// takes its inputs out of the hangar at once, so for up to an hour the plan is built
+    /// against a pile that includes material already gone — and since the plan is rebuilt
+    /// every few minutes, it offers that same material to the next job, and the next. Run
+    /// exactly the runs the list asks for and you still run out, which is what this is for.</para>
+    ///
+    /// <para>⚠️ Each job is measured against the snapshot for its OWN owner. A corp job's
+    /// inputs come out of the corp hangar, so it is the corporation's asset poll that would
+    /// have seen it; deducting against somebody else's clock would double-count a job the
+    /// snapshot already reflects and hide stock that is really there.</para>
+    /// </summary>
+    private async Task<Dictionary<(long Site, int TypeId), long>> AlreadyConsumedAsync(
+        AppDbContext db, ProductionContext ctx, IReadOnlyCollection<long> siteIds,
+        CancellationToken ct)
+    {
+        var consumed = new Dictionary<(long Site, int TypeId), long>();
+        if (siteIds.Count == 0) return consumed;
+
+        // When each owner's hangar was last read.
+        //
+        // ⚠️ Compared in memory. EF Core on SQLite cannot translate a DateTimeOffset
+        // comparison and throws rather than saying so, which is how a background loop dies
+        // without leaving a mark.
+        var snapshot = (await db.EsiCallRecords.AsNoTracking()
+                .Where(r => r.Endpoint == "char.assets" || r.Endpoint == "corp.assets")
+                .Select(r => new { r.OwnerId, r.LastCalledAt })
+                .ToListAsync(ct))
+            .GroupBy(r => r.OwnerId)
+            .ToDictionary(g => g.Key, g => g.Max(r => r.LastCalledAt));
+
+        if (snapshot.Count == 0) return consumed;   // nothing polled yet; nothing to correct
+
+        var sites = siteIds.ToHashSet();
+
+        // ⚠️ Deduped by JobId. A corp job comes back from the corporation's endpoint and from
+        // the installer's under one id, and counted twice it would deduct its materials twice.
+        //
+        // Manufacturing and reactions only: research, copying and invention consume the
+        // blueprint's time rather than a bill of materials.
+        var started = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Status == "active"
+                         && (j.ActivityId == IndustryActivity.Manufacturing || j.ActivityId == IndustryActivity.Reaction)
+                         && j.ProductTypeId != null)
+                .Select(j => new { j.JobId, j.OwnerId, j.FacilityId, j.BlueprintId,
+                                   j.ProductTypeId, j.Runs, j.StartDate })
+                .ToListAsync(ct))
+            .GroupBy(j => j.JobId)
+            .Select(g => g.First())
+            .Where(j => sites.Contains(j.FacilityId))
+            .Where(j => snapshot.TryGetValue(j.OwnerId, out var taken) && j.StartDate > taken)
+            .ToList();
+
+        if (started.Count == 0) return consumed;
+
+        // The ME of the print each job is actually running, so the deduction matches what the
+        // job took rather than what a default print would have taken.
+        var printIds = started.Select(j => j.BlueprintId).Distinct().ToList();
+        var printMe  = await db.EsiBlueprints.AsNoTracking()
+            .Where(b => printIds.Contains(b.ItemId))
+            .GroupBy(b => b.ItemId)
+            .Select(g => new { ItemId = g.Key, Me = g.Max(b => b.MaterialEfficiency) })
+            .ToDictionaryAsync(x => x.ItemId, x => x.Me, ct);
+
+        // Two jobs off the same print at the same size are common in a split, and planning is
+        // pure given the context.
+        var cache = new Dictionary<(int TypeId, long Qty, int? Me), Dictionary<int, long>>();
+
+        foreach (var j in started)
+        {
+            var typeId  = j.ProductTypeId!.Value;
+            var product = ctx.BlueprintByProduct.GetValueOrDefault(typeId);
+            if (product is null) continue;   // nothing in the SDE makes it; nothing to deduct
+
+            var me  = printMe.TryGetValue(j.BlueprintId, out var m) ? m : (int?)null;
+            var qty = (long)j.Runs * Math.Max(1, product.Quantity);
+            var key = (typeId, qty, me);
+
+            if (!cache.TryGetValue(key, out var mats))
+                cache[key] = mats = await MaterialsForAsync(ctx, typeId, qty, me, ct);
+
+            foreach (var (matId, amount) in mats)
+                consumed[(j.FacilityId, matId)] =
+                    consumed.GetValueOrDefault((j.FacilityId, matId)) + amount;
+        }
+
+        return consumed;
+    }
+
     private static List<MissingMaterial> MissingAtSite(
         SiteStock stock, ScopeStock inScope, ProductionContext ctx, IndustryCandidate who,
         Dictionary<int, long> needed, long siteId, Dictionary<(long, int), long> committed)

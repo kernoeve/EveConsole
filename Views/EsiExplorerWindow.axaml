@@ -7,6 +7,6 @@
         Title="ESI Data Explorer"
         Width="1200" Height="700"
         MinWidth="800" MinHeight="500"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
   <views:EsiExplorerView DataContext="{Binding}" />
 </Window>

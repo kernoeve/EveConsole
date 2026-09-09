@@ -16,6 +16,41 @@ public class OtherSettingsViewModel : ReactiveObject
     private readonly UiLinkSettings _settings;
     private bool _loading = true;
 
+    // ── Appearance ────────────────────────────────────────────────────────────
+
+    public IReadOnlyList<ThemeChoice> Themes { get; } = ThemeService.All;
+
+    private ThemeChoice? _selectedTheme =
+        ThemeService.All.FirstOrDefault(t => t.Key == ThemeService.Current);
+
+    /// <summary>
+    /// The theme, applied the moment it is chosen.
+    ///
+    /// <para>⚠️ No Apply button and no restart. A theme is the one setting whose effect IS its own
+    /// preview, so making somebody confirm a colour scheme they cannot see yet gets the choice
+    /// wrong in both directions. Everything bound through the palette repaints live.</para>
+    /// </summary>
+    public ThemeChoice? SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTheme, value);
+            if (value is not null && value.Key != ThemeService.Current) ThemeService.Apply(value.Key);
+        }
+    }
+
+    /// <summary>
+    /// Follows the theme when it is changed somewhere else — the label on the title bar picks the
+    /// same themes, and a combo still naming the old one is just wrong.
+    ///
+    /// <para>⚠️ Assigning the property is what updates it, and the setter re-applies. The guard
+    /// above is on the KEY rather than a flag, so arriving at the theme already on is a no-op
+    /// however it got here.</para>
+    /// </summary>
+    private void OnThemeChanged() =>
+        SelectedTheme = ThemeService.All.FirstOrDefault(t => t.Key == ThemeService.Current);
+
     public string[] EveTimeSiteOptions { get; } =
     [
         UiLinkSettings.EveOnlineTimeUrl,
@@ -26,6 +61,8 @@ public class OtherSettingsViewModel : ReactiveObject
     public OtherSettingsViewModel(UiLinkSettings settings)
     {
         _settings = settings;
+
+        ThemeService.Changed += OnThemeChanged;
 
         var stored = settings.EveTimeUrl;
         var isPreset = stored == UiLinkSettings.EveOnlineTimeUrl

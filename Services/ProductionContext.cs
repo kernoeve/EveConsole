@@ -28,6 +28,9 @@ public sealed class ProductionContext
 
     // ── Type names, groups, categories ───────────────────────────────────────
     public required Dictionary<int, string> TypeNames        { get; init; }
+
+    /// <summary>Packaged volume per unit, m ³, for working out what a shopping list ships as.</summary>
+    public required Dictionary<int, double> TypeVolumes      { get; init; }
     public required Dictionary<int, TypeGroup> TypeGroupMap  { get; init; }
     public required Dictionary<int, GroupCat> GroupCatMap    { get; init; }
     public required HashSet<int>            T2TypeIds        { get; init; }
@@ -61,6 +64,13 @@ public sealed class ProductionContext
     public required double                          MarkupFactor    { get; init; }
     public required Dictionary<int, decimal>        UnitCosts       { get; init; }
     public required Dictionary<int, List<(int Me, decimal PerRun)>> BpcPerRun { get; init; }
+
+    /// <summary>
+    /// Blueprints whose only price comes from a contract that has already ended, and when that
+    /// was. The plan is still costed with it — a month-old price beats none — but it is
+    /// worth saying, because the figure will not move again until somebody lists one.
+    /// </summary>
+    public required Dictionary<int, DateTimeOffset?> StaleBpcTypes { get; init; }
     public required HashSet<int>                    BoughtSet       { get; init; }
     public required Dictionary<int, PriceOverride>  Overrides       { get; init; }
     public required Dictionary<int, double>         AdjPrices       { get; init; }

@@ -119,7 +119,7 @@ public sealed class ZkillboardPostService(
                 var coverage = await GetCoverageFloorAsync(db, ct);
                 CoverageText = coverage is null
                     ? "none yet — no kills confirmed on zKillboard"
-                    : DateTimeOffset.TryParse(coverage, out var c) ? c.ToString("yyyy-MM-dd") : coverage;
+                    : coverage.Value.ToString("yyyy-MM-dd");
 
                 if (settings.Enabled && settings.PostEnabled && !_trustHalted)
                     await PostPendingAsync(db, coverage, ct);
@@ -137,7 +137,7 @@ public sealed class ZkillboardPostService(
         }
     }
 
-    private async Task PostPendingAsync(AppDbContext db, string? coverageFloor, CancellationToken ct)
+    private async Task PostPendingAsync(AppDbContext db, DateTimeOffset? coverageFloor, CancellationToken ct)
     {
         if (coverageFloor is null)
         {
@@ -151,7 +151,7 @@ public sealed class ZkillboardPostService(
             return;
         }
 
-        var candidates = await GetCandidatesAsync(db, coverageFloor, lastFullDay, ct);
+        var candidates = await GetCandidatesAsync(db, coverageFloor.Value, lastFullDay, ct);
         if (candidates.Count == 0)
         {
             StatusText = $"zKillboard posting: nothing to submit (covered from {CoverageText})";
@@ -210,40 +210,45 @@ public sealed class ZkillboardPostService(
     ///
     /// Returned unparsed so it can go straight back into the candidate query's string
     /// comparison in the exact format the column stores.</summary>
-    private static async Task<string?> GetCoverageFloorAsync(AppDbContext db, CancellationToken ct)
+    private static async Task<DateTimeOffset?> GetCoverageFloorAsync(AppDbContext db, CancellationToken ct)
     {
-        // COALESCE rather than a nullable projection: with no confirmed kills the
-        // aggregate still returns one row, and '' is unambiguous to test for.
+        // ⚠️ A nullable date, not COALESCE(..., ''). KillMailTime is TEXT in SQLite, where an
+        // empty string was a fine stand-in for "nothing yet"; in Postgres the column is a
+        // timestamptz and '' is not a value it has — "invalid input syntax for type timestamp
+        // with time zone". MIN over no rows is already NULL, which says the same thing in a type
+        // the column actually has.
         var rows = await db.Database.SqlQueryRaw<CoverageFloor>("""
-            SELECT COALESCE(MIN(d."KillMailTime"), '') AS "Floor"
+            SELECT MIN(d."KillMailTime") AS "Floor"
             FROM "KillMailDetails" d
             INNER JOIN "ZkbKillFlags" f ON f."KillMailId" = d."KillMailId"
             WHERE f."SeenOnZkbAt" IS NOT NULL
             """).ToListAsync(ct);
 
-        var floor = rows.FirstOrDefault()?.Floor;
-        return string.IsNullOrEmpty(floor) ? null : floor;
+        return rows.FirstOrDefault()?.Floor;
     }
 
     private sealed class CoverageFloor
     {
-        public string Floor { get; set; } = "";
+        public DateTimeOffset? Floor { get; set; }
     }
 
     /// <summary>Kills inside the coverage window, past the grace period, with a usable
     /// hash and no recorded zKillboard outcome. Raw SQL because KillMailTime is a
     /// DateTimeOffset, which EF Core's SQLite provider cannot translate in a Where.</summary>
     private static async Task<List<(int KillMailId, string Hash)>> GetCandidatesAsync(
-        AppDbContext db, string coverageFloor, DateOnly lastFullDay, CancellationToken ct)
+        AppDbContext db, DateTimeOffset coverageFloor, DateOnly lastFullDay, CancellationToken ct)
     {
         var from = coverageFloor;
 
         // Whichever bound is stricter: the end of the last dump-confirmed day, or the
         // grace period. In practice the dump lag dominates, but the grace period still
         // matters right after a day's dump lands.
-        var byGrace = DateTimeOffset.UtcNow.AddHours(-GraceHours).ToString("yyyy-MM-dd HH:mm:ss") + "+00:00";
-        var byDump  = lastFullDay.ToString("yyyy-MM-dd") + " 23:59:59+00:00";
-        var cutoff  = string.CompareOrdinal(byGrace, byDump) < 0 ? byGrace : byDump;
+        // ⚠️ Compared as dates, not as text. Ordering ISO-8601 strings happens to agree with
+        // chronological order, which is why this worked, but the values are handed to SQL as
+        // parameters and Postgres will not compare a timestamptz column against text.
+        var byGrace = DateTimeOffset.UtcNow.AddHours(-GraceHours);
+        var byDump  = new DateTimeOffset(lastFullDay.ToDateTime(new TimeOnly(23, 59, 59)), TimeSpan.Zero);
+        var cutoff  = byGrace < byDump ? byGrace : byDump;
 
 #pragma warning disable EF1002 // the only interpolated value is our own const row cap; the two date bounds are parameterized
         return (await db.Database.SqlQueryRaw<PendingKill>($"""

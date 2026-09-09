@@ -3,18 +3,20 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using EveConsole.Agent;
+using EveConsole.Services;
+using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
 
 public class SkillDotBrushConverter : IValueConverter
 {
     public static readonly SkillDotBrushConverter Instance = new();
-    private static readonly IBrush Filled = new SolidColorBrush(Color.Parse("#c8a84b"));
-    private static readonly IBrush Empty  = new SolidColorBrush(Color.Parse("#2a2a38"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is bool b && b ? Filled : Empty;
+        => value is bool b && b ? Palette.Accent : Palette.SurfaceRaised;
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -23,17 +25,14 @@ public class SkillDotBrushConverter : IValueConverter
 public class IsSummaryBorderConverter : IValueConverter
 {
     public static readonly IsSummaryBorderConverter Instance = new();
-    private static readonly IBrush SummaryBrush = new SolidColorBrush(Color.Parse("#1a3a1a"));
-    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? SummaryBrush : Brushes.Transparent;
+    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? Palette.GoodSurface : Brushes.Transparent;
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
 }
 
 public class IsSummaryForegroundConverter : IValueConverter
 {
     public static readonly IsSummaryForegroundConverter Instance = new();
-    private static readonly IBrush SummaryFg = new SolidColorBrush(Color.Parse("#7a9a7a"));
-    private static readonly IBrush NormalFg  = new SolidColorBrush(Color.Parse("#c0c0cc"));
-    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? SummaryFg : NormalFg;
+    public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? Palette.Good : Palette.TextPrimary;
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
 }
 
@@ -53,11 +52,12 @@ public class MessageRoleAlignmentConverter : IValueConverter
 public class MessageRoleBackgroundConverter : IValueConverter
 {
     public static readonly MessageRoleBackgroundConverter Instance = new();
-    private static readonly IBrush UserBrush      = new SolidColorBrush(Color.Parse("#1a2535"));
-    private static readonly IBrush AssistantBrush = new SolidColorBrush(Color.Parse("#111117"));
 
+    // The panel itself sits on SurfaceBase, so both bubbles read as raised against it and the
+    // one the reader wrote reads higher still. The ramp holds either way up: base is the darkest
+    // of the three on a dark theme and the darkest of the three on a light one.
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is MessageRole r && r == MessageRole.User ? UserBrush : AssistantBrush;
+        => value is MessageRole r && r == MessageRole.User ? Palette.SurfaceRaised : Palette.SurfacePanel;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -66,14 +66,11 @@ public class MessageRoleBackgroundConverter : IValueConverter
 public class SecurityStatusBrushConverter : IValueConverter
 {
     public static readonly SecurityStatusBrushConverter Instance = new();
-    private static readonly IBrush Positive = new SolidColorBrush(Color.Parse("#4caf6a"));
-    private static readonly IBrush Negative = new SolidColorBrush(Color.Parse("#cc4444"));
-    private static readonly IBrush Neutral  = new SolidColorBrush(Color.Parse("#888899"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is float f) return f > 0 ? Positive : f < 0 ? Negative : Neutral;
-        return Neutral;
+        if (value is float f) return f > 0 ? Palette.Good : f < 0 ? Palette.Bad : Palette.TextMuted;
+        return Palette.TextMuted;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -133,14 +130,11 @@ public class AgentProviderDisplayConverter : IValueConverter
 public class ProfitColorConverter : IValueConverter
 {
     public static readonly ProfitColorConverter Instance = new();
-    private static readonly IBrush Profit = new SolidColorBrush(Color.Parse("#4caf50"));
-    private static readonly IBrush Loss   = new SolidColorBrush(Color.Parse("#cc4444"));
-    private static readonly IBrush Zero   = new SolidColorBrush(Color.Parse("#888899"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is decimal d) return d > 0 ? Profit : d < 0 ? Loss : Zero;
-        return Zero;
+        if (value is decimal d) return d > 0 ? Palette.Good : d < 0 ? Palette.Bad : Palette.TextMuted;
+        return Palette.TextMuted;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -180,6 +174,76 @@ public class PathGeometryConverter : IValueConverter
             catch { return null; }
         }
     }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
+/// The engine name to its logo, so the Database Type dropdown shows the same marks the title bar
+/// does — and so both can be seen without switching engines to find out what the other looks like.
+/// </summary>
+public class DbEngineLogoConverter : IValueConverter
+{
+    public static readonly DbEngineLogoConverter Instance = new();
+
+    // ⚠️ Loaded once each. A converter runs on every item render, and decoding a PNG per pass
+    // for a two-item list would be silly.
+    private static readonly Lazy<Bitmap> Postgres = new(() => Load("postgresql.png"));
+    private static readonly Lazy<Bitmap> Sqlite   = new(() => Load("sqlite.png"));
+
+    private static Bitmap Load(string file) =>
+        new(AssetLoader.Open(new Uri($"avares://EveConsole/Assets/{file}")));
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value as string == DatabaseSettingsViewModel.PostgresName
+            ? Postgres.Value
+            : Sqlite.Value;
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Which client is doing the background work, as a colour.
+///
+/// <para>⚠️ Only one of the four states is a problem, and it is the one that otherwise reads like
+/// the others: "none" means nothing is polling ESI, recalculating build costs or taking backups,
+/// and it looks exactly as calm as a host name until it is coloured differently. Unknown stays
+/// grey rather than amber — the first read has not come back yet, and alarming about a worker
+/// that is very probably fine is how an indicator teaches people to ignore it.</para>
+/// </summary>
+public class WorkerStateBrushConverter : IValueConverter
+{
+    public static readonly WorkerStateBrushConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            WorkerOwnership.Mine  => Palette.Good,
+            WorkerOwnership.Other => Palette.TextMuted,
+            WorkerOwnership.None  => Palette.Warn,
+            _                     => Palette.TextFaint,
+        };
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Whether this client will make a noise about alarms, as a colour.
+///
+/// <para>Muted takes the same amber as a missing worker, because it is the same kind of fact: a
+/// thing that is supposed to happen is not going to. Green for active rather than the bar's
+/// ordinary grey — this one is worth being able to confirm at a glance mid-fleet, and grey would
+/// read as "off" to anyone scanning quickly.</para>
+/// </summary>
+public class AlarmMuteBrushConverter : IValueConverter
+{
+    public static readonly AlarmMuteBrushConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is true ? Palette.Warn : Palette.Good;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();

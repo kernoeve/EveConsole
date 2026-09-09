@@ -347,8 +347,8 @@ public class SalesTrackerViewModel : ReactiveObject
             UnitWidth       = TimeSpan.FromDays(1).Ticks,
             MinStep         = TimeSpan.FromDays(1).Ticks,
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 
@@ -358,8 +358,8 @@ public class SalesTrackerViewModel : ReactiveObject
         {
             Labeler         = FormatIskAxis,
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 
@@ -369,8 +369,8 @@ public class SalesTrackerViewModel : ReactiveObject
         {
             Labeler         = v => $"{v:N0}%",
             TextSize        = 11,
-            LabelsPaint     = new SolidColorPaint(new SKColor(0x88, 0x88, 0x99)),
-            SeparatorsPaint = new SolidColorPaint(new SKColor(0x1e, 0x1e, 0x2e)),
+            LabelsPaint     = ChartPaint.Labels,
+            SeparatorsPaint = ChartPaint.Separators,
         }
     ];
 
@@ -460,6 +460,11 @@ public class SalesTrackerViewModel : ReactiveObject
     public SalesTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger,
         CorpActivityService names, OrderLabelService labels)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
@@ -509,7 +514,7 @@ public class SalesTrackerViewModel : ReactiveObject
                     // INSERT OR IGNORE: marking something already marked is not an error, and
                     // a selection can legitimately contain a mix.
                     await db.Database.ExecuteSqlAsync(
-                        $"""INSERT OR IGNORE INTO "SaleExclusions" ("Kind","SaleId","MarkedAt") VALUES ({kind},{saleId},{DateTimeOffset.UtcNow})""");
+                        $"""INSERT INTO "SaleExclusions" ("Kind","SaleId","MarkedAt") VALUES ({kind},{saleId},{DateTimeOffset.UtcNow}) ON CONFLICT DO NOTHING""");
                 }
                 else
                 {
@@ -806,7 +811,7 @@ public class SalesTrackerViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("SalesTrackerViewModel", "Load", ex);
-            StatusText = "Error loading sales.";
+            StatusText = AppErrorLogger.Line("Error loading sales", ex);
         }
         finally { IsLoading = false; }
     }

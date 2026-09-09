@@ -240,7 +240,8 @@ public sealed class MessageBlockVm : ReactiveObject
     public bool IsText     => Type == MessageBlock.TypeText;
 
     /// <summary>A picture rather than text, and so a section a webhook cannot carry.</summary>
-    public bool IsChart    => Type is MessageBlock.TypeIskChart or MessageBlock.TypeActivityChart;
+    public bool IsChart    => Type is MessageBlock.TypeIskChart or MessageBlock.TypeActivityChart
+                                   or MessageBlock.TypeKillChart or MessageBlock.TypeMiningChart;
     public bool IsTop10    => Type == MessageBlock.TypeTop10;
     public bool IsSale     => Type == MessageBlock.TypeSale;
     public bool IsProjects => Type == MessageBlock.TypeProjects;
@@ -249,7 +250,9 @@ public sealed class MessageBlockVm : ReactiveObject
     public bool NeedsCorp  => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly
                                    or MessageBlock.TypeProjects
                                    or MessageBlock.TypeIskChart
-                                   or MessageBlock.TypeActivityChart;
+                                   or MessageBlock.TypeActivityChart
+                                   or MessageBlock.TypeKillChart
+                                   or MessageBlock.TypeMiningChart;
     public bool NeedsMonth => Type is MessageBlock.TypeTop10 or MessageBlock.TypeMonthly;
 
     public string Heading => Type switch
@@ -260,6 +263,8 @@ public sealed class MessageBlockVm : ReactiveObject
         MessageBlock.TypeProjects => "STANDING PROJECTS",
         MessageBlock.TypeIskChart      => "CORP ISK TRENDS CHART",
         MessageBlock.TypeActivityChart => "CORP ACTIVITY TRENDS CHART",
+        MessageBlock.TypeKillChart     => "CORP KILLS / LOSSES CHART",
+        MessageBlock.TypeMiningChart   => "CORP MINING CHART",
         _                         => "TEXT",
     };
 
@@ -610,6 +615,8 @@ public sealed class SchedulerViewModel : ReactiveObject
         new(MessageBlock.TypeProjects, "Standing Projects"),
         new(MessageBlock.TypeIskChart,      "Corp ISK Trends Chart"),
         new(MessageBlock.TypeActivityChart, "Corp Activity Trends Chart"),
+        new(MessageBlock.TypeKillChart,     "Corp Kills / Losses Chart"),
+        new(MessageBlock.TypeMiningChart,   "Corp Mining Chart"),
     ];
 
     private LabelledChoice? _selectedSectionType;
@@ -935,7 +942,9 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         List<Models.SalePosting> rows;
         try   { rows = await _sales.LoadPostingsAsync(); }
-        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "postings", ex); return; }
+        catch (Exception ex) { _errors.Log(nameof(SchedulerViewModel), "postings", ex);
+            StatusText = AppErrorLogger.Line("Error loading postings", ex);
+            return; }
 
         foreach (var p in rows)
             if (Postings.All(x => x.Id != p.Id)) Postings.Add(new PostingChoice(p.Id, p.Name));

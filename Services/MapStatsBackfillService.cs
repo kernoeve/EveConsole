@@ -108,6 +108,12 @@ public class MapStatsBackfillService(
     {
         _lifetime?.Cancel();
         _cts?.Cancel();
+
+        // ⚠️ Cleared as well as cancelled, or Start's guard sees a non-null _lifetime and
+        // returns. The worker lease can be lost and regained, and a catch-up that silently
+        // never resumes leaves a growing hole in the archive with nothing to say so.
+        _lifetime?.Dispose();
+        _lifetime = null;
     }
 
     /// <summary>

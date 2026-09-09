@@ -213,7 +213,7 @@ public class SaleListingViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("SaleListingViewModel", "Load", ex);
-            StatusText = "Error loading sales.";
+            StatusText = AppErrorLogger.Line("Error loading sales", ex);
         }
         finally { IsLoading = false; }
     }

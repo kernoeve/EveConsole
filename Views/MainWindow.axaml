@@ -9,30 +9,147 @@
         Width="1820" Height="900"
         MinWidth="1200" MinHeight="640"
         WindowStartupLocation="Manual"
-        Background="#0d0d12">
+        Background="{DynamicResource SurfaceBaseBrush}">
 
   <DockPanel>
 
     <!-- ── Title bar ───────────────────────────────────────────────────── -->
-    <Border DockPanel.Dock="Top" Background="#161620" Padding="16 8">
+    <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceHeaderBrush}" Padding="16 8">
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
           <!-- logo_mark.png, not logo.png: the full logo has the "EVE Console"
                wordmark composited into its bottom eighth, which at 30px is under
                four pixels tall — illegible, and redundant beside the text label
-               to its right. This is the same emblem as the app icon. -->
+               to its right. This is the same emblem as the app icon.
+               logo.png itself is no longer an app resource and lives in media/,
+               since nothing rendered it and Assets/** ships wholesale. -->
           <Image Source="avares://EveConsole/Assets/logo_mark.png"
                  Width="30" Height="30"
                  RenderOptions.BitmapInterpolationMode="HighQuality" />
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="EVE "
                        FontSize="18" FontWeight="SemiBold"
-                       Foreground="#e8e8ec" />
+                       Foreground="{DynamicResource TextBrightBrush}" />
             <TextBlock Text="Console"
                        FontSize="18" FontWeight="SemiBold"
-                       Foreground="#c8a84b" />
+                       Foreground="{DynamicResource AccentBrush}" />
           </StackPanel>
+
+          <!-- Which build this is, and whether it is the current one. -->
+          <TextBlock Text="{Binding UpdateVm.CurrentVersionText}"
+                     FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                     VerticalAlignment="Center"
+                     ToolTip.Tip="The version you are running." />
+
+          <Button x:Name="ReleaseLinkButton"
+                  IsVisible="{Binding UpdateVm.HasUpdateBadge}"
+                  Content="{Binding UpdateVm.UpdateBadgeText}"
+                  Background="Transparent" BorderThickness="0" Padding="6 1"
+                  FontSize="11" Foreground="{DynamicResource InfoBrush}"
+                  VerticalAlignment="Center"
+                  Cursor="Hand"
+                  ToolTip.Tip="Open the release page on GitHub"
+                  Click="OnReleaseLinkClick" />
+
+          <!-- Which SDE is loaded, and a way to act on it when a newer one exists. The link
+               appears only when there is something to do, so the bar stays quiet the rest of
+               the time. Both values come from SdeViewModel, which already checks CCP's build
+               feed on startup for the Settings tab. -->
+          <TextBlock Text="{Binding SdeVm.SdeShortText}"
+                     FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                     VerticalAlignment="Center" Margin="10 0 0 0"
+                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat='Static Data Export: {0}'}" />
+
+          <!-- ⚠️ Bound to SdeUpToDate, not to the absence of an update. If CCP's feed cannot be
+               reached the comparison never runs and UpdateAvailable stays false, so keying off
+               that would say "up to date" about a build nobody checked. When the check did not
+               complete the bar shows neither state. -->
+          <TextBlock Text="up to date"
+                     IsVisible="{Binding SdeVm.SdeUpToDate}"
+                     FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                     VerticalAlignment="Center" Margin="6 0 0 0"
+                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest from CCP is {0}'}" />
+
+          <Button x:Name="SdeUpdateLinkButton"
+                  IsVisible="{Binding SdeVm.UpdateAvailable}"
+                  Content="update available"
+                  Background="Transparent" BorderThickness="0" Padding="6 1"
+                  FontSize="11" Foreground="{DynamicResource InfoBrush}"
+                  VerticalAlignment="Center"
+                  Cursor="Hand"
+                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest is {0} — open the SDE settings'}"
+                  Click="OnSdeUpdateLinkClick" />
+
+          <!-- Which database this window is talking to. The icon carries it before the word is
+               read; the hover says where the data actually lives. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Background="Transparent"
+                      ToolTip.Tip="{Binding DbEngineTip}">
+
+            <!-- The projects' own artwork, the same way the Slack mark on the Corp Activity
+                 buttons is theirs. PostgreSQL's trademark policy permits this to say that
+                 software works with it, provided no affiliation is implied; the attribution it
+                 asks for is on the Settings Database tab. SQLite publishes no logo policy, only
+                 a public-domain dedication covering code and documentation.
+
+                 postgresql.png  the 3-colour Slonik, from wiki.postgresql.org, resized only.
+                 sqlite.png      sqlite.org's banner, cropped to the mark (its wordmark begins
+                                 at column 100 of 220) with the white ground made transparent,
+                                 since the banner is drawn for a white page and this bar is not. -->
+            <Image Source="avares://EveConsole/Assets/sqlite.png"
+                   Width="16" Height="16" VerticalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                   IsVisible="{Binding !DbIsPostgres}" />
+
+            <Image Source="avares://EveConsole/Assets/postgresql.png"
+                   Width="16" Height="16" VerticalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                   IsVisible="{Binding DbIsPostgres}" />
+
+            <!-- ⚠️ Each wordmark's own colour treatment, lifted in lightness but not shifted in
+                 hue. Their palettes are chosen for a white page: PostgreSQL's #336791 and
+                 SQLite's #003B57 both fall to roughly 2:1 contrast on this bar and would be
+                 close to unreadable as printed. -->
+            <!-- ⚠️ Two TextBlocks, not two Runs in one. A Run is not a Control and does not sit in
+                 the tree a DynamicResource is looked up through, so when these two literals became
+                 palette brushes the lookup resolved to nothing and the wordmark went invisible on
+                 every theme. Spacing 0 joins them with no gap, and being separate elements there
+                 is no newline to render as "Postgre SQL" either.
+
+                 SQL keeps its blue, through the palette's own Info rather than the #5590be it had:
+                 same hue, and it holds up on a light theme, which a colour lifted for this bar
+                 does not. -->
+            <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center"
+                        IsVisible="{Binding DbIsPostgres}">
+              <TextBlock Text="Postgre" FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="SQL" FontSize="11" VerticalAlignment="Center"
+                         Foreground="{DynamicResource InfoBrush}" />
+            </StackPanel>
+
+            <TextBlock Text="SQLite" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding !DbIsPostgres}" />
+          </StackPanel>
+
+          <!-- Which client is doing the background work. On PostgreSQL several clients can be
+               pointed at one database and exactly one of them holds the lease, so "is anything
+               polling?" stops being answerable by the fact that a window is open. The hover says
+               where it runs, as what pid, and on which build — that last one being the point:
+               a worker on a different version is writing to this database with a different idea
+               of the schema. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                      Margin="10 0 0 0" Background="Transparent"
+                      ToolTip.Tip="{Binding WorkerTip}">
+            <TextBlock Text="Background:" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="{Binding WorkerOwner}" FontSize="11"
+                       VerticalAlignment="Center"
+                       Foreground="{Binding WorkerState,
+                                    Converter={x:Static views:WorkerStateBrushConverter.Instance}}" />
+          </StackPanel>
+
         </StackPanel>
 
         <!-- Eve Time clock -->
@@ -46,15 +163,15 @@
             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                      Fill="{Binding OnlineCharactersColor}" />
             <TextBlock Text="{Binding OnlineCharactersText}"
-                       FontSize="10" Foreground="#7a7a8a" VerticalAlignment="Center" />
+                       FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
           </StackPanel>
 
           <TextBlock Text="EVE"
-                     FontSize="10" Foreground="#555566"
+                     FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                      VerticalAlignment="Center" />
           <TextBlock Text="{Binding EveTimeText}"
-                     FontSize="14" FontWeight="SemiBold" FontFamily="Consolas,Courier New,monospace"
-                     Foreground="#7799bb"
+                     FontSize="14" FontWeight="SemiBold" FontFamily="Consolas, Courier New, DejaVu Sans Mono, Liberation Mono, monospace"
+                     Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center"
                      Cursor="Hand"
                      ToolTip.Tip="{Binding EveTimeLinkTip}"
@@ -73,15 +190,33 @@
                        FontSize="10" VerticalAlignment="Center"
                        Foreground="{Binding ServerStatusColor}" />
             <TextBlock Text="{Binding ServerPlayersText}"
-                       FontSize="10" Foreground="#555566" VerticalAlignment="Center" />
+                       FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
           </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
 
+          <!-- Theme, named and pickable.
+               ⚠️ Deliberately not a ComboBox. This is a status bar, and a boxed control with a
+               border and a fill would read as something that needs attention, sitting next to a
+               server light and an alarm beacon that genuinely do. A quiet label with a caret says
+               the same thing and only draws the eye when it is looked for. -->
+          <Button x:Name="ThemeButton"
+                  Background="Transparent" BorderThickness="0"
+                  Padding="6 4" VerticalAlignment="Center" Cursor="Hand"
+                  ToolTip.Tip="{Binding ThemeTip}"
+                  Click="OnThemeClick">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="{Binding ThemeName}" FontSize="10" VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="▼" FontSize="7" VerticalAlignment="Center" Margin="0 1 0 0"
+                         Foreground="{DynamicResource TextFaintBrush}" />
+            </StackPanel>
+          </Button>
+
           <Button Content="{Binding AgentVm.AgentName, StringFormat='✦ {0}'}" FontSize="11"
-                  Background="#0d0d1a" BorderThickness="1" BorderBrush="#2e2e1a"
-                  Foreground="#c8a84b" Padding="8 4" VerticalAlignment="Center"
+                  Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentSurfaceBrush}"
+                  Foreground="{DynamicResource AccentBrush}" Padding="8 4" VerticalAlignment="Center"
                   ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat='Toggle {0} AI companion'}"
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
                   Click="OnAgentToggleClick" />
@@ -93,6 +228,16 @@
                   Padding="6 4" VerticalAlignment="Center"
                   ToolTip.Tip="{Binding AlarmsTip}"
                   Click="OnAlarmsClick">
+
+            <!-- Right-click mutes this machine. On the beacon rather than a control of its own,
+                 because that is the thing already on screen that means "alarms" — and mute is
+                 reached for mid-fight, where hunting for a second control is the failure. -->
+            <Button.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="{Binding AlarmsMuteMenuText}" Click="OnAlarmMuteClick" />
+              </ContextMenu>
+            </Button.ContextMenu>
+
             <Grid Width="29" Height="22">
               <!-- A beacon: dome on a stacked base, with light thrown off it while armed.
                    Drawn on a 24x22 canvas so the pieces line up at any size. -->
@@ -112,24 +257,34 @@
 
                 <!-- Glass highlight, the curved gleam on the left of the dome -->
                 <Path Data="M 8.7,15.4 A 4.3,4.3 0 0 1 10.9,11.5"
-                      Stroke="#ffffff" StrokeThickness="1.3" StrokeLineCap="Round"
+                      Stroke="{DynamicResource BorderStrongBrush}" StrokeThickness="1.3" StrokeLineCap="Round"
                       Opacity="{Binding AlarmGleamOpacity}" />
 
                 <!-- Housing: two stacked tiers, the lower one wider -->
                 <Rectangle Canvas.Left="4.6" Canvas.Top="16.2" Width="14.8" Height="2.5"
-                           RadiusX="0.7" RadiusY="0.7" Fill="#23232c" />
+                           RadiusX="0.7" RadiusY="0.7" Fill="{DynamicResource SurfaceHeaderBrush}" />
                 <Rectangle Canvas.Left="3.0" Canvas.Top="18.7" Width="18.0" Height="2.7"
-                           RadiusX="0.9" RadiusY="0.9" Fill="#16161d" />
+                           RadiusX="0.9" RadiusY="0.9" Fill="{DynamicResource SurfaceHeaderBrush}" />
+
+                <!-- ⚠️ Struck through while this machine is muted, and drawn last so it lies over
+                     the beacon. Muting has to be visible from across the room: a client silenced
+                     since Tuesday otherwise looks exactly like one with nothing to report, and the
+                     beacon goes on being lit either way because the alarms really are armed.
+                     Backed by a dark stroke so it reads against the lit dome as well as the housing. -->
+                <Path Data="M 3.4,20.2 L 20.6,3.4" IsVisible="{Binding AlarmsMuted}"
+                      Stroke="{DynamicResource SurfacePanelBrush}" StrokeThickness="3.6" StrokeLineCap="Round" />
+                <Path Data="M 3.4,20.2 L 20.6,3.4" IsVisible="{Binding AlarmsMuted}"
+                      Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.8" StrokeLineCap="Round" />
               </Canvas>
 
               <Border IsVisible="{Binding HasActiveAlarms}"
                       HorizontalAlignment="Right" VerticalAlignment="Top"
-                      Background="#12121a" CornerRadius="6"
-                      BorderBrush="#3a3a4a" BorderThickness="1"
+                      Background="{DynamicResource SurfacePanelBrush}" CornerRadius="6"
+                      BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                       MinWidth="12" Height="12" Padding="2 0">
                 <TextBlock Text="{Binding ActiveAlarmCount}"
                            FontSize="8" FontWeight="SemiBold"
-                           Foreground="#d8d8e4"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
             </Grid>
@@ -145,23 +300,23 @@
                   Click="OnSchedulerClick">
             <Canvas Width="18" Height="18">
               <Ellipse Canvas.Left="1" Canvas.Top="1" Width="16" Height="16"
-                       Stroke="#888" StrokeThickness="1.4" />
+                       Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" />
               <!-- Hands at ten past ten: the angle a clock is drawn at when it stands in for the
                    idea of one. -->
-              <Path Data="M 9,9 L 9,4.4"     Stroke="#888" StrokeThickness="1.4" StrokeLineCap="Round" />
-              <Path Data="M 9,9 L 12.4,10.6" Stroke="#888" StrokeThickness="1.4" StrokeLineCap="Round" />
+              <Path Data="M 9,9 L 9,4.4"     Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" StrokeLineCap="Round" />
+              <Path Data="M 9,9 L 12.4,10.6" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" StrokeLineCap="Round" />
             </Canvas>
           </Button>
 
           <Button x:Name="GearButton" Content="⚙" FontSize="18"
                   Background="Transparent" BorderThickness="0"
-                  Foreground="#888" Padding="8 4" VerticalAlignment="Center"
+                  Foreground="{DynamicResource TextMutedBrush}" Padding="8 4" VerticalAlignment="Center"
                   ToolTip.Tip="Settings"
                   Click="OnGearClick" />
 
           <Button Content="ⓘ" FontSize="16"
                   Background="Transparent" BorderThickness="0"
-                  Foreground="#555566" Padding="8 4" VerticalAlignment="Center"
+                  Foreground="{DynamicResource TextFaintBrush}" Padding="8 4" VerticalAlignment="Center"
                   ToolTip.Tip="About EVE Console"
                   Click="OnAboutClick" />
 
@@ -170,18 +325,18 @@
     </Border>
 
     <!-- ── Status bar ──────────────────────────────────────────────────── -->
-    <Border DockPanel.Dock="Bottom" Background="#0d0d12" Padding="12 4">
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 4">
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <TextBlock Grid.Column="0"
                    Text="{Binding CharacterVm.StatusMessage}"
-                   FontSize="12" Foreground="#888" VerticalAlignment="Center" />
+                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
 
         <Button Grid.Column="2"
                 x:Name="PollingStatusButton"
                 Content="{Binding PollingStatusText}"
                 Background="Transparent" BorderThickness="0"
-                Foreground="#5588aa" FontSize="11" Padding="10 2"
+                Foreground="{DynamicResource InfoBrush}" FontSize="11" Padding="10 2"
                 VerticalAlignment="Center"
                 ToolTip.Tip="Click to open the API activity log"
                 Click="OnPollingStatusClick" />
@@ -193,7 +348,7 @@
     <Grid ColumnDefinitions="190,1,*">
 
       <!-- Left navigation sidebar -->
-      <Border Grid.Column="0" Background="#0a0a10">
+      <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
           <ItemsControl x:CompileBindings="False" ItemsSource="{Binding NavGroups}"
@@ -205,7 +360,7 @@
                   <!-- Group label -->
                   <TextBlock Text="{Binding Title}"
                              FontSize="9" FontWeight="SemiBold"
-                             Foreground="#333348" LetterSpacing="1.5"
+                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.5"
                              Margin="14 0 14 3" />
 
                   <!-- Tool entries -->
@@ -221,18 +376,18 @@
                                 Padding="14 5 14 5" Cursor="Hand">
                           <Button.Styles>
                             <Style Selector="Button:pointerover /template/ ContentPresenter">
-                              <Setter Property="Background" Value="#14141e" />
+                              <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
                             </Style>
                           </Button.Styles>
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Ellipse Width="5" Height="5" Fill="#c8a84b"
+                            <Ellipse Width="5" Height="5" Fill="{DynamicResource AccentBrush}"
                                      VerticalAlignment="Center"
                                      IsVisible="{Binding IsOpen}" />
                             <Ellipse Width="5" Height="5"
                                      VerticalAlignment="Center"
                                      IsVisible="{Binding !IsOpen}" />
                             <TextBlock Text="{Binding Title}"
-                                       FontSize="12" Foreground="#888899"
+                                       FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        VerticalAlignment="Center" />
                           </StackPanel>
                         </Button>
@@ -248,7 +403,7 @@
       </Border>
 
       <!-- Sidebar divider -->
-      <Rectangle Grid.Column="1" Fill="#1a1a26" />
+      <Rectangle Grid.Column="1" Fill="{DynamicResource SurfaceHoverBrush}" />
 
       <!-- Content area + agent panel -->
       <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
@@ -257,20 +412,24 @@
         <Grid Grid.Column="0" RowDefinitions="Auto,1,*">
 
           <!-- Tab strip -->
-          <Border Grid.Row="0" Background="#0d0d12">
+          <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}">
+            <!-- ⚠️ Horizontal scrolling is DISABLED below, and that is what makes the wrapping
+                 work rather than merely permitting it: a WrapPanel inside a scroller that offers
+                 horizontal scrolling is measured with infinite width, so it never meets an edge to
+                 wrap at and lays every tab out on one line regardless. -->
             <ListBox x:Name="TabStrip"
                      ItemsSource="{Binding OpenTabs}"
                      SelectedItem="{Binding SelectedTab}"
                      Background="Transparent" BorderThickness="0" Padding="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled">
               <ListBox.Styles>
                 <!-- Descendant selectors must be outside ControlTheme -->
                 <Style Selector="ListBoxItem:selected TextBlock">
-                  <Setter Property="Foreground" Value="#c8a84b" />
+                  <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
                 </Style>
                 <Style Selector="ListBoxItem:pointerover TextBlock">
-                  <Setter Property="Foreground" Value="#e8d870" />
+                  <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
                 </Style>
               </ListBox.Styles>
               <ListBox.ItemContainerTheme>
@@ -293,13 +452,17 @@
                     </ControlTemplate>
                   </Setter>
                   <Style Selector="^:selected">
-                    <Setter Property="BorderBrush" Value="#c8a84b" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                   </Style>
                 </ControlTheme>
               </ListBox.ItemContainerTheme>
+<!-- Tabs wrap onto a second row rather than scrolling. The strip was a horizontal
+                   StackPanel in a scroller, so opening more tabs than fit put a scrollbar across
+                   the bottom of them — which covers the tabs it exists to reach. The row is Auto
+                   height, so the strip grows and the content below simply starts lower. -->
               <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" />
+                  <WrapPanel Orientation="Horizontal" />
                 </ItemsPanelTemplate>
               </ListBox.ItemsPanel>
               <ListBox.ItemTemplate>
@@ -308,7 +471,7 @@
                               PointerPressed="OnTabPointerPressed"
                               PointerMoved="OnTabPointerMoved"
                               PointerReleased="OnTabPointerReleased">
-                    <TextBlock Text="{Binding Title}" FontSize="12" Foreground="#666677"
+                    <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                Padding="14 8 4 8" VerticalAlignment="Center" />
                     <Button IsVisible="{Binding CanClose}"
                             x:CompileBindings="False"
@@ -316,14 +479,14 @@
                             CommandParameter="{Binding}"
                             Content="×" FontSize="13"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#444455" Padding="2 6 8 6"
+                            Foreground="{DynamicResource BorderStrongBrush}" Padding="2 6 8 6"
                             VerticalAlignment="Center" Cursor="Hand">
                       <Button.Styles>
                         <Style Selector="Button:pointerover /template/ ContentPresenter">
                           <Setter Property="Background" Value="Transparent" />
                         </Style>
                         <Style Selector="Button:pointerover">
-                          <Setter Property="Foreground" Value="#cc6666" />
+                          <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
                         </Style>
                       </Button.Styles>
                     </Button>
@@ -334,7 +497,7 @@
           </Border>
 
           <!-- Tab strip / content divider -->
-          <Rectangle Grid.Row="1" Fill="#1a1a26" />
+          <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
 
           <!-- Active tool content -->
           <ContentControl x:Name="MainContent"
@@ -472,7 +635,7 @@
         <!-- Agent panel -->
         <Border Grid.Column="1"
                 IsVisible="{Binding AgentVm.IsPanelVisible}"
-                BorderBrush="#1c1c2e" BorderThickness="1 0 0 0">
+                BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1 0 0 0">
           <views:AgentPanel DataContext="{Binding AgentVm}" />
         </Border>
 

@@ -47,15 +47,22 @@ public class OrderFulfilmentService(
     public int LinkedCount  { get; private set; }
 
     private Task? _loop;
+    private CancellationTokenSource? _cts;
 
     /// <summary>
     /// Starts the poll. Five minutes rather than on demand: the inputs are polled ESI data —
     /// assets, industry jobs and contracts — so checking more often than they change would only
     /// re-read the same rows.
     /// </summary>
-    public void Start(CancellationToken ct = default)
+    public void Start(CancellationToken outerCt = default)
     {
         if (_loop is not null) return;
+
+        // ⚠️ Linked to a source of our own. Every caller leaves the parameter at its default,
+        // so until now nothing could stop this loop once started — and the lease has to be
+        // able to, the moment this client stops being the worker.
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(outerCt);
+        var ct = _cts.Token;
 
         _loop = Task.Run(async () =>
         {
@@ -76,6 +83,25 @@ public class OrderFulfilmentService(
                 catch (OperationCanceledException) { return; }
             }
         }, ct);
+    }
+
+    /// <summary>
+    /// Stops the pending-order poll, and leaves it startable again.
+    ///
+    /// <para>⚠️ Both fields cleared. _loop is what Start guards on, and a
+    /// CancellationTokenSource stays cancelled once it has been — keeping either would make
+    /// the next Start a silent no-op for the rest of the session.</para>
+    /// </summary>
+    public async Task StopAsync()
+    {
+        if (_cts is null) return;
+        await _cts.CancelAsync();
+        if (_loop is not null)
+            try { await _loop; } catch (OperationCanceledException) { }
+
+        _cts.Dispose();
+        _cts  = null;
+        _loop = null;
     }
 
     /// <summary>One pass over the pending orders. Public so the tool can force it after an edit.</summary>
@@ -381,7 +407,10 @@ public class OrderFulfilmentService(
         //
         // Both columns hold EF's own ISO text ("2026-08-18 23:09:15+00:00"), which sorts
         // lexicographically, so a "yyyy-MM-dd HH:mm:ss" cutoff compares correctly against it.
-        var placed = order.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        // ⚠️ A DateTimeOffset, not a string. DateIssued is a timestamptz on a server and
+        // "operator does not exist: timestamp with time zone > text" is what comparing it to one
+        // gets. On SQLite the provider renders it to the same text this used to build by hand.
+        var placed = order.CreatedAt.ToUniversalTime();
 
         // Ids come from our own tables, so they are embedded rather than parameterised — a list of
         // longs cannot carry anything but digits.
@@ -405,7 +434,7 @@ public class OrderFulfilmentService(
               AND c."AssigneeId" = {0}
               AND c."DateIssued" > {1}
               AND ({{string.Join(" OR ", tests)}})
-              AND i."TypeId" = {2} AND i."IsIncluded" = 1 AND i."Quantity" >= {3}
+              AND i."TypeId" = {2} AND i."IsIncluded" = TRUE AND i."Quantity" >= {3}
             GROUP BY c."ContractId"
             ORDER BY c."ContractId"
             """;

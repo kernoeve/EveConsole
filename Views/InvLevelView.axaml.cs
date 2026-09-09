@@ -35,7 +35,7 @@ public partial class InvLevelView : UserControl
             var existing = new InvGroupDialogResult(
                 group.GroupName, group.Scope, group.LocationId, group.LocationName,
                 group.IncludeAssets, group.IncludeIndustryJobs, group.IncludeMarketBuyOrders,
-                group.IncludeContractsBuying, group.Multiplier, group.CollectionId);
+                group.IncludeContractsBuying, group.PackagedOnly, group.Multiplier, group.CollectionId);
             var dialog = new AddEditInvGroupDialog(existing,
                 (scope, text) => vm.SearchLocationsAsync(scope, text),
                 collections);
@@ -75,6 +75,12 @@ public partial class InvLevelView : UserControl
                 text => svc.SearchBlueprintsAsync(text),
                 parks);
             return await dialog.ShowDialog<BlueprintPickerResult?>(GetWindow());
+        };
+
+        vm.ShowConfirm = async message =>
+        {
+            var dlg = new ConfirmDialog(message);
+            return await dlg.ShowDialog<bool>(GetWindow());
         };
 
         vm.ShowConfirmLargeGroup = async (groupName, count) =>

@@ -8,7 +8,13 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      # ⚠️ fetch-depth: 0 is load-bearing, not tidiness. The upgrade check below reads the
+      # previous releases' schema out of their tags with `git show`, and the default shallow
+      # checkout carries no tags at all — the check would find no release to simulate and
+      # abort rather than pass.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
@@ -29,3 +35,49 @@ jobs:
       # startup or silently seed nothing.
       - name: Fresh-install check
         run: dotnet run --project tools/FreshInstallCheck/FreshInstallCheck.csproj -c Release
+
+      # And would it work for someone who ALREADY HAS one? The mirror of the check above,
+      # and the one that catches what it structurally cannot: on an existing database
+      # EnsureCreated does nothing, so a column added to the model and to no hand-written
+      # list is perfect on every fresh test install and missing for every real user.
+      #
+      # 0.9.13 shipped 81 such columns and two such tables. An existing database lost Wallet,
+      # Sales Tracker, Order Tracker and the Worklist to "no such column", and Update SDE —
+      # the one action that would have repaired the schema — died on the missing table first.
+      - name: Upgrade check
+        run: dotnet run --project tools/UpgradeCheck/UpgradeCheck.csproj -c Release
+
+  # ⚠️ Does the Linux target still compile?
+  #
+  # The job above answers that for Windows only — it is a windows-latest runner with no
+  # RuntimeIdentifier, so it builds for its own host and nothing else. A package placed in
+  # the IsWindowsTarget ItemGroup therefore vanishes from a Linux build without this check
+  # noticing: Npgsql landed there in #89, the PR went green, and develop could not be built
+  # on Linux at all (12 CS0246s).
+  #
+  # Nothing else catches it first. release-build.yml has a linux job, but that only runs
+  # once develop has already reached main.
+  #
+  # A real runner rather than `-r linux-x64` from the Windows one: the piper download
+  # targets in EveConsole.csproj are conditioned on the build HOST, so cross-compiling
+  # produces an artifact that is not the one the release job produces.
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # libvlc is the one dependency the app cannot carry itself — LibVLCSharp loads the
+      # system copy. release-build.yml installs it on its linux job for the same reason.
+      - name: Install native dependencies
+        run: sudo apt-get update && sudo apt-get install -y libvlc-dev
+
+      - name: Restore
+        run: dotnet restore EveConsole.csproj
+
+      - name: Build
+        run: dotnet build EveConsole.csproj -c Release --no-restore

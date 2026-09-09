@@ -497,6 +497,39 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
     }
 
+    /// <summary>
+    /// The theme menu, built fresh each time it opens.
+    ///
+    /// <para>Built here rather than declared in the markup because the CHECK has to be right: the
+    /// theme can be changed from the Settings window too, and a menu assembled once would go on
+    /// ticking whatever was on when it was made.</para>
+    /// </summary>
+    private void OnThemeClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control anchor) return;
+
+        var menu = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedRight };
+
+        foreach (var choice in ThemeService.All)
+        {
+            var item = new MenuItem
+            {
+                Header     = choice.Name,
+                ToggleType = MenuItemToggleType.Radio,
+                IsChecked  = choice.Key == ThemeService.Current,
+            };
+
+            // Captured, not read off the sender: a MenuItem's Click gives back the item, and
+            // recovering the key from its header would break the moment one was renamed.
+            var key = choice.Key;
+            item.Click += (_, _) => ThemeService.Apply(key);
+
+            menu.Items.Add(item);
+        }
+
+        menu.ShowAt(anchor);
+    }
+
     private void OnSchedulerClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("scheduler");
@@ -552,6 +585,33 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnServerStatusClick(object? sender, Avalonia.Input.PointerPressedEventArgs e)
         => OpenInBrowser(EveConsole.Services.UiLinkSettings.ServerStatusUrl);
+
+    /// <summary>Opens the release page for whichever version the badge is talking about.</summary>
+    private void OnReleaseLinkClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) OpenInBrowser(vm.UpdateVm.ReleaseUrl);
+    }
+
+    /// <summary>
+    /// The SDE link opens the Settings tab that can do something about it, rather than a
+    /// download page — importing the SDE is the application's job, not the browser's.
+    /// </summary>
+    private void OnSdeUpdateLinkClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "SDE");
+    }
+
+    /// <summary>
+    /// Silences alarms on this machine, or lets them speak again.
+    ///
+    /// <para>No confirmation either way. Muting loses nothing — the worker goes on recording every
+    /// firing as an alert — and a prompt in front of somebody reaching for the mute button during
+    /// a fight would be its own kind of failure.</para>
+    /// </summary>
+    private void OnAlarmMuteClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.AlarmsMuted = !vm.AlarmsMuted;
+    }
 
     /// <summary>Hands the URL to the OS default browser. Guarded because a user-supplied
     /// EVE-time URL can be anything, and a malformed one must not take the app down.</summary>

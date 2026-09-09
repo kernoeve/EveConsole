@@ -14,12 +14,16 @@ public record LocationOption(long Id, string Name);
 
 public record InvTypeResult(int TypeId, string Name);
 
-public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders)
+public record InvAvailability(long Assets, long IndustryJobs, long BuyOrders, long Contracts = 0)
 {
-    public long Total => Assets + IndustryJobs + BuyOrders;
+    public long Total => Assets + IndustryJobs + BuyOrders + Contracts;
 }
 
-public record InvTypeMeta(string Name, double Volume, double? MarketPrice, double? BuildPrice);
+/// <param name="IsBlueprint">⚠️ Which image the icon comes from. EVE's image server serves a
+/// blueprint under /bp and everything else under /icon, and asking for the wrong one gets a
+/// blank rather than a fallback.</param>
+public record InvTypeMeta(
+    string Name, double Volume, double? MarketPrice, double? BuildPrice, bool IsBlueprint = false);
 
 public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 {
@@ -66,32 +70,18 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         return await db.InvLevelGroups.OrderBy(g => g.Name).ToListAsync(ct);
     }
 
-    public async Task<InvLevelGroup> AddGroupAsync(InvGroupDialogResult r, CancellationToken ct = default)
+    /// <summary>
+    /// Everything the dialog decides, copied onto a group.
+    ///
+    /// <para>⚠️ ONE mapping, deliberately. There were three — add, update, and a literal in the
+    /// view model that rebuilt the row after an edit — and a field missing from the third silently
+    /// reverted the other two. The row kept the stale value, and the Multiplier setter then
+    /// re-saved the whole group FROM THE ROW, writing it back over what had just been stored.
+    /// Packaged-only never saved for exactly that reason, and scope had the same bug before it.
+    /// A new flag added here reaches all three.</para>
+    /// </summary>
+    public static void ApplyTo(InvLevelGroup g, InvGroupDialogResult r)
     {
-        await using var db = dbFactory.CreateDbContext();
-        var g = new InvLevelGroup
-        {
-            Name                   = r.Name,
-            CollectionId           = r.CollectionId,
-            Scope                  = r.Scope,
-            LocationId             = r.LocationId,
-            LocationName           = r.LocationName,
-            Multiplier             = r.Multiplier,
-            IncludeAssets          = r.IncludeAssets,
-            IncludeIndustryJobs    = r.IncludeIndustryJobs,
-            IncludeMarketBuyOrders = r.IncludeMarketBuyOrders,
-            IncludeContractsBuying = r.IncludeContractsBuying,
-        };
-        db.InvLevelGroups.Add(g);
-        await db.SaveChangesAsync(ct);
-        return g;
-    }
-
-    public async Task UpdateGroupAsync(int groupId, InvGroupDialogResult r, CancellationToken ct = default)
-    {
-        await using var db = dbFactory.CreateDbContext();
-        var g = await db.InvLevelGroups.FindAsync([groupId], ct);
-        if (g is null) return;
         g.Name                   = r.Name;
         g.CollectionId           = r.CollectionId;
         g.Scope                  = r.Scope;
@@ -102,6 +92,25 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         g.IncludeIndustryJobs    = r.IncludeIndustryJobs;
         g.IncludeMarketBuyOrders = r.IncludeMarketBuyOrders;
         g.IncludeContractsBuying = r.IncludeContractsBuying;
+        g.PackagedOnly           = r.PackagedOnly;
+    }
+
+    public async Task<InvLevelGroup> AddGroupAsync(InvGroupDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var g = new InvLevelGroup();
+        ApplyTo(g, r);
+        db.InvLevelGroups.Add(g);
+        await db.SaveChangesAsync(ct);
+        return g;
+    }
+
+    public async Task UpdateGroupAsync(int groupId, InvGroupDialogResult r, CancellationToken ct = default)
+    {
+        await using var db = dbFactory.CreateDbContext();
+        var g = await db.InvLevelGroups.FindAsync([groupId], ct);
+        if (g is null) return;
+        ApplyTo(g, r);
         await db.SaveChangesAsync(ct);
     }
 
@@ -332,6 +341,20 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         return ids.ToHashSet();
     }
 
+    /// <summary>
+    /// Which of these types are blueprints.
+    ///
+    /// <para>Asked as "does anything have a blueprint activity" rather than by category, because
+    /// that is the same table every other blueprint decision in the app is made from.</para>
+    /// </summary>
+    private static async Task<HashSet<int>> BlueprintTypeIdsAsync(
+        AppDbContext db, IReadOnlyList<int> typeIds, CancellationToken ct) =>
+        [.. await db.SdeBlueprintProducts.AsNoTracking()
+            .Where(p => typeIds.Contains(p.TypeId))
+            .Select(p => p.TypeId)
+            .Distinct()
+            .ToListAsync(ct)];
+
     public async Task<Dictionary<int, InvAvailability>> LoadAvailableAsync(
         InvLevelGroup group, IReadOnlyList<int> typeIds, CancellationToken ct = default,
         bool packagedOnly = false)
@@ -345,22 +368,61 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         var assets  = new Dictionary<int, long>();
         var jobs    = new Dictionary<int, long>();
         var orders  = new Dictionary<int, long>();
+        var contracts = new Dictionary<int, long>();
 
         // Assets
         if (group.IncludeAssets)
         {
+            var bpTypeIds = await BlueprintTypeIdsAsync(db, typeIds, ct);
+
             var q = db.EsiAssets.Where(a => typeIds.Contains(a.TypeId)
                                          && ownerFilter.Contains(a.OwnerId));
             if (stationFilter != null)
                 q = q.Where(a => stationFilter.Contains(a.RootLocationId));
-            // Only packaged (non-singleton) items — skip assembled/fitted hulls.
-            if (packagedOnly)
-                q = q.Where(a => !a.IsSingleton);
 
-            var totals = await q.GroupBy(a => a.TypeId)
-                .Select(g => new { TypeId = g.Key, Total = g.Sum(a => (long)a.Quantity) })
-                .ToListAsync(ct);
-            foreach (var t in totals) assets[t.TypeId] = t.Total;
+            // Packaged only: skip assembled and fitted hulls. The group setting is the usual
+            // source; the parameter is how the sale posting tool overrides it per posting.
+            //
+            // ⚠️ Blueprints are exempt, and that is not a nicety. Singleton on a blueprint does
+            // not mean "assembled" — it means the item does not stack, which is true of every copy
+            // and every researched original. Filtering on it would empty a blueprint group
+            // outright, and a group of T2 copies is exactly where somebody would think to tick a
+            // box about packaging.
+            if (packagedOnly || group.PackagedOnly)
+                q = q.Where(a => !a.IsSingleton || bpTypeIds.Contains(a.TypeId));
+
+            var rows = await q.Select(a => new { a.ItemId, a.TypeId, a.Quantity }).ToListAsync(ct);
+
+            // ⚠️ A blueprint level is written in RUNS, not copies, and the assets table cannot
+            // answer in runs: a copy is one row of quantity 1 whether it carries two runs or
+            // twenty. Counted that way, four Ark copies holding twenty runs between them read as
+            // "4" against a target of five and asked for a fifth that was not needed.
+            //
+            // ⚠️ Copies ONLY. An original is unlimited runs and satisfies nothing here, which
+            // looks wrong until you ask what a blueprint level is kept for: invention runs off a
+            // copy and cannot touch the original, however many runs the original is good for. A
+            // group holding a BPO and no copies is genuinely empty, and cutting copies is the
+            // answer — the same reason the purchase pass counts only copies against a shelf.
+            var runsByItem = bpTypeIds.Count == 0
+                ? []
+                : await db.EsiBlueprints.AsNoTracking()
+                    .Where(b => bpTypeIds.Contains(b.TypeId) && b.Runs > 0)
+                    .ToDictionaryAsync(b => b.ItemId, b => (long)b.Runs, ct);
+
+            foreach (var g in rows.GroupBy(r => r.TypeId))
+            {
+                if (!bpTypeIds.Contains(g.Key))
+                {
+                    assets[g.Key] = g.Sum(r => (long)r.Quantity);
+                    continue;
+                }
+
+                // ⚠️ A row the blueprints endpoint never returned counts for nothing rather than
+                // for one. Runs are the unit here, that row's run count is unknown, and guessing
+                // at it would report stock the group may not have — where a plain count at least
+                // could not be wrong about what it was counting.
+                assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
+            }
         }
 
         // Industry Jobs — active manufacturing (1) and reactions (9, plus legacy 11).
@@ -439,12 +501,52 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 orders[g.Key] = g.Sum(o => (long)o.VolumeRemain);
         }
 
+        // Contracts we are buying through — outstanding item exchanges of ours that ASK for the
+        // item, so accepting them brings it in.
+        //
+        // ⚠️ Requested, not offered. IsIncluded true means the issuer is handing the item over;
+        // false means they want it delivered to them. This counts the false rows on contracts our
+        // own characters and personal corporations issued, which is the contract-window equivalent
+        // of a market buy order and the only shape that adds stock we do not already have.
+        //
+        // ⚠️ Ours only, by the same owner filter every block here uses — a contract sitting in a
+        // corporation the player merely belongs to is somebody else's supply.
+        //
+        // ⚠️ Not scoped by station. A contract's end location is where it is collected, and the
+        // item lands wherever the acceptor is told to put it; a location-scoped group would
+        // otherwise silently drop every contract whose pickup happens to sit elsewhere.
+        if (group.IncludeContractsBuying)
+        {
+            var mine = await db.EsiContracts.AsNoTracking()
+                .Where(c => c.Status == "outstanding"
+                         && c.Type == "item_exchange"
+                         && ownerFilter.Contains(c.OwnerId)
+                         && ownerFilter.Contains(c.IssuerId))
+                .Select(c => c.ContractId)
+                .Distinct()
+                .ToListAsync(ct);
+
+            if (mine.Count > 0)
+            {
+                var lines = await db.EsiContractItems.AsNoTracking()
+                    .Where(i => mine.Contains(i.ContractId)
+                             && !i.IsIncluded
+                             && typeIds.Contains(i.TypeId))
+                    .Select(i => new { i.TypeId, i.Quantity })
+                    .ToListAsync(ct);
+
+                foreach (var g in lines.GroupBy(i => i.TypeId))
+                    contracts[g.Key] = g.Sum(i => i.Quantity);
+            }
+        }
+
         return typeIds.Distinct().ToDictionary(
             id => id,
             id => new InvAvailability(
                 assets.GetValueOrDefault(id),
                 jobs.GetValueOrDefault(id),
-                orders.GetValueOrDefault(id)));
+                orders.GetValueOrDefault(id),
+                contracts.GetValueOrDefault(id)));
     }
 
     // ── Type metadata lookup ──────────────────────────────────────────────────
@@ -458,8 +560,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
         var types = await db.SdeTypes
             .Where(t => ids.Contains(t.TypeId))
-            .Select(t => new { t.TypeId, t.Name, t.Volume })
+            .Select(t => new { t.TypeId, t.Name, Volume = t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume })
             .ToListAsync(ct);
+
+        var blueprints = await BlueprintTypeIdsAsync(db, ids, ct);
 
         var buildCosts = await db.BuildCosts
             .Where(b => ids.Contains(b.TypeId))
@@ -507,7 +611,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 t.Name,
                 t.Volume,
                 MarketValue(t.TypeId),
-                buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null));
+                buildCosts.TryGetValue(t.TypeId, out var bc) && bc > 0 ? bc : null,
+                blueprints.Contains(t.TypeId)));
     }
 
     public async Task<Dictionary<int, string>> GetTypeNamesAsync(

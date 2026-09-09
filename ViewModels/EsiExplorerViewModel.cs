@@ -1,7 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Data.Common;
+using System.Globalization;
+using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
+using EveConsole.Data;
 
 namespace EveConsole.ViewModels;
 
@@ -26,6 +29,41 @@ public class FilterOp(string label, string sql, bool useLike = false)
     public string Sql     { get; } = sql;
     public bool   UseLike { get; } = useLike;
     public override string ToString() => Label;
+}
+
+/// <summary>
+/// Turning one typed-in filter into SQL that both engines accept.
+///
+/// <para>⚠️ The value always arrives as a string — it was typed into a box — while the column it
+/// is compared against may be bigint, double, boolean or a timestamp. SQLite does not mind, and
+/// this shape worked there for years. PostgreSQL does: filtering Location Id gave
+/// <c>42883: operator does not exist: bigint = text</c>.</para>
+///
+/// <para>Two rules, and which one applies is decided by the OPERATOR, not by guessing at the
+/// column's type from the value. Contains, Equal and their negations are text questions about
+/// what is on screen, so the column is cast to text and the comparison is textual on any column.
+/// Greater and Less are ordering questions, where text would sort 9 after 10 — those keep the
+/// column as it is and type the PARAMETER instead, so a number is bound as a number.</para>
+/// </summary>
+internal static class SqlFilter
+{
+    private static bool IsTextual(FilterOp op) => op.UseLike || op.Sql is "=" or "!=";
+
+public static string Clause(string column, FilterOp op, int index) =>
+        op.UseLike
+            // ⚠️ LOWER on both sides. PostgreSQL LIKE is case-SENSITIVE where SQLite is not, so
+            // "isotropic" matched nothing against "Isotropic Neofullerene" on one engine only.
+            ? $"LOWER(CAST(\"{column}\" AS TEXT)) {op.Sql} LOWER(@fv{index})"
+            : IsTextual(op)
+                ? $"CAST(\"{column}\" AS TEXT) {op.Sql} @fv{index}"
+                : $"\"{column}\" {op.Sql} @fv{index}";
+
+    public static object Value(FilterOp op, string value) =>
+        op.UseLike     ? $"%{value}%"
+      : IsTextual(op)  ? value
+      : long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l) ? l
+      : double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d
+      : value;
 }
 
 public class EsiExplorerViewModel : ReactiveObject
@@ -57,8 +95,8 @@ public class EsiExplorerViewModel : ReactiveObject
 
     public List<TableEntry> AllTables { get; } = [
         new("Wallet Balances",     "EsiWalletBalances"),
-        new("Wallet Journal",      "EsiWalletJournal",      "Date DESC"),
-        new("Wallet Transactions", "EsiWalletTransactions", "Date DESC"),
+        new("Wallet Journal",      "EsiWalletJournal",      "\"Date\" DESC"),
+        new("Wallet Transactions", "EsiWalletTransactions", "\"Date\" DESC"),
         new("Skills",              "EsiSkills"),
         new("Skill Queue",         "EsiSkillQueue",         "QueuePosition"),
         new("Attributes",          "EsiCharacterAttributes"),
@@ -69,14 +107,14 @@ public class EsiExplorerViewModel : ReactiveObject
         new("Implants",            "EsiImplants"),
         new("Assets",              "EsiAssets"),
         new("Blueprints",          "EsiBlueprints"),
-        new("Industry Jobs",       "EsiIndustryJobs",       "StartDate DESC"),
-        new("Market Orders",       "EsiMarketOrders",       "Issued DESC"),
-        new("Contracts",           "EsiContracts",          "DateIssued DESC"),
+        new("Industry Jobs",       "EsiIndustryJobs",       "\"StartDate\" DESC"),
+        new("Market Orders",       "EsiMarketOrders",       "\"Issued\" DESC"),
+        new("Contracts",           "EsiContracts",          "\"DateIssued\" DESC"),
         new("Contacts",            "EsiContacts"),
         new("Kill Mails",          "EsiKillMailRefs"),
         new("Standings",           "EsiStandings"),
-        new("Mining",              "EsiMining",             "Date DESC"),
-        new("Notifications",       "EsiNotifications",      "Timestamp DESC"),
+        new("Mining",              "EsiMining",             "\"Date\" DESC"),
+        new("Notifications",       "EsiNotifications",      "\"Timestamp\" DESC"),
         new("Planetary Colonies",  "EsiPlanetaryColonies"),
         new("Agent Research",      "EsiAgentResearch"),
         new("Loyalty Points",      "EsiLoyaltyPoints"),
@@ -93,7 +131,7 @@ public class EsiExplorerViewModel : ReactiveObject
         new("Corp Structures",     "EsiCorpStructures"),
         new("Corp Starbases",      "EsiCorpStarbases"),
         new("Corp Facilities",     "EsiCorpFacilities"),
-        new("API Call Records",    "EsiCallRecords",        "LastCalledAt DESC"),
+        new("API Call Records",    "EsiCallRecords",        "\"LastCalledAt\" DESC"),
     ];
 
     // ── Reactive state ───────────────────────────────────────────────────────
@@ -206,13 +244,13 @@ public class EsiExplorerViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
 
             int total;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"""SELECT COUNT(*) FROM "{entry.SqlTable}" {BuildWhere()}""";
+                cmd.CommandText = AppDb.CaseInsensitiveLike($"""SELECT COUNT(*) FROM "{entry.SqlTable}" {BuildWhere()}""");
                 AddFilterParams(cmd);
                 total = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
             }
@@ -234,13 +272,13 @@ public class EsiExplorerViewModel : ReactiveObject
 
         try
         {
-            await using var conn = new SqliteConnection(_connectionString);
+            await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
 
             int total;
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = $"""SELECT COUNT(*) FROM "{_currentEntry.SqlTable}" {BuildWhere()}""";
+                cmd.CommandText = AppDb.CaseInsensitiveLike($"""SELECT COUNT(*) FROM "{_currentEntry.SqlTable}" {BuildWhere()}""");
                 AddFilterParams(cmd);
                 total = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct) ?? 0);
             }
@@ -251,18 +289,17 @@ public class EsiExplorerViewModel : ReactiveObject
         catch (Exception ex) { StatusText = $"Error: {ex.Message}"; }
     }
 
-    private async Task AppendPageAsync(SqliteConnection conn, TableEntry entry, int total, CancellationToken ct)
+    private async Task AppendPageAsync(DbConnection conn, TableEntry entry, int total, CancellationToken ct)
     {
         var where = BuildWhere();
         var order = _sortColumn is not null
             ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
             : entry.OrderBy is not null ? $"ORDER BY {entry.OrderBy}" : "";
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"""
+        using var cmd = conn.Command($"""
             SELECT * FROM "{entry.SqlTable}" {where} {order}
             LIMIT {PageSize} OFFSET {_offset}
-            """;
+            """);
         AddFilterParams(cmd);
 
         using var reader = await cmd.ExecuteReaderAsync(ct);
@@ -303,17 +340,16 @@ public class EsiExplorerViewModel : ReactiveObject
     private string BuildWhere()
     {
         if (_activeFilters.Count == 0) return "";
-        var clauses = _activeFilters.Select((f, i) => $"\"{f.Column}\" {f.Op.Sql} @fv{i}");
+        var clauses = _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i));
         return $"WHERE {string.Join(" AND ", clauses)}";
     }
 
-    private void AddFilterParams(SqliteCommand cmd)
+    private void AddFilterParams(DbCommand cmd)
     {
         for (int i = 0; i < _activeFilters.Count; i++)
         {
             var f   = _activeFilters[i];
-            var val = f.Op.UseLike ? $"%{f.Value}%" : f.Value;
-            cmd.Parameters.AddWithValue($"@fv{i}", val);
+            cmd.AddWithValue($"@fv{i}", SqlFilter.Value(f.Op, f.Value));
         }
     }
 }

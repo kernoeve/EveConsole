@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Excluded from the app: EveConsole.csproj sits at the repo root and globs **/*.cs, so
+       without the matching <Compile Remove="tools/**" /> there this file's code would be
+       compiled into the shipped application. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EveConsole.Tools.SdeUndoCheck</RootNamespace>
+    <AssemblyName>SdeUndoCheck</AssemblyName>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\EveConsole.csproj" />
+  </ItemGroup>
+
+</Project>

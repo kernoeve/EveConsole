@@ -19,6 +19,14 @@ public class ApiCallRecord
     /// attempt is an hour later, so the worst case is close to twice the cache.</para>
     /// </summary>
     public DateTimeOffset? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// The ETag from the last response, sent back as If-None-Match.
+    ///
+    /// <para>Survives a restart deliberately: without it the first cycle after each launch is a
+    /// full download of everything, which is the case revalidation exists to avoid.</para>
+    /// </summary>
+    public string? ETag { get; set; }
 }
 
 // ── Single-row-per-character ─────────────────────────────────────────────────
@@ -295,6 +303,20 @@ public class ContractBpcPrice
     public int      Me          { get; set; }   // material efficiency (key part 2)
     public decimal? BestPerRun  { get; set; }
     public decimal? Avg30PerRun { get; set; }
+
+    /// <summary>
+    /// The most recent per-run price seen at any age, and when the contract behind it ended.
+    ///
+    /// <para>⚠️ A blueprint copy is not a market item: the only price one ever has is what
+    /// somebody last asked for it on contract, and a month with nothing listed is ordinary for a
+    /// titan BPC rather than evidence it is worthless. Without this the row vanished entirely
+    /// once its last contract aged out of the 30-day window, and every cost resting on it became
+    /// zero — which is how the Komodo quietly lost 345B per run, most of what the hull costs
+    /// to build.</para>
+    /// </summary>
+    public decimal?        LastPerRun { get; set; }
+    public DateTimeOffset? LastSeenAt { get; set; }
+
     public int      ActiveCount { get; set; }
     public int      SampleDays  { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
@@ -610,6 +632,33 @@ public class StandingEntry
     public long   FromId    { get; set; }
     public string FromType  { get; set; } = "";
     public float  Standing  { get; set; }
+}
+
+/// <summary>
+/// The public ESI profile of an NPC corporation.
+///
+/// <para>⚠️ Kept because the SDE import throws these away. NpcCorpYaml reads name and factionID
+/// and nothing else, so the headquarters, ticker, description and tax rate never reach the
+/// database — which is why the NPC entity page could not show them. ESI serves the same facts on
+/// a public route, one call per corporation, so they are fetched when a page is opened and kept.</para>
+///
+/// <para>NPC corporations do not change, so a stored row is used indefinitely.</para>
+/// </summary>
+public class NpcCorpProfile
+{
+    public long   CorporationId { get; set; }
+    public string Ticker        { get; set; } = "";
+    public string Description   { get; set; } = "";
+    public string Url           { get; set; } = "";
+    public long   CeoId         { get; set; }
+
+    /// <summary>⚠️ NOT one of the corporation's own stations. A militia corporation owns none and
+    /// is still headquartered somewhere: Malakim Zealots run out of an Archangels station.</summary>
+    public long   HomeStationId { get; set; }
+
+    public int    MemberCount   { get; set; }
+    public double TaxRate       { get; set; }
+    public DateTimeOffset FetchedUtc { get; set; }
 }
 
 public class CharacterTitle
@@ -1125,6 +1174,21 @@ public class AppErrorEntry
     public string Context     { get; set; } = "";
     public string Message     { get; set; } = "";
     public string? InnerMessage { get; set; }
+
+    /// <summary>
+    /// Which machine reported it, and whether that process had a window.
+    ///
+    /// <para>⚠️ Recorded because this log is SHARED now. With several clients on one PostgreSQL
+    /// database every one of them writes here, so "the Overview panel is failing" no longer says
+    /// whose Overview — and the same fault on the headless worker means something quite different
+    /// from the same fault in somebody's window. Two columns answer both questions.</para>
+    ///
+    /// <para>Defaulted rather than nullable so a client on an older build, whose EF does not know
+    /// these columns exist, can still insert a row.</para>
+    /// </summary>
+    public string HostName { get; set; } = "";
+
+    public bool Headless { get; set; }
 }
 
 // ── Client activity monitoring ────────────────────────────────────────────────

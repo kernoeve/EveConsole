@@ -17,7 +17,7 @@ public class MarketPricingService
     private readonly AppErrorLogger       _errorLogger;
     private readonly TimerSettingsService _timerSettings;
 
-    private CancellationTokenSource _cts      = new();
+    private CancellationTokenSource? _cts;
     private Task?                   _loopTask;
 
     private static readonly JsonSerializerOptions _jsonOpts = new()
@@ -48,13 +48,28 @@ public class MarketPricingService
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-    public void Start() { _loopTask = Task.Run(() => RunLoopAsync(_cts.Token)); }
+    public void Start()
+    {
+        if (_loopTask is not null) return;
+        _cts      = new CancellationTokenSource();
+        _loopTask = Task.Run(() => RunLoopAsync(_cts.Token));
+    }
 
     public async Task StopAsync()
     {
-        _cts.Cancel();
-        if (_loopTask != null)
+        if (_cts is null) return;
+        await _cts.CancelAsync();
+        if (_loopTask is not null)
             try { await _loopTask; } catch (OperationCanceledException) { }
+
+        // ⚠️ Cleared, not merely cancelled. A CancellationTokenSource stays cancelled once it
+        // has been, so restarting onto the same one hands the loop a token that is already dead:
+        // it returns on its first await and never runs again. Stop used to be called only on the
+        // way out, where that could not matter. The worker lease can be lost and regained, so it
+        // has to be an undoable thing now.
+        _cts.Dispose();
+        _cts      = null;
+        _loopTask = null;
     }
 
     private async Task RunLoopAsync(CancellationToken ct)
@@ -446,18 +461,24 @@ public class MarketPricingService
         // and holds the write lock for the duration. The insert beside it was already careful; the
         // delete in front of it undid the benefit.
         //
-        // Raw SQL with a rowid subquery rather than Take(): LIMIT inside ExecuteDelete is not
-        // something to find out about at runtime, and this is exactly what SQLite wants anyway.
+        // Raw SQL with a row-address subquery rather than Take(): LIMIT inside ExecuteDelete is
+        // not something to find out about at runtime.
         // ConfigId leads IX_MarketRawOrders_TypeId, so each pass is an index scan, not a table one.
         const int deleteBatch = 20_000;
         while (true)
         {
+            // ⚠️ EF1002 suppressed, not worked around. The only interpolated part is AppDb.RowId —
+            // the engine's row-address identifier, "rowid" on SQLite and "ctid" on PostgreSQL. An
+            // identifier cannot be a parameter, and this one never comes from input. Both actual
+            // values go through {0} and {1} in the args array, which is where values belong.
+#pragma warning disable EF1002 // the interpolated part is an engine identifier, never input
             var removed = await db.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM "MarketRawOrders" WHERE rowid IN (
-                    SELECT rowid FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
+                $$"""
+                DELETE FROM "MarketRawOrders" WHERE {{AppDb.RowId}} IN (
+                    SELECT {{AppDb.RowId}} FROM "MarketRawOrders" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
+#pragma warning restore EF1002
 
             if (removed < deleteBatch) break;
             await BreatheAsync(ct);   // a real gap, so a polling write can actually get in
@@ -557,12 +578,16 @@ public class MarketPricingService
         const int deleteBatch = 20_000;
         while (true)
         {
+            // Same suppression, same reason as the orders delete above: an engine identifier, not a
+            // value. The values are {0} and {1}.
+#pragma warning disable EF1002 // the interpolated part is an engine identifier, never input
             var removed = await db.Database.ExecuteSqlRawAsync(
-                """
-                DELETE FROM "MarketItemPrices" WHERE rowid IN (
-                    SELECT rowid FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
+                $$"""
+                DELETE FROM "MarketItemPrices" WHERE {{AppDb.RowId}} IN (
+                    SELECT {{AppDb.RowId}} FROM "MarketItemPrices" WHERE "ConfigId" = {0} LIMIT {1})
                 """,
                 [configId, deleteBatch], ct);
+#pragma warning restore EF1002
 
             if (removed < deleteBatch) break;
             await BreatheAsync(ct);
@@ -651,19 +676,22 @@ public class MarketPricingService
         // Build cost × markup is the initial price; types with no build cost get 0.
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
-            INSERT INTO MarketItemPrices (ConfigId, TypeId, BuyPrice, SellPrice, Midpoint, FetchedAt, FromMarketData)
-            SELECT {configId}, t.TypeId,
-                COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
-                COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
-                COALESCE(CAST(bc.TotalCost AS REAL) * {markup}, 0.0),
+            INSERT INTO "MarketItemPrices" ("ConfigId", "TypeId", "BuyPrice", "SellPrice", "Midpoint", "FetchedAt", "FromMarketData")
+            SELECT {configId}, t."TypeId",
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
+                COALESCE(CAST(bc."TotalCost" AS DOUBLE PRECISION) * {markup}, 0.0),
                 {fetched},
-                0
-            FROM SdeTypes t
-            LEFT JOIN BuildCosts bc ON bc.TypeId = t.TypeId AND bc.Bought = 0
-            WHERE t.Published = 1
+                -- ⚠️ FALSE, not 0. FromMarketData is a real boolean on PostgreSQL and an
+                -- integer only on SQLite, which accepts either spelling; this is the one both
+                -- understand. These rows are build-cost estimates, never market-backed.
+                FALSE
+            FROM "SdeTypes" t
+            LEFT JOIN "BuildCosts" bc ON bc."TypeId" = t."TypeId" AND bc."Bought" = FALSE
+            WHERE t."Published" = TRUE
               AND NOT EXISTS (
-                  SELECT 1 FROM MarketItemPrices p
-                  WHERE p.ConfigId = {configId} AND p.TypeId = t.TypeId
+                  SELECT 1 FROM "MarketItemPrices" p
+                  WHERE p."ConfigId" = {configId} AND p."TypeId" = t."TypeId"
               )
             """, ct);
 
@@ -674,26 +702,26 @@ public class MarketPricingService
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
             WITH costs AS (
-                SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
-                FROM BuildCosts
-                WHERE Bought = 0
+                SELECT "TypeId", CAST("TotalCost" AS DOUBLE PRECISION) * {markup} AS EffSell
+                FROM "BuildCosts"
+                WHERE "Bought" = FALSE
             )
-            UPDATE MarketItemPrices
-            SET SellPrice = COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0),
-                BuyPrice  = CASE
-                    WHEN MarketItemPrices.BuyPrice > 0 THEN MarketItemPrices.BuyPrice
-                    ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0)
+            UPDATE "MarketItemPrices"
+            SET "SellPrice" = COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0),
+                "BuyPrice"  = CASE
+                    WHEN "MarketItemPrices"."BuyPrice" > 0 THEN "MarketItemPrices"."BuyPrice"
+                    ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0)
                     END,
-                Midpoint  = (
+                "Midpoint"  = (
                     CASE
-                        WHEN MarketItemPrices.BuyPrice > 0 THEN MarketItemPrices.BuyPrice
-                        ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0)
+                        WHEN "MarketItemPrices"."BuyPrice" > 0 THEN "MarketItemPrices"."BuyPrice"
+                        ELSE COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0)
                     END
-                    + COALESCE((SELECT c.EffSell FROM costs c WHERE c.TypeId = MarketItemPrices.TypeId), 0.0)
+                    + COALESCE((SELECT c.EffSell FROM costs c WHERE c."TypeId" = "MarketItemPrices"."TypeId"), 0.0)
                 ) / 2.0,
-                FetchedAt = {fetched}
-            WHERE ConfigId = {configId}
-              AND SellPrice = 0
+                "FetchedAt" = {fetched}
+            WHERE "ConfigId" = {configId}
+              AND "SellPrice" = 0
             """, ct);
 
         // Step 3 — refresh stale build-cost-derived rows. Only rows with FromMarketData = 0
@@ -703,20 +731,20 @@ public class MarketPricingService
         await db.Database.ExecuteSqlInterpolatedAsync(
             $"""
             WITH costs AS (
-                SELECT TypeId, CAST(TotalCost AS REAL) * {markup} AS EffSell
-                FROM BuildCosts
-                WHERE Bought = 0
+                SELECT "TypeId", CAST("TotalCost" AS DOUBLE PRECISION) * {markup} AS EffSell
+                FROM "BuildCosts"
+                WHERE "Bought" = FALSE
             )
-            UPDATE MarketItemPrices
-            SET SellPrice = c.EffSell,
-                BuyPrice  = c.EffSell,
-                Midpoint  = c.EffSell,
-                FetchedAt = {fetched}
+            UPDATE "MarketItemPrices"
+            SET "SellPrice" = c.EffSell,
+                "BuyPrice"  = c.EffSell,
+                "Midpoint"  = c.EffSell,
+                "FetchedAt" = {fetched}
             FROM costs c
-            WHERE MarketItemPrices.ConfigId      = {configId}
-              AND MarketItemPrices.TypeId         = c.TypeId
-              AND MarketItemPrices.FromMarketData = 0
-              AND MarketItemPrices.SellPrice     != c.EffSell
+            WHERE "MarketItemPrices"."ConfigId"      = {configId}
+              AND "MarketItemPrices"."TypeId"         = c."TypeId"
+              AND "MarketItemPrices"."FromMarketData" = FALSE
+              AND "MarketItemPrices"."SellPrice"     != c.EffSell
             """, ct);
 
         // Step 4 — price anything that sells on contracts rather than the market from contract

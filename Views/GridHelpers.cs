@@ -36,8 +36,12 @@ internal static class TimeRemainingHelper
         var raw = row["End Date Raw"];
         if (string.IsNullOrEmpty(raw)) return row["Time Remaining"];
 
+        // ⚠️ AssumeUniversal, not RoundtripKind. A raw date that reaches here without an offset
+        //  14 which is what Npgsql produced before the formatter was taught about DateTime  14 is UTC,
+        // because that is what this app stores. Read as local it put six hours on every job.
         if (!DateTimeOffset.TryParse(raw, null,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var end))
+                System.Globalization.DateTimeStyles.AssumeUniversal
+              | System.Globalization.DateTimeStyles.AdjustToUniversal, out var end))
             return row["Time Remaining"];
 
         var rem = end.ToUniversalTime() - DateTimeOffset.UtcNow;
@@ -129,12 +133,17 @@ internal sealed class SelectableCell : Border
     /// <summary>Where this cell's text goes when clicked. Null for an ordinary cell.</summary>
     private readonly Action<GridRow>? _onClick;
 
+    /// <param name="rightAlign">Right-justifies the text, for a column read by magnitude.
+    /// ⚠️ Set on the TEXT rather than on the cell. Aligning the DataGridCell's content right would
+    /// shrink this Border to the width of its text, and the Border IS the click target the
+    /// selection service uses -- so the numbers would line up and half of each cell would stop
+    /// responding to a click, which costs Copy on exactly the columns people copy most.</param>
     /// <param name="onClick">Makes the cell a link. ⚠️ Built into the cell rather than wrapping it
     /// in a link Button, because a Button swallows the pointer press the selection service needs —
     /// a linked column would lose cell selection and therefore Copy. The tap both selects and
     /// navigates, which is what clicking a name is asking for anyway.</param>
     public SelectableCell(DataGrid grid, string col, CellSelectionService svc,
-                          Action<GridRow>? onClick = null)
+                          Action<GridRow>? onClick = null, bool rightAlign = false)
     {
         _grid            = grid;
         _col             = col;
@@ -143,9 +152,14 @@ internal sealed class SelectableCell : Border
         _isTimeRemaining = col == "Time Remaining";
         _tb = new TextBlock
         {
-            Padding           = new Thickness(6, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-            FontSize          = 11,
+            Padding             = new Thickness(6, 0),
+            VerticalAlignment   = VerticalAlignment.Center,
+            FontSize            = 11,
+
+            // Stretch as well as align: a TextBlock sized to its own text has nothing to align
+            // within, so TextAlignment alone would do nothing.
+            HorizontalAlignment = rightAlign ? HorizontalAlignment.Stretch : HorizontalAlignment.Left,
+            TextAlignment       = rightAlign ? TextAlignment.Right         : TextAlignment.Left,
         };
         Child = _tb;
         DataContextChanged += (_, _) => Refresh();

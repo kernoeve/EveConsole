@@ -21,7 +21,30 @@ public static class AppConfig
     // models, etc.) share the single app data directory rather than hard-coding the folder name.
     public static string AppDataDir => Path.Combine(LocalAppData, AppFolder);
 
-    private static string ConfigPath => Path.Combine(AppDataDir, "config.json");
+    /// <summary>
+    /// A config.json sitting beside the executable, which takes precedence over the one in app
+    /// data when it exists.
+    ///
+    /// <para>It lets two builds on one machine point at different databases: a development copy
+    /// aimed at a server, and an ordinary install still on its SQLite file, without either
+    /// disturbing the other's settings.</para>
+    ///
+    /// <para>⚠️ Only the CONFIG moves. Everything else that lives in app data — the agent's
+    /// settings, voice models, sound cache — stays there, because those are the user's and
+    /// not the installation's. A portable config is about which database this executable opens,
+    /// not about making the whole app relocatable.</para>
+    ///
+    /// <para>⚠️ Presence is what selects it, so an installation directory that is not writable
+    /// simply never has one. Nothing creates this file automatically; a person puts it there.</para>
+    /// </summary>
+    public static string PortableConfigPath =>
+        Path.Combine(AppContext.BaseDirectory, "config.json");
+
+    /// <summary>True when settings are being read from beside the executable.</summary>
+    public static bool UsingPortableConfig => File.Exists(PortableConfigPath);
+
+    private static string ConfigPath =>
+        UsingPortableConfig ? PortableConfigPath : Path.Combine(AppDataDir, "config.json");
 
     private static readonly JsonSerializerOptions JsonOpts =
         new() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
@@ -31,6 +54,91 @@ public static class AppConfig
     // ── Read ─────────────────────────────────────────────────────────────────
 
     public static string GetDbPath()       => Load().DbPath ?? DefaultDbPath;
+
+    /// <summary>
+    /// Which engine to open. SQLite unless the user has explicitly pointed the app at a server,
+    /// so every existing installation keeps opening the file it always has.
+    /// </summary>
+    public static DbBackend GetDbBackend()
+    {
+        // A connection string in the environment is itself the instruction: nobody sets one and
+        // means to go on using the file.
+        if (EnvConnection is not null) return DbBackend.Postgres;
+
+        // A service is installed from a client already pointed at a server, and the installer
+        // writes that connection alongside it. Nothing else would be worth running as a service.
+        if (AppRuntime.IsService && MachineConfig.GetConnection() is not null) return DbBackend.Postgres;
+
+        return string.Equals(Load().DbBackend, "postgres", StringComparison.OrdinalIgnoreCase)
+            ? DbBackend.Postgres
+            : DbBackend.Sqlite;
+    }
+
+    /// <summary>
+    /// A connection string supplied by the environment, which overrides config.json entirely.
+    ///
+    /// <para>Two reasons it exists. It lets a developer point a build at a test server without
+    /// editing the config the running copy is using — re-pointing that file would send the
+    /// real app somewhere else mid-session. And a poller running in a container has no config
+    /// file to edit and no user to edit it; the environment is how such a thing is configured.
+    /// The standalone poller is a planned split, so this is the shape it will need.</para>
+    ///
+    /// <para>⚠️ Env wins over file, never merges. A half-applied override — the server from
+    /// one place and the credentials from another — is the kind of configuration that appears
+    /// to work and connects somewhere nobody intended.</para>
+    /// </summary>
+    private static string? EnvConnection
+    {
+        get
+        {
+            var v = Environment.GetEnvironmentVariable("EVECONSOLE_DB_CONNECTION");
+            return string.IsNullOrWhiteSpace(v) ? null : v;
+        }
+    }
+
+    /// <summary>
+    /// The Postgres connection string, with the password put back.
+    ///
+    /// <para>The password is stored apart from the rest and protected by the platform — DPAPI
+    /// on Windows, the desktop keyring on Linux — so config.json holds a server address and a
+    /// user name that anybody can read and edit, and nothing that is worth stealing. See
+    /// <see cref="SecretStore"/> for why that matters more since the config can live beside the
+    /// executable.</para>
+    ///
+    /// <para>⚠️ A password that cannot be decrypted comes back as none at all, which is the
+    /// expected outcome after the config is copied to another machine or another account. The app
+    /// then asks for it rather than trying to connect with a blank one and reporting an
+    /// authentication failure the user cannot act on.</para>
+    /// </summary>
+    public static string? GetPostgresConnection()
+    {
+        if (EnvConnection is { } fromEnv) return fromEnv;
+
+        // ⚠️ A service looks here and stops. It runs as LocalSystem, so the config file below
+        // belongs to a profile it has never seen and holds a password protected for an account it
+        // is not — reading on past this point would find nothing and report the wrong reason.
+        if (AppRuntime.IsService && MachineConfig.GetConnection() is { } fromMachine) return fromMachine;
+
+        var c = Load();
+        if (string.IsNullOrWhiteSpace(c.PostgresConnection)) return null;
+
+        var password = SecretStore.Unprotect(c.PostgresPassword);
+        if (string.IsNullOrEmpty(password)) return c.PostgresConnection;
+
+        try
+        {
+            var b = new Npgsql.NpgsqlConnectionStringBuilder(c.PostgresConnection) { Password = password };
+            return b.ConnectionString;
+        }
+        catch { return c.PostgresConnection; }
+    }
+
+    /// <summary>How the password is being held, for the settings screen to state.</summary>
+    public static SecretProtection PostgresPasswordProtection =>
+        SecretStore.IsProtected(Load().PostgresPassword)
+            ? SecretStore.Available
+            : SecretProtection.None;
+
     public static (int X, int Y)? GetWindowPosition()
     {
         var c = Load();
@@ -44,6 +152,43 @@ public static class AppConfig
     {
         var c = Load();
         c.DbPath = path;
+        Save(c);
+    }
+
+    /// <summary>
+    /// Points the app at an engine. Takes effect on the next start, because the context factory
+    /// is built from it once.
+    ///
+    /// <para>⚠️ The Postgres connection string is kept when switching back to SQLite rather
+    /// than cleared. Somebody trying the file database again should not have to retype a server
+    /// address and password to go back.</para>
+    /// </summary>
+    public static void SetDbBackend(DbBackend backend, string? postgresConnection = null)
+    {
+        var c = Load();
+        c.DbBackend = backend == DbBackend.Postgres ? "postgres" : "sqlite";
+
+        if (!string.IsNullOrWhiteSpace(postgresConnection))
+        {
+            // ⚠️ Split before storing, so the password never reaches the file even once. The
+            // connection string kept here has it removed rather than blanked, so a reader cannot
+            // tell a password-less server from one whose password is held elsewhere.
+            try
+            {
+                var b = new Npgsql.NpgsqlConnectionStringBuilder(postgresConnection);
+                var password = b.Password ?? "";
+                b.Password = null;
+
+                c.PostgresConnection = b.ConnectionString;
+                c.PostgresPassword   = SecretStore.Protect(password, "postgres");
+            }
+            catch
+            {
+                c.PostgresConnection = postgresConnection;
+                c.PostgresPassword   = null;
+            }
+        }
+
         Save(c);
     }
 
@@ -91,7 +236,148 @@ public static class AppConfig
     /// database is opened — a flag living inside the file being rebuilt would be unreadable at
     /// exactly the moment it is needed.</para>
     /// </summary>
+    /// <summary>
+    /// The archive a restore should put back on the next start, or null.
+    ///
+    /// <para>Alongside the shrink and relocation flags because it is the same kind of request:
+    /// something that cannot be done while the database is open, so it is recorded and performed
+    /// before anything opens it.</para>
+    /// </summary>
+    public static string? GetRestorePending()
+    {
+        var v = Load().RestorePending;
+        return string.IsNullOrWhiteSpace(v) ? null : v;
+    }
+
+    public static void SetRestorePending(string? archivePath)
+    {
+        var c = Load();
+        c.RestorePending = string.IsNullOrWhiteSpace(archivePath) ? null : archivePath;
+        Save(c);
+    }
+
     public static bool GetShrinkPending() => Load().ShrinkPending == true;
+
+    /// <summary>
+    /// Whether this client stays quiet for the alarm actions that happen live — sound, dialog and
+    /// the agent speaking.
+    ///
+    /// <para>⚠️ Deliberately NOT the Alert action. Muting silences what interrupts a person at
+    /// this machine; it does not stop the worker recording what happened, so a muted client still
+    /// has the whole history waiting when its owner looks. Silencing the record instead would
+    /// make "quiet for an hour" mean "blind about that hour", which is not what anybody means.</para>
+    ///
+    /// <para>Local, and per client. The point is that one machine can be quiet while another is
+    /// not, so this cannot live in the shared database with the alarms themselves.</para>
+    /// </summary>
+    public static bool GetAlarmsMuted() => Load().AlarmsMuted == true;
+
+    public static bool GetShowTrayIcon() => Load().ShowTrayIcon == true;
+
+    public static void SetShowTrayIcon(bool show)
+    {
+        var c = Load();
+        c.ShowTrayIcon = show ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
+    public static void SetAlarmsMuted(bool muted)
+    {
+        var c = Load();
+        c.AlarmsMuted = muted ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
+    /// <summary>
+    /// How the Overview screen's sections are arranged, as the layout's own JSON.
+    ///
+    /// <para>⚠️ Local, and per client, for the same reason the window's size and position are: it
+    /// is how one person's screen is laid out, not part of the data. With several clients on one
+    /// PostgreSQL database it lived in the shared preference table, so rearranging the sections on
+    /// one machine silently rearranged them on every other — including a laptop with room for far
+    /// fewer columns than the desktop that made the change.</para>
+    ///
+    /// <para>Null means "never set here", which is not "set to nothing". That distinction is what
+    /// lets a client seed itself once from the old shared preference, so nobody's screen changes
+    /// for the upgrade.</para>
+    /// </summary>
+    public static string? GetOverviewLayout() => Load().OverviewLayout;
+
+    public static void SetOverviewLayout(string? json)
+    {
+        var c = Load();
+        c.OverviewLayout = string.IsNullOrWhiteSpace(json) ? null : json;
+        Save(c);
+    }
+
+    // ── UI state ──────────────────────────────────────────────────────────────
+    //
+    // A plain key/value bag for the small remembered-view settings: which overlay was showing,
+    // which period was chosen, what was left collapsed. Prefer it over new typed fields — the point
+    // is that adding a remembered control costs a key and nothing else. The typed members above
+    // (the window's geometry, the Overview layout) predate it and are left alone.
+    //
+    // Read through the UiState class rather than these directly: it does the one-time seeding from
+    // the shared preference the setting is moving out of.
+
+    public static string? GetUiState(string key)
+        => Load().UiState is { } bag && bag.TryGetValue(key, out var v) ? v : null;
+
+    public static void SetUiState(string key, string? value)
+    {
+        var c   = Load();
+        var bag = c.UiState ?? new Dictionary<string, string>(StringComparer.Ordinal);
+
+        if (value is null) bag.Remove(key);
+        else               bag[key] = value;
+
+        c.UiState = bag.Count > 0 ? bag : null;   // absent rather than empty — keeps the file tidy
+        Save(c);
+    }
+
+    // ── This machine's EVE log setup ──────────────────────────────────────────
+    //
+    // ⚠️ Null means "never set here", which is not the same as "set to nothing". The
+    // difference is what lets a client seed itself once from the old shared preference and
+    // never again — see MonitoringSettings. An empty string is a real answer: this machine
+    // watches no directories.
+
+    /// <summary>
+    /// Log directories supplied by the environment, which override config.json entirely.
+    ///
+    /// <para>The same bargain as EVECONSOLE_DB_CONNECTION and for the same reason: a worker in a
+    /// container has no settings window to be configured from, and the one thing it needs told is
+    /// where the logs are mounted. Newline- or semicolon-separated, because a newline is awkward
+    /// to put in a docker-compose value.</para>
+    ///
+    /// <para>⚠️ Env wins over file, never merges — a directory list assembled from two places is
+    /// the kind of configuration that looks right and watches the wrong folder.</para>
+    /// </summary>
+    private static string? EnvDirs(string name)
+    {
+        var v = Environment.GetEnvironmentVariable(name);
+        return string.IsNullOrWhiteSpace(v) ? null : v.Replace(';', '\n');
+    }
+
+    public static string? GameLogDirsFromEnv => EnvDirs("EVECONSOLE_GAMELOG_DIRS");
+    public static string? ChatLogDirsFromEnv => EnvDirs("EVECONSOLE_CHATLOG_DIRS");
+
+    // ⚠️ A service reads the machine config, for the same reason it does for the connection: its
+    // profile is not the one the desktop app saved anything into.
+    public static string? GetGameLogDirs() =>
+        GameLogDirsFromEnv ?? (AppRuntime.IsService ? MachineConfig.GetGameLogDirs() : Load().GameLogDirs);
+
+    public static string? GetChatLogDirs() =>
+        ChatLogDirsFromEnv ?? (AppRuntime.IsService ? MachineConfig.GetChatLogDirs() : Load().ChatLogDirs);
+
+    public static void SetGameLogDirs(string? dirs) { var c = Load(); c.GameLogDirs = dirs ?? ""; Save(c); }
+    public static void SetChatLogDirs(string? dirs) { var c = Load(); c.ChatLogDirs = dirs ?? ""; Save(c); }
+
+    public static bool? GetGameLogEnabled() => Load().GameLogEnabled;
+    public static bool? GetChatLogEnabled() => Load().ChatLogEnabled;
+
+    public static void SetGameLogEnabled(bool on) { var c = Load(); c.GameLogEnabled = on; Save(c); }
+    public static void SetChatLogEnabled(bool on) { var c = Load(); c.ChatLogEnabled = on; Save(c); }
 
     public static void SetShrinkPending(bool pending)
     {
@@ -207,13 +493,29 @@ public static class AppConfig
 
     private static void Save(ConfigData data)
     {
-        Directory.CreateDirectory(AppDataDir);
-        File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, JsonOpts));
+        // The directory of whichever file is in use — writing to app data while reading from
+        // beside the executable would silently discard every change the user made.
+        var path = ConfigPath;
+        var dir  = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+
+        File.WriteAllText(path, JsonSerializer.Serialize(data, JsonOpts));
     }
 
     private sealed class ConfigData
     {
         [JsonPropertyName("dbPath")]  public string? DbPath  { get; set; }
+
+        // Which engine, and how to reach it when that engine is a server. Absent on every
+        // database written before Postgres support, which reads back as SQLite.
+        [JsonPropertyName("dbBackend")]          public string? DbBackend          { get; set; }
+        [JsonPropertyName("postgresConnection")] public string? PostgresConnection { get; set; }
+
+        // ⚠️ Kept apart from the connection string and protected by the platform. A value with
+        // no "dpapi:" or "libsecret:" prefix was written before this existed, or on a machine
+        // that could not protect it; either way it is read as-is and protected the next time the
+        // user saves.
+        [JsonPropertyName("postgresPassword")]   public string? PostgresPassword   { get; set; }
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
 
@@ -226,6 +528,34 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
+
+        // How this client's Overview sections are arranged. Beside the window geometry above and
+        // for the same reason: it describes this screen, not the data, and a rearrangement made on
+        // a wide desktop should not follow the user onto a laptop.
+        [JsonPropertyName("overviewLayout")] public string? OverviewLayout { get; set; }
+
+        // The rest of the remembered view settings, by key. Same reasoning, no new field per
+        // setting — see the UiState class.
+        [JsonPropertyName("uiState")] public Dictionary<string, string>? UiState { get; set; }
+
+        // ── This machine's EVE log setup ──────────────────────────────────────
+        //
+        // ⚠️ Local, not in the shared preferences where these used to live. They name
+        // directories on a filesystem, and with several clients on one database no single
+        // list can be right for all of them: a container reading /mnt/xyz/eve cannot be handed
+        // C:\Users\Name\Documents\EVE\logs and asked to make anything of it. The enabled flags
+        // come with them, because "this machine imports logs" is the same kind of fact.
+        [JsonPropertyName("gameLogDirs")]    public string? GameLogDirs    { get; set; }
+        [JsonPropertyName("chatLogDirs")]    public string? ChatLogDirs    { get; set; }
+        [JsonPropertyName("gameLogEnabled")] public bool?   GameLogEnabled { get; set; }
+        [JsonPropertyName("chatLogEnabled")] public bool?   ChatLogEnabled { get; set; }
+
+        // Per client, like the alarm mute: whether THIS window puts an icon in the tray is a
+        // fact about this desktop, not about the data.
+        [JsonPropertyName("showTrayIcon")]  public bool? ShowTrayIcon { get; set; }
+
+        [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }
     }
 }

@@ -71,11 +71,10 @@ public class UniverseViewModel : ReactiveObject
 {
     private readonly UniverseMapService     _map;
     private readonly MapStatsService?       _stats;
-    private readonly AppPreferencesService? _prefs;
 
     /// <summary>Remembers the overlay across sessions — the tool is normally opened to look at
     /// the same thing as last time, not to be reset to Security.</summary>
-    private const string OverlayPrefKey = "universe.overlay";
+    // Local: which overlay is showing is a fact about this window, not about the map.
 
     public UniverseViewModel(
         UniverseMapService     map,
@@ -85,7 +84,6 @@ public class UniverseViewModel : ReactiveObject
     {
         _map       = map;
         _stats     = stats;
-        _prefs     = prefs;
         SystemPage = systemPage;
 
         OverlayModes =
@@ -132,7 +130,7 @@ public class UniverseViewModel : ReactiveObject
         ];
         // An overlay that has since been renamed or removed falls back to the first one rather
         // than leaving the selection empty.
-        var savedKey = prefs?.Get(OverlayPrefKey);
+        var savedKey = UiState.Get(UiState.UniverseOverlay, prefs);
         _selectedOverlay = OverlayModes.FirstOrDefault(m => m.Key == savedKey) ?? OverlayModes[0];
 
         DrillDownCommand  = ReactiveCommand.CreateFromTask<int>(DrillDownAsync);
@@ -154,8 +152,7 @@ public class UniverseViewModel : ReactiveObject
             {
                 // Saved before the repaint, so a repaint that fails does not also lose the
                 // choice the user just made.
-                if (_prefs is not null && m is not null)
-                    await _prefs.SetAsync(OverlayPrefKey, m.Key);
+                if (m is not null) UiState.Set(UiState.UniverseOverlay, m.Key);
                 await ReapplyOverlayAsync();
             }))
             .Subscribe();

@@ -145,6 +145,18 @@ public class WorklistIndyChar
     public bool Science       { get; set; }
 
     /// <summary>
+    /// Whether this character's skill queue is expected to be kept running.
+    ///
+    /// <para>On by default, because a lapsed queue is normally worth knowing about. Cleared for
+    /// the alts where it is not — a hauler, a cyno, a market alt parked with nothing left worth
+    /// training — so their permanently empty queues stop reporting themselves as work.</para>
+    ///
+    /// <para>⚠️ Absence means on. Alerts read this per character, and a character with no row
+    /// here at all must still be checked; a missing row is "not configured", not "silence me".</para>
+    /// </summary>
+    public bool SkillQueue    { get; set; } = true;
+
+    /// <summary>
     /// Unused. Kept only so existing rows still load — nothing reads these.
     ///
     /// <para>They used to gate, per character, whether corp or personal stock counted for that

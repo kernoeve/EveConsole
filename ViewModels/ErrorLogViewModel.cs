@@ -20,6 +20,9 @@ public class ErrorLogRowVm
     public string Message  { get; }
     public string Inner    { get; }
 
+    /// <summary>Which client wrote the row. Blank on anything logged before the columns existed.</summary>
+    public string Client   { get; }
+
     // Combined message shown in the detail pane.
     public string Detail => Inner.Length > 0 ? $"{Message}\n\nInner: {Inner}" : Message;
 
@@ -32,6 +35,12 @@ public class ErrorLogRowVm
         Context    = e.Context;
         Message    = e.Message;
         Inner      = e.InnerMessage ?? "";
+
+        // ⚠️ Host and kind together, as one column. Either alone is ambiguous: one machine can run
+        // a desktop client and the worker at once, and "headless" says nothing about where.
+        Client     = e.HostName.Length == 0 ? ""
+                   : e.Headless            ? $"{e.HostName} (worker)"
+                   :                          e.HostName;
     }
 }
 
@@ -67,8 +76,21 @@ public class ErrorLogViewModel : ReactiveObject
         _dateFrom    = DateTime.Now.AddHours(-24).ToString("yyyy-MM-dd HH:mm");   // last 24 hours
 
         RefreshCommand = ReactiveCommand.Create(() => { _ = LoadAsync(); });
-        _ = LoadAsync();
+
+        // ⚠️ Deliberately NOT loaded here. Constructing this at startup meant opening the Error Log
+        // showed a list read when the application launched — which looks current, is not, and is
+        // worse than an empty grid because nothing about it says so. MainWindowViewModel.OpenTool
+        // calls Reload when the tab is opened.
     }
+
+    /// <summary>
+    /// Reads the log. Called when the tool is opened, including when it is closed and opened again.
+    ///
+    /// <para>Not called when returning to a tab that was already open: the list is then as old as
+    /// the moment it was opened, which is what the Refresh button is for, and re-reading five
+    /// thousand rows every time somebody passes through the tab is a cost with no reader.</para>
+    /// </summary>
+    public void Reload() => _ = LoadAsync();
 
     private async Task LoadAsync()
     {
@@ -82,15 +104,15 @@ public class ErrorLogViewModel : ReactiveObject
             var parts = new List<string>();
             var ps    = new List<object>();
             if (TryDate(_dateFrom, out var from))
-            { int i = ps.Count; ps.Add(from); parts.Add($"OccurredAt >= {{{i}}}"); }
+            { int i = ps.Count; ps.Add(from); parts.Add($"\"OccurredAt\" >= {{{i}}}"); }
             if (TryDate(_dateThru, out var thru))
-            { int i = ps.Count; ps.Add(thru); parts.Add($"OccurredAt < {{{i}}}"); }
+            { int i = ps.Count; ps.Add(thru); parts.Add($"\"OccurredAt\" < {{{i}}}"); }
             var where = parts.Count > 0 ? "WHERE " + string.Join(" AND ", parts) : "";
 
             await using var db = await _dbFactory.CreateDbContextAsync();
 #pragma warning disable EF1002
             var list = await db.AppErrors.FromSqlRaw(
-                    $"SELECT * FROM AppErrorLog {where} ORDER BY OccurredAt DESC LIMIT 5000", ps.ToArray())
+                    $"SELECT * FROM \"AppErrorLog\" {where} ORDER BY \"OccurredAt\" DESC LIMIT 5000", ps.ToArray())
                 .AsNoTracking().ToListAsync();
 #pragma warning restore EF1002
 
@@ -101,7 +123,7 @@ public class ErrorLogViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("ErrorLogViewModel", "Load", ex);
-            StatusText = "Error loading log.";
+            StatusText = AppErrorLogger.Line("Error loading log", ex);
         }
         finally { _isLoading = false; }
     }

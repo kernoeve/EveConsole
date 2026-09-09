@@ -342,6 +342,19 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
             .Where(n => ids.Contains(n.EntityId))
             .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
 
+        // ⚠️ Factions come from the SDE, not the name cache. There are 27 of them, they never
+        // change, and nothing ever resolves one INTO UniverseNames — so the cache lookup above
+        // could never have named them and every NPC-held system read "Faction 500011" where it
+        // meant Angel Cartel. The whole of Curse, Stain, Delve's drone regions and Fountain's
+        // pirate space carried an id instead of a name, on the node, its tooltip and the legend.
+        var factionIds = sov.Values.Where(s => s.FactionId is not null)
+                                   .Select(s => s.FactionId!.Value).Distinct().ToList();
+        var factions = factionIds.Count == 0
+            ? []
+            : await db.SdeFactions.AsNoTracking()
+                .Where(f => factionIds.Contains(f.FactionId))
+                .ToDictionaryAsync(f => f.FactionId, f => f.Name, ct);
+
         return sov.ToDictionary(
             kv => kv.Key,
             kv =>
@@ -349,7 +362,7 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
                 var s = kv.Value;
                 var holder = s.AllianceId is { } a
                     ? names.GetValueOrDefault(a, $"Alliance {a}")
-                    : s.FactionId is { } f ? $"Faction {f}" : "Unclaimed";
+                    : s.FactionId is { } f ? factions.GetValueOrDefault(f, $"Faction {f}") : "Unclaimed";
 
                 // TryGetValue, not GetValueOrDefault: the latter yields 0.0 for a system with
                 // no sovereignty structure, which is a real ADM value and would print "0.0"
@@ -483,29 +496,40 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
 
         // ON CONFLICT adds rather than replaces, so an old hour recovered from the archive
         // after its day was already rolled up still lands in the daily total.
-        var affected = await db.Database.ExecuteSqlAsync($"""
+        // ⚠️ Two differences in one statement, neither of them casing.
+        //
+        // SQLite's MAX takes two scalars; PostgreSQL spells that GREATEST and reserves MAX for
+        // the aggregate, so it reports "function max(integer, integer) does not exist".
+        //
+        // And a subquery in FROM must be named in PostgreSQL. SQLite is happy without, which is
+        // why an alias was never there to begin with.
+        var greatest = DbEngine.IsPostgres ? "GREATEST" : "MAX";
+
+        var rollup = $$"""
             INSERT INTO "MapSystemDailies" ("Day", "SystemId", "ShipJumps", "ShipKills", "PodKills", "NpcKills", "Hours")
             SELECT "Day", "SystemId", SUM("ShipJumps"), SUM("ShipKills"), SUM("PodKills"), SUM("NpcKills"), MAX("Hours")
             FROM (
                 SELECT SUBSTR("Bucket", 1, 10) AS "Day", "SystemId",
                        SUM("ShipJumps") AS "ShipJumps", 0 AS "ShipKills", 0 AS "PodKills", 0 AS "NpcKills",
                        COUNT(*) AS "Hours"
-                FROM "MapSystemJumps" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}
+                FROM "MapSystemJumps" WHERE SUBSTR("Bucket", 1, 10) < {0}
                 GROUP BY 1, 2
                 UNION ALL
                 SELECT SUBSTR("Bucket", 1, 10), "SystemId",
                        0, SUM("ShipKills"), SUM("PodKills"), SUM("NpcKills"), COUNT(*)
-                FROM "MapSystemKills" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}
+                FROM "MapSystemKills" WHERE SUBSTR("Bucket", 1, 10) < {0}
                 GROUP BY 1, 2
-            )
+            ) hourly
             GROUP BY "Day", "SystemId"
             ON CONFLICT("Day", "SystemId") DO UPDATE SET
                 "ShipJumps" = "MapSystemDailies"."ShipJumps" + excluded."ShipJumps",
                 "ShipKills" = "MapSystemDailies"."ShipKills" + excluded."ShipKills",
                 "PodKills"  = "MapSystemDailies"."PodKills"  + excluded."PodKills",
                 "NpcKills"  = "MapSystemDailies"."NpcKills"  + excluded."NpcKills",
-                "Hours"     = MAX("MapSystemDailies"."Hours", excluded."Hours")
-            """, ct);
+                "Hours"     = {{greatest}}("MapSystemDailies"."Hours", excluded."Hours")
+            """;
+
+        var affected = await db.Database.ExecuteSqlRawAsync(rollup, [cutoff], ct);
 
         await db.Database.ExecuteSqlAsync(
             $"""DELETE FROM "MapSystemJumps" WHERE SUBSTR("Bucket", 1, 10) < {cutoff}""", ct);

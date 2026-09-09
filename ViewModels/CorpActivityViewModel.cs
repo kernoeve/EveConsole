@@ -134,6 +134,7 @@ public sealed class MonthlyActivityRowVm
     public string KillsText          { get; }
     public string LossesText         { get; }
     public string PlayersActiveText  { get; }
+    public string IskEffText         { get; }
     public decimal TotalIncomeRaw  { get; }
     public decimal TotalExpenseRaw { get; }
     public decimal RattingTaxRaw   { get; }
@@ -143,6 +144,13 @@ public sealed class MonthlyActivityRowVm
     public int    KillsRaw         { get; }
     public int    LossesRaw        { get; }
     public int    PlayersActiveRaw { get; }
+
+    /// <summary>
+    /// ⚠️ -1 when the month has no answer, not 0. This is what the column sorts on, and a
+    /// month with no fighting sorted among the 0% ones would put "we lost everything" and
+    /// "nothing happened" side by side.
+    /// </summary>
+    public double IskEffRaw        { get; }
 
     public MonthlyActivityRowVm(MonthlyActivityRow r)
     {
@@ -165,6 +173,8 @@ public sealed class MonthlyActivityRowVm
         KillsText         = r.Kills.ToString("N0");
         LossesText        = r.Losses.ToString("N0");
         PlayersActiveText = r.PlayersActive > 0 ? r.PlayersActive.ToString("N0") : "—";
+        IskEffRaw         = r.IskEfficiency ?? -1;
+        IskEffText        = r.IskEfficiency is double e ? $"{e:F1}%" : "—";
     }
 
     private static string FmtIsk(decimal v)
@@ -274,7 +284,7 @@ public sealed class StandingProjectRowVm
     public string RemainingPayoutText  { get; }
     public string RemainingPercentText { get; }
     public bool   IsLowRemaining       { get; }   // < 10% of the target left
-    public string RemainingColor       { get; }
+    public IBrush RemainingColor       { get; }
     public bool   IsDeliverItem       { get; }
     public int?   ItemTypeId          { get; }
     public string ItemTypeName        { get; }
@@ -373,7 +383,7 @@ public sealed class StandingProjectRowVm
         RemainingText        = row.RemainingText;
         RemainingPayoutText  = row.RemainingPayoutText;
         RemainingPercentText = row.RemainingPercentText;
-        RemainingColor       = IsLowRemaining ? "#e0902e" : "#c8c8d8";
+        RemainingColor       = IsLowRemaining ? Palette.Warn : Palette.TextPrimary;
         IsDeliverItem       = row.ItemTypeId.HasValue;
         ItemTypeId          = row.ItemTypeId;
         ItemTypeName        = row.ItemTypeName;
@@ -447,7 +457,29 @@ public sealed class MonthSummaryLineVm
     /// — the report decides which lines those are, and this is only the trip through the grid.</summary>
     public bool   IsTotal  { get; init; }
     /// <summary>Set only where the sign carries meaning — net position, efficiency.</summary>
+    /// <summary>
+    /// The colour as the EXPORT wants it: a hex code, because the monthly summary is also posted
+    /// as EVE mail, where that is the only thing a colour can be.
+    /// </summary>
     public string ValueColor { get; init; } = "#ccccdd";
+
+    /// <summary>
+    /// The same meaning as a themed brush, for the grid.
+    ///
+    /// <para>⚠️ The row carries both, and that is the point. Retyping ValueColor was the obvious
+    /// move and it cannot work: the identical property feeds a text export whose record takes a
+    /// string, so one of the two consumers would always be handed the wrong thing. The export
+    /// never sees this one, and the grid never sees the hex.</para>
+    ///
+    /// <para>The export writes exactly three colours, and they are the three meanings the summary
+    /// has: a figure that went up, one that went down, and one that is just a figure.</para>
+    /// </summary>
+    public IBrush ValueBrush => ValueColor.ToLowerInvariant() switch
+    {
+        "#70ad47" => Palette.Good,
+        "#cc6666" => Palette.Bad,
+        _          => Palette.TextPrimary,
+    };
 
     public bool   IsValue    => !IsHeader;
     public string ChangeColor => Change.StartsWith('+') ? "#70ad47"
@@ -480,10 +512,23 @@ public sealed class TaxPayerRowVm
     }
 }
 
+/// <summary>
+/// One entry in a detail grid's type filter. RefType is null for "All types".
+/// </summary>
+public sealed record RefTypeChoice(string? RefType, string Label)
+{
+    public override string ToString() => Label;
+}
+
 public sealed class WalletDetailRowVm
 {
-    public string DateText   { get; }
-    public string TimeText   { get; }
+    /// <summary>
+    /// ⚠️ The sort key, and why the column binds text but sorts on this. Date and time used to
+    /// be two columns of formatted text; sorting on the time string ordered 23:59 above 00:01
+    /// regardless of the day, so the grid could not be put in chronological order at all.
+    /// </summary>
+    public DateTimeOffset When { get; }
+    public string WhenText   { get; }
     public string TypeName   { get; }
     public string Name       { get; }
     public string AmountText { get; }
@@ -501,8 +546,8 @@ public sealed class WalletDetailRowVm
     public WalletDetailRowVm(WalletDetailRow r)
     {
         PartyId    = r.PartyId;
-        DateText   = r.Date.UtcDateTime.ToString("yyyy-MM-dd");
-        TimeText   = r.Date.UtcDateTime.ToString("HH:mm");
+        When       = r.Date;
+        WhenText   = r.Date.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         TypeName   = CorpActivityViewModel.FormatRefType(r.RefType);
         Name       = r.PartyName;
         AmountRaw  = r.Amount;
@@ -705,6 +750,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public bool AutoRefreshEnabled { get; set; }
 
     private readonly CorpActivityService     _service;
+    private readonly AppErrorLogger?     _errorLogger;
     private readonly CorpTop10ExcludeService _excludeSvc;
     private readonly CorpReportTitles         _titles;
     private CancellationTokenSource          _top10Cts = new();
@@ -829,8 +875,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         set => this.RaiseAndSetIfChanged(ref _selectedRattingPeriod, value);
     }
 
-    public ObservableCollection<TaxPayerRowVm>      RattingTaxRows   { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  RattingDetailRows { get; } = [];
+    public BulkObservableCollection<TaxPayerRowVm>      RattingTaxRows   { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  RattingDetailRows { get; } = [];
 
     private ISeries[] _rattingDailySeries = [];
     public ISeries[] RattingDailySeries { get => _rattingDailySeries; private set => this.RaiseAndSetIfChanged(ref _rattingDailySeries, value); }
@@ -847,8 +893,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         set => this.RaiseAndSetIfChanged(ref _selectedDonationPeriod, value);
     }
 
-    public ObservableCollection<TaxPayerRowVm>      DonationRows       { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  DonationDetailRows  { get; } = [];
+    public BulkObservableCollection<TaxPayerRowVm>      DonationRows       { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  DonationDetailRows  { get; } = [];
 
     private ISeries[] _donationDailySeries = [];
     public ISeries[] DonationDailySeries { get => _donationDailySeries; private set => this.RaiseAndSetIfChanged(ref _donationDailySeries, value); }
@@ -865,8 +911,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         set => this.RaiseAndSetIfChanged(ref _selectedIndustryPeriod, value);
     }
 
-    public ObservableCollection<TaxPayerRowVm>      IndustryTaxRows    { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  IndustryDetailRows  { get; } = [];
+    public BulkObservableCollection<TaxPayerRowVm>      IndustryTaxRows    { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  IndustryDetailRows  { get; } = [];
 
     private ISeries[] _industryDailySeries = [];
     public ISeries[] IndustryDailySeries { get => _industryDailySeries; private set => this.RaiseAndSetIfChanged(ref _industryDailySeries, value); }
@@ -877,7 +923,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     // ── Killmail section ──────────────────────────────────────────────────────
     public ObservableCollection<CorpKillCharRowVm>     KillCharRows   { get; } = [];
-    public ObservableCollection<Activity24hKillRowVm>  KillDetailRows { get; } = [];
+    public BulkObservableCollection<Activity24hKillRowVm>  KillDetailRows { get; } = [];
 
     private ChartPeriodOption _selectedKillGridPeriod = null!;
     public ChartPeriodOption SelectedKillGridPeriod
@@ -905,14 +951,26 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     private IEnumerable<ISeries> _monthlyIskSeries = [];
     public IEnumerable<ISeries> MonthlyIskSeries { get => _monthlyIskSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyIskSeries, value); }
-    private IEnumerable<ISeries> _monthlyCountSeries = [];
-    public IEnumerable<ISeries> MonthlyCountSeries { get => _monthlyCountSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyCountSeries, value); }
-    private Axis[] _monthlyXAxes = [];
-    public Axis[] MonthlyXAxes   { get => _monthlyXAxes;  private set => this.RaiseAndSetIfChanged(ref _monthlyXAxes,  value); }
+    private IEnumerable<ISeries> _monthlyKillSeries = [];
+    public IEnumerable<ISeries> MonthlyKillSeries { get => _monthlyKillSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyKillSeries, value); }
+    private IEnumerable<ISeries> _monthlyMineSeries = [];
+    public IEnumerable<ISeries> MonthlyMineSeries { get => _monthlyMineSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyMineSeries, value); }
+
+    // ⚠️ One X axis EACH, though all three plot the same twelve months. An axis owns its paints,
+    // and a Paint carries drawing state tied to the canvas it is used on — see ChartPaint.
+    // Sharing one axis object across three CartesianChart controls would share those.
+    private Axis[] _monthlyIskXAxes = [];
+    public Axis[] MonthlyIskXAxes  { get => _monthlyIskXAxes;  private set => this.RaiseAndSetIfChanged(ref _monthlyIskXAxes,  value); }
+    private Axis[] _monthlyKillXAxes = [];
+    public Axis[] MonthlyKillXAxes { get => _monthlyKillXAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyKillXAxes, value); }
+    private Axis[] _monthlyMineXAxes = [];
+    public Axis[] MonthlyMineXAxes { get => _monthlyMineXAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyMineXAxes, value); }
     private Axis[] _monthlyIskYAxes = [];
     public Axis[] MonthlyIskYAxes   { get => _monthlyIskYAxes;  private set => this.RaiseAndSetIfChanged(ref _monthlyIskYAxes,  value); }
-    private Axis[] _monthlyCountAndMineYAxes = [];
-    public Axis[] MonthlyCountAndMineYAxes { get => _monthlyCountAndMineYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyCountAndMineYAxes, value); }
+    private Axis[] _monthlyKillYAxes = [];
+    public Axis[] MonthlyKillYAxes  { get => _monthlyKillYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyKillYAxes, value); }
+    private Axis[] _monthlyMineYAxes = [];
+    public Axis[] MonthlyMineYAxes  { get => _monthlyMineYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyMineYAxes, value); }
 
     private bool _hasMonthlyData;
     public bool HasMonthlyData
@@ -942,8 +1000,91 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     // ── Income / Expense by type ─────────────────────────────────────────────
     public ObservableCollection<WalletTypeRowVm>    IncomeTypeRows    { get; } = [];
     public ObservableCollection<WalletTypeRowVm>    ExpenseTypeRows   { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  ExpenseDetailRows { get; } = [];
-    public ObservableCollection<WalletDetailRowVm>  IncomeDetailRows  { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  ExpenseDetailRows { get; } = [];
+    public BulkObservableCollection<WalletDetailRowVm>  IncomeDetailRows  { get; } = [];
+
+    // ── Detail filters ───────────────────────────────────────────────────────
+    //
+    // The type list is built from the rows actually present rather than from a fixed list of
+    // ESI's ref types: thirty-seven exist, a given corp uses a handful, and offering the other
+    // thirty as choices that return nothing is worse than not offering them.
+    //
+    // ⚠️ "All types" is a row in the list, not a null the user has to discover. A filter with
+    // no way back to unfiltered is a trap.
+    public BulkObservableCollection<RefTypeChoice> IncomeTypeChoices  { get; } = [];
+    public BulkObservableCollection<RefTypeChoice> ExpenseTypeChoices { get; } = [];
+
+    private RefTypeChoice? _selectedIncomeType;
+    public RefTypeChoice? SelectedIncomeType
+    {
+        get => _selectedIncomeType;
+        set { this.RaiseAndSetIfChanged(ref _selectedIncomeType, value); ReloadIncomeDetail(); }
+    }
+
+    private RefTypeChoice? _selectedExpenseType;
+    public RefTypeChoice? SelectedExpenseType
+    {
+        get => _selectedExpenseType;
+        set { this.RaiseAndSetIfChanged(ref _selectedExpenseType, value); ReloadExpenseDetail(); }
+    }
+
+    private string _incomeNameFilter = "";
+    public string IncomeNameFilter
+    {
+        get => _incomeNameFilter;
+        set { this.RaiseAndSetIfChanged(ref _incomeNameFilter, value); ReloadIncomeDetail(); }
+    }
+
+    private string _expenseNameFilter = "";
+    public string ExpenseNameFilter
+    {
+        get => _expenseNameFilter;
+        set { this.RaiseAndSetIfChanged(ref _expenseNameFilter, value); ReloadExpenseDetail(); }
+    }
+
+    private int _incomeDetailCount;
+    public int IncomeDetailCount
+    {
+        get => _incomeDetailCount;
+        private set => this.RaiseAndSetIfChanged(ref _incomeDetailCount, value);
+    }
+
+    private int _expenseDetailCount;
+    public int ExpenseDetailCount
+    {
+        get => _expenseDetailCount;
+        private set => this.RaiseAndSetIfChanged(ref _expenseDetailCount, value);
+    }
+
+    /// <summary>
+    /// Reloads one detail grid after a filter changes.
+    ///
+    /// <para>⚠️ Started on the UI thread and NOT wrapped in Task.Run. The awaits inside resume
+    /// on the captured context, which is what puts ResetTo back on the UI thread; running the
+    /// whole thing on the pool mutates a bound collection from a background thread, and Avalonia
+    /// throws. That threw silently into an empty catch, so choosing a type simply did
+    /// nothing — no rows, no error, no clue.</para>
+    ///
+    /// <para>Not awaited, because a property setter that blocks on a query freezes the dropdown
+    /// mid-selection. Failures land on the status line instead of being swallowed.</para>
+    /// </summary>
+    private void ReloadIncomeDetail() => ReloadDetail(LoadIncomeDetailAsync);
+    private void ReloadExpenseDetail() => ReloadDetail(LoadExpenseDetailAsync);
+
+    private void ReloadDetail(Func<long, CancellationToken, Task> load)
+    {
+        if (_isLoading || SelectedCorp is null) return;
+        var corpId = SelectedCorp.Id;
+
+        _ = LoadAsync();
+        return;
+
+        async Task LoadAsync()
+        {
+            try { await load(corpId, default); }
+            catch (Exception ex) { Status = $"Filter failed: {ex.Message}"; }
+        }
+    }
 
     private ChartPeriodOption _selectedIncomePeriod = null!;
     public ChartPeriodOption SelectedIncomePeriod
@@ -977,7 +1118,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<Activity24hPlayerRowVm> Activity24hRatters  { get; } = [];
     public ObservableCollection<Activity24hPlayerRowVm> Activity24hIndustry { get; } = [];
     public ObservableCollection<Activity24hPlayerRowVm> Activity24hMiners   { get; } = [];
-    public ObservableCollection<Activity24hKillRowVm>   Activity24hKills    { get; } = [];
+    public BulkObservableCollection<Activity24hKillRowVm>   Activity24hKills    { get; } = [];
 
     private string _activity24hPlayerCountText = "—";
     public string Activity24hPlayerCountText
@@ -1205,13 +1346,24 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                                  CorpTop10ExcludeService? excludeSvc = null,
                                  CorpReportTitles? titles = null,
                                  SlackService? slack = null,
-                                 ExportFormatSettings? exportFormat = null)
+                                 ExportFormatSettings? exportFormat = null,
+                                 AppErrorLogger? errorLogger = null)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _service      = service;
         _excludeSvc   = excludeSvc!;
         _titles       = titles!;
         _slack        = slack;
         _exportFormat = exportFormat;
+
+        // ⚠️ Added because this view model had none. Fifteen of its catch blocks traced to
+        // Debug.WriteLine, which reaches nobody outside a debugger, so every failure on this
+        // screen was invisible in the error log as well as on the screen itself.
+        _errorLogger  = errorLogger;
         Corps         = corps;
 
         // Restored before any dropdown binds, so the saved choice is what the user sees.
@@ -1400,6 +1552,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (IsLoading || SelectedCorp is null) return;
         IsLoading = true;
+        _stepFailures.Clear();
         var corpId     = (long)SelectedCorp.Id;
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
@@ -1421,7 +1574,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             await RunStep("expense by type", () => LoadExpenseByTypeAsync(corpId, ct));
             await RunStep("24h activity",    () => Load24hActivityAsync(corpId, ct));
 
-            Status = $"Loaded — {SelectedCorp.Name}";
+            Status = LoadedStatus(SelectedCorp.Name);
         }
         finally
         {
@@ -1434,6 +1587,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         if (IsLoading || SelectedCorp is null) return;
         IsLoading = true;
+        _stepFailures.Clear();
         var corpId     = (long)SelectedCorp.Id;
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
@@ -1449,12 +1603,37 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             await RunStep("mining",  () => LoadMiningLedgerAsync(corpId, ct));
             await RunStep("24h activity", () => Load24hActivityAsync(corpId, ct));
 
-            Status = $"Loaded — {SelectedCorp.Name}";
+            Status = LoadedStatus(SelectedCorp.Name);
         }
         finally
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Which steps failed during the current load.
+    ///
+    /// <para>⚠️ Collected rather than only announced. Each step set Status on its way past, and
+    /// the line after the last step set it to "Loaded — &lt;corp&gt;" unconditionally, so a failed
+    /// tab ended up with an empty grid beneath a status line saying everything had loaded. That
+    /// is what made a broken mining query read as a configuration problem.</para>
+    /// </summary>
+    private readonly List<string> _stepFailures = [];
+
+    /// <summary>
+    /// A sub-step that failed inside a step, recorded so the closing status still knows.
+    ///
+    /// <para>⚠️ The tabs that load several lists — Top 10, the 24-hour summary — catch around
+    /// each one so a single failure does not take the others with it. Sound, except that
+    /// swallowing it also hides it from RunStep, which then sees the step succeed and lets the
+    /// status say "Loaded" above an empty list. Logging alone was not enough: it put the reason
+    /// somewhere, and left the screen claiming everything was fine.</para>
+    /// </summary>
+    private void StepFailed(string what, Exception ex)
+    {
+        _errorLogger?.Log("CorpActivityViewModel", what, ex);
+        _stepFailures.Add(what);
     }
 
     private async Task RunStep(string name, Func<Task> step)
@@ -1466,10 +1645,18 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] {name} step failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", $"{name} step", ex);
+            _stepFailures.Add(name);
             Status = $"Warning: {name} failed — {ex.Message}";
         }
     }
+
+    /// <summary>The closing status, which has to survive the steps that went wrong.</summary>
+    private string LoadedStatus(string corpName) =>
+        _stepFailures.Count == 0
+            ? $"Loaded — {corpName}"
+            : $"Loaded — {corpName}, but {string.Join(", ", _stepFailures)} failed. "
+              + "See the Error Log for the reason.";
 
     private async Task ReloadTabSafeAsync(string name, Func<Task> load)
     {
@@ -1481,7 +1668,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] period reload {name} failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", $"period reload {name}", ex);
             Status = $"Warning: {name} reload failed — {ex.Message}";
         }
     }
@@ -1512,16 +1699,16 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                     d => d.ToString(moreThan60 ? "MMM yy" : "MM/dd"))
                 {
                     TextSize        = 10,
-                    LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                    LabelsPaint     = ChartPaint.Labels,
+                    SeparatorsPaint = ChartPaint.Separators,
                 },
             ],
             [
                 new Axis
                 {
                     TextSize        = 10,
-                    LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                    LabelsPaint     = ChartPaint.Labels,
+                    SeparatorsPaint = ChartPaint.Separators,
                     Labeler         = v => FormatIsk(v),
                 },
             ]
@@ -1687,7 +1874,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         catch (OperationCanceledException) { /* month switched again — discard */ }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] Monthly summary failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", "Monthly summary", ex);
             SummaryLines.Clear();
         }
         finally { IsSummaryLoading = false; }
@@ -1861,7 +2048,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         catch (OperationCanceledException) { /* user switched month again — discard */ }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[CorpActivity] Top 10 switch failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", "Top 10 switch", ex);
         }
         finally
         {
@@ -1879,19 +2066,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
         try { rattingRows  = await _service.GetTopRattersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] ratters failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 ratters", ex); }
 
         try { industryRows = await _service.GetTopIndustryAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] industry failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 industry", ex); }
 
         try { killerRows   = await _service.GetTopKillersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] killers failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 killers", ex); }
 
         try { minerRows    = await _service.GetTopMinersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] miners failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 miners", ex); }
 
         try { contribRows  = await _service.GetTopProjectContributorsAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[Top10] contributors failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("Top10 contributors", ex); }
 
         var walletIds  = rattingRows.Concat(industryRows).Concat(killerRows)
                                     .Select(r => r.CharacterId);
@@ -1941,8 +2128,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             BuildTaxChart(chartRows, new SKColor(110, 190, 100));
 
         var detailRows = await _service.GetRattingJournalAsync(corpId, since, ct);
-        RattingDetailRows.Clear();
-        foreach (var r in detailRows) RattingDetailRows.Add(new WalletDetailRowVm(r));
+        RattingDetailRows.ResetTo(detailRows.Select(r => new WalletDetailRowVm(r)));
     }
 
     private async Task LoadDonationTabAsync(long corpId, CancellationToken ct = default)
@@ -1957,8 +2143,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             BuildTaxChart(chartRows, new SKColor(100, 160, 210));
 
         var detailRows = await _service.GetDonationJournalAsync(corpId, since, ct);
-        DonationDetailRows.Clear();
-        foreach (var r in detailRows) DonationDetailRows.Add(new WalletDetailRowVm(r));
+        DonationDetailRows.ResetTo(detailRows.Select(r => new WalletDetailRowVm(r)));
     }
 
     private async Task LoadIndustryTabAsync(long corpId, CancellationToken ct = default)
@@ -1973,8 +2158,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             BuildTaxChart(chartRows, new SKColor(200, 140, 60));
 
         var detailRows = await _service.GetIndustryJournalAsync(corpId, since, ct);
-        IndustryDetailRows.Clear();
-        foreach (var r in detailRows) IndustryDetailRows.Add(new WalletDetailRowVm(r));
+        IndustryDetailRows.ResetTo(detailRows.Select(r => new WalletDetailRowVm(r)));
     }
 
     private async Task LoadIncomeByTypeAsync(long corpId, CancellationToken ct = default)
@@ -1982,15 +2166,14 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var rows = await _service.GetIncomeByTypeAsync(corpId, SelectedIncomePeriod.Days, ct);
         IncomeTypeRows.Clear();
         foreach (var r in rows) IncomeTypeRows.Add(new WalletTypeRowVm(r));
+        SyncTypeChoices(IncomeTypeChoices, rows, ref _selectedIncomeType, nameof(SelectedIncomeType));
         BuildTypeBarChart(rows, new SKColor(106, 170, 136),
             out var series, out var xAxes, out var yAxes);
         IncomeSeries = series;
         IncomeXAxes  = xAxes;
         IncomeYAxes  = yAxes;
 
-        var detailRows = await _service.GetIncomeJournalAsync(corpId, SelectedIncomePeriod.Days, ct);
-        IncomeDetailRows.Clear();
-        foreach (var r in detailRows) IncomeDetailRows.Add(new WalletDetailRowVm(r));
+        await LoadIncomeDetailAsync(corpId, ct);
     }
 
     private async Task LoadExpenseByTypeAsync(long corpId, CancellationToken ct = default)
@@ -1998,15 +2181,85 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var rows = await _service.GetExpenseByTypeAsync(corpId, SelectedExpensePeriod.Days, ct);
         ExpenseTypeRows.Clear();
         foreach (var r in rows) ExpenseTypeRows.Add(new WalletTypeRowVm(r));
+        SyncTypeChoices(ExpenseTypeChoices, rows, ref _selectedExpenseType, nameof(SelectedExpenseType));
         BuildTypeBarChart(rows, new SKColor(204, 119, 102),
             out var series, out var xAxes, out var yAxes);
         ExpenseSeries = series;
         ExpenseXAxes  = xAxes;
         ExpenseYAxes  = yAxes;
 
-        var detail = await _service.GetExpenseJournalAsync(corpId, SelectedExpensePeriod.Days, ct);
-        ExpenseDetailRows.Clear();
-        foreach (var r in detail) ExpenseDetailRows.Add(new WalletDetailRowVm(r));
+        await LoadExpenseDetailAsync(corpId, ct);
+    }
+
+    // ── Income / expense detail, filtered ────────────────────────────────────
+    //
+    // ⚠️ Built off the UI thread and pushed in one reset. The old Clear() plus an Add() per row
+    // raised a change notification for every line, which the grid answered by laying out again.
+    // Tolerable at the five hundred rows the query used to cap at; at the two hundred thousand a
+    // real corp quarter holds it is the worklist freeze all over again.
+    private async Task LoadIncomeDetailAsync(long corpId, CancellationToken ct = default)
+    {
+        var rows = await _service.GetIncomeJournalAsync(
+            corpId, SelectedIncomePeriod.Days, SelectedIncomeType?.RefType, ct);
+
+        var vms = await Task.Run(() => Filter(rows, IncomeNameFilter), ct);
+        IncomeDetailRows.ResetTo(vms);
+        IncomeDetailCount = vms.Count;
+    }
+
+    private async Task LoadExpenseDetailAsync(long corpId, CancellationToken ct = default)
+    {
+        var rows = await _service.GetExpenseJournalAsync(
+            corpId, SelectedExpensePeriod.Days, SelectedExpenseType?.RefType, ct);
+
+        var vms = await Task.Run(() => Filter(rows, ExpenseNameFilter), ct);
+        ExpenseDetailRows.ResetTo(vms);
+        ExpenseDetailCount = vms.Count;
+    }
+
+    /// <summary>
+    /// ⚠️ The name filter stays in memory while the type filter went into the query. The name
+    /// is not a column — it is resolved from a party id after the rows are read — so there
+    /// is nothing in SQL to match on. The type filter is what keeps the set small enough for that
+    /// to be cheap.
+    /// </summary>
+    private static List<WalletDetailRowVm> Filter(List<WalletDetailRow> rows, string? name)
+    {
+        var vms = rows.Select(r => new WalletDetailRowVm(r));
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var needle = name.Trim();
+            vms = vms.Where(v => v.Name.Contains(needle, StringComparison.OrdinalIgnoreCase));
+        }
+        return vms.ToList();
+    }
+
+    /// <summary>
+    /// Rebuilds a type dropdown from the types actually present, keeping the current choice where
+    /// it still exists.
+    ///
+    /// <para>⚠️ Assigned through the backing field, not the property. The setter reloads the
+    /// grid, and doing that from inside the load that is already running would queue a second
+    /// pass for the same data on every refresh.</para>
+    /// </summary>
+    private void SyncTypeChoices(BulkObservableCollection<RefTypeChoice> choices,
+                                 List<WalletTypeRow> rows,
+                                 ref RefTypeChoice? selected, string propertyName)
+    {
+        var all   = new RefTypeChoice(null, "All types");
+        var built = new List<RefTypeChoice> { all };
+        built.AddRange(rows.Select(r => new RefTypeChoice(r.RefType, FormatRefType(r.RefType)))
+                           .DistinctBy(c => c.RefType)
+                           .OrderBy(c => c.Label));
+
+        choices.ResetTo(built);
+
+        var current = selected;   // ref cannot be captured by the lambda below
+        var keep = current is null ? all
+                 : built.FirstOrDefault(c => c.RefType == current.RefType) ?? all;
+
+        selected = keep;
+        this.RaisePropertyChanged(propertyName);
     }
 
     private static void BuildTypeBarChart(List<WalletTypeRow> rows, SKColor color,
@@ -2032,8 +2285,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 Labels          = labels,
                 LabelsRotation  = -35,
                 TextSize        = 10,
-                LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                LabelsPaint     = ChartPaint.Labels,
+                SeparatorsPaint = ChartPaint.Separators,
             }
         ];
         yAxes = [
@@ -2041,8 +2294,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 TextSize        = 10,
                 MinLimit        = 0,
-                LabelsPaint     = new SolidColorPaint(new SKColor(140, 140, 155)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(40,  40,  60)),
+                LabelsPaint     = ChartPaint.Labels,
+                SeparatorsPaint = ChartPaint.Separators,
                 Labeler         = v => FormatIsk(v),
             }
         ];
@@ -2059,19 +2312,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<Activity24hKillRow>   kills    = [];
 
         try { summary  = await _service.Get24hSummaryAsync(corpId, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] summary failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h summary", ex); }
 
         try { ratters  = await _service.Get24hTopRattersAsync(corpId,  excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] ratters failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h ratters", ex); }
 
         try { industry = await _service.Get24hTopIndustryAsync(corpId, excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] industry failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h industry", ex); }
 
         try { miners   = await _service.Get24hTopMinersAsync(corpId,   excludeIds, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] miners failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h miners", ex); }
 
         try { kills    = await _service.Get24hKillsAsync(corpId, ct); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[24h] kills failed: {ex.Message}"); }
+        catch (Exception ex) { StepFailed("24h kills", ex); }
 
         Activity24hPlayerCountText = summary.PlayerCount.ToString("N0");
         Activity24hIncomeText      = FormatIskStatic(summary.TotalIncome);
@@ -2195,8 +2448,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 Labels = labels, LabelsRotation = -45,
                 TextSize = 9,
-                SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
-                LabelsPaint     = new SolidColorPaint(new SKColor(85, 85, 102)),
+                SeparatorsPaint = ChartPaint.Separators,
+                LabelsPaint     = ChartPaint.FaintLabels,
             }
         ];
         KillDailyYAxes =
@@ -2205,8 +2458,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 TextSize    = 9,
                 MinLimit    = 0,
-                LabelsPaint = new SolidColorPaint(new SKColor(85, 85, 102)),
-                SeparatorsPaint = new SolidColorPaint(new SKColor(30, 30, 42)),
+                LabelsPaint = ChartPaint.FaintLabels,
+                SeparatorsPaint = ChartPaint.Separators,
             }
         ];
     }
@@ -2221,26 +2474,58 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>
-    /// Binds the two monthly trend charts.
+    /// Binds the three monthly trend charts.
     ///
     /// <para>⚠️ What they PLOT lives in CorpTrendChartReport, not here. A scheduled post draws
     /// the same series to a PNG, and a chart that disagreed with the screen it is named after
     /// would be worse than no chart at all.</para>
     ///
-    /// <para>Both charts share one X axis: they are the same twelve months, and two axis objects
-    /// would be two things to keep saying the same thing.</para>
+    /// <para>All three share one X axis: they are the same twelve months, and three axis objects
+    /// would be three things to keep saying the same thing.</para>
     /// </summary>
     private void BuildMonthlyCharts(List<MonthlyActivityRow> rows)
     {
-        var isk      = CorpTrendChartReport.IskTrends(rows);
-        var activity = CorpTrendChartReport.ActivityTrends(rows);
+        var isk   = CorpTrendChartReport.IskTrends(rows);
+        var kills = CorpTrendChartReport.KillTrends(rows);
+        var mined = CorpTrendChartReport.MiningTrends(rows);
 
         MonthlyIskSeries = isk?.Series ?? [];
-        MonthlyXAxes     = isk?.XAxes  ?? [];
-        MonthlyIskYAxes  = isk?.YAxes  ?? [];
+        MonthlyIskXAxes  = Chrome(isk?.XAxes);
+        MonthlyIskYAxes  = Chrome(isk?.YAxes);
 
-        MonthlyCountSeries       = activity?.Series ?? [];
-        MonthlyCountAndMineYAxes = activity?.YAxes  ?? [];
+        MonthlyKillSeries = kills?.Series ?? [];
+        MonthlyKillXAxes  = Chrome(kills?.XAxes);
+        MonthlyKillYAxes  = Chrome(kills?.YAxes);
+
+        MonthlyMineSeries = mined?.Series ?? [];
+        MonthlyMineXAxes  = Chrome(mined?.XAxes);
+        MonthlyMineYAxes  = Chrome(mined?.YAxes);
+    }
+
+    /// <summary>
+    /// Repaints an axis for the screen, leaving what it plots alone.
+    ///
+    /// <para>⚠️ CorpTrendChartReport draws for a PNG posted to Slack, so its axes carry fixed dark
+    /// greys — right on that canvas, and dark-on-light here the moment somebody picks a light
+    /// theme. Only the chrome is touched: the series colours are data, and they are the same on
+    /// screen as in the post.</para>
+    ///
+    /// <para>⚠️ Going through ChartPaint is also what REGISTERS these paints, which is the only
+    /// way ChartPaint.Restyle() can find them again when the theme changes later.</para>
+    /// </summary>
+    private static Axis[] Chrome(Axis[]? axes)
+    {
+        foreach (var axis in axes ?? [])
+        {
+            if (axis.LabelsPaint is not null) axis.LabelsPaint = ChartPaint.Labels;
+
+            // A transparent separator is a deliberate "draw nothing" on a secondary axis, so that
+            // it does not lay a second grid over the first one's. Repainting it would undo that.
+            if (axis.SeparatorsPaint is SolidColorPaint { Color.Alpha: > 0 })
+                axis.SeparatorsPaint = ChartPaint.Separators;
+        }
+
+        return axes ?? [];
     }
 
     private async Task LoadProjectsAsync(long corpId, CancellationToken ct)
@@ -2643,7 +2928,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[Maintain] load failed: {ex}");
+            _errorLogger?.Log("CorpActivityViewModel", "Maintain load", ex);
             Status = $"MAINTAIN load failed: {ex.Message}";
         }
         finally { IsLoadingMaintain = false; }

@@ -19,16 +19,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     private static readonly HashSet<string> UpwellKeys    = ["raitaru","azbel","sotiyo","athanor","tatara","astrahus","fortizar","keepstar","draccous","horiuchi","moreau","prometheus","lancer"];
     private static readonly HashSet<string> EngComplexKeys = ["raitaru","azbel","sotiyo"];
 
-    // EVE material consumption for a whole job: the per-run adjusted quantity (base × ME/rig/role
-    // modifiers) is rounded to 2 dp, multiplied by the run count, and ceilinged ONCE — not rounded
-    // per unit and then multiplied. Floors at one per run. Rounding per unit inflates batches (e.g.
-    // a 4.5/run material over 2 runs is 9, not ceil(4.5)×2 = 10).
-    private static int JobMaterialTotal(int baseQty, double factor, int runs)
-    {
-        double perRun = Math.Round(baseQty * factor, 2);
-        double total  = Math.Round(perRun * runs, 4);   // guard floating-point before the ceiling
-        return Math.Max(runs, (int)Math.Ceiling(total));
-    }
+    // What a whole job eats of one material. See IndustryMe.JobMaterialTotal — one definition,
+    // shared with the build costs so the plan and the price of it cannot disagree.
+    private static long JobMaterialTotal(int baseQty, double factor, long runs) =>
+        IndustryMe.JobMaterialTotal(baseQty, factor, runs);
 
     /// <summary>
     /// Loads a plan once and reuses it. Identical for every item and responsible for nearly all
@@ -84,9 +78,12 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .Where(r => marketBlueprints.Contains(r.TypeId))
             .Select(r => r.ProductTypeId).ToHashSet();
         // ── Type names and group/category info ─────────────────────────────
-        var typeNames = await db.SdeTypes.AsNoTracking()
-            .Select(t => new { t.TypeId, t.Name })
-            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        var typeRows = await db.SdeTypes.AsNoTracking()
+            .Select(t => new { t.TypeId, t.Name, t.Volume })
+            .ToListAsync(ct);
+
+        var typeNames   = typeRows.ToDictionary(t => t.TypeId, t => t.Name);
+        var typeVolumes = typeRows.ToDictionary(t => t.TypeId, t => t.Volume);
 
         // Named record structs rather than anonymous types: these have to survive being returned
         // from this method, which an anonymous type cannot do.
@@ -199,11 +196,20 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         // Per-run BPC contract prices grouped by blueprint type → [(ME, per-run price)]. A BPC-only
         // item consumes one run of a purchased BPC; value it per run at the item's ME.
-        var bpcPerRun = (await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct))
+        var bpcRows = await db.ContractBpcPrices.AsNoTracking().ToListAsync(ct);
+
+        var bpcPerRun = bpcRows
             .Select(c => new { c.TypeId, c.Me, Price = ContractPricing.EffectivePerRun(c) })
             .Where(x => x.Price is > 0m)
             .GroupBy(x => x.TypeId)
             .ToDictionary(g => g.Key, g => g.Select(x => (Me: x.Me, PerRun: x.Price!.Value)).ToList());
+
+        // Stale only when EVERY ME on record is stale. One researched copy still on contract is a
+        // live price for the blueprint, and BpcPerRunAt will fall back to it across ME levels.
+        var staleBpc = bpcRows
+            .GroupBy(c => c.TypeId)
+            .Where(g => g.All(ContractPricing.IsStale))
+            .ToDictionary(g => g.Key, g => g.Max(c => c.LastSeenAt));
 
         // Items the build-cost calc found cheaper to BUY than build — buy them here too (raw material,
         // no job) so the two calcs agree.
@@ -236,6 +242,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             MarketBlueprints   = marketBlueprints,
             InventedFromMarket = inventedFromMarket,
             TypeNames          = typeNames,
+            TypeVolumes        = typeVolumes,
             TypeGroupMap       = typeGroupMap,
             GroupCatMap        = groupCatMap,
             T2TypeIds          = t2TypeIds,
@@ -256,6 +263,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             MarkupFactor       = markupFactor,
             UnitCosts          = unitCosts,
             BpcPerRun          = bpcPerRun,
+            StaleBpcTypes      = staleBpc,
             BoughtSet          = boughtSet,
             Overrides          = overrides,
             AdjPrices          = adjPrices,
@@ -433,7 +441,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 // cruiser-hulled at 115,000 m³. See IndyRigMatching.
                 (6, "Cruiser" or "Battlecruiser" or "Combat Battlecruiser"
                    or "Attack Battlecruiser" or "Special Edition Yachts")                   => "medium_ships",
-                (6, "Battleship" or "Freighter")                                            => "large_ships",
+                // ⚠️ Freighters and industrial command ships are LARGE here, and jump freighters are
+                // ADVANCED large. They are capital-sized to fly and capital-priced to buy, which is
+                // why they were filed under capitals, but manufacturing does not care and the rigs
+                // say so in CCP's own words:
+                //   Basic Large Ship     "battleships, freighters and industrial command ships"
+                //   Advanced Large Ship  "Tech 2 battleships and jump freighters"
+                //   Capital Ship         "capital ships"
+                // Filed as capitals, a freighter job in a large-ship yard read as unrigged and was
+                // costed without the bonus it was actually getting.
+                (6, "Battleship" or "Freighter" or "Industrial Command Ship")               => "large_ships",
                 // T2 frigates/destroyers; SDE group is "Interdictor" not "Interdiction Destroyer"
                 (6, "Interceptor" or "Assault Frigate" or "Covert Ops"
                    or "Electronic Attack Ship" or "Interdictor" or "Tactical Destroyer"
@@ -444,11 +461,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                    or "Heavy Interdiction Cruiser" or "Logistics" or "Command Ship"
                    or "Strategic Cruiser" or "Blockade Runner" or "Deep Space Transport"
                    or "Flag Cruiser" or "Expedition Command Ship")                          => "adv_medium_ships",
-                (6, "Marauder" or "Black Ops")                                              => "adv_large_ships",
+                (6, "Marauder" or "Black Ops" or "Jump Freighter")                          => "adv_large_ships",
                 // Command Carrier (Ymir etc.) and Lancer Dreadnought are capital-class ships
                 (6, "Dreadnought" or "Carrier" or "Force Auxiliary" or "Capital Industrial Ship"
-                   or "Supercarrier" or "Titan" or "Command Carrier" or "Lancer Dreadnought"
-                   or "Jump Freighter" or "Industrial Command Ship")                        => "capital_ships",
+                   or "Supercarrier" or "Titan" or "Command Carrier" or "Lancer Dreadnought")                        => "capital_ships",
                 // ── Other categories ────────────────────────────────────────────────
                 (7, _)          => "modules_equipment",
 
@@ -544,17 +560,23 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
         // ── Expansion state ────────────────────────────────────────────────
         var jobPool       = new Dictionary<int, PlanJob>();
-        var rawPool       = new Dictionary<int, int>();
+        var rawPool       = new Dictionary<int, long>();
         var finalMeLevels = requests.ToDictionary(r => r.TypeId, r => r.MeLevel);
 
         // Tracks items whose category could not be determined or is not assigned in this park.
         var unmappedItems = new SortedSet<string>();
 
+        // Blueprint copies the plan could not price, or could only price from an ended contract.
+        // Sorted and de-duplicated the same way, since one BPC can be reached many times.
+        var bpcPriceNotes = new SortedSet<string>();
+
         // Items currently being expanded — the ancestor chain, not a visited set. See the guard
         // inside ExpandItem for why the distinction matters.
         var expanding = new HashSet<int>();
 
-        void ExpandItem(int typeId, int qty, bool isFinal)
+        // ⚠️ qty is long. A Palatine Keepstar's Tritanium alone runs past two billion, and an
+        // int parameter here silently truncated the whole subtree below it.
+        void ExpandItem(int typeId, long qty, bool isFinal)
         {
             // Cheaper to buy than build (per the build-cost calc), or pinned to a fixed build cost by
             // a price override → treat as a raw material with no job. The final product is always
@@ -643,10 +665,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
             if (jobPool.TryGetValue(typeId, out var existing))
             {
-                int oldRuns   = existing.Runs;
+                long oldRuns  = existing.Runs;
                 existing.QuantityNeeded += qty;
-                int newRuns   = (int)Math.Ceiling((double)existing.QuantityNeeded / bpProd.Quantity);
-                int extraRuns = newRuns - oldRuns;
+                long newRuns  = (long)Math.Ceiling((double)existing.QuantityNeeded / bpProd.Quantity);
+                long extraRuns = newRuns - oldRuns;
                 existing.Runs = newRuns;
                 if (extraRuns > 0)
                 {
@@ -654,10 +676,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     {
                         // Recompute the whole-job total at the new run count and expand only the
                         // delta — rounding at the job level, not per run (see JobMaterialTotal).
-                        int newTotal    = JobMaterialTotal(mat.Quantity, meFactor, newRuns);
+                        long newTotal   = JobMaterialTotal(mat.Quantity, meFactor, newRuns);
                         var existingMat = existing.Materials.FirstOrDefault(m => m.MaterialTypeId == mat.MaterialTypeId);
-                        int oldTotal    = existingMat?.TotalQty ?? JobMaterialTotal(mat.Quantity, meFactor, oldRuns);
-                        int delta       = newTotal - oldTotal;
+                        long oldTotal   = existingMat?.TotalQty ?? JobMaterialTotal(mat.Quantity, meFactor, oldRuns);
+                        long delta      = newTotal - oldTotal;
                         if (existingMat is not null)
                         {
                             existingMat.TotalQty = newTotal;
@@ -709,7 +731,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     int    basePerRun = mat.Quantity;
                     double perRunAdj  = Math.Round(basePerRun * meFactor, 2);
-                    int    totalQty   = JobMaterialTotal(basePerRun, meFactor, runs);
+                    long   totalQty   = JobMaterialTotal(basePerRun, meFactor, runs);
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = mat.MaterialTypeId,
@@ -739,7 +761,21 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 {
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.
-                    unitCosts[bpProd.TypeId] = BpcPerRunAt(bpProd.TypeId, meLevel);
+                    var bpcPerRunPrice = BpcPerRunAt(bpProd.TypeId, meLevel);
+                    unitCosts[bpProd.TypeId] = bpcPerRunPrice;
+
+                    // ⚠️ Zero is the right fallback — the rest of the plan is worth having,
+                    // so an unpriced blueprint must not abort it — but zero for a titan BPC is
+                    // most of the build missing, and the total would otherwise read as authorita-
+                    // tive. Say which figure is soft rather than leaving the user to notice.
+                    var bpcName = typeNames.GetValueOrDefault(bpProd.TypeId, $"Type {bpProd.TypeId}");
+                    if (bpcPerRunPrice <= 0m)
+                        bpcPriceNotes.Add($"{bpcName} — never seen on contract; counted as 0 ISK");
+                    else if (ctx.StaleBpcTypes.TryGetValue(bpProd.TypeId, out var lastSeen))
+                        bpcPriceNotes.Add(
+                            $"{bpcName} — {bpcPerRunPrice:N0} ISK per run, from a contract that ended "
+                            + (lastSeen is { } ls ? $"{ls.UtcDateTime:yyyy-MM-dd}" : "some time ago")
+                            + "; none listed since");
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
@@ -882,7 +918,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             // Net of leftovers, matching the Cost Summary's Net Cost. Charging the gross would
             // bill this run for components it did not consume and still has on the shelf.
             decimal totalCost = subtreeRawMat + subtreeJobCost - subtreeLeftover;
-            int     produced  = rootJob?.QuantityProduced ?? req.Quantity;
+            long    produced  = rootJob?.QuantityProduced ?? req.Quantity;
             return new PlanFinalProduct
             {
                 TypeId            = req.TypeId,
@@ -914,7 +950,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             });
         foreach (var fp in finalProducts.Where(f => f.QuantityProduced > f.QuantityRequested))
         {
-            int  overrun  = fp.QuantityProduced - fp.QuantityRequested;
+            long overrun  = fp.QuantityProduced - fp.QuantityRequested;
             decimal uCost = fp.QuantityProduced > 0 ? fp.TotalCost / fp.QuantityProduced : 0m;
             leftovers.Add(new PlanLeftoverItem
             {
@@ -928,8 +964,24 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         }
         leftovers = [.. leftovers.OrderByDescending(l => l.TotalValue)];
 
+        // What each job takes in and puts out, by volume. Every job's own materials, not the
+        // subtree below it: a job that consumes components built elsewhere in the plan still has
+        // to have those components delivered to it, and that is what the number is for.
+        foreach (var j in jobPool.Values)
+        {
+            j.InputVolume  = j.Materials.Sum(
+                m => m.TotalQty * ctx.TypeVolumes.GetValueOrDefault(m.MaterialTypeId, 0.0));
+            j.OutputVolume = j.QuantityProduced
+                           * ctx.TypeVolumes.GetValueOrDefault(j.OutputTypeId, 0.0);
+        }
+
         // ── Totals ─────────────────────────────────────────────────────────
         decimal totalRawMat   = rawMaterials.Sum(r => r.TotalCost);
+
+        // What the shopping list actually ships as. Summed off the raw materials rather than the
+        // whole tree: intermediates are made on site, so hauling them is not part of this job.
+        double  totalRawVol   = rawMaterials.Sum(
+            r => r.Quantity * ctx.TypeVolumes.GetValueOrDefault(r.TypeId, 0.0));
         decimal totalJobCost  = jobPool.Values.Sum(j => j.JobCost);
         decimal totalLeftover = leftovers.Sum(l => l.TotalValue);
 
@@ -938,11 +990,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             AllJobs              = jobPool.Values.OrderByDescending(j => j.IsFinalProduct).ThenBy(j => j.OutputTypeName).ToList(),
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
             Warnings             = planWarnings,
+            PricingWarnings      = bpcPriceNotes.ToList(),
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,
             Leftovers            = leftovers,
             TotalRawMaterialCost = totalRawMat,
+            TotalRawMaterialVolume = totalRawVol,
             TotalJobCost         = totalJobCost,
             TotalLeftoverValue   = totalLeftover,
             NetCost              = totalRawMat + totalJobCost - totalLeftover,
@@ -988,7 +1042,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
     // ── Batch-add helpers: direct materials (single blueprint) ────────────────
 
-    public async Task<Dictionary<int, (int Qty, string Name)>> GetDirectMaterialsAsync(
+    public async Task<Dictionary<int, (long Qty, string Name)>> GetDirectMaterialsAsync(
         int blueprintTypeId,
         int runs,
         int meLevel,
@@ -1006,10 +1060,10 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         double meFactor = (100.0 - meLevel) / 100.0;
-        var result = new Dictionary<int, (int, string)>();
+        var result = new Dictionary<int, (long, string)>();
         foreach (var m in mats)
         {
-            int qty = Math.Max(runs, (int)Math.Ceiling(m.Quantity * meFactor * runs));
+            long qty = Math.Max(runs, (long)Math.Ceiling(m.Quantity * meFactor * (double)runs));
             result[m.MaterialTypeId] = (qty, names.GetValueOrDefault(m.MaterialTypeId, $"Type {m.MaterialTypeId}"));
         }
         return result;
@@ -1019,7 +1073,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
 
     // With a park: calls full CalculateAsync so rig bonuses are applied.
     // Without a park: simple recursive expansion using ME only (no rig bonuses).
-    public async Task<Dictionary<int, (int Qty, string Name)>> GetChainMaterialsAsync(
+    public async Task<Dictionary<int, (long Qty, string Name)>> GetChainMaterialsAsync(
         int productTypeId,
         int runs,
         int meLevel,
@@ -1054,9 +1108,9 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var materialsByBp = bpMats.GroupBy(m => m.TypeId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        var rawPool = new Dictionary<int, int>();
+        var rawPool = new Dictionary<int, long>();
 
-        void ExpandSimple(int typeId, int qty)
+        void ExpandSimple(int typeId, long qty)
         {
             if (!byProduct.TryGetValue(typeId, out var bpProd))
             {
@@ -1177,10 +1231,11 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        static int Clamp(long v) => (int)Math.Min(v, int.MaxValue);
-
-        int StockAt(long stationId, int typeId) =>
-            byStation.TryGetValue((stationId, typeId), out var q) ? Clamp(q) : 0;
+        // ⚠️ No clamp. There was a Clamp(long) => int here, needed only while these fields
+        // were int; once they became long it was the one thing still pinning them, which is
+        // why Missing read exactly 2,147,483,647 against a demand of 868 billion Tritanium.
+        long StockAt(long stationId, int typeId) =>
+            byStation.TryGetValue((stationId, typeId), out var q) ? q : 0;
 
         // ── Job rows ─────────────────────────────────────────────────────────
         foreach (var job in plan.AllJobs)
@@ -1196,7 +1251,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             foreach (var raw in plan.RawMaterials)
             {
                 raw.AvailabilityKnown = true;
-                raw.Available = everywhere.TryGetValue(raw.TypeId, out var q) ? Clamp(q) : 0;
+                raw.Available = everywhere.TryGetValue(raw.TypeId, out var q) ? q : 0;
                 raw.Missing   = Math.Max(0, raw.Quantity - raw.Available);
             }
             return;
@@ -1233,8 +1288,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             // its share of the demand cannot be checked against anything, so a total that
             // silently omitted it would read as more complete than it is.
             raw.AvailabilityKnown = !unlinked.Contains(raw.TypeId);
-            raw.Available = raw.AvailabilityKnown ? Clamp(onHand.GetValueOrDefault(raw.TypeId))    : 0;
-            raw.Missing   = raw.AvailabilityKnown ? Clamp(shortfall.GetValueOrDefault(raw.TypeId)) : 0;
+            raw.Available = raw.AvailabilityKnown ? onHand.GetValueOrDefault(raw.TypeId)    : 0;
+            raw.Missing   = raw.AvailabilityKnown ? shortfall.GetValueOrDefault(raw.TypeId) : 0;
         }
     }
 }

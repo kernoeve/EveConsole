@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<AgentResearch>              EsiAgentResearch        => Set<AgentResearch>();
     public DbSet<LoyaltyPoint>               EsiLoyaltyPoints        => Set<LoyaltyPoint>();
+    public DbSet<NpcCorpProfile>             EsiNpcCorpProfiles      => Set<NpcCorpProfile>();
     public DbSet<LpStoreOffer>               EsiLpStoreOffers        => Set<LpStoreOffer>();
     public DbSet<LpStoreOfferItem>           EsiLpStoreOfferItems    => Set<LpStoreOfferItem>();
     public DbSet<LpStoreCorp>                EsiLpStoreCorps         => Set<LpStoreCorp>();
@@ -173,6 +174,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeStationOperationService> SdeStationOperationServices => Set<SdeStationOperationService>();
     public DbSet<SdeFaction>            SdeFactions            => Set<SdeFaction>();
     public DbSet<SdeNpcCorporation>     SdeNpcCorporations     => Set<SdeNpcCorporation>();
+    public DbSet<SdeIndustryModifierSource> SdeIndustryModifierSources => Set<SdeIndustryModifierSource>();
     public DbSet<SdeRace>               SdeRaces               => Set<SdeRace>();
     public DbSet<SdeMetaGroup>          SdeMetaGroups          => Set<SdeMetaGroup>();
     public DbSet<SdeCertificate>        SdeCertificates        => Set<SdeCertificate>();
@@ -185,6 +187,10 @@ public class AppDbContext : DbContext
     public DbSet<SdeSkin>               SdeSkins               => Set<SdeSkin>();
     public DbSet<SdeSkinType>           SdeSkinTypes           => Set<SdeSkinType>();
     public DbSet<SdeSkinLicense>        SdeSkinLicenses        => Set<SdeSkinLicense>();
+
+    // ── Which client is doing the background work ────────────────────────────
+    public DbSet<BackgroundWorkerStatus> BackgroundWorkerStatuses => Set<BackgroundWorkerStatus>();
+    public DbSet<WorkerActivity>         WorkerActivities         => Set<WorkerActivity>();
 
     // ── Hoboleaks complementary data ─────────────────────────────────────────
     public DbSet<HoboBuildInfo>          HoboBuildInfos          => Set<HoboBuildInfo>();
@@ -488,6 +494,10 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.FactionId);
             e.Property(x => x.FactionId).ValueGeneratedNever(); });
 
+        mb.Entity<SdeIndustryModifierSource>(e => {
+            e.HasKey(x => new { x.TypeId, x.Activity, x.BonusKind, x.DogmaAttributeId });
+            e.ToTable("SdeIndustryModifierSources"); });
+
         mb.Entity<SdeNpcCorporation>(e => {
             e.HasKey(x => x.CorporationId);
             e.Property(x => x.CorporationId).ValueGeneratedNever(); });
@@ -546,6 +556,25 @@ public class AppDbContext : DbContext
         // ── Market Levels ────────────────────────────────────────────────
         mb.Entity<MarketLevelGroup>(e => { e.HasKey(x => x.Id); });
         mb.Entity<MarketLevelItem>(e =>  { e.HasKey(x => x.Id); });
+
+        // ── Which client is doing the background work — single row, always Id = 1 ──
+
+        // ⚠️ Named explicitly. EF takes the table name from the DbSet property, which would make
+        // this "BackgroundWorkerStatuses" — while the DDL and every raw statement in WorkerLease
+        // say "BackgroundWorkerStatus". A dev database hides that completely: PostgresSchema
+        // created the singular one and the raw SQL finds it. A fresh EnsureCreated would build the
+        // plural one beside it and leave the two halves of this feature reading different tables.
+        mb.Entity<BackgroundWorkerStatus>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("BackgroundWorkerStatus"); });
+
+        // ── What each background loop is doing, for windows on the other clients ──
+
+        mb.Entity<WorkerActivity>(e => {
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).ValueGeneratedNever();
+            e.ToTable("WorkerActivity"); });
 
         // ── Hoboleaks tables ─────────────────────────────────────────────
 
@@ -780,6 +809,11 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.CorporationId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiLoyaltyPoints"); });
+
+        mb.Entity<NpcCorpProfile>(e => {
+            e.HasKey(x => x.CorporationId);
+            e.Property(x => x.CorporationId).ValueGeneratedNever();
+            e.ToTable("EsiNpcCorpProfiles"); });
 
         mb.Entity<LpStoreOffer>(e => {
             e.HasKey(x => new { x.CorporationId, x.OfferId });

@@ -39,7 +39,7 @@ public sealed class AlarmService : ReactiveObject
     private readonly AlarmActionRunner               _actions;
     private readonly AppErrorLogger                  _errors;
 
-    private readonly CancellationTokenSource _cts = new();
+    private CancellationTokenSource? _cts;
     private Task?          _loop;
     private DateTimeOffset _lastPrune = DateTimeOffset.MinValue;
 
@@ -96,13 +96,28 @@ public sealed class AlarmService : ReactiveObject
     /// <summary>Raised after any firing so open views can refresh without polling the database.</summary>
     public event Action? Fired;
 
-    public void Start() => _loop ??= Task.Run(() => RunAsync(_cts.Token));
+    public void Start()
+    {
+        if (_loop is not null) return;
+        _cts  = new CancellationTokenSource();
+        _loop = Task.Run(() => RunAsync(_cts.Token));
+    }
 
     public async Task StopAsync()
     {
+        if (_cts is null) return;
         await _cts.CancelAsync();
         if (_loop is not null)
             try { await _loop; } catch (OperationCanceledException) { }
+
+        // ⚠️ Cleared, not merely cancelled. A CancellationTokenSource stays cancelled once it
+        // has been, so restarting onto the same one hands the loop a token that is already dead:
+        // it returns on its first await and never runs again. Stop used to be called only on the
+        // way out, where that could not matter. The worker lease can be lost and regained, so it
+        // has to be an undoable thing now.
+        _cts.Dispose();
+        _cts  = null;
+        _loop = null;
     }
 
     /// <summary>
@@ -448,22 +463,34 @@ public sealed class AlarmService : ReactiveObject
     /// </summary>
     private static async Task PruneSeenKeysAsync(AppDbContext db, DateTimeOffset now, CancellationToken ct)
     {
-        // Must match EF Core's on-disk shape for DateTimeOffset (space separator, trailing
-        // offset). An ISO "o" string sorts above every stored value because 'T' > ' ', which
-        // would make this comparison true for every row and empty the ledger — at which point
-        // every alarm re-announces everything it has ever seen.
-        var cutoff = (now - SeenKeyRetention).ToUniversalTime()
-            .ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "+00:00";
+        // ⚠️ A DateTimeOffset, not a string shaped like one. FirstSeenAt is a timestamptz
+        // on a server and PostgreSQL will not compare one against text at all: "operator does not
+        // exist: timestamp with time zone < text".
+        //
+        // The string this replaced existed to match EF Core's on-disk shape for SQLite (space
+        // separator, trailing offset), because an ISO "o" string sorts above every stored value
+        // there — 'T' > ' ' — which made the comparison true for every row and emptied
+        // the ledger, at which point every alarm re-announced everything it had ever seen. Handing
+        // the provider a real DateTimeOffset gets that shape from the provider itself on SQLite,
+        // and a typed comparison on PostgreSQL, so neither engine is being guessed at.
+        var cutoff = (now - SeenKeyRetention).ToUniversalTime();
         await db.Database.ExecuteSqlRawAsync(
             """DELETE FROM "AlarmSeenKeys" WHERE "FirstSeenAt" < {0}""", [cutoff], ct);
 
+        // ⚠️ EF1002 suppressed rather than worked around, and only because of what is interpolated:
+        // AppDb.RowId is the engine's row-address identifier ("rowid" or "ctid") and
+        // MaxSeenKeysPerAlarm is a compile-time const. An identifier cannot be a parameter — that
+        // is a SQL rule, not an EF one — and neither value can come from input. Contrast the
+        // statement above, whose value goes through a {0} parameter, as any value must.
+#pragma warning disable EF1002 // interpolated parts are an engine identifier and a const, never input
         await db.Database.ExecuteSqlRawAsync($"""
-            DELETE FROM "AlarmSeenKeys" WHERE rowid IN (
-              SELECT rowid FROM (
-                SELECT rowid, ROW_NUMBER() OVER (PARTITION BY "AlarmId" ORDER BY "FirstSeenAt" DESC) AS rn
+            DELETE FROM "AlarmSeenKeys" WHERE {AppDb.RowId} IN (
+              SELECT {AppDb.RowId} FROM (
+                SELECT {AppDb.RowId}, ROW_NUMBER() OVER (PARTITION BY "AlarmId" ORDER BY "FirstSeenAt" DESC) AS rn
                 FROM "AlarmSeenKeys")
               WHERE rn > {MaxSeenKeysPerAlarm})
             """, ct);
+#pragma warning restore EF1002
     }
 
     private static string Relative(DateTimeOffset? at, DateTimeOffset now)

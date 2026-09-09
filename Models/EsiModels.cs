@@ -23,6 +23,14 @@ public class EsiCorporation
     [JsonPropertyName("ceo_id")]       public long   CeoId       { get; init; }
     [JsonPropertyName("member_count")] public int    MemberCount { get; init; }
     [JsonPropertyName("alliance_id")]  public int?   AllianceId  { get; init; }
+
+    // ⚠️ Public and unauthenticated for NPC corporations too, which is the only reason the
+    // headquarters is reachable at all — the SDE import drops it. See NpcCorpProfile.
+    [JsonPropertyName("description")]      public string Description   { get; init; } = "";
+    [JsonPropertyName("url")]              public string Url           { get; init; } = "";
+    [JsonPropertyName("home_station_id")]  public long?  HomeStationId { get; init; }
+    [JsonPropertyName("tax_rate")]         public double TaxRate       { get; init; }
+    [JsonPropertyName("faction_id")]       public int?   FactionId     { get; init; }
 }
 
 public class EsiSkills

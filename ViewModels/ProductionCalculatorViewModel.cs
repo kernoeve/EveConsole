@@ -188,6 +188,8 @@ public class ProductionCalculatorViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(JobTreeRoots));
             this.RaisePropertyChanged(nameof(HasPlanWarnings));
             this.RaisePropertyChanged(nameof(PlanWarningHeader));
+            this.RaisePropertyChanged(nameof(HasPricingWarnings));
+            this.RaisePropertyChanged(nameof(PricingWarningHeader));
         }
     }
 
@@ -196,6 +198,12 @@ public class ProductionCalculatorViewModel : ReactiveObject
     public string PlanWarningHeader => _plan is null || _plan.Warnings.Count == 0
         ? ""
         : $"{_plan.Warnings.Count} item(s) had no structure assignment in this park";
+
+    public bool HasPricingWarnings => _plan?.PricingWarnings.Count > 0;
+
+    public string PricingWarningHeader => _plan is null || _plan.PricingWarnings.Count == 0
+        ? ""
+        : $"{_plan.PricingWarnings.Count} blueprint price(s) are out of date or missing";
 
     public bool HasResults => _plan is not null;
 

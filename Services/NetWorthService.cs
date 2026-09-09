@@ -1,3 +1,4 @@
+using System.Data.Common;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.Data.Sqlite;
@@ -14,7 +15,12 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
         try
         {
             await using var db   = await dbFactory.CreateDbContextAsync(ct);
-            var conn = (SqliteConnection)db.Database.GetDbConnection();
+            // ⚠️ Not cast to a provider type. On a server this connection is an
+            // NpgsqlConnection, and the cast threw before a single query ran — "Unable to
+            // cast object of type Npgsql.NpgsqlConnection to type
+            // Microsoft.Data.Sqlite.SqliteConnection". Nothing below actually needed the derived
+            // type: CreateCommand and AddWithValue are both on DbConnection/DbCommand.
+            var conn = db.Database.GetDbConnection();
             if (conn.State != System.Data.ConnectionState.Open)
                 await conn.OpenAsync(ct);
 
@@ -72,12 +78,11 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // ── Scalar query helper ───────────────────────────────────────────────────
 
     private static async Task<double> ScalarAsync(
-        SqliteConnection conn, string sql, long ownerId, string ownerType, CancellationToken ct)
+        DbConnection conn, string sql, long ownerId, string ownerType, CancellationToken ct)
     {
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = sql;
-        cmd.Parameters.AddWithValue("@ownerId",   ownerId);
-        cmd.Parameters.AddWithValue("@ownerType", ownerType);
+        using var cmd = conn.Command(sql);
+        cmd.AddWithValue("@ownerId",   ownerId);
+        cmd.AddWithValue("@ownerType", ownerType);
         var result = await cmd.ExecuteScalarAsync(ct);
         return result is DBNull or null ? 0.0 : Convert.ToDouble(result);
     }
@@ -88,9 +93,9 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // BPCs = 0; BPOs = SDE base price; everything else = configured market price.
     private const string AssetValueSql = """
         SELECT COALESCE(SUM(
-            CAST(a."Quantity" AS REAL) * CASE
-                WHEN a."IsBlueprintCopy" = 1 THEN 0.0
-                WHEN a."IsBlueprintCopy" = 0 THEN COALESCE(t."BasePrice", 0.0)
+            CAST(a."Quantity" AS DOUBLE PRECISION) * CASE
+                WHEN a."IsBlueprintCopy" = TRUE THEN 0.0
+                WHEN a."IsBlueprintCopy" = FALSE THEN COALESCE(t."BasePrice", 0.0)
                 ELSE COALESCE(
                     NULLIF(
                         CASE WHEN mds."AssetValueConfigId" IS NOT NULL AND p."TypeId" IS NOT NULL THEN
@@ -132,15 +137,15 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
                 -- must not add any output value here (would double-count).
                 WHEN j."ActivityId" IN (3, 4) THEN 0.0
                 WHEN j."ActivityId" IN (5, 8) THEN
-                    CAST(j."Runs" AS REAL) * COALESCE(
+                    CAST(j."Runs" AS DOUBLE PRECISION) * COALESCE(
                         CASE
-                            WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS REAL)
-                            WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS REAL)
-                            WHEN CAST(cp."BestPrice" AS REAL) > 1.5 * CAST(cp."Avg30Best" AS REAL)
-                                 THEN CAST(cp."Avg30Best" AS REAL)
-                            ELSE CAST(cp."BestPrice" AS REAL)
+                            WHEN cp."BestPrice" IS NULL THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                            WHEN cp."Avg30Best" IS NULL THEN CAST(cp."BestPrice" AS DOUBLE PRECISION)
+                            WHEN CAST(cp."BestPrice" AS DOUBLE PRECISION) > 1.5 * CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                                 THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
+                            ELSE CAST(cp."BestPrice" AS DOUBLE PRECISION)
                         END, 0.0)
-                ELSE CAST(COALESCE(bp."Quantity", 1) * j."Runs" AS REAL) *
+                ELSE CAST(COALESCE(bp."Quantity", 1) * j."Runs" AS DOUBLE PRECISION) *
                      COALESCE(
                          NULLIF(
                              CASE WHEN p."TypeId" IS NOT NULL THEN
@@ -182,39 +187,39 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // Sum of all wallet divisions.
     // Characters have one row (Division=0); corps have up to 7 (Divisions 1-7).
     private const string WalletBalanceSql = """
-        SELECT COALESCE(SUM(CAST("Balance" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Balance" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiWalletBalances"
         WHERE "OwnerId" = @ownerId AND "OwnerType" = @ownerType
         """;
 
     // Active sell order value = remaining quantity × listed price.
     private const string SellOrderValueSql = """
-        SELECT COALESCE(SUM(CAST("VolumeRemain" AS REAL) * CAST("Price" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("VolumeRemain" AS DOUBLE PRECISION) * CAST("Price" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiMarketOrders"
         WHERE "OwnerId"    = @ownerId AND "OwnerType" = @ownerType
-          AND "IsBuyOrder" = 0
-          AND "IsHistory"  = 0
+          AND "IsBuyOrder" = FALSE
+          AND "IsHistory"  = FALSE
         """;
 
     // Buy order escrow = ISK currently locked up in active buy orders.
     private const string BuyOrderEscrowSql = """
-        SELECT COALESCE(SUM(CAST("Escrow" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Escrow" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiMarketOrders"
         WHERE "OwnerId"    = @ownerId AND "OwnerType" = @ownerType
-          AND "IsBuyOrder" = 1
-          AND "IsHistory"  = 0
+          AND "IsBuyOrder" = TRUE
+          AND "IsHistory"  = FALSE
         """;
 
     // Courier contracts issued by this owner that are outstanding or in progress.
     // Collateral is the amount the courier must pay if they fail to deliver.
     private const string ContractCollateralSql = """
-        SELECT COALESCE(SUM(CAST("Collateral" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Collateral" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiContracts"
         WHERE "OwnerId"  = @ownerId AND "OwnerType" = @ownerType
           AND "Type"     = 'courier'
           AND "Status"   IN ('outstanding', 'in_progress')
           AND (
-              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = 0)
+              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = FALSE)
            OR (@ownerType = 'corporation' AND "IssuerCorporationId" = @ownerId)
           )
         """;
@@ -222,13 +227,13 @@ public class NetWorthService(IDbContextFactory<AppDbContext> dbFactory)
     // Item-exchange and auction contracts issued by this owner that are still outstanding.
     // Price = ISK the buyer pays (value of items on offer).
     private const string ContractValueSql = """
-        SELECT COALESCE(SUM(CAST("Price" AS REAL)), 0.0)
+        SELECT COALESCE(SUM(CAST("Price" AS DOUBLE PRECISION)), 0.0)
         FROM "EsiContracts"
         WHERE "OwnerId"  = @ownerId AND "OwnerType" = @ownerType
           AND "Type"     IN ('item_exchange', 'auction')
           AND "Status"   = 'outstanding'
           AND (
-              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = 0)
+              (@ownerType = 'character'   AND "IssuerId"            = @ownerId AND "ForCorporation" = FALSE)
            OR (@ownerType = 'corporation' AND "IssuerCorporationId" = @ownerId)
           )
         """;

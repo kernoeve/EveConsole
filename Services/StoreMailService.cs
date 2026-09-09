@@ -69,15 +69,22 @@ public class StoreMailService(
     private static readonly TimeSpan HelpSilence = TimeSpan.FromHours(24);
 
     private Task? _loop;
+    private CancellationTokenSource? _cts;
 
     // ── What the background-process view shows ────────────────────────────────
     public DateTimeOffset? LastRunAt  { get; private set; }
     public DateTimeOffset? NextRunAt  { get; private set; }
     public string          StatusText { get; private set; } = "Not run yet";
 
-    public void Start(CancellationToken ct = default)
+    public void Start(CancellationToken outerCt = default)
     {
         if (_loop is not null) return;
+
+        // ⚠️ Linked to a source of our own. Every caller leaves the parameter at its default,
+        // so until now nothing could stop this loop once started — and the lease has to be
+        // able to, the moment this client stops being the worker.
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(outerCt);
+        var ct = _cts.Token;
 
         _loop = Task.Run(async () =>
         {
@@ -98,6 +105,25 @@ public class StoreMailService(
                 catch (OperationCanceledException) { return; }
             }
         }, ct);
+    }
+
+    /// <summary>
+    /// Stops the store-mail poll, and leaves it startable again.
+    ///
+    /// <para>⚠️ Both fields cleared. _loop is what Start guards on, and a
+    /// CancellationTokenSource stays cancelled once it has been — keeping either would make
+    /// the next Start a silent no-op for the rest of the session.</para>
+    /// </summary>
+    public async Task StopAsync()
+    {
+        if (_cts is null) return;
+        await _cts.CancelAsync();
+        if (_loop is not null)
+            try { await _loop; } catch (OperationCanceledException) { }
+
+        _cts.Dispose();
+        _cts  = null;
+        _loop = null;
     }
 
     /// <summary>One pass over every open shop. Public so the Stores tool can force one.</summary>

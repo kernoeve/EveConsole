@@ -417,6 +417,11 @@ public class SystemPageViewModel : ReactiveObject
 
     public SystemPageViewModel(SystemViewService svc, KillmailBrowserService kills)
     {
+        // ⚠️ Registered here rather than where the axes are built: several of these replace their
+        // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
+        // set that was on screen two loads ago. Only a weak reference is kept.
+        ChartPaint.TrackAxesOf(this);
+
         _svc   = svc;
         _kills = kills;
 
@@ -945,7 +950,7 @@ public class SystemPageViewModel : ReactiveObject
             new Axis
             {
                 Labels      = hourly.Select(h => $"{(newest - h.Hour).TotalHours:F0}h").ToArray(),
-                LabelsPaint = new SolidColorPaint(SKColor.Parse("#55556A")),
+                LabelsPaint = ChartPaint.FaintLabels,
                 TextSize    = 9,
                 MinStep     = Math.Max(1, hourly.Count / 6),
                 SeparatorsPaint = null,
@@ -955,10 +960,10 @@ public class SystemPageViewModel : ReactiveObject
         [
             new Axis
             {
-                LabelsPaint = new SolidColorPaint(SKColor.Parse("#55556A")),
+                LabelsPaint = ChartPaint.FaintLabels,
                 TextSize    = 9,
                 MinLimit    = 0,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1A1A24")) { StrokeThickness = 1 },
+                SeparatorsPaint = new SolidColorPaint(Palette.Sk("BorderSubtle")) { StrokeThickness = 1 },
             },
         ];
     }
@@ -999,7 +1004,7 @@ public class SystemPageViewModel : ReactiveObject
             new Axis
             {
                 Labels        = labels,
-                LabelsPaint   = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                LabelsPaint   = ChartPaint.Labels,
                 TextSize      = 10,
                 // A month of daily labels will not fit, so only every few days are drawn.
                 MinStep       = Math.Max(1, labels.Length / 10),
@@ -1010,10 +1015,10 @@ public class SystemPageViewModel : ReactiveObject
         [
             new Axis
             {
-                LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                LabelsPaint     = ChartPaint.Labels,
                 TextSize        = 10,
                 MinLimit        = 0,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1E1E2A")) { StrokeThickness = 1 },
+                SeparatorsPaint = new SolidColorPaint(Palette.Sk("BorderSubtle")) { StrokeThickness = 1 },
             },
         ];
     }
@@ -1054,12 +1059,12 @@ public class SystemPageViewModel : ReactiveObject
         [
             new Axis
             {
-                LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                LabelsPaint     = ChartPaint.Labels,
                 TextSize        = 10,
                 MinLimit        = 0,
                 MaxLimit        = 6,
                 MinStep         = 1,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1E1E2A")) { StrokeThickness = 1 },
+                SeparatorsPaint = new SolidColorPaint(Palette.Sk("BorderSubtle")) { StrokeThickness = 1 },
             },
         ];
     }
@@ -1126,10 +1131,10 @@ public class SystemPageViewModel : ReactiveObject
             new Axis
             {
                 Labeler         = v => $"{v:0.##}%",
-                LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+                LabelsPaint     = ChartPaint.Labels,
                 TextSize        = 10,
                 MinLimit        = 0,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#1E1E2A")) { StrokeThickness = 1 },
+                SeparatorsPaint = new SolidColorPaint(Palette.Sk("BorderSubtle")) { StrokeThickness = 1 },
             },
         ];
     }
@@ -1137,7 +1142,7 @@ public class SystemPageViewModel : ReactiveObject
     private static Axis DayAxis(string[] labels) => new()
     {
         Labels          = labels,
-        LabelsPaint     = new SolidColorPaint(SKColor.Parse("#6A6A7C")),
+        LabelsPaint     = ChartPaint.Labels,
         TextSize        = 10,
         MinStep         = Math.Max(1, labels.Length / 10),
         SeparatorsPaint = null,

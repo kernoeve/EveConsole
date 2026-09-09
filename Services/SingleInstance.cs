@@ -4,14 +4,21 @@ using System.Runtime.InteropServices;
 namespace EveConsole.Services;
 
 /// <summary>
-/// Ensures only one EVE Console runs at a time, and brings the existing one forward instead.
+/// On SQLite, ensures only one EVE Console runs at a time and brings the existing one forward
+/// instead. On PostgreSQL it does nothing at all.
 ///
-/// <para>⚠️ Two copies against one SQLite file is not merely untidy. Both would poll ESI and write
+/// <para>⚠️ Two copies against one SQLite FILE is not merely untidy. Both would poll ESI and write
 /// the results, doubling the API traffic and racing each other's inserts; and a database shrink
 /// replaces the file wholesale, so a second instance opening it mid-swap would be reading a file
 /// that is about to stop existing. The shrink is also the moment a second launch is most likely —
 /// a rebuild of a large database on a slow disk takes minutes, and a user who thinks the app has
 /// hung will start it again.</para>
+///
+/// <para>⚠️ None of that is true of a server, which is built for concurrent clients. So on
+/// PostgreSQL this refuses nothing: run ten clients, on ten machines, if you like. What must not
+/// happen twice is the background work, and <see cref="WorkerLease"/> owns that question. This
+/// class used to take an advisory lock to forbid a second client outright; that lock is now the
+/// lease, held by whichever client is doing the work rather than by whichever started first.</para>
 ///
 /// <para>Per-user rather than machine-wide (<c>Local\</c>, not <c>Global\</c>): two people logged
 /// into the same machine have separate profiles and therefore separate databases, so neither has
@@ -20,6 +27,72 @@ namespace EveConsole.Services;
 public static class SingleInstance
 {
     private static Mutex? _mutex;
+
+    /// <summary>
+    /// An exclusive handle on a file beside the database, held for the life of the process.
+    ///
+    /// <para>⚠️ This is the guarantee, not the mutex. A named Mutex does not hold across
+    /// processes on Linux the way it does on Windows, and TryAcquire's blanket catch turns any
+    /// such failure into a silent second start — which is two writers on one SQLite file,
+    /// both polling ESI and racing each other's inserts. Measured on Arch: a second copy
+    /// started.</para>
+    ///
+    /// <para>An open handle with FileShare.None is enforced by the kernel on both platforms
+    /// (.NET maps it to flock on Unix), so there is no pid to go stale and nothing to clean up
+    /// after a crash: the operating system drops the lock when the process dies, however it
+    /// dies.</para>
+    ///
+    /// <para>Beside the DATABASE rather than in the app data folder, because the database is
+    /// what is being protected. Two installs pointed at different databases have no reason to
+    /// exclude each other, and two pointed at the same one must.</para>
+    /// </summary>
+    private static FileStream? _lockFile;
+
+    private static bool TryTakeLockFile()
+    {
+        try
+        {
+            var dbPath = AppConfig.GetDbPath();
+            var dir    = Path.GetDirectoryName(dbPath);
+            if (string.IsNullOrWhiteSpace(dir)) return true;   // nowhere to put it; do not block
+
+            Directory.CreateDirectory(dir);
+
+            _lockFile = new FileStream(
+                Path.Combine(dir, "EveConsole.lock"),
+                FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
+            // The pid is for a human reading the file, not for the locking — the handle is
+            // what excludes. Best effort.
+            try
+            {
+                var pid = System.Text.Encoding.UTF8.GetBytes(
+                    $"{Environment.ProcessId}{Environment.NewLine}");
+                _lockFile.SetLength(0);
+                _lockFile.Write(pid);
+                _lockFile.Flush();
+            }
+            catch { }
+
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;      // somebody else holds it: exactly what this is for
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+        catch
+        {
+            // ⚠️ Any OTHER failure lets the app start. A lock we cannot create at all — a
+            // read-only volume, an exotic filesystem — must not make the app unusable. The
+            // two cases above are the ones that mean "occupied", and they are named explicitly
+            // rather than swept up with everything else.
+            return true;
+        }
+    }
 
     /// <summary>
     /// Passed by an instance that is deliberately replacing itself. ⚠️ Without it the app cannot
@@ -41,6 +114,29 @@ public static class SingleInstance
     {
         var replacing = args.Any(a =>
             string.Equals(a, RestartingArgument, StringComparison.OrdinalIgnoreCase));
+
+        // ⚠️ Nothing to enforce on a server. Single instance is a SQLite rule: it exists because
+        // two processes writing one FILE is corruption, and because a shrink replaces that file
+        // wholesale underneath anyone else holding it. A PostgreSQL database has neither problem —
+        // it is built for concurrent clients — so run as many as you like, on as many machines as
+        // you like. What must not happen twice is the background work, and that is the worker
+        // lease's job, not this one's.
+        if (DbEngine.IsPostgres) return true;
+
+        // ⚠️ And the tray never takes the lock, on either engine. It starts at logon, before anybody
+        // opens the application — so on SQLite it would take the file lock first and then refuse the
+        // real client, which is a tray icon locking somebody out of their own database. It writes
+        // nothing and holds nothing open; there is nothing here for it to protect.
+        if (AppRuntime.IsTray) return true;
+
+        // ⚠️ The file lock first, because it is the one that holds on every platform. The
+        // mutex stays: it is proven on Windows and costs nothing, and two agreeing guards are
+        // cheaper than deciding which single one to trust.
+        if (!TryTakeLockFile())
+        {
+            if (replacing && WaitForLockFile()) { /* predecessor let go */ }
+            else { FocusExistingWindow(); return false; }
+        }
 
         try
         {
@@ -77,6 +173,32 @@ public static class SingleInstance
         try { _mutex?.ReleaseMutex(); } catch { /* not the owning thread — the dispose still frees it */ }
         try { _mutex?.Dispose(); } catch { }
         _mutex = null;
+
+        // The replacement is already running and waiting on this handle.
+        try { _lockFile?.Dispose(); } catch { }
+        _lockFile = null;
+
+        // Closing the session is what frees an advisory lock; there is nothing to unlock
+        // separately, and unlocking before closing would only widen the gap where neither
+        // process holds it.
+    }
+
+    /// <summary>
+    /// Waits for a predecessor to drop the lock file during a deliberate restart.
+    ///
+    /// <para>Polled rather than blocking: a file lock has no wait primitive, and the wait is
+    /// normally over in a single pass because Release runs before the replacement is spawned.
+    /// The timeout only stops a predecessor that died badly from locking us out forever.</para>
+    /// </summary>
+    private static bool WaitForLockFile()
+    {
+        var until = DateTime.UtcNow + HandoverTimeout;
+        while (DateTime.UtcNow < until)
+        {
+            Thread.Sleep(150);
+            if (TryTakeLockFile()) return true;
+        }
+        return false;
     }
 
     /// <summary>

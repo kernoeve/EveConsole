@@ -41,9 +41,19 @@ public static class LabelPalette
     ];
 
     /// <summary>The panel colour chips sit on, which the tint is mixed into.</summary>
-    private static readonly Color Ground = Color.Parse("#131320");
+    /// <summary>
+    /// The surface a chip is mixed onto.
+    ///
+    /// <para>⚠️ Read from the palette rather than fixed. A chip is its hue blended 18% onto the
+    /// ground behind it, so a constant dark ground produced a near-black box on a light page —
+    /// which is what "the labels have no transparent background" looks like from outside.</para>
+    /// </summary>
+    private static Color Ground => EveConsole.Services.Palette.Colour("SurfacePanelAlt");
 
-    private static readonly Dictionary<string, LabelChip> Cache = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>⚠️ Keyed by theme as well as by text. The chips are mixed against the ground, so
+    /// the same label is genuinely two different chips — and a cache keyed on the label alone
+    /// handed back the dark one for ever after the first switch.</summary>
+    private static readonly Dictionary<(string Variant, string Label), LabelChip> Cache = new();
 
     /// <summary>Everything needed to draw one label.</summary>
     public static LabelChip Chip(string label)
@@ -52,16 +62,24 @@ public static class LabelPalette
         // are immutable, so they are made once and shared.
         lock (Cache)
         {
-            if (Cache.TryGetValue(label, out var hit)) return hit;
+            var variant = Avalonia.Application.Current?.ActualThemeVariant?.ToString() ?? "";
+            var key     = (variant, label.ToLowerInvariant());
+            if (Cache.TryGetValue(key, out var hit)) return hit;
+
+            // ⚠️ Which way the ink moves depends on the ground. Lightening a hue is what makes it
+            // readable on black and what makes it vanish on white; the text has to travel away
+            // from the surface, not always upwards.
+            var ground = Ground;
+            var onDark = (0.2126 * ground.R + 0.7152 * ground.G + 0.0722 * ground.B) < 128;
 
             var b    = Bases[Index(label)];
             var chip = new LabelChip(
                 label,
                 new SolidColorBrush(Mix(b, Ground, 0.18)),
                 new SolidColorBrush(Mix(b, Ground, 0.62)),
-                new SolidColorBrush(Lighten(b, 0.35)));
+                new SolidColorBrush(onDark ? Lighten(b, 0.35) : Darken(b, 0.45)));
 
-            Cache[label] = chip;
+            Cache[key] = chip;
             return chip;
         }
     }
@@ -89,6 +107,11 @@ public static class LabelPalette
         (byte)(onto.R + (c.R - onto.R) * amount),
         (byte)(onto.G + (c.G - onto.G) * amount),
         (byte)(onto.B + (c.B - onto.B) * amount));
+
+    private static Color Darken(Color c, double amount) => Color.FromRgb(
+        (byte)(c.R * (1 - amount)),
+        (byte)(c.G * (1 - amount)),
+        (byte)(c.B * (1 - amount)));
 
     private static Color Lighten(Color c, double amount) => Color.FromRgb(
         (byte)(c.R + (255 - c.R) * amount),
