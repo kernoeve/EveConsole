@@ -35,13 +35,43 @@ public sealed class ClaudeProvider : IAgentProvider
         [EnumeratorCancellation]
         CancellationToken          ct      = default)
     {
-        var rawMessages = history
-            .Select(m => (object)new
+        // ── The second cache breakpoint: the conversation so far ─────────────
+        //
+        // Measured before this existed: system and tools cached at 14,636 tokens, and a further
+        // ~18,500 uncached on EVERY round of EVERY turn — the history, which is allowed to grow
+        // to SummarizationThreshold and persists across restarts. A six-character question paid
+        // 18,870 input tokens to answer in eight.
+        //
+        // A marker on the LAST history message caches everything before it too, so the prefix is
+        // tools + system + the whole conversation. Within a turn the follow-up rounds read all of
+        // it and pay only for the tool results appended after; the next turn reads it again and
+        // moves its own marker forward. History only ever grows by appending, which is what makes
+        // the prefix stable enough for this to hit.
+        var rawMessages = new List<object>();
+        for (var i = 0; i < history.Count; i++)
+        {
+            var m    = history[i];
+            var role = m.Role == MessageRole.User ? "user" : "assistant";
+
+            // ⚠️ Only the last one, and only when it has text. An empty text block is rejected by
+            // the API, and a marker on every message would spend all four breakpoints on the
+            // cheapest possible saving.
+            if (i == history.Count - 1 && !string.IsNullOrEmpty(m.Content))
             {
-                role    = m.Role == MessageRole.User ? "user" : "assistant",
-                content = m.Content,
-            })
-            .ToList();
+                rawMessages.Add(new
+                {
+                    role,
+                    content = new object[]
+                    {
+                        new { type = "text", text = m.Content, cache_control = new { type = "ephemeral" } },
+                    },
+                });
+            }
+            else
+            {
+                rawMessages.Add(new { role, content = m.Content });
+            }
+        }
 
         var toolMap = tools?.ToDictionary(t => t.Name)
                       ?? new Dictionary<string, IAgentTool>();
