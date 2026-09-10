@@ -400,6 +400,66 @@ public static class PostgresSchema
         """
         ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "PackagedOnly" BOOLEAN NOT NULL DEFAULT FALSE
         """,
+
+        // ── Agent telemetry ──────────────────────────────────────────────────
+        //
+        // ⚠️ BIGSERIAL, not AUTOINCREMENT: PostgreSQL rejects the SQLite spelling at parse time
+        // even under IF NOT EXISTS. BOOLEAN, not INTEGER. And BIGINT for the unit counts —
+        // deliberately not REAL, which is float4 here and has silently truncated numbers in this
+        // codebase before.
+        //
+        // The SQLite spelling of these three is in AgentTelemetrySchema; keep the two in step.
+        """
+        CREATE TABLE IF NOT EXISTS "AgentInteractions" (
+            "Id"             BIGSERIAL   PRIMARY KEY,
+            "ConversationId" TEXT        NOT NULL DEFAULT '',
+            "StartedAt"      TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "DurationMs"     INTEGER     NOT NULL DEFAULT 0,
+            "Provider"       TEXT        NOT NULL DEFAULT '',
+            "Model"          TEXT        NOT NULL DEFAULT '',
+            "RoundTrips"     INTEGER     NOT NULL DEFAULT 0,
+            "ToolCallCount"  INTEGER     NOT NULL DEFAULT 0,
+            "QueryCount"     INTEGER     NOT NULL DEFAULT 0,
+            "ToolsUsed"      TEXT        NOT NULL DEFAULT '',
+            "StopReason"     TEXT        NOT NULL DEFAULT '',
+            "Error"          TEXT        NOT NULL DEFAULT '',
+            "UserChars"      INTEGER     NOT NULL DEFAULT 0,
+            "ResponseChars"  INTEGER     NOT NULL DEFAULT 0
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "AgentToolCalls" (
+            "Id"            BIGSERIAL   PRIMARY KEY,
+            "InteractionId" BIGINT      NOT NULL DEFAULT 0,
+            "Sequence"      INTEGER     NOT NULL DEFAULT 0,
+            "OccurredAt"    TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "ToolName"      TEXT        NOT NULL DEFAULT '',
+            "DurationMs"    INTEGER     NOT NULL DEFAULT 0,
+            "InputJson"     TEXT        NOT NULL DEFAULT '',
+            "ResultChars"   INTEGER     NOT NULL DEFAULT 0,
+            "RowCount"      INTEGER     NOT NULL DEFAULT -1,
+            "Error"         TEXT        NOT NULL DEFAULT ''
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ServiceUsage" (
+            "Id"                BIGSERIAL   PRIMARY KEY,
+            "OccurredAt"        TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "InteractionId"     BIGINT      NULL,
+            "Kind"              TEXT        NOT NULL DEFAULT '',
+            "Provider"          TEXT        NOT NULL DEFAULT '',
+            "Model"             TEXT        NOT NULL DEFAULT '',
+            "IsLocal"           BOOLEAN     NOT NULL DEFAULT FALSE,
+            "UnitKind"          TEXT        NOT NULL DEFAULT '',
+            "InputUnits"        BIGINT      NOT NULL DEFAULT 0,
+            "OutputUnits"       BIGINT      NOT NULL DEFAULT 0,
+            "CacheReadUnits"    BIGINT      NOT NULL DEFAULT 0,
+            "CacheWriteUnits"   BIGINT      NOT NULL DEFAULT 0,
+            "UnitsAreEstimated" BOOLEAN     NOT NULL DEFAULT FALSE,
+            "DurationMs"        INTEGER     NOT NULL DEFAULT 0,
+            "Error"             TEXT        NOT NULL DEFAULT ''
+        )
+        """,
     ];
 
     /// <summary>
@@ -461,6 +521,14 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmEvents_Alarm_Fired" ON "AlarmEvents" ("AlarmId", "FiredAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
+
+        // Agent telemetry. Same list as AgentTelemetrySchema.Indexes — keep the two in step.
+        """CREATE INDEX IF NOT EXISTS "IX_AgentInteractions_StartedAt" ON "AgentInteractions" ("StartedAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_AgentInteractions_Conversation" ON "AgentInteractions" ("ConversationId", "StartedAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_AgentToolCalls_Interaction" ON "AgentToolCalls" ("InteractionId", "Sequence")""",
+        """CREATE INDEX IF NOT EXISTS "IX_AgentToolCalls_OccurredAt" ON "AgentToolCalls" ("OccurredAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_OccurredAt" ON "ServiceUsage" ("OccurredAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_Kind_OccurredAt" ON "ServiceUsage" ("Kind", "OccurredAt")""",
     ];
 
     /// <summary>

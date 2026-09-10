@@ -3096,6 +3096,17 @@ public class App : Application
                 // PostgreSQL never had this split — PostgresSchema.Apply covers SDE and non-SDE
                 // together, above — and this is SQLite catching up to that shape.
                 SdeImportService.EnsureSdeSchema(db);
+
+                // ── Agent telemetry ─────────────────────────────────────────────────
+                //
+                // Same reason as the SDE block above: these tables arrived after most databases
+                // did, and EnsureCreated only ever builds a new one.
+                //
+                // ⚠️ Unconditional, not gated on the agent being configured. The retention sweep
+                // and the usage views read these tables whether or not anyone has set up a
+                // provider, and a missing table there breaks a screen that has nothing to do with
+                // the agent.
+                AgentTelemetrySchema.Ensure(db);
             }
         }
         }); // end Task.Run — schema migration complete

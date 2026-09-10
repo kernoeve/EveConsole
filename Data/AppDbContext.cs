@@ -262,6 +262,16 @@ public class AppDbContext : DbContext
     public DbSet<AlarmEvent>   AlarmEvents   => Set<AlarmEvent>();
     public DbSet<AlarmAlert>   AlarmAlerts   => Set<AlarmAlert>();
 
+    // ── Agent telemetry ──────────────────────────────────────────────────────
+    //
+    // ⚠️ New tables, so they need a hand-written CREATE in BOTH schema paths, not just the
+    // model: PostgresSchema for a server, and AgentTelemetrySchema for a SQLite database that
+    // already exists. EnsureCreated only ever builds a NEW file, so the model alone reaches
+    // nobody who is upgrading — which is how 0.9.13 shipped a table no upgrading user received.
+    public DbSet<AgentInteraction> AgentInteractions => Set<AgentInteraction>();
+    public DbSet<AgentToolCall>    AgentToolCalls    => Set<AgentToolCall>();
+    public DbSet<ServiceUsage>     ServiceUsage      => Set<ServiceUsage>();
+
     // ── App settings ─────────────────────────────────────────────────────────
     public DbSet<AlertSettings>      AlertSettings       => Set<AlertSettings>();
     public DbSet<AppPreference>      AppPreferences      => Set<AppPreference>();
@@ -1178,6 +1188,28 @@ public class AppDbContext : DbContext
         mb.Entity<AlarmAlert>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.Dismissed, x.CreatedAt }); });
+
+        // ── Agent telemetry ──────────────────────────────────────────────
+        //
+        // Indexed on the time column because every question asked of these tables is bounded
+        // by one — spend this week, the last N turns, what the retention sweep may delete.
+        mb.Entity<AgentInteraction>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.StartedAt);
+            e.HasIndex(x => new { x.ConversationId, x.StartedAt }); });
+
+        mb.Entity<AgentToolCall>(e => {
+            e.HasKey(x => x.Id);
+            // ⚠️ InteractionId first: this is read as "the calls belonging to that turn", and a
+            // time-first index would not serve it. See the KillMailAttackers note — the same
+            // column order mistake took an entity tab from 1.7s to over ten minutes.
+            e.HasIndex(x => new { x.InteractionId, x.Sequence });
+            e.HasIndex(x => x.OccurredAt); });
+
+        mb.Entity<ServiceUsage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => new { x.Kind, x.OccurredAt }); });
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });
