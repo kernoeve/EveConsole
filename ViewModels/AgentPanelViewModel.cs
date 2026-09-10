@@ -383,6 +383,13 @@ public sealed class AgentPanelViewModel : ReactiveObject
             // already marshalled explicitly, which is what makes this safe.
             var lastPostAt = 0L;
 
+            // Speech runs alongside the stream rather than after it. The agent often writes a
+            // sentence, calls a tool, thinks, and writes more — so waiting for the end meant
+            // silence through all of that and then a wall of text read at once.
+            var speaking = _tts is not null
+                        && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None;
+            var pending  = new StringBuilder();
+
             await foreach (var chunk in _service.Provider.StreamAsync(
                 systemPrompt, _history, _service.Tools,
                 onUsage: u => telemetry?.Usage(u),
@@ -390,6 +397,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
                 ct: ct).ConfigureAwait(false))
             {
                 sb.Append(chunk);
+
+                if (speaking)
+                {
+                    pending.Append(chunk);
+                    SpeakCompleteSentences(pending, flush: false);
+                }
 
                 // ⚠️ Throttled, and the cost being avoided is quadratic rather than merely wasteful:
                 // the old code called sb.ToString() on EVERY delta, so a long answer copied a
@@ -408,6 +421,9 @@ public sealed class AgentPanelViewModel : ReactiveObject
             var finalText = sb.ToString();
             Dispatcher.UIThread.Post(() => StreamingText = finalText);
 
+            // Whatever is left has no closing punctuation and never will.
+            if (speaking) SpeakCompleteSentences(pending, flush: true);
+
             if (!ct.IsCancellationRequested && sb.Length > 0)
             {
                 var responseText = sb.ToString();
@@ -419,8 +435,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
                     StreamingText = "";
                 });
 
-                if (_tts is not null && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None)
-                    _tts.SpeakAsync(responseText);
+                // ⚠️ Not spoken here any more. The sentences went to TTS as they were produced,
+                // and speaking the finished text again would say the whole answer twice.
 
                 SaveHistory();
 
@@ -464,6 +480,13 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
     /// part of the cached prefix.</summary>
     private string? CurrentAppState() => _service.ContextProvider?.Invoke();
+
+    /// <summary>Speaks whatever sentences are finished, keeping the unfinished tail back.</summary>
+    private void SpeakCompleteSentences(StringBuilder pending, bool flush)
+    {
+        if (_tts is null) return;
+        if (SpeechSegmenter.Take(pending, flush) is { } ready) _tts.SpeakAsync(ready);
+    }
 
     public void ClearHistory()
     {
