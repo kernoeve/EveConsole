@@ -26,6 +26,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
     private readonly GlobalHotkeyService? _hotkey;
     private CancellationTokenSource _cts = new();
 
+    /// <summary>
+    /// Groups this panel's turns in the telemetry so a thread can be read back in order.
+    ///
+    /// <para>Per panel instance rather than persisted: the point is to tell one sitting's turns
+    /// from another's when reading back why an answer was poor, and a conversation that survives a
+    /// restart is a different conversation for that purpose.</para>
+    /// </summary>
+    private string _conversationId = Guid.NewGuid().ToString("N");
+
     // Parallel lists — Messages drives the UI, _history drives the API context.
     public  ObservableCollection<AgentMessage> Messages { get; } = [];
     private readonly List<AgentMessage>        _history = [];
@@ -360,10 +369,17 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
         var systemPrompt = BuildSystemPrompt();
         var sb = new StringBuilder();
+
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin(_conversationId, _service.Provider.ProviderName, "", text.Length);
+        var failure = "";
+
         try
         {
             await foreach (var chunk in _service.Provider.StreamAsync(
-                systemPrompt, _history, _service.Tools, ct))
+                systemPrompt, _history, _service.Tools,
+                onUsage: u => telemetry?.Usage(u),
+                ct: ct))
             {
                 sb.Append(chunk);
                 var snapshot = sb.ToString();
@@ -391,9 +407,10 @@ public sealed class AgentPanelViewModel : ReactiveObject
                     _summarizationTask = SummarizeAsync();
             }
         }
-        catch (OperationCanceledException) { /* new message sent or panel closed */ }
+        catch (OperationCanceledException) { failure = "cancelled"; }
         catch (Exception ex)
         {
+            failure = ex.Message;
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 StreamingText = "";
@@ -402,6 +419,11 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
         finally
         {
+            // ⚠️ In the finally, so a cancelled or failed turn is still recorded. Those are the
+            // ones worth having: a turn that burned four round trips and then threw is exactly
+            // the spend that would otherwise never appear in the total.
+            telemetry?.Complete(sb.Length, failure);
+
             await Dispatcher.UIThread.InvokeAsync(() => IsBusy = false);
         }
     }
@@ -444,16 +466,27 @@ public sealed class AgentPanelViewModel : ReactiveObject
             "and any unresolved questions. Be concise — this will replace the older messages as a context anchor."));
 
         var sb = new StringBuilder();
+
+        // ⚠️ Measured like any other turn. This one is spend the capsuleer never asked for and
+        // never sees — it fires on a threshold, sends the whole history, and would otherwise be
+        // missing from the total with nothing to hint that a chunk of the bill was unaccounted.
+        // Its own conversation id, so it does not read as a turn in the thread it summarises.
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin($"{_conversationId}:summarize", _service.Provider.ProviderName, "", 0);
+        var failure = "";
+
         try
         {
             await foreach (var chunk in _service.Provider.StreamAsync(
                 AgentService.BuildSystemPrompt(_service.Settings), historySnapshot, tools: null,
+                onUsage: u => telemetry?.Usage(u),
                 ct: CancellationToken.None))
             {
                 sb.Append(chunk);
             }
         }
-        catch { return; /* summarization failure is silent */ }
+        catch (Exception ex) { failure = ex.Message; return; /* summarization failure is silent */ }
+        finally { telemetry?.Complete(sb.Length, failure); }
 
         if (sb.Length == 0) return;
 

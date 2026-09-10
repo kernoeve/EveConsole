@@ -131,6 +131,8 @@ public partial class SettingsWindow : Window
         => _ = Retention?.GameLog.PurgeNowAsync();
     private void OnPurgeChatClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.ChatMessages.PurgeNowAsync();
+    private void OnPurgeAgentTelemetryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.AgentTelemetry.PurgeNowAsync();
 
     public void WireDatabase(DatabaseSettingsViewModel dbVm, Window ownerWindow)
     {

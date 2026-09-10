@@ -3215,6 +3215,49 @@
             </StackPanel>
           </Border>
 
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding AgentTelemetry}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="Agent Activity" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="Removes the record of past AI Agent exchanges — what each one asked for, which tools it used, and the tokens it consumed. This is what the usage and cost figures are calculated from, so purging it shortens the history those can cover. It is the app's own diagnostic record rather than your data, so unlike the sections above this one is on by default; untick it to keep everything." />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="Purge agent activity older than"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="days" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="Purge Now"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeAgentTelemetryClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
         </StackPanel>
       </ScrollViewer>
     </TabItem>

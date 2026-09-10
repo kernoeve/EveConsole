@@ -127,6 +127,12 @@ public sealed class AgentService : ReactiveObject
     /// </summary>
     public Func<Tools.IAgentTool>? AlarmToolFactory { get; set; }
 
+    /// <summary>
+    /// Where tool calls and token usage are recorded. Set before <see cref="Initialize"/>; absent
+    /// means the agent runs unmeasured rather than broken.
+    /// </summary>
+    public AgentTelemetryService? Telemetry { get; set; }
+
     public void Initialize(string dbConnectionString)
     {
         Tools =
@@ -169,6 +175,12 @@ public sealed class AgentService : ReactiveObject
 
         if (AlarmToolFactory?.Invoke() is { } alarmTool)
             Tools = [.. Tools, alarmTool];
+
+        // ⚠️ Last, after every conditional tool above has been added. Wrapping earlier would
+        // leave the map, entity and alarm tools unmeasured — and they would look simply unused
+        // in the telemetry rather than uninstrumented, which is the more misleading of the two.
+        if (Telemetry is { } telemetry)
+            Tools = [.. Tools.Select(t => (IAgentTool)new TelemetryToolDecorator(t, telemetry))];
 
         this.RaisePropertyChanged(nameof(Tools));
     }

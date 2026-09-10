@@ -151,11 +151,15 @@ public class DataRetentionSettingsViewModel : ReactiveObject
 
         ChatMessages = new RetentionSectionVm(
             retention.ChatMessages, d => retention.PurgeChatMessagesAsync(d), "messages");
+
+        AgentTelemetry = new RetentionSectionVm(
+            retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d), "turns");
     }
 
-    public RetentionSectionVm ErrorLog     { get; }
-    public RetentionSectionVm Killmails    { get; }
-    public RetentionSectionVm PriceHistory { get; }
-    public RetentionSectionVm GameLog      { get; }
-    public RetentionSectionVm ChatMessages { get; }
+    public RetentionSectionVm ErrorLog       { get; }
+    public RetentionSectionVm Killmails      { get; }
+    public RetentionSectionVm PriceHistory   { get; }
+    public RetentionSectionVm GameLog        { get; }
+    public RetentionSectionVm ChatMessages   { get; }
+    public RetentionSectionVm AgentTelemetry { get; }
 }

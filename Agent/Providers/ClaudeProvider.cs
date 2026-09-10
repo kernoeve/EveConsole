@@ -29,9 +29,10 @@ public sealed class ClaudeProvider : IAgentProvider
     public async IAsyncEnumerable<string> StreamAsync(
         string                     systemPrompt,
         IReadOnlyList<AgentMessage> history,
-        IReadOnlyList<IAgentTool>? tools = null,
+        IReadOnlyList<IAgentTool>? tools   = null,
+        Action<UsageReport>?       onUsage = null,
         [EnumeratorCancellation]
-        CancellationToken          ct    = default)
+        CancellationToken          ct      = default)
     {
         var rawMessages = history
             .Select(m => (object)new
@@ -44,7 +45,7 @@ public sealed class ClaudeProvider : IAgentProvider
         var toolMap = tools?.ToDictionary(t => t.Name)
                       ?? new Dictionary<string, IAgentTool>();
 
-        await foreach (var chunk in StreamRoundAsync(systemPrompt, rawMessages, toolMap, MaxToolRounds, ct))
+        await foreach (var chunk in StreamRoundAsync(systemPrompt, rawMessages, toolMap, MaxToolRounds, onUsage, ct))
             yield return chunk;
     }
 
@@ -53,9 +54,12 @@ public sealed class ClaudeProvider : IAgentProvider
         List<object>                   rawMessages,
         Dictionary<string, IAgentTool> toolMap,
         int                            maxRounds,
+        Action<UsageReport>?           onUsage,
         [EnumeratorCancellation]
         CancellationToken              ct)
     {
+        var roundStarted = System.Diagnostics.Stopwatch.StartNew();
+
         using var request  = BuildRequest(systemPrompt, rawMessages, toolMap);
         using var response = await _http.SendAsync(
             request, HttpCompletionOption.ResponseHeadersRead, ct);
@@ -71,6 +75,10 @@ public sealed class ClaudeProvider : IAgentProvider
         var toolInputs  = new Dictionary<int, StringBuilder>();
         var stopReason  = "";
 
+        // Usage arrives split across two events, which is why it is easy to miss half of it:
+        // message_start carries the input and cache counts, message_delta the output count.
+        long inTok = 0, outTok = 0, cacheRead = 0, cacheWrite = 0;
+
         while (!reader.EndOfStream && !ct.IsCancellationRequested)
         {
             var line = await reader.ReadLineAsync(ct);
@@ -85,6 +93,21 @@ public sealed class ClaudeProvider : IAgentProvider
             if (!root.TryGetProperty("type", out var typeProp)) continue;
             switch (typeProp.GetString())
             {
+                // ⚠️ The input side of the bill, and the only place it appears. Without this the
+                // prompt — system prompt, schema, tool definitions, history, every round — is
+                // counted as zero, which is the larger half of the spend on a tool-using turn.
+                case "message_start":
+                {
+                    if (root.TryGetProperty("message", out var msg)
+                        && msg.TryGetProperty("usage", out var u))
+                    {
+                        inTok      = ReadLong(u, "input_tokens");
+                        cacheRead  = ReadLong(u, "cache_read_input_tokens");
+                        cacheWrite = ReadLong(u, "cache_creation_input_tokens");
+                    }
+                    break;
+                }
+
                 case "content_block_start":
                 {
                     var idx = root.GetProperty("index").GetInt32();
@@ -130,10 +153,31 @@ public sealed class ClaudeProvider : IAgentProvider
                     var delta = root.GetProperty("delta");
                     if (delta.TryGetProperty("stop_reason", out var sr))
                         stopReason = sr.GetString() ?? "";
+
+                    // The output side. Cumulative for the message, so assign rather than add.
+                    if (root.TryGetProperty("usage", out var u))
+                        outTok = ReadLong(u, "output_tokens");
                     break;
                 }
             }
         }
+
+        // ⚠️ Reported here, before the tool round below recurses, so the reports arrive in the
+        // order the calls were made. Reporting after the recursion would nest them backwards and
+        // make a turn's round trips read last-first.
+        onUsage?.Invoke(new UsageReport
+        {
+            Provider         = ProviderName,
+            Model            = _model,
+            IsLocal          = false,
+            InputTokens      = inTok,
+            OutputTokens     = outTok,
+            CacheReadTokens  = cacheRead,
+            CacheWriteTokens = cacheWrite,
+            IsEstimated      = false,   // Anthropic reports these exactly.
+            StopReason       = stopReason,
+            DurationMs       = (int)roundStarted.ElapsedMilliseconds,
+        });
 
         // ── Tool use follow-up round ─────────────────────────────────────────
         if (stopReason == "tool_use" && maxRounds > 0
@@ -202,7 +246,7 @@ public sealed class ClaudeProvider : IAgentProvider
             }
             rawMessages.Add(new { role = "user", content = toolResults });
 
-            await foreach (var chunk in StreamRoundAsync(systemPrompt, rawMessages, toolMap, maxRounds - 1, ct))
+            await foreach (var chunk in StreamRoundAsync(systemPrompt, rawMessages, toolMap, maxRounds - 1, onUsage, ct))
                 yield return chunk;
         }
     }
@@ -232,6 +276,18 @@ public sealed class ClaudeProvider : IAgentProvider
         request.Headers.Add("Accept",            "text/event-stream");
         return request;
     }
+
+    /// <summary>
+    /// A usage count, or zero when the provider did not send it.
+    ///
+    /// <para>⚠️ Absent rather than zero is the normal case for the cache fields — they appear only
+    /// when prompt caching is actually in play — so a missing property must read as nothing
+    /// consumed, not as a parse failure that loses the whole report.</para>
+    /// </summary>
+    private static long ReadLong(JsonElement obj, string name)
+        => obj.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number
+            ? v.GetInt64()
+            : 0;
 
     private static JsonElement ParseJsonElement(string json)
     {

@@ -3636,7 +3636,14 @@ public class App : Application
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();
-        services.AddSingleton<AgentService>();
+        // ⚠️ Telemetry is set here rather than after startup because AgentService.Initialize is
+        // what builds the tool list, and the decorator can only wrap tools that do not exist yet.
+        // A telemetry service attached later would measure token usage and no tool calls at all.
+        services.AddSingleton<AgentTelemetryService>();
+        services.AddSingleton<AgentService>(sp => new AgentService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+        });
         services.AddSingleton<TtsService>();
         services.AddSingleton<SpeechInputService>();
         services.AddSingleton<GlobalHotkeyService>();
