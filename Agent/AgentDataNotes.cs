@@ -22,13 +22,30 @@ public static class AgentDataNotes
         meanings, the joins that answer real questions, and the places a query returns a number
         that looks right and is not.
 
-        ## Who someone is, and who they were
-        - CharacterAffiliations answers "which corporation and alliance is this character in NOW",
-          for ANY character id — not just authenticated ones. This is how you answer "is X still
-          in the corp", "who has left", "which of these buyers are still with us". It is the
-          single most useful table for questions about people and it is easy to miss.
-        - EsiCorpMembers is the current roster of a corporation the capsuleer has roles in.
-          EsiCorpMemberTracking adds when each member joined and last logged in.
+        ## Who someone is, and who they WERE
+        ⚠️ These two tables answer different questions and swapping them gives a confident wrong
+        answer. Read this before answering anything about who is in which corporation.
+
+        - EsiCorpMembers is the CURRENT roster of a corporation the capsuleer has roles in, and it
+          is the right answer to "is X still in the corp", "who has left", "which of these buyers
+          are still with us". EsiCorpMemberTracking adds when each member joined and last logged
+          in. Someone absent from EsiCorpMembers who appears in older data has left.
+
+        - ⚠️ CharacterAffiliations is a FIRST-SEEN CACHE, not current state. A row is written the
+          first time a character id is encountered — usually from an intel report — and is NEVER
+          refreshed afterwards. Most rows in it are months old and will stay that way.
+          PulledAt is when the character was first SEEN, not when the corporation was last
+          checked; the name invites the opposite reading.
+
+          It is deliberate. For reading old intel, the corp somebody was in at the time is the
+          useful answer. It is the WRONG source for anything about the present: someone who left
+          a corporation last month still reads as a member, and nothing about the row says so.
+
+          Use it to name the corp attached to a historical sighting. Do not use it to decide where
+          anyone is now. If the question is about current membership and the corporation is not
+          one the capsuleer has roles in, say the data cannot answer it rather than reporting a
+          cached value as though it were current.
+
         - Characters holds the capsuleer's OWN authenticated characters only. Do not use it to
           decide who someone else is — most character ids in the database are not in it.
 
