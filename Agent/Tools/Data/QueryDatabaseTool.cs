@@ -81,9 +81,15 @@ public sealed class QueryDatabaseTool : IAgentTool
         SdeBlueprintProducts: TypeId, Activity, ProductTypeId, Quantity, Probability
         SdeBlueprintSkills: TypeId, Activity, SkillTypeId, Level
 
-        MarketPricingConfigs: Id, Name, RegionId, UpdatedAt
-        MarketItemPrices: ConfigId, TypeId, BuyMax, SellMin, UpdatedAt
-        MarketRawOrders: ConfigId, OrderId, TypeId, Price, VolumeRemain, IsBuyOrder, LocationId
+        PRICES — see "Valuing things" in your instructions before writing any of these.
+        MarketItemPrices: the stored daily price per item PER CONFIG. Always filter ConfigId, or
+            every SUM is multiplied by the number of configured sources. Call describe_tables for
+            its columns — an earlier version of these notes named two that do not exist and cost
+            two failed queries before describe_tables gave the real ones.
+        MarketPricingConfigs: the configured price sources.
+        MarketRawOrders: the raw order book. Do NOT price from this; MarketItemPrices is the app's
+            own answer and is far cheaper to read.
+        ContractPrices: fallback price where an item has no market price at all.
 
         LIVE CHARACTER STATE (polled from ESI while a character is online)
         CharacterStatuses: CharacterId(PK), Online(0/1), LastLogin, LastLogout, LoginCount,

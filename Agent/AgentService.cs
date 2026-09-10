@@ -109,23 +109,49 @@ public sealed class AgentService : ReactiveObject
                name, which reads like data.
             3. Then write the query.
 
-            ## Valuing things — EVE Console prices the whole game
-            ⚠️ The app already holds a value for essentially every item, and questions about worth
-            are answered from it. Do NOT send the capsuleer to zKillboard, Fuzzwork or any other
-            site for a number this database can produce.
+            ## Valuing things — there is ONE right way, use it every time
+            ⚠️ The app already holds a value for essentially every item. Never send the capsuleer
+            to zKillboard, Fuzzwork or any other site for a number this database can produce, and
+            never invent your own valuation — the same question must give the same answer twice.
 
-            Three independent valuations exist, and which one is right depends on the question:
-            - MARKET price, per item, per price source the capsuleer has configured — what it
-              sells or buys for on a market they actually use.
-            - BUILD COST, per item, computed from their own industry setup — what it costs THEM
-              to make, which is not the market price and is often much lower.
-            - CONTRACT price, including per-run and by-ME blueprint copy pricing.
+            THE MARKET VALUE. This is the default and the answer unless asked for something else:
 
-            So "how much ISK was destroyed" is a join from the killmail's items to a price, not a
-            column to look for and give up on when it is absent. The same is true of "what is my
-            stuff worth", "what would this fit cost", "is this worth building". A value you cannot
-            find as a stored column is nearly always one you compute by joining to prices — find
-            the pricing tables in the index and describe them rather than declining.
+              MarketDefaultSettings (one row) names the source and the side:
+                AssetValueConfigId   -> which MarketPricingConfigs row
+                AssetValuePriceType  -> 'Sell', 'Buy' or 'Midpoint'
+              MarketItemPrices holds the stored daily price per item:
+                columns are ConfigId, TypeId, BuyPrice, SellPrice, Midpoint, FromMarketData
+
+            So: join MarketItemPrices on TypeId, take the column AssetValuePriceType names, and
+
+            ⚠️ ALWAYS filter ConfigId to AssetValueConfigId. There are several configured price
+            sources and MarketItemPrices holds a row PER SOURCE per item. An unfiltered join
+            returns one row per source and multiplies every SUM by however many exist — this has
+            already produced totals several times too large, which looked plausible and were not.
+
+            ⚠️ Use these stored prices. Do NOT compute from MarketRawOrders — that is the raw order
+            book, it is far slower, and it bypasses the percentile filtering, the buy/sell/midpoint
+            choice and the build-cost gap fill that make the stored number the app's own answer.
+
+            ⚠️ The stored price ALREADY includes the "% over build cost" fill for items with no
+            market. Rows carrying FromMarketData = false are that fill. Do not add a markup
+            yourself and do not exclude those rows as though they were missing.
+
+            FALLBACK. Where an item has no market price at all, use ContractPrices.BestPrice.
+            Say when you have fallen back to it.
+
+            OTHER VALUATIONS, only when the question asks for them: BUILD COST is what it costs the
+            capsuleer to MAKE something, which is not its market price; contract pricing covers
+            blueprint copies per run and by ME.
+
+            ## "Value" of a kill
+            Unqualified, the value of a killmail is the WHOLE loss: the ship hull plus everything
+            destroyed and everything dropped. Not the hull alone, and not the contents alone —
+            asking the same question twice and summing different parts of it is how one region's
+            24 hours came back as 300B, then 20B, then 202B.
+
+            Hull-only, dropped-only or destroyed-only are answers to questions that SAY so. If the
+            capsuleer just says "value", give the total.
 
             ## Data freshness — IMPORTANT
             EVE Console automatically polls ESI in the background. All data is kept current. NEVER offer to refresh data or suggest it may be out of date unless the capsuleer explicitly asks.
@@ -202,12 +228,26 @@ public sealed class AgentService : ReactiveObject
             // ── Generic data access ───────────────────────────────────────────
             new QueryDatabaseTool(dbConnectionString, Schema),
 
-            // ── Specialised data query tools ──────────────────────────────────
-            new GetAssetsTool(dbConnectionString),
-            new GetIndustryJobsTool(dbConnectionString),
-            new GetCharacterInfoTool(dbConnectionString),
-            new GetMarketPricesTool(dbConnectionString),
-            new SearchItemsTool(dbConnectionString),
+            // ── Specialised data query tools — WITHDRAWN ──────────────────────
+            //
+            // ⚠️ Not offered any more. GetAssets, GetIndustryJobs, GetCharacterInfo,
+            // GetMarketPrices and SearchItems are thin wrappers around one or two fixed SELECTs,
+            // and they were doing harm rather than saving effort.
+            //
+            // Measured: asked how many titans the capsuleer owned, the agent called get_assets
+            // with a name search, got back exactly 50 rows — its LIMIT, reported as a bare array
+            // with nothing to say it had been cut off — then searched four hulls individually and
+            // added the totals together. The answer was far too high and nothing in the result
+            // could have revealed it. Asked to check again it wrote SQL, which was right, because
+            // query_database reports truncation and lets the database do the counting.
+            //
+            // They also cost tokens on every single turn: each one's schema ships in every
+            // request whether or not it is used. With the table index and describe_tables the
+            // agent can reach the same data and more, so the trade no longer holds.
+            //
+            // The files are kept rather than deleted — the queries in them are a decent record of
+            // how these questions were meant to be answered, and the telemetry will show whether
+            // anything actually regresses without them.
 
             // ── UI action tools ───────────────────────────────────────────────
             new OpenWindowTool(name => WindowOpenRequested?.Invoke(name)),
