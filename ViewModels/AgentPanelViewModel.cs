@@ -379,6 +379,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
             await foreach (var chunk in _service.Provider.StreamAsync(
                 systemPrompt, _history, _service.Tools,
                 onUsage: u => telemetry?.Usage(u),
+                volatileContext: CurrentAppState(),
                 ct: ct))
             {
                 sb.Append(chunk);
@@ -428,14 +429,19 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
     }
 
-    private string BuildSystemPrompt()
-    {
-        var prompt  = AgentService.BuildSystemPrompt(_service.Settings);
-        var context = _service.ContextProvider?.Invoke();
-        if (string.IsNullOrEmpty(context))
-            return prompt;
-        return prompt + "\n\n## Current App State\n" + context;
-    }
+    /// <summary>
+    /// The STABLE half of the system prompt — identical on every call.
+    ///
+    /// <para>⚠️ Live app state is deliberately NOT appended here any more. It is passed to the
+    /// provider separately so it lands after the prompt-cache breakpoint: the cache is keyed on a
+    /// byte-identical prefix, and a tail that changes each turn would invalidate roughly 33k
+    /// tokens of tool schemas and app reference every single time.</para>
+    /// </summary>
+    private string BuildSystemPrompt() => AgentService.BuildSystemPrompt(_service.Settings);
+
+    /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
+    /// part of the cached prefix.</summary>
+    private string? CurrentAppState() => _service.ContextProvider?.Invoke();
 
     public void ClearHistory()
     {

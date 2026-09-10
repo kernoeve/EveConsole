@@ -31,6 +31,7 @@ public sealed class ClaudeProvider : IAgentProvider
         IReadOnlyList<AgentMessage> history,
         IReadOnlyList<IAgentTool>? tools   = null,
         Action<UsageReport>?       onUsage = null,
+        string?                    volatileContext = null,
         [EnumeratorCancellation]
         CancellationToken          ct      = default)
     {
@@ -45,12 +46,14 @@ public sealed class ClaudeProvider : IAgentProvider
         var toolMap = tools?.ToDictionary(t => t.Name)
                       ?? new Dictionary<string, IAgentTool>();
 
-        await foreach (var chunk in StreamRoundAsync(systemPrompt, rawMessages, toolMap, MaxToolRounds, onUsage, ct))
+        await foreach (var chunk in StreamRoundAsync(
+                           systemPrompt, volatileContext, rawMessages, toolMap, MaxToolRounds, onUsage, ct))
             yield return chunk;
     }
 
     private async IAsyncEnumerable<string> StreamRoundAsync(
         string                         systemPrompt,
+        string?                        volatileContext,
         List<object>                   rawMessages,
         Dictionary<string, IAgentTool> toolMap,
         int                            maxRounds,
@@ -60,7 +63,7 @@ public sealed class ClaudeProvider : IAgentProvider
     {
         var roundStarted = System.Diagnostics.Stopwatch.StartNew();
 
-        using var request  = BuildRequest(systemPrompt, rawMessages, toolMap);
+        using var request  = BuildRequest(systemPrompt, volatileContext, rawMessages, toolMap);
         using var response = await _http.SendAsync(
             request, HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
@@ -246,13 +249,15 @@ public sealed class ClaudeProvider : IAgentProvider
             }
             rawMessages.Add(new { role = "user", content = toolResults });
 
-            await foreach (var chunk in StreamRoundAsync(systemPrompt, rawMessages, toolMap, maxRounds - 1, onUsage, ct))
+            await foreach (var chunk in StreamRoundAsync(
+                               systemPrompt, volatileContext, rawMessages, toolMap, maxRounds - 1, onUsage, ct))
                 yield return chunk;
         }
     }
 
     private HttpRequestMessage BuildRequest(
-        string systemPrompt, List<object> messages, Dictionary<string, IAgentTool> toolMap)
+        string systemPrompt, string? volatileContext,
+        List<object> messages, Dictionary<string, IAgentTool> toolMap)
     {
         var toolDefs = toolMap.Count > 0
             ? (object)toolMap.Values.Select(t => new
@@ -263,9 +268,35 @@ public sealed class ClaudeProvider : IAgentProvider
             }).ToArray()
             : null;
 
+        // ── Prompt caching ───────────────────────────────────────────────────
+        //
+        // The request's cacheable prefix runs tools → system → messages, and a cache_control
+        // breakpoint caches everything up to and INCLUDING the block it sits on. So one marker on
+        // the stable system block covers the tool definitions as well, which is most of the
+        // weight: seventeen schemas and the app reference come to roughly 33k tokens, and before
+        // this they were re-sent at full price on every round trip of every turn. A single
+        // question that used two tools paid for all of it three times.
+        //
+        // ⚠️ Any changing text must come AFTER the breakpoint. A cache hit needs a byte-identical
+        // prefix, so folding live UI state into the stable prompt would invalidate the entry every
+        // turn — caching would look enabled and never once be read. That is why volatileContext is
+        // a separate argument rather than something the caller concatenates.
+        var systemBlocks = new List<object>
+        {
+            new
+            {
+                type          = "text",
+                text          = systemPrompt,
+                cache_control = new { type = "ephemeral" },
+            },
+        };
+
+        if (!string.IsNullOrWhiteSpace(volatileContext))
+            systemBlocks.Add(new { type = "text", text = "\n\n## Current App State\n" + volatileContext });
+
         var bodyObj = toolDefs is not null
-            ? (object)new { model = _model, max_tokens = 4096, system = systemPrompt, messages, tools = toolDefs, stream = true }
-            : new { model = _model, max_tokens = 4096, system = systemPrompt, messages, stream = true };
+            ? (object)new { model = _model, max_tokens = 4096, system = systemBlocks, messages, tools = toolDefs, stream = true }
+            : new { model = _model, max_tokens = 4096, system = systemBlocks, messages, stream = true };
 
         var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
         {
