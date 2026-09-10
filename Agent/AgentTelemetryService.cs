@@ -23,12 +23,35 @@ namespace EveConsole.Agent;
 /// </summary>
 public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorLogger errors) : IAgentToolSink
 {
-    private readonly object _gate = new();
-    private Turn? _turn;
+    /// <summary>
+    /// The turn belonging to the current async flow.
+    ///
+    /// <para>⚠️ AsyncLocal, not a field, because turns overlap. Summarization is fired WITHOUT
+    /// await from inside a send, so two turns are open at once — and with a single field they
+    /// fought over it: the summariser's Begin landed before the main turn's Complete, which then
+    /// wrote the summariser's row using the main turn's numbers, and the summariser's own Complete
+    /// found nothing left to write. Observed as an interaction with 0 round trips, 0 duration and
+    /// no usage rows at all, with the summarisation's whole token spend unrecorded.</para>
+    ///
+    /// <para>An AsyncLocal flows into every continuation started after it is set, so the provider's
+    /// rounds and the tool calls nested inside them all find the turn they actually belong to,
+    /// without anyone having to thread a token through seventeen tools.</para>
+    ///
+    /// <para>⚠️ The part worth not second-guessing: the summariser calls Begin BEFORE its first
+    /// await, so it looks as though it must run in the caller's context and clobber the caller's
+    /// turn. It does not — an async method gets its own AsyncLocal scope from the moment it is
+    /// invoked, even for a mutation ahead of its first suspension. Verified rather than assumed:
+    /// with the caller set to one value and an un-awaited async callee setting another, the caller
+    /// still reads its own both immediately after the call and after its next await. No
+    /// Task.Yield or other boundary is needed here, and adding one would be cargo cult.</para>
+    /// </summary>
+    private readonly AsyncLocal<Turn?> _current = new();
 
     /// <summary>One turn in flight. Accumulated in memory, written once at the end.</summary>
     private sealed class Turn
     {
+        private readonly object _gate = new();
+
         public string ConversationId = "";
         public string Provider       = "";
         public string Model          = "";
@@ -36,58 +59,55 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
         public long Started = Environment.TickCount64;
         public int  UserChars;
 
-        public readonly List<AgentToolCall> Calls  = [];
-        public readonly List<UsageReport>   Usages = [];
+        private readonly List<AgentToolCall> _calls  = [];
+        private readonly List<UsageReport>   _usages = [];
+
+        // Locked per turn rather than globally: two turns running at once must not serialise on
+        // each other, and a tool result arriving on a pool thread must not race the round that
+        // requested it.
+        public void Add(AgentToolCall call)
+        {
+            lock (_gate) { call.Sequence = _calls.Count + 1; _calls.Add(call); }
+        }
+
+        public void Add(UsageReport usage)
+        {
+            lock (_gate) { _usages.Add(usage); }
+        }
+
+        public (List<AgentToolCall> Calls, List<UsageReport> Usages) Snapshot()
+        {
+            lock (_gate) { return ([.. _calls], [.. _usages]); }
+        }
     }
 
     /// <summary>
-    /// Opens a turn. Any turn still open is abandoned rather than merged — the panel cancels the
-    /// previous stream before starting a new one, so a leftover belongs to work the capsuleer
-    /// has already walked away from.
+    /// Opens a turn on this async flow. Overlapping turns each get their own and do not interfere.
     /// </summary>
     public void Begin(string conversationId, string provider, string model, int userChars)
-    {
-        lock (_gate)
+        => _current.Value = new Turn
         {
-            _turn = new Turn
-            {
-                ConversationId = conversationId,
-                Provider       = provider,
-                Model          = model,
-                UserChars      = userChars,
-            };
-        }
-    }
+            ConversationId = conversationId,
+            Provider       = provider,
+            Model          = model,
+            UserChars      = userChars,
+        };
 
     /// <summary>From <see cref="TelemetryToolDecorator"/>, on whichever thread ran the tool.</summary>
     public void ToolCalled(string toolName, string inputJson, int durationMs, int resultChars, int rowCount, string error)
-    {
-        lock (_gate)
+        => _current.Value?.Add(new AgentToolCall
         {
-            if (_turn is null) return;   // a tool outside a turn is not something to invent a row for
-            _turn.Calls.Add(new AgentToolCall
-            {
-                Sequence    = _turn.Calls.Count + 1,
-                OccurredAt  = DateTimeOffset.UtcNow,
-                ToolName    = toolName,
-                DurationMs  = durationMs,
-                InputJson   = inputJson,
-                ResultChars = resultChars,
-                RowCount    = rowCount,
-                Error       = error,
-            });
-        }
-    }
+            OccurredAt  = DateTimeOffset.UtcNow,
+            ToolName    = toolName,
+            DurationMs  = durationMs,
+            InputJson   = inputJson,
+            ResultChars = resultChars,
+            RowCount    = rowCount,
+            Error       = error,
+        });
 
     /// <summary>From the provider, once per round trip.</summary>
-    public void Usage(UsageReport report)
-    {
-        lock (_gate)
-        {
-            if (_turn is null) return;
-            _turn.Usages.Add(report);
-        }
-    }
+    public void Usage(UsageReport report) => _current.Value?.Add(report);
 
     /// <summary>
     /// Closes the turn and writes it. Fire-and-forget by design: the capsuleer's answer is already
@@ -95,8 +115,8 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
     /// </summary>
     public void Complete(int responseChars, string error = "")
     {
-        Turn? turn;
-        lock (_gate) { turn = _turn; _turn = null; }
+        var turn = _current.Value;
+        _current.Value = null;
         if (turn is null) return;
 
         _ = Task.Run(() => WriteAsync(turn, responseChars, error));
@@ -109,7 +129,9 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
             using var scope = scopes.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            var counts = turn.Calls
+            var (calls, usages) = turn.Snapshot();
+
+            var counts = calls
                 .GroupBy(c => c.ToolName, StringComparer.Ordinal)
                 .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
 
@@ -121,15 +143,15 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
                 // ⚠️ Taken from the provider's own report where there is one. The caller can only
                 // say which provider it MEANT to use; the report says what actually answered,
                 // which is the thing a spend figure has to be attributed to.
-                Provider       = turn.Usages.Count > 0 ? turn.Usages[^1].Provider : turn.Provider,
-                Model          = turn.Usages.Count > 0 ? turn.Usages[^1].Model    : turn.Model,
-                RoundTrips     = turn.Usages.Count,
-                ToolCallCount  = turn.Calls.Count,
+                Provider       = usages.Count > 0 ? usages[^1].Provider : turn.Provider,
+                Model          = usages.Count > 0 ? usages[^1].Model    : turn.Model,
+                RoundTrips     = usages.Count,
+                ToolCallCount  = calls.Count,
                 QueryCount     = counts.GetValueOrDefault("query_database"),
                 ToolsUsed      = counts.Count > 0 ? JsonSerializer.Serialize(counts) : "",
                 // The last round is the one that actually ended the turn; the earlier ones all
                 // stopped for tool_use and would report that instead.
-                StopReason     = turn.Usages.Count > 0 ? turn.Usages[^1].StopReason : "",
+                StopReason     = usages.Count > 0 ? usages[^1].StopReason : "",
                 Error          = error,
                 UserChars      = turn.UserChars,
                 ResponseChars  = responseChars,
@@ -138,10 +160,10 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
             db.AgentInteractions.Add(interaction);
             await db.SaveChangesAsync();      // assigns the key the children need
 
-            foreach (var call in turn.Calls) call.InteractionId = interaction.Id;
-            db.AgentToolCalls.AddRange(turn.Calls);
+            foreach (var call in calls) call.InteractionId = interaction.Id;
+            db.AgentToolCalls.AddRange(calls);
 
-            foreach (var u in turn.Usages)
+            foreach (var u in usages)
             {
                 db.ServiceUsage.Add(new ServiceUsage
                 {
