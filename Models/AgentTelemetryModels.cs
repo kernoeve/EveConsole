@@ -134,3 +134,43 @@ public class ServiceUsage
     public int    DurationMs { get; set; }
     public string Error      { get; set; } = "";
 }
+
+/// <summary>
+/// What a service charges, so cost can be derived rather than stored.
+///
+/// <para>⚠️ Data, not code. There are six billable services across three vendors and their prices
+/// change; a rate compiled into a release is a number that looks authoritative and quietly goes
+/// wrong. Rows are seeded with sensible defaults and the capsuleer can correct them — a figure
+/// they can see and edit is honest in a way a hardcoded one is not.</para>
+///
+/// <para>⚠️ USD per single unit, not per million, and <c>decimal</c> rather than a float. The unit
+/// differs by service — a token, a character, a second — so one scale keeps the arithmetic
+/// uniform, and the display multiplies for readability. REAL is float4 on PostgreSQL and has
+/// silently truncated money in this codebase before, which is why this is decimal.</para>
+/// </summary>
+public class ServiceRate
+{
+    public long Id { get; set; }
+
+    /// <summary>"llm", "tts" or "stt".</summary>
+    public string Kind     { get; set; } = "";
+
+    public string Provider { get; set; } = "";
+
+    /// <summary>The specific model or voice. Empty matches any model from that provider.</summary>
+    public string Model    { get; set; } = "";
+
+    public decimal InputPerUnit      { get; set; }
+    public decimal OutputPerUnit     { get; set; }
+
+    /// <summary>Prompt-cache reads, typically a tenth of the input rate. Zero where not offered.</summary>
+    public decimal CacheReadPerUnit  { get; set; }
+
+    /// <summary>Prompt-cache writes, typically a quarter above the input rate.</summary>
+    public decimal CacheWritePerUnit { get; set; }
+
+    /// <summary>Where the figure came from, so a stale one can be judged.</summary>
+    public string  Notes     { get; set; } = "";
+
+    public DateTimeOffset UpdatedAt { get; set; }
+}

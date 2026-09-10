@@ -1,0 +1,249 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.AgentUsageView"
+             x:DataType="vm:AgentUsageViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+    <Style Selector="TextBlock.fl">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Background"  Value="{DynamicResource SurfacePanelAltBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="Foreground"  Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="FontSize"    Value="11" />
+    </Style>
+    <!-- A headline figure in the totals strip. -->
+    <Style Selector="TextBlock.fig">
+      <Setter Property="FontSize"   Value="17" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="TextBlock.figlabel">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="TextBlock.ratelabel">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Margin"     Value="0 0 0 2" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*">
+
+    <!-- ── Header + filters ─────────────────────────────────────────────── -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
+      <StackPanel Spacing="7">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="AI Usage &amp; Cost" FontSize="13" FontWeight="SemiBold"
+                     Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
+                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Classes="fl" Text="From" />
+          <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd" Width="120" />
+          <TextBlock Classes="fl" Text="Thru" />
+          <TextBox Text="{Binding DateThru}" Watermark="(today)" Width="120" />
+          <TextBlock Classes="fl" Text="Group by" Margin="8 0 0 0" />
+          <ComboBox ItemsSource="{Binding PeriodOptions}" SelectedItem="{Binding Period}"
+                    FontSize="11" Width="100" />
+          <TextBlock Classes="fl" Text="Service" Margin="8 0 0 0" />
+          <ComboBox ItemsSource="{Binding KindOptions}" SelectedItem="{Binding KindFilter}"
+                    FontSize="11" Width="130" />
+          <Button Command="{Binding RefreshCommand}" Content="Refresh" FontSize="10" Padding="8 2"
+                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  VerticalAlignment="Center" Margin="8 0 0 0" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- ── Totals for the range ─────────────────────────────────────────── -->
+    <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
+            BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
+      <StackPanel Spacing="6">
+        <StackPanel Orientation="Horizontal" Spacing="28">
+          <StackPanel>
+            <TextBlock Classes="figlabel" Text="ESTIMATED COST" />
+            <TextBlock Classes="fig" Text="{Binding TotalCostText}" Foreground="{DynamicResource AccentBrush}" />
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="figlabel" Text="AGENT" />
+            <TextBlock Classes="fig" Text="{Binding AgentCostText}" />
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="figlabel" Text="SPEECH OUT" />
+            <TextBlock Classes="fig" Text="{Binding TtsCostText}" />
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="figlabel" Text="SPEECH IN" />
+            <TextBlock Classes="fig" Text="{Binding SttCostText}" />
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="figlabel" Text="CALLS" />
+            <TextBlock Classes="fig" Text="{Binding CallsText}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Anything that would otherwise make the figures above look more complete than they are. -->
+        <TextBlock Text="{Binding CaveatText}" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource WarnBrush}"
+                   IsVisible="{Binding CaveatText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </Border>
+
+    <!-- ── Summary / Detail / Rates ─────────────────────────────────────── -->
+    <TabControl Grid.Row="2" Padding="0" Background="{DynamicResource SurfaceBaseBrush}">
+
+      <TabItem Header="Summary">
+        <DataGrid ItemsSource="{Binding Summary}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  Background="{DynamicResource SurfaceBaseBrush}">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Period"    Binding="{Binding PeriodText}" SortMemberPath="PeriodSort" Width="150" />
+            <DataGridTextColumn Header="Service"   Binding="{Binding KindText}"   Width="95" />
+            <DataGridTextColumn Header="Provider"  Binding="{Binding Provider}"   Width="160" />
+            <DataGridTextColumn Header="Model"     Binding="{Binding ModelText}"  Width="*" />
+            <DataGridTextColumn Header="Calls"     Binding="{Binding Calls}"      Width="65" />
+            <DataGridTextColumn Header="Input"     Binding="{Binding InputText}"      SortMemberPath="InputUnits"      Width="90" />
+            <DataGridTextColumn Header="Output"    Binding="{Binding OutputText}"     SortMemberPath="OutputUnits"     Width="90" />
+            <DataGridTextColumn Header="Cache rd"  Binding="{Binding CacheReadText}"  SortMemberPath="CacheReadUnits"  Width="90" />
+            <DataGridTextColumn Header="Cache wr"  Binding="{Binding CacheWriteText}" SortMemberPath="CacheWriteUnits" Width="90" />
+            <DataGridTextColumn Header="Units"     Binding="{Binding UnitKind}"   Width="85" />
+            <DataGridTextColumn Header="Avg"       Binding="{Binding AvgText}"    Width="60" />
+            <DataGridTextColumn Header="Errors"    Binding="{Binding ErrorText}"  Width="60" />
+            <DataGridTextColumn Header="Cost"      Binding="{Binding CostText}"   SortMemberPath="Cost" Width="90" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </TabItem>
+
+      <TabItem Header="Detail">
+        <Grid RowDefinitions="*,Auto">
+          <DataGrid Grid.Row="0" ItemsSource="{Binding Detail}"
+                    AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+                    CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                    Background="{DynamicResource SurfaceBaseBrush}">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Time"      Binding="{Binding TimeText}"  SortMemberPath="TimeSort" Width="150" />
+              <DataGridTextColumn Header="Service"   Binding="{Binding KindText}"  Width="95" />
+              <DataGridTextColumn Header="Provider"  Binding="{Binding Provider}"  Width="160" />
+              <DataGridTextColumn Header="Model"     Binding="{Binding ModelText}" Width="170" />
+              <DataGridTextColumn Header="Input"     Binding="{Binding InputText}"      SortMemberPath="InputUnits"      Width="85" />
+              <DataGridTextColumn Header="Output"    Binding="{Binding OutputText}"     SortMemberPath="OutputUnits"     Width="85" />
+              <DataGridTextColumn Header="Cache rd"  Binding="{Binding CacheReadText}"  SortMemberPath="CacheReadUnits"  Width="85" />
+              <DataGridTextColumn Header="Cache wr"  Binding="{Binding CacheWriteText}" SortMemberPath="CacheWriteUnits" Width="85" />
+              <DataGridTextColumn Header="Units"     Binding="{Binding UnitKind}"      Width="80" />
+              <DataGridTextColumn Header=""          Binding="{Binding EstimatedText}" Width="45" />
+              <DataGridTextColumn Header="Took"      Binding="{Binding DurationText}"  Width="60" />
+              <DataGridTextColumn Header="Cost"      Binding="{Binding CostText}"      SortMemberPath="Cost" Width="85" />
+              <DataGridTextColumn Header="Activity"  Binding="{Binding Activity}"      Width="*" />
+              <DataGridTextColumn Header="Error"     Binding="{Binding Error}"         Width="200" />
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="12 6">
+            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
+              <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
+              <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+              <TextBlock Text="{Binding Pager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" Margin="12 0" MinWidth="220" TextAlignment="Center" />
+              <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
+              <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Rates">
+        <Grid RowDefinitions="Auto,*,Auto">
+
+          <TextBlock Grid.Row="0" Margin="12 10 12 6" FontSize="11" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextMutedBrush}"
+                     Text="What each service charges. Cost is worked out from these at the moment you look, never stored with the usage — published prices change, and a figure baked into a release six months ago is a number that looks authoritative and is wrong. The values below are the list prices at the time this version was built; correct any that have moved. Rates are entered at the scale each vendor quotes them in, shown beside every row. A provider with no row here is counted as unpriced, not as free — only the rows marked local are genuinely free." />
+
+          <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Rates}" Margin="12 0 12 12">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ServiceRateVm">
+                  <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
+                          Margin="0 0 0 8" Padding="10 8">
+                    <StackPanel Spacing="8">
+
+                      <Grid ColumnDefinitions="90,180,*,Auto,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding KindText}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding Provider}" FontSize="12"
+                                   Foreground="{DynamicResource TextBrightBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{Binding ModelText}" FontSize="11"
+                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="{Binding ScaleLabel}" FontSize="11"
+                                   Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="0 0 12 0" />
+                        <TextBlock Grid.Column="4" Text="{Binding UpdatedText}" FontSize="10"
+                                   Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                      </Grid>
+
+                      <StackPanel Orientation="Horizontal" Spacing="14">
+                        <StackPanel>
+                          <TextBlock Classes="ratelabel" Text="Input" />
+                          <TextBox Text="{Binding Input}" Width="100" />
+                        </StackPanel>
+                        <StackPanel>
+                          <TextBlock Classes="ratelabel" Text="Output" />
+                          <TextBox Text="{Binding Output}" Width="100" />
+                        </StackPanel>
+                        <StackPanel IsVisible="{Binding HasCache}">
+                          <TextBlock Classes="ratelabel" Text="Cache read" />
+                          <TextBox Text="{Binding CacheRead}" Width="100" />
+                        </StackPanel>
+                        <StackPanel IsVisible="{Binding HasCache}">
+                          <TextBlock Classes="ratelabel" Text="Cache write" />
+                          <TextBox Text="{Binding CacheWrite}" Width="100" />
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Stretch" MinWidth="260">
+                          <TextBlock Classes="ratelabel" Text="Notes" />
+                          <TextBox Text="{Binding Notes}" MinWidth="260" />
+                        </StackPanel>
+                      </StackPanel>
+
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="12 6">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Button Command="{Binding SaveRatesCommand}" Content="Save Rates" FontSize="11" Padding="12 4"
+                      Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                      BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+              <TextBlock Text="{Binding RatesStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         VerticalAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+        </Grid>
+      </TabItem>
+
+    </TabControl>
+
+  </Grid>
+</UserControl>

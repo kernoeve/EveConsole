@@ -606,6 +606,9 @@
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
               </DataTemplate>
+              <DataTemplate DataType="vm:AgentUsageViewModel">
+                <views:AgentUsageView />
+              </DataTemplate>
               <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
                 <views:StandingBuyOrdersView />
               </DataTemplate>

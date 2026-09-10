@@ -460,6 +460,20 @@ public static class PostgresSchema
             "Error"             TEXT        NOT NULL DEFAULT ''
         )
         """,
+        """
+        CREATE TABLE IF NOT EXISTS "ServiceRates" (
+            "Id"                BIGSERIAL      PRIMARY KEY,
+            "Kind"              TEXT           NOT NULL DEFAULT '',
+            "Provider"          TEXT           NOT NULL DEFAULT '',
+            "Model"             TEXT           NOT NULL DEFAULT '',
+            "InputPerUnit"      NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "OutputPerUnit"     NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "CacheReadPerUnit"  NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "CacheWritePerUnit" NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "Notes"             TEXT           NOT NULL DEFAULT '',
+            "UpdatedAt"         TIMESTAMPTZ    NOT NULL DEFAULT now()
+        )
+        """,
     ];
 
     /// <summary>
@@ -529,6 +543,7 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_AgentToolCalls_OccurredAt" ON "AgentToolCalls" ("OccurredAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_OccurredAt" ON "ServiceUsage" ("OccurredAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_Kind_OccurredAt" ON "ServiceUsage" ("Kind", "OccurredAt")""",
+        """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ServiceRates_Key" ON "ServiceRates" ("Kind", "Provider", "Model")""",
     ];
 
     /// <summary>

@@ -223,6 +223,7 @@ public class MainWindowViewModel : ReactiveObject
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
+    public AgentUsageViewModel            AgentUsageVm           { get; }
     public GameLogViewerViewModel         GameLogViewerVm        { get; }
     public ChatLogViewerViewModel         ChatLogViewerVm        { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
@@ -660,6 +661,7 @@ public class MainWindowViewModel : ReactiveObject
             "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             "error_log"      => ("Error Log",      ErrorLogVm,        true),
+            "ai_usage"       => ("AI Usage",       AgentUsageVm,      true),
             "game_log"       => ("Game Log",       GameLogViewerVm,   true),
             "chat_log"       => ("Chat Log",       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
@@ -683,6 +685,7 @@ public class MainWindowViewModel : ReactiveObject
         // current and is not. Reading on open means closing the tab and opening it again reads
         // afresh, which is what somebody doing that is asking for.
         if (toolId == "error_log") ErrorLogVm.Reload();
+        if (toolId == "ai_usage")  AgentUsageVm.Reload();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -1061,6 +1064,7 @@ public class MainWindowViewModel : ReactiveObject
         var connString       = tmpDb.Database.GetConnectionString()!;
         ExplorerVm           = new EsiExplorerViewModel(connString);
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
+        AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
@@ -1183,6 +1187,7 @@ public class MainWindowViewModel : ReactiveObject
                 // here — it is a status indicator first and a tool second.
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
+                new NavItem("ai_usage",  "AI Usage"),
                 new NavItem("game_log", "Game Log"),
                 new NavItem("chat_log", "Chat Log"),
             ]),

@@ -3108,6 +3108,15 @@ public class App : Application
                 // the agent.
                 AgentTelemetrySchema.Ensure(db);
             }
+
+            // ⚠️ Outside the engine branch, because the rate list is DATA rather than schema and
+            // both engines need it. PostgresSchema.Apply creates the table and seeds nothing, so
+            // leaving this inside the SQLite arm — where it started — would have left every
+            // PostgreSQL install with an empty price list and every cost reading zero.
+            //
+            // Insert-if-absent, so a capsuleer's corrections are never overwritten, and the unique
+            // index settles any race between two clients starting together.
+            if (!skipSchema) AgentTelemetrySchema.SeedRates(db);
         }
         }); // end Task.Run — schema migration complete
 

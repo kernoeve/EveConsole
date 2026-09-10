@@ -271,6 +271,7 @@ public class AppDbContext : DbContext
     public DbSet<AgentInteraction> AgentInteractions => Set<AgentInteraction>();
     public DbSet<AgentToolCall>    AgentToolCalls    => Set<AgentToolCall>();
     public DbSet<ServiceUsage>     ServiceUsage      => Set<ServiceUsage>();
+    public DbSet<ServiceRate>      ServiceRates      => Set<ServiceRate>();
 
     // ── App settings ─────────────────────────────────────────────────────────
     public DbSet<AlertSettings>      AlertSettings       => Set<AlertSettings>();
@@ -1210,6 +1211,16 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.OccurredAt);
             e.HasIndex(x => new { x.Kind, x.OccurredAt }); });
+
+        mb.Entity<ServiceRate>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.Kind, x.Provider, x.Model }).IsUnique();
+            // ⚠️ Explicit precision. A rate is 0.000003 USD per token, and the provider default
+            // for decimal would round that to nothing on some engines.
+            e.Property(x => x.InputPerUnit)     .HasPrecision(18, 10);
+            e.Property(x => x.OutputPerUnit)    .HasPrecision(18, 10);
+            e.Property(x => x.CacheReadPerUnit) .HasPrecision(18, 10);
+            e.Property(x => x.CacheWritePerUnit).HasPrecision(18, 10); });
 
         mb.Entity<MarketTypeHistory>(e => {
             e.HasKey(x => new { x.RegionId, x.TypeId, x.Date });
