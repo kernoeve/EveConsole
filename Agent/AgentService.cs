@@ -95,6 +95,8 @@ public sealed class AgentService : ReactiveObject
 
             {tableIndex}
 
+            {AgentDataNotes.Notes}
+
             ## Answering questions about the capsuleer's data
             Nearly every question about what the capsuleer HAS, OWNS, IS DOING or HAS DONE is a
             database question, and the database is far larger than the notes on the query_database
