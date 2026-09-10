@@ -72,8 +72,23 @@ Console.WriteLine($"chunks on UI thread   : {chunksOnUi} of {chunkThreads.Count}
 Console.WriteLine($"posts to UI context   : {ui.Posts}");
 Console.WriteLine();
 
-var ok = handler.Requests == 2 && text.ToString().Contains("in the tab")
-      && ui.Posts == 0 && !toolOnUi && chunksOnUi == 0;
+// ── Prompt-cache markers ──────────────────────────────────────────────────────────────────
+//
+// ⚠️ The API allows at most four cache_control markers per request and rejects the whole
+// request over a fifth. The third marker moves forward with the newest tool result each round,
+// which means every EARLIER round's marker has to be gone — a mistake there is invisible on a
+// one-round answer and breaks every multi-round one. So: never more than four, and the request
+// that carries tool results has its marker on one of them.
+// Expected: the first request carries the two fixed markers (system, last history message);
+// every request after it carries exactly three — the newest tool result's, and NOT its
+// predecessors'.
+var markersOk = handler.Caching.Count == FakeAnthropic.ToolRounds + 1
+             && handler.Caching[0].Markers == 2
+             && handler.Caching.Skip(1).All(c => c.Markers == 3 && c.OnToolResult);
+Console.WriteLine($"cache markers         : {string.Join(", ", handler.Caching.Select(c => $"{c.Markers}{(c.OnToolResult ? " (one on a tool_result)" : "")}"))}");
+
+var ok = handler.Requests == FakeAnthropic.ToolRounds + 1 && text.ToString().Contains("in the tab")
+      && ui.Posts == 0 && !toolOnUi && chunksOnUi == 0 && markersOk;
 
 if (ok)
 {
@@ -82,10 +97,12 @@ if (ok)
 }
 
 Console.WriteLine("Agent stream check FAILED.");
-if (handler.Requests != 2)   Console.WriteLine("  the fake server did not see both rounds — the turn did not complete.");
+if (handler.Requests != FakeAnthropic.ToolRounds + 1)
+                             Console.WriteLine("  the fake server did not see every round — the turn did not complete.");
 if (ui.Posts > 0)            Console.WriteLine($"  {ui.Posts} continuation(s) were posted to the UI context: an await in the streaming path has lost its ConfigureAwait(false).");
 if (toolOnUi)                Console.WriteLine("  the tool executed on the UI thread.");
 if (chunksOnUi > 0)          Console.WriteLine("  chunks were delivered on the UI thread.");
+if (!markersOk)              Console.WriteLine("  cache markers are wrong: expected 2 on the first request and exactly 3 on each later one, the third on the newest tool result.");
 return 1;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
@@ -144,8 +161,18 @@ sealed class ThreadRecordingTool : IAgentTool
 /// </summary>
 sealed class FakeAnthropic : HttpMessageHandler
 {
+    /// <summary>
+    /// Tool-use rounds before the closing text round. Three, not one: the cache-marker rule
+    /// below is about a marker being REMOVED from an earlier round, which two requests cannot
+    /// show.
+    /// </summary>
+    public const int ToolRounds = 3;
+
     private int _requests;
     public int Requests => _requests;
+
+    /// <summary>Per request: cache_control markers in the body, and whether a tool_result carried one.</summary>
+    public readonly List<(int Markers, bool OnToolResult)> Caching = [];
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
     {
@@ -157,6 +184,11 @@ sealed class FakeAnthropic : HttpMessageHandler
         await Task.Delay(20, ct).ConfigureAwait(false);
 
         var round = Interlocked.Increment(ref _requests);
+        var body  = await req.Content!.ReadAsStringAsync(ct);
+        lock (Caching)
+            Caching.Add((
+                Markers:      System.Text.RegularExpressions.Regex.Matches(body, "\"cache_control\"").Count,
+                OnToolResult: System.Text.RegularExpressions.Regex.IsMatch(body, "\"type\":\"tool_result\"[^}]*\"cache_control\"")));
         var pipe  = new Pipe();
 
         _ = Task.Run(async () =>
@@ -170,7 +202,7 @@ sealed class FakeAnthropic : HttpMessageHandler
             await Ev("message_start",       """{"type":"message_start","message":{"usage":{"input_tokens":10}}}""");
             await Ev("content_block_start", """{"type":"content_block_start","index":0,"content_block":{"type":"text"}}""");
 
-            var sentence = round == 1 ? "Let me assemble the table." : "Done, it is in the tab.";
+            var sentence = round <= ToolRounds ? "Let me assemble the table." : "Done, it is in the tab.";
             foreach (var word in sentence.Split(' '))
             {
                 await Ev("content_block_delta",
@@ -179,7 +211,7 @@ sealed class FakeAnthropic : HttpMessageHandler
             }
             await Ev("content_block_stop", """{"type":"content_block_stop","index":0}""");
 
-            if (round == 1)
+            if (round <= ToolRounds)
             {
                 await Ev("content_block_start",
                     """{"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"t1","name":"show_table"}}""");

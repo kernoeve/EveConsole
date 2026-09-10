@@ -47,7 +47,7 @@ var checkedNames = 0;
 var sources = new (string Label, string Text)[]
 {
     ("AgentDataNotes",  AgentDataNotes.Notes),
-    ("system prompt",   AgentService.BuildSystemPrompt(new AgentSettings(), schema.Index)),
+    ("system prompt",   AgentService.BuildSystemPrompt(new AgentSettings(), schema.Prompt)),
 };
 
 foreach (var (label, text) in sources)
@@ -121,7 +121,7 @@ foreach (var (label, text) in sources)
 // Cached, so most of it bills at a tenth after the first turn — but it is still sent, still
 // counted, and still competes for the model's attention. A ceiling makes growth a decision
 // rather than an accident.
-var prompt = AgentService.BuildSystemPrompt(new AgentSettings(), schema.Index);
+var prompt = AgentService.BuildSystemPrompt(new AgentSettings(), schema.Prompt);
 var approxTokens = prompt.Length / 4;
 const int Budget = 12_000;
 

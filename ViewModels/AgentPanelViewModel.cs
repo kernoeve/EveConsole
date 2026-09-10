@@ -516,7 +516,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// tokens of tool schemas and app reference every single time.</para>
     /// </summary>
     private string BuildSystemPrompt()
-        => AgentService.BuildSystemPrompt(_service.Settings, _service.Schema?.Index);
+        => AgentService.BuildSystemPrompt(_service.Settings, _service.Schema?.Prompt);
 
     /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
     /// part of the cached prefix.</summary>

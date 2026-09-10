@@ -344,7 +344,7 @@ public sealed class ClaudeProvider : IAgentProvider
             rawMessages.Add(new { role = "assistant", content = contentParts });
 
             // Execute tools
-            var toolResults = new List<object>();
+            var toolResults = new List<ToolResultBlock>();
             foreach (var idx in toolInputs.Keys)
             {
                 var toolName = toolNames.GetValueOrDefault(idx, "");
@@ -368,30 +368,9 @@ public sealed class ClaudeProvider : IAgentProvider
                     catch (Exception ex) { result = $"Tool error: {ex.Message}"; }
                 }
 
-                if (result.ImageBase64 is not null)
-                {
-                    toolResults.Add(new
-                    {
-                        type = "tool_result",
-                        tool_use_id = toolId,
-                        content = new object[]
-                        {
-                            new { type = "text", text = result.Text },
-                            new { type = "image", source = new
-                            {
-                                type       = "base64",
-                                media_type = result.ImageMediaType,
-                                data       = result.ImageBase64,
-                            }},
-                        },
-                    });
-                }
-                else
-                {
-                    toolResults.Add(new { type = "tool_result", tool_use_id = toolId, content = result.Text });
-                }
+                toolResults.Add(new ToolResultBlock(toolId, result));
             }
-            rawMessages.Add(new { role = "user", content = toolResults });
+            rawMessages.Add(new ToolResultsMessage(toolResults));
 
             await foreach (var chunk in StreamRoundAsync(
                                systemPrompt, volatileContext, rawMessages, toolMap, maxRounds - 1, onUsage, ct)
@@ -400,10 +379,68 @@ public sealed class ClaudeProvider : IAgentProvider
         }
     }
 
+    /// <summary>One tool's answer, kept typed until the request is built.</summary>
+    private sealed record ToolResultBlock(string ToolUseId, AgentToolResult Result);
+
+    /// <summary>
+    /// The user-role message carrying a round's tool results.
+    ///
+    /// <para>A record rather than an anonymous block so <see cref="BuildRequest"/> can find the
+    /// LAST one and put the third cache breakpoint on it. Marking it where it is created would
+    /// leave every earlier round's marker in place too, and the API allows four in total.</para>
+    /// </summary>
+    private sealed record ToolResultsMessage(List<ToolResultBlock> Results);
+
+    /// <summary>
+    /// A tool-results message as the API wants it, with the cache marker on its final block when
+    /// asked.
+    ///
+    /// <para>⚠️ The third breakpoint, and it moves. Measured on a ten-round turn before it existed:
+    /// the static prefix and the history were cache hits, but everything after them — every
+    /// earlier round's tool call and result — was re-sent at full price on each round, growing
+    /// from 392 tokens to 8,080. With the marker on the newest result, the next round reads all
+    /// of that from cache and writes only its own delta. The lookup also checks the block
+    /// boundaries before the marker, so last round's entry is found even though its marker is
+    /// gone.</para>
+    /// </summary>
+    private static object ToApiMessage(ToolResultsMessage message, bool markLast)
+    {
+        var blocks = new List<object>(message.Results.Count);
+        for (int i = 0; i < message.Results.Count; i++)
+        {
+            var (toolId, result) = message.Results[i];
+            var mark = markLast && i == message.Results.Count - 1;
+
+            object content = result.ImageBase64 is not null
+                ? new object[]
+                {
+                    new { type = "text", text = result.Text },
+                    new { type = "image", source = new
+                    {
+                        type       = "base64",
+                        media_type = result.ImageMediaType,
+                        data       = result.ImageBase64,
+                    }},
+                }
+                : result.Text;
+
+            blocks.Add(mark
+                ? new { type = "tool_result", tool_use_id = toolId, content, cache_control = new { type = "ephemeral" } }
+                : new { type = "tool_result", tool_use_id = toolId, content });
+        }
+        return new { role = "user", content = blocks };
+    }
+
     private HttpRequestMessage BuildRequest(
         string systemPrompt, string? volatileContext,
-        List<object> messages, Dictionary<string, IAgentTool> toolMap)
+        List<object> rawMessages, Dictionary<string, IAgentTool> toolMap)
     {
+        // Only the newest tool-results message carries a marker; see ToApiMessage.
+        var lastResults = rawMessages.LastOrDefault(m => m is ToolResultsMessage);
+        var messages    = rawMessages
+            .Select(m => m is ToolResultsMessage t ? ToApiMessage(t, markLast: ReferenceEquals(t, lastResults)) : m)
+            .ToList();
+
         var toolDefs = toolMap.Count > 0
             ? (object)toolMap.Values.Select(t => new
             {

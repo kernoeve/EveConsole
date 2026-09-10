@@ -34,10 +34,52 @@ public sealed class AgentSchema
     {
         _tables = tables;
         Index   = BuildIndex(tables.Keys);
+        Core    = BuildCore(tables);
+        Prompt  = Index + "\n\n" + Core;
     }
 
     /// <summary>Every table name, grouped by family. Sits in the system prompt.</summary>
     public string Index { get; }
+
+    /// <summary>
+    /// The columns of the tables the agent reaches for most, for the system prompt.
+    ///
+    /// <para>⚠️ Chosen from the telemetry, not by guessing. Across 34 turns the model called
+    /// describe_tables 41 times — the killmail trio 14 times each — and then STILL guessed
+    /// UniverseNames."Id" (it is EntityId) and KillMailItems."TypeId" (ItemTypeId): a round trip to
+    /// discover, another to recover, roughly a thousand tokens of SQL each time. In the cached
+    /// prefix the same names cost a tenth of that, once per round, and are never wrong.</para>
+    ///
+    /// <para>Names only. Types are almost never the mistake; a name that does not exist is.</para>
+    /// </summary>
+    public string Core { get; }
+
+    /// <summary>What goes into the system prompt: the index, then the core columns.</summary>
+    public string Prompt { get; }
+
+    private static readonly string[] CoreTables =
+    [
+        "KillMailDetails", "KillMailAttackers", "KillMailItems", "EsiKillMailRefs", "ZkbKillFlags",
+        "UniverseNames", "CharacterAffiliations", "Characters", "EsiCorpMembers",
+        "MarketItemPrices", "MarketDefaultSettings", "MarketPricingConfigs", "ContractPrices", "BuildCosts",
+        "EsiContracts", "EsiContractItems",
+        "SdeTypes", "SdeSolarSystems", "SdeRegions",
+    ];
+
+    private static string BuildCore(Dictionary<string, List<Column>> tables)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("## Columns of the tables you will use most");
+        sb.AppendLine("These names are exact — use them as written, quoted. Any table not listed here "
+                    + "needs describe_tables before you write against it.");
+        foreach (var name in CoreTables)
+        {
+            if (!tables.TryGetValue(name, out var cols)) continue;   // absent on this build: say nothing wrong
+            sb.Append(name).Append(": ")
+              .AppendLine(string.Join(", ", cols.Select(c => c.IsKey ? c.Name + "*" : c.Name)));
+        }
+        return sb.ToString().TrimEnd();
+    }
 
     public int TableCount => _tables.Count;
 
