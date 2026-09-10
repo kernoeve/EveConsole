@@ -10,7 +10,17 @@ public sealed class ClaudeProvider : IAgentProvider
 {
     private const string Endpoint         = "https://api.anthropic.com/v1/messages";
     private const string AnthropicVersion = "2023-06-01";
-    private const int    MaxToolRounds    = 5;
+    /// <summary>
+    /// How many times a single question may go back to the model after using a tool.
+    ///
+    /// <para>⚠️ Raised from 5, which was set when the agent had a schema handed to it and could
+    /// go more or less straight to a query. It now discovers: a describe_tables costs a round, a
+    /// failed query costs another, and a recovery costs a third. Measured on a real question —
+    /// count and value the killmails in a region — it spent its budget on describe, a failed
+    /// query, a recovery, a successful query, a second failed query and a describe, and ran out
+    /// one step from the answer.</para>
+    /// </summary>
+    private const int    MaxToolRounds    = 12;
 
     private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromMinutes(5) };
 
@@ -222,6 +232,19 @@ public sealed class ClaudeProvider : IAgentProvider
         });
 
         // ── Tool use follow-up round ─────────────────────────────────────────
+
+        // ⚠️ Running out of rounds used to end the turn in silence. The model had asked for
+        // another tool, this method simply returned, and the capsuleer was left with whatever text
+        // preceded the last call — usually "let me check that" and then nothing, indistinguishable
+        // from the app having hung. Whatever else happens, the loop gets closed.
+        if (stopReason == "tool_use" && maxRounds <= 0 && !ct.IsCancellationRequested)
+        {
+            yield return "\n\n(I ran out of steps before I could finish that one — I was still " +
+                         "working through it rather than stuck. Ask again and I will pick up from " +
+                         "what I already found.)";
+            yield break;
+        }
+
         if (stopReason == "tool_use" && maxRounds > 0
             && toolInputs.Count > 0 && !ct.IsCancellationRequested)
         {

@@ -75,6 +75,36 @@ public sealed class TtsService : IDisposable
         // Kokoro uses KokoroSharp's built-in audio — volume control through its own system
     }
 
+    // ── Serial speech queue, for the synchronous local voices ────────────────
+    //
+    // One utterance at a time and in the order asked for. Speech is now handed over sentence by
+    // sentence while the answer is still being written, so without this the second sentence starts
+    // before the first has finished and the listener loses whichever lost the race.
+    private readonly object _queueGate = new();
+    private Task _speechChain = Task.CompletedTask;
+
+    /// <summary>
+    /// Bumped by <see cref="Stop"/>. Anything queued under an older generation is dropped rather
+    /// than spoken — otherwise stopping would only silence what is playing now and the rest of the
+    /// backlog would carry on into the next question.
+    /// </summary>
+    private int _generation;
+
+    private void Enqueue(Action speak)
+    {
+        lock (_queueGate)
+        {
+            var generation = _generation;
+            _speechChain = _speechChain.ContinueWith(_ =>
+            {
+                if (Volatile.Read(ref _generation) != generation) return;   // stopped since queued
+                if (_muted) return;
+                try   { speak(); }
+                catch { /* one failed utterance must not break the chain for every later one */ }
+            }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+        }
+    }
+
     public void SpeakAsync(string text)
     {
         if (_muted) return;
@@ -94,25 +124,28 @@ public sealed class TtsService : IDisposable
                 _ = _elevenLabs.SpeakAsync(text);
                 break;
 
-            // ⚠️ Task.Run, unlike the two above, and the naming is what hides the need for it.
-            // Despite being called SpeakAsync these are synchronous and void: Kokoro runs ONNX
-            // inference and Piper drives a local binary, both on whatever thread calls them — and
-            // the callers include the agent panel and the alarm runner, which are the UI thread.
-            // The cloud providers hand back a Task and are already off the caller's thread; these
-            // were not, so choosing a local voice froze the window for the length of every
-            // utterance, with the first one paying model load on top.
+            // ⚠️ Queued, not just moved off the caller's thread. These two are synchronous and
+            // void despite the name — Kokoro runs ONNX inference, Piper drives a local binary,
+            // both on whatever thread calls them — so they must leave the UI thread. But a bare
+            // Task.Run per utterance runs them CONCURRENTLY, and now that speech is fed sentence
+            // by sentence as the answer streams, several land at once and talk over each other:
+            // parts of the answer are skipped rather than queued. Enqueue serialises them.
             case TtsProvider.Kokoro:
-                _ = Task.Run(() => _kokoro.SpeakAsync(text));
+                Enqueue(() => _kokoro.SpeakAsync(text));
                 break;
 
             case TtsProvider.Piper:
-                _ = Task.Run(() => _piper.SpeakAsync(text));
+                Enqueue(() => _piper.SpeakAsync(text));
                 break;
         }
     }
 
     public void Stop()
     {
+        // Drops anything still queued. Without this, stopping silences the current utterance and
+        // the backlog simply carries on — into the next question's answer.
+        Interlocked.Increment(ref _generation);
+
         _openAi.Stop();
         _elevenLabs.Stop();
         _kokoro.Stop();

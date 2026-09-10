@@ -18,7 +18,13 @@ namespace EveConsole.Agent.Tools;
 /// <para>Recording never fails the call. A tool that worked must not be reported as broken because
 /// the sink could not write, so the sink's own errors are its problem, not the agent's.</para>
 /// </summary>
-public sealed class TelemetryToolDecorator(IAgentTool inner, IAgentToolSink sink) : IAgentTool
+/// <param name="onStart">
+/// Called with the tool's name as it begins, so the UI can say what is happening. ⚠️ Separate from
+/// the sink, which is only told once a call has FINISHED — too late to answer "is it still
+/// working, or has it stopped?", which is the question a silent panel provokes.
+/// </param>
+public sealed class TelemetryToolDecorator(
+    IAgentTool inner, IAgentToolSink sink, Action<string>? onStart = null) : IAgentTool
 {
     public string Name        => inner.Name;
     public string Description => inner.Description;
@@ -36,6 +42,8 @@ public sealed class TelemetryToolDecorator(IAgentTool inner, IAgentToolSink sink
         var sw    = Stopwatch.StartNew();
         var error = "";
         AgentToolResult result = "";
+
+        try { onStart?.Invoke(Name); } catch { /* a status label must never fail a tool call */ }
 
         try
         {

@@ -374,6 +374,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
         telemetry?.Begin(_conversationId, _service.Provider.ProviderName, "", text.Length);
         var failure = "";
 
+        // Says what is happening while nothing is on screen. A question needing discovery can run
+        // six round trips over twenty seconds, and an empty panel through all of it is
+        // indistinguishable from a hang — which is exactly how it was read.
+        SetStatus("Thinking…");
+        _service.ToolActivity = tool => SetStatus(ToolStatus(tool));
+
         try
         {
             // ⚠️ ConfigureAwait(false) on the enumeration, so the streaming loop and everything
@@ -457,12 +463,37 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
         finally
         {
+            // ⚠️ Always leave something in the conversation. A turn that produced no text at all —
+            // it failed, or the model stopped mid-tool — otherwise looks identical to the app
+            // having hung, and the capsuleer is left watching a panel that will never change.
+            if (sb.Length == 0 && !ct.IsCancellationRequested)
+            {
+                var note = failure.Length > 0
+                    ? $"That did not complete: {failure}"
+                    : "That finished without producing an answer. Worth asking again — the "
+                      + "detail of what happened is in Settings → Error Log.";
+
+                var noteMsg = new AgentMessage(MessageRole.Assistant, note);
+                _history.Add(noteMsg);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    Messages.Add(noteMsg);
+                    StreamingText = "";
+                });
+                SaveHistory();
+            }
+
             // ⚠️ In the finally, so a cancelled or failed turn is still recorded. Those are the
             // ones worth having: a turn that burned four round trips and then threw is exactly
             // the spend that would otherwise never appear in the total.
             telemetry?.Complete(sb.Length, failure);
 
-            await Dispatcher.UIThread.InvokeAsync(() => IsBusy = false);
+            _service.ToolActivity = null;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = "";
+                IsBusy     = false;
+            });
         }
     }
 
@@ -487,6 +518,27 @@ public sealed class AgentPanelViewModel : ReactiveObject
         if (_tts is null) return;
         if (SpeechSegmenter.Take(pending, flush) is { } ready) _tts.SpeakAsync(ready);
     }
+
+    /// <summary>Status is bound to the UI, and tool callbacks arrive on a pool thread.</summary>
+    private void SetStatus(string text) => Dispatcher.UIThread.Post(() => StatusText = text);
+
+    /// <summary>
+    /// What a tool is doing, in the capsuleer's terms rather than the tool's name. "query_database"
+    /// tells them nothing; "Reading the database…" tells them it is still working.
+    /// </summary>
+    private static string ToolStatus(string tool) => tool switch
+    {
+        "query_database"        => "Reading the database…",
+        "describe_tables"       => "Checking the schema…",
+        "get_assets"            => "Looking up assets…",
+        "get_industry_jobs"     => "Looking up industry jobs…",
+        "get_character_info"    => "Looking up the character…",
+        "get_market_prices"     => "Checking market prices…",
+        "search_items"          => "Searching items…",
+        "capture_tab"           => "Looking at the screen…",
+        "manage_alarms"         => "Setting up the alarm…",
+        _                       => "Working…",
+    };
 
     public void ClearHistory()
     {

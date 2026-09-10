@@ -92,8 +92,28 @@ public sealed class GetAssetsTool : IAgentTool
             });
         }
 
-        return rows.Count == 0
-            ? "No assets found matching the specified filters."
-            : JsonSerializer.Serialize(rows);
+        if (rows.Count == 0) return "No assets found matching the specified filters.";
+
+        // ⚠️ Say so when the limit was reached. This returned a bare array, so a truncated result
+        // was indistinguishable from a complete one — and a question that counted the rows got the
+        // LIMIT back as though it were the answer. Measured: "how many titans" hit the cap of 50
+        // on a name search, that was then added to four per-hull searches, and the total came out
+        // far too high with nothing anywhere to suggest it was wrong.
+        //
+        // Counting is not what this tool is for. A total belongs in SQL, where the database does
+        // the counting and no row limit can distort it.
+        if (rows.Count >= limit)
+        {
+            return JsonSerializer.Serialize(new
+            {
+                rows,
+                truncated = true,
+                note = $"TRUNCATED at {limit} rows — there are more. This is NOT a count and must "
+                     + "not be added to other results. For a total, use query_database with "
+                     + "COUNT() or SUM() so the database does the counting.",
+            });
+        }
+
+        return JsonSerializer.Serialize(rows);
     }
 }

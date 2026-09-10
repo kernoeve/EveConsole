@@ -189,6 +189,12 @@ public sealed class AgentService : ReactiveObject
     /// </summary>
     public AgentSchema? Schema { get; set; }
 
+    /// <summary>
+    /// Raised with a tool's name as it starts, so the panel can say what is happening rather than
+    /// showing nothing while the agent works through six round trips.
+    /// </summary>
+    public Action<string>? ToolActivity { get; set; }
+
     public void Initialize(string dbConnectionString)
     {
         Tools =
@@ -241,7 +247,8 @@ public sealed class AgentService : ReactiveObject
         // leave the map, entity and alarm tools unmeasured — and they would look simply unused
         // in the telemetry rather than uninstrumented, which is the more misleading of the two.
         if (Telemetry is { } telemetry)
-            Tools = [.. Tools.Select(t => (IAgentTool)new TelemetryToolDecorator(t, telemetry))];
+            Tools = [.. Tools.Select(t =>
+                (IAgentTool)new TelemetryToolDecorator(t, telemetry, name => ToolActivity?.Invoke(name)))];
 
         this.RaisePropertyChanged(nameof(Tools));
     }
