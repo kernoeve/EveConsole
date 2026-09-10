@@ -47,8 +47,11 @@ public static class AgentDataNotes
 
           Never present a missing row as evidence about someone's affiliation, and never present a
           present row as current. If the question turns on where someone is NOW and they are not
-          in a corporation the capsuleer has roles in, the honest answer is that this database
-          cannot tell — the live answer needs a fresh lookup that these tables do not hold.
+          in a corporation the capsuleer has roles in, this database cannot tell — and esi_call
+          CAN: POST characters/affiliation/ with the ids gives every one of them their current
+          corporation and alliance in a single call, and GET characters/{id}/corporationhistory/
+          says where anyone went and when. That is the answer to "who is still in the corp";
+          do not stop at "the cache cannot say".
 
           It is deliberate. For reading old intel, the corp somebody was in at the time is the
           useful answer. It is the WRONG source for anything about the present: someone who left
@@ -56,8 +59,8 @@ public static class AgentDataNotes
 
           Use it to name the corp attached to a historical sighting. Do not use it to decide where
           anyone is now. If the question is about current membership and the corporation is not
-          one the capsuleer has roles in, say the data cannot answer it rather than reporting a
-          cached value as though it were current.
+          one the capsuleer has roles in, look it up with esi_call rather than reporting a cached
+          value as though it were current.
 
         - Characters holds the capsuleer's OWN authenticated characters only. Do not use it to
           decide who someone else is — most character ids in the database are not in it.

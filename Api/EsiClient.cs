@@ -662,6 +662,70 @@ public class EsiClient
         }
     }
 
+    /// <summary>What a request the agent composed came back with, as text.</summary>
+    public sealed record RawResult(int StatusCode, string Body, int? ErrorLimitRemain, DateTimeOffset? Expires, string? Error, int TotalPages = 1)
+    {
+        public bool IsSuccess => StatusCode is >= 200 and < 300;
+    }
+
+    /// <summary>
+    /// A request the agent composed — path, optional JSON body, optional character to sign it as —
+    /// returned as the raw response text rather than deserialised into a type.
+    ///
+    /// <para>⚠️ Through this client and not an HttpClient of its own, and that is the point. The
+    /// error budget, the concurrency gate, the compatibility date and the token refresh all live
+    /// here; an agent that reached ESI directly would spend the same 100-errors-a-minute budget
+    /// as the polling without the polling knowing, which is exactly how the killmail backfill
+    /// once took 607 rejections while the rest of the app believed the budget untouched.</para>
+    ///
+    /// <para>Refused outright while the client is error-limited or the server is offline, with a
+    /// status of 0 and a reason — a call that cannot succeed should not cost an error.</para>
+    /// </summary>
+    public async Task<RawResult> RequestRawAsync(
+        HttpMethod method, string path, string? jsonBody, long? characterId, CancellationToken ct = default)
+    {
+        if (IsErrorLimitBlocked)
+            return new RawResult(0, "", null, null,
+                _serverOffline ? "Tranquility is offline; ESI is paused."
+                               : "ESI error limit reached; calls are paused until it resets.");
+        try
+        {
+            using var request = new HttpRequestMessage(method, path);
+            if (jsonBody is not null)
+                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            if (characterId is { } charId)
+            {
+                var token = await EnsureValidTokenAsync(charId, ct);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+            }
+
+            await _httpGate.WaitAsync(ct);
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, ct); }
+            finally { _httpGate.Release(); }
+            using (response)
+            {
+                int? TryGetInt(string name) =>
+                    response.Headers.TryGetValues(name, out var vals)
+                    && int.TryParse(vals.FirstOrDefault(), out var v) ? v : null;
+
+                var statusCode       = (int)response.StatusCode;
+                var body             = await response.Content.ReadAsStringAsync(ct);
+                var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
+                UpdateErrorLimitState(statusCode, errorLimitRemain, TryGetInt("X-Esi-Error-Limit-Reset"));
+
+                return new RawResult(statusCode, body, errorLimitRemain, response.Content.Headers.Expires,
+                                     response.IsSuccessStatusCode ? null : body,
+                                     TryGetInt("X-Pages") ?? 1);
+            }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            return new RawResult(0, "", null, null, ex.Message);
+        }
+    }
+
     /// <summary>
     /// Every page of a character endpoint. See the corporation variant for what
     /// <paramref name="stopAfterPage"/> is for.

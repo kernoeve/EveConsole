@@ -1108,6 +1108,7 @@ public class MainWindowViewModel : ReactiveObject
         // Set before Initialize — that is where the tool list is built.
         agentService.EntityBrowser = entityBrowser;
         agentService.MapService    = universeMapService;
+        agentService.Esi           = esi;
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;

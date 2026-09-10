@@ -45,6 +45,9 @@ public sealed class AgentService : ReactiveObject
     /// <summary>Resolves system and region names for the map tool. Same contract as
     /// <see cref="EntityBrowser"/> — absent means the tool is not offered.</summary>
     public Services.UniverseMapService?               MapService              { get; set; }
+
+    /// <summary>The ESI client, for the esi_call tool. Same contract — absent means not offered.</summary>
+    public Api.EsiClient?                             Esi                     { get; set; }
     public Action<string?, string?, string?>?          FilterAssetsCallback   { get; set; }
     public Action<string?, string?, string?, string?>? FilterIndustryCallback { get; set; }
     public Action<string>?                             SelectCharacterCallback { get; set; }
@@ -187,6 +190,7 @@ public sealed class AgentService : ReactiveObject
             - navigate_to_item: Open a specific item in the Item Browser.
             - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
             - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
+            - esi_call: For what the database does not hold — anything CURRENT about people outside the capsuleer's own corporations. "Are they still in the corp", "where did they go", public details of a stranger: get the ids from the database, then ask ESI. Never for data the database already has.
 
             ## Where a long answer goes — IMPORTANT
             You are in a narrow side panel whose contents are carried in the history of every later
@@ -340,6 +344,10 @@ public sealed class AgentService : ReactiveObject
 
         if (MapService is { } mapService)
             Tools = [.. Tools, new OpenMapTool(mapService), new SetMapOverlayTool()];
+
+        // Direct ESI access, for what the database does not hold — where a stranger is NOW.
+        if (Esi is { } esi)
+            Tools = [.. Tools, new EsiCallTool(esi)];
 
         // Discovery. Offered only when the schema was built — a describe_tables with nothing
         // behind it would be a tool that always answers "I do not know".
