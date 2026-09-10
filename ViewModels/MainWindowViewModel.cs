@@ -691,6 +691,36 @@ public class MainWindowViewModel : ReactiveObject
         if (navItem is not null) navItem.IsOpen = true;
     }
 
+    /// <summary>
+    /// Distinguishes agent-opened tabs, which are many, from tools, which are one each.
+    /// </summary>
+    public const string AgentTabPrefix = "agent_output:";
+
+    private int _agentTabCounter;
+
+    /// <summary>
+    /// Opens a tab holding something the agent produced, and selects it.
+    ///
+    /// <para>⚠️ Separate from OpenTool, and deliberately so. OpenTool maps a fixed id to a
+    /// singleton view model — asking for the Worklist twice returns to the one Worklist. These
+    /// are answers to particular questions, so every call gets an id of its own and a tab of its
+    /// own; the previous answer stays open beside it.</para>
+    ///
+    /// <para>They are reachable ONLY this way. There is no nav entry, because there is nothing to
+    /// open — an empty one of these would have no content and no reason to exist.</para>
+    ///
+    /// <para>⚠️ Marshalled to the UI thread by the caller's Dispatcher.Invoke. Agent tools run on
+    /// a background thread and OpenTabs is bound to the tab strip.</para>
+    /// </summary>
+    public string OpenAgentTab(string title, object viewModel)
+    {
+        var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
+        var tab = new ToolTab(id, title, viewModel, canClose: true);
+        OpenTabs.Add(tab);
+        SelectedTab = tab;
+        return id;
+    }
+
     public void CloseTab(ToolTab tab)
     {
         if (!tab.CanClose) return;

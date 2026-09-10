@@ -240,6 +240,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         agentService.DataRefreshRequested += ()   => Dispatcher.UIThread.Post(() => vm.ForceResolveNamesAsync());
         agentService.ContextProvider       = () => BuildAgentContext(vm);
 
+        // ⚠️ Invoke, not Post. The tool has to return a status message to the model in the same
+        // call, so it needs the tab name back — and the agent runs on a background thread, while
+        // the tab strip is bound to the UI thread.
+        agentService.ShowTableCallback = (title, caption, columns, rows) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                var grid = new EveConsole.ViewModels.AgentGridViewModel(title, caption, columns, rows);
+                vm.OpenAgentTab(title, grid);
+                return $"Opened a tab named \"{title}\" with {rows.Count:N0} row(s).";
+            });
+
+        agentService.ShowDocumentCallback = (title, markdown) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                var doc = new EveConsole.ViewModels.AgentDocumentViewModel(title, markdown);
+                vm.OpenAgentTab(title, doc);
+                return $"Opened a document tab named \"{title}\".";
+            });
+
         // Alarm actions that need the UI. The dialog is deliberately owner-less and top-most —
         // an alarm is usually wanted precisely when EVE Console is behind the game client.
         vm.AlarmActions.ShowDialogCallback = (title, message) =>

@@ -55,6 +55,18 @@ public sealed class AgentService : ReactiveObject
     // Tab screenshot callback: (tabName) → (pngBytes, description). Set by MainWindow.
     public Func<string, Task<(byte[]? image, string description)>>? CaptureTabCallback { get; set; }
 
+    /// <summary>
+    /// Opens an agent-authored grid tab: (title, caption, columns, rows) -> status message.
+    ///
+    /// <para>⚠️ Unlike every other tab callback, each invocation opens a NEW tab rather than
+    /// returning to an existing one. These are answers, and a second answer must not overwrite
+    /// the first.</para>
+    /// </summary>
+    public Func<string, string, string[], List<string[]>, string>? ShowTableCallback { get; set; }
+
+    /// <summary>Opens an agent-authored document tab: (title, markdown) -> status message.</summary>
+    public Func<string, string, string>? ShowDocumentCallback { get; set; }
+
     // ── UI context provider (set by MainWindow, called before each StreamAsync) ──
     public Func<string?>? ContextProvider { get; set; }
 
@@ -171,6 +183,25 @@ public sealed class AgentService : ReactiveObject
             - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
             - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
 
+            ## Where a long answer goes — IMPORTANT
+            You are in a narrow side panel whose contents are carried in the history of every later
+            turn and, when speech is on, read out loud. A listing belongs in a tab, not in the chat.
+
+            - show_table: the answer is a list of records with more than one field. Use it even for
+              five rows. The capsuleer can then sort it, copy it into a spreadsheet and save it as
+              CSV — none of which they can do with rows typed into the chat.
+            - show_document: the answer is a report rather than a reply — sections, an analysis, a
+              plan, a comparison, anything worth keeping or re-reading.
+
+            Each call opens a NEW tab, so you may open several in one turn and nothing is lost.
+
+            ⚠️ Having opened one, do NOT then write its contents into your reply as well. That
+            undoes the entire point. Say what you found in a sentence or two, name the tab, and
+            stop — "Six of them are still in the corp; they are in the BNI Capital Buyers tab."
+
+            Answer in the chat when the answer is short and conversational: one figure, a yes or
+            no, a name, a sentence of explanation. A single value is not a table.
+
             ## When an alarm fires
             You will sometimes receive a message beginning "ALARM FIRED". That is an alarm the capsuleer set up reaching you — it is the prompt itself, not a request to investigate. Report what it says in a sentence or two, using the detail supplied. Do not call tools to verify it, and do not ask what they would like you to do about it.
 
@@ -268,6 +299,19 @@ public sealed class AgentService : ReactiveObject
             new CaptureTabTool(
                 tabName => CaptureTabCallback?.Invoke(tabName)
                            ?? Task.FromResult<(byte[]?, string)>((null, ""))),
+
+            // ── Output tools ──────────────────────────────────────────────────
+            //
+            // Where a long answer goes instead of into the conversation. Rows and reports left in
+            // the chat are carried in the history of every later turn, and are read aloud when
+            // speech is on — which for a fifty-row listing is unusable.
+            new ShowTableTool(
+                (title, caption, columns, rows) =>
+                    ShowTableCallback?.Invoke(title, caption, columns, rows)
+                    ?? "Tabs are not available, so the table could not be shown."),
+            new ShowDocumentTool(
+                (title, markdown) => ShowDocumentCallback?.Invoke(title, markdown)
+                                     ?? "Tabs are not available, so the document could not be shown."),
         ];
 
         if (EntityBrowser is { } entities)

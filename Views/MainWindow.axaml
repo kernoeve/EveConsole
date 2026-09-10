@@ -609,6 +609,12 @@
               <DataTemplate DataType="vm:AgentUsageViewModel">
                 <views:AgentUsageView />
               </DataTemplate>
+              <DataTemplate DataType="vm:AgentGridViewModel">
+                <views:AgentGridView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AgentDocumentViewModel">
+                <views:AgentDocumentView />
+              </DataTemplate>
               <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
                 <views:StandingBuyOrdersView />
               </DataTemplate>
