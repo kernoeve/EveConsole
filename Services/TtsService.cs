@@ -30,6 +30,14 @@ public sealed class TtsService : IDisposable
     private float       _volume   = 1f;   // 0.0–1.0
     private bool        _muted    = false;
 
+    /// <summary>The configured voice or model, kept so a usage row can name what was billed.</summary>
+    private string _model = "";
+
+    /// <summary>
+    /// Where speech usage is recorded. Optional — absent means unmeasured, not broken.
+    /// </summary>
+    public Agent.AgentTelemetryService? Telemetry { get; set; }
+
     public float Volume  => _volume;
     public bool  IsMuted => _muted;
 
@@ -37,6 +45,17 @@ public sealed class TtsService : IDisposable
     {
         _provider = s.TtsProvider;
         _volume   = Math.Clamp(s.TtsVolume, 0f, 1f);
+
+        // Whichever of these is billed depends on the provider, so the name is captured once here
+        // rather than reached for at every utterance.
+        _model = s.TtsProvider switch
+        {
+            TtsProvider.OpenAi     => s.OpenAiTtsModel,
+            TtsProvider.ElevenLabs => s.ElevenLabsModel,
+            TtsProvider.Kokoro     => s.KokoroVoice,
+            TtsProvider.Piper      => s.PiperVoice,
+            _                      => "",
+        };
 
         _openAi.Configure(s.OpenAiApiKey, s.OpenAiTtsVoice, s.OpenAiTtsModel, s.OpenAiTtsSpeed);
         _elevenLabs.Configure(s.ElevenLabsApiKey, s.ElevenLabsVoiceId, s.ElevenLabsModel);
@@ -105,6 +124,27 @@ public sealed class TtsService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Records what an utterance cost.
+    ///
+    /// <para>⚠️ Counted AFTER the EVE pronunciation pass, because a provider bills what it is
+    /// SENT. Expanding "C-FD0D" to "C tac F D zero D" quadruples the text, so counting what was
+    /// written rather than what was submitted would understate every intel alert.</para>
+    ///
+    /// <para>Local voices are logged too, with IsLocal set. They cost nothing, but the volume and
+    /// the latency still answer "what would this have cost on a paid voice" — which is the
+    /// question worth having an answer to before switching.</para>
+    /// </summary>
+    private void Record(string billedText, long startedTicks)
+        => Telemetry?.ServiceCall(
+            kind:       "tts",
+            provider:   _provider.ToString(),
+            model:      _model,
+            isLocal:    _provider is TtsProvider.Kokoro or TtsProvider.Piper,
+            unitKind:   "characters",
+            units:      billedText.Length,
+            durationMs: (int)(Environment.TickCount64 - startedTicks));
+
     public void SpeakAsync(string text)
     {
         if (_muted) return;
@@ -113,6 +153,9 @@ public sealed class TtsService : IDisposable
         // however the engine guesses. Done here, on the way out, so the text shown on screen is
         // unaffected.
         text = EvePronunciation.Expand(text);
+
+        var startedTicks = Environment.TickCount64;
+        Record(text, startedTicks);
 
         switch (_provider)
         {

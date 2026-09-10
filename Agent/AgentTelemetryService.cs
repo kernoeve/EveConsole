@@ -110,6 +110,56 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
     public void Usage(UsageReport report) => _current.Value?.Add(report);
 
     /// <summary>
+    /// One call to a non-LLM billable service — speech out, speech in.
+    ///
+    /// <para>⚠️ Counted here rather than read back from a provider, which is the opposite of how
+    /// the LLM path works and worth knowing when reading the table. Nothing useful comes back from
+    /// a TTS or transcription endpoint; the units are known because we know what was SENT —
+    /// characters submitted to a voice, seconds of audio submitted to a transcriber. Exact, but
+    /// measured at this end.</para>
+    ///
+    /// <para>⚠️ Written unlinked, with no InteractionId. Speech happens DURING a turn, and that
+    /// turn's row does not exist yet — its key is assigned when it is written at the end. Rather
+    /// than buffer these into the turn and complicate a path that must never fail, they carry
+    /// their own timestamp and are correlated by time. Speech also fires outside any turn, from
+    /// an alarm, where there would be nothing to link to.</para>
+    /// </summary>
+    public void ServiceCall(
+        string kind, string provider, string model, bool isLocal,
+        string unitKind, long units, int durationMs, string error = "")
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = scopes.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                db.ServiceUsage.Add(new ServiceUsage
+                {
+                    OccurredAt        = DateTimeOffset.UtcNow,
+                    InteractionId     = null,
+                    Kind              = kind,
+                    Provider          = provider,
+                    Model             = model,
+                    IsLocal           = isLocal,
+                    UnitKind          = unitKind,
+                    InputUnits        = units,
+                    UnitsAreEstimated = false,   // counted from what was sent, not inferred
+                    DurationMs        = durationMs,
+                    Error             = error,
+                });
+
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                errors.Log("AgentTelemetry", $"ServiceCall({kind})", ex);
+            }
+        });
+    }
+
+    /// <summary>
     /// Closes the turn and writes it. Fire-and-forget by design: the capsuleer's answer is already
     /// on screen and must not wait on a database.
     /// </summary>

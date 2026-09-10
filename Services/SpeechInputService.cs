@@ -34,6 +34,11 @@ public sealed class SpeechInputService : IDisposable
 
     public LocalWhisperService LocalWhisper => _local;
 
+    /// <summary>
+    /// Where transcription usage is recorded. Optional — absent means unmeasured, not broken.
+    /// </summary>
+    public Agent.AgentTelemetryService? Telemetry { get; set; }
+
     public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "")
     {
         _provider             = provider;
@@ -183,12 +188,42 @@ public sealed class SpeechInputService : IDisposable
 
         var wav = BuildWav(pcm);
 
-        return _provider switch
+        // ⚠️ Transcription bills by AUDIO DURATION, not by characters or tokens — so the unit here
+        // is seconds, and it is known from the PCM itself: two bytes per sample at SampleRate. It
+        // cannot be read back from the provider, only counted from what was sent.
+        var seconds      = (long)Math.Round(pcm.Length / 2.0 / SampleRate);
+        var startedTicks = Environment.TickCount64;
+        var failure      = "";
+
+        try
         {
-            SpeechInputProvider.OpenAiWhisper => await _cloud.TranscribeAsync(wav, _apiKey, ct),
-            SpeechInputProvider.LocalWhisper  => await _local.TranscribeAsync(wav, _localModel, ct),
-            _                                  => null,
-        };
+            return _provider switch
+            {
+                SpeechInputProvider.OpenAiWhisper => await _cloud.TranscribeAsync(wav, _apiKey, ct),
+                SpeechInputProvider.LocalWhisper  => await _local.TranscribeAsync(wav, _localModel, ct),
+                _                                  => null,
+            };
+        }
+        catch (Exception ex)
+        {
+            failure = ex.Message;
+            throw;
+        }
+        finally
+        {
+            // Recorded even when it threw: a failed transcription of thirty seconds of audio was
+            // still thirty seconds sent, and on a paid provider still thirty seconds billed.
+            if (_provider != SpeechInputProvider.None)
+                Telemetry?.ServiceCall(
+                    kind:       "stt",
+                    provider:   _provider.ToString(),
+                    model:      _provider == SpeechInputProvider.LocalWhisper ? _localModel : "whisper-1",
+                    isLocal:    _provider == SpeechInputProvider.LocalWhisper,
+                    unitKind:   "seconds",
+                    units:      seconds,
+                    durationMs: (int)(Environment.TickCount64 - startedTicks),
+                    error:      failure);
+        }
     }
 
     private static byte[] BuildWav(byte[] pcmBytes)

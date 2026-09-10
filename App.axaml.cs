@@ -3666,8 +3666,16 @@ public class App : Application
                 Schema    = schema,
             };
         });
-        services.AddSingleton<TtsService>();
-        services.AddSingleton<SpeechInputService>();
+        // Speech in and out are billable too, and on their own units — characters for a voice,
+        // audio seconds for a transcriber — so they record into the same ledger as the LLM.
+        services.AddSingleton<TtsService>(sp => new TtsService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+        });
+        services.AddSingleton<SpeechInputService>(sp => new SpeechInputService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+        });
         services.AddSingleton<GlobalHotkeyService>();
         services.AddSingleton<KillMailService>();
         services.AddSingleton<EveMailService>();
