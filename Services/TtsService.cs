@@ -109,19 +109,44 @@ public sealed class TtsService : IDisposable
     /// </summary>
     private int _generation;
 
-    private void Enqueue(Action speak)
+    private void Enqueue(TtsProvider provider, string model, string billedText, Action speak)
     {
         lock (_queueGate)
         {
             var generation = _generation;
             _speechChain = _speechChain.ContinueWith(_ =>
             {
+                // ⚠️ Both of these return WITHOUT recording, and that is the point: an utterance
+                // dropped here was never handed to a voice, so billing for it would overstate the
+                // ledger by however much was queued when the capsuleer hit stop.
                 if (Volatile.Read(ref _generation) != generation) return;   // stopped since queued
                 if (_muted) return;
+
+                var started = Environment.TickCount64;
+                var failure = "";
+                // One failed utterance must not break the chain for every later one — but it is
+                // recorded rather than discarded, so a voice that has stopped working is visible
+                // in the usage detail instead of just producing silence.
                 try   { speak(); }
-                catch { /* one failed utterance must not break the chain for every later one */ }
+                catch (Exception ex) { failure = ex.Message; }
+                Record(provider, model, billedText, started, failure);
             }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
         }
+    }
+
+    /// <summary>
+    /// Runs a cloud voice and records what it took.
+    ///
+    /// <para>Takes a factory rather than a started task so the clock begins before the request
+    /// does — a task passed in has already been running for however long the caller took.</para>
+    /// </summary>
+    private async Task SpeakTimedAsync(TtsProvider provider, string model, string billedText, Func<Task> work)
+    {
+        var started = Environment.TickCount64;
+        var failure = "";
+        try   { await work().ConfigureAwait(false); }
+        catch (Exception ex) { failure = ex.Message; }
+        Record(provider, model, billedText, started, failure);
     }
 
     /// <summary>
@@ -135,15 +160,25 @@ public sealed class TtsService : IDisposable
     /// the latency still answer "what would this have cost on a paid voice" — which is the
     /// question worth having an answer to before switching.</para>
     /// </summary>
-    private void Record(string billedText, long startedTicks)
+    /// <para>⚠️ Called when the utterance is DONE, not when it is queued. It used to run at the
+    /// top of SpeakAsync against a clock started on the previous line, so every row recorded a
+    /// duration of exactly zero — a figure that looked measured and was not — and carried the
+    /// timestamp of the enqueue rather than of the speech, which for a serialised queue can be
+    /// several seconds earlier and identical across a whole answer.</para>
+    /// <para>⚠️ The provider and model are passed IN, not read from the fields. Recording now
+    /// happens when the utterance finishes, and the queue means that can be well after it was
+    /// spoken — so reading the current setting attributes finished speech to whatever provider
+    /// happens to be selected by then. Changing voice mid-answer billed Kokoro's words to OpenAI.</para>
+    private void Record(TtsProvider provider, string model, string billedText, long startedTicks, string error = "")
         => Telemetry?.ServiceCall(
             kind:       "tts",
-            provider:   _provider.ToString(),
-            model:      _model,
-            isLocal:    _provider is TtsProvider.Kokoro or TtsProvider.Piper,
+            provider:   provider.ToString(),
+            model:      model,
+            isLocal:    provider is TtsProvider.Kokoro or TtsProvider.Piper,
             unitKind:   "characters",
             units:      billedText.Length,
-            durationMs: (int)(Environment.TickCount64 - startedTicks));
+            durationMs: (int)(Environment.TickCount64 - startedTicks),
+            error:      error);
 
     public void SpeakAsync(string text)
     {
@@ -154,17 +189,19 @@ public sealed class TtsService : IDisposable
         // unaffected.
         text = EvePronunciation.Expand(text);
 
-        var startedTicks = Environment.TickCount64;
-        Record(text, startedTicks);
+        // Captured HERE, at the moment the utterance is handed over, because the recording that
+        // uses them happens after it has been spoken — by which time the selection may have moved.
+        var provider = _provider;
+        var model    = _model;
 
-        switch (_provider)
+        switch (provider)
         {
             case TtsProvider.OpenAi:
-                _ = _openAi.SpeakAsync(text);
+                _ = SpeakTimedAsync(provider, model, text, () => _openAi.SpeakAsync(text));
                 break;
 
             case TtsProvider.ElevenLabs:
-                _ = _elevenLabs.SpeakAsync(text);
+                _ = SpeakTimedAsync(provider, model, text, () => _elevenLabs.SpeakAsync(text));
                 break;
 
             // ⚠️ Queued, not just moved off the caller's thread. These two are synchronous and
@@ -174,11 +211,11 @@ public sealed class TtsService : IDisposable
             // by sentence as the answer streams, several land at once and talk over each other:
             // parts of the answer are skipped rather than queued. Enqueue serialises them.
             case TtsProvider.Kokoro:
-                Enqueue(() => _kokoro.SpeakAsync(text));
+                Enqueue(provider, model, text, () => _kokoro.SpeakAsync(text));
                 break;
 
             case TtsProvider.Piper:
-                Enqueue(() => _piper.SpeakAsync(text));
+                Enqueue(provider, model, text, () => _piper.SpeakAsync(text));
                 break;
         }
     }
