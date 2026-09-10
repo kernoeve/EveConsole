@@ -55,8 +55,16 @@ public sealed class AgentSchema
     public static AgentSchema Build(IServiceProvider services)
     {
         using var scope = services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return Build(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+    }
 
+    /// <summary>
+    /// The same, from a context the caller already has. ⚠️ Exists so the drift check can build the
+    /// schema without standing up the application's container — a guard that needs the app running
+    /// is a guard that does not run in CI.
+    /// </summary>
+    public static AgentSchema Build(AppDbContext db)
+    {
         var tables = new Dictionary<string, List<Column>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var entity in db.Model.GetEntityTypes())

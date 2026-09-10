@@ -47,6 +47,18 @@ jobs:
       - name: Upgrade check
         run: dotnet run --project tools/UpgradeCheck/UpgradeCheck.csproj -c Release
 
+      # ⚠️ The agent's instructions are prose, and prose is code no compiler reads. The schema
+      # notes documented MarketItemPrices as BuyMax/SellMin long after the real columns became
+      # BuyPrice/SellPrice/Midpoint, and that cost two failed queries in a single conversation
+      # before the agent worked around it. This checks every table and column NAMED in those
+      # instructions against the entity model.
+      #
+      # ⚠️ Names only. It cannot tell whether a sentence about them is TRUE — the notes once
+      # said CharacterAffiliations gives a character's current corporation, every identifier in
+      # that claim was real, and the claim was wrong.
+      - name: Agent context check
+        run: dotnet run --project tools/AgentContextCheck/AgentContextCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

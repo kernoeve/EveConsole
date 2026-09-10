@@ -31,11 +31,24 @@ public static class AgentDataNotes
           are still with us". EsiCorpMemberTracking adds when each member joined and last logged
           in. Someone absent from EsiCorpMembers who appears in older data has left.
 
-        - ⚠️ CharacterAffiliations is a FIRST-SEEN CACHE, not current state. A row is written the
-          first time a character id is encountered — usually from an intel report — and is NEVER
-          refreshed afterwards. Most rows in it are months old and will stay that way.
-          PulledAt is when the character was first SEEN, not when the corporation was last
-          checked; the name invites the opposite reading.
+        - ⚠️ CharacterAffiliations is a FIRST-SEEN CACHE from INTEL REPORTS ONLY, and it is both
+          stale and sparse. A row is written the first time a character id appears in a parsed
+          intel channel, and is NEVER refreshed afterwards. Nothing else writes to it.
+
+          Two consequences, and the second is the one that catches people out:
+          · Rows are old. Most are months old and will stay that way. PulledAt is when the
+            character was first SEEN, not when their corporation was last checked — the name
+            invites exactly the opposite reading.
+          · ABSENCE MEANS NOTHING. A character with no row was simply never reported in intel.
+            It does NOT mean they have no corporation, are not in an alliance, or have left one.
+            Contract counterparties, market counterparties and mail senders are mostly absent for
+            this reason, so a LEFT JOIN to this table on that kind of question returns mostly
+            nulls that mean "never seen in local intel".
+
+          Never present a missing row as evidence about someone's affiliation, and never present a
+          present row as current. If the question turns on where someone is NOW and they are not
+          in a corporation the capsuleer has roles in, the honest answer is that this database
+          cannot tell — the live answer needs a fresh lookup that these tables do not hold.
 
           It is deliberate. For reading old intel, the corp somebody was in at the time is the
           useful answer. It is the WRONG source for anything about the present: someone who left
