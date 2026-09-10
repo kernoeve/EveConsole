@@ -376,16 +376,37 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
         try
         {
+            // ⚠️ ConfigureAwait(false) on the enumeration, so the streaming loop and everything
+            // the provider does inside it stay off the UI thread. Without it each yielded chunk
+            // hops back to the UI thread — hundreds of hops for one answer — and the window stops
+            // responding while the agent is working. Everything below that touches UI state is
+            // already marshalled explicitly, which is what makes this safe.
+            var lastPostAt = 0L;
+
             await foreach (var chunk in _service.Provider.StreamAsync(
                 systemPrompt, _history, _service.Tools,
                 onUsage: u => telemetry?.Usage(u),
                 volatileContext: CurrentAppState(),
-                ct: ct))
+                ct: ct).ConfigureAwait(false))
             {
                 sb.Append(chunk);
+
+                // ⚠️ Throttled, and the cost being avoided is quadratic rather than merely wasteful:
+                // the old code called sb.ToString() on EVERY delta, so a long answer copied a
+                // growing string once per token and queued a dispatcher post for each copy. The
+                // reader cannot see 60 updates a second anyway.
+                var now = Environment.TickCount64;
+                if (now - lastPostAt < 50) continue;
+                lastPostAt = now;
+
                 var snapshot = sb.ToString();
                 Dispatcher.UIThread.Post(() => StreamingText = snapshot);
             }
+
+            // The throttle above can swallow the final delta, which is the one that completes the
+            // sentence — so the finished text is always posted once more.
+            var finalText = sb.ToString();
+            Dispatcher.UIThread.Post(() => StreamingText = finalText);
 
             if (!ct.IsCancellationRequested && sb.Length > 0)
             {

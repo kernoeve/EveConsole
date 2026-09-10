@@ -59,21 +59,35 @@ public sealed class LocalWhisperService
         File.Move(temp, dest, overwrite: true);
     }
 
-    public async Task<string?> TranscribeAsync(byte[] wavBytes, string modelId, CancellationToken ct = default)
-    {
-        var path = ModelPath(modelId);
-        if (!File.Exists(path)) return null;
+    /// <summary>
+    /// Transcribes recorded audio locally.
+    ///
+    /// <para>⚠️ The whole body runs on the thread pool, and the Task.Run is load-bearing rather
+    /// than decorative. Only the enumeration at the end is actually asynchronous —
+    /// <c>WhisperFactory.FromPath</c> reads the model off disk and <c>Build</c> prepares the
+    /// processor, both synchronously and both BEFORE the first await, so they ran on whatever
+    /// thread called this. That caller is the push-to-talk handler on the UI thread, so releasing
+    /// the key froze the window for a model load plus the length of the inference.</para>
+    ///
+    /// <para>An async method only leaves the caller's thread at its first suspension; work placed
+    /// ahead of that runs inline however the method is named.</para>
+    /// </summary>
+    public Task<string?> TranscribeAsync(byte[] wavBytes, string modelId, CancellationToken ct = default)
+        => Task.Run<string?>(async () =>
+        {
+            var path = ModelPath(modelId);
+            if (!File.Exists(path)) return null;
 
-        using var factory   = WhisperFactory.FromPath(path);
-        await using var processor = factory.CreateBuilder()
-            .WithLanguage("auto")
-            .Build();
+            using var factory   = WhisperFactory.FromPath(path);
+            await using var processor = factory.CreateBuilder()
+                .WithLanguage("auto")
+                .Build();
 
-        using var ms = new MemoryStream(wavBytes);
-        var sb = new StringBuilder();
-        await foreach (var segment in processor.ProcessAsync(ms, ct))
-            sb.Append(segment.Text);
+            using var ms = new MemoryStream(wavBytes);
+            var sb = new StringBuilder();
+            await foreach (var segment in processor.ProcessAsync(ms, ct).ConfigureAwait(false))
+                sb.Append(segment.Text);
 
-        return sb.ToString().Trim();
-    }
+            return sb.ToString().Trim();
+        }, ct);
 }

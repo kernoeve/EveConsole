@@ -93,12 +93,21 @@ public sealed class ClaudeProvider : IAgentProvider
     {
         var roundStarted = System.Diagnostics.Stopwatch.StartNew();
 
+        // ⚠️ ConfigureAwait(false) on everything below, and it is not a stylistic preference.
+        // This is reached from a UI command, so without it every await resumes on the UI thread —
+        // including ReadLineAsync in the loop, which runs ONCE PER SERVER-SENT EVENT. A streamed
+        // answer is hundreds of them, each dragging its JSON parse and string building onto the
+        // thread that is trying to draw, and tool execution with them: query_database ran its SQL
+        // on the UI thread. That is what made the window stop responding while the agent thought.
+        //
+        // The caller marshals its own UI updates through the Dispatcher, which is where that
+        // belongs — one hop per visible change rather than one per network packet.
         using var request  = BuildRequest(systemPrompt, volatileContext, rawMessages, toolMap);
         using var response = await _http.SendAsync(
-            request, HttpCompletionOption.ResponseHeadersRead, ct);
+            request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        await using var stream = await response.Content.ReadAsStreamAsync(ct);
+        await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
         using  var reader      = new StreamReader(stream);
 
         var blockTypes  = new Dictionary<int, string>();
@@ -114,7 +123,7 @@ public sealed class ClaudeProvider : IAgentProvider
 
         while (!reader.EndOfStream && !ct.IsCancellationRequested)
         {
-            var line = await reader.ReadLineAsync(ct);
+            var line = await reader.ReadLineAsync(ct).ConfigureAwait(false);
             if (line is null || !line.StartsWith("data: ")) continue;
             var data = line["data: ".Length..];
             if (data == "[DONE]") break;
@@ -249,7 +258,7 @@ public sealed class ClaudeProvider : IAgentProvider
                 {
                     var inputEl = ParseJsonElement(toolInputs[idx].ToString());
                     result = toolMap.TryGetValue(toolName, out var tool)
-                        ? await tool.ExecuteWithResultAsync(inputEl, ct)
+                        ? await tool.ExecuteWithResultAsync(inputEl, ct).ConfigureAwait(false)
                         : (AgentToolResult)$"Tool '{toolName}' is not available.";
                 }
                 catch (Exception ex) { result = $"Tool error: {ex.Message}"; }

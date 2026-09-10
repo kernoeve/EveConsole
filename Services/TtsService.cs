@@ -94,12 +94,19 @@ public sealed class TtsService : IDisposable
                 _ = _elevenLabs.SpeakAsync(text);
                 break;
 
+            // ⚠️ Task.Run, unlike the two above, and the naming is what hides the need for it.
+            // Despite being called SpeakAsync these are synchronous and void: Kokoro runs ONNX
+            // inference and Piper drives a local binary, both on whatever thread calls them — and
+            // the callers include the agent panel and the alarm runner, which are the UI thread.
+            // The cloud providers hand back a Task and are already off the caller's thread; these
+            // were not, so choosing a local voice froze the window for the length of every
+            // utterance, with the first one paying model load on top.
             case TtsProvider.Kokoro:
-                _kokoro.SpeakAsync(text);
+                _ = Task.Run(() => _kokoro.SpeakAsync(text));
                 break;
 
             case TtsProvider.Piper:
-                _piper.SpeakAsync(text);
+                _ = Task.Run(() => _piper.SpeakAsync(text));
                 break;
         }
     }
