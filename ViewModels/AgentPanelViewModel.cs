@@ -387,7 +387,26 @@ public sealed class AgentPanelViewModel : ReactiveObject
             // hops back to the UI thread — hundreds of hops for one answer — and the window stops
             // responding while the agent is working. Everything below that touches UI state is
             // already marshalled explicitly, which is what makes this safe.
-            var lastPostAt = 0L;
+            // ⚠️ At most one streaming-text update is ever queued, and it reads the CURRENT text
+            // when it runs rather than a snapshot taken when it was posted. The previous throttle
+            // — post at most every 50 ms, skip the rest — lost whichever chunks arrived inside a
+            // window and never posted them: a sentence the model wrote in one burst and then
+            // followed with a twenty-second tool call sat on screen as its first word, while the
+            // voice had already read the whole thing. The cost the throttle existed to avoid, one
+            // ToString per token and a dispatcher job for each, is avoided here by the coalescing:
+            // ToString runs once per UI update, and the UI paces those itself.
+            var postQueued = 0;
+            void PostStreamingText()
+            {
+                if (Interlocked.Exchange(ref postQueued, 1) == 1) return;   // one already waiting
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Interlocked.Exchange(ref postQueued, 0);
+                    string current;
+                    lock (sb) current = sb.ToString();
+                    StreamingText = current;
+                });
+            }
 
             // Speech runs alongside the stream rather than after it. The agent often writes a
             // sentence, calls a tool, thinks, and writes more — so waiting for the end meant
@@ -402,29 +421,20 @@ public sealed class AgentPanelViewModel : ReactiveObject
                 volatileContext: CurrentAppState(),
                 ct: ct).ConfigureAwait(false))
             {
-                sb.Append(chunk);
+                lock (sb) sb.Append(chunk);
+                PostStreamingText();
 
                 if (speaking)
                 {
                     pending.Append(chunk);
                     SpeakCompleteSentences(pending, flush: false);
                 }
-
-                // ⚠️ Throttled, and the cost being avoided is quadratic rather than merely wasteful:
-                // the old code called sb.ToString() on EVERY delta, so a long answer copied a
-                // growing string once per token and queued a dispatcher post for each copy. The
-                // reader cannot see 60 updates a second anyway.
-                var now = Environment.TickCount64;
-                if (now - lastPostAt < 50) continue;
-                lastPostAt = now;
-
-                var snapshot = sb.ToString();
-                Dispatcher.UIThread.Post(() => StreamingText = snapshot);
             }
 
-            // The throttle above can swallow the final delta, which is the one that completes the
-            // sentence — so the finished text is always posted once more.
-            var finalText = sb.ToString();
+            // Once more at the end, so the finished text is on screen before the message is moved
+            // into the history — the queued update above may not have run yet.
+            string finalText;
+            lock (sb) finalText = sb.ToString();
             Dispatcher.UIThread.Post(() => StreamingText = finalText);
 
             // Whatever is left has no closing punctuation and never will.

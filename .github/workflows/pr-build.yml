@@ -59,6 +59,17 @@ jobs:
       - name: Agent context check
         run: dotnet run --project tools/AgentContextCheck/AgentContextCheck.csproj -c Release
 
+      # ⚠️ Does a streamed agent turn stay off the UI thread? This has failed twice the same way:
+      # one await in the streaming path without ConfigureAwait(false). The second time it was
+      # the outer enumeration in StreamAsync, which captured the UI context and undid every
+      # other one — a tool call the model took forty seconds to write froze the window for forty
+      # seconds, and the capsuleer heard speech for text that had not appeared yet. A review
+      # cannot see it. This runs the real provider against a fake streaming server from a thread
+      # with a synchronization context installed, and fails on the first continuation posted
+      # back to it.
+      - name: Agent stream check
+        run: dotnet run --project tools/AgentStreamCheck/AgentStreamCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

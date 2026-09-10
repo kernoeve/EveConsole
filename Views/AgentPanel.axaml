@@ -111,11 +111,13 @@
                         Background="{Binding Role, Converter={StaticResource RoleBg}}"
                         BorderBrush="{Binding IsSummary, Converter={StaticResource SummaryBorder}}"
                         BorderThickness="1">
-                  <TextBlock Text="{Binding Content}"
-                             TextWrapping="Wrap"
-                             Foreground="{Binding IsSummary, Converter={StaticResource SummaryFg}}"
-                             FontSize="11"
-                             LineHeight="17"/>
+                  <!-- Selectable, so a figure or a name the agent produced can be copied out
+                       rather than retyped. -->
+                  <SelectableTextBlock Text="{Binding Content}"
+                                       TextWrapping="Wrap"
+                                       Foreground="{Binding IsSummary, Converter={StaticResource SummaryFg}}"
+                                       FontSize="11"
+                                       LineHeight="17"/>
                 </Border>
 
               </StackPanel>
@@ -131,11 +133,11 @@
                 MaxWidth="290"
                 HorizontalAlignment="Left"
                 Background="{DynamicResource SurfaceInputBrush}">
-          <TextBlock Text="{Binding StreamingText}"
-                     TextWrapping="Wrap"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     FontSize="11"
-                     LineHeight="17"/>
+          <SelectableTextBlock Text="{Binding StreamingText}"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="11"
+                               LineHeight="17"/>
         </Border>
 
       </StackPanel>

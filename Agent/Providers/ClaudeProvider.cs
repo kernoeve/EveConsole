@@ -22,7 +22,11 @@ public sealed class ClaudeProvider : IAgentProvider
     /// </summary>
     private const int    MaxToolRounds    = 12;
 
-    private static readonly HttpClient _http = new() { Timeout = TimeSpan.FromMinutes(5) };
+    // ⚠️ Not readonly, and only for one reason: tools/AgentStreamCheck replaces it with a client
+    // over a fake server so the real streaming path can be run headless, and .NET 9 refuses a
+    // reflection write to an initonly static once the type is initialised. Nothing in the
+    // application assigns it.
+    private static HttpClient _http = new() { Timeout = TimeSpan.FromMinutes(5) };
 
     private readonly string _apiKey;
     private readonly string _model;
@@ -86,8 +90,20 @@ public sealed class ClaudeProvider : IAgentProvider
         var toolMap = tools?.ToDictionary(t => t.Name)
                       ?? new Dictionary<string, IAgentTool>();
 
+        // ⚠️ ConfigureAwait(false) here too — this was the one await in the provider without it,
+        // and it undid every other one. This enumeration first suspends while still inline on the
+        // UI thread (the click that started the turn), so it captured Avalonia's synchronization
+        // context, and from the first chunk onward every resumption of this method was posted
+        // back to the UI thread as a dispatcher job. Once there it called the inner enumerator
+        // synchronously, and the inner loop — reading a socket that already had data — never
+        // yielded the thread again for the rest of the round. A tool call that took the model
+        // forty seconds to write froze the window for forty seconds, and the streaming-text posts
+        // queued behind the job could not run while speech, fed directly from the loop, carried
+        // on: the capsuleer heard text they could not yet see. The UI-thread stack during a
+        // freeze read WndProc → DispatcherOperation → StreamAsync.MoveNext → … → Winsock.recv.
         await foreach (var chunk in StreamRoundAsync(
-                           systemPrompt, volatileContext, rawMessages, toolMap, MaxToolRounds, onUsage, ct))
+                           systemPrompt, volatileContext, rawMessages, toolMap, MaxToolRounds, onUsage, ct)
+                       .ConfigureAwait(false))
             yield return chunk;
     }
 
@@ -131,10 +147,15 @@ public sealed class ClaudeProvider : IAgentProvider
         // message_start carries the input and cache counts, message_delta the output count.
         long inTok = 0, outTok = 0, cacheRead = 0, cacheWrite = 0;
 
-        while (!reader.EndOfStream && !ct.IsCancellationRequested)
+        // ⚠️ No EndOfStream. It is a synchronous property that answers by doing a BLOCKING read
+        // on the underlying socket — which on a response that is still streaming means sitting in
+        // Winsock.recv until the next event arrives, on whatever thread asked. ReadLineAsync
+        // returns null at the end of the stream, which is the same question asked properly.
+        while (!ct.IsCancellationRequested)
         {
             var line = await reader.ReadLineAsync(ct).ConfigureAwait(false);
-            if (line is null || !line.StartsWith("data: ")) continue;
+            if (line is null) break;
+            if (!line.StartsWith("data: ")) continue;
             var data = line["data: ".Length..];
             if (data == "[DONE]") break;
 
@@ -312,7 +333,8 @@ public sealed class ClaudeProvider : IAgentProvider
             rawMessages.Add(new { role = "user", content = toolResults });
 
             await foreach (var chunk in StreamRoundAsync(
-                               systemPrompt, volatileContext, rawMessages, toolMap, maxRounds - 1, onUsage, ct))
+                               systemPrompt, volatileContext, rawMessages, toolMap, maxRounds - 1, onUsage, ct)
+                           .ConfigureAwait(false))
                 yield return chunk;
         }
     }
