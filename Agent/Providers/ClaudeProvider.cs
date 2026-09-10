@@ -20,7 +20,30 @@ public sealed class ClaudeProvider : IAgentProvider
     /// query, a recovery, a successful query, a second failed query and a describe, and ran out
     /// one step from the answer.</para>
     /// </summary>
-    private const int    MaxToolRounds    = 12;
+    /// <summary>
+    /// Tool calls per turn before the model is told to stop and answer.
+    ///
+    /// <para>⚠️ Twelve was not enough for a real listing question. Kills, their attackers, five
+    /// kinds of name to resolve, values to compute, one SQL mistake to recover from — that is
+    /// fourteen calls done well, and the capsuleer saw "I ran out of steps" twice. show_query
+    /// collapses most of that into one call, but the ceiling is for the questions it does not.</para>
+    /// </summary>
+    private const int    MaxToolRounds    = 20;
+
+    /// <summary>
+    /// What a tool call receives instead of a result once the budget is spent.
+    ///
+    /// <para>⚠️ The budget used to end the turn on a canned apology, and everything the model had
+    /// found in twelve rounds of queries was lost with it — "continue" started from nothing,
+    /// because tool results live only inside the turn. Now the last call is answered with this
+    /// instead of being run, and the model gets ONE more round to write an answer from what it
+    /// already holds. That answer is what goes into the history, so a follow-up has it.</para>
+    /// </summary>
+    private const string BudgetExhausted =
+        "NOT RUN: the tool budget for this turn is used up, and no further tool calls will be run. " +
+        "Answer the capsuleer NOW from what you have already found — say what it shows, and say " +
+        "plainly what you did not get to — so that a follow-up can pick up from there. Do not " +
+        "apologise at length; one sentence on what is missing is enough.";
 
     /// <summary>
     /// The output ceiling per round.
@@ -268,7 +291,9 @@ public sealed class ClaudeProvider : IAgentProvider
         // another tool, this method simply returned, and the capsuleer was left with whatever text
         // preceded the last call — usually "let me check that" and then nothing, indistinguishable
         // from the app having hung. Whatever else happens, the loop gets closed.
-        if (stopReason == "tool_use" && maxRounds <= 0 && !ct.IsCancellationRequested)
+        // Reached only when the model was given its wrap-up round — the one whose tool calls
+        // are answered with BudgetExhausted — and asked for a tool anyway.
+        if (stopReason == "tool_use" && maxRounds < 0 && !ct.IsCancellationRequested)
         {
             yield return "\n\n(I ran out of steps before I could finish that one — I was still " +
                          "working through it rather than stuck. Ask again and I will pick up from " +
@@ -293,7 +318,7 @@ public sealed class ClaudeProvider : IAgentProvider
             yield break;
         }
 
-        if (stopReason == "tool_use" && maxRounds > 0
+        if (stopReason == "tool_use" && maxRounds >= 0
             && toolInputs.Count > 0 && !ct.IsCancellationRequested)
         {
             // Reconstruct assistant content blocks for the follow-up request
@@ -325,14 +350,23 @@ public sealed class ClaudeProvider : IAgentProvider
                 var toolName = toolNames.GetValueOrDefault(idx, "");
                 var toolId   = toolIds.GetValueOrDefault(idx, "");
                 AgentToolResult result;
-                try
+                if (maxRounds == 0)
                 {
-                    var inputEl = ParseJsonElement(toolInputs[idx].ToString());
-                    result = toolMap.TryGetValue(toolName, out var tool)
-                        ? await tool.ExecuteWithResultAsync(inputEl, ct).ConfigureAwait(false)
-                        : (AgentToolResult)$"Tool '{toolName}' is not available.";
+                    // The budget is spent: the call is answered, not run, and the round that
+                    // follows is the model's chance to answer from what it has.
+                    result = BudgetExhausted;
                 }
-                catch (Exception ex) { result = $"Tool error: {ex.Message}"; }
+                else
+                {
+                    try
+                    {
+                        var inputEl = ParseJsonElement(toolInputs[idx].ToString());
+                        result = toolMap.TryGetValue(toolName, out var tool)
+                            ? await tool.ExecuteWithResultAsync(inputEl, ct).ConfigureAwait(false)
+                            : (AgentToolResult)$"Tool '{toolName}' is not available.";
+                    }
+                    catch (Exception ex) { result = $"Tool error: {ex.Message}"; }
+                }
 
                 if (result.ImageBase64 is not null)
                 {

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using System.Text;
 using EveConsole.Data;
 using System.Text.Json;
@@ -175,58 +174,6 @@ public sealed class QueryDatabaseTool : IAgentTool
         _schema     = schema;
     }
 
-    /// <summary>
-    /// Rejects a query naming a table that does not exist, and says which ones do.
-    ///
-    /// <para>⚠️ This exists because the failure it catches is silent. On SQLite an unknown
-    /// double-quoted identifier is not an error — it is a string literal — so a guessed name comes
-    /// back as rows full of the guess, which reads like data. The agent then answers confidently
-    /// from nothing. Refusing up front, with the real names attached, turns that into one more
-    /// round trip instead of a wrong answer.</para>
-    ///
-    /// <para>⚠️ Deliberately narrow. It only inspects what follows FROM and JOIN, and only rejects
-    /// a name it is sure about — CTEs defined in the same statement are collected first and
-    /// allowed. A validator that blocks working SQL would be worse than the fault it prevents, so
-    /// anything it cannot classify is let through to the database to judge.</para>
-    /// </summary>
-    private string? ValidateTables(string sql)
-    {
-        if (_schema is null) return null;
-
-        // Names introduced by this statement itself: WITH x AS (...), and any alias that follows.
-        var cte = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (Match m in Regex.Matches(sql, @"(?:\bWITH\b|,)\s*""?([A-Za-z_][A-Za-z0-9_]*)""?\s+AS\s*\(",
-                                          RegexOptions.IgnoreCase))
-            cte.Add(m.Groups[1].Value);
-
-        var unknown = new List<string>();
-
-        foreach (Match m in Regex.Matches(sql, @"\b(?:FROM|JOIN)\s+""?([A-Za-z_][A-Za-z0-9_]*)""?",
-                                          RegexOptions.IgnoreCase))
-        {
-            var name = m.Groups[1].Value;
-            if (cte.Contains(name) || _schema.Has(name)) continue;
-            if (!unknown.Contains(name, StringComparer.OrdinalIgnoreCase)) unknown.Add(name);
-        }
-
-        if (unknown.Count == 0) return null;
-
-        var sb = new StringBuilder();
-        sb.Append("Query not run — no such table: ")
-          .Append(string.Join(", ", unknown))
-          .Append('.');
-
-        foreach (var name in unknown)
-        {
-            var near = _schema.Nearest(name, 5);
-            if (near.Count > 0)
-                sb.Append($" Closest to '{name}': {string.Join(", ", near)}.");
-        }
-
-        sb.Append(" Use describe_tables to confirm columns before retrying.");
-        return sb.ToString();
-    }
-
     public async Task<string> ExecuteAsync(JsonElement input, CancellationToken ct = default)
     {
         if (!input.TryGetProperty("sql", out var sqlProp))
@@ -236,18 +183,9 @@ public sealed class QueryDatabaseTool : IAgentTool
         if (string.IsNullOrWhiteSpace(sql))
             return """{"error":"SQL query is empty."}""";
 
-        // Security: only SELECT statements
-        var firstWord = sql.Split([' ', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries)
-                           .FirstOrDefault() ?? "";
-        if (!firstWord.Equals("SELECT", StringComparison.OrdinalIgnoreCase)
-            && !firstWord.Equals("WITH", StringComparison.OrdinalIgnoreCase))
-        {
-            return """{"error":"Only SELECT (or CTEs starting with WITH...SELECT) are permitted."}""";
-        }
-
-        // Before the database sees it: a name that does not exist is answered with the ones that
-        // do, rather than being allowed to return plausible rubbish.
-        if (ValidateTables(sql) is { } complaint)
+        // Read-only, and naming only tables that exist — the same rules show_query applies, from
+        // one place, so the two tools cannot drift apart on what they refuse.
+        if (ReadOnlySql.Reject(sql, _schema) is { } complaint)
             return JsonSerializer.Serialize(new { error = complaint });
 
         try

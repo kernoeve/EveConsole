@@ -197,7 +197,10 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
                 Model          = usages.Count > 0 ? usages[^1].Model    : turn.Model,
                 RoundTrips     = usages.Count,
                 ToolCallCount  = calls.Count,
-                QueryCount     = counts.GetValueOrDefault("query_database"),
+                // Both tools that run SQL the model wrote. show_query's rows never reach the
+                // model, but it is a database call all the same, and the number worth watching.
+                QueryCount     = counts.GetValueOrDefault("query_database")
+                               + counts.GetValueOrDefault("show_query"),
                 ToolsUsed      = counts.Count > 0 ? JsonSerializer.Serialize(counts) : "",
                 // The last round is the one that actually ended the turn; the earlier ones all
                 // stopped for tool_use and would report that instead.

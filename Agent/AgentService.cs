@@ -173,6 +173,11 @@ public sealed class AgentService : ReactiveObject
             ## Tool usage — IMPORTANT
             You have direct access to local data through built-in tools. Use them proactively. When asked about assets, jobs, characters, or market prices — call the relevant tool.
 
+            Between tool calls, write at most one short sentence about what you are doing, and
+            often nothing. Never narrate a query that failed or how you fixed it — fix it and
+            retry. Everything you write here is shown in the chat and read aloud; "the issue was
+            with the CTE referencing kd.KillMailId" is not something anyone wants to hear.
+
             Tool-specific guidance:
             - query_database: Primary tool for any data question — skills, assets, wallet, industry, market, fittings, standings, LP. Compact SELECT queries, explicit LIMIT. Join SdeTypes on TypeId/SkillId for names.
             - get_character_info: Quick character summary — corporation, SP, wallet, training queue.
@@ -187,9 +192,17 @@ public sealed class AgentService : ReactiveObject
             You are in a narrow side panel whose contents are carried in the history of every later
             turn and, when speech is on, read out loud. A listing belongs in a tab, not in the chat.
 
-            - show_table: the answer is a list of records with more than one field. Use it even for
-              five rows. The capsuleer can then sort it, copy it into a spreadsheet and save it as
-              CSV — none of which they can do with rows typed into the chat.
+            - show_query: the answer is a list of records that a query can produce in its finished
+              form. The rows go straight from the database to the tab and never enter your
+              context, so a thousand rows cost you no more than ten. This is the DEFAULT for a
+              listing. Write the query to produce the final table — aliases as headers, names
+              joined in, ISK and dates formatted, ordered for the reader — because you will not
+              see the rows to fix them afterwards. For a summary figure, run a separate small
+              query_database.
+            - show_table: the rows need shaping you can only do by hand — merging results from
+              several queries, adding a column you computed, annotating. Use it even for five
+              rows rather than typing them into the chat, but keep it to a few dozen: every row
+              is written into the call, and a long one is cut off before it can open.
             - show_document: the answer is a report rather than a reply — sections, an analysis, a
               plan, a comparison, anything worth keeping or re-reading.
 
@@ -312,6 +325,13 @@ public sealed class AgentService : ReactiveObject
             new ShowDocumentTool(
                 (title, markdown) => ShowDocumentCallback?.Invoke(title, markdown)
                                      ?? "Tabs are not available, so the document could not be shown."),
+            // The rows go from the database straight to the grid and never through the model —
+            // the same grid show_table opens, fed from the other side.
+            new ShowQueryTool(
+                (title, caption, columns, rows) =>
+                    ShowTableCallback?.Invoke(title, caption, columns, rows)
+                    ?? "Tabs are not available, so the table could not be shown.",
+                Schema),
         ];
 
         if (EntityBrowser is { } entities)
