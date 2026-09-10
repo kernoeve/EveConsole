@@ -242,5 +242,10 @@ public sealed class SpeechInputService : IDisposable
         try { _stream?.Dispose(); } catch { }
         _stream           = null;
         _callbackDelegate = null;
+
+        // ⚠️ Needed since the local model started being kept between utterances. It holds native
+        // memory measured in hundreds of megabytes — 1.5 GB for the medium model — and before
+        // caching there was nothing to release, because each utterance disposed its own.
+        try { _local.Dispose(); } catch { }
     }
 }
