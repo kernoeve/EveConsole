@@ -147,8 +147,15 @@ sealed class FakeAnthropic : HttpMessageHandler
     private int _requests;
     public int Requests => _requests;
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
     {
+        // ⚠️ Genuinely asynchronous, like a network call. A handler that returns a completed task
+        // lets the provider's first await complete synchronously, so its loop runs inline on the
+        // CALLING thread until the pipe is empty — and whether the first chunks land before that
+        // is a race. That is a property of the fake, not of the code under test, and it made this
+        // check flicker. A real response never arrives before the request has left.
+        await Task.Delay(20, ct).ConfigureAwait(false);
+
         var round = Interlocked.Increment(ref _requests);
         var pipe  = new Pipe();
 
@@ -203,6 +210,6 @@ sealed class FakeAnthropic : HttpMessageHandler
             Content = new StreamContent(pipe.Reader.AsStream()),
         };
         response.Content.Headers.ContentType = new("text/event-stream");
-        return Task.FromResult(response);
+        return response;
     }
 }

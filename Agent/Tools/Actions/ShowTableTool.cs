@@ -30,6 +30,9 @@ public sealed class ShowTableTool : IAgentTool
         "copied into a spreadsheet and saved as CSV; rows in the chat can only be scrolled past, " +
         "clutter the conversation, and are read aloud when speech is on. " +
         "Each call opens a NEW tab, so earlier answers are not overwritten. " +
+        "Keep one call to roughly 150 rows: the rows are written into this call and a very long " +
+        "one is cut off before it can open. For a larger set, narrow the query or make several " +
+        "calls — one per region, per day, per character. " +
         "After calling this, tell the capsuleer what you found in a sentence or two and name the " +
         "tab — do NOT repeat the rows.";
 

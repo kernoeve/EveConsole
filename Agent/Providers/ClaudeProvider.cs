@@ -22,6 +22,16 @@ public sealed class ClaudeProvider : IAgentProvider
     /// </summary>
     private const int    MaxToolRounds    = 12;
 
+    /// <summary>
+    /// The output ceiling per round.
+    ///
+    /// <para>⚠️ Was 4,096, which the output tools made a real limit: a table is written INTO the
+    /// tool call, at roughly a hundred tokens a row, so a ninety-row answer was cut off inside
+    /// the JSON and never shown. A ceiling costs nothing unless it is reached — output is billed
+    /// as generated — so this is set for the answers these tools exist to carry, not for chat.</para>
+    /// </summary>
+    private const int    MaxOutputTokens  = 16384;
+
     // ⚠️ Not readonly, and only for one reason: tools/AgentStreamCheck replaces it with a client
     // over a fake server so the real streaming path can be run headless, and .NET 9 refuses a
     // reflection write to an initonly static once the type is initialised. Nothing in the
@@ -266,6 +276,23 @@ public sealed class ClaudeProvider : IAgentProvider
             yield break;
         }
 
+        // ⚠️ Same silence, different cause. When the model hits the output-token ceiling the
+        // stop reason is max_tokens, and if it was inside a tool call at the time — writing a
+        // ninety-row table into show_table, say — the tool never runs, the JSON is unfinished,
+        // and the turn ends on whatever text came before: "let me assemble the table", then
+        // nothing. The telemetry showed one of these as eleven rounds and two minutes of work
+        // that reached the capsuleer as no result at all.
+        if (stopReason == "max_tokens" && !ct.IsCancellationRequested)
+        {
+            yield return toolInputs.Count > 0
+                ? "\n\n(That answer was too long to finish in one go — I ran out of room while writing " +
+                  "it out, so the tab never opened. Ask for it narrowed down, or for it in parts, and I " +
+                  "will have the data ready.)"
+                : "\n\n(I ran out of room before I could finish that answer. Ask me to continue and I " +
+                  "will pick up where I left off.)";
+            yield break;
+        }
+
         if (stopReason == "tool_use" && maxRounds > 0
             && toolInputs.Count > 0 && !ct.IsCancellationRequested)
         {
@@ -379,8 +406,8 @@ public sealed class ClaudeProvider : IAgentProvider
             systemBlocks.Add(new { type = "text", text = "\n\n## Current App State\n" + volatileContext });
 
         var bodyObj = toolDefs is not null
-            ? (object)new { model = _model, max_tokens = 4096, system = systemBlocks, messages, tools = toolDefs, stream = true }
-            : new { model = _model, max_tokens = 4096, system = systemBlocks, messages, stream = true };
+            ? (object)new { model = _model, max_tokens = MaxOutputTokens, system = systemBlocks, messages, tools = toolDefs, stream = true }
+            : new { model = _model, max_tokens = MaxOutputTokens, system = systemBlocks, messages, stream = true };
 
         var request = new HttpRequestMessage(HttpMethod.Post, Endpoint)
         {
