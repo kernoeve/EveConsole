@@ -89,7 +89,15 @@ public sealed class LocalWhisperService : IDisposable
         => Task.Run<string?>(async () =>
         {
             var path = ModelPath(modelId);
-            if (!File.Exists(path)) return null;
+
+            // ⚠️ Thrown, not returned as null. A null here reached the panel as "No speech
+            // detected — try speaking a bit longer", so a capsuleer who had simply never
+            // downloaded the model was told, every single time, that their microphone had not
+            // heard them — the one thing that message could not do was mention the model.
+            if (!File.Exists(path))
+                throw new InvalidOperationException(
+                    $"The local speech model '{modelId}' has not been downloaded yet. "
+                  + "Settings → AI Agent → Speech Input → Download Model.");
 
             // ⚠️ Serialised. Two transcriptions at once would contend for the same native context,
             // and push-to-talk is inherently one at a time anyway — so the second waits rather

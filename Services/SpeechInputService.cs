@@ -39,6 +39,22 @@ public sealed class SpeechInputService : IDisposable
     /// </summary>
     public Agent.AgentTelemetryService? Telemetry { get; set; }
 
+    /// <summary>
+    /// Where failures go.
+    ///
+    /// <para>⚠️ Everything in here used to fail to <c>Debug.WriteLine</c>, which in a release
+    /// build goes nowhere at all. A microphone that will not open, a saved device that no longer
+    /// exists, a PortAudio that will not initialise — all of them produced a push-to-talk that
+    /// simply did nothing, with no entry anywhere saying why.</para>
+    /// </summary>
+    public AppErrorLogger? Errors { get; set; }
+
+    private void Fail(string context, string message)
+    {
+        System.Diagnostics.Debug.WriteLine($"[SpeechInput] {context}: {message}");
+        Errors?.Log("SpeechInput", context, message, null);
+    }
+
     public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "")
     {
         _provider             = provider;
@@ -47,25 +63,180 @@ public sealed class SpeechInputService : IDisposable
         _microphoneDeviceName = microphoneDeviceName ?? "";
     }
 
-    // Returns available input device names. Initialises PortAudio if needed.
+    /// <summary>
+    /// The input devices worth offering, one entry per microphone. Initialises PortAudio if needed.
+    ///
+    /// <para>⚠️ PortAudio enumerates every device once per HOST API, and Windows has four of them.
+    /// The raw list on a machine with three microphones was seventeen entries: the same webcam
+    /// four times, the same capture card four times. What looks like duplication is really the
+    /// same hardware reached four different ways.</para>
+    ///
+    /// <para>⚠️ And they are not interchangeable, which is why this filters rather than only
+    /// de-duplicating. Measured on a Windows 11 machine, every WASAPI entry and most WDM-KS
+    /// entries REJECT the 16 kHz mono capture this service records at — so a capsuleer could pick
+    /// a microphone by name, get the WASAPI copy of it, and have push-to-talk fail every time
+    /// while the device list insisted the microphone was there. Only devices that can actually
+    /// open at the recording format are offered.</para>
+    ///
+    /// <para>The survivors are then de-duplicated by name, preferring the host API most likely to
+    /// work: DirectSound and MME resample and share the device, while WDM-KS commonly takes it
+    /// exclusively — which would lock the microphone away from the game and everything else.</para>
+    /// </summary>
     public IReadOnlyList<string> GetInputDeviceNames()
     {
         if (!EnsurePortAudioInit()) return [];
-        var names = new List<string>();
         try
         {
-            for (int i = 0; i < PortAudio.DeviceCount; i++)
+            // Rebuilt here rather than reused: this is what the Refresh button calls, and the
+            // reason to press it is that the hardware changed.
+            _usableDevices = null;
+
+            var kept = new List<string>();
+            foreach (var name in UsableInputDevices()
+                                 .GroupBy(d => d.Name, StringComparer.Ordinal)
+                                 .Select(g => g.First().Name))
             {
-                var info = PortAudio.GetDeviceInfo(i);
-                if (info.maxInputChannels > 0)
-                    names.Add(info.name);
+                if (!IsTruncatedDuplicate(name, kept)) kept.Add(name);
             }
+            return kept;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SpeechInput] Device enumeration failed: {ex.Message}");
+            Fail("Device enumeration", ex.Message);
+            return [];
         }
-        return names;
+    }
+
+    /// <summary>
+    /// Whether this name is the MME spelling of a device already offered under a better host API.
+    ///
+    /// <para>⚠️ MME truncates device names to 31 characters, so the same microphone appears as
+    /// "Microphone (2- HyperX QuadCast S)" under DirectSound and "Microphone (2- HyperX QuadCast "
+    /// under MME. De-duplicating by name alone cannot merge those two — they are different
+    /// strings — and the list keeps a cut-off entry that looks like a second microphone.</para>
+    ///
+    /// <para>The length floor keeps this to the truncation case. Two genuinely different devices
+    /// where one name is a prefix of the other is possible, but not at thirty characters, which is
+    /// where MME cuts.</para>
+    /// </summary>
+    private static bool IsTruncatedDuplicate(string name, List<string> kept)
+        => name.Length >= 30
+        && kept.Any(k => k.Length > name.Length && k.StartsWith(name, StringComparison.Ordinal));
+
+    /// <summary>
+    /// Every input device that can be opened at the recording format, best host API first.
+    ///
+    /// <para>Ordered so that <c>GroupBy(...).First()</c> above and the lookup in
+    /// <see cref="ResolveDeviceIndex"/> agree on which copy of a device to use — the list must
+    /// name the device the recorder will actually open, or the setting means something different
+    /// from what it says.</para>
+    /// </summary>
+    private List<(int Index, string Name, int HostApi)>? _usableDevices;
+
+    private List<(int Index, string Name, int HostApi)> UsableInputDevices()
+    {
+        // ⚠️ Cached because ResolveDeviceIndex runs on every push-to-talk, and probing a WDM-KS
+        // device for format support can mean briefly opening it. Paying that on each key press
+        // would put the cost squarely in the gap between pressing the key and recording starting.
+        if (_usableDevices is not null) return _usableDevices;
+
+        var devices = new List<(int Index, string Name, int HostApi)>();
+        for (int i = 0; i < PortAudio.DeviceCount; i++)
+        {
+            var info = PortAudio.GetDeviceInfo(i);
+            if (info.maxInputChannels <= 0) continue;
+            if (!SupportsRecordingFormat(i, info)) continue;
+            devices.Add((i, info.name, info.hostApi));
+        }
+
+        // Stable: equal ranks keep PortAudio's own order, so the list does not reshuffle between
+        // launches on a machine where nothing changed.
+        return _usableDevices = devices.OrderBy(d => HostApiRank(d.HostApi)).ToList();
+    }
+
+    /// <summary>
+    /// How much a host API is to be trusted with a shared microphone, lower being better.
+    ///
+    /// <para>⚠️ Ranked by NAME, not by index. PortAudio's host API indexes are assigned in
+    /// whatever order the APIs initialise and are not a fixed enumeration, so a hard-coded number
+    /// would silently mean a different API on another machine.</para>
+    /// </summary>
+    private static int HostApiRank(int hostApi) => HostApiName(hostApi) switch
+    {
+        var n when n.Contains("DirectSound", StringComparison.OrdinalIgnoreCase) => 0,
+        var n when n.Contains("MME",         StringComparison.OrdinalIgnoreCase) => 1,
+        var n when n.Contains("WASAPI",      StringComparison.OrdinalIgnoreCase) => 2,
+        var n when n.Contains("WDM-KS",      StringComparison.OrdinalIgnoreCase) => 3,
+        _                                                                        => 2,
+    };
+
+    /// <summary>
+    /// Whether this device can open a stream shaped the way <see cref="StartRecording"/> opens it.
+    ///
+    /// <para>Asked of PortAudio rather than inferred from <c>defaultSampleRate</c>: a device
+    /// reporting 44,100 may well accept 16,000 (DirectSound resamples) and a device reporting
+    /// 48,000 may refuse it (WASAPI does). The only reliable answer is the one the library gives.</para>
+    ///
+    /// <para>⚠️ Assumed supported if the check itself is unavailable. The entry point is reached
+    /// by P/Invoke into the same native library PortAudioSharp loads, and a build where that
+    /// fails should offer too many devices rather than none.</para>
+    /// </summary>
+    private bool SupportsRecordingFormat(int device, DeviceInfo info)
+    {
+        var p = new StreamParameters
+        {
+            device                    = device,
+            channelCount              = 1,
+            sampleFormat              = SampleFormat.Int16,
+            suggestedLatency          = info.defaultLowInputLatency,
+            hostApiSpecificStreamInfo = IntPtr.Zero,
+        };
+
+        var handle = GCHandle.Alloc(p, GCHandleType.Pinned);
+        try   { return NativePa.IsFormatSupported(handle.AddrOfPinnedObject(), IntPtr.Zero, SampleRate) == 0; }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { return true; }
+        finally { handle.Free(); }
+    }
+
+    /// <summary>
+    /// The two PortAudio entry points PortAudioSharp2 1.0.6 does not wrap.
+    ///
+    /// <para>⚠️ "portaudio" is the same library name PortAudioSharp itself imports, so this
+    /// resolves to the library it has already loaded — portaudio.dll on Windows, libportaudio.so
+    /// on Linux — rather than to a second copy with its own device table.</para>
+    /// </summary>
+    private static class NativePa
+    {
+        private const string Lib = "portaudio";
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct HostApiInfo
+        {
+            public int    structVersion;
+            public int    type;
+            public IntPtr name;
+            public int    deviceCount;
+            public int    defaultInputDevice;
+            public int    defaultOutputDevice;
+        }
+
+        /// <summary>Returns 0 (paNoError) when a stream of this shape could be opened.</summary>
+        [DllImport(Lib, EntryPoint = "Pa_IsFormatSupported")]
+        internal static extern int IsFormatSupported(IntPtr inputParams, IntPtr outputParams, double sampleRate);
+
+        [DllImport(Lib, EntryPoint = "Pa_GetHostApiInfo")]
+        internal static extern IntPtr GetHostApiInfo(int hostApi);
+    }
+
+    private static string HostApiName(int hostApi)
+    {
+        try
+        {
+            var p = NativePa.GetHostApiInfo(hostApi);
+            if (p == IntPtr.Zero) return "";
+            return Marshal.PtrToStringAnsi(Marshal.PtrToStructure<NativePa.HostApiInfo>(p).name) ?? "";
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { return ""; }
     }
 
     private int ResolveDeviceIndex()
@@ -73,14 +244,15 @@ public sealed class SpeechInputService : IDisposable
         if (string.IsNullOrEmpty(_microphoneDeviceName))
             return PortAudio.DefaultInputDevice;
 
-        for (int i = 0; i < PortAudio.DeviceCount; i++)
-        {
-            if (PortAudio.GetDeviceInfo(i).name == _microphoneDeviceName)
-                return i;
-        }
+        // ⚠️ Searched among the USABLE devices, in the same preference order the settings list is
+        // built in. A plain scan over every index returns the first name match, which is whichever
+        // host API happens to enumerate first — not necessarily one that can open at 16 kHz, and
+        // not necessarily the one the capsuleer was shown when they chose it.
+        foreach (var d in UsableInputDevices())
+            if (d.Name == _microphoneDeviceName)
+                return d.Index;
 
-        // Named device not found — fall back to default
-        System.Diagnostics.Debug.WriteLine($"[SpeechInput] Microphone '{_microphoneDeviceName}' not found, using default.");
+        Fail("Microphone", $"'{_microphoneDeviceName}' is no longer available — using the system default instead.");
         return PortAudio.DefaultInputDevice;
     }
 
@@ -124,7 +296,7 @@ public sealed class SpeechInputService : IDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SpeechInput] StartRecording failed: {ex.Message}");
+            Fail("StartRecording", ex.Message);
             _callbackDelegate = null;
             _stream?.Dispose();
             _stream    = null;
@@ -250,7 +422,9 @@ public sealed class SpeechInputService : IDisposable
         return ms.ToArray();
     }
 
-    private static bool EnsurePortAudioInit()
+    // Instance rather than static so a failure can reach the error log through Fail; the state
+    // it guards is still process-wide, because PortAudio's initialisation is.
+    private bool EnsurePortAudioInit()
     {
         if (_paInitialized) return true;
         lock (_paLock)
@@ -264,7 +438,7 @@ public sealed class SpeechInputService : IDisposable
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SpeechInput] PortAudio init failed: {ex.Message}");
+                Fail("PortAudio init", ex.Message);
                 return false;
             }
         }

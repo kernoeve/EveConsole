@@ -3684,6 +3684,7 @@ public class App : Application
         services.AddSingleton<SpeechInputService>(sp => new SpeechInputService
         {
             Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+            Errors    = sp.GetRequiredService<AppErrorLogger>(),
         });
         services.AddSingleton<GlobalHotkeyService>();
         services.AddSingleton<KillMailService>();
