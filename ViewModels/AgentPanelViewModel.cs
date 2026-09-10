@@ -458,7 +458,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// byte-identical prefix, and a tail that changes each turn would invalidate roughly 33k
     /// tokens of tool schemas and app reference every single time.</para>
     /// </summary>
-    private string BuildSystemPrompt() => AgentService.BuildSystemPrompt(_service.Settings);
+    private string BuildSystemPrompt()
+        => AgentService.BuildSystemPrompt(_service.Settings, _service.Schema?.Index);
 
     /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
     /// part of the cached prefix.</summary>

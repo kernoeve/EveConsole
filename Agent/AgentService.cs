@@ -58,7 +58,13 @@ public sealed class AgentService : ReactiveObject
     // ── UI context provider (set by MainWindow, called before each StreamAsync) ──
     public Func<string?>? ContextProvider { get; set; }
 
-    public static string BuildSystemPrompt(AgentSettings settings)
+    /// <param name="tableIndex">
+    /// Every table name, from <see cref="AgentSchema.Index"/>. Roughly 1k tokens and worth every
+    /// one of them: without it the agent knows only the tables somebody thought to write down, and
+    /// treats a question whose answer lives anywhere else as a question with no data behind it.
+    /// Sits inside the cached prefix, so it is paid for in full once and at a tenth after that.
+    /// </param>
+    public static string BuildSystemPrompt(AgentSettings settings, string? tableIndex = null)
     {
         var name = string.IsNullOrWhiteSpace(settings.AgentName) ? AgentSettings.DefaultAgentName : settings.AgentName.Trim();
 
@@ -86,6 +92,22 @@ public sealed class AgentService : ReactiveObject
             You are also an expert on the EVE Console application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in EVE Console, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
 
             {AppKnowledge.Guide}
+
+            {tableIndex}
+
+            ## Answering questions about the capsuleer's data
+            Nearly every question about what the capsuleer HAS, OWNS, IS DOING or HAS DONE is a
+            database question, and the database is far larger than the notes on the query_database
+            tool describe. Before concluding that something cannot be answered, look for it: the
+            table index above is the complete list, and describe_tables gives you the columns.
+            "I do not have that data" is almost always wrong — say it only after looking.
+
+            Work in this order:
+            1. Find candidate tables in the index above.
+            2. describe_tables on the few you intend to use. Do not guess column names — an
+               invented one does not reliably fail, it can come back as a column full of its own
+               name, which reads like data.
+            3. Then write the query.
 
             ## Data freshness — IMPORTANT
             EVE Console automatically polls ESI in the background. All data is kept current. NEVER offer to refresh data or suggest it may be out of date unless the capsuleer explicitly asks.
@@ -133,12 +155,19 @@ public sealed class AgentService : ReactiveObject
     /// </summary>
     public AgentTelemetryService? Telemetry { get; set; }
 
+    /// <summary>
+    /// The database as generated from the entity model. Set before <see cref="Initialize"/>;
+    /// without it the agent keeps the query tool but loses discovery, which is the old behaviour
+    /// rather than a broken one.
+    /// </summary>
+    public AgentSchema? Schema { get; set; }
+
     public void Initialize(string dbConnectionString)
     {
         Tools =
         [
             // ── Generic data access ───────────────────────────────────────────
-            new QueryDatabaseTool(dbConnectionString),
+            new QueryDatabaseTool(dbConnectionString, Schema),
 
             // ── Specialised data query tools ──────────────────────────────────
             new GetAssetsTool(dbConnectionString),
@@ -172,6 +201,11 @@ public sealed class AgentService : ReactiveObject
 
         if (MapService is { } mapService)
             Tools = [.. Tools, new OpenMapTool(mapService), new SetMapOverlayTool()];
+
+        // Discovery. Offered only when the schema was built — a describe_tables with nothing
+        // behind it would be a tool that always answers "I do not know".
+        if (Schema is { } schema)
+            Tools = [.. Tools, new DescribeTablesTool(schema)];
 
         if (AlarmToolFactory?.Invoke() is { } alarmTool)
             Tools = [.. Tools, alarmTool];

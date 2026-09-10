@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Text;
 using EveConsole.Data;
 using System.Text.Json;
@@ -21,7 +22,15 @@ public sealed class QueryDatabaseTool : IAgentTool
         Returns up to 200 rows as a JSON array. Use this to answer any question about
         character data, skills, assets, industry jobs, market orders, wallet history, etc.
 
-        DATABASE SCHEMA (key tables):
+        ⚠️ WHAT FOLLOWS IS NOT THE SCHEMA. It is notes on about a quarter of the tables — the ones
+        worth explaining, because their column names do not say what the values mean. The database
+        has far more tables than are listed here, and the full list is in the table index in your
+        instructions. If what you need is not below, that does NOT mean the data does not exist:
+        find the table in the index and call describe_tables for its columns. Several real
+        questions have been answered badly because the answer lived in a table this block never
+        mentioned.
+
+        NOTES ON KEY TABLES (partial — describe_tables is authoritative for columns):
 
         Characters: Id(long PK), Name, CorporationId, TotalSp, UnallocatedSp, SecurityStatus
         Corporations: Id(long PK), Name, Ticker, AuthCharacterId
@@ -152,7 +161,65 @@ public sealed class QueryDatabaseTool : IAgentTool
         required = new[] { "sql" },
     };
 
-    public QueryDatabaseTool(string connString) => _connString = connString;
+    private readonly AgentSchema? _schema;
+
+    public QueryDatabaseTool(string connString, AgentSchema? schema = null)
+    {
+        _connString = connString;
+        _schema     = schema;
+    }
+
+    /// <summary>
+    /// Rejects a query naming a table that does not exist, and says which ones do.
+    ///
+    /// <para>⚠️ This exists because the failure it catches is silent. On SQLite an unknown
+    /// double-quoted identifier is not an error — it is a string literal — so a guessed name comes
+    /// back as rows full of the guess, which reads like data. The agent then answers confidently
+    /// from nothing. Refusing up front, with the real names attached, turns that into one more
+    /// round trip instead of a wrong answer.</para>
+    ///
+    /// <para>⚠️ Deliberately narrow. It only inspects what follows FROM and JOIN, and only rejects
+    /// a name it is sure about — CTEs defined in the same statement are collected first and
+    /// allowed. A validator that blocks working SQL would be worse than the fault it prevents, so
+    /// anything it cannot classify is let through to the database to judge.</para>
+    /// </summary>
+    private string? ValidateTables(string sql)
+    {
+        if (_schema is null) return null;
+
+        // Names introduced by this statement itself: WITH x AS (...), and any alias that follows.
+        var cte = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (Match m in Regex.Matches(sql, @"(?:\bWITH\b|,)\s*""?([A-Za-z_][A-Za-z0-9_]*)""?\s+AS\s*\(",
+                                          RegexOptions.IgnoreCase))
+            cte.Add(m.Groups[1].Value);
+
+        var unknown = new List<string>();
+
+        foreach (Match m in Regex.Matches(sql, @"\b(?:FROM|JOIN)\s+""?([A-Za-z_][A-Za-z0-9_]*)""?",
+                                          RegexOptions.IgnoreCase))
+        {
+            var name = m.Groups[1].Value;
+            if (cte.Contains(name) || _schema.Has(name)) continue;
+            if (!unknown.Contains(name, StringComparer.OrdinalIgnoreCase)) unknown.Add(name);
+        }
+
+        if (unknown.Count == 0) return null;
+
+        var sb = new StringBuilder();
+        sb.Append("Query not run — no such table: ")
+          .Append(string.Join(", ", unknown))
+          .Append('.');
+
+        foreach (var name in unknown)
+        {
+            var near = _schema.Nearest(name, 5);
+            if (near.Count > 0)
+                sb.Append($" Closest to '{name}': {string.Join(", ", near)}.");
+        }
+
+        sb.Append(" Use describe_tables to confirm columns before retrying.");
+        return sb.ToString();
+    }
 
     public async Task<string> ExecuteAsync(JsonElement input, CancellationToken ct = default)
     {
@@ -171,6 +238,11 @@ public sealed class QueryDatabaseTool : IAgentTool
         {
             return """{"error":"Only SELECT (or CTEs starting with WITH...SELECT) are permitted."}""";
         }
+
+        // Before the database sees it: a name that does not exist is answered with the ones that
+        // do, rather than being allowed to return plausible rubbish.
+        if (ValidateTables(sql) is { } complaint)
+            return JsonSerializer.Serialize(new { error = complaint });
 
         try
         {

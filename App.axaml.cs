@@ -3640,9 +3640,31 @@ public class App : Application
         // what builds the tool list, and the decorator can only wrap tools that do not exist yet.
         // A telemetry service attached later would measure token usage and no tool calls at all.
         services.AddSingleton<AgentTelemetryService>();
-        services.AddSingleton<AgentService>(sp => new AgentService
+
+        // ⚠️ Built once from the entity model, not per question: reflecting over 200 entity types
+        // is not free, and the model cannot change while the app is running.
+        services.AddSingleton<AgentSchema>(sp => AgentSchema.Build(sp));
+
+        services.AddSingleton<AgentService>(sp =>
         {
-            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+            // ⚠️ The schema is optional and its failure must not be fatal. It is built by
+            // reflecting over the model during container construction, and this runs on the
+            // startup path — an exception here would stop the whole application from opening over
+            // a feature that only makes the assistant better at finding tables. Without it the
+            // agent keeps every tool it had before; it simply cannot discover new ones.
+            AgentSchema? schema = null;
+            try   { schema = sp.GetRequiredService<AgentSchema>(); }
+            catch (Exception ex)
+            {
+                sp.GetRequiredService<AppErrorLogger>()
+                  .Log("AgentSchema", "Build", ex);
+            }
+
+            return new AgentService
+            {
+                Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+                Schema    = schema,
+            };
         });
         services.AddSingleton<TtsService>();
         services.AddSingleton<SpeechInputService>();
