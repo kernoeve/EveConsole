@@ -1109,6 +1109,10 @@ public class MainWindowViewModel : ReactiveObject
         agentService.EntityBrowser = entityBrowser;
         agentService.MapService    = universeMapService;
         agentService.Esi           = esi;
+        // The preferences were loaded during startup, before this view model exists; the
+        // capsuleer's shared settings are laid over the local file here, before the first prompt
+        // is built from them.
+        agentService.ApplyShared();
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;

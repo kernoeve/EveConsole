@@ -3680,8 +3680,9 @@ public class App : Application
 
             return new AgentService
             {
-                Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
-                Schema    = schema,
+                Telemetry   = sp.GetRequiredService<AgentTelemetryService>(),
+                Schema      = schema,
+                Preferences = sp.GetRequiredService<AppPreferencesService>(),
             };
         });
         // Speech in and out are billable too, and on their own units — characters for a voice,

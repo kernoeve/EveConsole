@@ -279,6 +279,35 @@ public sealed class AgentService : ReactiveObject
     public AgentService() => Load();
 
     /// <summary>
+    /// The shared preferences table, where the half of the settings that describe the CAPSULEER
+    /// rather than the machine live. Set before <see cref="Initialize"/>; without it every
+    /// setting stays in the local file, which is how it was before.
+    /// </summary>
+    public AppPreferencesService? Preferences { get; set; }
+
+    /// <summary>
+    /// The settings that belong to the capsuleer rather than to this installation, and so live in
+    /// the database every client shares: the agent's name, its verbosity, the capsuleer's name and
+    /// the standing instructions. Typed once, read everywhere.
+    ///
+    /// <para>Everything else — whether the agent is on, which service answers and with what key,
+    /// the voice, the microphone — is a property of the machine in front of the capsuleer and
+    /// stays in the local file. A key that is on a laptop should not appear on the desktop, and a
+    /// microphone name from one PC means nothing on another.</para>
+    ///
+    /// <para>⚠️ AppPreferences is the shared table this codebase otherwise warns AGAINST for
+    /// per-machine state, and that warning is the reason for the split rather than an argument
+    /// against it: these four are the ones that were being retyped on every client.</para>
+    /// </summary>
+    private static class SharedKeys
+    {
+        public const string AgentName    = "agent.name";
+        public const string Verbosity    = "agent.verbosity";
+        public const string UserName     = "agent.user_name";
+        public const string UserGuidance = "agent.user_guidance";
+    }
+
+    /// <summary>
     /// Supplies the alarm tool. Set before <see cref="Initialize"/> — without it the agent
     /// simply has no alarm tool, rather than a broken one.
     /// </summary>
@@ -415,11 +444,99 @@ public sealed class AgentService : ReactiveObject
         RebuildProvider();
     }
 
+    /// <summary>
+    /// Lays the shared settings over the local file's copy, once the preferences have loaded.
+    ///
+    /// <para>A key the database has wins over the file. A key it does not have yet — the first
+    /// client on this database to run a build that shares them — is seeded from the file, so the
+    /// standing instructions somebody has already written travel to every other client rather
+    /// than reverting to the default there. The file goes on carrying a copy: an older build
+    /// still reads it, and nothing is lost if the database is ever restored from a backup.</para>
+    /// </summary>
+    public void ApplyShared()
+    {
+        if (Preferences is not { } prefs) return;
+
+        var (next, changed, seeds) = MergeShared(_settings, prefs.Get);
+
+        foreach (var (key, value) in seeds)
+            _ = Task.Run(async () =>
+            {
+                try { await prefs.SetAsync(key, value); }
+                catch { /* the file still has it; the next start tries again */ }
+            });
+
+        if (!changed) return;
+        _settings = next;
+        Save();
+        this.RaisePropertyChanged(nameof(Settings));
+    }
+
+    /// <summary>
+    /// The merge itself, kept pure so it can be tested without a database or the settings file:
+    /// what the settings become, whether anything moved, and which keys the database should be
+    /// seeded with because it has no value and the file has one worth keeping.
+    /// </summary>
+    internal static (AgentSettings Next, bool Changed, List<(string Key, string Value)> Seeds) MergeShared(
+        AgentSettings local, Func<string, string?> shared)
+    {
+        var next    = local.Clone();
+        var changed = false;
+        var seeds   = new List<(string, string)>();
+
+        string Take(string key, string current, string fallback)
+        {
+            var value = shared(key);
+            if (value is not null) { changed |= value != current; return value; }
+            if (current != fallback) seeds.Add((key, current));
+            return current;
+        }
+
+        next.AgentName    = Take(SharedKeys.AgentName,    local.AgentName,    AgentSettings.DefaultAgentName);
+        next.UserName     = Take(SharedKeys.UserName,     local.UserName,     AgentSettings.DefaultUserName);
+        next.UserGuidance = Take(SharedKeys.UserGuidance, local.UserGuidance, "");
+
+        // The enum travels by name. A value that does not parse — a build that renamed one —
+        // is treated as absent rather than as a different setting.
+        if (shared(SharedKeys.Verbosity) is { } verbosity && Enum.TryParse<VerbositySetting>(verbosity, out var v))
+        {
+            changed |= v != local.Verbosity;
+            next.Verbosity = v;
+        }
+        else if (local.Verbosity != VerbositySetting.Balanced)
+            seeds.Add((SharedKeys.Verbosity, local.Verbosity.ToString()));
+
+        return (next, changed, seeds);
+    }
+
+    /// <summary>
+    /// Writes the shared half to the database. Fire-and-forget by design: the local file was
+    /// written synchronously first, so nothing is lost if the process ends before this lands, and
+    /// the preferences cache is updated before the write, so a read that follows sees the new
+    /// value at once.
+    /// </summary>
+    private void SaveShared(AgentSettings s)
+    {
+        if (Preferences is not { } prefs) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await prefs.SetAsync(SharedKeys.AgentName,    s.AgentName);
+                await prefs.SetAsync(SharedKeys.Verbosity,    s.Verbosity.ToString());
+                await prefs.SetAsync(SharedKeys.UserName,     s.UserName);
+                await prefs.SetAsync(SharedKeys.UserGuidance, s.UserGuidance);
+            }
+            catch { /* the file has it; the next start seeds what the database lacks */ }
+        });
+    }
+
     public void Configure(AgentSettings settings)
     {
         _settings = settings;
         RebuildProvider();
         Save();
+        SaveShared(settings);
         this.RaisePropertyChanged(nameof(Settings));
         this.RaisePropertyChanged(nameof(Provider));
     }
@@ -438,6 +555,7 @@ public sealed class AgentService : ReactiveObject
         next.UserGuidance = guidance;
         _settings = next;
         Save();
+        SaveShared(next);
         this.RaisePropertyChanged(nameof(Settings));
     }
 

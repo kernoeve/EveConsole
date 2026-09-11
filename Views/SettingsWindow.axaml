@@ -1951,6 +1951,8 @@
                       <TextBlock Text="Personalisation" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Everything on this tab is about you rather than this PC, so it is kept in the database and shared by every client that opens it. The other tabs — provider, keys, voice, microphone — are this machine's own." />
                       <TextBlock Text="Agent Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                       <TextBox Text="{Binding AgentName}"
                                Watermark="{x:Static agent:AgentSettings.DefaultAgentName}" />
