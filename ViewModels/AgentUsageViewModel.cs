@@ -564,8 +564,9 @@ public class AgentUsageViewModel : ReactiveObject
         // what a capsuleer asked for; the rows under it are provider round trips they never see.
         var bits = new List<string>();
         if (t.RoundTrips    > 1) bits.Add($"{t.RoundTrips} rounds");
-        if (t.ToolCallCount > 0) bits.Add(t.ToolCallCount == 1 ? "1 tool" : $"{t.ToolCallCount} tools");
-        if (t.QueryCount    > 0) bits.Add(t.QueryCount == 1 ? "1 query" : $"{t.QueryCount} queries");
+        // Which tools, not just how many — the same words the chat shows under the reply. "No
+        // tool calls" is said out loud: it is the one that matters when the answer looked real.
+        bits.Add(Agent.ToolUseSummary.Describe(t.ToolsUsed));
         if (t.Error.Length  > 0) bits.Add("failed");
         return string.Join(" · ", bits);
     }

@@ -378,7 +378,14 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // six round trips over twenty seconds, and an empty panel through all of it is
         // indistinguishable from a hang — which is exactly how it was read.
         SetStatus("Thinking…");
-        _service.ToolActivity = tool => SetStatus(ToolStatus(tool));
+
+        // Every tool the turn calls, in the order first called, for the line under the reply.
+        var toolCounts = new Dictionary<string, int>();
+        _service.ToolActivity = tool =>
+        {
+            SetStatus(ToolStatus(tool));
+            lock (toolCounts) toolCounts[tool] = toolCounts.GetValueOrDefault(tool) + 1;
+        };
 
         try
         {
@@ -452,7 +459,9 @@ public sealed class AgentPanelViewModel : ReactiveObject
             if (!ct.IsCancellationRequested && sb.Length > 0)
             {
                 var responseText = sb.ToString();
-                var assistantMsg = new AgentMessage(MessageRole.Assistant, responseText);
+                string toolsUsed;
+                lock (toolCounts) toolsUsed = ToolUseSummary.Describe(toolCounts);
+                var assistantMsg = new AgentMessage(MessageRole.Assistant, responseText) { ToolsUsed = toolsUsed };
                 _history.Add(assistantMsg);
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {

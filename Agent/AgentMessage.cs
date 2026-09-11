@@ -25,6 +25,17 @@ public sealed record AgentMessage
     /// </summary>
     public bool ShowInChat { get; init; } = true;
 
+    /// <summary>
+    /// What the agent's turn called to produce this reply, as <see cref="ToolUseSummary"/> words
+    /// it. Null on a message written before this was recorded; empty never — a turn that called
+    /// nothing says so, which is the case worth seeing.
+    ///
+    /// <para>⚠️ Shown under the bubble and nowhere else. It is deliberately absent from
+    /// <see cref="ContentForModel"/>: fed back as text, a small model learned to write the
+    /// summary in place of calling the tool.</para>
+    /// </summary>
+    public string? ToolsUsed { get; init; }
+
     /// <summary>When it was said, in the capsuleer's own time, for the label above the bubble.</summary>
     [JsonIgnore]
     public string TimeText => Timestamp.ToLocalTime().ToString("d MMM yyyy HH:mm");
@@ -35,6 +46,10 @@ public sealed record AgentMessage
     /// </summary>
     [JsonIgnore]
     public string EveTimeText => Timestamp.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " EVE";
+
+    /// <summary>The line above the bubble: when, and for the agent's replies, what it called.</summary>
+    [JsonIgnore]
+    public string MetaText => ToolsUsed is null ? TimeText : $"{TimeText}  ·  {ToolsUsed}";
 
     /// <summary>
     /// The text as every provider sends it: the capsuleer's turns carry when they were sent, the

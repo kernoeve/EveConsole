@@ -104,8 +104,10 @@
                            HorizontalAlignment="Center"
                            Margin="0 6 0 2"/>
 
-                <!-- When it was said, on the same side as the bubble. -->
-                <TextBlock Text="{Binding TimeText}"
+                <!-- When it was said, on the same side as the bubble — and for the agent's replies,
+                     how many tools the turn called and which. The zero is the point: an answer
+                     full of figures that called nothing did not read the database. -->
+                <TextBlock Text="{Binding MetaText}"
                            IsVisible="{Binding !IsSummary}"
                            FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="{Binding Role, Converter={StaticResource RoleAlignment}}"
