@@ -10,7 +10,7 @@ namespace EveConsole.Agent.Tools.Data;
 ///
 /// <para>The database is a polled copy of what the capsuleer's own characters can see. It knows
 /// who ACCEPTED a contract; it does not know where that person is NOW, because nothing about a
-/// stranger is polled. "Which of the BNI capital buyers are still in Brave, and where did the
+/// stranger is polled. "Which of these contract buyers are still in the corp, and where did the
 /// rest go" is answered by two public endpoints and nothing in the database.</para>
 ///
 /// <para>⚠️ Read-only by construction. GET is always allowed; POST only for the three endpoints
@@ -140,7 +140,7 @@ public sealed class EsiCallTool : IAgentTool
             body = new
             {
                 type        = "string",
-                description = "For POST: the JSON body as a string, e.g. \"[95465499, 2112175987]\" or \"[\\\"Brave Newbies Inc.\\\"]\".",
+                description = "For POST: the JSON body as a string, e.g. \"[95465499, 2112175987]\" or \"[\\\"Goonswarm Federation\\\"]\".",
             },
             character = new
             {

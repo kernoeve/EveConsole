@@ -1973,7 +1973,7 @@
                                AcceptsReturn="True" TextWrapping="Wrap"
                                MinHeight="150" MaxHeight="400" VerticalContentAlignment="Top"
                                ScrollViewer.VerticalScrollBarVisibility="Auto"
-                               Watermark="When I say home, I mean the Keepstar in UALX-3.&#10;When I say Seafood, I mean the system C-FD0D.&#10;My main is Kerno." />
+ />
                       <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
                                  Text="{Binding UserGuidanceHelpText}" />
                     </StackPanel>

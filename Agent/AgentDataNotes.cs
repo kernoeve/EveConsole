@@ -31,8 +31,8 @@ public static class AgentDataNotes
         - Characters: the player's own characters, all of them. Corporations: the corporations the
           app has a token for — and IsPersonal is the line that matters. Personal (IsPersonal =
           true) corporations belong to the player: their wallets, assets, orders and jobs are the
-          player's. The others are corporations the player merely has alts IN — Brave Newbies Inc.
-          is one — and their wallet, assets and orders belong to THAT corporation, not to the
+          player's. The others are corporations the player merely has alts IN — an alliance's main
+          corp, say — and their wallet, assets and orders belong to THAT corporation, not to the
           player. Leave them out of any "my" question unless it is explicitly about the corp.
 
         - So the owner set for a "my" question is:

@@ -24,8 +24,8 @@ public sealed class AgentSettings
 
     /// <summary>
     /// The capsuleer's own standing instructions, given to the agent with every message and
-    /// declared to override the built-in guidance. "When I say home, I mean the Keepstar in
-    /// UALX-3." Edited in Settings, or by the agent itself through update_guidance when told
+    /// declared to override the built-in guidance. "When I say home, I mean Jita 4-4."
+    /// Edited in Settings, or by the agent itself through update_guidance when told
     /// "from now on…".
     /// </summary>
     public string UserGuidance { get; set; } = "";

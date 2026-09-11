@@ -57,11 +57,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     }
 
     public string UserNameHelpText =>
-        $"What {DisplayAgentName} calls you. Default: {AgentSettings.DefaultUserName}. Set it to your main and she will use it.";
+        $"What {DisplayAgentName} calls you. Default: {AgentSettings.DefaultUserName}. Set it to your main and they will use it.";
 
     public string UserGuidanceHelpText =>
-        $"Given to {DisplayAgentName} with every message, and declared to override her standard guidance — what your words mean, who people are, how you want her to behave. One instruction per line. " +
-        $"You can also just tell her: \"when I say home, I mean the Keepstar in UALX-3\" — she records it here herself.";
+        $"Given to {DisplayAgentName} with every message, and declared to override their standard guidance — what your words mean, who people are, how you want them to behave. One instruction per line. " +
+        $"You can also just tell them: \"when I say home, I mean Jita 4-4\" — they record it here themselves.";
 
     public string DefaultAgentNameHelpText =>
         $"The name shown in the panel header and used when the agent refers to itself. Default: {AgentSettings.DefaultAgentName}.";
@@ -73,7 +73,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string HistoryHelpText     =>
         $"History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {DisplayAgentName} panel.";
     public string SummarizationHelpText =>
-        $"When the estimated conversation length crosses this value, {DisplayAgentName} will silently compact older messages into a summary in the background — typically while you are reading her last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).";
+        $"When the estimated conversation length crosses this value, {DisplayAgentName} will silently compact older messages into a summary in the background — typically while you are reading their last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).";
     public string TtsVolumeHelpText   => $"Volume and mute are available directly in the {DisplayAgentName} panel while it is open.";
     public string MicHelpText         => $"When configured, a mic button appears in the {DisplayAgentName} panel. Hold it to record, release to transcribe.";
     public string PttHelpText         =>

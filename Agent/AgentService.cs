@@ -95,7 +95,7 @@ public sealed class AgentService : ReactiveObject
 
         // ⚠️ Last, and declared to win. Everything above is the application's general guidance;
         // this is what THIS person has said about how they want to be understood — "when I say
-        // home I mean the Keepstar in UALX-3" — and it has to beat the general case or it is
+        // home I mean Jita 4-4" — and it has to beat the general case or it is
         // useless. Inside the cached prefix, so a change costs one re-cache, not one per turn.
         var guidance = string.IsNullOrWhiteSpace(settings.UserGuidance)
             ? ""
@@ -213,7 +213,7 @@ public sealed class AgentService : ReactiveObject
             - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
             - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
             - esi_call: For what the database does not hold — anything CURRENT about people outside the capsuleer's own corporations. "Are they still in the corp", "where did they go", public details of a stranger: get the ids from the database, then ask ESI. Never for data the database already has.
-            - set_destination: ALWAYS call this when the capsuleer asks to set a destination, route, or autopilot to a system — "set destination UALX-3", "take me to Jita". Never just say it is done. If it tells you several characters are online, ask which one; do not pick.
+            - set_destination: ALWAYS call this when the capsuleer asks to set a destination, route, or autopilot to a system — "set destination Jita", "take me to Amarr". Never just say it is done. If it tells you several characters are online, ask which one; do not pick.
             - update_guidance: When the capsuleer tells you what a word means, who someone is, or how to behave FROM NOW ON — "when I say home I mean…", "remember that…", "my main is…" — record it with this so it holds in every conversation, then confirm briefly. Never for one-off requests or things you found out yourself.
 
             ## Where a long answer goes — IMPORTANT
@@ -238,7 +238,7 @@ public sealed class AgentService : ReactiveObject
 
             ⚠️ Having opened one, do NOT then write its contents into your reply as well. That
             undoes the entire point. Say what you found in a sentence or two, name the tab, and
-            stop — "Six of them are still in the corp; they are in the BNI Capital Buyers tab."
+            stop — "Six of them are still in the corp; they are in the Capital Buyers tab."
 
             Answer in the chat when the answer is short and conversational: one figure, a yes or
             no, a name, a sentence of explanation. A single value is not a table.

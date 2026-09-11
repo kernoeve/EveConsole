@@ -6,7 +6,7 @@ namespace EveConsole.Agent.Tools.Actions;
 /// Lets the agent write to the capsuleer's standing instructions — the same text that sits in
 /// Settings → AI Agent → Personalisation and is given to the agent with every message.
 ///
-/// <para>This is how "when I say home, I mean the Keepstar in UALX-3" becomes permanent without
+/// <para>This is how "when I say home, I mean Jita 4-4" becomes permanent without
 /// anyone opening Settings: the capsuleer says it, the agent records it, and from the next message
 /// on the prompt carries it. Without this the same sentence would have to be repeated in every
 /// conversation, and it would be lost the moment the history was summarised.</para>
@@ -31,8 +31,8 @@ public sealed class UpdateGuidanceTool : IAgentTool
 
     public string Description =>
         "Records a standing instruction from the capsuleer so it holds in every future " +
-        "conversation — what they mean by a word (\"when I say home I mean the Keepstar in " +
-        "UALX-3\", \"Seafood is the system C-FD0D\"), who someone is (\"my main is Kerno\"), or " +
+        "conversation — what they mean by a word (\"when I say home I mean Jita " +
+        "4-4\", \"the hub means Amarr\"), who someone is (\"my main is <name>\"), or " +
         "how they want you to behave (\"never read out contract ids\"). Use it when the capsuleer " +
         "TELLS you something like that — \"from now on\", \"remember that\", \"when I say\" — and " +
         "then confirm in a few words. Do NOT use it for things you looked up, for one-off requests, " +
@@ -48,7 +48,7 @@ public sealed class UpdateGuidanceTool : IAgentTool
             {
                 type        = "string",
                 description = "One instruction to add, as a single line in the capsuleer's own terms — " +
-                              "e.g. \"When I say home, I mean the Keepstar in UALX-3.\"",
+                              "e.g. \"When I say home, I mean Jita 4-4.\"",
             },
             remove = new
             {

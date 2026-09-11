@@ -12,7 +12,7 @@ namespace EveConsole.Agent.Tools.Actions;
 /// <para>The first tool that changes something in the game rather than in the app, and it is
 /// its own tool for exactly that reason. esi_call is read-only by construction and stays so;
 /// an action gets a tool that can do that one thing, with its inputs checked here, rather than
-/// a hole opened in a generic caller. "Set destination UALX-3" over push-to-talk is one call.</para>
+/// a hole opened in a generic caller. "Set destination Jita" over push-to-talk is one call.</para>
 ///
 /// <para>⚠️ Which character. Several are often logged in at once — three were, the evening this
 /// was written — and the app cannot know which client the capsuleer means. A named character
@@ -33,7 +33,7 @@ public sealed class SetDestinationTool : IAgentTool
 
     public string Description =>
         "Sets the in-game autopilot destination to a solar system for one of the capsuleer's " +
-        "characters — what they mean by \"set destination to UALX-3\", \"route me to Jita\", " +
+        "characters — what they mean by \"set destination to Jita\", \"route me to Amarr\", " +
         "\"set autopilot\". ALWAYS call this rather than saying you have done it. The system is " +
         "looked up by name locally; a near miss is answered with the closest names. Which " +
         "character: the one named, else the only one online, else you are told who is online " +
@@ -49,7 +49,7 @@ public sealed class SetDestinationTool : IAgentTool
             system = new
             {
                 type        = "string",
-                description = "Solar system name, e.g. \"UALX-3\" or \"Jita\". Case does not matter; a unique prefix is accepted.",
+                description = "Solar system name, e.g. \"Jita\" or \"1DQ1-A\". Case does not matter; a unique prefix is accepted.",
             },
             character = new
             {
@@ -169,7 +169,7 @@ public sealed class SetDestinationTool : IAgentTool
         return candidates.Count switch
         {
             1 => (candidates[0].Id, candidates[0].Name, null),
-            0 => (0, "", $"No solar system called '{name}'. Check the spelling — over a microphone, dashes and zeros are often the trouble (UALX-3, C-FD0D)."),
+            0 => (0, "", $"No solar system called '{name}'. Check the spelling — over a microphone, dashes and zeros are often the trouble (1DQ1-A, D-PNP9)."),
             _ => (0, "", $"'{name}' matches several systems: {string.Join(", ", candidates.Select(c => c.Name))}. Ask which."),
         };
     }

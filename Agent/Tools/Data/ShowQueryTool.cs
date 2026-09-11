@@ -88,7 +88,7 @@ public sealed class ShowQueryTool : IAgentTool
             title = new
             {
                 type = "string",
-                description = "Short tab name, ideally two to four words — e.g. \"Brave Losses, 24h\". " +
+                description = "Short tab name, ideally two to four words — e.g. \"Losses, 24h\". " +
                               "This is what the capsuleer sees on the tab, so make it specific.",
             },
             caption = new

@@ -44,7 +44,7 @@ public sealed class ShowTableTool : IAgentTool
             title = new
             {
                 type = "string",
-                description = "Short tab name, ideally two to four words — e.g. \"BNI Capital Buyers\". " +
+                description = "Short tab name, ideally two to four words — e.g. \"Capital Buyers\". " +
                               "This is what the capsuleer sees on the tab, so make it specific.",
             },
             caption = new
