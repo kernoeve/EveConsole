@@ -46,6 +46,12 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     private readonly string _model;
     private readonly bool   _isLocal;
 
+    // The loaded model's context window, from Ollama's /api/ps. Asked after each local round —
+    // one small GET to a server on the LAN, and the answer can change if the server is restarted
+    // with a different length — and never again once a server has said it has no such route.
+    private int? _contextLength;
+    private bool _contextProbeSupported = true;
+
     public string ProviderName { get; }
     public bool   IsConfigured => _isLocal
         ? !string.IsNullOrWhiteSpace(_baseUrl) && !string.IsNullOrWhiteSpace(_model)
@@ -246,6 +252,12 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             outTok = (text.Length + calls.Values.Sum(v => v.Args.Length + v.Name.Length)) / 4;
         }
 
+        // The window is worth knowing only where the prompt can silently outgrow it, which is a
+        // local server; and only once a round has completed, which is what guarantees the model
+        // is loaded and therefore listed.
+        if (_isLocal && usageSeen)
+            await ProbeContextLengthAsync(ct).ConfigureAwait(false);
+
         onUsage?.Invoke(new UsageReport
         {
             Provider         = ProviderName,
@@ -258,6 +270,7 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             IsEstimated      = estimated,
             StopReason       = stopReason,
             DurationMs       = (int)roundStarted.ElapsedMilliseconds,
+            ContextLength    = _contextLength,
         });
 
         // ── Ending conditions, worded exactly as the Claude provider words them ──
@@ -376,6 +389,50 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         request.Headers.Add("Accept", "text/event-stream");
         return request;
     }
+
+    /// <summary>
+    /// The context window the model is currently loaded with, from Ollama's <c>/api/ps</c>,
+    /// which sits beside the OpenAI-compatible surface on the same server. Best-effort: a server
+    /// that is not Ollama answers 404 and is not asked again; any failure leaves the last answer.
+    ///
+    /// <para>⚠️ The window is a property of the LOADED model, not of the model file — Ollama
+    /// sizes it from OLLAMA_CONTEXT_LENGTH (or the request) at load time, and the same file
+    /// can be running at 4k on one machine and 64k on another. That is why this is asked of the
+    /// running server rather than looked up.</para>
+    /// </summary>
+    private async Task ProbeContextLengthAsync(CancellationToken ct)
+    {
+        if (!_contextProbeSupported) return;
+        try
+        {
+            // _baseUrl is the server root plus "v1/"; Ollama's own API is the sibling "api/".
+            var root = _baseUrl[..^"v1/".Length];
+            using var response = await _http.GetAsync(root + "api/ps", ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode) { _contextProbeSupported = false; return; }
+
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
+            if (!doc.RootElement.TryGetProperty("models", out var models) || models.ValueKind != JsonValueKind.Array) return;
+
+            foreach (var m in models.EnumerateArray())
+            {
+                var name  = m.TryGetProperty("name",  out var n)  && n.ValueKind  == JsonValueKind.String ? n.GetString()  ?? "" : "";
+                var model = m.TryGetProperty("model", out var mm) && mm.ValueKind == JsonValueKind.String ? mm.GetString() ?? "" : "";
+                if (!IsOurModel(name) && !IsOurModel(model)) continue;
+                if (m.TryGetProperty("context_length", out var c) && c.ValueKind == JsonValueKind.Number)
+                    _contextLength = c.GetInt32();
+                return;
+            }
+        }
+        catch { /* the window is a courtesy; the turn already succeeded without it */ }
+    }
+
+    /// <summary>
+    /// Ollama lists "qwen2.5:7B" for a setting of "qwen2.5:7b", and "llama3.1:latest" for a
+    /// setting that names no tag at all.
+    /// </summary>
+    private bool IsOurModel(string loaded)
+        => loaded.Equals(_model, StringComparison.OrdinalIgnoreCase)
+        || (!_model.Contains(':') && loaded.Equals(_model + ":latest", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Roughly four characters to a token — the estimate used only when the service reports nothing.</summary>
     private static long EstimateTokens(object graph) => JsonSerializer.Serialize(graph).Length / 4;

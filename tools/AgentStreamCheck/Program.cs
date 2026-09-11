@@ -43,17 +43,22 @@ var failures = new List<string>();
 failures.AddRange(Scenario.Run("Claude, 5-minute cache",
     handler => Seam(typeof(ClaudeProvider), handler),
     () => new ClaudeProvider("not-a-real-key"),
-    new FakeAnthropic(), h => ((FakeAnthropic)h).Verify()));
+    new FakeAnthropic(), (h, _) => ((FakeAnthropic)h).Verify()));
 
 failures.AddRange(Scenario.Run("Claude, 1-hour cache",
     handler => Seam(typeof(ClaudeProvider), handler),
     () => new ClaudeProvider("not-a-real-key", cacheTtl: "1h"),
-    new FakeAnthropic(), h => ((FakeAnthropic)h).Verify(expectHourOnStable: true)));
+    new FakeAnthropic(), (h, _) => ((FakeAnthropic)h).Verify(expectHourOnStable: true)));
 
 failures.AddRange(Scenario.Run("OpenAI-compatible",
     handler => Seam(typeof(OpenAiCompatibleProvider), handler),
     () => OpenAiCompatibleProvider.OpenAi("not-a-real-key", "gpt-4o"),
-    new FakeOpenAi(), h => ((FakeOpenAi)h).Verify()));
+    new FakeOpenAi(), (h, _) => ((FakeOpenAi)h).Verify()));
+
+failures.AddRange(Scenario.Run("Local (Ollama)",
+    handler => Seam(typeof(OpenAiCompatibleProvider), handler),
+    () => OpenAiCompatibleProvider.Local("http://fake-ollama:11434", "qwen2.5:7b"),
+    new FakeOllama(), (h, usage) => ((FakeOllama)h).VerifyLocal(usage)));
 
 if (failures.Count == 0)
 {
@@ -80,7 +85,7 @@ static class Scenario
 {
     /// <summary>One provider, one fake server: the threading assertions, then the fake's own.</summary>
     public static List<string> Run(string name, Action<HttpMessageHandler> seam, Func<IAgentProvider> make,
-                                   IFakeServer server, Func<IFakeServer, List<string>> verifyWire)
+                                   IFakeServer server, Func<IFakeServer, IReadOnlyList<UsageReport>, List<string>> verifyWire)
     {
         var failures = new List<string>();
         Console.WriteLine($"══ {name} ══");
@@ -138,7 +143,7 @@ static class Scenario
         if (tool.Executions != IFakeServer.ToolRounds)
             failures.Add($"{name}: the tool ran {tool.Executions} time(s), expected {IFakeServer.ToolRounds}.");
 
-        foreach (var f in verifyWire(server)) failures.Add($"{name}: {f}");
+        foreach (var f in verifyWire(server, usage)) failures.Add($"{name}: {f}");
         return failures;
     }
 }
@@ -216,9 +221,17 @@ abstract class FakeSse : HttpMessageHandler, IFakeServer
 
     protected abstract Task WriteRoundAsync(Func<string, Task> write, int round, string body, CancellationToken ct);
 
+    /// <summary>
+    /// Anything that is not a chat round — the provider asking a local server about itself. A
+    /// server that has no such route says so, which is what every non-Ollama server does.
+    /// </summary>
+    protected virtual Task<HttpResponseMessage> SideRequestAsync(HttpRequestMessage req, CancellationToken ct)
+        => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+
     protected sealed override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
     {
         await Task.Delay(20, ct).ConfigureAwait(false);
+        if (req.Method == HttpMethod.Get) return await SideRequestAsync(req, ct).ConfigureAwait(false);
         var round = Interlocked.Increment(ref _requests);
         var body  = await req.Content!.ReadAsStringAsync(ct);
         var pipe  = new Pipe();
@@ -321,9 +334,9 @@ sealed class FakeAnthropic : FakeSse
 /// The OpenAI Chat Completions stream: content deltas, a tool call delivered as fragments, a
 /// usage chunk at the end. Records each request so the round trip can be checked.
 /// </summary>
-sealed class FakeOpenAi : FakeSse
+class FakeOpenAi : FakeSse
 {
-    private readonly List<string> _bodies = [];
+    protected readonly List<string> _bodies = [];
 
     protected override async Task WriteRoundAsync(Func<string, Task> write, int round, string body, CancellationToken ct)
     {
@@ -399,6 +412,54 @@ sealed class FakeOpenAi : FakeSse
             failures.Add("tools were not sent in the function-calling shape");
 
         Console.WriteLine("  wire                  : assistant turn echoed with reassembled call, tool result keyed by id, usage requested, user turn stamped, live state last");
+        return failures;
+    }
+}
+
+/// <summary>
+/// Ollama: the same stream, plus the /api/ps route beside it that says what the loaded model's
+/// window is. Records how often it was asked.
+///
+/// <para>⚠️ The window matters because Ollama does not refuse a prompt that outgrows it — it
+/// drops the OLDEST messages, and the oldest message this provider sends is the system prompt.
+/// The panel summarises before that point only if the provider has reported the window, so a
+/// provider that stops asking, or asks before the model is loaded and never again, is a silent
+/// loss of the whole instruction set on some later turn.</para>
+/// </summary>
+sealed class FakeOllama : FakeOpenAi
+{
+    private int _psRequests;
+
+    protected override Task<HttpResponseMessage> SideRequestAsync(HttpRequestMessage req, CancellationToken ct)
+    {
+        if (req.RequestUri?.AbsolutePath != "/api/ps") return base.SideRequestAsync(req, ct);
+        Interlocked.Increment(ref _psRequests);
+        // As the server lists it: the tag's case is Ollama's own, not the setting's.
+        var body = """{"models":[{"name":"qwen2.5:7B","model":"qwen2.5:7B","size":5500000000,"size_vram":5500000000,"context_length":32768}]}""";
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, "application/json") });
+    }
+
+    public List<string> VerifyLocal(IReadOnlyList<UsageReport> usage)
+    {
+        var failures = new List<string>();
+        if (_bodies.Count == 0) { failures.Add("no requests captured"); return failures; }
+
+        using var firstDoc = JsonDocument.Parse(_bodies[0]);
+        var first = firstDoc.RootElement;
+        if (!first.TryGetProperty("max_tokens", out _) || first.TryGetProperty("max_completion_tokens", out _))
+            failures.Add("a local server must be sent max_tokens, not max_completion_tokens");
+        if (!_bodies[0].Contains("\"tools\""))
+            failures.Add("tools were not sent to the local server");
+
+        // Once per round, and the model matched despite the tag's case.
+        if (_psRequests != Requests)
+            failures.Add($"/api/ps was asked {_psRequests} time(s) over {Requests} round(s); the window must be asked after every round, since the server can be restarted with another length");
+        if (usage.Count == 0 || usage.Any(u => u.ContextLength != 32768))
+            failures.Add("the usage reports do not carry the loaded window (expected 32768 on every one)");
+        if (usage.Any(u => !u.IsLocal))
+            failures.Add("usage from a local server was not marked local");
+
+        Console.WriteLine($"  wire                  : max_tokens sent, tools sent, /api/ps asked after each of {Requests} rounds, window {usage.FirstOrDefault()?.ContextLength} reported on every usage report");
         return failures;
     }
 }

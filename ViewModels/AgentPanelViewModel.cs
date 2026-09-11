@@ -415,9 +415,18 @@ public sealed class AgentPanelViewModel : ReactiveObject
                         && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None;
             var pending  = new StringBuilder();
 
+            // What the turn's largest prompt came to, and the window it went into when the server
+            // says — see the threshold check after the turn.
+            long promptTokens = 0; int? window = null;
+
             await foreach (var chunk in _service.Provider.StreamAsync(
                 systemPrompt, _history, _service.Tools,
-                onUsage: u => telemetry?.Usage(u),
+                onUsage: u =>
+                {
+                    telemetry?.Usage(u);
+                    promptTokens = Math.Max(promptTokens, u.InputTokens + u.CacheReadTokens);
+                    window       = u.ContextLength ?? window;
+                },
                 volatileContext: CurrentAppState(),
                 ct: ct).ConfigureAwait(false))
             {
@@ -456,8 +465,17 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
                 SaveHistory();
 
-                // Fire background summarization if threshold is crossed.
-                if (EstimateTokens() >= _service.Settings.SummarizationThreshold)
+                // Fire background summarization if threshold is crossed — or if the prompt is
+                // closing on the model's window, when the server has said what that is.
+                //
+                // ⚠️ The threshold is set blind to the window, and a local server does not refuse
+                // a prompt that outgrows it. Ollama drops the OLDEST messages to make room, and
+                // the oldest message in this layout is the system prompt: measured on a 2k window,
+                // the instructions went first, whole, while the chat stayed, and the model went on
+                // answering with none. Eighty percent leaves room for the next question and the
+                // reply; the summary then shrinks the history well below it.
+                if (EstimateTokens() >= _service.Settings.SummarizationThreshold
+                    || (window is > 0 && promptTokens > window.Value * 0.8))
                     _summarizationTask = SummarizeAsync();
             }
         }

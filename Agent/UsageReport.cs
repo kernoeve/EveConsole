@@ -32,4 +32,16 @@ public sealed record UsageReport
 
     public string StopReason { get; init; } = "";
     public int    DurationMs { get; init; }
+
+    /// <summary>
+    /// The context window the model was loaded with, in tokens, when the server can say —
+    /// Ollama reports it; a cloud service does not need to. Null means unknown, not unlimited.
+    ///
+    /// <para>Here rather than on the provider because the caller that has to act on it is the
+    /// one already receiving these: the panel, which must summarise the history before the prompt
+    /// reaches the window. Measured on a 2k window: Ollama does not refuse a prompt that outgrows
+    /// it, it drops the OLDEST messages — which for this layout is the whole system prompt, while
+    /// the chat stays — and the model went on answering with no instructions at all.</para>
+    /// </summary>
+    public int? ContextLength { get; init; }
 }
