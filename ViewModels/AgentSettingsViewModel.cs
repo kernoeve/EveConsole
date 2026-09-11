@@ -494,9 +494,15 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _service.WhenAnyValue(x => x.Settings)
                 .Subscribe(s =>
                 {
+                    AgentName    = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
+                    Verbosity    = s.Verbosity;
                     UserGuidance = s.UserGuidance ?? "";
                     UserName     = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
                 });
+
+        // What another client has written since this one started. The subscription above puts
+        // it on the tab when it lands.
+        _ = _service.RefreshSharedAsync();
     }
 
     private void LoadFromService()

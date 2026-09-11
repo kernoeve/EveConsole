@@ -453,23 +453,54 @@ public sealed class AgentService : ReactiveObject
     /// than reverting to the default there. The file goes on carrying a copy: an older build
     /// still reads it, and nothing is lost if the database is ever restored from a backup.</para>
     /// </summary>
-    public void ApplyShared()
+    public void ApplyShared() => ApplyShared(firstRun: true);
+
+    /// <summary>
+    /// Re-reads the shared half from the database and applies whatever another client has
+    /// changed since. Called before every turn and whenever the settings tab opens, so a running
+    /// client is never more than one turn behind an instruction written elsewhere.
+    ///
+    /// <para>The preferences service reads its table once at start and answers from memory after
+    /// that, which is right for a value this client wrote and wrong for one another client did;
+    /// this is the one place that asks the table again. A database that cannot be reached leaves
+    /// the last values standing.</para>
+    /// </summary>
+    public async Task RefreshSharedAsync()
+    {
+        if (Preferences is not { } prefs) return;
+        try   { await Task.Run(prefs.LoadAsync); }
+        catch { return; }
+        ApplyShared(firstRun: false);
+    }
+
+    private void ApplyShared(bool firstRun)
     {
         if (Preferences is not { } prefs) return;
 
         var (next, changed, seeds) = MergeShared(_settings, prefs.Get);
+        if (changed)
+        {
+            _settings = next;
+            this.RaisePropertyChanged(nameof(Settings));
+        }
 
-        foreach (var (key, value) in seeds)
+        if (seeds.Count > 0)
+        {
+            // The file's copy is the only one until the database has it: written there first,
+            // and only then dropped from the file. A failed write leaves the file as it was and
+            // the next start seeds again.
             _ = Task.Run(async () =>
             {
-                try { await prefs.SetAsync(key, value); }
-                catch { /* the file still has it; the next start tries again */ }
+                try
+                {
+                    foreach (var (key, value) in seeds) await prefs.SetAsync(key, value);
+                    Save();
+                }
+                catch { /* the file still has it */ }
             });
-
-        if (!changed) return;
-        _settings = next;
-        Save();
-        this.RaisePropertyChanged(nameof(Settings));
+        }
+        else if (firstRun || changed)
+            Save();   // the file drops its copy of what the database now holds
     }
 
     /// <summary>
@@ -559,14 +590,32 @@ public sealed class AgentService : ReactiveObject
         this.RaisePropertyChanged(nameof(Settings));
     }
 
+    /// <summary>
+    /// Writes the machine's half to the local file. The shared half is left at its defaults there
+    /// once a database holds it — moved, not copied, so there is one place a standing instruction
+    /// lives and no stale second copy to be found later. Without a database the file keeps all
+    /// of it, as it always did.
+    /// </summary>
     public void Save()
     {
         try
         {
+            var forFile = Preferences is null ? _settings : WithoutShared(_settings);
             Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
-            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(_settings, _jsonOpts));
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(forFile, _jsonOpts));
         }
         catch { /* non-fatal */ }
+    }
+
+    /// <summary>A copy with the shared half at its defaults: what the local file holds.</summary>
+    internal static AgentSettings WithoutShared(AgentSettings s)
+    {
+        var local = s.Clone();
+        local.AgentName    = AgentSettings.DefaultAgentName;
+        local.Verbosity    = VerbositySetting.Balanced;
+        local.UserName     = AgentSettings.DefaultUserName;
+        local.UserGuidance = "";
+        return local;
     }
 
     private void RebuildProvider()

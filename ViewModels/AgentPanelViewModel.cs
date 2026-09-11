@@ -367,6 +367,10 @@ public sealed class AgentPanelViewModel : ReactiveObject
         _tts?.Stop();
         var ct = _cts.Token;
 
+        // The standing instructions and names may have been changed on another client since
+        // this one started; the prompt is built from what the database says now.
+        await _service.RefreshSharedAsync();
+
         var systemPrompt = BuildSystemPrompt();
         var sb = new StringBuilder();
 
