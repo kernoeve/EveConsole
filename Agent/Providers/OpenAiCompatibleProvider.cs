@@ -90,20 +90,25 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     {
         // ── The prompt, in cache order ────────────────────────────────────────
         //
-        // One system message: the stable text, then the live state. The service caches whatever
-        // prefix it has seen before, so the part that changes every turn goes last within the
-        // block, and the history is appended after it exactly as it was last time.
-        var system = string.IsNullOrWhiteSpace(volatileContext)
-            ? systemPrompt
-            : systemPrompt + "\n\n## Current App State\n" + volatileContext;
-
-        var messages = new List<object> { new { role = "system", content = system } };
+        // The service caches whatever prefix it has seen before, so the stable text goes first
+        // and the history is appended after it exactly as it was last time.
+        //
+        // ⚠️ The live app state goes LAST, as its own system message after the newest user turn
+        // — not inside the first one. It carries the clock, so it differs every turn, and the
+        // first version of this provider folded it into the system prompt: the cache then ended
+        // at that line, and the tools and the whole history after it — 12,500 tokens — were
+        // re-sent uncached on every turn. Measured: 11,136 cached of 23,700 on each new turn.
+        // Trailing, only it changes; the prefix through the newest user message is byte-identical
+        // to the previous request and hits.
+        var messages = new List<object> { new { role = "system", content = systemPrompt } };
         foreach (var m in history)
             messages.Add(new
             {
                 role    = m.Role == MessageRole.User ? "user" : "assistant",
                 content = m.ContentForModel,
             });
+        if (!string.IsNullOrWhiteSpace(volatileContext))
+            messages.Add(new { role = "system", content = "## Current App State\n" + volatileContext });
 
         var toolMap = tools?.ToDictionary(t => t.Name) ?? new Dictionary<string, IAgentTool>();
 

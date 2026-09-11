@@ -102,7 +102,8 @@ static class Scenario
         async Task Consume()
         {
             await foreach (var chunk in provider.StreamAsync("system", [new AgentMessage(MessageRole.User, "hi")], [tool],
-                                                             onUsage: u => usage.Add(u))
+                                                             onUsage: u => usage.Add(u),
+                                                             volatileContext: "Now: 12:00")
                                                 .ConfigureAwait(false))
             {
                 text.Append(chunk);
@@ -384,14 +385,20 @@ sealed class FakeOpenAi : FakeSse
         var first = firstDoc.RootElement;
         if (!first.TryGetProperty("stream_options", out var so) || !so.GetProperty("include_usage").GetBoolean())
             failures.Add("usage was not requested (stream_options.include_usage)");
-        if (first.GetProperty("messages")[0].GetProperty("role").GetString() != "system")
-            failures.Add("the system prompt is not the first message");
+        // ⚠️ The live app state must be the LAST message and must not be inside the first: it
+        // changes every turn, and anything after it in the prefix is uncached. Measured before
+        // this rule: 12,500 tokens re-sent on every turn.
+        var firstMsgs = first.GetProperty("messages").EnumerateArray().ToList();
+        if (firstMsgs[0].GetProperty("role").GetString() != "system" || firstMsgs[0].GetProperty("content").GetString() != "system")
+            failures.Add("the first message is not the stable system prompt on its own");
+        if (firstMsgs[^1].GetProperty("role").GetString() != "system" || !firstMsgs[^1].GetProperty("content").GetString()!.Contains("Now: 12:00"))
+            failures.Add("the live app state is not the last message — everything after it would be uncached every turn");
         if (!first.GetProperty("messages")[1].GetProperty("content").GetString()!.EndsWith(" EVE] hi"))
             failures.Add("the capsuleer's message was not stamped with its time");
         if (!first.TryGetProperty("tools", out var tools) || tools[0].GetProperty("function").GetProperty("name").GetString() != "show_table")
             failures.Add("tools were not sent in the function-calling shape");
 
-        Console.WriteLine("  wire                  : assistant turn echoed with reassembled call, tool result keyed by id, usage requested, user turn stamped");
+        Console.WriteLine("  wire                  : assistant turn echoed with reassembled call, tool result keyed by id, usage requested, user turn stamped, live state last");
         return failures;
     }
 }
