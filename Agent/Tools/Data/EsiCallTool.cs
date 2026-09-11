@@ -94,8 +94,9 @@ public sealed class EsiCallTool : IAgentTool
               `character` and the call is signed with their token. Members lists and corp
               wallets need roles the character may not have; ESI says so with a 403.
 
-        Paths are relative — characters/123/ — no scheme, no host. Only GET, plus the three POST
-        lookups above; everything else is refused. Responses over 12,000 characters are cut off
+        Paths are relative — characters/123/ — no scheme, no host, no version prefix: every
+        route in the current ESI specification works as written there. Only GET, plus the three
+        POST lookups above; everything else is refused. Responses over 12,000 characters are cut off
         and say so: narrow the request or page it with ?page=N (the result says how many pages).
         `paths` (GET only) takes up to 40 paths and returns an object keyed by path — use it
         whenever you would otherwise call the same endpoint for several ids, so the whole set
@@ -195,7 +196,7 @@ public sealed class EsiCallTool : IAgentTool
                 body = null;
                 break;
             case "POST":
-                var bare = path.Split('?')[0];
+                var bare = path[Root.Length..].Split('?')[0];
                 if (!ReadOnlyPosts.Any(p => bare.Equals(p, StringComparison.OrdinalIgnoreCase)))
                     return $"POST is only allowed for {string.Join(", ", ReadOnlyPosts)} — lookups that take a list. "
                          + "This tool is read-only; nothing that changes state can be called through it.";
@@ -224,7 +225,7 @@ public sealed class EsiCallTool : IAgentTool
         if (r.StatusCode == 0)
             return $"ESI call not made: {r.Error}";
         if (!r.IsSuccess)
-            return $"ESI returned {r.StatusCode} for {method} {path}: {Trim(r.Error ?? "", 600)}"
+            return $"ESI returned {r.StatusCode} for {method} {path[Root.Length..]}: {Trim(r.Error ?? "", 600)}"
                  + (r.StatusCode == 403 && characterId is null
                     ? " This endpoint needs a token — pass one of the capsuleer's characters as `character`."
                     : "")
@@ -259,17 +260,34 @@ public sealed class EsiCallTool : IAgentTool
         return r;
     }
 
-    /// <summary>The path as the client will send it, or null when it is not a relative ESI path.</summary>
+    /// <summary>
+    /// The ESI root. The client's own base address is /latest/, and the agent's calls do NOT use
+    /// it.
+    ///
+    /// <para>⚠️ Measured: the root serves everything /latest/ serves, byte for byte, and also
+    /// the routes /latest/ answers 404 for — /sovereignty/systems/ among them. Since the move to
+    /// compatibility dates the root is the canonical form and the version prefixes are the
+    /// legacy one, so an agent resolving against /latest/ would be cut off from exactly the
+    /// endpoints added most recently. The host is fixed here; the input path can never carry
+    /// one.</para>
+    /// </summary>
+    private const string Root = "https://esi.evetech.net/";
+
+    /// <summary>
+    /// The absolute URL the client will send, or null when the input is not a relative ESI path.
+    /// A version prefix the model remembers from older documentation is stripped.
+    /// </summary>
     private static string? Normalise(string path, string queryString)
     {
         path = path.Trim();
         if (path.Length == 0) return null;
         if (path.Contains("://") || path.Contains("..") || path.Any(char.IsWhiteSpace)) return null;
         path = path.TrimStart('/');
-        if (path.StartsWith("latest/", StringComparison.OrdinalIgnoreCase)) path = path["latest/".Length..];
+        foreach (var prefix in new[] { "latest/", "dev/", "legacy/", "v1/", "v2/", "v3/", "v4/", "v5/", "v6/" })
+            if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) { path = path[prefix.Length..]; break; }
         if (!path.EndsWith('/') && !path.Contains('?')) path += "/";
         if (queryString.Length > 0) path += (path.Contains('?') ? "&" : "?") + queryString;
-        return path;
+        return Root + path;
     }
 
     /// <summary>
