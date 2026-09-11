@@ -129,11 +129,17 @@ public class ErrorLogViewModel : ReactiveObject
     }
 
     // Accepts a plain date or date+time, interpreted as local time.
+    // ⚠️ Typed as local, compared as UTC. The rows are written with DateTimeOffset.UtcNow, and on
+    // SQLite the comparison is between TEXT — "2026-09-11 13:00:00-06:00" against a stored
+    // "2026-09-11 19:00:00+00:00" — where the offset is just more characters. A local-offset
+    // parameter therefore matched from the wrong hour: the whole local offset's worth of rows
+    // either side of the boundary. Sent as UTC it has the stored shape and the text order is the
+    // time order. PostgreSQL compares typed values and never minded.
     private static bool TryDate(string s, out DateTimeOffset dt)
     {
         if (!string.IsNullOrWhiteSpace(s) &&
             DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var d))
-        { dt = new DateTimeOffset(d); return true; }
+        { dt = new DateTimeOffset(d).ToUniversalTime(); return true; }
         dt = default; return false;
     }
 }

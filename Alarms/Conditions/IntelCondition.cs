@@ -163,15 +163,15 @@ public sealed class IntelCondition : IAlarmCondition
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
                 SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
                 FROM "IntelReports"
-                WHERE "ReportedAt" >= $cutoff
+                WHERE "ReportedAt" >= @cutoff
                   AND "SystemId" IN ({idList})
-                  AND "PlayerCount" >= $minimum
+                  AND "PlayerCount" >= @minimum
                   {(skipNv ? """AND "NoVisual" = FALSE""" : "")}
                 ORDER BY "Id" DESC
                 LIMIT {MaxReports}
                 """);
-            cmd.AddWithValue("$cutoff", cutoff);
-            cmd.AddWithValue("$minimum", minimum);
+            cmd.AddWithValue("@cutoff", cutoff);
+            cmd.AddWithValue("@minimum", minimum);
 
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
@@ -250,8 +250,8 @@ public sealed class IntelCondition : IAlarmCondition
         {
             if (string.IsNullOrWhiteSpace(name)) continue;
 
-            await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper($n) LIMIT 1""");
-            cmd.AddWithValue("$n", name.Trim());
+            await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper(@n) LIMIT 1""");
+            cmd.AddWithValue("@n", name.Trim());
 
             var result = await cmd.ExecuteScalarAsync(ct);
             if (result is not null and not DBNull) ids.Add(Convert.ToInt32(result));
