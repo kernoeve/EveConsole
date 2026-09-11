@@ -70,6 +70,14 @@ jobs:
       - name: Agent stream check
         run: dotnet run --project tools/AgentStreamCheck/AgentStreamCheck.csproj -c Release
 
+      # ⚠️ Does a detail popup stay with the row that is showing its item? The DataGrid keeps
+      # rows in the tree after they leave the screen — recycled in place, or parked when they
+      # hold focus — and a popup anchored to one hangs at the old position while the item's new
+      # row opens another. The worklist drew the same manifest twice whenever the clicked row
+      # moved. This drives the real DataGrid, headless, through each way a row can go stale.
+      - name: Row detail check
+        run: dotnet run --project tools/RowDetailCheck/RowDetailCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

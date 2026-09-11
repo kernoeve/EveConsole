@@ -21,7 +21,17 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         // source.
         AddHandler(GotFocusEvent, OnFieldFocused, RoutingStrategies.Bubble);
         AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Bubble);
+
+        // After every layout, each detail popup is open exactly when its row is live and its item
+        // is expanded — see RowDetailPopups for the two ways a row stays in the tree after it has
+        // left the screen, and why the detach handler below cannot see either of them.
+        LayoutUpdated += (_, _) => _details.Reconcile();
     }
+
+    private readonly RowDetailPopups _details = new();
+
+    private void OnRowLoading(object? sender, DataGridRowEventArgs e)   => _details.RowLoaded((DataGrid)sender!, e.Row);
+    private void OnRowUnloading(object? sender, DataGridRowEventArgs e) => _details.RowUnloaded(e.Row);
 
     /// <summary>
     /// Applies a tab the Overview asked for, once this view's own TabControl binding is live.
@@ -214,6 +224,12 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
     /// there at the old anchor, and the binding, which still reads true, keeps it there. Filtering
     /// the list to one station drew the same manifest twice: once under its row and once where
     /// that row used to be.</para>
+    ///
+    /// <para>⚠️ Not sufficient on its own, it turned out: the grid keeps a recycled row IN the
+    /// tree, and does not recycle the focused row at all, so this fires for neither — the doubled
+    /// manifest came back with the focused row every time. RowDetailPopups covers those two from
+    /// the grid's own LoadingRow/UnloadingRow events and the parked row's empty clip; this stays
+    /// for the case it does see, a row genuinely removed.</para>
     ///
     /// <para>⚠️ SetCurrentValue, not the property. Assigning IsOpen directly would outrank the
     /// binding and the panel could never come back.</para>
