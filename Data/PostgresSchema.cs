@@ -401,6 +401,17 @@ public static class PostgresSchema
         ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "PackagedOnly" BOOLEAN NOT NULL DEFAULT FALSE
         """,
 
+        // Where an asset's root location IS, filled by AssetLocations on every asset poll. Null
+        // until the first poll after this upgrade, and for the few roots nothing can resolve —
+        // nullable rather than defaulted so that null keeps meaning "unknown". An older build
+        // inserting without naming them goes on working, which is the whole of the constraint.
+        """
+        ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "SolarSystemId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "RegionId" INTEGER NULL
+        """,
+
         // ── Agent telemetry ──────────────────────────────────────────────────
         //
         // ⚠️ BIGSERIAL, not AUTOINCREMENT: PostgreSQL rejects the SQLite spelling at parse time

@@ -98,35 +98,19 @@ public static class AgentDataNotes
           decide who someone else is — most character ids in the database are not in it.
 
         ## Where an asset IS — region, system, station
-        ⚠️ EsiAssets has no region and no system. It has LocationId, which is the IMMEDIATE
-        container — a hangar, a ship, a can — and RootLocationId / RootLocationType, which the
-        app has already walked up to the top-level PLACE. Use the root; never try to walk
-        LocationId yourself, and never filter on LocationId hoping it is a system.
+        EsiAssets carries it directly: SolarSystemId and RegionId are filled by the app when the
+        assets are polled. Filter and group on them; join SdeSolarSystems / SdeRegions only for
+        the names. NULL means the place could not be resolved (a hangar in someone else's ship,
+        a structure the app was never allowed to see — about 0.2% of rows): show those as
+        unknown rather than letting a join drop them, and say so if a total leaves them out.
 
-        RootLocationType says what RootLocationId is, and each kind resolves differently:
-          'station'       RootLocationId is an NPC station:  SdeStations.StationId → SolarSystemId
-                          (SdeStations also carries RegionId directly)
-          'solar_system'  RootLocationId IS the SolarSystemId — a ship or a can in space
-          'other'         RootLocationId is a player structure: Structures.StructureId →
-                          SolarSystemId, falling back to EsiStructureNames.StructureId →
-                          SolarSystemId (the same 95 of 108 roots are in both; use either)
-        Then SdeSolarSystems.RegionId → SdeRegions.Name. The whole resolution, to paste:
-
-          CASE a."RootLocationType"
-            WHEN 'station'      THEN st."SolarSystemId"
-            WHEN 'solar_system' THEN a."RootLocationId"
-            ELSE COALESCE(s."SolarSystemId", e."SolarSystemId")
-          END AS "SystemId"
-          FROM "EsiAssets" a
-          LEFT JOIN "SdeStations"       st ON a."RootLocationType" = 'station' AND st."StationId" = a."RootLocationId"
-          LEFT JOIN "Structures"        s  ON a."RootLocationType" = 'other'   AND s."StructureId"  = a."RootLocationId"
-          LEFT JOIN "EsiStructureNames" e  ON a."RootLocationType" = 'other'   AND e."StructureId"  = a."RootLocationId"
-          — then join SdeSolarSystems on SystemId, and SdeRegions on its RegionId.
-
-        Verified on the live database: 66,500 asset rows resolve this way. A few roots (13, holding
-        0.2% of rows) resolve to nothing — a fleet hangar in someone else's ship, a structure the
-        app was never allowed to see. Show those as an unknown location; do not let a LEFT JOIN
-        drop them silently, and do not report a total as complete without saying so.
+        The dockable PLACE is RootLocationId, typed by RootLocationType:
+          'station'       an NPC station — name from SdeStations.StationId
+          'other'         a player structure — name from Structures.StructureId (fallback
+                          EsiStructureNames.StructureId)
+          'solar_system'  in space; RootLocationId is the system itself
+        ⚠️ LocationId is only the IMMEDIATE container — a hangar, a ship, a can. Never filter on
+        it hoping it is a station or a system, and never try to walk it yourself.
 
         ## Contracts
         - EsiContracts is the header: IssuerId, AssigneeId, AcceptorId, Type, Status, Price,

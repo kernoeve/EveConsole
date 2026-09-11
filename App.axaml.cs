@@ -1498,6 +1498,8 @@ public class App : Application
                         "IsBlueprintCopy" INTEGER,
                         "RootLocationId"   INTEGER NOT NULL DEFAULT 0,
                         "RootLocationType" TEXT    NOT NULL DEFAULT '',
+                        "SolarSystemId"    INTEGER NULL,
+                        "RegionId"         INTEGER NULL,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
                     )
                     """);
@@ -2982,6 +2984,13 @@ public class App : Application
                     // Where jobs go when no category assignment covers the item. Before this
                     // existed such an item aborted the whole calculation.
                     """ALTER TABLE "IndyParks" ADD COLUMN "DefaultStructureId" INTEGER NULL""",
+
+                    // ── Assets: where the root location IS ──────────────────────────────
+                    // Filled by AssetLocations on every asset poll; null until the first poll
+                    // after this upgrade, and for the few roots nothing can resolve. Nullable
+                    // rather than defaulted so that null keeps meaning "unknown".
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
 
                     // ── SDE columns ─────────────────────────────────────────────────────
                     // Deliberately NOT here any more. Twenty of them were mirrored into this

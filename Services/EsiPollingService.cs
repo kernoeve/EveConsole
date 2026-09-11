@@ -1180,7 +1180,8 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/assets/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var roots = ComputeRootLocations(r.Data!);
+        var roots  = ComputeRootLocations(r.Data!);
+        var places = await AssetLocations.LoadAsync(db, ct);
 
         // ⚠️ Delete and replace in ONE transaction. ExecuteDeleteAsync commits on its own, so
         // without this the character's assets are simply absent from the database between the
@@ -1195,20 +1196,27 @@ public class EsiPollingService : ReactiveObject
         await db.EsiAssets
             .Where(a => a.OwnerId == charId && a.OwnerType == "character")
             .ExecuteDeleteAsync(ct);
-        db.EsiAssets.AddRange(r.Data!.Select(a => new CharacterAsset
+        db.EsiAssets.AddRange(r.Data!.Select(a =>
         {
-            ItemId           = a.ItemId,
-            OwnerId          = charId,
-            OwnerType        = "character",
-            TypeId           = a.TypeId,
-            LocationId       = a.LocationId,
-            LocationType     = a.LocationType,
-            LocationFlag     = a.LocationFlag,
-            Quantity         = a.Quantity,
-            IsSingleton      = a.IsSingleton,
-            IsBlueprintCopy  = a.IsBlueprintCopy,
-            RootLocationId   = roots[a.ItemId].RootId,
-            RootLocationType = roots[a.ItemId].RootType,
+            var root  = roots[a.ItemId];
+            var place = places.Resolve(root.RootId, root.RootType);
+            return new CharacterAsset
+            {
+                ItemId           = a.ItemId,
+                OwnerId          = charId,
+                OwnerType        = "character",
+                TypeId           = a.TypeId,
+                LocationId       = a.LocationId,
+                LocationType     = a.LocationType,
+                LocationFlag     = a.LocationFlag,
+                Quantity         = a.Quantity,
+                IsSingleton      = a.IsSingleton,
+                IsBlueprintCopy  = a.IsBlueprintCopy,
+                RootLocationId   = root.RootId,
+                RootLocationType = root.RootType,
+                SolarSystemId    = place.SolarSystemId,
+                RegionId         = place.RegionId,
+            };
         }));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
@@ -1233,6 +1241,7 @@ public class EsiPollingService : ReactiveObject
                 // Guard against the rare case ESI does list the active ship (avoid a PK clash).
                 if (!await db.EsiAssets.AnyAsync(a => a.ItemId == ship.ShipItemId, ct))
                 {
+                    var place = places.Resolve(rootId, rootType);
                     db.EsiAssets.Add(new CharacterAsset
                     {
                         ItemId           = ship.ShipItemId,
@@ -1247,6 +1256,8 @@ public class EsiPollingService : ReactiveObject
                         IsBlueprintCopy  = false,
                         RootLocationId   = rootId,
                         RootLocationType = rootType,
+                        SolarSystemId    = place.SolarSystemId,
+                        RegionId         = place.RegionId,
                     });
                     await db.SaveChangesAsync(ct);
                 }
@@ -1267,6 +1278,7 @@ public class EsiPollingService : ReactiveObject
             .Where(id => !ownItemIds.Contains(id))
             .ToList();
         await ResolveNewStructureNamesAsync(charId, structureIds, db, ct);
+        await AssetLocations.BackfillAsync(db, charId, "character", ct);
 
         return FromResult(r);
     }
@@ -2504,7 +2516,8 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/assets/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var roots = ComputeRootLocations(r.Data!);
+        var roots  = ComputeRootLocations(r.Data!);
+        var places = await AssetLocations.LoadAsync(db, ct);
 
         // ⚠️ Delete and replace in ONE transaction, exactly as FetchAssetsAsync does for a
         // character — and for the same reason, which this side went without until it bit.
@@ -2522,20 +2535,27 @@ public class EsiPollingService : ReactiveObject
             .Where(a => a.OwnerId == corpId && a.OwnerType == "corporation")
             .ExecuteDeleteAsync(ct);
 
-        db.EsiAssets.AddRange(r.Data!.Select(a => new CharacterAsset
+        db.EsiAssets.AddRange(r.Data!.Select(a =>
         {
-            ItemId           = a.ItemId,
-            OwnerId          = corpId,
-            OwnerType        = "corporation",
-            TypeId           = a.TypeId,
-            LocationId       = a.LocationId,
-            LocationType     = a.LocationType,
-            LocationFlag     = a.LocationFlag,
-            Quantity         = a.Quantity,
-            IsSingleton      = a.IsSingleton,
-            IsBlueprintCopy  = a.IsBlueprintCopy,
-            RootLocationId   = roots[a.ItemId].RootId,
-            RootLocationType = roots[a.ItemId].RootType,
+            var root  = roots[a.ItemId];
+            var place = places.Resolve(root.RootId, root.RootType);
+            return new CharacterAsset
+            {
+                ItemId           = a.ItemId,
+                OwnerId          = corpId,
+                OwnerType        = "corporation",
+                TypeId           = a.TypeId,
+                LocationId       = a.LocationId,
+                LocationType     = a.LocationType,
+                LocationFlag     = a.LocationFlag,
+                Quantity         = a.Quantity,
+                IsSingleton      = a.IsSingleton,
+                IsBlueprintCopy  = a.IsBlueprintCopy,
+                RootLocationId   = root.RootId,
+                RootLocationType = root.RootType,
+                SolarSystemId    = place.SolarSystemId,
+                RegionId         = place.RegionId,
+            };
         }));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
@@ -2559,6 +2579,7 @@ public class EsiPollingService : ReactiveObject
             if (corp?.AuthCharacterId > 0)
                 await ResolveNewStructureNamesAsync(corp.AuthCharacterId, structureIds, db, ct);
         }
+        await AssetLocations.BackfillAsync(db, corpId, "corporation", ct);
 
         return FromResult(r);
     }

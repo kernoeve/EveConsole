@@ -357,6 +357,12 @@ public class CharacterAsset
     // downstream query (asset browser, aggregations, etc.) can skip the chain walk.
     public long   RootLocationId   { get; set; }
     public string RootLocationType { get; set; } = "";
+    // Where that root IS — resolved by AssetLocations when the rows are written, so nothing
+    // downstream (the agent included) has to know that a station's system is in SdeStations
+    // and a structure's in Structures. Null when the place cannot be resolved: a structure
+    // never seen, or a hangar in another player's ship — not "in space", which has a system.
+    public int?   SolarSystemId    { get; set; }
+    public int?   RegionId         { get; set; }
 }
 
 public class CharacterBlueprint
