@@ -104,6 +104,13 @@
                            HorizontalAlignment="Center"
                            Margin="0 6 0 2"/>
 
+                <!-- When it was said, on the same side as the bubble. -->
+                <TextBlock Text="{Binding TimeText}"
+                           IsVisible="{Binding !IsSummary}"
+                           FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+                           HorizontalAlignment="{Binding Role, Converter={StaticResource RoleAlignment}}"
+                           Margin="16 5 16 0"/>
+
                 <Border Margin="10 3"
                         Padding="10 7"
                         CornerRadius="8"

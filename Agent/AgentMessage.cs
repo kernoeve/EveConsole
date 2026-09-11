@@ -25,6 +25,17 @@ public sealed record AgentMessage
     /// </summary>
     public bool ShowInChat { get; init; } = true;
 
+    /// <summary>When it was said, in the capsuleer's own time, for the label above the bubble.</summary>
+    [JsonIgnore]
+    public string TimeText => Timestamp.ToLocalTime().ToString("d MMM yyyy HH:mm");
+
+    /// <summary>
+    /// The same moment as the model is told it, on EVE time — the clock every timestamp in the
+    /// database is on, so "five minutes ago" and "five weeks ago" are a subtraction it can do.
+    /// </summary>
+    [JsonIgnore]
+    public string EveTimeText => Timestamp.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " EVE";
+
     [JsonConstructor]
     public AgentMessage(MessageRole role, string content, DateTimeOffset timestamp)
     {

@@ -818,6 +818,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var sb = new StringBuilder();
 
+        // The clock, first. Every message in the history carries the time it was sent, and this
+        // is what those are measured against — without it the stamps are dates with no "ago".
+        var now = DateTimeOffset.UtcNow;
+        sb.AppendLine($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd}).");
+
         var activeTitle = vm.SelectedTab?.Title ?? "None";
         sb.AppendLine($"Active tab: {activeTitle}");
         var activeIntent = EveConsole.Agent.AppKnowledge.TabIntent(activeTitle);

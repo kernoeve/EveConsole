@@ -100,23 +100,33 @@ public sealed class ClaudeProvider : IAgentProvider
             var m    = history[i];
             var role = m.Role == MessageRole.User ? "user" : "assistant";
 
+            // ⚠️ Each of the capsuleer's messages carries when it was sent. Without it the model
+            // has no way to tell a question asked five minutes ago from one asked five weeks ago
+            // — the history reads as one continuous present — and "what did I just ask" or "since
+            // we last spoke" cannot be answered. The stamp is fixed at the moment the message was
+            // written, so the cached prefix is unchanged by it; and only the capsuleer's turns are
+            // stamped, because a stamp on the model's own past replies teaches it to write one.
+            var text = m.Role == MessageRole.User && !m.IsSummary
+                ? $"[{m.EveTimeText}] {m.Content}"
+                : m.Content;
+
             // ⚠️ Only the last one, and only when it has text. An empty text block is rejected by
             // the API, and a marker on every message would spend all four breakpoints on the
             // cheapest possible saving.
-            if (i == history.Count - 1 && !string.IsNullOrEmpty(m.Content))
+            if (i == history.Count - 1 && !string.IsNullOrEmpty(text))
             {
                 rawMessages.Add(new
                 {
                     role,
                     content = new object[]
                     {
-                        new { type = "text", text = m.Content, cache_control = new { type = "ephemeral" } },
+                        new { type = "text", text, cache_control = new { type = "ephemeral" } },
                     },
                 });
             }
             else
             {
-                rawMessages.Add(new { role, content = m.Content });
+                rawMessages.Add(new { role, content = text });
             }
         }
 

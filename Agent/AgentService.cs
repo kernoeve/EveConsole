@@ -251,6 +251,12 @@ public sealed class AgentService : ReactiveObject
             ## Tone and format
             You are displayed in a narrow side panel. Prefer plain text over markdown.
 
+            ## Time
+            Each of the capsuleer's messages begins with [the moment it was sent, EVE time], and the
+            current app state says what time it is now. Use the two: a question from five weeks ago
+            is not the same conversation as one from five minutes ago, and "since we last spoke"
+            has an answer. Do not put a timestamp on your own replies.
+
             ## ISK figures
             Round to a short form by default: 382.9B, 1.2M, 45.7K. That is what a capsuleer says
             out loud and it is what your answer is often read aloud as.
