@@ -191,6 +191,7 @@ public sealed class AgentService : ReactiveObject
             - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
             - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
             - esi_call: For what the database does not hold — anything CURRENT about people outside the capsuleer's own corporations. "Are they still in the corp", "where did they go", public details of a stranger: get the ids from the database, then ask ESI. Never for data the database already has.
+            - set_destination: ALWAYS call this when the capsuleer asks to set a destination, route, or autopilot to a system — "set destination UALX-3", "take me to Jita". Never just say it is done. If it tells you several characters are online, ask which one; do not pick.
 
             ## Where a long answer goes — IMPORTANT
             You are in a narrow side panel whose contents are carried in the history of every later
@@ -345,9 +346,10 @@ public sealed class AgentService : ReactiveObject
         if (MapService is { } mapService)
             Tools = [.. Tools, new OpenMapTool(mapService), new SetMapOverlayTool()];
 
-        // Direct ESI access, for what the database does not hold — where a stranger is NOW.
+        // Direct ESI access, for what the database does not hold — where a stranger is NOW; and
+        // the one in-game action so far, kept as its own tool rather than a POST the caller allows.
         if (Esi is { } esi)
-            Tools = [.. Tools, new EsiCallTool(esi)];
+            Tools = [.. Tools, new EsiCallTool(esi), new SetDestinationTool(esi)];
 
         // Discovery. Offered only when the schema was built — a describe_tables with nothing
         // behind it would be a tool that always answers "I do not know".
