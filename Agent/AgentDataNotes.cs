@@ -22,6 +22,38 @@ public static class AgentDataNotes
         meanings, the joins that answer real questions, and the places a query returns a number
         that looks right and is not.
 
+        ## Who the player IS — read this before any question about "my", "I" or "we"
+        ⚠️ The player is ONE person who is the sum of every character in Characters plus every
+        corporation in Corporations where IsPersonal is true. Every alt is the same player.
+        "How much of this do I have", "what did I make this month", "my assets", "my wallet"
+        means ALL of those together — never one character, unless the question names one.
+
+        - Characters: the player's own characters, all of them. Corporations: the corporations the
+          app has a token for — and IsPersonal is the line that matters. Personal (IsPersonal =
+          true) corporations belong to the player: their wallets, assets, orders and jobs are the
+          player's. The others are corporations the player merely has alts IN — Brave Newbies Inc.
+          is one — and their wallet, assets and orders belong to THAT corporation, not to the
+          player. Leave them out of any "my" question unless it is explicitly about the corp.
+
+        - So the owner set for a "my" question is:
+            OwnerType = 'character'   AND OwnerId IN (SELECT "Id" FROM "Characters")
+            OR OwnerType = 'corporation' AND OwnerId IN (SELECT "Id" FROM "Corporations" WHERE IsPersonal)
+          against EsiAssets, EsiWalletBalances, EsiWalletJournal, EsiWalletTransactions,
+          EsiMarketOrders, EsiIndustryJobs, EsiContracts, EsiBlueprints and the rest.
+
+        - ⚠️ ISK moving BETWEEN the player's own characters and personal corporations is not
+          income and not an expense; it is the same money changing pockets. In EsiWalletJournal a
+          transfer is a row whose FirstPartyId AND SecondPartyId are both in that owner set —
+          player_donation, player_trading, corporation_account_withdrawal into or out of a
+          personal corp, a contract_price between two of their own characters. ⚠️ Do NOT assume
+          it nets itself out: it appears on whichever of the two wallets the app polls, and that
+          is often only one of them — a personal corp's wallet division, a character without a
+          token. Measured over 30 days: 502B of internal debits against 265B of internal credits.
+          Summed as-is, that is 237B of "expense" that never left the player. Exclude every row
+          whose two parties are both the player's before calling anything income or expense.
+          Money to or from anyone OUTSIDE that set — a stranger, a non-personal corp, an NPC —
+          is real.
+
         ## Who someone is, and who they WERE
         ⚠️ These two tables answer different questions and swapping them gives a confident wrong
         answer. Read this before answering anything about who is in which corporation.
