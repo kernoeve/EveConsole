@@ -105,6 +105,8 @@ public sealed class EsiCallTool : IAgentTool
         Character ids for people in the database are in Characters.Id, contract acceptors in
         EsiContracts.AcceptorId, kill victims and attackers in KillMailDetails and
         KillMailAttackers — query those first, then ask ESI about the ids.
+        GET answers are kept until ESI's own Expires and served from here until then, so asking
+        for the same record again costs nothing; the answer says when it was fetched.
         """;
 
     public object InputSchema => new
@@ -220,7 +222,7 @@ public sealed class EsiCallTool : IAgentTool
         }
 
         // ── The call ──────────────────────────────────────────────────────────
-        var r = await CallAsync(http, path, body, characterId, ct);
+        var (r, fetchedAt) = await CallAsync(http, path, body, characterId, ct);
 
         if (r.StatusCode == 0)
             return $"ESI call not made: {r.Error}";
@@ -234,6 +236,8 @@ public sealed class EsiCallTool : IAgentTool
                     : "");
 
         var sb = new StringBuilder();
+        if (fetchedAt is { } at)
+            sb.Append($"(fetched {at:HH:mm} UTC, good until {r.Expires:HH:mm} UTC) ");
         if (r.TotalPages > 1)
             sb.Append($"(page 1 of {r.TotalPages} — add query {{\"page\": \"2\"}} for the next) ");
         if (r.Body.Length > MaxResponseChars)
@@ -246,18 +250,76 @@ public sealed class EsiCallTool : IAgentTool
 
     /// <summary>
     /// One request, waiting out a short per-route rate limit once. Anything the client refuses to
-    /// send (offline, error-limited) comes back as status 0 untouched.
+    /// send (offline, error-limited) comes back as status 0 untouched. A GET whose last answer is
+    /// still good is served from <see cref="_cache"/> instead, and says so.
     /// </summary>
-    private async Task<EsiClient.RawResult> CallAsync(
+    private async Task<(EsiClient.RawResult Result, DateTimeOffset? FetchedAt)> CallAsync(
         HttpMethod method, string path, string? body, long? characterId, CancellationToken ct)
     {
+        var key = method == HttpMethod.Get ? CacheKey(path, characterId) : null;
+        if (key is not null && TryCached(key, out var kept)) return kept;
+
         var r = await _esi.RequestRawAsync(method, path, body, characterId, ct);
         if (r.StatusCode == 429 && r.RetryAfterSeconds is { } wait && wait <= MaxRetryAfterSeconds)
         {
             await Task.Delay(TimeSpan.FromSeconds(wait + 1), ct);
             r = await _esi.RequestRawAsync(method, path, body, characterId, ct);
         }
-        return r;
+
+        if (key is not null) Keep(key, r);
+        return (r, null);
+    }
+
+    // ── Answers kept until ESI says they are stale ────────────────────────────
+    //
+    // ESI sends an Expires with every answer and asks not to be asked again before it; the
+    // polling side has honoured that for a long time, and this tool did not. A conversation asks
+    // the same public record several times over — affiliation, then history, then the
+    // corporation, then its alliance, then the same corporation again for its name — and each
+    // was a fresh round trip for a body the server had already said would not change. GET
+    // answers are kept until their Expires, per path and per signing character (a wallet is not
+    // the same document for two characters), and served from here in the meantime. Only a
+    // successful answer, and only one that is good for at least a moment: a route that expires
+    // at once is a route that means it.
+    //
+    // GET only: the read-only POSTs take a list in the body and are a lookup, not a document.
+    private readonly Dictionary<string, (EsiClient.RawResult Result, DateTimeOffset FetchedAt, DateTimeOffset Until)> _cache = new();
+    private readonly object _cacheLock = new();
+    private const int MaxCached = 400;
+
+    private static string CacheKey(string path, long? characterId) => $"{characterId ?? 0}|{path}";
+
+    private bool TryCached(string key, out (EsiClient.RawResult Result, DateTimeOffset? FetchedAt) kept)
+    {
+        lock (_cacheLock)
+        {
+            if (_cache.TryGetValue(key, out var entry))
+            {
+                if (entry.Until > DateTimeOffset.UtcNow) { kept = (entry.Result, entry.FetchedAt); return true; }
+                _cache.Remove(key);
+            }
+        }
+        kept = default;
+        return false;
+    }
+
+    private void Keep(string key, EsiClient.RawResult r)
+    {
+        if (!r.IsSuccess || r.Expires is not { } until) return;
+        var now = DateTimeOffset.UtcNow;
+        if (until <= now.AddSeconds(1)) return;
+
+        lock (_cacheLock)
+        {
+            if (_cache.Count >= MaxCached)
+            {
+                foreach (var stale in _cache.Where(e => e.Value.Until <= now).Select(e => e.Key).ToList())
+                    _cache.Remove(stale);
+                if (_cache.Count >= MaxCached)
+                    _cache.Remove(_cache.MinBy(e => e.Value.Until).Key);
+            }
+            _cache[key] = (r, now, until);
+        }
     }
 
     /// <summary>
@@ -308,7 +370,7 @@ public sealed class EsiCallTool : IAgentTool
                 item = """{"error":"not a relative ESI path"}""";
             else
             {
-                var r = await CallAsync(HttpMethod.Get, path, null, null, ct);
+                var (r, _) = await CallAsync(HttpMethod.Get, path, null, null, ct);
                 if (r.StatusCode == 0)
                     return $"ESI calls stopped after {done} of {paths.Count}: {r.Error}";
                 if (r.StatusCode == 429)
