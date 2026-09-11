@@ -576,7 +576,13 @@ public sealed class AgentPanelViewModel : ReactiveObject
         historySnapshot.Add(new AgentMessage(MessageRole.User,
             "Summarize our conversation so far in under 400 words. Cover: key topics discussed, " +
             "any EVE data retrieved (assets, jobs, prices), decisions or recommendations made, " +
-            "and any unresolved questions. Be concise — this will replace the older messages as a context anchor."));
+            "and any unresolved questions. Be concise — this will replace the older messages as a context anchor. " +
+            // ⚠️ The messages carry when they were sent, and the summary is all that survives of
+            // them. Without the dates, a question from a month ago reads afterwards as though it
+            // were asked just now.
+            "Open with the dates this covers, and keep the date beside anything that was asked or " +
+            "found at a particular time — the messages are timestamped, and later turns need to " +
+            "know how long ago each thing was."));
 
         var sb = new StringBuilder();
 
