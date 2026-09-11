@@ -55,6 +55,23 @@ public sealed class ClaudeProvider : IAgentProvider
     /// </summary>
     private const int    MaxOutputTokens  = 16384;
 
+    /// <summary>
+    /// How long the two stable cache entries — tools+system, and the conversation so far — stay
+    /// warm between requests.
+    ///
+    /// <para>⚠️ The default entry lives five minutes from the start of the last request that
+    /// touched it. That is fine inside a turn, where rounds are seconds apart, and fine for a
+    /// reply typed straight back. It is exactly wrong for how this panel is used: ask, read the
+    /// answer, go and do the thing in game, ask again ten minutes later — and the whole prefix
+    /// is written again at 1.25×. The one-hour entry costs 2× to write and the same 0.1× to
+    /// read, and pays for itself on the first conversation resumed after a gap.</para>
+    ///
+    /// <para>⚠️ Only on the stable entries. The per-round tool-result marker is short-lived by
+    /// nature and stays on the default; and the API requires longer-lived markers to precede
+    /// shorter ones, which the order tools → system → history → tool results already gives.</para>
+    /// </summary>
+    private const string StableCacheTtl = "1h";
+
     // ⚠️ Not readonly, and only for one reason: tools/AgentStreamCheck replaces it with a client
     // over a fake server so the real streaming path can be run headless, and .NET 9 refuses a
     // reflection write to an initonly static once the type is initialised. Nothing in the
@@ -120,7 +137,7 @@ public sealed class ClaudeProvider : IAgentProvider
                     role,
                     content = new object[]
                     {
-                        new { type = "text", text, cache_control = new { type = "ephemeral" } },
+                        new { type = "text", text, cache_control = new { type = "ephemeral", ttl = StableCacheTtl } },
                     },
                 });
             }
@@ -479,7 +496,7 @@ public sealed class ClaudeProvider : IAgentProvider
             {
                 type          = "text",
                 text          = systemPrompt,
-                cache_control = new { type = "ephemeral" },
+                cache_control = new { type = "ephemeral", ttl = StableCacheTtl },
             },
         };
 

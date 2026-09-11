@@ -84,8 +84,9 @@ Console.WriteLine();
 // predecessors'.
 var markersOk = handler.Caching.Count == FakeAnthropic.ToolRounds + 1
              && handler.Caching[0].Markers == 2
-             && handler.Caching.Skip(1).All(c => c.Markers == 3 && c.OnToolResult);
-Console.WriteLine($"cache markers         : {string.Join(", ", handler.Caching.Select(c => $"{c.Markers}{(c.OnToolResult ? " (one on a tool_result)" : "")}"))}");
+             && handler.Caching.Skip(1).All(c => c.Markers == 3 && c.OnToolResult)
+             && handler.Caching.All(c => c.TtlOrderOk);
+Console.WriteLine($"cache markers         : {string.Join(", ", handler.Caching.Select(c => $"{c.Markers}{(c.OnToolResult ? " (one on a tool_result)" : "")}{(c.TtlOrderOk ? "" : " TTL ORDER WRONG")}"))}");
 
 var ok = handler.Requests == FakeAnthropic.ToolRounds + 1 && text.ToString().Contains("in the tab")
       && ui.Posts == 0 && !toolOnUi && chunksOnUi == 0 && markersOk;
@@ -102,7 +103,7 @@ if (handler.Requests != FakeAnthropic.ToolRounds + 1)
 if (ui.Posts > 0)            Console.WriteLine($"  {ui.Posts} continuation(s) were posted to the UI context: an await in the streaming path has lost its ConfigureAwait(false).");
 if (toolOnUi)                Console.WriteLine("  the tool executed on the UI thread.");
 if (chunksOnUi > 0)          Console.WriteLine("  chunks were delivered on the UI thread.");
-if (!markersOk)              Console.WriteLine("  cache markers are wrong: expected 2 on the first request and exactly 3 on each later one, the third on the newest tool result.");
+if (!markersOk)              Console.WriteLine("  cache markers are wrong: expected 2 on the first request and exactly 3 on each later one, the third on the newest tool result; the stable markers must carry ttl 1h and the tool-result marker must not.");
 return 1;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
@@ -171,8 +172,12 @@ sealed class FakeAnthropic : HttpMessageHandler
     private int _requests;
     public int Requests => _requests;
 
-    /// <summary>Per request: cache_control markers in the body, and whether a tool_result carried one.</summary>
-    public readonly List<(int Markers, bool OnToolResult)> Caching = [];
+    /// <summary>
+    /// Per request: cache_control markers in the body, whether a tool_result carried one, and
+    /// whether every marker BEFORE the tool result is the long-lived kind while the tool result's
+    /// own is not.
+    /// </summary>
+    public readonly List<(int Markers, bool OnToolResult, bool TtlOrderOk)> Caching = [];
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage req, CancellationToken ct)
     {
@@ -185,10 +190,21 @@ sealed class FakeAnthropic : HttpMessageHandler
 
         var round = Interlocked.Increment(ref _requests);
         var body  = await req.Content!.ReadAsStringAsync(ct);
+        // ⚠️ The API requires longer-lived cache markers to precede shorter-lived ones. The two
+        // stable entries (system, history) are one-hour; the moving tool-result marker is the
+        // five-minute default. A change that put a 1h marker after a 5m one, or dropped the 1h
+        // from a stable entry, would be a rejected request or a silently cold cache.
+        var markers = System.Text.RegularExpressions.Regex.Matches(body, @"""cache_control"":\{[^}]*\}")
+                          .Select(m => m.Value).ToList();
+        var toolResultMarker = System.Text.RegularExpressions.Regex.Match(body, @"""type"":""tool_result""[^}]*(""cache_control"":\{[^}]*\})");
+        var stable = toolResultMarker.Success ? markers.Where(m => m != toolResultMarker.Groups[1].Value).ToList() : markers;
+        var ttlOk  = stable.All(m => m.Contains("\"ttl\":\"1h\""))
+                  && (!toolResultMarker.Success || !toolResultMarker.Groups[1].Value.Contains("\"ttl\""));
         lock (Caching)
             Caching.Add((
-                Markers:      System.Text.RegularExpressions.Regex.Matches(body, "\"cache_control\"").Count,
-                OnToolResult: System.Text.RegularExpressions.Regex.IsMatch(body, "\"type\":\"tool_result\"[^}]*\"cache_control\"")));
+                Markers:      markers.Count,
+                OnToolResult: toolResultMarker.Success,
+                TtlOrderOk:   ttlOk));
         var pipe  = new Pipe();
 
         _ = Task.Run(async () =>
