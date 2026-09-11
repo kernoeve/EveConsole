@@ -1093,14 +1093,23 @@ public class LogisticsGenerator(
                 .ToListAsync(ct))
             .ToDictionary(s => s.Id, s => s.SolarSystemId);
 
-        foreach (var s in await db.EsiStructureNames.AsNoTracking()
+        // The same three structure sources AssetLocations resolves an asset's system from, in the
+        // same order of preference, so a haul is ranked by the same geography the stock is filed
+        // under. Structures first: it is the one that can hold a place ESI never gave us.
+        foreach (var s in await db.Structures.AsNoTracking()
                      .Where(s => s.SolarSystemId != 0)
                      .Select(s => new { s.StructureId, s.SolarSystemId }).ToListAsync(ct))
             map[s.StructureId] = s.SolarSystemId;
 
+        foreach (var s in await db.EsiStructureNames.AsNoTracking()
+                     .Where(s => s.SolarSystemId != 0)
+                     .Select(s => new { s.StructureId, s.SolarSystemId }).ToListAsync(ct))
+            map.TryAdd(s.StructureId, s.SolarSystemId);
+
         foreach (var s in await db.EsiCorpStructures.AsNoTracking()
+                     .Where(s => s.SystemId != 0)
                      .Select(s => new { s.StructureId, s.SystemId }).ToListAsync(ct))
-            map[s.StructureId] = s.SystemId;
+            map.TryAdd(s.StructureId, s.SystemId);
 
         // Assets in space report the solar system itself as their root, so a system is its own
         // location. Without this they rank as unreachable and sort behind every real station.

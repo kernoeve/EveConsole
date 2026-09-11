@@ -445,7 +445,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 a."LocationId"      AS "Location Id",
                 CASE a."RootLocationType"
                     WHEN 'station'      THEN COALESCE(st."Name",            '<Unknown Station>')
-                    WHEN 'solar_system' THEN COALESCE(ss."Name",            '<Unknown System>')
+                    WHEN 'solar_system' THEN COALESCE(sys."Name",           '<Unknown System>')
                     WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '<Unknown Structure>')
                     ELSE                     '<Unresolved - Please Refresh>'
                 END AS "Location Name",
@@ -466,18 +466,18 @@ public class AssetBrowserViewModel : ReactiveObject
                     ELSE NULL
                 END AS "Container",
                 a."LocationFlag"    AS "Flag",
-                CASE a."RootLocationType"
-                    WHEN 'station'      THEN ss_sta."Name"
-                    WHEN 'solar_system' THEN ss."Name"
-                    WHEN 'other'        THEN ss_s."Name"
-                    ELSE NULL
-                END AS "Solar System",
-                COALESCE(r_st."Name", r_ss."Name", r_s."Name")             AS "Region Name",
-                ROUND(CAST(COALESCE(ss_sta."Security", ss."Security", ss_s."Security") AS NUMERIC), 1) AS "Security",
+                -- Where the asset IS. Resolved by the app when the rows were written
+                -- (AssetLocations), so it is one join per name whatever kind of place the root
+                -- is — and a structure known only to the Structure Browser or the corporation's
+                -- own structure list now has a system too, which the old three-way walk through
+                -- EsiStructureNames alone never gave it.
+                sys."Name"                                                  AS "Solar System",
+                reg."Name"                                                  AS "Region Name",
+                ROUND(CAST(sys."Security" AS NUMERIC), 1)                   AS "Security",
                 -- Hidden: what the names above open. Carried in Base so the three aggregate views
                 -- inherit them rather than each re-deriving the joins.
-                COALESCE(ss_sta."SolarSystemId", ss."SolarSystemId", ss_s."SolarSystemId", 0) AS "Solar System Id",
-                COALESCE(r_st."RegionId", r_ss."RegionId", r_s."RegionId", 0)                 AS "Region Id",
+                COALESCE(a."SolarSystemId", 0)                              AS "Solar System Id",
+                COALESCE(a."RegionId", 0)                                   AS "Region Id",
                 -- NPC station to the entity browser, player structure to its own tool.
                 -- RootLocationType already tells the two apart.
                 CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
@@ -559,14 +559,10 @@ public class AssetBrowserViewModel : ReactiveObject
             LEFT JOIN "SdeTypes"        t      ON a."TypeId"          = t."TypeId"
             LEFT JOIN "SdeGroups"       g      ON g."GroupId"         = t."GroupId"
             LEFT JOIN "SdeCategories"   cat    ON cat."CategoryId"    = g."CategoryId"
-            LEFT JOIN "SdeStations"     st     ON a."RootLocationId"  = st."StationId"     AND a."RootLocationType"  = 'station'
-            LEFT JOIN "SdeSolarSystems" ss_sta ON ss_sta."SolarSystemId" = st."SolarSystemId"
-            LEFT JOIN "SdeSolarSystems" ss     ON a."RootLocationId"  = ss."SolarSystemId" AND a."RootLocationType"  = 'solar_system'
-            LEFT JOIN "EsiStructureNames" sn   ON sn."StructureId"    = a."RootLocationId" AND a."RootLocationType"  = 'other'
-            LEFT JOIN "SdeSolarSystems" ss_s   ON ss_s."SolarSystemId" = sn."SolarSystemId"
-            LEFT JOIN "SdeRegions"      r_st   ON r_st."RegionId"     = st."RegionId"
-            LEFT JOIN "SdeRegions"      r_ss   ON r_ss."RegionId"     = ss."RegionId"
-            LEFT JOIN "SdeRegions"      r_s    ON r_s."RegionId"      = ss_s."RegionId"
+            LEFT JOIN "SdeStations"       st  ON a."RootLocationId" = st."StationId"   AND a."RootLocationType" = 'station'
+            LEFT JOIN "EsiStructureNames" sn  ON sn."StructureId"   = a."RootLocationId" AND a."RootLocationType" = 'other'
+            LEFT JOIN "SdeSolarSystems"   sys ON sys."SolarSystemId" = a."SolarSystemId"
+            LEFT JOIN "SdeRegions"        reg ON reg."RegionId"      = a."RegionId"
             LEFT JOIN "SdeTypes"        ct1    ON ct1."TypeId"        = cj.CP1TypeId
             LEFT JOIN "SdeTypes"        ct2    ON ct2."TypeId"        = cj.CP2TypeId
             LEFT JOIN "SdeTypes"        ct3    ON ct3."TypeId"        = cj.CP3TypeId

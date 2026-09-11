@@ -126,4 +126,43 @@ public sealed class AssetLocations
                     .SetProperty(a => a.RegionId,      region), ct);
         }
     }
+
+    /// <summary>
+    /// Fills the two columns on rows that still have none, in SQL, for every owner at once.
+    ///
+    /// <para>Run at startup. The columns arrived after most databases did, and a poll fills
+    /// them only as it rewrites each owner's rows — an hour away for assets, and the Asset
+    /// Browser, which now reads the columns rather than walking the tables itself, would show
+    /// no system and no region until then. The same resolution as <see cref="Resolve"/>, as
+    /// four statements that find nothing to do once the columns are filled.</para>
+    ///
+    /// <para>⚠️ Correlated subqueries with LIMIT 1, not joins: UPDATE … FROM is spelled
+    /// differently on the two engines, and the subquery form is one text both accept. A root
+    /// nothing can resolve stays null, which is what null means.</para>
+    /// </summary>
+    public static void FillMissing(AppDbContext db)
+    {
+        db.Database.ExecuteSqlRaw("""
+            UPDATE "EsiAssets" SET "SolarSystemId" =
+                (SELECT s."SolarSystemId" FROM "SdeStations" s WHERE s."StationId" = "EsiAssets"."RootLocationId" LIMIT 1)
+            WHERE "SolarSystemId" IS NULL AND "RootLocationType" = 'station'
+            """);
+        db.Database.ExecuteSqlRaw("""
+            UPDATE "EsiAssets" SET "SolarSystemId" = "RootLocationId"
+            WHERE "SolarSystemId" IS NULL AND "RootLocationType" = 'solar_system'
+              AND "RootLocationId" > 0 AND "RootLocationId" < 2147483647
+            """);
+        db.Database.ExecuteSqlRaw("""
+            UPDATE "EsiAssets" SET "SolarSystemId" = COALESCE(
+                (SELECT s."SolarSystemId" FROM "Structures"        s WHERE s."StructureId" = "EsiAssets"."RootLocationId" AND s."SolarSystemId" <> 0 LIMIT 1),
+                (SELECT s."SolarSystemId" FROM "EsiStructureNames" s WHERE s."StructureId" = "EsiAssets"."RootLocationId" AND s."SolarSystemId" <> 0 LIMIT 1),
+                (SELECT s."SystemId"      FROM "EsiCorpStructures" s WHERE s."StructureId" = "EsiAssets"."RootLocationId" AND s."SystemId"      <> 0 LIMIT 1))
+            WHERE "SolarSystemId" IS NULL AND "RootLocationType" = 'other'
+            """);
+        db.Database.ExecuteSqlRaw("""
+            UPDATE "EsiAssets" SET "RegionId" =
+                (SELECT s."RegionId" FROM "SdeSolarSystems" s WHERE s."SolarSystemId" = "EsiAssets"."SolarSystemId" LIMIT 1)
+            WHERE "RegionId" IS NULL AND "SolarSystemId" IS NOT NULL
+            """);
+    }
 }

@@ -265,6 +265,11 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             var ids = new HashSet<long> { sysId };
             ids.UnionWith(await db.SdeStations
                 .Where(s => s.SolarSystemId == sysId).Select(s => (long)s.StationId).ToListAsync(ct));
+            // ⚠️ The same three structure sources AssetLocations resolves an asset's system from,
+            // or a scope and the assets in it disagree about where a structure is: one the
+            // Structure Browser described by hand was in no scope at all.
+            ids.UnionWith(await db.Structures
+                .Where(s => s.SolarSystemId == sysId).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiStructureNames
                 .Where(s => s.SolarSystemId == sysId).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiCorpStructures
@@ -280,6 +285,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             var ids = new HashSet<long>(sysIds.Select(s => (long)s));
             ids.UnionWith(await db.SdeStations
                 .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => (long)s.StationId).ToListAsync(ct));
+            ids.UnionWith(await db.Structures
+                .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiStructureNames
                 .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiCorpStructures

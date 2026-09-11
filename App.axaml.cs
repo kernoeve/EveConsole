@@ -3126,6 +3126,15 @@ public class App : Application
             // Insert-if-absent, so a capsuleer's corrections are never overwritten, and the unique
             // index settles any race between two clients starting together.
             if (!skipSchema) AgentTelemetrySchema.SeedRates(db);
+
+            // Where each asset is, for rows written before the columns existed. Both engines,
+            // outside the engine branch for the same reason as the rates above; nothing to do
+            // once the columns are filled, which after the first start they are.
+            if (!skipSchema)
+            {
+                try { AssetLocations.FillMissing(db); }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
+            }
         }
         }); // end Task.Run — schema migration complete
 
