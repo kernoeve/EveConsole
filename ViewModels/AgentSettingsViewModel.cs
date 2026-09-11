@@ -371,6 +371,13 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public bool ShowMicrophoneSettings   => _speechInputProvider != SpeechInputProvider.None;
 
     // ── Microphone device selection ────────────────────────────────────────────
+    //
+    // The first entry is not a device: it is "follow whatever the operating system has as its
+    // default input", which the recorder has always supported as an empty name and which the
+    // list never offered. Without it the tab pinned the capsuleer to whichever device happened
+    // to be first the day they opened it, and a headset plugged in later was never heard.
+    public const string SystemDefaultMicrophone = "System default";
+
     private IReadOnlyList<string> _microphoneDevices = [];
     public IReadOnlyList<string> MicrophoneDevices
     {
@@ -387,13 +394,17 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     private void RefreshMicrophoneDevices()
     {
-        var devices = _speech?.GetInputDeviceNames() ?? (IReadOnlyList<string>)[];
+        var found   = _speech?.GetInputDeviceNames() ?? (IReadOnlyList<string>)[];
+        var devices = new List<string>(found.Count + 1) { SystemDefaultMicrophone };
+        devices.AddRange(found);
         MicrophoneDevices = devices;
 
         if (_selectedMicrophoneDevice is not null && devices.Contains(_selectedMicrophoneDevice))
             return; // keep saved selection
 
-        SelectedMicrophoneDevice = devices.Count > 0 ? devices[0] : null;
+        // A saved device that is no longer present, or nothing saved at all: the system default,
+        // which is what the recorder falls back to anyway.
+        SelectedMicrophoneDevice = SystemDefaultMicrophone;
     }
 
     // ── Push-to-talk global key ────────────────────────────────────────────────
@@ -538,7 +549,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
         _speechInputProvider      = s.SpeechInputProvider;
         _whisperLocalModel        = s.WhisperLocalModel;
-        _selectedMicrophoneDevice = s.MicrophoneDeviceName;
+        _selectedMicrophoneDevice = string.IsNullOrEmpty(s.MicrophoneDeviceName) ? SystemDefaultMicrophone : s.MicrophoneDeviceName;
         _selectedPushToTalkKeyName = GlobalHotkeyService.VkName(s.PushToTalkKey) ?? GlobalHotkeyService.KeyOptions[0].Name;
 
         if (s.SpeechInputProvider != SpeechInputProvider.None)
@@ -579,7 +590,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
             SpeechInputProvider   = _speechInputProvider,
             WhisperLocalModel     = _whisperLocalModel,
-            MicrophoneDeviceName  = _selectedMicrophoneDevice ?? "",
+            // The empty name is what the recorder reads as "the system default".
+            MicrophoneDeviceName  = _selectedMicrophoneDevice is null or SystemDefaultMicrophone ? "" : _selectedMicrophoneDevice,
             PushToTalkKey         = GlobalHotkeyService.KeyOptions
                 .FirstOrDefault(k => k.Name == _selectedPushToTalkKeyName).WinVk,
         };

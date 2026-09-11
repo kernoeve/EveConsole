@@ -181,7 +181,11 @@ public sealed class IntelCondition : IAlarmCondition
                     r.IsDBNull(2) ? 0 : r.GetInt32(2),
                     r.IsDBNull(3) ? "" : r.GetString(3),
                     r.IsDBNull(4) ? null : r.GetString(4),
-                    r.IsDBNull(5) ? default : r.GetDateTime(5),
+                    // ⚠️ ReportedAt is TEXT on both engines — "2026-09-11T23:19:09Z" — and Npgsql
+                    // refuses GetDateTime on a text column, where SQLite quietly parsed it. Read
+                    // as the string it is and parse it as the UTC instant it is; the seen-key is
+                    // built from this, so it must not depend on the machine's clock setting.
+                    r.IsDBNull(5) ? default : ParseUtc(r.GetString(5)),
                     r.IsDBNull(6) ? 0 : r.GetInt32(6)));
         }
 
@@ -241,6 +245,11 @@ public sealed class IntelCondition : IAlarmCondition
 
         return matches;
     }
+
+    private static DateTime ParseUtc(string text)
+        => DateTime.TryParse(text, CultureInfo.InvariantCulture,
+                             DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var at)
+           ? at : default;
 
     private static async Task<List<int>> ResolveSystemsAsync(
         DbConnection conn, IReadOnlyList<string> names, CancellationToken ct)

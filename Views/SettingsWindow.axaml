@@ -2187,7 +2187,7 @@
                                   ToolTip.Tip="Refresh the list of input devices" />
                         </Grid>
                         <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Works on both Windows and Linux (PortAudio). If the list is empty, click ↺ to refresh after your audio driver initialises." />
+                                   Text="System default follows whatever the operating system has as its input device, so a headset plugged in later is used without coming back here. Pick a device to pin it. Works on both Windows and Linux (PortAudio); if the list is empty, click ↺ to refresh after your audio driver initialises." />
                       </StackPanel>
 
                       <!-- Global push-to-talk key -->
