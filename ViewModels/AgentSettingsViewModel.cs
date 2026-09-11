@@ -553,7 +553,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             ClaudeModel   = string.IsNullOrWhiteSpace(_claudeModel)    ? "claude-sonnet-4-6"          : _claudeModel.Trim(),
             ClaudeCacheTtl = _claudeCacheTtl,
             OpenAiApiKey  = _openAiApiKey.Trim(),
-            OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-4o"                     : _openAiModel.Trim(),
+            OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-5"                      : _openAiModel.Trim(),
             LocalEndpoint = string.IsNullOrWhiteSpace(_localEndpoint)  ? "http://localhost:11434"      : _localEndpoint.Trim(),
             LocalModel    = string.IsNullOrWhiteSpace(_localModel)     ? "llama3.1"                   : _localModel.Trim(),
             PersistHistory         = _persistHistory,

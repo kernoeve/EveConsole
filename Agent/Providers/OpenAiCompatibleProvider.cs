@@ -68,7 +68,7 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
 
     /// <summary>OpenAI's own service.</summary>
     public static OpenAiCompatibleProvider OpenAi(string apiKey, string model)
-        => new("OpenAI", "https://api.openai.com/v1/", apiKey ?? "", string.IsNullOrWhiteSpace(model) ? "gpt-4o" : model.Trim(), isLocal: false);
+        => new("OpenAI", "https://api.openai.com/v1/", apiKey ?? "", string.IsNullOrWhiteSpace(model) ? "gpt-5" : model.Trim(), isLocal: false);
 
     /// <summary>
     /// A model server on this machine or the network.

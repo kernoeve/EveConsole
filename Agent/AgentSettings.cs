@@ -46,7 +46,7 @@ public sealed class AgentSettings
     public string ClaudeCacheTtl { get; set; } = "5m";
 
     public string OpenAiApiKey  { get; set; } = "";
-    public string OpenAiModel   { get; set; } = "gpt-4o";
+    public string OpenAiModel   { get; set; } = "gpt-5";
 
     public string LocalEndpoint { get; set; } = "http://localhost:11434";
     public string LocalModel    { get; set; } = "llama3.1";

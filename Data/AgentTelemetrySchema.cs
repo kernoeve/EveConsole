@@ -53,8 +53,23 @@ public static class AgentTelemetrySchema
              0.000003m, 0.000015m, 0.0000003m, 0.00000375m, "Sonnet list: $3/$15 per Mtok"),
             ("llm", "Claude (Anthropic)", "",
              0.000003m, 0.000015m, 0.0000003m, 0.00000375m, "Fallback for any Claude model"),
+            // OpenAI, by model. The cost of a turn is looked up by the exact model name first, so
+            // a row per model the settings field is likely to hold; the nameless row is what any
+            // other name falls back to. List prices, September 2026; cached input is a tenth of
+            // fresh input across the family, and OpenAI does not bill cache writes.
+            ("llm", "OpenAI", "gpt-5",        0.00000125m, 0.00001m,   0.000000125m, 0m, "GPT-5 list: $1.25/$10 per Mtok, cached $0.125"),
+            ("llm", "OpenAI", "gpt-5-mini",   0.00000025m, 0.000002m,  0.000000025m, 0m, "GPT-5 mini list: $0.25/$2 per Mtok"),
+            ("llm", "OpenAI", "gpt-5-nano",   0.00000005m, 0.0000004m, 0.000000005m, 0m, "GPT-5 nano list: $0.05/$0.40 per Mtok"),
+            ("llm", "OpenAI", "gpt-5.1",      0.00000125m, 0.00001m,   0.000000125m, 0m, "GPT-5.1 list: $1.25/$10 per Mtok"),
+            ("llm", "OpenAI", "gpt-5.2",      0.00000175m, 0.000014m,  0.000000175m, 0m, "GPT-5.2 list: $1.75/$14 per Mtok"),
+            ("llm", "OpenAI", "gpt-5.4",      0.0000025m,  0.000015m,  0.00000025m,  0m, "GPT-5.4 list: $2.50/$15 per Mtok"),
+            ("llm", "OpenAI", "gpt-5.4-mini", 0.00000075m, 0.0000045m, 0.000000075m, 0m, "GPT-5.4 mini list: $0.75/$4.50 per Mtok"),
+            ("llm", "OpenAI", "gpt-5.4-nano", 0.0000002m,  0.00000125m, 0.00000002m, 0m, "GPT-5.4 nano list: $0.20/$1.25 per Mtok"),
+            ("llm", "OpenAI", "gpt-5.5",      0.000005m,   0.00003m,   0.0000005m,   0m, "GPT-5.5 list: $5/$30 per Mtok"),
+            ("llm", "OpenAI", "gpt-4o",       0.0000025m,  0.00001m,   0.00000125m,  0m, "GPT-4o list: $2.50/$10 per Mtok"),
+            ("llm", "OpenAI", "gpt-4o-mini",  0.00000015m, 0.0000006m, 0.000000075m, 0m, "GPT-4o mini list: $0.15/$0.60 per Mtok"),
             ("llm", "OpenAI", "",
-             0.0000025m, 0.00001m, 0.00000125m, 0m, "GPT-4o list: $2.50/$10 per Mtok"),
+             0.00000125m, 0.00001m, 0.000000125m, 0m, "Fallback for any other OpenAI model — GPT-5 list"),
             ("llm", "Local", "", 0m, 0m, 0m, 0m, "Runs on this machine"),
 
             ("tts", "OpenAi",     "", 0.000015m, 0m, 0m, 0m, "OpenAI TTS: $15 per 1M characters"),

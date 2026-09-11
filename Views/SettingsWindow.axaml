@@ -1883,7 +1883,7 @@
                                        HorizontalAlignment="Left" />
                       <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                       <TextBox Text="{Binding OpenAiModel}"
-                               Watermark="gpt-4o" />
+                               Watermark="gpt-5" />
                     </StackPanel>
                   </Grid>
                 </Border>
