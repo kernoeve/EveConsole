@@ -663,7 +663,8 @@ public class EsiClient
     }
 
     /// <summary>What a request the agent composed came back with, as text.</summary>
-    public sealed record RawResult(int StatusCode, string Body, int? ErrorLimitRemain, DateTimeOffset? Expires, string? Error, int TotalPages = 1)
+    public sealed record RawResult(int StatusCode, string Body, int? ErrorLimitRemain, DateTimeOffset? Expires, string? Error,
+                                   int TotalPages = 1, int? RetryAfterSeconds = null)
     {
         public bool IsSuccess => StatusCode is >= 200 and < 300;
     }
@@ -716,7 +717,8 @@ public class EsiClient
 
                 return new RawResult(statusCode, body, errorLimitRemain, response.Content.Headers.Expires,
                                      response.IsSuccessStatusCode ? null : body,
-                                     TryGetInt("X-Pages") ?? 1);
+                                     TryGetInt("X-Pages") ?? 1,
+                                     TryGetInt("Retry-After"));
             }
         }
         catch (OperationCanceledException) { throw; }

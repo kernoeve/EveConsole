@@ -43,6 +43,16 @@ public sealed class EsiCallTool : IAgentTool
     private const int MaxBatchItemChars = 1_200;
     private const int MaxBatchChars     = 30_000;
 
+    /// <summary>
+    /// Longest a per-route rate limit is waited out before the refusal is handed to the model.
+    ///
+    /// <para>⚠️ The polling keeps its own per-route blocks and this tool cannot see them, so a
+    /// 429 here is handled here: wait what Retry-After says, once, if it is short. Handing a raw
+    /// 429 straight to the model produces an immediate retry — another 429, another round — and
+    /// a forty-path batch on one route is exactly where a per-route limit bites.</para>
+    /// </summary>
+    private const int MaxRetryAfterSeconds = 15;
+
     /// <summary>POST endpoints that are lookups, not actions.</summary>
     private static readonly string[] ReadOnlyPosts =
     [
@@ -209,7 +219,7 @@ public sealed class EsiCallTool : IAgentTool
         }
 
         // ── The call ──────────────────────────────────────────────────────────
-        var r = await _esi.RequestRawAsync(http, path, body, characterId, ct);
+        var r = await CallAsync(http, path, body, characterId, ct);
 
         if (r.StatusCode == 0)
             return $"ESI call not made: {r.Error}";
@@ -217,6 +227,9 @@ public sealed class EsiCallTool : IAgentTool
             return $"ESI returned {r.StatusCode} for {method} {path}: {Trim(r.Error ?? "", 600)}"
                  + (r.StatusCode == 403 && characterId is null
                     ? " This endpoint needs a token — pass one of the capsuleer's characters as `character`."
+                    : "")
+                 + (r.StatusCode == 429
+                    ? $" This route is rate-limited; do not retry it for {r.RetryAfterSeconds ?? 60} seconds."
                     : "");
 
         var sb = new StringBuilder();
@@ -228,6 +241,22 @@ public sealed class EsiCallTool : IAgentTool
         else
             sb.Append(r.Body);
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// One request, waiting out a short per-route rate limit once. Anything the client refuses to
+    /// send (offline, error-limited) comes back as status 0 untouched.
+    /// </summary>
+    private async Task<EsiClient.RawResult> CallAsync(
+        HttpMethod method, string path, string? body, long? characterId, CancellationToken ct)
+    {
+        var r = await _esi.RequestRawAsync(method, path, body, characterId, ct);
+        if (r.StatusCode == 429 && r.RetryAfterSeconds is { } wait && wait <= MaxRetryAfterSeconds)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(wait + 1), ct);
+            r = await _esi.RequestRawAsync(method, path, body, characterId, ct);
+        }
+        return r;
     }
 
     /// <summary>The path as the client will send it, or null when it is not a relative ESI path.</summary>
@@ -261,9 +290,12 @@ public sealed class EsiCallTool : IAgentTool
                 item = """{"error":"not a relative ESI path"}""";
             else
             {
-                var r = await _esi.RequestRawAsync(HttpMethod.Get, path, null, null, ct);
+                var r = await CallAsync(HttpMethod.Get, path, null, null, ct);
                 if (r.StatusCode == 0)
                     return $"ESI calls stopped after {done} of {paths.Count}: {r.Error}";
+                if (r.StatusCode == 429)
+                    return sb.Append("\n}").Append($"\n(stopped after {done} of {paths.Count}: this route is rate-limited — "
+                                                 + $"do not retry it for {r.RetryAfterSeconds ?? 60} seconds)").ToString();
                 item = r.IsSuccess
                     ? Shorten(r.Body, ref cut)
                     : JsonSerializer.Serialize(new { error = $"{r.StatusCode}: {Trim(r.Error ?? "", 200)}" });
