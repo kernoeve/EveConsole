@@ -123,7 +123,11 @@ foreach (var (label, text) in sources)
 // rather than an accident.
 var prompt = AgentService.BuildSystemPrompt(new AgentSettings(), schema.Prompt);
 var approxTokens = prompt.Length / 4;
-const int Budget = 12_000;
+// Raised from 12,000 on 2026-09-11. What took it over: the core-table columns (measured to
+// replace 41 describe_tables calls), the ownership model, the clock, four new tools, and the
+// asset-location join — each added because a specific failure was measured, and each in the
+// cached prefix at a tenth of the price. The next raise should come with the same kind of reason.
+const int Budget = 14_000;
 
 Console.WriteLine($"tables in model      : {schema.TableCount}");
 Console.WriteLine($"identifiers checked  : {checkedNames}");
