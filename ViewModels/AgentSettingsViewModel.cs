@@ -37,6 +37,32 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     private string DisplayAgentName =>
         string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim();
 
+    // ── The person ─────────────────────────────────────────────────────────────
+    private string _userName = AgentSettings.DefaultUserName;
+    public string UserName
+    {
+        get => _userName;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _userName, value);
+            this.RaisePropertyChanged(nameof(UserGuidanceHelpText));
+        }
+    }
+
+    private string _userGuidance = "";
+    public string UserGuidance
+    {
+        get => _userGuidance;
+        set => this.RaiseAndSetIfChanged(ref _userGuidance, value);
+    }
+
+    public string UserNameHelpText =>
+        $"What {DisplayAgentName} calls you. Default: {AgentSettings.DefaultUserName}. Set it to your main and she will use it.";
+
+    public string UserGuidanceHelpText =>
+        $"Given to {DisplayAgentName} with every message, and declared to override her standard guidance — what your words mean, who people are, how you want her to behave. One instruction per line. " +
+        $"You can also just tell her: \"when I say home, I mean the Keepstar in UALX-3\" — she records it here herself.";
+
     public string DefaultAgentNameHelpText =>
         $"The name shown in the panel header and used when the agent refers to itself. Default: {AgentSettings.DefaultAgentName}.";
 
@@ -445,6 +471,16 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
         LoadFromService();
         SaveCommand               = ReactiveCommand.Create(Save);
+
+        // ⚠️ The agent writes the standing instructions too, through update_guidance. This tab
+        // rebuilds its whole settings object on Save, so without following the service's copy a
+        // Save pressed after the agent recorded something would write the old text back over it.
+        _service.WhenAnyValue(x => x.Settings)
+                .Subscribe(s =>
+                {
+                    UserGuidance = s.UserGuidance ?? "";
+                    UserName     = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
+                });
     }
 
     private void LoadFromService()
@@ -452,6 +488,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         var s = _service.Settings;
         _agentName              = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
         _verbosity              = s.Verbosity;
+        _userName               = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
+        _userGuidance           = s.UserGuidance ?? "";
         _isEnabled              = s.Enabled;
         _selectedProvider       = s.Provider;
         _claudeApiKey           = s.ClaudeApiKey;
@@ -490,6 +528,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             AgentName  = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim(),
             Verbosity  = _verbosity,
+            UserName     = string.IsNullOrWhiteSpace(_userName) ? AgentSettings.DefaultUserName : _userName.Trim(),
+            UserGuidance = (_userGuidance ?? "").Trim(),
             Enabled       = _isEnabled,
             Provider      = _selectedProvider,
             ClaudeApiKey  = _claudeApiKey.Trim(),

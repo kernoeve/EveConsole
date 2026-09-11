@@ -83,6 +83,27 @@ public sealed class AgentService : ReactiveObject
     {
         var name = string.IsNullOrWhiteSpace(settings.AgentName) ? AgentSettings.DefaultAgentName : settings.AgentName.Trim();
 
+        // ── The person, and their own standing instructions ─────────────────
+        //
+        // The instructions below say "the capsuleer" throughout, as a role. When a name is set,
+        // one line up front binds the role to the person; the instructions are not rewritten.
+        var userName = string.IsNullOrWhiteSpace(settings.UserName) ? AgentSettings.DefaultUserName : settings.UserName.Trim();
+        var personal = userName.Equals(AgentSettings.DefaultUserName, StringComparison.OrdinalIgnoreCase)
+            ? ""
+            : $"The capsuleer you are talking to is {userName}. Address them by that name, and wherever " +
+              $"these instructions say \"the capsuleer\" they mean {userName}.";
+
+        // ⚠️ Last, and declared to win. Everything above is the application's general guidance;
+        // this is what THIS person has said about how they want to be understood — "when I say
+        // home I mean the Keepstar in UALX-3" — and it has to beat the general case or it is
+        // useless. Inside the cached prefix, so a change costs one re-cache, not one per turn.
+        var guidance = string.IsNullOrWhiteSpace(settings.UserGuidance)
+            ? ""
+            : $"## {userName}'s standing instructions — these OVERRIDE everything above\n" +
+              "Follow these even where they contradict the guidance above. When one says what a word " +
+              "or a name means, that is what it means every time it is said. To add or change one, " +
+              "use update_guidance.\n\n" + settings.UserGuidance.Trim();
+
         var verbosityInstruction = settings.Verbosity switch
         {
             VerbositySetting.Concise  =>
@@ -101,6 +122,7 @@ public sealed class AgentService : ReactiveObject
 
         return $"""
             You are {name}, an AI companion integrated into EVE Console — a local capsuleer management application for EVE Online.
+            {personal}
 
             You have comprehensive knowledge of EVE Online: industry, market dynamics, ship fittings, sovereignty warfare, PvP, exploration, missions, skills, implants, the player-driven economy, lore, and the complex political landscape of New Eden.
 
@@ -192,6 +214,7 @@ public sealed class AgentService : ReactiveObject
             - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
             - esi_call: For what the database does not hold — anything CURRENT about people outside the capsuleer's own corporations. "Are they still in the corp", "where did they go", public details of a stranger: get the ids from the database, then ask ESI. Never for data the database already has.
             - set_destination: ALWAYS call this when the capsuleer asks to set a destination, route, or autopilot to a system — "set destination UALX-3", "take me to Jita". Never just say it is done. If it tells you several characters are online, ask which one; do not pick.
+            - update_guidance: When the capsuleer tells you what a word means, who someone is, or how to behave FROM NOW ON — "when I say home I mean…", "remember that…", "my main is…" — record it with this so it holds in every conversation, then confirm briefly. Never for one-off requests or things you found out yourself.
 
             ## Where a long answer goes — IMPORTANT
             You are in a narrow side panel whose contents are carried in the history of every later
@@ -242,6 +265,8 @@ public sealed class AgentService : ReactiveObject
             They are said character by character, with the hyphen pronounced "tac": C-FD0D is "C tac F D zero D", 6-IAFR is "six tac I A F R". Use that form only if the capsuleer asks how a name is pronounced, or if you are spelling one out on purpose.
 
             Speak as {name}: calm, knowledgeable, slightly formal, with subtle warmth. You may address the capsuleer respectfully. Occasionally reference the broader state of New Eden to add colour, but keep the focus on what is useful to the capsuleer right now.
+
+            {guidance}
             """;
     }
 
@@ -330,6 +355,8 @@ public sealed class AgentService : ReactiveObject
             new ShowDocumentTool(
                 (title, markdown) => ShowDocumentCallback?.Invoke(title, markdown)
                                      ?? "Tabs are not available, so the document could not be shown."),
+            // What the capsuleer has told the agent to remember about how to understand them.
+            new UpdateGuidanceTool(this),
             // The rows go from the database straight to the grid and never through the model —
             // the same grid show_table opens, fed from the other side.
             new ShowQueryTool(
@@ -389,6 +416,23 @@ public sealed class AgentService : ReactiveObject
         Save();
         this.RaisePropertyChanged(nameof(Settings));
         this.RaisePropertyChanged(nameof(Provider));
+    }
+
+    /// <summary>
+    /// Replaces the capsuleer's standing instructions and publishes the change.
+    ///
+    /// <para>⚠️ Published as a NEW Settings object. WhenAnyValue ignores a notification whose value
+    /// is the same reference, so mutating the current one in place and raising would reach nobody
+    /// — and the open Settings tab, which rebuilds its whole object on Save, would then write the
+    /// old text straight back over the agent's change.</para>
+    /// </summary>
+    public void UpdateGuidance(string guidance)
+    {
+        var next = _settings.Clone();
+        next.UserGuidance = guidance;
+        _settings = next;
+        Save();
+        this.RaisePropertyChanged(nameof(Settings));
     }
 
     public void Save()

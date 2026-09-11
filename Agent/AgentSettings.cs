@@ -17,6 +17,23 @@ public sealed class AgentSettings
     public string            AgentName     { get; set; } = DefaultAgentName;
     public VerbositySetting  Verbosity     { get; set; } = VerbositySetting.Balanced;
 
+    /// <summary>What the agent calls the person it is talking to. The instructions say "the
+    /// capsuleer" throughout; a name here is substituted for that in the prompt's own framing.</summary>
+    public const string DefaultUserName = "capsuleer";
+    public string UserName { get; set; } = DefaultUserName;
+
+    /// <summary>
+    /// The capsuleer's own standing instructions, given to the agent with every message and
+    /// declared to override the built-in guidance. "When I say home, I mean the Keepstar in
+    /// UALX-3." Edited in Settings, or by the agent itself through update_guidance when told
+    /// "from now on…".
+    /// </summary>
+    public string UserGuidance { get; set; } = "";
+
+    /// <summary>A copy, so a change can be published as a NEW Settings value. WhenAnyValue on
+    /// the service ignores a notification whose value is the same reference.</summary>
+    public AgentSettings Clone() => (AgentSettings)MemberwiseClone();
+
     public string ClaudeApiKey  { get; set; } = "";
     public string ClaudeModel   { get; set; } = "claude-sonnet-4-6";
 
