@@ -230,10 +230,51 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (IsVisible) TryStartup();
     }
 
+    // ── Agent panel width ────────────────────────────────────────────────────
+    //
+    // The panel sits on the right, so dragging its left edge LEFT makes it wider. The floor is
+    // the width it was designed at; the ceiling leaves the content area a usable minimum.
+    private const double AgentPanelMinWidth   = 360;
+    private const double ContentMinWidth      = 480;
+    private double? _agentDragStartX;
+    private double  _agentDragStartWidth;
+
+    private void OnAgentResizePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        _agentDragStartX     = e.GetPosition(this).X;
+        _agentDragStartWidth = AgentDock.Bounds.Width;
+        e.Pointer.Capture(AgentResizeHandle);
+        e.Handled = true;
+    }
+
+    private void OnAgentResizeMoved(object? sender, PointerEventArgs e)
+    {
+        if (_agentDragStartX is not { } startX) return;
+        var proposed = _agentDragStartWidth - (e.GetPosition(this).X - startX);
+        var ceiling  = Math.Max(AgentPanelMinWidth, Bounds.Width - ContentMinWidth);
+        AgentDock.Width = Math.Clamp(proposed, AgentPanelMinWidth, ceiling);
+        e.Handled = true;
+    }
+
+    private void OnAgentResizeReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_agentDragStartX is null) return;
+        _agentDragStartX = null;
+        e.Pointer.Capture(null);
+        // Remembered per installation, like the window itself.
+        Services.AppConfig.SetAgentPanelWidth((int)AgentDock.Width);
+        e.Handled = true;
+    }
+
     private void TryStartup()
     {
         if (_started || DataContext is not MainWindowViewModel vm) return;
         _started = true;
+
+        // The width the capsuleer last dragged the agent panel to, if they ever did.
+        if (Services.AppConfig.GetAgentPanelWidth() is { } savedWidth && savedWidth >= AgentPanelMinWidth)
+            AgentDock.Width = savedWidth;
 
         var agentService = vm.AgentVm.Service;
         agentService.WindowOpenRequested  += name => Dispatcher.UIThread.Post(() => OpenToolByName(vm, name));

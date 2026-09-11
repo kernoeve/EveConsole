@@ -641,12 +641,27 @@
 
         </Grid>
 
-        <!-- Agent panel -->
-        <Border Grid.Column="1"
-                IsVisible="{Binding AgentVm.IsPanelVisible}"
-                BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1 0 0 0">
-          <views:AgentPanel DataContext="{Binding AgentVm}" />
-        </Border>
+        <!-- Agent panel, in a dock the capsuleer can widen by dragging its left edge. The dock
+             owns the width (the panel itself has none), so hiding it collapses the column to
+             nothing and showing it again brings the width back. The drag itself is in code-behind
+             rather than a GridSplitter: a splitter trades width between two columns of ITS grid,
+             and here the thing to resize is the dock as a whole inside an Auto column. -->
+        <Grid Grid.Column="1" x:Name="AgentDock"
+              IsVisible="{Binding AgentVm.IsPanelVisible}"
+              ColumnDefinitions="Auto,*" Width="360" MinWidth="360">
+          <Border Grid.Column="0" x:Name="AgentResizeHandle" Width="5" Cursor="SizeWestEast"
+                  Background="{DynamicResource SurfaceRaisedBrush}"
+                  PointerPressed="OnAgentResizePressed"
+                  PointerMoved="OnAgentResizeMoved"
+                  PointerReleased="OnAgentResizeReleased">
+            <Border.Styles>
+              <Style Selector="Border:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+              </Style>
+            </Border.Styles>
+          </Border>
+          <views:AgentPanel Grid.Column="1" DataContext="{Binding AgentVm}" />
+        </Grid>
 
       </Grid>
 

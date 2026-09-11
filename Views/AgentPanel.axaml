@@ -5,14 +5,15 @@
              xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.AgentPanel"
              x:DataType="vm:AgentPanelViewModel"
-             Width="360"
              Background="{DynamicResource SurfaceBaseBrush}">
+  <!-- No fixed width: the dock in MainWindow sizes this, and the capsuleer drags its edge. -->
 
   <UserControl.Resources>
     <views:MessageRoleAlignmentConverter  x:Key="RoleAlignment"/>
     <views:MessageRoleBackgroundConverter x:Key="RoleBg"/>
     <views:IsSummaryBorderConverter       x:Key="SummaryBorder"/>
     <views:IsSummaryForegroundConverter   x:Key="SummaryFg"/>
+    <views:WidthLessConverter             x:Key="LessBy"/>
   </UserControl.Resources>
 
   <Grid RowDefinitions="Auto,*,Auto,Auto">
@@ -106,7 +107,7 @@
                 <Border Margin="10 3"
                         Padding="10 7"
                         CornerRadius="8"
-                        MaxWidth="290"
+                        MaxWidth="{Binding $parent[views:AgentPanel].Bounds, Converter={StaticResource LessBy}, ConverterParameter=70}"
                         HorizontalAlignment="{Binding Role, Converter={StaticResource RoleAlignment}}"
                         Background="{Binding Role, Converter={StaticResource RoleBg}}"
                         BorderBrush="{Binding IsSummary, Converter={StaticResource SummaryBorder}}"
@@ -130,7 +131,7 @@
                 Margin="10 3"
                 Padding="10 7"
                 CornerRadius="8"
-                MaxWidth="290"
+                MaxWidth="{Binding $parent[views:AgentPanel].Bounds, Converter={StaticResource LessBy}, ConverterParameter=70}"
                 HorizontalAlignment="Left"
                 Background="{DynamicResource SurfaceInputBrush}">
           <SelectableTextBlock Text="{Binding StreamingText}"

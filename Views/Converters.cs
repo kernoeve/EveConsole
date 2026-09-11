@@ -49,6 +49,23 @@ public class MessageRoleAlignmentConverter : IValueConverter
         => throw new NotSupportedException();
 }
 
+/// <summary>
+/// A width less a fixed margin, for a chat bubble whose ceiling should follow its panel. The
+/// agent panel is resizable; a bubble capped at a number stays narrow in a panel made wide.
+/// </summary>
+public class WidthLessConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var width = value is Rect r ? r.Width : value is double d ? d : 0;
+        var less  = parameter is string s && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var p) ? p : 0;
+        return Math.Max(120, width - less);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class MessageRoleBackgroundConverter : IValueConverter
 {
     public static readonly MessageRoleBackgroundConverter Instance = new();

@@ -200,6 +200,16 @@ public static class AppConfig
         Save(c);
     }
 
+    /// <summary>How wide the capsuleer last dragged the agent panel. Null if never dragged.</summary>
+    public static int? GetAgentPanelWidth() => Load().AgentPanelWidth;
+
+    public static void SetAgentPanelWidth(int width)
+    {
+        var c = Load();
+        c.AgentPanelWidth = width;
+        Save(c);
+    }
+
     /// <summary>Where the main window was, and how big. Null on a fresh install.</summary>
     public static (int X, int Y, int Width, int Height, string State)? GetMainWindow()
     {
@@ -528,6 +538,7 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("agentPanelWidth")] public int? AgentPanelWidth { get; set; }
         [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
 
         // How this client's Overview sections are arranged. Beside the window geometry above and
