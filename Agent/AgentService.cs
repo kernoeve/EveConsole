@@ -453,10 +453,17 @@ public sealed class AgentService : ReactiveObject
 
     private void RebuildProvider()
     {
+        // ⚠️ Every option the settings tab offers has to build something here. OpenAI and Local
+        // were selectable for months with no provider behind them, so choosing either yielded
+        // "not configured" — and nothing said why until a message was sent.
         Provider = _settings.Provider switch
         {
             AgentProviderType.Claude when !string.IsNullOrWhiteSpace(_settings.ClaudeApiKey)
-                => new ClaudeProvider(_settings.ClaudeApiKey, _settings.ClaudeModel),
+                => new ClaudeProvider(_settings.ClaudeApiKey, _settings.ClaudeModel, _settings.ClaudeCacheTtl),
+            AgentProviderType.OpenAI when !string.IsNullOrWhiteSpace(_settings.OpenAiApiKey)
+                => OpenAiCompatibleProvider.OpenAi(_settings.OpenAiApiKey, _settings.OpenAiModel),
+            AgentProviderType.Local when !string.IsNullOrWhiteSpace(_settings.LocalEndpoint)
+                => OpenAiCompatibleProvider.Local(_settings.LocalEndpoint, _settings.LocalModel),
             _ => null,
         };
     }

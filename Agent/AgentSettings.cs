@@ -37,6 +37,14 @@ public sealed class AgentSettings
     public string ClaudeApiKey  { get; set; } = "";
     public string ClaudeModel   { get; set; } = "claude-sonnet-4-6";
 
+    /// <summary>
+    /// How long Anthropic keeps the cached prompt prefix warm between requests: "5m" (the
+    /// default) or "1h". A read refreshes the timer on either; the hour costs 2× to write
+    /// against 1.25×, and only pays when turns are typically 5–60 minutes apart. Claude only —
+    /// the other providers cache automatically with no lifetime to choose.
+    /// </summary>
+    public string ClaudeCacheTtl { get; set; } = "5m";
+
     public string OpenAiApiKey  { get; set; } = "";
     public string OpenAiModel   { get; set; } = "gpt-4o";
 

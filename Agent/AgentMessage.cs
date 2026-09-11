@@ -36,6 +36,18 @@ public sealed record AgentMessage
     [JsonIgnore]
     public string EveTimeText => Timestamp.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " EVE";
 
+    /// <summary>
+    /// The text as every provider sends it: the capsuleer's turns carry when they were sent, the
+    /// agent's own and the summary do not.
+    ///
+    /// <para>⚠️ One definition, used by every provider. The stamp is fixed at the moment the message
+    /// was written, so a cached prefix is unchanged by it; and only the capsuleer's turns carry it,
+    /// because a stamp on the model's own past replies teaches it to write one.</para>
+    /// </summary>
+    [JsonIgnore]
+    public string ContentForModel =>
+        Role == MessageRole.User && !IsSummary ? $"[{EveTimeText}] {Content}" : Content;
+
     [JsonConstructor]
     public AgentMessage(MessageRole role, string content, DateTimeOffset timestamp)
     {

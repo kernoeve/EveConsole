@@ -1858,6 +1858,13 @@
                                Watermark="claude-sonnet-4-6" />
                       <TextBlock Text="Available models: claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5-20251001"
                                  FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+
+                      <TextBlock Text="Prompt Cache Lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                      <ComboBox ItemsSource="{Binding ClaudeCacheTtlOptions}"
+                                SelectedItem="{Binding ClaudeCacheTtlOption}"
+                                HorizontalAlignment="Stretch" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message." />
                     </StackPanel>
                   </Grid>
                 </Border>

@@ -126,6 +126,22 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _claudeApiKey, value);
     }
 
+    // ── Claude prompt-cache lifetime ────────────────────────────────────────────
+    public IReadOnlyList<string> ClaudeCacheTtlOptions { get; } = ["5 minutes (default)", "1 hour"];
+
+    private string _claudeCacheTtl = "5m";
+    public string ClaudeCacheTtlOption
+    {
+        get => _claudeCacheTtl == "1h" ? ClaudeCacheTtlOptions[1] : ClaudeCacheTtlOptions[0];
+        set
+        {
+            var ttl = value == ClaudeCacheTtlOptions[1] ? "1h" : "5m";
+            if (ttl == _claudeCacheTtl) return;
+            _claudeCacheTtl = ttl;
+            this.RaisePropertyChanged();
+        }
+    }
+
     private string _claudeModel = "";
     public string ClaudeModel
     {
@@ -494,6 +510,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _selectedProvider       = s.Provider;
         _claudeApiKey           = s.ClaudeApiKey;
         _claudeModel            = s.ClaudeModel;
+        _claudeCacheTtl         = s.ClaudeCacheTtl == "1h" ? "1h" : "5m";
         _openAiApiKey           = s.OpenAiApiKey;
         _openAiModel            = s.OpenAiModel;
         _localEndpoint          = s.LocalEndpoint;
@@ -534,6 +551,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             Provider      = _selectedProvider,
             ClaudeApiKey  = _claudeApiKey.Trim(),
             ClaudeModel   = string.IsNullOrWhiteSpace(_claudeModel)    ? "claude-sonnet-4-6"          : _claudeModel.Trim(),
+            ClaudeCacheTtl = _claudeCacheTtl,
             OpenAiApiKey  = _openAiApiKey.Trim(),
             OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-4o"                     : _openAiModel.Trim(),
             LocalEndpoint = string.IsNullOrWhiteSpace(_localEndpoint)  ? "http://localhost:11434"      : _localEndpoint.Trim(),

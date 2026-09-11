@@ -55,22 +55,23 @@ public sealed class ClaudeProvider : IAgentProvider
     /// </summary>
     private const int    MaxOutputTokens  = 16384;
 
-    /// <summary>
-    /// How long the two stable cache entries — tools+system, and the conversation so far — stay
-    /// warm between requests.
-    ///
-    /// <para>⚠️ The default entry lives five minutes from the start of the last request that
-    /// touched it. That is fine inside a turn, where rounds are seconds apart, and fine for a
-    /// reply typed straight back. It is exactly wrong for how this panel is used: ask, read the
-    /// answer, go and do the thing in game, ask again ten minutes later — and the whole prefix
-    /// is written again at 1.25×. The one-hour entry costs 2× to write and the same 0.1× to
-    /// read, and pays for itself on the first conversation resumed after a gap.</para>
-    ///
-    /// <para>⚠️ Only on the stable entries. The per-round tool-result marker is short-lived by
-    /// nature and stays on the default; and the API requires longer-lived markers to precede
-    /// shorter ones, which the order tools → system → history → tool results already gives.</para>
-    /// </summary>
-    private const string StableCacheTtl = "1h";
+    // ── Cache lifetime ───────────────────────────────────────────────────────
+    //
+    // The default entry lives five minutes from the start of the last request that touched
+    // it; the one-hour entry costs 2× to write against 1.25× and reads the same. Measured on
+    // one capsuleer's day: eleven turns began after a gap, five in the 5–60 minute window
+    // where the hour turns a re-write into a read, six after gaps of 1.5 to 11 hours where it
+    // makes no difference — close enough that it is a setting, not a decision made here.
+    //
+    // ⚠️ When the hour is chosen it goes only on the stable entries (system, history), never
+    // on the per-round tool-result marker; the API requires longer-lived markers to PRECEDE
+    // shorter ones. tools/AgentStreamCheck asserts that at both settings.
+    private readonly bool _hourCache;
+
+    /// <summary>The marker for a stable entry, at whichever lifetime is configured.</summary>
+    private object StableMarker => _hourCache
+        ? new { type = "ephemeral", ttl = "1h" }
+        : new { type = "ephemeral" };
 
     // ⚠️ Not readonly, and only for one reason: tools/AgentStreamCheck replaces it with a client
     // over a fake server so the real streaming path can be run headless, and .NET 9 refuses a
@@ -84,10 +85,12 @@ public sealed class ClaudeProvider : IAgentProvider
     public string ProviderName => "Claude (Anthropic)";
     public bool   IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
 
-    public ClaudeProvider(string apiKey, string model = "claude-sonnet-4-6")
+    /// <param name="cacheTtl">"5m" or "1h"; anything else is the default.</param>
+    public ClaudeProvider(string apiKey, string model = "claude-sonnet-4-6", string cacheTtl = "5m")
     {
-        _apiKey = apiKey;
-        _model  = model;
+        _apiKey    = apiKey;
+        _model     = model;
+        _hourCache = string.Equals(cacheTtl, "1h", StringComparison.OrdinalIgnoreCase);
     }
 
     public async IAsyncEnumerable<string> StreamAsync(
@@ -123,9 +126,7 @@ public sealed class ClaudeProvider : IAgentProvider
             // we last spoke" cannot be answered. The stamp is fixed at the moment the message was
             // written, so the cached prefix is unchanged by it; and only the capsuleer's turns are
             // stamped, because a stamp on the model's own past replies teaches it to write one.
-            var text = m.Role == MessageRole.User && !m.IsSummary
-                ? $"[{m.EveTimeText}] {m.Content}"
-                : m.Content;
+            var text = m.ContentForModel;
 
             // ⚠️ Only the last one, and only when it has text. An empty text block is rejected by
             // the API, and a marker on every message would spend all four breakpoints on the
@@ -137,7 +138,7 @@ public sealed class ClaudeProvider : IAgentProvider
                     role,
                     content = new object[]
                     {
-                        new { type = "text", text, cache_control = new { type = "ephemeral", ttl = StableCacheTtl } },
+                        new { type = "text", text, cache_control = StableMarker },
                     },
                 });
             }
@@ -496,7 +497,7 @@ public sealed class ClaudeProvider : IAgentProvider
             {
                 type          = "text",
                 text          = systemPrompt,
-                cache_control = new { type = "ephemeral", ttl = StableCacheTtl },
+                cache_control = StableMarker,
             },
         };
 
