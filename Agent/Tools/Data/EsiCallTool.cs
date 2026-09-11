@@ -30,6 +30,19 @@ public sealed class EsiCallTool : IAgentTool
     /// </summary>
     private const int MaxResponseChars = 12_000;
 
+    /// <summary>
+    /// Paths per batched call, and how much of each answer survives.
+    ///
+    /// <para>⚠️ The batch exists because corporationhistory is one character per request, and
+    /// "where did the leavers go" is one request per leaver. Forty of those as separate tool
+    /// calls would spend twice the round budget; as one call they spend one round. The per-item
+    /// cut keeps what matters: ESI lists corporation history newest first, so the entries that
+    /// say where someone went are the ones kept.</para>
+    /// </summary>
+    private const int MaxBatchPaths     = 40;
+    private const int MaxBatchItemChars = 1_200;
+    private const int MaxBatchChars     = 30_000;
+
     /// <summary>POST endpoints that are lookups, not actions.</summary>
     private static readonly string[] ReadOnlyPosts =
     [
@@ -52,10 +65,14 @@ public sealed class EsiCallTool : IAgentTool
 
         The questions this answers, and how:
           "Is X still in corp Y? Where did they go?"
-              POST characters/affiliation/  body: [id, id, …]   → current corporation_id and
-              alliance_id for up to 1,000 characters in ONE call. Then
-              GET characters/{id}/corporationhistory/          → every corporation they have
-              been in with start_date, newest first: where they went and when.
+              1. POST characters/affiliation/  body: [id, id, …]  → current corporation_id and
+                 alliance_id for up to 1,000 characters in ONE call. This alone answers "who is
+                 still in the corp".
+              2. Only for those who LEFT: GET characters/{id}/corporationhistory/ → every
+                 corporation they have been in with start_date, newest first. One character per
+                 path — so pass them ALL in `paths` and get every history back in ONE call.
+              3. POST universe/names/ for every corporation id you now hold, in one call.
+              Three calls for any number of people.
           Names for any ids:   POST universe/names/  body: [id, …]  (≤1,000; characters,
               corporations, alliances, types, systems, stations)
           Ids for names:       POST universe/ids/    body: ["name", …]
@@ -70,6 +87,10 @@ public sealed class EsiCallTool : IAgentTool
         Paths are relative — characters/123/ — no scheme, no host. Only GET, plus the three POST
         lookups above; everything else is refused. Responses over 12,000 characters are cut off
         and say so: narrow the request or page it with ?page=N (the result says how many pages).
+        `paths` (GET only) takes up to 40 paths and returns an object keyed by path — use it
+        whenever you would otherwise call the same endpoint for several ids, so the whole set
+        costs one call instead of one per id. Each answer in a batch is cut at 1,200 characters,
+        which for a corporation history keeps the newest entries.
         Character ids for people in the database are in Characters.Id, contract acceptors in
         EsiContracts.AcceptorId, kill victims and attackers in KillMailDetails and
         KillMailAttackers — query those first, then ask ESI about the ids.
@@ -91,6 +112,14 @@ public sealed class EsiCallTool : IAgentTool
                 type        = "string",
                 description = "Relative ESI path, e.g. \"characters/2112175987/corporationhistory/\". No scheme or host.",
             },
+            paths = new
+            {
+                type        = "array",
+                items       = new { type = "string" },
+                description = "GET only. Several relative paths answered in ONE call, up to 40 — e.g. the " +
+                              "corporation history of every character who left. Results come back as an " +
+                              "object keyed by path. Use this instead of one call per id.",
+            },
             query = new
             {
                 type        = "object",
@@ -108,7 +137,7 @@ public sealed class EsiCallTool : IAgentTool
                 description = "Optional. The name of one of the capsuleer's characters to sign the call as, for endpoints that need a token.",
             },
         },
-        required = new[] { "method", "path" },
+        required = new[] { "method" },
     };
 
     public EsiCallTool(EsiClient esi) => _esi = esi;
@@ -120,21 +149,32 @@ public sealed class EsiCallTool : IAgentTool
         var body      = input.TryGetProperty("body", out var b) && b.ValueKind == JsonValueKind.String ? b.GetString() : null;
         var character = Text(input, "character").Trim();
 
-        // ── The path ──────────────────────────────────────────────────────────
-        if (path.Length == 0) return "No path was given.";
-        if (path.Contains("://") || path.Contains("..") || path.Any(char.IsWhiteSpace))
-            return "The path must be relative — e.g. characters/123/ — with no scheme, host or '..'.";
-        path = path.TrimStart('/');
-        if (path.StartsWith("latest/", StringComparison.OrdinalIgnoreCase)) path = path["latest/".Length..];
-        if (!path.EndsWith('/') && !path.Contains('?')) path += "/";
-
+        var queryString = "";
         if (input.TryGetProperty("query", out var q) && q.ValueKind == JsonValueKind.Object)
         {
             var parts = q.EnumerateObject()
                          .Select(p => Uri.EscapeDataString(p.Name) + "=" + Uri.EscapeDataString(p.Value.ToString()))
                          .ToList();
-            if (parts.Count > 0) path += (path.Contains('?') ? "&" : "?") + string.Join("&", parts);
+            if (parts.Count > 0) queryString = string.Join("&", parts);
         }
+
+        // ── Several paths at once ─────────────────────────────────────────────
+        if (input.TryGetProperty("paths", out var ps) && ps.ValueKind == JsonValueKind.Array && ps.GetArrayLength() > 0)
+        {
+            if (method != "GET") return "`paths` is for GET only.";
+            var list = ps.EnumerateArray().Select(p => p.GetString() ?? "").Where(p => p.Length > 0).Distinct().ToList();
+            if (list.Count > MaxBatchPaths)
+                return $"At most {MaxBatchPaths} paths per call — this has {list.Count}. Split it, or narrow the set first "
+                     + "(affiliation first, then history only for those who left).";
+            return await BatchAsync(list, queryString, ct);
+        }
+
+        // ── One path ──────────────────────────────────────────────────────────
+        if (Normalise(path, queryString) is not { } normalised)
+            return path.Length == 0
+                ? "No path was given."
+                : "The path must be relative — e.g. characters/123/ — with no scheme, host or '..'.";
+        path = normalised;
 
         // ── The method ────────────────────────────────────────────────────────
         HttpMethod http;
@@ -188,6 +228,108 @@ public sealed class EsiCallTool : IAgentTool
         else
             sb.Append(r.Body);
         return sb.ToString();
+    }
+
+    /// <summary>The path as the client will send it, or null when it is not a relative ESI path.</summary>
+    private static string? Normalise(string path, string queryString)
+    {
+        path = path.Trim();
+        if (path.Length == 0) return null;
+        if (path.Contains("://") || path.Contains("..") || path.Any(char.IsWhiteSpace)) return null;
+        path = path.TrimStart('/');
+        if (path.StartsWith("latest/", StringComparison.OrdinalIgnoreCase)) path = path["latest/".Length..];
+        if (!path.EndsWith('/') && !path.Contains('?')) path += "/";
+        if (queryString.Length > 0) path += (path.Contains('?') ? "&" : "?") + queryString;
+        return path;
+    }
+
+    /// <summary>
+    /// Every path in turn, as one JSON object keyed by the path as given. Sequential rather than
+    /// parallel: the client's gate allows two in flight and the polling is using it too, and a
+    /// burst of forty from the agent should not crowd it out.
+    /// </summary>
+    private async Task<string> BatchAsync(List<string> paths, string queryString, CancellationToken ct)
+    {
+        var sb   = new StringBuilder("{");
+        var done = 0;
+        var cut  = 0;
+
+        foreach (var given in paths)
+        {
+            string item;
+            if (Normalise(given, queryString) is not { } path)
+                item = """{"error":"not a relative ESI path"}""";
+            else
+            {
+                var r = await _esi.RequestRawAsync(HttpMethod.Get, path, null, null, ct);
+                if (r.StatusCode == 0)
+                    return $"ESI calls stopped after {done} of {paths.Count}: {r.Error}";
+                item = r.IsSuccess
+                    ? Shorten(r.Body, ref cut)
+                    : JsonSerializer.Serialize(new { error = $"{r.StatusCode}: {Trim(r.Error ?? "", 200)}" });
+            }
+
+            if (done > 0) sb.Append(',');
+            sb.Append('\n').Append(JsonSerializer.Serialize(given)).Append(": ").Append(item);
+            done++;
+
+            if (sb.Length > MaxBatchChars)
+            {
+                sb.Append($"\n}} …(cut at {MaxBatchChars:N0} characters after {done} of {paths.Count} paths — ask for fewer)");
+                return sb.ToString();
+            }
+        }
+        sb.Append("\n}");
+        if (cut > 0)
+            sb.Append($"\n({cut} answer(s) were shortened to about {MaxBatchItemChars:N0} characters; lists keep their newest entries and end with an omitted_older_entries count)");
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// A batch item at or under the size limit, and still JSON.
+    ///
+    /// <para>⚠️ Not a substring. Cutting a JSON array at a character count lands inside a string
+    /// and the whole batch stops parsing — measured on the first run of this. An array is cut at
+    /// an element boundary instead, keeping the leading elements, which for a corporation history
+    /// are the newest, and ends with a marker element saying how many older ones were dropped. An
+    /// object is kept whole up to three times the limit — one entity's public record is small —
+    /// and beyond that replaced by a note to ask for it on its own.</para>
+    /// </summary>
+    private static string Shorten(string body, ref int cut)
+    {
+        if (body.Length <= MaxBatchItemChars) return body;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                var kept  = new List<string>();
+                var total = 2;
+                foreach (var el in root.EnumerateArray())
+                {
+                    var s = el.GetRawText();
+                    if (total + s.Length + 1 > MaxBatchItemChars) break;
+                    kept.Add(s);
+                    total += s.Length + 1;
+                }
+                var dropped = root.GetArrayLength() - kept.Count;
+                cut++;
+                kept.Add(JsonSerializer.Serialize(new { omitted_older_entries = dropped }));
+                return "[" + string.Join(",", kept) + "]";
+            }
+
+            if (body.Length <= MaxBatchItemChars * 3) return body;
+        }
+        catch (JsonException) { /* not JSON — fall through to a plain cut */ }
+
+        cut++;
+        return JsonSerializer.Serialize(new
+        {
+            error = $"response too large for a batch ({body.Length:N0} characters) — request this path on its own",
+        });
     }
 
     /// <summary>A character the capsuleer has set up, by name, case-insensitively.</summary>
