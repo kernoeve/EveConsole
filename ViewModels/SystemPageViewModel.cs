@@ -287,7 +287,7 @@ public class IntelFaceVm : ReactiveObject
         Ship    = ship ?? "";
         HasShip = !string.IsNullOrEmpty(ship);
 
-        // Fall back to the id when the name cache has not caught up: "Corporation 98365656" is
+        // Fall back to the id when the name cache has not caught up: "Corporation 98000000" is
         // still something you can look up, where a blank tooltip is not.
         CorporationName = corpName.Length > 0 ? corpName : corpId     > 0 ? $"Corporation {corpId}"     : "";
         AllianceName    = allianceName.Length > 0 ? allianceName : allianceId > 0 ? $"Alliance {allianceId}" : "";

@@ -15,7 +15,7 @@ namespace EveConsole.Monitoring;
 ///         ---------------------------------------------------------------
 ///           Channel ID:      local
 ///           Channel Name:    Local
-///           Listener:        Baltazar V
+///           Listener:        Some Pilot
 ///           Session started: 2026.07.27 20:01:30
 ///         ---------------------------------------------------------------
 ///

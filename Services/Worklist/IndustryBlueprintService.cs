@@ -193,7 +193,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     /// be bought when one is sitting in a hangar.</para>
     ///
     /// <para>Needed because the two tables disagree. Measured here: EsiBlueprints holds 5,518 rows
-    /// for this corporation and not one of them at UALX-3, while EsiAssets lists Avatar, Zirnitra,
+    /// for this corporation and not one of them at the staging structure, while EsiAssets lists Avatar, Zirnitra,
     /// Moros Navy Issue and more at that very structure. Reading only the blueprints table turned
     /// that silence into "you own none", and produced a standing instruction to re-buy two Avatar
     /// copies already owned.</para>
@@ -287,7 +287,7 @@ public readonly record struct WorklistIndyCharReach(
 /// <para>Distinct from <see cref="WorklistIndyCharReach"/>, which is about who can <i>run a job</i>
 /// from a print. Ownership is a broader question and has to be, or a copy bought by the trading
 /// alt reads as no copy at all and the tool tells you to buy another. Two ME8 Avatar copies sat
-/// in Kerno Adler's Jita hangar did exactly that.</para>
+/// in one character's Jita hangar did exactly that.</para>
 /// </summary>
 /// <param name="CharacterIds">Every character authorised in the app, not only the ones set up to
 /// run industry. A print in an unconfigured alt's hangar is still the player's.</param>

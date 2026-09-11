@@ -487,7 +487,7 @@ public class MaterialPurchaseGenerator(
             if (inventable.Contains(bpTypeId))     continue;   // and this one is invented, not bought
 
             // Supply from both tables. The blueprints table does not cover every structure the
-            // assets table does — this corporation has 5,518 blueprint rows and none at UALX-3,
+            // assets table does — this corporation has 5,518 blueprint rows and none at the staging structure,
             // where assets list two Avatar copies — and "absent from that table" is not the same
             // fact as "not owned".
             var mine = allPrints.Where(p => p.TypeId == bpTypeId && owned.Owns(p)).ToList();

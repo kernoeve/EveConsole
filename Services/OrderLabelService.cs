@@ -11,7 +11,7 @@ namespace EveConsole.Services;
 /// creating one before use — typing a new label into a picker IS creating it, and the list of
 /// choices is whatever is in use plus whatever the stores are configured to apply.</para>
 ///
-/// <para><b>⚠️ Compared without case.</b> "BNI First Capital" and "bni first capital" are the
+/// <para><b>⚠️ Compared without case.</b> "Capital Program" and "capital program" are the
 /// same tag to everyone except a database, and two spellings of one label split a report in half
 /// silently. The stored form is whatever was typed first; every comparison ignores case.</para>
 /// </summary>
@@ -122,7 +122,7 @@ public class OrderLabelService(IDbContextFactory<AppDbContext> dbFactory)
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        // ⚠️ Existing spellings win. Adding "bni first capital" where "BNI First Capital" is
+        // ⚠️ Existing spellings win. Adding "capital program" where "Capital Program" is
         // already in use must not create a second tag that reads the same and counts separately.
         clean = await CanonicalAsync(db, clean, ct);
 

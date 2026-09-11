@@ -2733,7 +2733,7 @@ public class App : Application
                 // ⚠️ These two are what make the Corporations and Alliances pages of the entity
                 // browser usable. Their header runs COUNT(DISTINCT CharacterId) and COUNT(*) over
                 // KillMailAttackers filtered on CorporationId / AllianceId — neither of which was
-                // indexed, so both were full scans. Measured on Brave Newbies against 8.4M attacker
+                // indexed, so both were full scans. Measured on a 10,000-member corporation against 8.4M attacker
                 // rows: 22 seconds warm for one corp header, against 139 ms for the same figures on
                 // a pilot, which filters on the already-indexed CharacterId. That asymmetry was the
                 // whole bug — pilots opened instantly while corps looked hung.

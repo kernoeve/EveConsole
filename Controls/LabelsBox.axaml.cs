@@ -16,8 +16,8 @@ namespace EveConsole.Controls;
 /// is what keeps two spellings of one tag from splitting a report in half.</para>
 ///
 /// <para>⚠️ Compared without case, like everywhere else labels are handled. The chip keeps the
-/// spelling already in use rather than the one just typed, so "bni" typed against an existing
-/// "BNI" adds nothing and changes nothing.</para>
+/// spelling already in use rather than the one just typed, so "capitals" typed against an existing
+/// "Capitals" adds nothing and changes nothing.</para>
 /// </summary>
 public partial class LabelsBox : UserControl
 {

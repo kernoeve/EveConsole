@@ -1118,7 +1118,7 @@ public class TrackedOrder
     /// than saying it in a separate conversation nobody can find later.</para>
     ///
     /// <para>⚠️ Set from a dragged link rather than typed text. A character and a corporation can
-    /// share a name, and "make the contract out to Kerno" is not something to guess at.</para>
+    /// share a name, and "make the contract out to my hauler" is not something to guess at.</para>
     /// </summary>
     public long   ContractToId   { get; set; }
     public string ContractToName { get; set; } = "";
@@ -1130,8 +1130,8 @@ public class TrackedOrder
 /// <summary>
 /// One tag on one order.
 ///
-/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "BNI
-/// First Capital Program" — and the list offered in the pickers is simply the distinct values in
+/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "Capital
+/// Program" — and the list offered in the pickers is simply the distinct values in
 /// use. That means a label nothing carries any more stops being offered, which is the right
 /// behaviour: a list of tags nobody uses is a list nobody reads.</para>
 ///
