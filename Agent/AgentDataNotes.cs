@@ -50,7 +50,12 @@ public static class AgentDataNotes
           is often only one of them — a personal corp's wallet division, a character without a
           token. Measured over 30 days: 502B of internal debits against 265B of internal credits.
           Summed as-is, that is 237B of "expense" that never left the player. Exclude every row
-          whose two parties are both the player's before calling anything income or expense.
+          whose two parties are both the player's before calling anything income or expense —
+          except a row whose two parties are the SAME id (market_escrow names the character on
+          both sides and is the only journal trace a buy order leaves; keep it). The one
+          same-party transfer is corporation_account_withdrawal from a corp to itself, a move
+          between its own divisions; drop that. This is exactly the rule the app's own Income
+          & Expense tool, Overview pies and Wallet charts apply, so your figures will match theirs.
           Money to or from anyone OUTSIDE that set — a stranger, a non-personal corp, an NPC —
           is real.
 

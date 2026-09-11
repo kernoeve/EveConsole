@@ -945,26 +945,9 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
             Step("Loading journal data");
-            // Group by RefType in SQL with date filter — avoids loading all rows.
-            // Amount stored as TEXT; CAST to REAL for SUM. Aggregated per RefType.
-            var journalGroups = new List<(string RefType, decimal Total)>();
-            foreach (var (ot, oid) in pieOwners)
-            {
-                var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
-                    $"""
-                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
-                    FROM "EsiWalletJournal"
-                    WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                    GROUP BY "RefType"
-                    """
-                ).ToListAsync());
-                journalGroups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
-            }
-
-            // Merge duplicate RefTypes across owners
-            var journalByType = journalGroups
-                .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
+            // Summed per RefType in SQL, across every owner, with ISK moved between the player's
+            // own wallets left out — the same figures the Income & Expense tool shows.
+            var journalByType = await Off(() => WalletJournalTotals.ByRefTypeAsync(_db, pieOwners, cutoff));
 
             Step("Building charts");
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
@@ -1378,12 +1361,6 @@ public class OverviewViewModel : ReactiveObject
         public int    SellCount { get; set; }
         public double BuyTotal  { get; set; }
         public int    BuyCount  { get; set; }
-    }
-
-    private sealed class JournalGroup
-    {
-        public string RefType     { get; set; } = "";
-        public double TotalAmount { get; set; }
     }
 
 

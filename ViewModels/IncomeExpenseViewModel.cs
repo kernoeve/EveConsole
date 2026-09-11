@@ -140,38 +140,13 @@ public class IncomeExpenseViewModel : ReactiveObject
             var owners  = charIds.Select(id => ("character", (long)id))
                           .Concat(corpIds.Select(id => ("corporation", (long)id))).ToList();
 
-            var days      = _days;
-            var cutoff    = DateTimeOffset.UtcNow.AddDays(-days);
-            var refTotals = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
-            var dailyMap  = new Dictionary<string, (decimal Inc, decimal Exp)>();
+            var days   = _days;
+            var cutoff = DateTimeOffset.UtcNow.AddDays(-days);
 
-            foreach (var (ot, oid) in owners)
-            {
-                var rt = await db.Database.SqlQuery<RefRow>(
-                    $"""
-                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "Total"
-                    FROM "EsiWalletJournal"
-                    WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                    GROUP BY "RefType"
-                    """).ToListAsync();
-                foreach (var r in rt)
-                    refTotals[r.RefType] = refTotals.GetValueOrDefault(r.RefType) + (decimal)r.Total;
-
-                var dl = await db.Database.SqlQuery<DailyRow>(
-                    $"""
-                    SELECT substr(CAST("Date" AS TEXT), 1, 10) AS "Day",
-                           COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) > 0 THEN CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0.0) AS "Income",
-                           COALESCE(SUM(CASE WHEN CAST("Amount" AS DOUBLE PRECISION) < 0 THEN -CAST("Amount" AS DOUBLE PRECISION) ELSE 0 END), 0.0) AS "Expense"
-                    FROM "EsiWalletJournal"
-                    WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                    GROUP BY substr(CAST("Date" AS TEXT), 1, 10)
-                    """).ToListAsync();
-                foreach (var d in dl)
-                {
-                    var cur = dailyMap.GetValueOrDefault(d.Day);
-                    dailyMap[d.Day] = (cur.Inc + (decimal)d.Income, cur.Exp + (decimal)d.Expense);
-                }
-            }
+            // Both leave out ISK moved between the player's own wallets — see WalletJournalTotals
+            // for what that is and what it was doing to these figures.
+            var refTotals = await WalletJournalTotals.ByRefTypeAsync(db, owners, cutoff);
+            var dailyMap  = await WalletJournalTotals.ByDayAsync(db, owners, cutoff);
 
             var cats = WalletCategorizer.CategorizeDetailed(refTotals);
             _incFull = cats.Where(c => c.IsIncome).OrderByDescending(c => c.Amount).ToList();
@@ -185,7 +160,8 @@ public class IncomeExpenseViewModel : ReactiveObject
             NetTotal     = MarketFmt.Isk((double)(incomeTotal - expenseTotal));
 
             BuildChart(dailyMap, cutoff.UtcDateTime.Date);
-            StatusText = owners.Count == 0 ? "No characters." : $"Last {days} day{(days == 1 ? "" : "s")}";
+            StatusText = owners.Count == 0 ? "No characters."
+                       : $"Last {days} day{(days == 1 ? "" : "s")} — ISK moved between your own wallets is left out";
         }
         catch (Exception ex)
         {
@@ -195,7 +171,7 @@ public class IncomeExpenseViewModel : ReactiveObject
         finally { IsLoading = false; }
     }
 
-    private void BuildChart(Dictionary<string, (decimal Inc, decimal Exp)> dailyMap, DateTime start)
+    private void BuildChart(Dictionary<string, (decimal Income, decimal Expense)> dailyMap, DateTime start)
     {
         var end = DateTime.UtcNow.Date;
         var incPts  = new List<DateTimePoint>();
@@ -246,7 +222,4 @@ public class IncomeExpenseViewModel : ReactiveObject
             _                    => $"{v:F0}",
         };
     }
-
-    private sealed class RefRow   { public string RefType { get; set; } = ""; public double Total { get; set; } }
-    private sealed class DailyRow { public string Day { get; set; } = ""; public double Income { get; set; } public double Expense { get; set; } }
 }

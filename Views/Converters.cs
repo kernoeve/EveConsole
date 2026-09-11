@@ -132,18 +132,6 @@ public class NullableDecimalToPositiveDoubleConverter : IValueConverter
     }
 }
 
-// Display name for the LLM provider dropdown — flags Local as untested.
-public class AgentProviderDisplayConverter : IValueConverter
-{
-    public static readonly AgentProviderDisplayConverter Instance = new();
-
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is AgentProviderType.Local ? "Local (Untested)" : value?.ToString();
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
-}
-
 public class ProfitColorConverter : IValueConverter
 {
     public static readonly ProfitColorConverter Instance = new();
