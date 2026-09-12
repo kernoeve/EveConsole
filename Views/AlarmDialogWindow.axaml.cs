@@ -9,13 +9,23 @@ namespace EveConsole.Views;
 /// </summary>
 public partial class AlarmDialogWindow : Window
 {
-    public AlarmDialogWindow(string title, string message)
+    private readonly Func<Task>? _onAcknowledge;
+
+    /// <param name="button">The button's label when pressing it means something — "I'm awake".</param>
+    /// <param name="onAcknowledge">Run when it is pressed: the acknowledgement of a staged alarm.</param>
+    public AlarmDialogWindow(string title, string message, string? button = null, Func<Task>? onAcknowledge = null)
     {
         InitializeComponent();
-        Title           = string.IsNullOrWhiteSpace(title) ? "Alarm" : title;
-        TitleText.Text  = Title;
+        Title            = string.IsNullOrWhiteSpace(title) ? "Alarm" : title;
+        TitleText.Text   = Title;
         MessageText.Text = message;
+        _onAcknowledge   = onAcknowledge;
+        if (!string.IsNullOrWhiteSpace(button)) DismissButton.Content = button;
     }
 
-    private void OnDismiss(object? sender, RoutedEventArgs e) => Close();
+    private void OnDismiss(object? sender, RoutedEventArgs e)
+    {
+        if (_onAcknowledge is { } ack) _ = ack();
+        Close();
+    }
 }

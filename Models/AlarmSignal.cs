@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EveConsole.Models;
 
 /// <summary>
@@ -36,6 +38,26 @@ public sealed class AlarmSignal
     public string? DialogTitle { get; set; }
     public string? DialogBody  { get; set; }
 
+    /// <summary>The dialog's button, when it is not merely "Dismiss" — "I'm awake".</summary>
+    public string? DialogButton { get; set; }
+
+    // ── A staged firing ──
+    //
+    // Set together, for a firing that can be acknowledged: which alarm's situation it is
+    // (ScopeKey — a character), which occurrence of it (Episode), and how long an
+    // acknowledgement keeps it quiet. Absent on an ordinary firing.
+    public string? ScopeKey      { get; set; }
+    public string? Episode       { get; set; }
+    public int     SnoozeMinutes { get; set; }
+    /// <summary>The condition's type key, so a client can ask it whether the situation still holds.</summary>
+    public string? ConditionType { get; set; }
+
+    /// <summary>Repeat the sound until the situation is acknowledged or ends of itself.</summary>
+    public bool    SoundLoop     { get; set; }
+
+    /// <summary>Any reply to the agent's message acknowledges the situation.</summary>
+    public bool    ReplyAcknowledges { get; set; }
+
     /// <summary>The finished prompt for the agent, matches and standing instruction included.</summary>
     public string? AgentText   { get; set; }
 
@@ -53,4 +75,20 @@ public sealed class AlarmSignal
     /// <summary>Fallback wording if nothing can speak it — resolved by the worker, like the rest.</summary>
     public string? FallbackTitle { get; set; }
     public string? FallbackBody  { get; set; }
+
+    /// <summary>The acknowledgeable situation this signal is about, or null.</summary>
+    [JsonIgnore]
+    public AlarmAck? Ack =>
+        ScopeKey is { Length: > 0 } scope
+            ? new AlarmAck(AlarmId, scope, Episode ?? "", SnoozeMinutes)
+            : null;
 }
+
+/// <summary>
+/// One stage of a staged firing, as the service hands it to the runner: which stage, whose
+/// situation, which occurrence, and how long an acknowledgement quiets it.
+/// </summary>
+public sealed record AlarmStageInfo(int Stage, string ScopeKey, string Episode, int SnoozeMinutes, string ConditionType);
+
+/// <summary>What an acknowledgement names: this alarm's situation for this scope and episode.</summary>
+public sealed record AlarmAck(long AlarmId, string ScopeKey, string Episode, int SnoozeMinutes);

@@ -20,19 +20,22 @@ public sealed class AlarmActionRunner
     private readonly AppErrorLogger                  _errors;
     private readonly ClientSignals                   _signals;
     private readonly AlarmMuteState                  _mute;
+    private readonly AlarmConditionRegistry          _registry;
 
     public AlarmActionRunner(
         IDbContextFactory<AppDbContext> dbFactory,
         AlarmSoundService               sounds,
         AppErrorLogger                  errors,
         ClientSignals                   signals,
-        AlarmMuteState                  mute)
+        AlarmMuteState                  mute,
+        AlarmConditionRegistry          registry)
     {
         _dbFactory = dbFactory;
         _sounds    = sounds;
         _errors    = errors;
         _signals   = signals;
         _mute      = mute;
+        _registry  = registry;
     }
 
     /// <summary>Hands the agent something to tell the user about. Set by MainWindow.</summary>
@@ -41,8 +44,18 @@ public sealed class AlarmActionRunner
     /// <summary>Has the agent say a text exactly as given, at once, in its own voice — no model.</summary>
     public Func<string, Task>? AnnounceCallback { get; set; }
 
-    /// <summary>Raises a top-most dialog: (title, message). Set by MainWindow.</summary>
-    public Action<string, string>? ShowDialogCallback { get; set; }
+    /// <summary>
+    /// Tells the agent panel that the next thing the capsuleer says, whatever it is, acknowledges
+    /// this situation. Set by MainWindow. Deterministic on purpose: a wake-up call must not
+    /// depend on a model remembering to call a tool.
+    /// </summary>
+    public Action<AlarmAck>? AwaitReplyCallback { get; set; }
+
+    /// <summary>
+    /// Raises a top-most dialog: (title, message, button, on-acknowledge). The button and the
+    /// callback are null for an ordinary firing, whose dialog is merely dismissed. Set by MainWindow.
+    /// </summary>
+    public Action<string, string, string?, Func<Task>?>? ShowDialogCallback { get; set; }
 
     /// <summary>True when the agent is configured well enough for AgentNotify to reach the user.</summary>
     public Func<bool>? AgentAvailable { get; set; }
@@ -67,9 +80,21 @@ public sealed class AlarmActionRunner
         IReadOnlyList<AlarmMatch>    matches,
         (string Title, string Body)  defaults,
         string?                      announcement = null,
-        CancellationToken            ct = default)
+        AlarmStageInfo?              stage        = null,
+        string?                      agentPrompt  = null,
+        CancellationToken            ct           = default)
     {
         var signal = new AlarmSignal { AlarmId = alarm.Id, Name = alarm.Name };
+
+        // A staged firing carries what an acknowledgement would name, so every client can take
+        // one — and ask the condition, between plays of a repeating sound, whether it still holds.
+        if (stage is not null)
+        {
+            signal.ScopeKey      = stage.ScopeKey;
+            signal.Episode       = stage.Episode;
+            signal.SnoozeMinutes = stage.SnoozeMinutes;
+            signal.ConditionType = stage.ConditionType;
+        }
 
         // Whether anything other than the agent was asked for. Decides, below, if silence from the
         // agent would lose the firing altogether.
@@ -97,13 +122,16 @@ public sealed class AlarmActionRunner
                     case AlarmActionKind.Sound:
                         signal.SoundKey    = Str(cfg, "sound")  ?? AlarmSoundService.DefaultKey;
                         signal.SoundVolume = Int(cfg, "volume") ?? 100;
+                        // Only a staged firing can be acknowledged, so only one can loop.
+                        signal.SoundLoop   = stage is not null && Bool(cfg, "loop");
                         somethingElse      = true;
                         break;
 
                     case AlarmActionKind.Dialog:
-                        signal.DialogTitle = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
-                        signal.DialogBody  = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
-                        somethingElse      = true;
+                        signal.DialogTitle  = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
+                        signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
+                        signal.DialogButton = stage is not null ? "I'm awake" : null;
+                        somethingElse       = true;
                         break;
 
                     case AlarmActionKind.AgentNotify:
@@ -111,8 +139,18 @@ public sealed class AlarmActionRunner
                         // paraphrased, and spoken without a model round trip: for intel the
                         // difference is several seconds, and the order of the facts is the point.
                         // A standing instruction on the alarm still goes through the model, with
-                        // the announcement as the text it must say first.
-                        if (announcement is not null && string.IsNullOrWhiteSpace(Str(cfg, "instruction")))
+                        // the announcement as the text it must say first. A condition that wrote
+                        // the whole prompt — a wake-up call that has to let the reply come — is
+                        // given to the model as written, plus the standing instruction.
+                        if (agentPrompt is not null)
+                        {
+                            var extra = Str(cfg, "instruction");
+                            signal.AgentText = string.IsNullOrWhiteSpace(extra)
+                                ? agentPrompt
+                                : agentPrompt + $"\nStanding instruction from the capsuleer for this alarm: {extra}";
+                            signal.ReplyAcknowledges = stage is not null;
+                        }
+                        else if (announcement is not null && string.IsNullOrWhiteSpace(Str(cfg, "instruction")))
                             signal.SpeakText = announcement;
                         else
                             signal.AgentText = ComposeAgentPrompt(alarm, evt, matches, cfg, announcement);
@@ -175,17 +213,25 @@ public sealed class AlarmActionRunner
         // on its own setting would silence everybody's.
         if (_mute.Muted) return;
 
+        var ack = s.Ack;
+
         if (s.SoundKey is not null)
         {
-            try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }
-            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"sound for alarm {s.AlarmId}", ex); }
+            if (s.SoundLoop && ack is not null && s.ConditionType is not null)
+                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume);
+            else
+            {
+                try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", $"sound for alarm {s.AlarmId}", ex); }
+            }
         }
 
         if (s.DialogTitle is not null && ShowDialogCallback is { } show)
         {
+            Func<Task>? onAcknowledge = ack is not null ? () => AcknowledgeAsync(ack) : null;
             Dispatcher.UIThread.Post(() =>
             {
-                try { show(s.DialogTitle, s.DialogBody ?? ""); }
+                try { show(s.DialogTitle, s.DialogBody ?? "", s.DialogButton, onAcknowledge); }
                 catch { /* a closed window is not an error */ }
             });
         }
@@ -198,6 +244,8 @@ public sealed class AlarmActionRunner
 
         if (s.AgentText is not null && CanSpeak())
         {
+            // Armed before the agent speaks, so a reply that comes mid-sentence still counts.
+            if (s.ReplyAcknowledges && ack is not null) AwaitReplyCallback?.Invoke(ack);
             try { await NotifyAgentCallback!(s.AgentText); }
             catch (Exception ex) { _errors.Log("AlarmActionRunner", $"agent notify for alarm {s.AlarmId}", ex); }
         }
@@ -205,6 +253,111 @@ public sealed class AlarmActionRunner
 
     /// <summary>Whether this process can actually get the agent to say something.</summary>
     private bool CanSpeak() => NotifyAgentCallback is not null && AgentAvailable?.Invoke() != false;
+
+    // ── Acknowledgement ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Takes an acknowledgement: the situation is quiet for its snooze, on every client. The row
+    /// is what the worker's condition and the other clients' repeating sounds read; the local
+    /// sound stops at once rather than at its next look.
+    /// </summary>
+    public async Task AcknowledgeAsync(AlarmAck ack, CancellationToken ct = default)
+    {
+        lock (_loopLock)
+        {
+            _loops.Remove((ack.AlarmId, ack.ScopeKey));
+            if (_loops.Count == 0) _sounds.Stop();
+        }
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var until = DateTimeOffset.UtcNow.AddMinutes(Math.Max(1, ack.SnoozeMinutes));
+            var row   = await db.AlarmSnoozes.FindAsync([ack.AlarmId, ack.ScopeKey], ct);
+            if (row is null)
+                db.AlarmSnoozes.Add(new AlarmSnooze
+                {
+                    AlarmId = ack.AlarmId, ScopeKey = ack.ScopeKey, Episode = ack.Episode, Until = until,
+                });
+            else
+            {
+                row.Episode = ack.Episode;
+                row.Until   = until;
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _errors.Log("AlarmActionRunner", $"acknowledging alarm {ack.AlarmId} for {ack.ScopeKey}", ex);
+        }
+    }
+
+    // ── A sound that will not stop until someone is awake ──────────────────────
+    //
+    // One player, so one loop, over however many situations are ringing at once; a situation
+    // leaves the set when it is acknowledged here, or when the condition says it no longer
+    // holds — acknowledged on another client, docked, jumped, logged off. Between plays, not
+    // mid-note, because a klaxon cut short sounds like a fault rather than a decision.
+    private readonly object _loopLock = new();
+    private readonly Dictionary<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string SoundKey, int Volume)> _loops = new();
+    private Task? _loopTask;
+    private static readonly TimeSpan LoopGap = TimeSpan.FromSeconds(1.5);
+
+    private void StartLoop(AlarmAck ack, string conditionType, string soundKey, int volume)
+    {
+        lock (_loopLock)
+        {
+            _loops[(ack.AlarmId, ack.ScopeKey)] = (ack.Episode, conditionType, soundKey, volume);
+            if (_loopTask is null || _loopTask.IsCompleted) _loopTask = Task.Run(LoopAsync);
+        }
+    }
+
+    private async Task LoopAsync()
+    {
+        while (true)
+        {
+            KeyValuePair<(long AlarmId, string ScopeKey), (string Episode, string ConditionType, string SoundKey, int Volume)>[] ringing;
+            lock (_loopLock)
+            {
+                if (_loops.Count == 0) return;
+                ringing = _loops.ToArray();
+            }
+
+            // Muting this client is an acknowledgement of everything — of the noise, not the
+            // situation, which goes on being recorded for the others.
+            if (_mute.Muted)
+            {
+                lock (_loopLock) _loops.Clear();
+                return;
+            }
+
+            foreach (var kv in ringing)
+            {
+                var holds = false;
+                try
+                {
+                    holds = _registry.Find(kv.Value.ConditionType) is { } condition
+                         && await condition.StillHoldsAsync(kv.Key.AlarmId, kv.Key.ScopeKey, kv.Value.Episode, _dbFactory, CancellationToken.None);
+                }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", $"checking alarm {kv.Key.AlarmId} still holds", ex); }
+
+                if (!holds) lock (_loopLock) _loops.Remove(kv.Key);
+            }
+
+            (string SoundKey, int Volume) next;
+            lock (_loopLock)
+            {
+                if (_loops.Count == 0) return;
+                var v = _loops.Values.First();
+                next = (v.SoundKey, v.Volume);
+            }
+
+            try { await _sounds.PlayAsync(next.SoundKey, next.Volume); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", "repeating sound", ex); }
+
+            await Task.Delay(LoopGap);
+        }
+    }
 
     private string ComposeAgentPrompt(
         Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg, string? announcement = null)
@@ -301,4 +454,9 @@ public sealed class AlarmActionRunner
         && p.TryGetInt32(out var v)
             ? v
             : null;
+
+    private static bool Bool(JsonElement e, string name) =>
+        e.ValueKind == JsonValueKind.Object
+        && e.TryGetProperty(name, out var p)
+        && p.ValueKind == JsonValueKind.True;
 }

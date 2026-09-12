@@ -273,6 +273,10 @@ public static class AppKnowledge
         - "ship_undock" for one of the capsuleer's own characters undocking — anywhere or from
           named places, in any ship or named hulls and classes, and optionally only when the
           ship left unfit, short of jump fuel, or short of ammunition.
+        - "undocked_too_long" for a wake-up call: a named hull or class still sitting undocked
+          in the system it undocked in after N seconds, in up to three escalating stages. When
+          it fires you are told what to say and that ANY reply from the capsuleer resets it —
+          ask, then wait.
         - "market_contract" for an item listed at or below a price.
         - "sql" for anything else — it runs a SELECT on an interval.
 

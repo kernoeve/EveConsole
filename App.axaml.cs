@@ -3062,6 +3062,8 @@ public class App : Application
 
                     // The ledger that stops an alarm re-announcing what it has already announced.
                     """CREATE TABLE IF NOT EXISTS "AlarmSeenKeys" ("AlarmId" INTEGER NOT NULL, "MatchKey" TEXT NOT NULL, "FirstSeenAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "MatchKey"))""",
+                    // A staged alarm's acknowledgements: this character's episode is quiet until then.
+                    """CREATE TABLE IF NOT EXISTS "AlarmSnoozes" ("AlarmId" INTEGER NOT NULL, "ScopeKey" TEXT NOT NULL, "Episode" TEXT NOT NULL DEFAULT '', "Until" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "ScopeKey"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
 
                     """CREATE TABLE IF NOT EXISTS "AlarmEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "FiredAt" TEXT NOT NULL DEFAULT '', "Summary" TEXT NOT NULL DEFAULT '', "DetailJson" TEXT NULL, "MatchCount" INTEGER NOT NULL DEFAULT 0)""",

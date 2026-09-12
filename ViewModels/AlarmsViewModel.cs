@@ -61,6 +61,9 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>The word after a threshold's number — "units", "ISK".</summary>
     public string? Suffix { get; init; }
 
+    /// <summary>What a new alarm starts with, from the schema's "default"; null for none.</summary>
+    public string? Default { get; init; }
+
     public AlarmFieldVm()
     {
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
@@ -235,6 +238,8 @@ public sealed class AlarmActionVm : ReactiveObject
         _title       = Str(cfg, "title") ?? "";
         _body        = Str(cfg, "body") ?? Str(cfg, "message") ?? "";
         _instruction = Str(cfg, "instruction") ?? "";
+        _stage       = Int(cfg, "stage") ?? 0;
+        _loop        = cfg.ValueKind == JsonValueKind.Object && cfg.TryGetProperty("loop", out var lp) && lp.ValueKind == JsonValueKind.True;
 
         PreviewCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -329,17 +334,72 @@ public sealed class AlarmActionVm : ReactiveObject
     public bool IsDialog => Kind == AlarmActionKind.Dialog;
     public bool HasText  => IsAlert || IsDialog;
 
+    // ── Stages ──
+    //
+    // Set by the parent from the selected condition. Zero for an ordinary check, and then none
+    // of this shows: an action simply runs when the alarm fires.
+
+    private int _stageCount;
+    public int StageCount
+    {
+        get => _stageCount;
+        set
+        {
+            if (_stageCount == value) return;
+            _stageCount = value;
+            StageOptions = [StageName(0), .. Enumerable.Range(2, Math.Max(0, value - 1)).Select(StageName)];
+            this.RaisePropertyChanged(nameof(StageCount));
+            this.RaisePropertyChanged(nameof(HasStages));
+            this.RaisePropertyChanged(nameof(StageOptions));
+            this.RaisePropertyChanged(nameof(SelectedStage));
+        }
+    }
+
+    public bool HasStages => StageCount > 0;
+
+    public IReadOnlyList<string> StageOptions { get; private set; } = ["Every stage"];
+
+    private static string StageName(int stage) => stage <= 1 ? "Every stage" : $"From stage {stage}";
+
+    /// <summary>
+    /// The stage this action joins in at, and it stays for the rest: stages escalate, so the
+    /// dialog that appears at the second is still wanted at the third. 0 (or 1) is every stage.
+    /// </summary>
+    private int _stage;
+    public int Stage
+    {
+        get => _stage;
+        set { this.RaiseAndSetIfChanged(ref _stage, value); this.RaisePropertyChanged(nameof(SelectedStage)); }
+    }
+
+    public string SelectedStage
+    {
+        get => StageName(Math.Min(_stage, StageCount));
+        set
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            Stage = value.StartsWith("From stage ", StringComparison.Ordinal)
+                 && int.TryParse(value["From stage ".Length..], out var s) ? s : 0;
+        }
+    }
+
+    /// <summary>A sound that plays again and again until the situation is acknowledged or ends.</summary>
+    private bool _loop;
+    public bool Loop { get => _loop; set => this.RaiseAndSetIfChanged(ref _loop, value); }
+
     public ReactiveCommand<Unit, Unit> PreviewCommand  { get; }
     public ReactiveCommand<Unit, Unit> AddSoundCommand { get; }
 
     public string ToConfigJson()
     {
         var o = new JsonObject();
+        if (HasStages && Stage > 1) o["stage"] = Stage;
         switch (Kind)
         {
             case AlarmActionKind.Sound:
                 o["sound"]  = Sound?.Key ?? AlarmSoundService.DefaultKey;
                 o["volume"] = Volume;
+                if (HasStages && Loop) o["loop"] = true;
                 break;
             case AlarmActionKind.AgentNotify:
                 if (!string.IsNullOrWhiteSpace(Instruction)) o["instruction"] = Instruction;
@@ -451,7 +511,29 @@ public sealed class AlarmsViewModel : ReactiveObject
             .Subscribe(a => _ = LoadEditorAsync(a!.Id));
 
         this.WhenAnyValue(x => x.SelectedCondition)
-            .Subscribe(_ => RebuildFields());
+            .Subscribe(_ =>
+            {
+                RebuildFields();
+
+                var stages = SelectedCondition?.Stages ?? 0;
+                foreach (var a in Actions) a.StageCount = stages;
+
+                // A new alarm switched to a staged check gets the set its stages are for, in
+                // place of the lone default chime: the agent asking at every stage, a dialog from
+                // the second, and at the last a sound that will not stop until someone is awake.
+                if (stages > 0 && EditingId == 0 && Actions.Count == 1
+                    && Actions[0] is { IsSound: true, Stage: 0, Loop: false })
+                {
+                    Actions.Clear();
+                    Actions.Add(NewActionVm(AlarmActionKind.AgentNotify, default));
+                    Actions.Add(NewActionVm(AlarmActionKind.Dialog, default));
+                    Actions[^1].Stage = 2;
+                    Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
+                    Actions[^1].Stage = stages;
+                    Actions[^1].Loop  = true;
+                    Actions[^1].Sound = SoundCatalog.FirstOrDefault(s => s.Key == "klaxon-industrial") ?? Actions[^1].Sound;
+                }
+            });
     }
 
     private void OnFired() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
@@ -476,7 +558,8 @@ public sealed class AlarmsViewModel : ReactiveObject
     private AlarmActionVm NewActionVm(AlarmActionKind kind, JsonElement cfg) =>
         new(_sounds, SoundCatalog,
             () => PickSoundFileCallback?.Invoke() ?? Task.FromResult<string?>(null),
-            kind, cfg);
+            kind, cfg)
+        { StageCount = SelectedCondition?.Stages ?? 0 };
 
     public IReadOnlyList<AlarmRepeat> RepeatModes { get; } = [AlarmRepeat.Continuous, AlarmRepeat.OneShot];
 
@@ -736,6 +819,9 @@ public sealed class AlarmsViewModel : ReactiveObject
             var title    = spec.TryGetProperty("title",    out var ti) ? ti.GetString() : null;
             var suffix   = spec.TryGetProperty("suffix",   out var su) ? su.GetString() : null;
             var optional = spec.TryGetProperty("optional", out var op) && op.ValueKind == JsonValueKind.True;
+            var dflt     = spec.TryGetProperty("default",  out var df)
+                ? df.ValueKind == JsonValueKind.String ? df.GetString() : df.GetRawText()
+                : null;
 
             var kind = options is not null   ? "enum"
                      : type == "array"       ? "list"
@@ -755,7 +841,16 @@ public sealed class AlarmsViewModel : ReactiveObject
                 Required    = required.Contains(prop.Name),
                 Options     = options,
                 Suffix      = suffix,
+                Default     = dflt,
             };
+
+            // A new alarm starts on the schema's defaults; an existing one has ApplyConfig
+            // overwrite them — and untick a threshold the saved config does not carry.
+            if (dflt is not null && kind is "integer" or "number" or "string" or "threshold")
+            {
+                field.Text = dflt;
+                if (kind == "threshold") field.Flag = true;
+            }
 
             // A date-time field with nothing in it is more useful pointing at the near future
             // than at 01/01/0001 — the overwhelmingly common case is "remind me shortly".
@@ -941,6 +1036,9 @@ public sealed class AlarmsViewModel : ReactiveObject
     {
         if (config.ValueKind != JsonValueKind.Object) return;
 
+        // A threshold absent from a saved config was unticked, whatever its default says.
+        foreach (var field in Fields.Where(f => f.IsThreshold)) field.Flag = false;
+
         foreach (var field in Fields)
         {
             if (!config.TryGetProperty(field.Name, out var v)) continue;
@@ -1083,6 +1181,12 @@ public sealed class AlarmsViewModel : ReactiveObject
                 StatusText = $"\"{typed}\" is not an item — pick one from the list.";
                 return;
             }
+        }
+
+        foreach (var field in Fields.Where(f => f.IsList && f.Required && f.Items.Count == 0))
+        {
+            StatusText = $"Add at least one entry under {field.Label}.";
+            return;
         }
 
         var conditionType = SelectedCondition.TypeKey;

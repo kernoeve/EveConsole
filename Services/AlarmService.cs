@@ -358,9 +358,13 @@ public sealed class AlarmService : ReactiveObject
         var fresh = matches.Where(m => !seenSet.Contains(m.Key)).ToList();
         if (fresh.Count == 0) return false;
 
+        // A staged check sets its own cadence — a cooldown would swallow stage two, and one-shot
+        // would end the alarm at stage one.
+        var staged = condition.Stages > 0;
+
         // A cooldown suppresses the firing but must NOT bank the keys, or the matches it is
         // damping would be lost for good. They stay unseen and go out together once it lapses.
-        if (alarm.CooldownSeconds > 0 && alarm.LastFiredAt is { } last
+        if (!staged && alarm.CooldownSeconds > 0 && alarm.LastFiredAt is { } last
             && now < last.AddSeconds(alarm.CooldownSeconds))
         {
             return false;
@@ -385,7 +389,7 @@ public sealed class AlarmService : ReactiveObject
 
         alarm.LastFiredAt = now;
         alarm.FireCount  += 1;
-        if (alarm.Repeat == AlarmRepeat.OneShot) alarm.Enabled = false;
+        if (!staged && alarm.Repeat == AlarmRepeat.OneShot) alarm.Enabled = false;
 
         // Persist before acting: an action that raises a dialog or calls the agent must not be
         // able to run twice because the write that recorded it had not landed yet.
@@ -396,15 +400,62 @@ public sealed class AlarmService : ReactiveObject
             .OrderBy(a => a.Ordinal)
             .ToListAsync(ct);
 
-        // The condition supplies wording for any Alert or Dialog left on its default, so what
-        // the capsuleer reads reflects what was actually being watched for.
-        var defaults = condition.DefaultText(alarm.Name, config, fresh);
+        if (!staged)
+        {
+            // The condition supplies wording for any Alert or Dialog left on its default, so what
+            // the capsuleer reads reflects what was actually being watched for.
+            var defaults = condition.DefaultText(alarm.Name, config, fresh);
 
-        // And, for a condition that would rather be quoted than paraphrased, the exact words.
-        var announcement = condition.Announcement(config, fresh);
+            // And, for a condition that would rather be quoted than paraphrased, the exact words.
+            var announcement = condition.Announcement(config, fresh);
 
-        await _actions.RunAsync(alarm, actions, evt, fresh, defaults, announcement, ct);
+            await _actions.RunAsync(alarm, actions, evt, fresh, defaults, announcement, ct: ct);
+            return true;
+        }
+
+        // Staged: one firing per scope and stage — two pilots adrift are two wake-up calls, each
+        // with the actions that have joined in by its stage (an untied action is there from the
+        // first; one tied to stage 2 is there at 2 and after, because stages escalate).
+        foreach (var group in fresh.GroupBy(m => (Stage: IAlarmCondition.StageOf(m), Scope: DetailText(m, "scope_key"))))
+        {
+            var list  = group.ToList();
+            var first = list[0];
+            var stage = new AlarmStageInfo(
+                group.Key.Stage,
+                group.Key.Scope,
+                DetailText(first, "episode"),
+                first.Detail is { } d && d.TryGetValue("snooze_minutes", out var sm) && sm is int m ? m : 30,
+                condition.TypeKey);
+
+            var stageActions = actions.Where(a => ActionStage(a) is not { } s || group.Key.Stage >= s).ToList();
+            if (stageActions.Count == 0) continue;
+
+            await _actions.RunAsync(
+                alarm, stageActions, evt, list,
+                condition.DefaultText(alarm.Name, config, list),
+                condition.Announcement(config, list),
+                stage,
+                condition.AgentPrompt(config, list),
+                ct);
+        }
         return true;
+    }
+
+    private static string DetailText(AlarmMatch m, string key)
+        => m.Detail is { } d && d.TryGetValue(key, out var v) && v is string s ? s : "";
+
+    /// <summary>The stage an action joins in at, from its config — null for every stage.</summary>
+    internal static int? ActionStage(AlarmAction action)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(action.ConfigJson ?? "{}");
+            return doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("stage", out var p)
+                && p.ValueKind == JsonValueKind.Number && p.TryGetInt32(out var stage) && stage > 0
+                ? stage : null;
+        }
+        catch { return null; }
     }
 
     /// <summary>
@@ -521,6 +572,10 @@ public sealed class AlarmService : ReactiveObject
         var cutoff = (now - SeenKeyRetention).ToUniversalTime();
         await db.Database.ExecuteSqlRawAsync(
             """DELETE FROM "AlarmSeenKeys" WHERE "FirstSeenAt" < {0}""", [cutoff], ct);
+
+        // Acknowledgements are only meaningful while their episode lasts; a day is generous.
+        await db.Database.ExecuteSqlRawAsync(
+            """DELETE FROM "AlarmSnoozes" WHERE "Until" < {0}""", [now.ToUniversalTime().AddDays(-1)], ct);
 
         // ⚠️ EF1002 suppressed rather than worked around, and only because of what is interpolated:
         // AppDb.RowId is the engine's row-address identifier ("rowid" or "ctid") and

@@ -58,6 +58,13 @@ public sealed class ManageAlarmsTool : IAgentTool
          - {"kind":"dialog","title":"…","message":"…"} — a top-most pop-up window.
            In title/body/message you may use {alarm} {summary} {count} {time} {date}.
 
+         STAGED CONDITIONS
+         A condition that fires in stages (undocked_too_long) escalates: each stage is a number of
+         seconds in its parameters, and an action may carry "stage": N to join in from that stage
+         on (omit it for every stage). A sound action may add "loop": true to repeat until the
+         capsuleer acknowledges — by answering you, or pressing the dialog's button. For a
+         wake-up call use poll_seconds 10.
+
          OTHER FIELDS ON create
          - poll_seconds: how often to check (default 60, minimum 10).
          - repeat: "continuous" (default, stays armed) or "one_shot" (disables itself after
@@ -88,6 +95,14 @@ public sealed class ManageAlarmsTool : IAgentTool
                      ORDER BY Id DESC LIMIT 20",
               "key_column":"Id"}
            actions: [{"kind":"agent_notify"}]
+
+         "Wake me up if my jump freighter sits undocked":
+           condition_type "undocked_too_long", poll_seconds 10, condition:
+             {"ships":["Jump Freighter","Freighter"],"stage1_seconds":180,"stage2_seconds":240,
+              "stage3_seconds":300,"snooze_minutes":30}
+           actions: [{"kind":"agent_notify"},
+                     {"kind":"dialog","stage":2},
+                     {"kind":"sound","sound":"klaxon-industrial","volume":100,"stage":3,"loop":true}]
 
          "Tell me when one of my characters logs in":
            condition_type "sql", poll_seconds 60, condition:

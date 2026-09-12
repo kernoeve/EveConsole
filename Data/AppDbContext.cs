@@ -259,6 +259,7 @@ public class AppDbContext : DbContext
     public DbSet<Alarm>        Alarms        => Set<Alarm>();
     public DbSet<AlarmAction>  AlarmActions  => Set<AlarmAction>();
     public DbSet<AlarmSeenKey> AlarmSeenKeys => Set<AlarmSeenKey>();
+    public DbSet<AlarmSnooze>  AlarmSnoozes  => Set<AlarmSnooze>();
     public DbSet<AlarmEvent>   AlarmEvents   => Set<AlarmEvent>();
     public DbSet<AlarmAlert>   AlarmAlerts   => Set<AlarmAlert>();
 
@@ -1189,6 +1190,9 @@ public class AppDbContext : DbContext
         mb.Entity<AlarmAlert>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.Dismissed, x.CreatedAt }); });
+
+        mb.Entity<AlarmSnooze>(e => {
+            e.HasKey(x => new { x.AlarmId, x.ScopeKey }); });
 
         // ── Agent telemetry ──────────────────────────────────────────────
         //

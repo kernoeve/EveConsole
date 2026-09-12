@@ -86,6 +86,22 @@ public class AlarmEvent
     public int            MatchCount { get; set; }
 }
 
+/// <summary>
+/// A staged alarm's acknowledgement: the situation it names — one character's episode — is to
+/// stay quiet until <see cref="Until"/>. Written by whichever client took the acknowledgement,
+/// read by the worker evaluating the condition and by every client deciding whether a repeating
+/// sound should go on. One row per alarm and scope; a later acknowledgement overwrites it.
+/// </summary>
+public class AlarmSnooze
+{
+    public long           AlarmId  { get; set; }
+    /// <summary>What the acknowledgement is about — a character id, for the undock alarms.</summary>
+    public string         ScopeKey { get; set; } = "";
+    /// <summary>The episode it was given in. A snooze from an earlier episode does not carry over.</summary>
+    public string         Episode  { get; set; } = "";
+    public DateTimeOffset Until    { get; set; }
+}
+
 /// <summary>A dismissible alert raised by the Alert action, persisted until the user clears it.</summary>
 public class AlarmAlert
 {

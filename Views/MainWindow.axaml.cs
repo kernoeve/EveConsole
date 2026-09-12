@@ -302,11 +302,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         // Alarm actions that need the UI. The dialog is deliberately owner-less and top-most —
         // an alarm is usually wanted precisely when EVE Console is behind the game client.
-        vm.AlarmActions.ShowDialogCallback = (title, message) =>
-            new Views.AlarmDialogWindow(title, message).Show();
+        vm.AlarmActions.ShowDialogCallback = (title, message, button, onAcknowledge) =>
+            new Views.AlarmDialogWindow(title, message, button, onAcknowledge).Show();
 
         vm.AlarmActions.NotifyAgentCallback = message => vm.AgentVm.NotifyAsync(message);
         vm.AlarmActions.AnnounceCallback    = text    => vm.AgentVm.AnnounceAsync(text);
+
+        // A wake-up call is acknowledged by answering the agent — anything at all — and the
+        // acknowledgement goes back through the runner, which is what quiets every client.
+        vm.AlarmActions.AwaitReplyCallback  = ack     => vm.AgentVm.ExpectReply(ack);
+        vm.AgentVm.AcknowledgeCallback      = ack     => vm.AlarmActions.AcknowledgeAsync(ack);
         vm.AlarmActions.AgentAvailable      =
             () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
 

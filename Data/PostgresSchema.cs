@@ -58,6 +58,17 @@ public static class PostgresSchema
     /// </summary>
     private static readonly string[] Tables =
     [
+        // A staged alarm's acknowledgements: this character's episode is quiet until then. An
+        // entity, but one that arrived after databases existed — EnsureCreated will not add it.
+        """
+        CREATE TABLE IF NOT EXISTS "AlarmSnoozes" (
+            "AlarmId"  BIGINT      NOT NULL,
+            "ScopeKey" TEXT        NOT NULL,
+            "Episode"  TEXT        NOT NULL DEFAULT '',
+            "Until"    TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY ("AlarmId", "ScopeKey")
+        )
+        """,
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
         // Map and station fields the import was leaving in the file.

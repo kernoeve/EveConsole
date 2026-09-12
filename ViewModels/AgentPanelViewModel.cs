@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Threading;
 using EveConsole.Agent;
+using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
 
@@ -302,6 +303,17 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// A staged alarm has asked the capsuleer something; whatever they say next acknowledges it.
+    /// Deliberately not "if they say all is well": a person answering at all is awake, which is
+    /// the fact the alarm exists to establish, and no model has to remember to call anything.
+    /// </summary>
+    private AlarmAck? _pendingAck;
+    public void ExpectReply(AlarmAck ack) => _pendingAck = ack;
+
+    /// <summary>Set by MainWindow: takes the acknowledgement back to the alarm runner.</summary>
+    public Func<AlarmAck, Task>? AcknowledgeCallback { get; set; }
+
     public async Task NotifyAsync(string message)
     {
         if (!_isAgentEnabled || string.IsNullOrWhiteSpace(message)) return;
@@ -360,6 +372,14 @@ public sealed class AgentPanelViewModel : ReactiveObject
     {
         var text = Input.Trim();
         if (string.IsNullOrEmpty(text) || IsBusy) return;
+
+        // Only a message the capsuleer wrote counts; an alarm's own prompt arrives this way too.
+        if (showUserMessage && _pendingAck is { } ack)
+        {
+            _pendingAck = null;
+            if (AcknowledgeCallback is { } acknowledge)
+                _ = acknowledge(ack);
+        }
 
         ApplyNavigationIntent(text);
 
