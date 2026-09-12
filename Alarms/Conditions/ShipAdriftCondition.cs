@@ -47,8 +47,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         "freighter or jump freighter on a tether while its pilot dozes off. Docking, leaving the " +
         "system or logging off ends it. Pressing the dialog's button, or replying anything at all " +
         "to the agent, quiets it for a while; when that lapses and the ship is still there, the " +
-        "stages start over. Each action can be tied to a stage, and a Sound action can repeat " +
-        "until acknowledged. Repeat and cooldown do not apply.";
+        "stages start over. Each stage has its own actions — TTS direct or the agent to say the stage's " +
+        "line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.";
 
     public int Stages => StageCount;
 
@@ -136,6 +136,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         }
         return (alarmName, IAlarmCondition.JoinSummaries(matches));
     }
+
+    /// <summary>The stage's line, for an action that speaks it without a model.</summary>
+    public string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches)
+        => matches.Count > 0 && matches[0].Detail is { } d ? StageLine(StageOf(matches[0]), d) : null;
 
     /// <summary>
     /// The whole prompt for the agent: what to say for this stage, word for word, and that the

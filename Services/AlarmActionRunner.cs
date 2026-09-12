@@ -57,6 +57,16 @@ public sealed class AlarmActionRunner
     /// </summary>
     public Action<string, string, string?, Func<Task>?>? ShowDialogCallback { get; set; }
 
+    /// <summary>
+    /// A repeating sound has started for a situation: show the window whose one button stops it.
+    /// Separate from the Dialog action, which may not have been chosen — a sound that will not
+    /// stop until acknowledged must bring its own way of being acknowledged. Set by MainWindow.
+    /// </summary>
+    public Action<AlarmAck, string, string, Func<Task>>? SoundStartedCallback { get; set; }
+
+    /// <summary>The repeating sound for a situation has ended of itself — close its window. Set by MainWindow.</summary>
+    public Action<AlarmAck>? SoundStoppedCallback { get; set; }
+
     /// <summary>True when the agent is configured well enough for AgentNotify to reach the user.</summary>
     public Func<bool>? AgentAvailable { get; set; }
 
@@ -84,7 +94,13 @@ public sealed class AlarmActionRunner
         string?                      agentPrompt  = null,
         CancellationToken            ct           = default)
     {
-        var signal = new AlarmSignal { AlarmId = alarm.Id, Name = alarm.Name };
+        // A staged firing is one situation; its summary is that, not the whole evaluation's.
+        var signal = new AlarmSignal
+        {
+            AlarmId = alarm.Id,
+            Name    = alarm.Name,
+            Summary = stage is null ? evt.Summary : string.Join("; ", matches.Take(3).Select(m => m.Summary)),
+        };
 
         // A staged firing carries what an acknowledgement would name, so every client can take
         // one — and ask the condition, between plays of a repeating sound, whether it still holds.
@@ -132,6 +148,16 @@ public sealed class AlarmActionRunner
                         signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
                         signal.DialogButton = stage is not null ? "I'm awake" : null;
                         somethingElse       = true;
+                        break;
+
+                    case AlarmActionKind.TtsDirect:
+                        // The user's own words if they wrote any, else what the check composed,
+                        // else the check's default title and body read as a sentence.
+                        signal.DirectText = Str(cfg, "message") is { Length: > 0 } template
+                            ? Expand(template, alarm, evt)
+                            : announcement ?? DefaultSpeech(defaults);
+                        signal.ReplyAcknowledges = stage is not null;
+                        somethingElse = true;
                         break;
 
                     case AlarmActionKind.AgentNotify:
@@ -218,7 +244,7 @@ public sealed class AlarmActionRunner
         if (s.SoundKey is not null)
         {
             if (s.SoundLoop && ack is not null && s.ConditionType is not null)
-                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume);
+                StartLoop(ack, s.ConditionType, s.SoundKey, s.SoundVolume, s.Name, s.Summary);
             else
             {
                 try { await _sounds.PlayAsync(s.SoundKey, s.SoundVolume, ct); }
@@ -242,6 +268,15 @@ public sealed class AlarmActionRunner
             catch (Exception ex) { _errors.Log("AlarmActionRunner", $"announcement for alarm {s.AlarmId}", ex); }
         }
 
+        // Not gated on the agent: a voice is all this needs. The reply-acknowledgement is armed
+        // all the same, since the line shows in the agent window and answering it means awake.
+        if (s.DirectText is not null && AnnounceCallback is { } speak)
+        {
+            if (s.ReplyAcknowledges && ack is not null) AwaitReplyCallback?.Invoke(ack);
+            try { await speak(s.DirectText); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"direct speech for alarm {s.AlarmId}", ex); }
+        }
+
         if (s.AgentText is not null && CanSpeak())
         {
             // Armed before the agent speaks, so a reply that comes mid-sentence still counts.
@@ -263,11 +298,7 @@ public sealed class AlarmActionRunner
     /// </summary>
     public async Task AcknowledgeAsync(AlarmAck ack, CancellationToken ct = default)
     {
-        lock (_loopLock)
-        {
-            _loops.Remove((ack.AlarmId, ack.ScopeKey));
-            if (_loops.Count == 0) _sounds.Stop();
-        }
+        EndLoop((ack.AlarmId, ack.ScopeKey), tellWindow: false);
 
         try
         {
@@ -303,13 +334,44 @@ public sealed class AlarmActionRunner
     private Task? _loopTask;
     private static readonly TimeSpan LoopGap = TimeSpan.FromSeconds(1.5);
 
-    private void StartLoop(AlarmAck ack, string conditionType, string soundKey, int volume)
+    private void StartLoop(AlarmAck ack, string conditionType, string soundKey, int volume, string name, string summary)
     {
+        bool fresh;
         lock (_loopLock)
         {
+            fresh = !_loops.ContainsKey((ack.AlarmId, ack.ScopeKey));
             _loops[(ack.AlarmId, ack.ScopeKey)] = (ack.Episode, conditionType, soundKey, volume);
             if (_loopTask is null || _loopTask.IsCompleted) _loopTask = Task.Run(LoopAsync);
         }
+
+        // One window per situation, however many stages ring for it.
+        if (fresh && SoundStartedCallback is { } started)
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { started(ack, name, summary, () => AcknowledgeAsync(ack)); }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", "sound window", ex); }
+            });
+    }
+
+    /// <summary>
+    /// Takes a situation out of the ring: the sound stops if it was the last, and its window is
+    /// closed — unless the window is what ended it, in which case it is closing itself.
+    /// </summary>
+    private void EndLoop((long AlarmId, string ScopeKey) key, bool tellWindow)
+    {
+        bool removed;
+        lock (_loopLock)
+        {
+            removed = _loops.Remove(key);
+            if (_loops.Count == 0) _sounds.Stop();
+        }
+
+        if (removed && tellWindow && SoundStoppedCallback is { } stopped)
+            Dispatcher.UIThread.Post(() =>
+            {
+                try { stopped(new AlarmAck(key.AlarmId, key.ScopeKey, "", 0)); }
+                catch (Exception ex) { _errors.Log("AlarmActionRunner", "sound window", ex); }
+            });
     }
 
     private async Task LoopAsync()
@@ -327,7 +389,7 @@ public sealed class AlarmActionRunner
             // situation, which goes on being recorded for the others.
             if (_mute.Muted)
             {
-                lock (_loopLock) _loops.Clear();
+                foreach (var kv in ringing) EndLoop(kv.Key, tellWindow: true);
                 return;
             }
 
@@ -341,7 +403,7 @@ public sealed class AlarmActionRunner
                 }
                 catch (Exception ex) { _errors.Log("AlarmActionRunner", $"checking alarm {kv.Key.AlarmId} still holds", ex); }
 
-                if (!holds) lock (_loopLock) _loops.Remove(kv.Key);
+                if (!holds) EndLoop(kv.Key, tellWindow: true);
             }
 
             (string SoundKey, int Volume) next;
@@ -426,6 +488,22 @@ public sealed class AlarmActionRunner
             Body         = body,
         });
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// A check's default title and body as one spoken sentence: the title, then the lines of
+    /// the body without their bullets. What TTS Direct says for a check that composes no
+    /// announcement of its own — a timer, a price, a query.
+    /// </summary>
+    private static string DefaultSpeech((string Title, string Body) defaults)
+    {
+        var lines = defaults.Body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(l => l.TrimStart('•', '-', ' '))
+            .Where(l => l.Length > 0)
+            .Take(6);
+        var body = string.Join(". ", lines);
+        return string.IsNullOrWhiteSpace(body) ? defaults.Title : $"{defaults.Title}. {body}";
     }
 
     /// <summary>

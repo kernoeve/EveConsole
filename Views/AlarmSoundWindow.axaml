@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.AlarmSoundWindow"
+        Width="420"
+        MinWidth="320"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SurfaceBaseBrush}"
+        CanResize="False"
+        ShowInTaskbar="True"
+        Topmost="True"
+        SizeToContent="Height">
+
+  <Grid RowDefinitions="Auto,Auto,Auto">
+
+    <Border Grid.Row="0" Background="{DynamicResource WarnSurfaceBrush}" Padding="20 12">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <TextBlock Text="&#x1F50A;" FontSize="20" VerticalAlignment="Center" />
+        <TextBlock x:Name="TitleText"
+                   FontSize="15"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextBrightBrush}"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Grid.Row="1" x:Name="MessageText"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource TextPrimaryBrush}"
+               FontSize="13"
+               Margin="20 16 20 14" />
+
+    <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
+      <Button x:Name="AcknowledgeButton"
+              Content="Acknowledge — stop the sound"
+              Click="OnAcknowledge"
+              HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Center"
+              Padding="24 8"
+              FontWeight="SemiBold"
+              IsDefault="True" />
+    </Border>
+
+  </Grid>
+</Window>

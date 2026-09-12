@@ -15,6 +15,15 @@ public enum AlarmActionKind
     AgentNotify = 1,
     Alert       = 2,
     Dialog      = 3,
+
+    /// <summary>
+    /// Spoken by text-to-speech at once, in the words the check composed (or the user's own
+    /// template) — no model reads it first. Shown in the agent window as the application's
+    /// line, so it reads like the agent speaking, and works with the agent switched off: it
+    /// needs a voice, not a model. For anything whose words are already known — an intel
+    /// call, an undock, a wake-up — the agent would only add a round trip and a bill.
+    /// </summary>
+    TtsDirect   = 4,
 }
 
 /// <summary>

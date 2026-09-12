@@ -414,8 +414,8 @@ public sealed class AlarmService : ReactiveObject
         }
 
         // Staged: one firing per scope and stage — two pilots adrift are two wake-up calls, each
-        // with the actions that have joined in by its stage (an untied action is there from the
-        // first; one tied to stage 2 is there at 2 and after, because stages escalate).
+        // with the actions under its stage (an action with no stage, as the agent's tool may
+        // make, runs at every stage).
         foreach (var group in fresh.GroupBy(m => (Stage: IAlarmCondition.StageOf(m), Scope: DetailText(m, "scope_key"))))
         {
             var list  = group.ToList();
@@ -427,7 +427,7 @@ public sealed class AlarmService : ReactiveObject
                 first.Detail is { } d && d.TryGetValue("snooze_minutes", out var sm) && sm is int m ? m : 30,
                 condition.TypeKey);
 
-            var stageActions = actions.Where(a => ActionStage(a) is not { } s || group.Key.Stage >= s).ToList();
+            var stageActions = actions.Where(a => ActionStage(a) is not { } s || s == group.Key.Stage).ToList();
             if (stageActions.Count == 0) continue;
 
             await _actions.RunAsync(
@@ -444,7 +444,7 @@ public sealed class AlarmService : ReactiveObject
     private static string DetailText(AlarmMatch m, string key)
         => m.Detail is { } d && d.TryGetValue(key, out var v) && v is string s ? s : "";
 
-    /// <summary>The stage an action joins in at, from its config — null for every stage.</summary>
+    /// <summary>The stage an action runs at, from its config — null for every stage.</summary>
     internal static int? ActionStage(AlarmAction action)
     {
         try

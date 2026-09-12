@@ -170,6 +170,9 @@
               </Style>
             </StackPanel.Styles>
             <ToolTip.Tip>
+              <!-- An explicit ToolTip, for its MaxWidth: the theme caps a tooltip at 320px, which
+                   clipped the ship column clean off. -->
+              <ToolTip MaxWidth="1400">
               <StackPanel Spacing="2" Margin="2">
                 <TextBlock Text="None of your characters are online." FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}"
@@ -197,6 +200,7 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
+              </ToolTip>
             </ToolTip.Tip>
             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                      Fill="{Binding OnlineCharactersColor}" />

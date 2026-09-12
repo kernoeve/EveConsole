@@ -312,6 +312,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // acknowledgement goes back through the runner, which is what quiets every client.
         vm.AlarmActions.AwaitReplyCallback  = ack     => vm.AgentVm.ExpectReply(ack);
         vm.AgentVm.AcknowledgeCallback      = ack     => vm.AlarmActions.AcknowledgeAsync(ack);
+
+        // A repeating sound brings its own window with the one button that stops it, whether or
+        // not a Dialog action was chosen; the runner closes it when the sound ends of itself.
+        var soundWindows = new Dictionary<(long, string), Views.AlarmSoundWindow>();
+        vm.AlarmActions.SoundStartedCallback = (ack, name, summary, acknowledge) =>
+        {
+            var key = (ack.AlarmId, ack.ScopeKey);
+            if (soundWindows.TryGetValue(key, out var open)) { open.Activate(); return; }
+
+            var w = new Views.AlarmSoundWindow(name, summary, acknowledge);
+            w.Closed += (_, _) => soundWindows.Remove(key);
+            soundWindows[key] = w;
+            w.Show();
+        };
+        vm.AlarmActions.SoundStoppedCallback = ack =>
+        {
+            if (soundWindows.Remove((ack.AlarmId, ack.ScopeKey), out var w))
+                try { w.Close(); } catch { /* already gone */ }
+        };
         vm.AlarmActions.AgentAvailable      =
             () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
 

@@ -218,6 +218,26 @@ public class DbEngineLogoConverter : IValueConverter
 /// grey rather than amber — the first read has not come back yet, and alarming about a worker
 /// that is very probably fine is how an indicator teaches people to ignore it.</para>
 /// </summary>
+/// <summary>What an alarm action's kind is called in the editor's picker.</summary>
+public class AlarmActionKindNameConverter : IValueConverter
+{
+    public static readonly AlarmActionKindNameConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            Models.AlarmActionKind.Sound       => "Sound",
+            Models.AlarmActionKind.TtsDirect   => "TTS direct (agent bypass)",
+            Models.AlarmActionKind.AgentNotify => "Agent notify",
+            Models.AlarmActionKind.Alert       => "Alert",
+            Models.AlarmActionKind.Dialog      => "Dialog",
+            _                                  => value?.ToString() ?? "",
+        };
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class WorkerStateBrushConverter : IValueConverter
 {
     public static readonly WorkerStateBrushConverter Instance = new();

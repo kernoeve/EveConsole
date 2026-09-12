@@ -64,6 +64,15 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>What a new alarm starts with, from the schema's "default"; null for none.</summary>
     public string? Default { get; init; }
 
+    /// <summary>
+    /// The stage this field belongs to, by the schema's naming (<c>stage2_seconds</c>), or null.
+    /// A stage's field is shown with the stage's actions rather than among the check's fields.
+    /// </summary>
+    public int? StageNumber =>
+        System.Text.RegularExpressions.Regex.Match(Name, @"^stage(\d+)_seconds$") is { Success: true } m
+            ? int.Parse(m.Groups[1].Value) : null;
+    public bool IsStage => StageNumber is not null;
+
     public AlarmFieldVm()
     {
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
@@ -266,6 +275,8 @@ public sealed class AlarmActionVm : ReactiveObject
             if (Sound is { } s) await _sounds.PlayAsync(s.Key, Volume);
         });
 
+        RemoveCommand = ReactiveCommand.Create(() => OnRemove?.Invoke(this));
+
         AddSoundCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             var path = await pickFile();
@@ -321,6 +332,7 @@ public sealed class AlarmActionVm : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _kind, value);
             this.RaisePropertyChanged(nameof(IsSound));
+            this.RaisePropertyChanged(nameof(IsTts));
             this.RaisePropertyChanged(nameof(IsAgent));
             this.RaisePropertyChanged(nameof(IsAlert));
             this.RaisePropertyChanged(nameof(IsDialog));
@@ -329,7 +341,7 @@ public sealed class AlarmActionVm : ReactiveObject
     }
 
     public IReadOnlyList<AlarmActionKind> AvailableKinds { get; } =
-        [AlarmActionKind.Sound, AlarmActionKind.AgentNotify, AlarmActionKind.Alert, AlarmActionKind.Dialog];
+        [AlarmActionKind.Sound, AlarmActionKind.TtsDirect, AlarmActionKind.AgentNotify, AlarmActionKind.Alert, AlarmActionKind.Dialog];
 
     public ObservableCollection<AlarmSound> AvailableSounds { get; }
 
@@ -349,59 +361,33 @@ public sealed class AlarmActionVm : ReactiveObject
     public string Instruction { get => _instruction; set => this.RaiseAndSetIfChanged(ref _instruction, value); }
 
     public bool IsSound  => Kind == AlarmActionKind.Sound;
+    public bool IsTts    => Kind == AlarmActionKind.TtsDirect;
     public bool IsAgent  => Kind == AlarmActionKind.AgentNotify;
     public bool IsAlert  => Kind == AlarmActionKind.Alert;
     public bool IsDialog => Kind == AlarmActionKind.Dialog;
     public bool HasText  => IsAlert || IsDialog;
 
+    /// <summary>Takes this action out of whichever list owns it. Set by that list.</summary>
+    public Action<AlarmActionVm>? OnRemove { get; set; }
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+
     // ── Stages ──
     //
-    // Set by the parent from the selected condition. Zero for an ordinary check, and then none
-    // of this shows: an action simply runs when the alarm fires.
+    // Set by the owner. Zero for an ordinary check's action; for a staged check the action lives
+    // in its stage's list, and Stage says which, so the config carries it.
 
     private int _stageCount;
     public int StageCount
     {
         get => _stageCount;
-        set
-        {
-            if (_stageCount == value) return;
-            _stageCount = value;
-            StageOptions = [StageName(0), .. Enumerable.Range(2, Math.Max(0, value - 1)).Select(StageName)];
-            this.RaisePropertyChanged(nameof(StageCount));
-            this.RaisePropertyChanged(nameof(HasStages));
-            this.RaisePropertyChanged(nameof(StageOptions));
-            this.RaisePropertyChanged(nameof(SelectedStage));
-        }
+        set { this.RaiseAndSetIfChanged(ref _stageCount, value); this.RaisePropertyChanged(nameof(HasStages)); }
     }
 
     public bool HasStages => StageCount > 0;
 
-    public IReadOnlyList<string> StageOptions { get; private set; } = ["Every stage"];
-
-    private static string StageName(int stage) => stage <= 1 ? "Every stage" : $"From stage {stage}";
-
-    /// <summary>
-    /// The stage this action joins in at, and it stays for the rest: stages escalate, so the
-    /// dialog that appears at the second is still wanted at the third. 0 (or 1) is every stage.
-    /// </summary>
+    /// <summary>The stage this action runs at; 0 for an ordinary check.</summary>
     private int _stage;
-    public int Stage
-    {
-        get => _stage;
-        set { this.RaiseAndSetIfChanged(ref _stage, value); this.RaisePropertyChanged(nameof(SelectedStage)); }
-    }
-
-    public string SelectedStage
-    {
-        get => StageName(Math.Min(_stage, StageCount));
-        set
-        {
-            if (string.IsNullOrEmpty(value)) return;
-            Stage = value.StartsWith("From stage ", StringComparison.Ordinal)
-                 && int.TryParse(value["From stage ".Length..], out var s) ? s : 0;
-        }
-    }
+    public int Stage { get => _stage; set => this.RaiseAndSetIfChanged(ref _stage, value); }
 
     /// <summary>A sound that plays again and again until the situation is acknowledged or ends.</summary>
     private bool _loop;
@@ -413,7 +399,7 @@ public sealed class AlarmActionVm : ReactiveObject
     public string ToConfigJson()
     {
         var o = new JsonObject();
-        if (HasStages && Stage > 1) o["stage"] = Stage;
+        if (HasStages && Stage > 0) o["stage"] = Stage;
         switch (Kind)
         {
             case AlarmActionKind.Sound:
@@ -423,6 +409,10 @@ public sealed class AlarmActionVm : ReactiveObject
                 break;
             case AlarmActionKind.AgentNotify:
                 if (!string.IsNullOrWhiteSpace(Instruction)) o["instruction"] = Instruction;
+                break;
+            // Empty means "say what the check composed", which is the point of the action.
+            case AlarmActionKind.TtsDirect:
+                if (!string.IsNullOrWhiteSpace(Body)) o["message"] = Body;
                 break;
             // Nothing written means "use the condition's own wording" — the absence is the
             // instruction, so the default follows the check even if it changes later.
@@ -451,6 +441,45 @@ public sealed class AlarmActionVm : ReactiveObject
     private static int? Int(JsonElement e, string n) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(n, out var p)
         && p.ValueKind == JsonValueKind.Number && p.TryGetInt32(out var v) ? v : null;
+}
+
+/// <summary>
+/// One stage of a staged check in the editor: the stage's own field (when it fires) and the
+/// actions that run at it, each added by the user — nothing is seeded, because one person wants
+/// the agent at every stage and a klaxon at the last, and the next wants something else.
+/// </summary>
+public sealed class AlarmStageVm : ReactiveObject
+{
+    public AlarmStageVm(int number, AlarmFieldVm? field, Func<int, AlarmActionVm> newAction)
+    {
+        Number = number;
+        Field  = field;
+        Actions.CollectionChanged += (_, _) => this.RaisePropertyChanged(nameof(IsEmpty));
+        AddActionCommand = ReactiveCommand.Create(() =>
+        {
+            var action = newAction(Number);
+            action.OnRemove = a => Actions.Remove(a);
+            Actions.Add(action);
+        });
+    }
+
+    public int    Number   { get; }
+    public string Title    => $"STAGE {Number}";
+    public AlarmFieldVm? Field { get; }
+    public bool   HasField => Field is not null;
+
+    public ObservableCollection<AlarmActionVm> Actions { get; } = [];
+    public bool IsEmpty => Actions.Count == 0;
+
+    public ReactiveCommand<Unit, Unit> AddActionCommand { get; }
+
+    /// <summary>Adopts an action loaded from the database.</summary>
+    public void Adopt(AlarmActionVm action)
+    {
+        action.Stage    = Number;
+        action.OnRemove = a => Actions.Remove(a);
+        Actions.Add(action);
+    }
 }
 
 /// <summary>A past firing, shown as history.</summary>
@@ -534,27 +563,32 @@ public sealed class AlarmsViewModel : ReactiveObject
             .Subscribe(_ =>
             {
                 RebuildFields();
-
-                var stages = SelectedCondition?.Stages ?? 0;
-                foreach (var a in Actions) a.StageCount = stages;
-
-                // A new alarm switched to a staged check gets the set its stages are for, in
-                // place of the lone default chime: the agent asking at every stage, a dialog from
-                // the second, and at the last a sound that will not stop until someone is awake.
-                if (stages > 0 && EditingId == 0 && Actions.Count == 1
-                    && Actions[0] is { IsSound: true, Stage: 0, Loop: false })
-                {
-                    Actions.Clear();
-                    Actions.Add(NewActionVm(AlarmActionKind.AgentNotify, default));
-                    Actions.Add(NewActionVm(AlarmActionKind.Dialog, default));
-                    Actions[^1].Stage = 2;
-                    Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
-                    Actions[^1].Stage = stages;
-                    Actions[^1].Loop  = true;
-                    Actions[^1].Sound = SoundCatalog.FirstOrDefault(s => s.Key == "klaxon-industrial") ?? Actions[^1].Sound;
-                }
+                RebuildStages();
             });
     }
+
+    /// <summary>
+    /// One editor section per stage of the selected check, each holding the stage's field and
+    /// its own action list. Empty to begin with, whatever the check: what runs at each stage is
+    /// the user's to say. An ordinary check has no stages and uses the flat list instead.
+    /// </summary>
+    private void RebuildStages()
+    {
+        Stages.Clear();
+        var count = SelectedCondition?.Stages ?? 0;
+        for (var i = 1; i <= count; i++)
+            Stages.Add(new AlarmStageVm(i, Fields.FirstOrDefault(f => f.StageNumber == i), NewStageActionVm));
+        this.RaisePropertyChanged(nameof(IsStaged));
+    }
+
+    public ObservableCollection<AlarmStageVm> Stages { get; } = [];
+
+    /// <summary>True while the selected check fires in stages; the view swaps the action lists.</summary>
+    public bool IsStaged => (SelectedCondition?.Stages ?? 0) > 0;
+
+    /// <summary>Every action on the editor, flat or under a stage — for previews and tests.</summary>
+    private IEnumerable<AlarmActionVm> AllActions =>
+        IsStaged ? Stages.SelectMany(s => s.Actions) : Actions;
 
     private void OnFired() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
 
@@ -579,7 +613,15 @@ public sealed class AlarmsViewModel : ReactiveObject
         new(_sounds, SoundCatalog,
             () => PickSoundFileCallback?.Invoke() ?? Task.FromResult<string?>(null),
             kind, cfg)
-        { StageCount = SelectedCondition?.Stages ?? 0 };
+        { StageCount = SelectedCondition?.Stages ?? 0, OnRemove = a => Actions.Remove(a) };
+
+    /// <summary>A new action for a stage's list — a sound, like the flat list's default, to be changed.</summary>
+    private AlarmActionVm NewStageActionVm(int stage)
+    {
+        var a = NewActionVm(AlarmActionKind.Sound, default);
+        a.Stage = stage;
+        return a;
+    }
 
     public IReadOnlyList<AlarmRepeat> RepeatModes { get; } = [AlarmRepeat.Continuous, AlarmRepeat.OneShot];
 
@@ -635,9 +677,6 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddActionCommand => ReactiveCommand.Create(() =>
         Actions.Add(NewActionVm(AlarmActionKind.Sound, default)));
-
-    public ReactiveCommand<AlarmActionVm, Unit> RemoveActionCommand =>
-        ReactiveCommand.Create<AlarmActionVm>(a => Actions.Remove(a));
 
     // ── Loading ──────────────────────────────────────────────────────────────
 
@@ -746,7 +785,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         RebuildFields();
 
         Actions.Clear();
-        Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
+        if (!IsStaged) Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
         HasEditor = true;
         UpdateDefaultTextPreview();
     }
@@ -785,7 +824,14 @@ public sealed class AlarmsViewModel : ReactiveObject
             JsonElement cfg;
             try { cfg = JsonDocument.Parse(a.ConfigJson ?? "{}").RootElement.Clone(); }
             catch { cfg = default; }
-            Actions.Add(NewActionVm(a.Kind, cfg));
+            var vm = NewActionVm(a.Kind, cfg);
+
+            // Under a staged check an action lives in its stage's list; one saved without a
+            // stage — made by the agent's tool, or before there were stages — goes to the first.
+            if (IsStaged && Stages.Count > 0)
+                (Stages.FirstOrDefault(s => s.Number == vm.Stage) ?? Stages[0]).Adopt(vm);
+            else
+                Actions.Add(vm);
         }
 
         HasEditor = true;
@@ -1058,7 +1104,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
         catch { preview = "The check will supply the wording."; }
 
-        foreach (var a in Actions) a.DefaultTextPreview = preview;
+        foreach (var a in AllActions) a.DefaultTextPreview = preview;
     }
 
     private void ApplyConfig(JsonElement config)
@@ -1233,7 +1279,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         var conditionType = SelectedCondition.TypeKey;
         var conditionJson = BuildConfigJson();
-        var actionRows    = Actions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
+        var actionRows    = AllActions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
 
         var id = EditingId;
         var (savedId, wasNew) = await Task.Run(async () =>
@@ -1335,7 +1381,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// </summary>
     private async Task TestFireAsync()
     {
-        foreach (var a in Actions)
+        foreach (var a in AllActions)
         {
             if (a.IsSound && a.Sound is { } s) await _sounds.PlayAsync(s.Key, a.Volume);
         }

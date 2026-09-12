@@ -32,6 +32,9 @@ public sealed class AlarmSignal
     public long   AlarmId { get; set; }
     public string Name    { get; set; } = "";
 
+    /// <summary>What fired, in a line — the event's summary, for anything that shows it.</summary>
+    public string Summary { get; set; } = "";
+
     public string? SoundKey    { get; set; }
     public int     SoundVolume { get; set; } = 100;
 
@@ -67,6 +70,13 @@ public sealed class AlarmSignal
     /// <see cref="AgentText"/> for an alarm whose value is in the next few seconds.
     /// </summary>
     public string? SpeakText   { get; set; }
+
+    /// <summary>
+    /// The TTS Direct action's text: spoken and shown as the application's own line, whether
+    /// or not the agent is on. Distinct from <see cref="SpeakText"/>, which is an Agent Notify
+    /// that happened to need no model and so still asks whether the agent can speak.
+    /// </summary>
+    public string? DirectText  { get; set; }
 
     /// <summary>True when this alarm's only instruction was to tell the agent. Lets a client that
     /// cannot speak decide whether silence loses the warning entirely.</summary>

@@ -285,13 +285,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// </summary>
     public async Task AnnounceAsync(string text)
     {
-        if (!_isAgentEnabled || string.IsNullOrWhiteSpace(text)) return;
+        if (string.IsNullOrWhiteSpace(text)) return;
 
+        // Kept and shown whether or not the agent is on: the line is the application's, and
+        // the panel only opens when there is an agent to open. The voice does not need one.
         var line = new AgentMessage(MessageRole.Assistant, text) { ToolsUsed = "alarm" };
         _history.Add(line);
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            IsOpen = true;
+            if (_isAgentEnabled) IsOpen = true;
             Messages.Add(line);
         });
         SaveHistory();
