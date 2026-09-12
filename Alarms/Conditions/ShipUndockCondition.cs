@@ -235,8 +235,10 @@ public sealed class ShipUndockCondition : IAlarmCondition
             sb.Append(Str(d, "character")).Append(" undocked in ").Append(Str(d, "system"))
               .Append(" in ").Append(Article(HullWord(d)));
 
-            var problems = Problems(d);
-            sb.Append(problems.Count == 0 ? "." : " with " + string.Join(", ", problems) + ".");
+            // Spoken: the reason, not the arithmetic. "Low on fuel" is what a pilot needs to hear;
+            // the units and the threshold are in the written summary for anyone who looks.
+            var problems = Problems(d, spoken: true);
+            sb.Append(problems.Count == 0 ? "." : " — " + string.Join(", ", problems) + ".");
         }
         if (matches.Count > 5) sb.Append($" And {matches.Count - 5} more.");
         return sb.ToString();
@@ -528,6 +530,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
 
     // ── Words ──────────────────────────────────────────────────────────────────
 
+    // Written: the number with its threshold, and the weapon by name.
     private static string Summary(IReadOnlyDictionary<string, object?> d)
     {
         var sb = new StringBuilder();
@@ -542,27 +545,41 @@ public sealed class ShipUndockCondition : IAlarmCondition
         return sb.ToString();
     }
 
-    /// <summary>What was missing, in the order it matters: no fit, then fuel, then ammunition.</summary>
-    private static List<string> Problems(IReadOnlyDictionary<string, object?> d)
+    /// <summary>
+    /// What was missing, in the order it matters: no fit, then fuel, then ammunition. Spoken, it
+    /// is the reason alone — "low on fuel", "low on ammunition" — because the alarm exists to
+    /// name the problem and the numbers only slow the sentence down; written, it carries the
+    /// units, the threshold and the weapon, for the history and the dialog.
+    /// </summary>
+    private static List<string> Problems(IReadOnlyDictionary<string, object?> d, bool spoken = false)
     {
         var list = new List<string>();
         if (d.TryGetValue("unfit", out var u) && u is true) list.Add("nothing fitted");
 
-        // The fuel is worth hearing whichever way the filter was asked: an alarm for "left with
-        // enough" is an alarm for the number.
         if (d.TryGetValue("fuel_units", out var fu) && fu is int units)
         {
-            var fuel  = Str(d, "fuel_type");
+            var fuel   = Str(d, "fuel_type");
             var short_ = d.TryGetValue("fuel_short", out var fs) && fs is true;
             var wanted = d.TryGetValue("fuel_wanted", out var fw) && fw is int w ? w : 0;
-            list.Add(units == 0 ? $"no {fuel}"
-                   : short_    ? $"{units:N0} {fuel}, under {wanted:N0}"
-                   :             $"{units:N0} {fuel} aboard");
+            if (spoken)
+            {
+                if (short_) list.Add(units == 0 ? "no fuel" : "low on fuel");
+            }
+            else
+                list.Add(units == 0 ? $"no {fuel}"
+                       : short_    ? $"{units:N0} {fuel}, under {wanted:N0}"
+                       :             $"{units:N0} {fuel} aboard");
         }
 
         if (d.TryGetValue("ammo_short", out var a) && a is IEnumerable<Dictionary<string, object?>> weapons)
         {
             var all = weapons.ToList();
+            if (spoken)
+            {
+                var have = all.Sum(w => w.TryGetValue("units", out var h) && h is int n ? n : 0);
+                list.Add(have == 0 ? "no ammunition" : "low on ammunition");
+                return list;
+            }
             foreach (var w in all.Take(2))
             {
                 var name  = Str(w, "weapon");
