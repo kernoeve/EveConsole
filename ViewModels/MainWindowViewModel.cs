@@ -16,6 +16,9 @@ using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>One line of the online-characters hover in the header.</summary>
+public sealed record OnlineCharacterVm(string Name, string Location, string Ship, bool IsDocked);
+
 public class MainWindowViewModel : ReactiveObject
 {
     public OverviewViewModel              OverviewVm             { get; }
@@ -420,12 +423,23 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _onlineCharactersText, value);
     }
 
-    private string _onlineCharactersTip = "";
-    public string OnlineCharactersTip
+    /// <summary>
+    /// Who is online, for the hover: one row each, replaced wholesale on every refresh so the
+    /// tooltip's columns re-measure together. Docked rows read green and in-space rows orange
+    /// in the view, because that is the one thing worth seeing at a glance.
+    /// </summary>
+    private IReadOnlyList<OnlineCharacterVm> _onlineCharacters = [];
+    public IReadOnlyList<OnlineCharacterVm> OnlineCharacters
     {
-        get => _onlineCharactersTip;
-        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersTip, value);
+        get => _onlineCharacters;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _onlineCharacters, value);
+            this.RaisePropertyChanged(nameof(HasOnlineCharacters));
+        }
     }
+
+    public bool HasOnlineCharacters => OnlineCharacters.Count > 0;
 
     /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
     private IBrush _onlineCharactersColor = Palette.BorderStrong;
@@ -458,7 +472,10 @@ public class MainWindowViewModel : ReactiveObject
                 await using var db = await dbFactory.CreateDbContextAsync();
 
                 // Left joins throughout: a character who has just logged in may not have had a
-                // location or ship poll yet, and should still be counted as online.
+                // location or ship poll yet, and should still be counted as online. The docked
+                // place is looked up in every table that names one — the SDE for NPC stations,
+                // three for player structures — so a pilot in a Keepstar reads as being in it
+                // rather than merely in its system.
                 return await (
                     from s in db.CharacterStatuses.AsNoTracking()
                     join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
@@ -466,11 +483,24 @@ public class MainWindowViewModel : ReactiveObject
                         .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
                     from ship in db.SdeTypes.AsNoTracking()
                         .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
+                    from sta in db.SdeStations.AsNoTracking()
+                        .Where(x => (long)x.StationId == s.StationId).DefaultIfEmpty()
+                    from str in db.Structures.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
+                    from strn in db.EsiStructureNames.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
+                    from cstr in db.EsiCorpStructures.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
                     select new
                     {
                         c.Name,
                         s.Online,
+                        Docked   = s.StationId != null || s.StructureId != null,
                         System   = sys != null ? sys.Name : null,
+                        Place    = sta  != null ? sta.Name
+                                 : str  != null ? str.Name
+                                 : strn != null ? strn.Name
+                                 : cstr != null ? cstr.Name : null,
                         Hull     = ship != null ? ship.Name : null,
                         s.ShipName,
                     }).ToListAsync();
@@ -480,26 +510,30 @@ public class MainWindowViewModel : ReactiveObject
 
             var text = $"{online.Count} of {rows.Count} Online";
 
-            var tip = online.Count == 0
-                ? "None of your characters are online."
-                : string.Join("\n", online.Select(r =>
-                {
-                    var where = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+            var list = online.Select(r =>
+            {
+                var system = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
 
-                    // The hull is what the ship IS; ShipName is what the pilot called it. Show
-                    // both only when the pilot bothered to rename it.
-                    var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
-                    if (!string.IsNullOrWhiteSpace(r.ShipName)
-                        && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
-                        ship = $"{r.Hull} \"{r.ShipName}\"";
+                // Docked: the station or structure, which says more than its system does. In
+                // space: the system, which is all there is to say.
+                var where = !r.Docked                              ? system
+                          : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
+                          :                                          $"a structure in {system}";
 
-                    return $"{r.Name} — {where} — {ship}";
-                }));
+                // The hull is what the ship IS; ShipName is what the pilot called it. Show
+                // both only when the pilot bothered to rename it.
+                var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                if (!string.IsNullOrWhiteSpace(r.ShipName)
+                    && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
+                    ship = $"{r.Hull} \"{r.ShipName}\"";
+
+                return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
+            }).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 OnlineCharactersText  = text;
-                OnlineCharactersTip   = tip;
+                OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
         }

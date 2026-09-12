@@ -156,10 +156,48 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
 
-          <!-- My characters online. Hover lists who, where, and in what. -->
+          <!-- My characters online. Hover lists who, where, and in what — three columns that
+               line up without a grid's chrome, green when docked, orange when in space. -->
           <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center"
                       Margin="0 0 12 0" Background="Transparent"
-                      ToolTip.Tip="{Binding OnlineCharactersTip}">
+                      ToolTip.Placement="Bottom" ToolTip.ShowDelay="300">
+            <StackPanel.Styles>
+              <Style Selector="TextBlock.docked">
+                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+              </Style>
+              <Style Selector="TextBlock.space">
+                <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+              </Style>
+            </StackPanel.Styles>
+            <ToolTip.Tip>
+              <StackPanel Spacing="2" Margin="2">
+                <TextBlock Text="None of your characters are online." FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           IsVisible="{Binding !HasOnlineCharacters}" />
+                <ItemsControl ItemsSource="{Binding OnlineCharacters}" Grid.IsSharedSizeScope="True"
+                              IsVisible="{Binding HasOnlineCharacters}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OnlineCharacterVm">
+                      <Grid Margin="0 1">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="who" />
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="where" />
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="ship" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Location}" FontSize="11"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                        <TextBlock Grid.Column="4" Text="{Binding Ship}" FontSize="11"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ToolTip.Tip>
             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                      Fill="{Binding OnlineCharactersColor}" />
             <TextBlock Text="{Binding OnlineCharactersText}"
