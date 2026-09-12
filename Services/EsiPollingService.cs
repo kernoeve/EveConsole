@@ -1221,11 +1221,12 @@ public class EsiPollingService : ReactiveObject
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
-        // in — e.g. a titan a character is logged off in). Pull it via the ship + location
-        // endpoints and synthesize an asset for the hull so every asset-consuming tool counts
-        // it. Hull only — ESI does not expose the active ship's cargo or fittings. Best-effort:
-        // never fail the assets poll over it.
+        // ESI's assets endpoint omits the hull of the character's ACTIVE ship while they are in
+        // space in it (a titan a character is logged off in) — though it still lists what is
+        // INSIDE it, fittings and cargo, under the ship's item id; and a docked active ship is
+        // listed whole, hull and contents. Pull the hull via the ship + location endpoints and
+        // synthesize an asset for it so every asset-consuming tool counts it. Best-effort: never
+        // fail the assets poll over it.
         try
         {
             var shipR = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId, $"characters/{charId}/ship/", ct);
