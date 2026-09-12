@@ -3186,6 +3186,12 @@ public class App : Application
         p.Report((80, "Loading settings…"));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
+        try
+        {
+            var endpoints = Services.GetRequiredService<EsiPollingService>();
+            await timerSettings.ForgetMinuteRoundingAsync(endpoints.CharacterEndpointInfos.Concat(endpoints.CorpEndpointInfos));
+        }
+        catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Timers", "minute rounding", ex); }
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
 

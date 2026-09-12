@@ -855,11 +855,11 @@
                                  FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                  VerticalAlignment="Center" />
                       <TextBox Grid.Column="1"
-                               Text="{ReflectionBinding IntervalMinutes, Mode=TwoWay}"
+                               Text="{ReflectionBinding Interval, Mode=TwoWay}"
                                FontSize="12" Padding="4 3"
                                HorizontalContentAlignment="Right"
                                VerticalContentAlignment="Center" />
-                      <TextBlock Grid.Column="2" Text=" min"
+                      <TextBlock Grid.Column="2" Text="{Binding Unit, StringFormat=' {0}'}"
                                  FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                  VerticalAlignment="Center" Margin="4 0 12 0" />
                       <Button Grid.Column="3"
@@ -871,7 +871,7 @@
                       <TextBlock Grid.Column="4" Text="{Binding ForceStatus}"
                                  FontSize="10" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="4"
-                                 Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
+                                 Text="{Binding MinText}"
                                  FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                  VerticalAlignment="Center" />
                     </Grid>
@@ -893,11 +893,11 @@
                                  FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                  VerticalAlignment="Center" />
                       <TextBox Grid.Column="1"
-                               Text="{ReflectionBinding IntervalMinutes, Mode=TwoWay}"
+                               Text="{ReflectionBinding Interval, Mode=TwoWay}"
                                FontSize="12" Padding="4 3"
                                HorizontalContentAlignment="Right"
                                VerticalContentAlignment="Center" />
-                      <TextBlock Grid.Column="2" Text=" min"
+                      <TextBlock Grid.Column="2" Text="{Binding Unit, StringFormat=' {0}'}"
                                  FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                  VerticalAlignment="Center" Margin="4 0 12 0" />
                       <Button Grid.Column="3"
@@ -909,7 +909,7 @@
                       <TextBlock Grid.Column="4" Text="{Binding ForceStatus}"
                                  FontSize="10" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="4"
-                                 Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
+                                 Text="{Binding MinText}"
                                  FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                  VerticalAlignment="Center" />
                     </Grid>
@@ -931,11 +931,11 @@
                                  FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                  VerticalAlignment="Center" />
                       <TextBox Grid.Column="1"
-                               Text="{ReflectionBinding IntervalMinutes, Mode=TwoWay}"
+                               Text="{ReflectionBinding Interval, Mode=TwoWay}"
                                FontSize="12" Padding="4 3"
                                HorizontalContentAlignment="Right"
                                VerticalContentAlignment="Center" />
-                      <TextBlock Grid.Column="2" Text=" min"
+                      <TextBlock Grid.Column="2" Text="{Binding Unit, StringFormat=' {0}'}"
                                  FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                  VerticalAlignment="Center" Margin="4 0 12 0" />
                       <Button Grid.Column="3"
@@ -947,7 +947,7 @@
                       <TextBlock Grid.Column="4" Text="{Binding ForceStatus}"
                                  FontSize="10" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="4"
-                                 Text="{Binding MinMinutes, StringFormat='(min: {0} min)'}"
+                                 Text="{Binding MinText}"
                                  FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                  VerticalAlignment="Center" />
                     </Grid>
