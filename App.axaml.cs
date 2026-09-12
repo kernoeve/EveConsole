@@ -335,6 +335,13 @@ public class App : Application
                 if (written > 0)
                     await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
             };
+            // An undock, likewise: the location poll is what knows, and it says so the moment
+            // the character's pass is done, so the undock alarms are evaluated then — seconds
+            // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
+            // its stages are minutes out.
+            polling.CharacterUndocked += characterId =>
+                _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
+
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();

@@ -477,6 +477,17 @@ public class EsiPollingService : ReactiveObject
     // (characterId, endpointKey) pairs already fetched since startup.
     private readonly ConcurrentDictionary<(long, string), bool> _offlineFixTaken = new();
 
+    /// <summary>
+    /// Raised, with the character id, once a pass has seen that character go from docked to in
+    /// space — after the pass, not at the moment the location poll noticed, so the ship poll
+    /// that follows it by half a second has had its turn and an alarm reads the hull they are
+    /// actually in. What lets an undock alarm fire within a second of the poll instead of at
+    /// its own next interval.
+    /// </summary>
+    public event Action<long>? CharacterUndocked;
+
+    private readonly ConcurrentDictionary<long, bool> _undockSeen = new();
+
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
         var netWorthDirty = false;
@@ -556,6 +567,12 @@ public class EsiPollingService : ReactiveObject
 
         if (netWorthDirty)
             _ = _netWorth.RecalculateAsync(character.Id, "character", ct);
+
+        if (_undockSeen.TryRemove(character.Id, out _) && CharacterUndocked is { } undocked)
+        {
+            try { undocked(character.Id); }
+            catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"undock of {character.Id}", ex); }
+        }
     }
 
     // ── DB helpers ───────────────────────────────────────────────────────────
@@ -1601,6 +1618,7 @@ public class EsiPollingService : ReactiveObject
                 status.UndockedAt       = DateTimeOffset.UtcNow;
                 status.UndockedFromId   = status.StructureId ?? status.StationId;
                 status.UndockedSystemId = status.SolarSystemId;
+                _undockSeen[charId]     = true;
             }
 
             status.SolarSystemId     = r.Data.SolarSystemId;
