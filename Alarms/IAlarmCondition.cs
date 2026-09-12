@@ -44,6 +44,17 @@ public interface IAlarmCondition
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
         => (alarmName, JoinSummaries(matches));
 
+    /// <summary>
+    /// What the agent is to SAY when the alarm fires, word for word — or null, the default, to
+    /// let the agent put the matches into its own words.
+    ///
+    /// <para>For an alarm whose whole value is in the next few seconds, the model's own words are
+    /// the wrong tool: they arrive after a round trip, in whatever order the model chose, with
+    /// whatever it thought worth adding. A condition that knows the priority of its own facts
+    /// composes the sentence itself, and it is spoken as written, at once.</para>
+    /// </summary>
+    string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches) => null;
+
     /// <summary>Shared body-building for the default text: the matches, one per line, capped.</summary>
     protected static string JoinSummaries(IReadOnlyList<AlarmMatch> matches, int max = 6)
     {

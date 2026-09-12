@@ -3134,6 +3134,20 @@ public class App : Application
             {
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
+
+                // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
+                // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling
+                // the same pilot are one sighting and nobody is named for reporting. An alarm
+                // still holding keys of the old shape is re-primed, so the first evaluation banks
+                // what is in its two-hour window instead of announcing all of it, and the old
+                // keys go. Both engines — the previous key migration lived in the SQLite list
+                // alone and a server install never had it. No-ops once no old keys remain.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""UPDATE "Alarms" SET "Primed" = FALSE WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:____-__-__T%')""");
+                    db.Database.ExecuteSqlRaw("""DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:____-__-__T%'""");
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel key migration", ex); }
             }
         }
         }); // end Task.Run — schema migration complete

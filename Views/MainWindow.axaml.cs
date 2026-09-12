@@ -306,6 +306,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             new Views.AlarmDialogWindow(title, message).Show();
 
         vm.AlarmActions.NotifyAgentCallback = message => vm.AgentVm.NotifyAsync(message);
+        vm.AlarmActions.AnnounceCallback    = text    => vm.AgentVm.AnnounceAsync(text);
         vm.AlarmActions.AgentAvailable      =
             () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
 

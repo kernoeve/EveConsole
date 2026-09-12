@@ -39,6 +39,13 @@ public sealed class AlarmSignal
     /// <summary>The finished prompt for the agent, matches and standing instruction included.</summary>
     public string? AgentText   { get; set; }
 
+    /// <summary>
+    /// Text the agent is to say exactly as written, with no model in the way — composed by the
+    /// condition, which knows the order its facts matter in. Set instead of
+    /// <see cref="AgentText"/> for an alarm whose value is in the next few seconds.
+    /// </summary>
+    public string? SpeakText   { get; set; }
+
     /// <summary>True when this alarm's only instruction was to tell the agent. Lets a client that
     /// cannot speak decide whether silence loses the warning entirely.</summary>
     public bool    AgentOnly   { get; set; }

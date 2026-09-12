@@ -403,7 +403,10 @@ public sealed class AlarmService : ReactiveObject
         // the capsuleer reads reflects what was actually being watched for.
         var defaults = condition.DefaultText(alarm.Name, config, fresh);
 
-        await _actions.RunAsync(alarm, actions, evt, fresh, defaults, ct);
+        // And, for a condition that would rather be quoted than paraphrased, the exact words.
+        var announcement = condition.Announcement(config, fresh);
+
+        await _actions.RunAsync(alarm, actions, evt, fresh, defaults, announcement, ct);
         return true;
     }
 

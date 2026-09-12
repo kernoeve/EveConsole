@@ -38,6 +38,9 @@ public sealed class AlarmActionRunner
     /// <summary>Hands the agent something to tell the user about. Set by MainWindow.</summary>
     public Func<string, Task>? NotifyAgentCallback { get; set; }
 
+    /// <summary>Has the agent say a text exactly as given, at once, in its own voice — no model.</summary>
+    public Func<string, Task>? AnnounceCallback { get; set; }
+
     /// <summary>Raises a top-most dialog: (title, message). Set by MainWindow.</summary>
     public Action<string, string>? ShowDialogCallback { get; set; }
 
@@ -63,6 +66,7 @@ public sealed class AlarmActionRunner
         AlarmEvent                   evt,
         IReadOnlyList<AlarmMatch>    matches,
         (string Title, string Body)  defaults,
+        string?                      announcement = null,
         CancellationToken            ct = default)
     {
         var signal = new AlarmSignal { AlarmId = alarm.Id, Name = alarm.Name };
@@ -103,7 +107,15 @@ public sealed class AlarmActionRunner
                         break;
 
                     case AlarmActionKind.AgentNotify:
-                        signal.AgentText = ComposeAgentPrompt(alarm, evt, matches, cfg);
+                        // ⚠️ A condition that composed its own announcement is quoted, not
+                        // paraphrased, and spoken without a model round trip: for intel the
+                        // difference is several seconds, and the order of the facts is the point.
+                        // A standing instruction on the alarm still goes through the model, with
+                        // the announcement as the text it must say first.
+                        if (announcement is not null && string.IsNullOrWhiteSpace(Str(cfg, "instruction")))
+                            signal.SpeakText = announcement;
+                        else
+                            signal.AgentText = ComposeAgentPrompt(alarm, evt, matches, cfg, announcement);
                         break;
                 }
             }
@@ -115,7 +127,7 @@ public sealed class AlarmActionRunner
             }
         }
 
-        if (signal.AgentText is not null && !somethingElse)
+        if ((signal.AgentText is not null || signal.SpeakText is not null) && !somethingElse)
         {
             signal.AgentOnly     = true;
             signal.FallbackTitle = alarm.Name;
@@ -135,7 +147,7 @@ public sealed class AlarmActionRunner
             return;
         }
 
-        if (signal.SoundKey is null && signal.DialogTitle is null && signal.AgentText is null) return;
+        if (signal.SoundKey is null && signal.DialogTitle is null && signal.AgentText is null && signal.SpeakText is null) return;
 
         await _signals.PublishAsync(JsonSerializer.Serialize(signal), ct);
     }
@@ -178,6 +190,12 @@ public sealed class AlarmActionRunner
             });
         }
 
+        if (s.SpeakText is not null && CanSpeak() && AnnounceCallback is { } announce)
+        {
+            try { await announce(s.SpeakText); }
+            catch (Exception ex) { _errors.Log("AlarmActionRunner", $"announcement for alarm {s.AlarmId}", ex); }
+        }
+
         if (s.AgentText is not null && CanSpeak())
         {
             try { await NotifyAgentCallback!(s.AgentText); }
@@ -189,7 +207,7 @@ public sealed class AlarmActionRunner
     private bool CanSpeak() => NotifyAgentCallback is not null && AgentAvailable?.Invoke() != false;
 
     private string ComposeAgentPrompt(
-        Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg)
+        Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg, string? announcement = null)
     {
         var extra = Str(cfg, "instruction");
 
@@ -219,8 +237,12 @@ public sealed class AlarmActionRunner
              Summary: {evt.Summary}
              Matches ({evt.MatchCount}):
              {detail}
-             Tell the capsuleer what happened, in one or two sentences, in your own words, using
-             the detail above. Do not call any tools to confirm it — the alarm already did the
+             {(announcement is null
+                 ? "Tell the capsuleer what happened, in one or two sentences, in your own words, using\n" +
+                   "the detail above."
+                 : "Say exactly this, first and word for word, adding nothing before it: " + announcement + "\n" +
+                   "Every fact is in that sentence and in the order it matters; do not reorder it, pad it,\n" +
+                   "or say who reported it.")} Do not call any tools to confirm it — the alarm already did the
              checking, and everything you need is in this message. Do not ask a follow-up
              question; just report it.
              {(string.IsNullOrWhiteSpace(extra) ? "" : $"\nStanding instruction from the capsuleer for this alarm: {extra}")}

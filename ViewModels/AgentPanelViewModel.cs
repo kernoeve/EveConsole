@@ -275,6 +275,33 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// alarm action, so a fired alarm is phrased by the agent and spoken aloud when TTS is on.
     /// Waits briefly for an in-flight reply rather than dropping the notification.
     /// </summary>
+    /// <summary>
+    /// Says a text exactly as given and keeps it in the chat as the agent's own line — no model
+    /// round trip. What an alarm uses when its condition composed the words itself.
+    ///
+    /// <para>⚠️ Interrupts whatever is being said. An intel call is worth more than the tail of
+    /// an answer about last month's wallet, and the capsuleer may have seconds.</para>
+    /// </summary>
+    public async Task AnnounceAsync(string text)
+    {
+        if (!_isAgentEnabled || string.IsNullOrWhiteSpace(text)) return;
+
+        var line = new AgentMessage(MessageRole.Assistant, text) { ToolsUsed = "alarm" };
+        _history.Add(line);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            IsOpen = true;
+            Messages.Add(line);
+        });
+        SaveHistory();
+
+        if (_tts is not null && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None)
+        {
+            _tts.Stop();
+            _tts.SpeakAsync(text);
+        }
+    }
+
     public async Task NotifyAsync(string message)
     {
         if (!_isAgentEnabled || string.IsNullOrWhiteSpace(message)) return;
