@@ -247,9 +247,16 @@
                                    Foreground="{DynamicResource TextDimBrush}" />
                       </StackPanel>
 
-                      <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
-                                IsVisible="{Binding IsEnum}" HorizontalAlignment="Stretch"
-                                FontSize="11" />
+                      <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsEnum}">
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
+                                  HorizontalAlignment="Stretch" FontSize="11" />
+                        <!-- A choice that carries a number: "Lower than [5,000] units" -->
+                        <TextBox Grid.Column="1" Text="{Binding UnitsText}" Width="100" Margin="6 0 0 0"
+                                 IsVisible="{Binding HasUnits}" IsEnabled="{Binding UnitsEnabled}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Suffix}" FontSize="11" Margin="6 0 0 0"
+                                   IsVisible="{Binding HasUnits}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextDimBrush}" />
+                      </Grid>
 
                       <StackPanel IsVisible="{Binding IsDateTime}" Spacing="3">
                         <StackPanel Orientation="Horizontal" Spacing="8">

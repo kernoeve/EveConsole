@@ -71,7 +71,27 @@ public sealed class AlarmFieldVm : ReactiveObject
     }
 
     private string _text = "";
-    public string Text { get => _text; set => this.RaiseAndSetIfChanged(ref _text, value); }
+    public string Text
+    {
+        get => _text;
+        set { this.RaiseAndSetIfChanged(ref _text, value); this.RaisePropertyChanged(nameof(UnitsEnabled)); }
+    }
+
+    // ── A choice with a number ──
+    //
+    // "Jump fuel: [Lower than ▾] [5,000] units". The schema declares the number as its own
+    // integer property and names it on the choice with "units"; the editor shows the two as
+    // one row, and the number only means anything once a choice other than the first is made.
+
+    /// <summary>The integer property this choice's number is stored in, or null.</summary>
+    public string? UnitsName { get; init; }
+    public bool    HasUnits  => UnitsName is not null;
+
+    private string _unitsText = "";
+    public string UnitsText { get => _unitsText; set => this.RaiseAndSetIfChanged(ref _unitsText, value); }
+
+    /// <summary>The first choice is always the "don't care" one, and then the number is moot.</summary>
+    public bool UnitsEnabled => HasUnits && Options is { Count: > 0 } && Text != Options[0];
 
     private bool _flag;
     public bool Flag { get => _flag; set => this.RaiseAndSetIfChanged(ref _flag, value); }
@@ -797,12 +817,16 @@ public sealed class AlarmsViewModel : ReactiveObject
                 if (r.GetString() is { } s) required.Add(s);
 
         // A "zone" property is not a field of its own — it belongs to the date-time it qualifies,
-        // and is attached to that field below.
+        // and is attached to that field below. Likewise a property a choice names as its "units".
         var declaresZone = props.EnumerateObject().Any(p => p.Name == "zone");
+        var unitsOf = props.EnumerateObject()
+            .Select(p => p.Value.TryGetProperty("units", out var u) && u.ValueKind == JsonValueKind.String ? u.GetString() : null)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .ToHashSet(StringComparer.Ordinal);
 
         foreach (var prop in props.EnumerateObject())
         {
-            if (prop.Name == "zone") continue;
+            if (prop.Name == "zone" || unitsOf.Contains(prop.Name)) continue;
 
             var spec = prop.Value;
             var type = spec.TryGetProperty("type", out var t) ? t.GetString() ?? "string" : "string";
@@ -822,6 +846,9 @@ public sealed class AlarmsViewModel : ReactiveObject
             var dflt     = spec.TryGetProperty("default",  out var df)
                 ? df.ValueKind == JsonValueKind.String ? df.GetString() : df.GetRawText()
                 : null;
+            var unitsName = spec.TryGetProperty("units", out var un) && un.ValueKind == JsonValueKind.String ? un.GetString() : null;
+            var unitsDflt = unitsName is not null && props.TryGetProperty(unitsName, out var us)
+                         && us.TryGetProperty("default", out var ud) ? ud.GetRawText() : "";
 
             var kind = options is not null   ? "enum"
                      : type == "array"       ? "list"
@@ -842,11 +869,13 @@ public sealed class AlarmsViewModel : ReactiveObject
                 Options     = options,
                 Suffix      = suffix,
                 Default     = dflt,
+                UnitsName   = kind == "enum" ? unitsName : null,
             };
+            if (field.HasUnits) field.UnitsText = unitsDflt;
 
             // A new alarm starts on the schema's defaults; an existing one has ApplyConfig
             // overwrite them — and untick a threshold the saved config does not carry.
-            if (dflt is not null && kind is "integer" or "number" or "string" or "threshold")
+            if (dflt is not null && kind is "integer" or "number" or "string" or "threshold" or "enum")
             {
                 field.Text = dflt;
                 if (kind == "threshold") field.Flag = true;
@@ -1066,6 +1095,15 @@ public sealed class AlarmsViewModel : ReactiveObject
                     field.Flag = field.Text.Length > 0;
                     break;
 
+                case "enum":
+                    // Matched to an option regardless of case, so the box shows a selection.
+                    var stored = v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.GetRawText();
+                    field.Text = field.Options?.FirstOrDefault(o => string.Equals(o, stored, StringComparison.OrdinalIgnoreCase)) ?? stored;
+                    if (field.UnitsName is { } unitsName && config.TryGetProperty(unitsName, out var u))
+                        field.UnitsText = u.ValueKind == JsonValueKind.Number ? u.GetRawText()
+                                        : u.ValueKind == JsonValueKind.String ? u.GetString() ?? "" : "";
+                    break;
+
                 case "integer":
                 case "number":
                     field.Text = v.ValueKind == JsonValueKind.Number
@@ -1153,6 +1191,10 @@ public sealed class AlarmsViewModel : ReactiveObject
 
                 default:
                     if (!string.IsNullOrWhiteSpace(field.Text)) o[field.Name] = field.Text;
+                    // The number travels whatever the choice, so it is still there when the
+                    // choice comes back; the check ignores it under "Any".
+                    if (field.UnitsName is { } unitsName && long.TryParse(field.UnitsText?.Replace(",", ""), out var units))
+                        o[unitsName] = units;
                     break;
             }
         }

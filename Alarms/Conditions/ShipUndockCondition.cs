@@ -17,8 +17,11 @@ namespace EveConsole.Alarms.Conditions;
 /// which ESI refreshes hourly: the fit, fuel and ammunition checks describe the ship as it was
 /// last listed, and every match says when that was.</para>
 ///
-/// <para>Filters narrow (a place AND a hull); ticked checks are each a reason to fire (any one
-/// of them). With no check ticked, every undock that passes the filters fires.</para>
+/// <para>Everything narrows: a place AND a hull AND the fit state AND the fuel state AND the
+/// ammunition state, each left on "Any" to not care. Each of the three states can be asked for
+/// either way round — not fit or fit, fuel low or fuel not low — so two alarms can be made to
+/// cover different undocks rather than the same one twice: one for a dreadnought that leaves
+/// short of fuel, another for one that leaves with enough.</para>
 /// </summary>
 public sealed class ShipUndockCondition : IAlarmCondition
 {
@@ -45,16 +48,30 @@ public sealed class ShipUndockCondition : IAlarmCondition
     private const int CategoryModule = 7;
     private const int CategoryCharge = 8;
 
+    // The three states, each a choice. The strings are what the editor shows and what the
+    // config stores; the reader is lenient about case and a few synonyms.
+    private const string Any         = "Any";
+    private const string NotFit      = "Not fit";
+    private const string Fit         = "Fit";
+    private const string LowerThan   = "Lower than";
+    private const string NotLower    = "Not lower than";
+    private static readonly string[] FitChoices    = [Any, NotFit, Fit];
+    private static readonly string[] AmountChoices = [Any, LowerThan, NotLower];
+
+    private const int DefaultFuelUnits = 5000;
+    private const int DefaultAmmoUnits = 1000;
+
     public string TypeKey     => "ship_undock";
     public string DisplayName => "Ship undocks";
 
     public string Description =>
         "Fires when one of your characters undocks. Optionally only from named stations, " +
-        "structures, systems or regions, only in named hulls or ship classes, and only when " +
-        "the ship left with something missing — nothing fitted, jump fuel below a number, or " +
-        "ammunition below a number. The undock is seen by the location poll within about ten " +
-        "seconds; what was aboard is judged from the last asset snapshot, which ESI refreshes " +
-        "hourly, and each match says how old that was.";
+        "structures, systems or regions, only in named hulls or ship classes, and only in a " +
+        "given state — fit or not fit, jump fuel lower than a number or not, ammunition lower " +
+        "than a number or not. Every filter narrows, so two alarms can be set to cover " +
+        "different undocks rather than the same one twice. The undock is seen by the location " +
+        "poll within about ten seconds; what was aboard is judged from the last asset snapshot, " +
+        "which ESI refreshes hourly, and each match says how old that was.";
 
     public object ParameterSchema => new
     {
@@ -79,50 +96,110 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 description = "Optional. Hull names (\"Rifter\"), ship classes (\"Cruiser\", \"Titan\") " +
                               "or \"Pod\", any mix. Matches any of them; leave empty for any ship.",
             },
-            unfit = new
+            fit = new
             {
-                type        = "boolean",
-                title       = "Ship is not fit",
-                description = "Fires when nothing at all is fitted. A pod or shuttle has no slots and " +
-                              "is never counted as unfit.",
+                type        = "string",
+                @enum       = FitChoices,
+                @default    = Any,
+                title       = "Fit",
+                description = "\"Not fit\": nothing at all in any slot. \"Fit\": something is. A pod or " +
+                              "shuttle has no slots and matches neither.",
             },
-            fuel_below = new
+            fuel = new
+            {
+                type        = "string",
+                @enum       = AmountChoices,
+                @default    = Any,
+                units       = "fuel_units",
+                suffix      = "units",
+                title       = "Jump fuel",
+                description = "Jump-capable hulls only; any other hull matches neither. The units are " +
+                              "of the isotope the hull's jump drive burns, fuel bay and cargo hold " +
+                              "together.",
+            },
+            fuel_units = new
             {
                 type        = "integer",
-                optional    = true,
-                title       = "Jump fuel lower than",
-                suffix      = "units",
-                description = "Jump-capable hulls only: fires when the ship carries fewer than this " +
-                              "many units of the isotope its jump drive burns, counting the fuel bay " +
-                              "and the cargo hold.",
+                @default    = DefaultFuelUnits,
+                description = "The number \"Jump fuel\" compares against.",
             },
-            ammo_below = new
+            ammo = new
+            {
+                type        = "string",
+                @enum       = AmountChoices,
+                @default    = Any,
+                units       = "ammo_units",
+                suffix      = "units",
+                title       = "Ammunition",
+                description = "Per fitted turret or launcher: the rounds it can load that are aboard, " +
+                              "loaded plus cargo, all compatible types together. \"Lower than\": any " +
+                              "weapon short. \"Not lower than\": weapons fitted and none short. An " +
+                              "energy turret only needs one crystal. A ship without weapons matches " +
+                              "neither.",
+            },
+            ammo_units = new
             {
                 type        = "integer",
-                optional    = true,
-                title       = "Ammo lower than",
-                suffix      = "units",
-                description = "Fires when any fitted turret or launcher has fewer than this many " +
-                              "rounds it can load aboard — loaded plus cargo, all compatible types " +
-                              "together. An energy turret only needs one crystal.",
+                @default    = DefaultAmmoUnits,
+                description = "The number \"Ammunition\" compares against.",
             },
         },
     };
+
+    /// <summary>
+    /// Rewrites a config from the first shape of this check — <c>unfit</c>, <c>fuel_below</c>,
+    /// <c>ammo_below</c>, each a reason to fire — into the choices. Null when there is nothing
+    /// to do. Run once at startup over every alarm of this type, so an alarm made yesterday
+    /// keeps meaning what it meant.
+    /// </summary>
+    internal static string? UpgradeConfig(string? json)
+    {
+        JsonElement config;
+        try { config = JsonDocument.Parse(string.IsNullOrWhiteSpace(json) ? "{}" : json).RootElement.Clone(); }
+        catch { return null; }
+        if (config.ValueKind != JsonValueKind.Object) return null;
+
+        var hasOld = config.TryGetProperty("unfit", out _) || config.TryGetProperty("fuel_below", out _)
+                  || config.TryGetProperty("ammo_below", out _);
+        if (!hasOld) return null;
+
+        var o = new System.Text.Json.Nodes.JsonObject();
+        foreach (var p in config.EnumerateObject())
+            if (p.Name is not ("unfit" or "fuel_below" or "ammo_below"))
+                o[p.Name] = System.Text.Json.Nodes.JsonNode.Parse(p.Value.GetRawText());
+
+        if (ReadBool(config, "unfit"))                  o["fit"]  = NotFit;
+        if (ReadInt(config, "fuel_below") is { } fuel)  { o["fuel"] = LowerThan; o["fuel_units"] = Math.Max(1, fuel); }
+        if (ReadInt(config, "ammo_below") is { } ammo)  { o["ammo"] = LowerThan; o["ammo_units"] = Math.Max(1, ammo); }
+        return o.ToJsonString();
+    }
 
     public string Describe(JsonElement config)
     {
         var places = ReadList(config, "locations");
         var ships  = ReadList(config, "ships");
         var checks = new List<string>();
-        if (ReadBool(config, "unfit"))                     checks.Add("not fit");
-        if (ReadInt(config, "fuel_below") is { } fuel)     checks.Add($"jump fuel under {Math.Max(1, fuel):N0}");
-        if (ReadInt(config, "ammo_below") is { } ammo)     checks.Add($"ammo under {Math.Max(1, ammo):N0}");
+        switch (ReadChoice(config, "fit", FitChoices))
+        {
+            case NotFit: checks.Add("not fit"); break;
+            case Fit:    checks.Add("fit");     break;
+        }
+        switch (ReadChoice(config, "fuel", AmountChoices))
+        {
+            case LowerThan: checks.Add($"jump fuel under {Units(config, "fuel_units", DefaultFuelUnits):N0}");    break;
+            case NotLower:  checks.Add($"jump fuel at least {Units(config, "fuel_units", DefaultFuelUnits):N0}"); break;
+        }
+        switch (ReadChoice(config, "ammo", AmountChoices))
+        {
+            case LowerThan: checks.Add($"ammo under {Units(config, "ammo_units", DefaultAmmoUnits):N0}");    break;
+            case NotLower:  checks.Add($"ammo at least {Units(config, "ammo_units", DefaultAmmoUnits):N0}"); break;
+        }
 
         var sb = new StringBuilder("Undock");
         if (places.Count > 0) sb.Append(" from ").Append(Few(places));
         if (ships.Count  > 0) sb.Append(" in ").Append(Few(ships));
         if (places.Count == 0 && ships.Count == 0) sb.Append(" in any ship, anywhere");
-        if (checks.Count > 0) sb.Append(" — ").Append(string.Join(" or ", checks));
+        if (checks.Count > 0) sb.Append(" — ").Append(string.Join(", ", checks));
         return sb.ToString();
 
         static string Few(List<string> items) =>
@@ -184,10 +261,12 @@ public sealed class ShipUndockCondition : IAlarmCondition
 
         var wantPlaces = ReadList(config, "locations").Select(Norm).ToHashSet();
         var wantShips  = ReadList(config, "ships").Select(Norm).ToHashSet();
-        var wantUnfit  = ReadBool(config, "unfit");
-        var fuelBelow  = ReadInt(config, "fuel_below") is { } f ? Math.Max(1, f) : (int?)null;
-        var ammoBelow  = ReadInt(config, "ammo_below") is { } a ? Math.Max(1, a) : (int?)null;
-        var anyCheck   = wantUnfit || fuelBelow is not null || ammoBelow is not null;
+        var fitChoice  = ReadChoice(config, "fit",  FitChoices);
+        var fuelChoice = ReadChoice(config, "fuel", AmountChoices);
+        var ammoChoice = ReadChoice(config, "ammo", AmountChoices);
+        var fuelUnits  = Units(config, "fuel_units", DefaultFuelUnits);
+        var ammoUnits  = Units(config, "ammo_units", DefaultAmmoUnits);
+        var anyCheck   = fitChoice != Any || fuelChoice != Any || ammoChoice != Any;
 
         // Names for everything the rows point at, in a few set-based reads.
         var charIds = recent.Select(s => s.CharacterId).ToList();
@@ -246,7 +325,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 && !(isPod && wantShips.Contains("pod")))
                 continue;
 
-            // ── Checks: what the ship left without ──
+            // ── States: fit, fuel, ammunition — each a filter, each either way round ──
             var detail = new Dictionary<string, object?>
             {
                 ["character_id"] = s.CharacterId,
@@ -264,50 +343,47 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 ["undocked_at"]  = s.UndockedAt,
             };
 
-            var fired = !anyCheck;
-            if (anyCheck && s.ShipItemId is { } shipItemId)
+            if (anyCheck)
             {
-                var cargo = await ShipContentsAsync(db, s.CharacterId, shipItemId, ct);
+                // A ship not in the snapshot cannot be judged, and a state that cannot be judged
+                // is not the state asked for.
+                var cargo = s.ShipItemId is { } shipItemId ? await ShipContentsAsync(db, s.CharacterId, shipItemId, ct) : null;
                 detail["assets_as_of"] = cargo?.AsOf;
+                if (cargo is null) continue;
 
-                if (cargo is not null)
+                if (fitChoice != Any)
                 {
-                    if (wantUnfit)
-                    {
-                        var fittable = await HasSlotsAsync(db, hull.TypeId, ct);
-                        var unfit    = fittable && !cargo.Items.Any(i => IsSlot(i.Flag));
-                        detail["unfit"] = unfit;
-                        fired |= unfit;
-                    }
+                    var fittable = await HasSlotsAsync(db, hull.TypeId, ct);
+                    var fitted   = cargo.Items.Any(i => IsSlot(i.Flag));
+                    detail["unfit"] = fittable && !fitted;
+                    if (!fittable) continue;
+                    if (fitChoice == NotFit ? fitted : !fitted) continue;
+                }
 
-                    if (fuelBelow is { } minFuel)
-                    {
-                        if (await JumpFuelAsync(db, hull.TypeId, cargo.Items, ct) is { } fuel)
-                        {
-                            detail["fuel_type"]  = fuel.Name;
-                            detail["fuel_units"] = fuel.Units;
-                            detail["fuel_below"] = minFuel;
-                            fired |= fuel.Units < minFuel;
-                        }
-                    }
+                if (fuelChoice != Any)
+                {
+                    if (await JumpFuelAsync(db, hull.TypeId, cargo.Items, ct) is not { } fuel) continue;
+                    detail["fuel_type"]   = fuel.Name;
+                    detail["fuel_units"]  = fuel.Units;
+                    detail["fuel_wanted"] = fuelUnits;
+                    detail["fuel_short"]  = fuel.Units < fuelUnits;
+                    if (fuelChoice == LowerThan ? fuel.Units >= fuelUnits : fuel.Units < fuelUnits) continue;
+                }
 
-                    if (ammoBelow is { } minAmmo)
-                    {
-                        var shortWeapons = await ShortWeaponsAsync(db, cargo.Items, minAmmo, ct);
-                        if (shortWeapons.Count > 0)
+                if (ammoChoice != Any)
+                {
+                    var (weapons, shortWeapons) = await ShortWeaponsAsync(db, cargo.Items, ammoUnits, ct);
+                    if (weapons == 0) continue;
+                    detail["weapons"]     = weapons;
+                    detail["ammo_wanted"] = ammoUnits;
+                    if (shortWeapons.Count > 0)
+                        detail["ammo_short"] = shortWeapons.Select(w => new Dictionary<string, object?>
                         {
-                            detail["ammo_short"] = shortWeapons.Select(w => new Dictionary<string, object?>
-                            {
-                                ["weapon"] = w.Weapon, ["units"] = w.Units, ["needs"] = w.Needs,
-                            }).ToList();
-                            detail["ammo_below"] = minAmmo;
-                            fired = true;
-                        }
-                    }
+                            ["weapon"] = w.Weapon, ["units"] = w.Units, ["needs"] = w.Needs,
+                        }).ToList();
+                    if (ammoChoice == LowerThan ? shortWeapons.Count == 0 : shortWeapons.Count > 0) continue;
                 }
             }
-
-            if (!fired) continue;
 
             var when = s.UndockedAt!.Value.ToUniversalTime();
             matches.Add(new AlarmMatch(
@@ -394,11 +470,11 @@ public sealed class ShipUndockCondition : IAlarmCondition
     /// (turrets do; launchers tell sizes apart by group). An energy turret needs one crystal
     /// whatever the number, because crystals are not spent the way rounds are.
     /// </summary>
-    private static async Task<List<ShortWeapon>> ShortWeaponsAsync(
+    private static async Task<(int Weapons, List<ShortWeapon> Short)> ShortWeaponsAsync(
         AppDbContext db, List<ShipItem> items, int needs, CancellationToken ct)
     {
         var aboard = items.Select(i => i.TypeId).Distinct().ToList();
-        if (aboard.Count == 0) return [];
+        if (aboard.Count == 0) return (0, []);
 
         var kinds = await (from t in db.SdeTypes.AsNoTracking()
                            join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
@@ -413,7 +489,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
             .Select(k => k!)
             .DistinctBy(k => k.TypeId)
             .ToList();
-        if (weapons.Count == 0) return [];
+        if (weapons.Count == 0) return (0, []);
 
         var attrIds  = AttrChargeGroups.Append(AttrChargeSize).ToArray();
         var typeIds  = weapons.Select(w => w.TypeId).Concat(aboard).Distinct().ToList();
@@ -442,7 +518,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
             var need = w.Group == "Energy Weapon" ? 1 : needs;
             if (units < need) result.Add(new ShortWeapon(w.Name, units, need));
         }
-        return result.OrderBy(r => r.Units).ToList();
+        return (weapons.Count, result.OrderBy(r => r.Units).ToList());
     }
 
     private static bool IsWeaponGroup(string group) =>
@@ -472,11 +548,16 @@ public sealed class ShipUndockCondition : IAlarmCondition
         var list = new List<string>();
         if (d.TryGetValue("unfit", out var u) && u is true) list.Add("nothing fitted");
 
-        if (d.TryGetValue("fuel_units", out var fu) && fu is int units
-            && d.TryGetValue("fuel_below", out var fb) && fb is int below && units < below)
+        // The fuel is worth hearing whichever way the filter was asked: an alarm for "left with
+        // enough" is an alarm for the number.
+        if (d.TryGetValue("fuel_units", out var fu) && fu is int units)
         {
-            var fuel = Str(d, "fuel_type");
-            list.Add(units == 0 ? $"no {fuel}" : $"{units:N0} {fuel}, under {below:N0}");
+            var fuel  = Str(d, "fuel_type");
+            var short_ = d.TryGetValue("fuel_short", out var fs) && fs is true;
+            var wanted = d.TryGetValue("fuel_wanted", out var fw) && fw is int w ? w : 0;
+            list.Add(units == 0 ? $"no {fuel}"
+                   : short_    ? $"{units:N0} {fuel}, under {wanted:N0}"
+                   :             $"{units:N0} {fuel} aboard");
         }
 
         if (d.TryGetValue("ammo_short", out var a) && a is IEnumerable<Dictionary<string, object?>> weapons)
@@ -536,4 +617,33 @@ public sealed class ShipUndockCondition : IAlarmCondition
     private static bool ReadBool(JsonElement e, string name) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var p)
         && p.ValueKind == JsonValueKind.True;
+
+    /// <summary>
+    /// A choice as the editor stores it, matched leniently: case, spaces and a few synonyms an
+    /// agent might send ("unfit", "below", "under", "not below") all land on the choice meant.
+    /// Anything else is "Any".
+    /// </summary>
+    private static string ReadChoice(JsonElement config, string name, string[] choices)
+    {
+        var raw = ReadStr(config, name)?.Trim().ToLowerInvariant().Replace('_', ' ') ?? "";
+        if (raw.Length == 0) return Any;
+        foreach (var c in choices)
+            if (string.Equals(c, raw, StringComparison.OrdinalIgnoreCase)) return c;
+        return raw switch
+        {
+            "unfit" or "not fitted" or "empty" or "no"                       => choices == FitChoices ? NotFit : Any,
+            "fitted" or "yes"                                                => choices == FitChoices ? Fit : Any,
+            "below" or "under" or "less than" or "low" or "lower" or "short" => choices == AmountChoices ? LowerThan : Any,
+            "not below" or "not under" or "at least" or "not low" or "enough" or "not lower"
+                                                                             => choices == AmountChoices ? NotLower : Any,
+            _                                                                => Any,
+        };
+    }
+
+    private static int Units(JsonElement config, string name, int fallback)
+        => ReadInt(config, name) is { } n && n > 0 ? n : fallback;
+
+    private static string? ReadStr(JsonElement e, string name) =>
+        e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var p)
+        && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
 }

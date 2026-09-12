@@ -3144,6 +3144,18 @@ public class App : Application
             // once the columns are filled, which after the first start they are.
             if (!skipSchema)
             {
+                // Ship Undocks alarms saved on the check's first shape (unfit / fuel_below /
+                // ammo_below) are rewritten to its choices, once, so they go on meaning what they
+                // meant rather than quietly widening to "any undock".
+                try
+                {
+                    foreach (var alarm in db.Alarms.Where(a => a.ConditionType == "ship_undock").ToList())
+                        if (EveConsole.Alarms.Conditions.ShipUndockCondition.UpgradeConfig(alarm.ConditionJson) is { } upgraded)
+                            alarm.ConditionJson = upgraded;
+                    db.SaveChanges();
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading ship_undock alarms", ex); }
+
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
 
