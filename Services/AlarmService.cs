@@ -193,7 +193,7 @@ public sealed class AlarmService : ReactiveObject
                 Now              = DateTimeOffset.Now,
             }, ct);
 
-            if (matches.Count > 0) BankKeys(db, alarmId, matches, DateTimeOffset.Now);
+            if (matches.Count > 0) BankKeys(db, alarmId, matches, await SeenAsync(db, alarmId, ct), DateTimeOffset.Now);
             alarm.Primed = true;
             await db.SaveChangesAsync(ct);
         }
@@ -279,6 +279,7 @@ public sealed class AlarmService : ReactiveObject
             {
                 _errors.Log("AlarmService", $"alarm {alarm.Id} ({alarm.Name})", ex);
                 alarm.LastError = ex.Message;
+                DropPending(db, alarm.Id);
             }
 
             alarm.LastCheckedAt = now;
@@ -339,7 +340,7 @@ public sealed class AlarmService : ReactiveObject
         // alarm would never fire at all.
         if (!alarm.Primed)
         {
-            if (matches.Count > 0) BankKeys(db, alarm.Id, matches, now);
+            if (matches.Count > 0) BankKeys(db, alarm.Id, matches, await SeenAsync(db, alarm.Id, ct), now);
             alarm.Primed = true;
             return false;
         }
@@ -352,11 +353,7 @@ public sealed class AlarmService : ReactiveObject
 
         if (matches.Count == 0) return false;
 
-        var seen = await db.AlarmSeenKeys.AsNoTracking()
-            .Where(k => k.AlarmId == alarm.Id)
-            .Select(k => k.MatchKey)
-            .ToListAsync(ct);
-        var seenSet = seen.ToHashSet(StringComparer.Ordinal);
+        var seenSet = await SeenAsync(db, alarm.Id, ct);
 
         var fresh = matches.Where(m => !seenSet.Contains(m.Key)).ToList();
         if (fresh.Count == 0) return false;
@@ -384,7 +381,7 @@ public sealed class AlarmService : ReactiveObject
         };
         db.AlarmEvents.Add(evt);
 
-        BankKeys(db, alarm.Id, fresh, now);
+        BankKeys(db, alarm.Id, fresh, seenSet, now);
 
         alarm.LastFiredAt = now;
         alarm.FireCount  += 1;
@@ -443,22 +440,67 @@ public sealed class AlarmService : ReactiveObject
 #pragma warning restore EF1002
     }
 
-    private static void BankKeys(AppDbContext db, long alarmId, IEnumerable<AlarmMatch> matches, DateTimeOffset now)
+    private static async Task<HashSet<string>> SeenAsync(AppDbContext db, long alarmId, CancellationToken ct)
     {
-        foreach (var m in matches)
-            db.AlarmSeenKeys.Add(new AlarmSeenKey
-            {
-                AlarmId     = alarmId,
-                MatchKey    = m.Key,
-                FirstSeenAt = now,
-            });
+        var seen = await db.AlarmSeenKeys.AsNoTracking()
+            .Where(k => k.AlarmId == alarmId)
+            .Select(k => k.MatchKey)
+            .ToListAsync(ct);
+        return seen.ToHashSet(StringComparer.Ordinal);
     }
 
-    private static string BuildSummary(IReadOnlyList<AlarmMatch> fresh) =>
-        fresh.Count == 1
-            ? fresh[0].Summary
-            : $"{fresh.Count} new: " + string.Join("; ", fresh.Take(3).Select(m => m.Summary))
-              + (fresh.Count > 3 ? $"; +{fresh.Count - 3} more" : "");
+    /// <summary>
+    /// Adds each key in <paramref name="matches"/> to the ledger once, skipping those already in
+    /// <paramref name="banked"/> — which is grown as it goes, so the caller's set stays true.
+    /// </summary>
+    private static void BankKeys(
+        AppDbContext db, long alarmId, IEnumerable<AlarmMatch> matches, HashSet<string> banked, DateTimeOffset now)
+    {
+        // ⚠️ One row per KEY, not per match. A condition may key several matches alike on
+        // purpose — intel keys the same pilots in the same system inside five minutes as one
+        // sighting however many people called it — and the ledger's primary key takes each once;
+        // EF's identity map refused the second Add before the database ever saw it, which
+        // left the alarm unprimed with half its keys landed, and the next tick tripping over
+        // those. The set is what is already on the ledger, so a priming pass after a partial
+        // bank is safe too.
+        foreach (var m in matches)
+            if (banked.Add(m.Key))
+                db.AlarmSeenKeys.Add(new AlarmSeenKey
+                {
+                    AlarmId     = alarmId,
+                    MatchKey    = m.Key,
+                    FirstSeenAt = now,
+                });
+    }
+
+    /// <summary>
+    /// Detaches whatever a failed evaluation had queued for this alarm — ledger rows, its event —
+    /// so it neither lands half done nor takes the tick's own save, and every other alarm's
+    /// bookkeeping with it, down. Anything already saved by the evaluation is not pending.
+    /// </summary>
+    private static void DropPending(AppDbContext db, long alarmId)
+    {
+        foreach (var e in db.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToList())
+        {
+            var mine = e.Entity switch
+            {
+                AlarmSeenKey k  => k.AlarmId  == alarmId,
+                AlarmEvent   ev => ev.AlarmId == alarmId,
+                _               => false,
+            };
+            if (mine) e.State = EntityState.Detached;
+        }
+    }
+
+    // Matches that share a key are one thing said several times; the record says it once.
+    private static string BuildSummary(IReadOnlyList<AlarmMatch> fresh)
+    {
+        var lines = fresh.Select(m => m.Summary).Distinct(StringComparer.Ordinal).ToList();
+        return lines.Count == 1
+            ? lines[0]
+            : $"{lines.Count} new: " + string.Join("; ", lines.Take(3))
+              + (lines.Count > 3 ? $"; +{lines.Count - 3} more" : "");
+    }
 
     /// <summary>
     /// Keeps the ledger from growing without bound on high-volume checks. Retention is far
