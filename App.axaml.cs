@@ -2438,7 +2438,10 @@ public class App : Application
                         "ShipName"          TEXT,
                         "OnlineCheckedAt"   TEXT,
                         "LocationCheckedAt" TEXT,
-                        "ShipCheckedAt"     TEXT
+                        "ShipCheckedAt"     TEXT,
+                        "UndockedAt"        TEXT,
+                        "UndockedFromId"    INTEGER,
+                        "UndockedSystemId"  INTEGER
                     )
                     """);
 
@@ -2991,6 +2994,13 @@ public class App : Application
                     // rather than defaulted so that null keeps meaning "unknown".
                     """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
                     """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
+
+                    // ── Character status: the last undock ───────────────────────────────
+                    // Stamped by the location poll on a docked→space transition; what the
+                    // Ship Undocks alarm keys on. Null until a character next undocks.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedAt" TEXT NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedFromId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedSystemId" INTEGER NULL""",
 
                     // ── SDE columns ─────────────────────────────────────────────────────
                     // Deliberately NOT here any more. Twenty of them were mirrored into this

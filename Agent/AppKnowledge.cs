@@ -270,6 +270,10 @@ public static class AppKnowledge
         Pick the condition that fits:
         - "timer" for a time or a reminder.
         - "intel" for a pilot being reported in named systems, or within N jumps of one.
+        - "ship_undock" for one of the capsuleer's own characters undocking — anywhere or from
+          named places, in any ship or named hulls and classes, and optionally only when the
+          ship left unfit, short of jump fuel, or short of ammunition.
+        - "market_contract" for an item listed at or below a price.
         - "sql" for anything else — it runs a SELECT on an interval.
 
         For the action, "agent_notify" is what the capsuleer means by "tell me": when the alarm

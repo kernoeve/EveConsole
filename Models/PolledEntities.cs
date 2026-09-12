@@ -1234,6 +1234,17 @@ public class CharacterStatus
     public DateTimeOffset? LocationCheckedAt { get; set; }
     public DateTimeOffset? ShipCheckedAt     { get; set; }
 
+    // The last undock the location poll saw: a docked→space transition, stamped when it was
+    // observed, with where it was from. Current state alone cannot say "they just undocked" —
+    // in space is in space whether it began a second or a day ago — and this is what the
+    // Ship Undocks alarm keys on. One per character: a dock and undock inside one poll
+    // interval is one undock as far as anything reading this can tell.
+    public DateTimeOffset? UndockedAt       { get; set; }
+    /// <summary>The station or structure left. Stations are small ids, structures are 64-bit.</summary>
+    public long?           UndockedFromId   { get; set; }
+    /// <summary>Its system — taken from the docked location itself, so it needs no structure lookup.</summary>
+    public int?            UndockedSystemId { get; set; }
+
     /// <summary>True when the character is docked (station or structure).</summary>
     public bool IsDocked => StationId is not null || StructureId is not null;
 }

@@ -53,10 +53,19 @@ public sealed class AlarmFieldVm : ReactiveObject
 {
     public required string  Name        { get; init; }
     public required string  Label       { get; init; }
-    public required string  Kind        { get; init; }  // string | integer | boolean | datetime | enum
+    public required string  Kind        { get; init; }  // string | integer | boolean | datetime | enum | item | list | threshold
     public          string? Description { get; init; }
     public          bool    Required    { get; init; }
     public IReadOnlyList<string>? Options { get; init; }
+
+    /// <summary>The word after a threshold's number — "units", "ISK".</summary>
+    public string? Suffix { get; init; }
+
+    public AlarmFieldVm()
+    {
+        AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
+        RemoveCommand = ReactiveCommand.Create<string>(item => Items.Remove(item));
+    }
 
     private string _text = "";
     public string Text { get => _text; set => this.RaiseAndSetIfChanged(ref _text, value); }
@@ -130,7 +139,60 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>An item name, offered as a type-ahead over the SDE rather than typed blind.</summary>
     public bool IsItem => Kind == "item";
 
-    /// <summary>Supplies type-ahead suggestions. Set by the parent for item fields.</summary>
+    /// <summary>
+    /// Several names, each picked from a type-ahead and shown as a removable chip. What a schema
+    /// array of strings becomes; <see cref="Text"/> is the entry box.
+    /// </summary>
+    public bool IsList => Kind == "list";
+
+    /// <summary>
+    /// A number that is only in force when its box is ticked: "fuel lower than [5,000]". One
+    /// integer property in the config — present when armed, absent when not — because the
+    /// checkbox is a way of saying "no threshold", not a second fact to store.
+    /// </summary>
+    public bool IsThreshold => Kind == "threshold";
+
+    public ObservableCollection<string> Items { get; } = [];
+
+    public ReactiveCommand<Unit, Unit>   AddCommand    { get; }
+    public ReactiveCommand<string, Unit> RemoveCommand { get; }
+
+    /// <summary>Says whether a typed name is real. Set by the parent for list fields; a name it refuses is not added.</summary>
+    public Func<string, CancellationToken, Task<bool>>? Validator { get; set; }
+
+    private string _error = "";
+    public string Error
+    {
+        get => _error;
+        set { this.RaiseAndSetIfChanged(ref _error, value); this.RaisePropertyChanged(nameof(HasError)); }
+    }
+    public bool HasError => Error.Length > 0;
+
+    private async Task AddAsync()
+    {
+        var typed = Text.Trim();
+        if (typed.Length == 0) return;
+
+        if (Items.Any(i => string.Equals(i, typed, StringComparison.OrdinalIgnoreCase)))
+        {
+            Text = "";
+            return;
+        }
+
+        // A name that resolves to nothing would make a filter that matches nothing, and say so
+        // nowhere. Refuse it here, while it is still in front of the user.
+        if (Validator is not null && !await Validator(typed, CancellationToken.None))
+        {
+            Error = $"\"{typed}\" is not a name the app knows — pick one from the list.";
+            return;
+        }
+
+        Error = "";
+        Items.Add(typed);
+        Text = "";
+    }
+
+    /// <summary>Supplies type-ahead suggestions. Set by the parent for item and list fields.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>>? Populator { get; set; }
 
     /// <summary>A SQL field needs room to breathe; everything else is a single line.</summary>
@@ -669,22 +731,30 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             var format = spec.TryGetProperty("format", out var f) ? f.GetString() : null;
 
+            // "title" is JSON Schema's own word for a display name; "optional" and "suffix"
+            // are this editor's: an integer marked optional is a threshold behind a checkbox.
+            var title    = spec.TryGetProperty("title",    out var ti) ? ti.GetString() : null;
+            var suffix   = spec.TryGetProperty("suffix",   out var su) ? su.GetString() : null;
+            var optional = spec.TryGetProperty("optional", out var op) && op.ValueKind == JsonValueKind.True;
+
             var kind = options is not null   ? "enum"
+                     : type == "array"       ? "list"
                      : format == "date-time" ? "datetime"
                      : format == "item-name" ? "item"
                      : type == "boolean"     ? "boolean"
-                     : type == "integer"     ? "integer"
+                     : type == "integer"     ? (optional ? "threshold" : "integer")
                      : type == "number"      ? "number"
                                              : "string";
 
             var field = new AlarmFieldVm
             {
                 Name        = prop.Name,
-                Label       = Humanise(prop.Name),
+                Label       = string.IsNullOrWhiteSpace(title) ? Humanise(prop.Name) : title,
                 Kind        = kind,
                 Description = desc,
                 Required    = required.Contains(prop.Name),
                 Options     = options,
+                Suffix      = suffix,
             };
 
             // A date-time field with nothing in it is more useful pointing at the near future
@@ -700,6 +770,20 @@ public sealed class AlarmsViewModel : ReactiveObject
             }
 
             if (kind == "item") field.Populator = SearchItemNamesAsync;
+
+            // A list's type-ahead and its gatekeeper come from the format: the same source
+            // that suggests a name says whether a typed one is real.
+            if (kind == "list")
+            {
+                (field.Populator, field.Validator) = format switch
+                {
+                    "place-name" => (SearchPlaceNamesAsync, IsKnownPlaceAsync),
+                    "ship-name"  => (SearchShipNamesAsync,  IsKnownShipAsync),
+                    "item-name"  => (SearchItemNamesAsync,  IsKnownItemAsync),
+                    _            => ((Func<string?, CancellationToken, Task<IEnumerable<object>>>?)null,
+                                     (Func<string, CancellationToken, Task<bool>>?)null),
+                };
+            }
 
             Fields.Add(field);
         }
@@ -726,16 +810,111 @@ public sealed class AlarmsViewModel : ReactiveObject
                 .Take(200)
                 .ToListAsync(ct);
 
-            return hits
-                .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
-                            : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
-                .ThenBy(n => n.Length)
-                .ThenBy(n => n)
-                .Take(50)
-                .Cast<object>()
-                .ToList();
+            return Rank(hits, term);
         }, ct);
     }
+
+    /// <summary>Exact match, then names starting with the term, then the rest; short before long.</summary>
+    private static List<object> Rank(IEnumerable<string> names, string term) =>
+        names
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
+                        : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
+            .ThenBy(n => n.Length)
+            .ThenBy(n => n)
+            .Take(50)
+            .Cast<object>()
+            .ToList();
+
+    private Task<bool> IsKnownItemAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var u = name.ToUpper();
+        return await db.SdeTypes.AsNoTracking().AnyAsync(t => t.Name.ToUpper() == u, ct);
+    }, ct);
+
+    /// <summary>
+    /// Places an undock can be from: regions and systems from the SDE, NPC stations from the
+    /// SDE, player structures from every table that names one. Lower-cased on both sides
+    /// because a server's LIKE is case-sensitive and SQLite's is not.
+    /// </summary>
+    private async Task<IEnumerable<object>> SearchPlaceNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+        var lower = term.ToLower();
+
+        return await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var hits = new List<string>();
+            hits.AddRange(await db.SdeRegions.AsNoTracking()
+                .Where(r => r.Name.ToLower().Contains(lower)).Select(r => r.Name).Take(20).ToListAsync(ct));
+            hits.AddRange(await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.Structures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.EsiStructureNames.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.EsiCorpStructures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.SdeStations.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            return Rank(hits, term);
+        }, ct);
+    }
+
+    private Task<bool> IsKnownPlaceAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var u = name.ToUpper();
+        return await db.SdeRegions.AsNoTracking().AnyAsync(r => r.Name.ToUpper() == u, ct)
+            || await db.SdeSolarSystems.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.SdeStations.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.Structures.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.EsiStructureNames.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.EsiCorpStructures.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct);
+    }, ct);
+
+    /// <summary>
+    /// Hulls and ship classes: every published type in the Ship category and every group in it
+    /// ("Cruiser", "Titan"), plus "Pod", which is what everyone calls the Capsule group.
+    /// </summary>
+    private async Task<IEnumerable<object>> SearchShipNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+        var lower = term.ToLower();
+
+        return await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var hits = new List<string>();
+            if ("pod".StartsWith(lower)) hits.Add("Pod");
+            hits.AddRange(await db.SdeGroups.AsNoTracking()
+                .Where(g => g.CategoryId == ShipCategoryId && g.Published && g.Name.ToLower().Contains(lower))
+                .Select(g => g.Name).Take(30).ToListAsync(ct));
+            hits.AddRange(await (from t in db.SdeTypes.AsNoTracking()
+                                 join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                                 where g.CategoryId == ShipCategoryId && t.Published && t.Name.ToLower().Contains(lower)
+                                 select t.Name).Take(100).ToListAsync(ct));
+            return Rank(hits, term);
+        }, ct);
+    }
+
+    private const int ShipCategoryId = 6;
+
+    private Task<bool> IsKnownShipAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        if (string.Equals(name, "pod", StringComparison.OrdinalIgnoreCase)) return true;
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var u = name.ToUpper();
+        return await db.SdeGroups.AsNoTracking().AnyAsync(g => g.CategoryId == ShipCategoryId && g.Name.ToUpper() == u, ct)
+            || await (from t in db.SdeTypes.AsNoTracking()
+                      join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                      where g.CategoryId == ShipCategoryId && t.Name.ToUpper() == u
+                      select t.TypeId).AnyAsync(ct);
+    }, ct);
 
     /// <summary>Shows what the default alert wording would look like for the chosen check.</summary>
     private void UpdateDefaultTextPreview()
@@ -770,6 +949,23 @@ public sealed class AlarmsViewModel : ReactiveObject
             {
                 case "boolean":
                     field.Flag = v.ValueKind == JsonValueKind.True;
+                    break;
+
+                case "list":
+                    field.Items.Clear();
+                    // The editor writes an array; a hand-written config may have a comma list.
+                    var entries = v.ValueKind == JsonValueKind.Array
+                        ? v.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString() ?? "")
+                        : v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "").Split(',') : [];
+                    foreach (var entry in entries.Select(e => e.Trim()).Where(e => e.Length > 0))
+                        field.Items.Add(entry);
+                    break;
+
+                case "threshold":
+                    field.Text = v.ValueKind == JsonValueKind.Number
+                        ? v.GetRawText()
+                        : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
+                    field.Flag = field.Text.Length > 0;
                     break;
 
                 case "integer":
@@ -814,6 +1010,16 @@ public sealed class AlarmsViewModel : ReactiveObject
             {
                 case "boolean":
                     o[field.Name] = field.Flag;
+                    break;
+
+                case "list":
+                    if (field.Items.Count > 0)
+                        o[field.Name] = new JsonArray(field.Items.Select(i => (JsonNode?)i).ToArray());
+                    break;
+
+                // Present only when armed: an unticked threshold is no threshold.
+                case "threshold":
+                    if (field.Flag && long.TryParse(field.Text?.Replace(",", ""), out var th)) o[field.Name] = th;
                     break;
 
                 // long, not int: an ISK price runs well past 2.1 billion, and int.TryParse

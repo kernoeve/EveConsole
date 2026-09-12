@@ -23,6 +23,7 @@ public sealed class AlarmConditionRegistry
     [
         new TimerCondition(),
         new IntelCondition(graph),
+        new ShipUndockCondition(),
         new MarketContractCondition(),
         new SqlCondition(),
     ]);

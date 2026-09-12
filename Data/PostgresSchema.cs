@@ -412,6 +412,18 @@ public static class PostgresSchema
         ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "RegionId" INTEGER NULL
         """,
 
+        // The last undock the location poll saw, for the Ship Undocks alarm. Null until a
+        // character next undocks; an older build never writes them and never needs to.
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedAt" TIMESTAMPTZ NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedFromId" BIGINT NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedSystemId" INTEGER NULL
+        """,
+
         // ── Agent telemetry ──────────────────────────────────────────────────
         //
         // ⚠️ BIGSERIAL, not AUTOINCREMENT: PostgreSQL rejects the SQLite spelling at parse time

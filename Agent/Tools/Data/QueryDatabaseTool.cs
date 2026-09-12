@@ -94,8 +94,10 @@ public sealed class QueryDatabaseTool : IAgentTool
         CharacterStatuses: CharacterId(PK), Online(0/1), LastLogin, LastLogout, LoginCount,
             SolarSystemId, StationId, StructureId, ShipTypeId, ShipItemId,
             ShipName(the player's name for the ship, NOT the hull),
-            OnlineCheckedAt, LocationCheckedAt, ShipCheckedAt
-            - Current state only, one row per character — there is no history here.
+            OnlineCheckedAt, LocationCheckedAt, ShipCheckedAt,
+            UndockedAt, UndockedFromId(station or structure id), UndockedSystemId
+            - Current state only, one row per character — there is no history here. The
+              Undocked* columns are the LAST undock the location poll saw, nothing earlier.
             - Hull name: JOIN SdeTypes ON SdeTypes.TypeId = CharacterStatuses.ShipTypeId
             - In space (undocked) = StationId IS NULL AND StructureId IS NULL.
             - ShipItemId changes when the character boards a different ship.

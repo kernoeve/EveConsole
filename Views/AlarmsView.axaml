@@ -192,6 +192,61 @@
                       <CheckBox IsChecked="{Binding Flag}" IsVisible="{Binding IsBoolean}"
                                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
 
+                      <!-- A list: type-ahead entry, Add, then each entry as a chip with its × -->
+                      <StackPanel IsVisible="{Binding IsList}" Spacing="4">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <AutoCompleteBox Grid.Column="0"
+                                           Text="{Binding Text}"
+                                           AsyncPopulator="{Binding Populator}"
+                                           FilterMode="None"
+                                           MinimumPrefixLength="2"
+                                           MinimumPopulateDelay="0:0:0.2"
+                                           MaxDropDownHeight="260"
+                                           FontSize="11"
+                                           Watermark="start typing a name, then Add…">
+                            <AutoCompleteBox.KeyBindings>
+                              <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+                            </AutoCompleteBox.KeyBindings>
+                          </AutoCompleteBox>
+                          <Button Grid.Column="1" Classes="tool" Content="Add" Margin="6 0 0 0"
+                                  Command="{Binding AddCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}"
+                                   FontSize="9.5" Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding Items}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                              <Border Margin="0 2 4 2" Padding="7 2 4 2" CornerRadius="3"
+                                      Background="{DynamicResource SurfaceRaisedBrush}"
+                                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                  <TextBlock Text="{Binding}" FontSize="11" VerticalAlignment="Center" />
+                                  <Button Content="×" FontSize="12" Padding="3 0" MinHeight="0"
+                                          Background="Transparent" BorderThickness="0"
+                                          Foreground="{DynamicResource TextDimBrush}"
+                                          Command="{Binding $parent[ItemsControl].((vm:AlarmFieldVm)DataContext).RemoveCommand}"
+                                          CommandParameter="{Binding}" />
+                                </StackPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
+                      <!-- A threshold: the box arms the number -->
+                      <StackPanel IsVisible="{Binding IsThreshold}" Orientation="Horizontal" Spacing="6">
+                        <CheckBox IsChecked="{Binding Flag}" FontSize="11"
+                                  Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding Text}" Width="100" IsEnabled="{Binding Flag}" />
+                        <TextBlock Text="{Binding Suffix}" FontSize="11" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextDimBrush}" />
+                      </StackPanel>
+
                       <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
                                 IsVisible="{Binding IsEnum}" HorizontalAlignment="Stretch"
                                 FontSize="11" />

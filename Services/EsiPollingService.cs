@@ -1591,6 +1591,17 @@ public class EsiPollingService : ReactiveObject
 
         if (changed || StampDue(status.LocationCheckedAt))
         {
+            // Docked last time, in space now: an undock, recorded before the docked location is
+            // overwritten, because what it left is the fact worth keeping. The row persists, so
+            // this holds across a restart too; a character never polled has null ids and is not
+            // "docked", so a first poll cannot manufacture one.
+            if (status.IsDocked && r.Data.StationId is null && r.Data.StructureId is null)
+            {
+                status.UndockedAt       = DateTimeOffset.UtcNow;
+                status.UndockedFromId   = status.StructureId ?? status.StationId;
+                status.UndockedSystemId = status.SolarSystemId;
+            }
+
             status.SolarSystemId     = r.Data.SolarSystemId;
             status.StationId         = r.Data.StationId;
             status.StructureId       = r.Data.StructureId;
