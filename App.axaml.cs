@@ -2573,12 +2573,14 @@ public class App : Application
                         "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
                         "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
                         "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1,
-                        "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1
+                        "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
+                        "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -2587,8 +2589,8 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1)
+                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""

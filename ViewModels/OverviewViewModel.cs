@@ -1633,6 +1633,35 @@ public class OverviewViewModel : ReactiveObject
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnriggedJobAlert", ex); }
         }
 
+        // Jobs finished and waiting to be delivered — the output is sitting there and the slot
+        // is held until someone collects. ESI marks a finished job "ready" only sometimes; more
+        // often it stays "active" past its end date, so both are counted. The date test is done
+        // here: a DateTimeOffset in a LINQ Where does not translate on SQLite.
+        if (_alertSettings.IndustryJobsReady)
+        {
+            try
+            {
+                var utcNow = DateTimeOffset.UtcNow;
+                var ready  = (await Off(() => _db.EsiIndustryJobs.AsNoTracking()
+                        .Where(j => j.Status == "ready" || j.Status == "active")
+                        .Select(j => new { j.Status, j.EndDate })
+                        .ToListAsync()))
+                    .Count(j => j.Status == "ready" || j.EndDate <= utcNow);
+
+                if (ready > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = ready == 1
+                            ? "You have 1 industry job ready to deliver."
+                            : $"You have {ready} industry jobs ready to deliver.",
+                        NavigateCommand = NavigateToIndustryJobs is not null
+                            ? ReactiveCommand.Create(NavigateToIndustryJobs)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "IndustryJobsReadyAlert", ex); }
+        }
+
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
         // checks above there is nothing to enable, because the user asked for each of these
         // explicitly when they built the alarm.

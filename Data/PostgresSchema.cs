@@ -423,6 +423,12 @@ public static class PostgresSchema
         ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "RegionId" INTEGER NULL
         """,
 
+        // An alert that arrived after databases existed. NOT NULL with a default, so an older
+        // build's seed, which does not name it, still inserts.
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "IndustryJobsReady" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+
         // The hours an alarm is on; null means always. Older builds neither read nor write them.
         """
         ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveFrom" TEXT NULL
@@ -647,8 +653,8 @@ public static class PostgresSchema
         """
         INSERT INTO "AlertSettings"
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs")
-        VALUES (1, true, true, true, 30, true, true, true, true)
+             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
+        VALUES (1, true, true, true, 30, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

@@ -11,4 +11,7 @@ public class AlertSettings
     public bool InactiveStandingProjects   { get; set; } = true;
     public bool StandingBuyOrdersAttention { get; set; } = true;
     public bool UnriggedIndustryJobs       { get; set; } = true;
+
+    /// <summary>"You have N industry jobs ready to deliver" — finished, output waiting, slot held.</summary>
+    public bool IndustryJobsReady          { get; set; } = true;
 }

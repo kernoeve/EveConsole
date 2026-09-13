@@ -2580,6 +2580,13 @@
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                        Text="Only facilities linked to an Indy Parks structure can be judged: ESI cannot report what rigs a structure has fitted, so the rigs are whatever you described in Indy Parks. Link a structure to a real facility there to include it. Unlinked facilities are ignored rather than reported as unrigged." />
+
+            <CheckBox Content="Alert when industry jobs are ready to deliver"
+                      IsChecked="{Binding AlertsVm.IndustryJobsReady}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 6 0 0" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="Counts jobs past their end date, or marked ready, that nobody has delivered yet — the output is waiting and the slot is held until someone collects it. Covers every character and corporation the app polls jobs for; jobs are polled every 15 minutes by default (Timers), so a job that just finished may take that long to show." />
           </StackPanel>
         </Border>
 
