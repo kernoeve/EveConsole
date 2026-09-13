@@ -53,13 +53,54 @@ public sealed class AlarmFieldVm : ReactiveObject
 {
     public required string  Name        { get; init; }
     public required string  Label       { get; init; }
-    public required string  Kind        { get; init; }  // string | integer | boolean | datetime | enum
+    public required string  Kind        { get; init; }  // string | integer | boolean | datetime | enum | item | list | threshold
     public          string? Description { get; init; }
     public          bool    Required    { get; init; }
     public IReadOnlyList<string>? Options { get; init; }
 
+    /// <summary>The word after a threshold's number — "units", "ISK".</summary>
+    public string? Suffix { get; init; }
+
+    /// <summary>What a new alarm starts with, from the schema's "default"; null for none.</summary>
+    public string? Default { get; init; }
+
+    /// <summary>
+    /// The stage this field belongs to, by the schema's naming (<c>stage2_seconds</c>), or null.
+    /// A stage's field is shown with the stage's actions rather than among the check's fields.
+    /// </summary>
+    public int? StageNumber =>
+        System.Text.RegularExpressions.Regex.Match(Name, @"^stage(\d+)_seconds$") is { Success: true } m
+            ? int.Parse(m.Groups[1].Value) : null;
+    public bool IsStage => StageNumber is not null;
+
+    public AlarmFieldVm()
+    {
+        AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
+        RemoveCommand = ReactiveCommand.Create<string>(item => Items.Remove(item));
+    }
+
     private string _text = "";
-    public string Text { get => _text; set => this.RaiseAndSetIfChanged(ref _text, value); }
+    public string Text
+    {
+        get => _text;
+        set { this.RaiseAndSetIfChanged(ref _text, value); this.RaisePropertyChanged(nameof(UnitsEnabled)); }
+    }
+
+    // ── A choice with a number ──
+    //
+    // "Jump fuel: [Lower than ▾] [5,000] units". The schema declares the number as its own
+    // integer property and names it on the choice with "units"; the editor shows the two as
+    // one row, and the number only means anything once a choice other than the first is made.
+
+    /// <summary>The integer property this choice's number is stored in, or null.</summary>
+    public string? UnitsName { get; init; }
+    public bool    HasUnits  => UnitsName is not null;
+
+    private string _unitsText = "";
+    public string UnitsText { get => _unitsText; set => this.RaiseAndSetIfChanged(ref _unitsText, value); }
+
+    /// <summary>The first choice is always the "don't care" one, and then the number is moot.</summary>
+    public bool UnitsEnabled => HasUnits && Options is { Count: > 0 } && Text != Options[0];
 
     private bool _flag;
     public bool Flag { get => _flag; set => this.RaiseAndSetIfChanged(ref _flag, value); }
@@ -130,7 +171,60 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>An item name, offered as a type-ahead over the SDE rather than typed blind.</summary>
     public bool IsItem => Kind == "item";
 
-    /// <summary>Supplies type-ahead suggestions. Set by the parent for item fields.</summary>
+    /// <summary>
+    /// Several names, each picked from a type-ahead and shown as a removable chip. What a schema
+    /// array of strings becomes; <see cref="Text"/> is the entry box.
+    /// </summary>
+    public bool IsList => Kind == "list";
+
+    /// <summary>
+    /// A number that is only in force when its box is ticked: "fuel lower than [5,000]". One
+    /// integer property in the config — present when armed, absent when not — because the
+    /// checkbox is a way of saying "no threshold", not a second fact to store.
+    /// </summary>
+    public bool IsThreshold => Kind == "threshold";
+
+    public ObservableCollection<string> Items { get; } = [];
+
+    public ReactiveCommand<Unit, Unit>   AddCommand    { get; }
+    public ReactiveCommand<string, Unit> RemoveCommand { get; }
+
+    /// <summary>Says whether a typed name is real. Set by the parent for list fields; a name it refuses is not added.</summary>
+    public Func<string, CancellationToken, Task<bool>>? Validator { get; set; }
+
+    private string _error = "";
+    public string Error
+    {
+        get => _error;
+        set { this.RaiseAndSetIfChanged(ref _error, value); this.RaisePropertyChanged(nameof(HasError)); }
+    }
+    public bool HasError => Error.Length > 0;
+
+    private async Task AddAsync()
+    {
+        var typed = Text.Trim();
+        if (typed.Length == 0) return;
+
+        if (Items.Any(i => string.Equals(i, typed, StringComparison.OrdinalIgnoreCase)))
+        {
+            Text = "";
+            return;
+        }
+
+        // A name that resolves to nothing would make a filter that matches nothing, and say so
+        // nowhere. Refuse it here, while it is still in front of the user.
+        if (Validator is not null && !await Validator(typed, CancellationToken.None))
+        {
+            Error = $"\"{typed}\" is not a name the app knows — pick one from the list.";
+            return;
+        }
+
+        Error = "";
+        Items.Add(typed);
+        Text = "";
+    }
+
+    /// <summary>Supplies type-ahead suggestions. Set by the parent for item and list fields.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>>? Populator { get; set; }
 
     /// <summary>A SQL field needs room to breathe; everything else is a single line.</summary>
@@ -173,11 +267,15 @@ public sealed class AlarmActionVm : ReactiveObject
         _title       = Str(cfg, "title") ?? "";
         _body        = Str(cfg, "body") ?? Str(cfg, "message") ?? "";
         _instruction = Str(cfg, "instruction") ?? "";
+        _stage       = Int(cfg, "stage") ?? 0;
+        _loop        = cfg.ValueKind == JsonValueKind.Object && cfg.TryGetProperty("loop", out var lp) && lp.ValueKind == JsonValueKind.True;
 
         PreviewCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             if (Sound is { } s) await _sounds.PlayAsync(s.Key, Volume);
         });
+
+        RemoveCommand = ReactiveCommand.Create(() => OnRemove?.Invoke(this));
 
         AddSoundCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -234,6 +332,7 @@ public sealed class AlarmActionVm : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _kind, value);
             this.RaisePropertyChanged(nameof(IsSound));
+            this.RaisePropertyChanged(nameof(IsTts));
             this.RaisePropertyChanged(nameof(IsAgent));
             this.RaisePropertyChanged(nameof(IsAlert));
             this.RaisePropertyChanged(nameof(IsDialog));
@@ -242,7 +341,7 @@ public sealed class AlarmActionVm : ReactiveObject
     }
 
     public IReadOnlyList<AlarmActionKind> AvailableKinds { get; } =
-        [AlarmActionKind.Sound, AlarmActionKind.AgentNotify, AlarmActionKind.Alert, AlarmActionKind.Dialog];
+        [AlarmActionKind.Sound, AlarmActionKind.TtsDirect, AlarmActionKind.AgentNotify, AlarmActionKind.Alert, AlarmActionKind.Dialog];
 
     public ObservableCollection<AlarmSound> AvailableSounds { get; }
 
@@ -262,10 +361,37 @@ public sealed class AlarmActionVm : ReactiveObject
     public string Instruction { get => _instruction; set => this.RaiseAndSetIfChanged(ref _instruction, value); }
 
     public bool IsSound  => Kind == AlarmActionKind.Sound;
+    public bool IsTts    => Kind == AlarmActionKind.TtsDirect;
     public bool IsAgent  => Kind == AlarmActionKind.AgentNotify;
     public bool IsAlert  => Kind == AlarmActionKind.Alert;
     public bool IsDialog => Kind == AlarmActionKind.Dialog;
     public bool HasText  => IsAlert || IsDialog;
+
+    /// <summary>Takes this action out of whichever list owns it. Set by that list.</summary>
+    public Action<AlarmActionVm>? OnRemove { get; set; }
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+
+    // ── Stages ──
+    //
+    // Set by the owner. Zero for an ordinary check's action; for a staged check the action lives
+    // in its stage's list, and Stage says which, so the config carries it.
+
+    private int _stageCount;
+    public int StageCount
+    {
+        get => _stageCount;
+        set { this.RaiseAndSetIfChanged(ref _stageCount, value); this.RaisePropertyChanged(nameof(HasStages)); }
+    }
+
+    public bool HasStages => StageCount > 0;
+
+    /// <summary>The stage this action runs at; 0 for an ordinary check.</summary>
+    private int _stage;
+    public int Stage { get => _stage; set => this.RaiseAndSetIfChanged(ref _stage, value); }
+
+    /// <summary>A sound that plays again and again until the situation is acknowledged or ends.</summary>
+    private bool _loop;
+    public bool Loop { get => _loop; set => this.RaiseAndSetIfChanged(ref _loop, value); }
 
     public ReactiveCommand<Unit, Unit> PreviewCommand  { get; }
     public ReactiveCommand<Unit, Unit> AddSoundCommand { get; }
@@ -273,14 +399,20 @@ public sealed class AlarmActionVm : ReactiveObject
     public string ToConfigJson()
     {
         var o = new JsonObject();
+        if (HasStages && Stage > 0) o["stage"] = Stage;
         switch (Kind)
         {
             case AlarmActionKind.Sound:
                 o["sound"]  = Sound?.Key ?? AlarmSoundService.DefaultKey;
                 o["volume"] = Volume;
+                if (HasStages && Loop) o["loop"] = true;
                 break;
             case AlarmActionKind.AgentNotify:
                 if (!string.IsNullOrWhiteSpace(Instruction)) o["instruction"] = Instruction;
+                break;
+            // Empty means "say what the check composed", which is the point of the action.
+            case AlarmActionKind.TtsDirect:
+                if (!string.IsNullOrWhiteSpace(Body)) o["message"] = Body;
                 break;
             // Nothing written means "use the condition's own wording" — the absence is the
             // instruction, so the default follows the check even if it changes later.
@@ -309,6 +441,45 @@ public sealed class AlarmActionVm : ReactiveObject
     private static int? Int(JsonElement e, string n) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(n, out var p)
         && p.ValueKind == JsonValueKind.Number && p.TryGetInt32(out var v) ? v : null;
+}
+
+/// <summary>
+/// One stage of a staged check in the editor: the stage's own field (when it fires) and the
+/// actions that run at it, each added by the user — nothing is seeded, because one person wants
+/// the agent at every stage and a klaxon at the last, and the next wants something else.
+/// </summary>
+public sealed class AlarmStageVm : ReactiveObject
+{
+    public AlarmStageVm(int number, AlarmFieldVm? field, Func<int, AlarmActionVm> newAction)
+    {
+        Number = number;
+        Field  = field;
+        Actions.CollectionChanged += (_, _) => this.RaisePropertyChanged(nameof(IsEmpty));
+        AddActionCommand = ReactiveCommand.Create(() =>
+        {
+            var action = newAction(Number);
+            action.OnRemove = a => Actions.Remove(a);
+            Actions.Add(action);
+        });
+    }
+
+    public int    Number   { get; }
+    public string Title    => $"STAGE {Number}";
+    public AlarmFieldVm? Field { get; }
+    public bool   HasField => Field is not null;
+
+    public ObservableCollection<AlarmActionVm> Actions { get; } = [];
+    public bool IsEmpty => Actions.Count == 0;
+
+    public ReactiveCommand<Unit, Unit> AddActionCommand { get; }
+
+    /// <summary>Adopts an action loaded from the database.</summary>
+    public void Adopt(AlarmActionVm action)
+    {
+        action.Stage    = Number;
+        action.OnRemove = a => Actions.Remove(a);
+        Actions.Add(action);
+    }
 }
 
 /// <summary>A past firing, shown as history.</summary>
@@ -392,6 +563,29 @@ public sealed class AlarmsViewModel : ReactiveObject
             .Subscribe(_ => RebuildFields());
     }
 
+    /// <summary>
+    /// One editor section per stage of the selected check, each holding the stage's field and
+    /// its own action list. Empty to begin with, whatever the check: what runs at each stage is
+    /// the user's to say. An ordinary check has no stages and uses the flat list instead.
+    /// </summary>
+    private void RebuildStages()
+    {
+        Stages.Clear();
+        var count = SelectedCondition?.Stages ?? 0;
+        for (var i = 1; i <= count; i++)
+            Stages.Add(new AlarmStageVm(i, Fields.FirstOrDefault(f => f.StageNumber == i), NewStageActionVm));
+        this.RaisePropertyChanged(nameof(IsStaged));
+    }
+
+    public ObservableCollection<AlarmStageVm> Stages { get; } = [];
+
+    /// <summary>True while the selected check fires in stages; the view swaps the action lists.</summary>
+    public bool IsStaged => (SelectedCondition?.Stages ?? 0) > 0;
+
+    /// <summary>Every action on the editor, flat or under a stage — for previews and tests.</summary>
+    private IEnumerable<AlarmActionVm> AllActions =>
+        IsStaged ? Stages.SelectMany(s => s.Actions) : Actions;
+
     private void OnFired() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
 
     public IReadOnlyList<IAlarmCondition> Conditions { get; }
@@ -414,7 +608,16 @@ public sealed class AlarmsViewModel : ReactiveObject
     private AlarmActionVm NewActionVm(AlarmActionKind kind, JsonElement cfg) =>
         new(_sounds, SoundCatalog,
             () => PickSoundFileCallback?.Invoke() ?? Task.FromResult<string?>(null),
-            kind, cfg);
+            kind, cfg)
+        { StageCount = SelectedCondition?.Stages ?? 0, OnRemove = a => Actions.Remove(a) };
+
+    /// <summary>A new action for a stage's list — a sound, like the flat list's default, to be changed.</summary>
+    private AlarmActionVm NewStageActionVm(int stage)
+    {
+        var a = NewActionVm(AlarmActionKind.Sound, default);
+        a.Stage = stage;
+        return a;
+    }
 
     public IReadOnlyList<AlarmRepeat> RepeatModes { get; } = [AlarmRepeat.Continuous, AlarmRepeat.OneShot];
 
@@ -434,6 +637,13 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     private bool _enabled = true;
     public bool Enabled { get => _enabled; set => this.RaiseAndSetIfChanged(ref _enabled, value); }
+
+    /// <summary>The hours the alarm is on, "HH:mm" on this machine's clock; both blank = always.</summary>
+    private string _activeFrom = "";
+    public string ActiveFrom { get => _activeFrom; set => this.RaiseAndSetIfChanged(ref _activeFrom, value); }
+
+    private string _activeThru = "";
+    public string ActiveThru { get => _activeThru; set => this.RaiseAndSetIfChanged(ref _activeThru, value); }
 
     private IAlarmCondition? _selectedCondition;
     public IAlarmCondition? SelectedCondition
@@ -470,9 +680,6 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddActionCommand => ReactiveCommand.Create(() =>
         Actions.Add(NewActionVm(AlarmActionKind.Sound, default)));
-
-    public ReactiveCommand<AlarmActionVm, Unit> RemoveActionCommand =>
-        ReactiveCommand.Create<AlarmActionVm>(a => Actions.Remove(a));
 
     // ── Loading ──────────────────────────────────────────────────────────────
 
@@ -574,6 +781,8 @@ public sealed class AlarmsViewModel : ReactiveObject
         EditingId         = 0;
         Name              = "New alarm";
         Enabled           = true;
+        ActiveFrom        = "";
+        ActiveThru        = "";
         Repeat            = AlarmRepeat.Continuous;
         PollSeconds       = 60;
         CooldownSeconds   = 0;
@@ -581,7 +790,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         RebuildFields();
 
         Actions.Clear();
-        Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
+        if (!IsStaged) Actions.Add(NewActionVm(AlarmActionKind.Sound, default));
         HasEditor = true;
         UpdateDefaultTextPreview();
     }
@@ -602,6 +811,8 @@ public sealed class AlarmsViewModel : ReactiveObject
         EditingId       = alarm.Id;
         Name            = alarm.Name;
         Enabled         = alarm.Enabled;
+        ActiveFrom      = alarm.ActiveFrom ?? "";
+        ActiveThru      = alarm.ActiveThru ?? "";
         Repeat          = alarm.Repeat;
         PollSeconds     = alarm.PollSeconds;
         CooldownSeconds = alarm.CooldownSeconds;
@@ -620,7 +831,14 @@ public sealed class AlarmsViewModel : ReactiveObject
             JsonElement cfg;
             try { cfg = JsonDocument.Parse(a.ConfigJson ?? "{}").RootElement.Clone(); }
             catch { cfg = default; }
-            Actions.Add(NewActionVm(a.Kind, cfg));
+            var vm = NewActionVm(a.Kind, cfg);
+
+            // Under a staged check an action lives in its stage's list; one saved without a
+            // stage — made by the agent's tool, or before there were stages — goes to the first.
+            if (IsStaged && Stages.Count > 0)
+                (Stages.FirstOrDefault(s => s.Number == vm.Stage) ?? Stages[0]).Adopt(vm);
+            else
+                Actions.Add(vm);
         }
 
         HasEditor = true;
@@ -652,12 +870,16 @@ public sealed class AlarmsViewModel : ReactiveObject
                 if (r.GetString() is { } s) required.Add(s);
 
         // A "zone" property is not a field of its own — it belongs to the date-time it qualifies,
-        // and is attached to that field below.
+        // and is attached to that field below. Likewise a property a choice names as its "units".
         var declaresZone = props.EnumerateObject().Any(p => p.Name == "zone");
+        var unitsOf = props.EnumerateObject()
+            .Select(p => p.Value.TryGetProperty("units", out var u) && u.ValueKind == JsonValueKind.String ? u.GetString() : null)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .ToHashSet(StringComparer.Ordinal);
 
         foreach (var prop in props.EnumerateObject())
         {
-            if (prop.Name == "zone") continue;
+            if (prop.Name == "zone" || unitsOf.Contains(prop.Name)) continue;
 
             var spec = prop.Value;
             var type = spec.TryGetProperty("type", out var t) ? t.GetString() ?? "string" : "string";
@@ -669,23 +891,49 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             var format = spec.TryGetProperty("format", out var f) ? f.GetString() : null;
 
+            // "title" is JSON Schema's own word for a display name; "optional" and "suffix"
+            // are this editor's: an integer marked optional is a threshold behind a checkbox.
+            var title    = spec.TryGetProperty("title",    out var ti) ? ti.GetString() : null;
+            var suffix   = spec.TryGetProperty("suffix",   out var su) ? su.GetString() : null;
+            var optional = spec.TryGetProperty("optional", out var op) && op.ValueKind == JsonValueKind.True;
+            var dflt     = spec.TryGetProperty("default",  out var df)
+                ? df.ValueKind == JsonValueKind.String ? df.GetString() : df.GetRawText()
+                : null;
+            var unitsName = spec.TryGetProperty("units", out var un) && un.ValueKind == JsonValueKind.String ? un.GetString() : null;
+            var unitsDflt = unitsName is not null && props.TryGetProperty(unitsName, out var us)
+                         && us.TryGetProperty("default", out var ud) ? ud.GetRawText() : "";
+
             var kind = options is not null   ? "enum"
+                     : type == "array"       ? "list"
                      : format == "date-time" ? "datetime"
                      : format == "item-name" ? "item"
                      : type == "boolean"     ? "boolean"
-                     : type == "integer"     ? "integer"
+                     : type == "integer"     ? (optional ? "threshold" : "integer")
                      : type == "number"      ? "number"
                                              : "string";
 
             var field = new AlarmFieldVm
             {
                 Name        = prop.Name,
-                Label       = Humanise(prop.Name),
+                Label       = string.IsNullOrWhiteSpace(title) ? Humanise(prop.Name) : title,
                 Kind        = kind,
                 Description = desc,
                 Required    = required.Contains(prop.Name),
                 Options     = options,
+                Suffix      = suffix,
+                Default     = dflt,
+                UnitsName   = kind == "enum" ? unitsName : null,
             };
+            if (field.HasUnits) field.UnitsText = unitsDflt;
+
+            // A new alarm starts on the schema's defaults; an existing one has ApplyConfig
+            // overwrite them — and untick a threshold the saved config does not carry.
+            if (dflt is not null && kind is "integer" or "number" or "string" or "threshold" or "enum")
+            {
+                field.Text = dflt;
+                if (kind == "threshold") field.Flag = true;
+            }
+            if (kind == "boolean" && string.Equals(dflt, "true", StringComparison.OrdinalIgnoreCase)) field.Flag = true;
 
             // A date-time field with nothing in it is more useful pointing at the near future
             // than at 01/01/0001 — the overwhelmingly common case is "remind me shortly".
@@ -701,8 +949,28 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             if (kind == "item") field.Populator = SearchItemNamesAsync;
 
+            // A list's type-ahead and its gatekeeper come from the format: the same source
+            // that suggests a name says whether a typed one is real.
+            if (kind == "list")
+            {
+                (field.Populator, field.Validator) = format switch
+                {
+                    "place-name" => (SearchPlaceNamesAsync, IsKnownPlaceAsync),
+                    "ship-name"  => (SearchShipNamesAsync,  IsKnownShipAsync),
+                    "item-name"  => (SearchItemNamesAsync,  IsKnownItemAsync),
+                    _            => ((Func<string?, CancellationToken, Task<IEnumerable<object>>>?)null,
+                                     (Func<string, CancellationToken, Task<bool>>?)null),
+                };
+            }
+
             Fields.Add(field);
         }
+
+        // ⚠️ Rebuilt here, with the fields, and not only when the condition changes: reopening
+        // an alarm of the same condition does not change the condition, and the stage lists
+        // kept what they had while the loaded actions were adopted on top — every save doubled
+        // them. The explicit RebuildFields on every load and new-alarm path now clears both.
+        RebuildStages();
 
         UpdateDefaultTextPreview();
     }
@@ -726,16 +994,111 @@ public sealed class AlarmsViewModel : ReactiveObject
                 .Take(200)
                 .ToListAsync(ct);
 
-            return hits
-                .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
-                            : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
-                .ThenBy(n => n.Length)
-                .ThenBy(n => n)
-                .Take(50)
-                .Cast<object>()
-                .ToList();
+            return Rank(hits, term);
         }, ct);
     }
+
+    /// <summary>Exact match, then names starting with the term, then the rest; short before long.</summary>
+    private static List<object> Rank(IEnumerable<string> names, string term) =>
+        names
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
+                        : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
+            .ThenBy(n => n.Length)
+            .ThenBy(n => n)
+            .Take(50)
+            .Cast<object>()
+            .ToList();
+
+    private Task<bool> IsKnownItemAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var u = name.ToUpper();
+        return await db.SdeTypes.AsNoTracking().AnyAsync(t => t.Name.ToUpper() == u, ct);
+    }, ct);
+
+    /// <summary>
+    /// Places an undock can be from: regions and systems from the SDE, NPC stations from the
+    /// SDE, player structures from every table that names one. Lower-cased on both sides
+    /// because a server's LIKE is case-sensitive and SQLite's is not.
+    /// </summary>
+    private async Task<IEnumerable<object>> SearchPlaceNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+        var lower = term.ToLower();
+
+        return await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var hits = new List<string>();
+            hits.AddRange(await db.SdeRegions.AsNoTracking()
+                .Where(r => r.Name.ToLower().Contains(lower)).Select(r => r.Name).Take(20).ToListAsync(ct));
+            hits.AddRange(await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.Structures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.EsiStructureNames.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.EsiCorpStructures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            hits.AddRange(await db.SdeStations.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            return Rank(hits, term);
+        }, ct);
+    }
+
+    private Task<bool> IsKnownPlaceAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var u = name.ToUpper();
+        return await db.SdeRegions.AsNoTracking().AnyAsync(r => r.Name.ToUpper() == u, ct)
+            || await db.SdeSolarSystems.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.SdeStations.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.Structures.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.EsiStructureNames.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
+            || await db.EsiCorpStructures.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct);
+    }, ct);
+
+    /// <summary>
+    /// Hulls and ship classes: every published type in the Ship category and every group in it
+    /// ("Cruiser", "Titan"), plus "Pod", which is what everyone calls the Capsule group.
+    /// </summary>
+    private async Task<IEnumerable<object>> SearchShipNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+        var lower = term.ToLower();
+
+        return await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var hits = new List<string>();
+            if ("pod".StartsWith(lower)) hits.Add("Pod");
+            hits.AddRange(await db.SdeGroups.AsNoTracking()
+                .Where(g => g.CategoryId == ShipCategoryId && g.Published && g.Name.ToLower().Contains(lower))
+                .Select(g => g.Name).Take(30).ToListAsync(ct));
+            hits.AddRange(await (from t in db.SdeTypes.AsNoTracking()
+                                 join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                                 where g.CategoryId == ShipCategoryId && t.Published && t.Name.ToLower().Contains(lower)
+                                 select t.Name).Take(100).ToListAsync(ct));
+            return Rank(hits, term);
+        }, ct);
+    }
+
+    private const int ShipCategoryId = 6;
+
+    private Task<bool> IsKnownShipAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        if (string.Equals(name, "pod", StringComparison.OrdinalIgnoreCase)) return true;
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var u = name.ToUpper();
+        return await db.SdeGroups.AsNoTracking().AnyAsync(g => g.CategoryId == ShipCategoryId && g.Name.ToUpper() == u, ct)
+            || await (from t in db.SdeTypes.AsNoTracking()
+                      join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                      where g.CategoryId == ShipCategoryId && t.Name.ToUpper() == u
+                      select t.TypeId).AnyAsync(ct);
+    }, ct);
 
     /// <summary>Shows what the default alert wording would look like for the chosen check.</summary>
     private void UpdateDefaultTextPreview()
@@ -755,12 +1118,15 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
         catch { preview = "The check will supply the wording."; }
 
-        foreach (var a in Actions) a.DefaultTextPreview = preview;
+        foreach (var a in AllActions) a.DefaultTextPreview = preview;
     }
 
     private void ApplyConfig(JsonElement config)
     {
         if (config.ValueKind != JsonValueKind.Object) return;
+
+        // A threshold absent from a saved config was unticked, whatever its default says.
+        foreach (var field in Fields.Where(f => f.IsThreshold)) field.Flag = false;
 
         foreach (var field in Fields)
         {
@@ -770,6 +1136,32 @@ public sealed class AlarmsViewModel : ReactiveObject
             {
                 case "boolean":
                     field.Flag = v.ValueKind == JsonValueKind.True;
+                    break;
+
+                case "list":
+                    field.Items.Clear();
+                    // The editor writes an array; a hand-written config may have a comma list.
+                    var entries = v.ValueKind == JsonValueKind.Array
+                        ? v.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString() ?? "")
+                        : v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "").Split(',') : [];
+                    foreach (var entry in entries.Select(e => e.Trim()).Where(e => e.Length > 0))
+                        field.Items.Add(entry);
+                    break;
+
+                case "threshold":
+                    field.Text = v.ValueKind == JsonValueKind.Number
+                        ? v.GetRawText()
+                        : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
+                    field.Flag = field.Text.Length > 0;
+                    break;
+
+                case "enum":
+                    // Matched to an option regardless of case, so the box shows a selection.
+                    var stored = v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.GetRawText();
+                    field.Text = field.Options?.FirstOrDefault(o => string.Equals(o, stored, StringComparison.OrdinalIgnoreCase)) ?? stored;
+                    if (field.UnitsName is { } unitsName && config.TryGetProperty(unitsName, out var u))
+                        field.UnitsText = u.ValueKind == JsonValueKind.Number ? u.GetRawText()
+                                        : u.ValueKind == JsonValueKind.String ? u.GetString() ?? "" : "";
                     break;
 
                 case "integer":
@@ -816,6 +1208,16 @@ public sealed class AlarmsViewModel : ReactiveObject
                     o[field.Name] = field.Flag;
                     break;
 
+                case "list":
+                    if (field.Items.Count > 0)
+                        o[field.Name] = new JsonArray(field.Items.Select(i => (JsonNode?)i).ToArray());
+                    break;
+
+                // Present only when armed: an unticked threshold is no threshold.
+                case "threshold":
+                    if (field.Flag && long.TryParse(field.Text?.Replace(",", ""), out var th)) o[field.Name] = th;
+                    break;
+
                 // long, not int: an ISK price runs well past 2.1 billion, and int.TryParse
                 // would simply fail and drop the field, leaving an alarm that matches nothing.
                 case "integer":
@@ -849,6 +1251,10 @@ public sealed class AlarmsViewModel : ReactiveObject
 
                 default:
                     if (!string.IsNullOrWhiteSpace(field.Text)) o[field.Name] = field.Text;
+                    // The number travels whatever the choice, so it is still there when the
+                    // choice comes back; the check ignores it under "Any".
+                    if (field.UnitsName is { } unitsName && long.TryParse(field.UnitsText?.Replace(",", ""), out var units))
+                        o[unitsName] = units;
                     break;
             }
         }
@@ -879,9 +1285,23 @@ public sealed class AlarmsViewModel : ReactiveObject
             }
         }
 
+        foreach (var field in Fields.Where(f => f.IsList && f.Required && f.Items.Count == 0))
+        {
+            StatusText = $"Add at least one entry under {field.Label}.";
+            return;
+        }
+
+        // A window half-typed is a window nobody meant: refuse rather than guess.
+        foreach (var (label, text) in new[] { ("from", ActiveFrom), ("thru", ActiveThru) })
+            if (!string.IsNullOrWhiteSpace(text) && Alarm.ParseClock(text) is null)
+            {
+                StatusText = $"Active {label} needs a time like 18:00.";
+                return;
+            }
+
         var conditionType = SelectedCondition.TypeKey;
         var conditionJson = BuildConfigJson();
-        var actionRows    = Actions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
+        var actionRows    = AllActions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
 
         var id = EditingId;
         var (savedId, wasNew) = await Task.Run(async () =>
@@ -904,6 +1324,8 @@ public sealed class AlarmsViewModel : ReactiveObject
                                 || alarm.ConditionJson != conditionJson;
 
             alarm.Name            = Name.Trim();
+            alarm.ActiveFrom      = Alarm.ParseClock(ActiveFrom) is { } f ? f.ToString(@"hh\:mm") : null;
+            alarm.ActiveThru      = Alarm.ParseClock(ActiveThru) is { } t ? t.ToString(@"hh\:mm") : null;
             alarm.Enabled         = Enabled;
             alarm.ConditionType   = conditionType;
             alarm.ConditionJson   = conditionJson;
@@ -983,7 +1405,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// </summary>
     private async Task TestFireAsync()
     {
-        foreach (var a in Actions)
+        foreach (var a in AllActions)
         {
             if (a.IsSound && a.Sound is { } s) await _sounds.PlayAsync(s.Key, a.Volume);
         }

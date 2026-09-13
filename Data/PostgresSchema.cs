@@ -58,6 +58,17 @@ public static class PostgresSchema
     /// </summary>
     private static readonly string[] Tables =
     [
+        // A staged alarm's acknowledgements: this character's episode is quiet until then. An
+        // entity, but one that arrived after databases existed — EnsureCreated will not add it.
+        """
+        CREATE TABLE IF NOT EXISTS "AlarmSnoozes" (
+            "AlarmId"  BIGINT      NOT NULL,
+            "ScopeKey" TEXT        NOT NULL,
+            "Episode"  TEXT        NOT NULL DEFAULT '',
+            "Until"    TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY ("AlarmId", "ScopeKey")
+        )
+        """,
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
         // Map and station fields the import was leaving in the file.
@@ -400,6 +411,123 @@ public static class PostgresSchema
         """
         ALTER TABLE "InvLevelGroups" ADD COLUMN IF NOT EXISTS "PackagedOnly" BOOLEAN NOT NULL DEFAULT FALSE
         """,
+
+        // Where an asset's root location IS, filled by AssetLocations on every asset poll. Null
+        // until the first poll after this upgrade, and for the few roots nothing can resolve —
+        // nullable rather than defaulted so that null keeps meaning "unknown". An older build
+        // inserting without naming them goes on working, which is the whole of the constraint.
+        """
+        ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "SolarSystemId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "RegionId" INTEGER NULL
+        """,
+
+        // An alert that arrived after databases existed. NOT NULL with a default, so an older
+        // build's seed, which does not name it, still inserts.
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "IndustryJobsReady" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+
+        // The hours an alarm is on; null means always. Older builds neither read nor write them.
+        """
+        ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveFrom" TEXT NULL
+        """,
+        """
+        ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveThru" TEXT NULL
+        """,
+
+        // The last undock the location poll saw, for the Ship Undocks alarm. Null until a
+        // character next undocks; an older build never writes them and never needs to.
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedAt" TIMESTAMPTZ NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedFromId" BIGINT NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedSystemId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "SystemChangedAt" TIMESTAMPTZ NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "PreviousSystemId" INTEGER NULL
+        """,
+
+        // ── Agent telemetry ──────────────────────────────────────────────────
+        //
+        // ⚠️ BIGSERIAL, not AUTOINCREMENT: PostgreSQL rejects the SQLite spelling at parse time
+        // even under IF NOT EXISTS. BOOLEAN, not INTEGER. And BIGINT for the unit counts —
+        // deliberately not REAL, which is float4 here and has silently truncated numbers in this
+        // codebase before.
+        //
+        // The SQLite spelling of these three is in AgentTelemetrySchema; keep the two in step.
+        """
+        CREATE TABLE IF NOT EXISTS "AgentInteractions" (
+            "Id"             BIGSERIAL   PRIMARY KEY,
+            "ConversationId" TEXT        NOT NULL DEFAULT '',
+            "StartedAt"      TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "DurationMs"     INTEGER     NOT NULL DEFAULT 0,
+            "Provider"       TEXT        NOT NULL DEFAULT '',
+            "Model"          TEXT        NOT NULL DEFAULT '',
+            "RoundTrips"     INTEGER     NOT NULL DEFAULT 0,
+            "ToolCallCount"  INTEGER     NOT NULL DEFAULT 0,
+            "QueryCount"     INTEGER     NOT NULL DEFAULT 0,
+            "ToolsUsed"      TEXT        NOT NULL DEFAULT '',
+            "StopReason"     TEXT        NOT NULL DEFAULT '',
+            "Error"          TEXT        NOT NULL DEFAULT '',
+            "UserChars"      INTEGER     NOT NULL DEFAULT 0,
+            "ResponseChars"  INTEGER     NOT NULL DEFAULT 0
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "AgentToolCalls" (
+            "Id"            BIGSERIAL   PRIMARY KEY,
+            "InteractionId" BIGINT      NOT NULL DEFAULT 0,
+            "Sequence"      INTEGER     NOT NULL DEFAULT 0,
+            "OccurredAt"    TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "ToolName"      TEXT        NOT NULL DEFAULT '',
+            "DurationMs"    INTEGER     NOT NULL DEFAULT 0,
+            "InputJson"     TEXT        NOT NULL DEFAULT '',
+            "ResultChars"   INTEGER     NOT NULL DEFAULT 0,
+            "RowCount"      INTEGER     NOT NULL DEFAULT -1,
+            "Error"         TEXT        NOT NULL DEFAULT ''
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ServiceUsage" (
+            "Id"                BIGSERIAL   PRIMARY KEY,
+            "OccurredAt"        TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "InteractionId"     BIGINT      NULL,
+            "Kind"              TEXT        NOT NULL DEFAULT '',
+            "Provider"          TEXT        NOT NULL DEFAULT '',
+            "Model"             TEXT        NOT NULL DEFAULT '',
+            "IsLocal"           BOOLEAN     NOT NULL DEFAULT FALSE,
+            "UnitKind"          TEXT        NOT NULL DEFAULT '',
+            "InputUnits"        BIGINT      NOT NULL DEFAULT 0,
+            "OutputUnits"       BIGINT      NOT NULL DEFAULT 0,
+            "CacheReadUnits"    BIGINT      NOT NULL DEFAULT 0,
+            "CacheWriteUnits"   BIGINT      NOT NULL DEFAULT 0,
+            "UnitsAreEstimated" BOOLEAN     NOT NULL DEFAULT FALSE,
+            "DurationMs"        INTEGER     NOT NULL DEFAULT 0,
+            "Error"             TEXT        NOT NULL DEFAULT ''
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ServiceRates" (
+            "Id"                BIGSERIAL      PRIMARY KEY,
+            "Kind"              TEXT           NOT NULL DEFAULT '',
+            "Provider"          TEXT           NOT NULL DEFAULT '',
+            "Model"             TEXT           NOT NULL DEFAULT '',
+            "InputPerUnit"      NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "OutputPerUnit"     NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "CacheReadPerUnit"  NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "CacheWritePerUnit" NUMERIC(18,10) NOT NULL DEFAULT 0,
+            "Notes"             TEXT           NOT NULL DEFAULT '',
+            "UpdatedAt"         TIMESTAMPTZ    NOT NULL DEFAULT now()
+        )
+        """,
     ];
 
     /// <summary>
@@ -461,6 +589,15 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmEvents_Alarm_Fired" ON "AlarmEvents" ("AlarmId", "FiredAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
+
+        // Agent telemetry. Same list as AgentTelemetrySchema.Indexes — keep the two in step.
+        """CREATE INDEX IF NOT EXISTS "IX_AgentInteractions_StartedAt" ON "AgentInteractions" ("StartedAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_AgentInteractions_Conversation" ON "AgentInteractions" ("ConversationId", "StartedAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_AgentToolCalls_Interaction" ON "AgentToolCalls" ("InteractionId", "Sequence")""",
+        """CREATE INDEX IF NOT EXISTS "IX_AgentToolCalls_OccurredAt" ON "AgentToolCalls" ("OccurredAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_OccurredAt" ON "ServiceUsage" ("OccurredAt")""",
+        """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_Kind_OccurredAt" ON "ServiceUsage" ("Kind", "OccurredAt")""",
+        """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ServiceRates_Key" ON "ServiceRates" ("Kind", "Provider", "Model")""",
     ];
 
     /// <summary>
@@ -516,8 +653,8 @@ public static class PostgresSchema
         """
         INSERT INTO "AlertSettings"
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs")
-        VALUES (1, true, true, true, 30, true, true, true, true)
+             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
+        VALUES (1, true, true, true, 30, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

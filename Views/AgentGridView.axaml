@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.AgentGridView"
+             x:DataType="vm:AgentGridViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Padding"    Value="6 5 2 5" />
+    </Style>
+    <Style Selector="Button.bar">
+      <Setter Property="FontSize"        Value="10" />
+      <Setter Property="Padding"         Value="10 3" />
+      <Setter Property="Background"      Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground"      Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6"
+            BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
+      <StackPanel Spacing="6">
+
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding RowCountText}" FontSize="11"
+                       Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+            <Button Classes="bar" Content="Copy Selected" Command="{Binding CopyCommand}"
+                    ToolTip.Tip="Copies the selected rows, with headers, as tab-separated text — paste straight into a spreadsheet. Ctrl+C does the same." />
+            <Button Classes="bar" Content="Copy All"      Command="{Binding CopyAllCommand}" />
+            <Button Classes="bar" Content="Save CSV"      Click="OnSaveCsvClick"
+                    Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" />
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Text="{Binding Caption}" IsVisible="{Binding HasCaption}"
+                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+
+        <TextBlock Text="{Binding StatusText}" FontSize="11"
+                   Foreground="{DynamicResource TextDimBrush}"
+                   IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </Border>
+
+    <!-- Columns are built in code-behind: the agent decides how many there are and what they
+         are called, so they cannot be declared here. -->
+    <DataGrid Grid.Row="1" x:Name="Grid"
+              ItemsSource="{Binding Rows}"
+              AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
+              SelectionMode="Extended"
+              ClipboardCopyMode="None"
+              CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="True"
+              SelectionChanged="OnSelectionChanged"
+              KeyDown="OnGridKeyDown"
+              Background="{DynamicResource SurfaceBaseBrush}" />
+
+  </Grid>
+</UserControl>

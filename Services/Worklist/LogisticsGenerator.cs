@@ -241,13 +241,19 @@ public class LogisticsGenerator(
             .GroupBy(a => (Station: a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        // The same view of stock the demand service nets against, so both agree on what exists.
-        var inScope = new ScopeStock(
-            reachable.Where(a => a.OwnerType == "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)),
-            reachable.Where(a => a.OwnerType != "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId))
-                     .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)));
+        // Plus what delivered jobs have put in a hangar the asset poll has not seen: stock at the
+        // station the job ran in, so nothing is hauled there to replace it. See DeliveryLag.
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(d.Site)) continue;
+            if (d.OwnerType == "corporation" && corps is not null && !corps.Contains(d.OwnerId)) continue;
+            stock[(d.Site, d.TypeId)] = stock.GetValueOrDefault((d.Site, d.TypeId)) + d.Units;
+        }
+
+        // The same view of stock the demand service nets against — running jobs included, so a
+        // sub-assembly already in a machine has nothing hauled for it — and the same loader the
+        // job and purchase generators use, so all three agree on what exists.
+        var inScope = await ScopeStock.LoadAsync(db, scope, wrapped, corps, ct);
 
         var want    = new Dictionary<(long Station, int TypeId), Want>();
         var drivers = new Dictionary<(long Station, int TypeId), List<NeedDriver>>();
@@ -1093,14 +1099,23 @@ public class LogisticsGenerator(
                 .ToListAsync(ct))
             .ToDictionary(s => s.Id, s => s.SolarSystemId);
 
-        foreach (var s in await db.EsiStructureNames.AsNoTracking()
+        // The same three structure sources AssetLocations resolves an asset's system from, in the
+        // same order of preference, so a haul is ranked by the same geography the stock is filed
+        // under. Structures first: it is the one that can hold a place ESI never gave us.
+        foreach (var s in await db.Structures.AsNoTracking()
                      .Where(s => s.SolarSystemId != 0)
                      .Select(s => new { s.StructureId, s.SolarSystemId }).ToListAsync(ct))
             map[s.StructureId] = s.SolarSystemId;
 
+        foreach (var s in await db.EsiStructureNames.AsNoTracking()
+                     .Where(s => s.SolarSystemId != 0)
+                     .Select(s => new { s.StructureId, s.SolarSystemId }).ToListAsync(ct))
+            map.TryAdd(s.StructureId, s.SolarSystemId);
+
         foreach (var s in await db.EsiCorpStructures.AsNoTracking()
+                     .Where(s => s.SystemId != 0)
                      .Select(s => new { s.StructureId, s.SystemId }).ToListAsync(ct))
-            map[s.StructureId] = s.SystemId;
+            map.TryAdd(s.StructureId, s.SystemId);
 
         // Assets in space report the solar system itself as their root, so a system is its own
         // location. Without this they rank as unreachable and sort behind every real station.

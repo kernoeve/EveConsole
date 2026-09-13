@@ -477,6 +477,17 @@ public class EsiPollingService : ReactiveObject
     // (characterId, endpointKey) pairs already fetched since startup.
     private readonly ConcurrentDictionary<(long, string), bool> _offlineFixTaken = new();
 
+    /// <summary>
+    /// Raised, with the character id, once a pass has seen that character go from docked to in
+    /// space — after the pass, not at the moment the location poll noticed, so the ship poll
+    /// that follows it by half a second has had its turn and an alarm reads the hull they are
+    /// actually in. What lets an undock alarm fire within a second of the poll instead of at
+    /// its own next interval.
+    /// </summary>
+    public event Action<long>? CharacterUndocked;
+
+    private readonly ConcurrentDictionary<long, bool> _undockSeen = new();
+
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
         var netWorthDirty = false;
@@ -556,6 +567,12 @@ public class EsiPollingService : ReactiveObject
 
         if (netWorthDirty)
             _ = _netWorth.RecalculateAsync(character.Id, "character", ct);
+
+        if (_undockSeen.TryRemove(character.Id, out _) && CharacterUndocked is { } undocked)
+        {
+            try { undocked(character.Id); }
+            catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"undock of {character.Id}", ex); }
+        }
     }
 
     // ── DB helpers ───────────────────────────────────────────────────────────
@@ -1180,7 +1197,8 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/assets/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var roots = ComputeRootLocations(r.Data!);
+        var roots  = ComputeRootLocations(r.Data!);
+        var places = await AssetLocations.LoadAsync(db, ct);
 
         // ⚠️ Delete and replace in ONE transaction. ExecuteDeleteAsync commits on its own, so
         // without this the character's assets are simply absent from the database between the
@@ -1195,29 +1213,37 @@ public class EsiPollingService : ReactiveObject
         await db.EsiAssets
             .Where(a => a.OwnerId == charId && a.OwnerType == "character")
             .ExecuteDeleteAsync(ct);
-        db.EsiAssets.AddRange(r.Data!.Select(a => new CharacterAsset
+        db.EsiAssets.AddRange(r.Data!.Select(a =>
         {
-            ItemId           = a.ItemId,
-            OwnerId          = charId,
-            OwnerType        = "character",
-            TypeId           = a.TypeId,
-            LocationId       = a.LocationId,
-            LocationType     = a.LocationType,
-            LocationFlag     = a.LocationFlag,
-            Quantity         = a.Quantity,
-            IsSingleton      = a.IsSingleton,
-            IsBlueprintCopy  = a.IsBlueprintCopy,
-            RootLocationId   = roots[a.ItemId].RootId,
-            RootLocationType = roots[a.ItemId].RootType,
+            var root  = roots[a.ItemId];
+            var place = places.Resolve(root.RootId, root.RootType);
+            return new CharacterAsset
+            {
+                ItemId           = a.ItemId,
+                OwnerId          = charId,
+                OwnerType        = "character",
+                TypeId           = a.TypeId,
+                LocationId       = a.LocationId,
+                LocationType     = a.LocationType,
+                LocationFlag     = a.LocationFlag,
+                Quantity         = a.Quantity,
+                IsSingleton      = a.IsSingleton,
+                IsBlueprintCopy  = a.IsBlueprintCopy,
+                RootLocationId   = root.RootId,
+                RootLocationType = root.RootType,
+                SolarSystemId    = place.SolarSystemId,
+                RegionId         = place.RegionId,
+            };
         }));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        // ESI's assets endpoint omits the character's ACTIVE ship (the one they are currently
-        // in — e.g. a titan a character is logged off in). Pull it via the ship + location
-        // endpoints and synthesize an asset for the hull so every asset-consuming tool counts
-        // it. Hull only — ESI does not expose the active ship's cargo or fittings. Best-effort:
-        // never fail the assets poll over it.
+        // ESI's assets endpoint omits the hull of the character's ACTIVE ship while they are in
+        // space in it (a titan a character is logged off in) — though it still lists what is
+        // INSIDE it, fittings and cargo, under the ship's item id; and a docked active ship is
+        // listed whole, hull and contents. Pull the hull via the ship + location endpoints and
+        // synthesize an asset for it so every asset-consuming tool counts it. Best-effort: never
+        // fail the assets poll over it.
         try
         {
             var shipR = await _esi.ExecuteAuthAsync<EsiCharacterShip>(charId, $"characters/{charId}/ship/", ct);
@@ -1233,6 +1259,7 @@ public class EsiPollingService : ReactiveObject
                 // Guard against the rare case ESI does list the active ship (avoid a PK clash).
                 if (!await db.EsiAssets.AnyAsync(a => a.ItemId == ship.ShipItemId, ct))
                 {
+                    var place = places.Resolve(rootId, rootType);
                     db.EsiAssets.Add(new CharacterAsset
                     {
                         ItemId           = ship.ShipItemId,
@@ -1247,6 +1274,8 @@ public class EsiPollingService : ReactiveObject
                         IsBlueprintCopy  = false,
                         RootLocationId   = rootId,
                         RootLocationType = rootType,
+                        SolarSystemId    = place.SolarSystemId,
+                        RegionId         = place.RegionId,
                     });
                     await db.SaveChangesAsync(ct);
                 }
@@ -1267,6 +1296,7 @@ public class EsiPollingService : ReactiveObject
             .Where(id => !ownItemIds.Contains(id))
             .ToList();
         await ResolveNewStructureNamesAsync(charId, structureIds, db, ct);
+        await AssetLocations.BackfillAsync(db, charId, "character", ct);
 
         return FromResult(r);
     }
@@ -1579,6 +1609,26 @@ public class EsiPollingService : ReactiveObject
 
         if (changed || StampDue(status.LocationCheckedAt))
         {
+            // Docked last time, in space now: an undock, recorded before the docked location is
+            // overwritten, because what it left is the fact worth keeping. The row persists, so
+            // this holds across a restart too; a character never polled has null ids and is not
+            // "docked", so a first poll cannot manufacture one.
+            if (status.IsDocked && r.Data.StationId is null && r.Data.StructureId is null)
+            {
+                status.UndockedAt       = DateTimeOffset.UtcNow;
+                status.UndockedFromId   = status.StructureId ?? status.StationId;
+                status.UndockedSystemId = status.SolarSystemId;
+                _undockSeen[charId]     = true;
+            }
+
+            // A change of system is travel, whatever carried them; where from is kept so the
+            // stargate map can say whether a gate could have.
+            if (status.SolarSystemId is { } previous && previous != r.Data.SolarSystemId)
+            {
+                status.SystemChangedAt  = DateTimeOffset.UtcNow;
+                status.PreviousSystemId = previous;
+            }
+
             status.SolarSystemId     = r.Data.SolarSystemId;
             status.StationId         = r.Data.StationId;
             status.StructureId       = r.Data.StructureId;
@@ -2504,7 +2554,8 @@ public class EsiPollingService : ReactiveObject
             corpId, $"corporations/{corpId}/assets/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
-        var roots = ComputeRootLocations(r.Data!);
+        var roots  = ComputeRootLocations(r.Data!);
+        var places = await AssetLocations.LoadAsync(db, ct);
 
         // ⚠️ Delete and replace in ONE transaction, exactly as FetchAssetsAsync does for a
         // character — and for the same reason, which this side went without until it bit.
@@ -2522,20 +2573,27 @@ public class EsiPollingService : ReactiveObject
             .Where(a => a.OwnerId == corpId && a.OwnerType == "corporation")
             .ExecuteDeleteAsync(ct);
 
-        db.EsiAssets.AddRange(r.Data!.Select(a => new CharacterAsset
+        db.EsiAssets.AddRange(r.Data!.Select(a =>
         {
-            ItemId           = a.ItemId,
-            OwnerId          = corpId,
-            OwnerType        = "corporation",
-            TypeId           = a.TypeId,
-            LocationId       = a.LocationId,
-            LocationType     = a.LocationType,
-            LocationFlag     = a.LocationFlag,
-            Quantity         = a.Quantity,
-            IsSingleton      = a.IsSingleton,
-            IsBlueprintCopy  = a.IsBlueprintCopy,
-            RootLocationId   = roots[a.ItemId].RootId,
-            RootLocationType = roots[a.ItemId].RootType,
+            var root  = roots[a.ItemId];
+            var place = places.Resolve(root.RootId, root.RootType);
+            return new CharacterAsset
+            {
+                ItemId           = a.ItemId,
+                OwnerId          = corpId,
+                OwnerType        = "corporation",
+                TypeId           = a.TypeId,
+                LocationId       = a.LocationId,
+                LocationType     = a.LocationType,
+                LocationFlag     = a.LocationFlag,
+                Quantity         = a.Quantity,
+                IsSingleton      = a.IsSingleton,
+                IsBlueprintCopy  = a.IsBlueprintCopy,
+                RootLocationId   = root.RootId,
+                RootLocationType = root.RootType,
+                SolarSystemId    = place.SolarSystemId,
+                RegionId         = place.RegionId,
+            };
         }));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
@@ -2559,6 +2617,7 @@ public class EsiPollingService : ReactiveObject
             if (corp?.AuthCharacterId > 0)
                 await ResolveNewStructureNamesAsync(corp.AuthCharacterId, structureIds, db, ct);
         }
+        await AssetLocations.BackfillAsync(db, corpId, "corporation", ct);
 
         return FromResult(r);
     }

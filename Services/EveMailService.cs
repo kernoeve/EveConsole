@@ -342,7 +342,7 @@ public class EveMailService(
     /// <see cref="GetBodyAsync"/>.</b> Everything a buyer drags into a mail — an item, a
     /// character, a structure — arrives as an anchor carrying its id, and stripping the markup
     /// throws that id away and leaves a name to guess at. The store's order parser was reading
-    /// the stripped text and seeing "Apostle  Kerno Adler": two links, both flattened, matching
+    /// the stripped text and seeing "Apostle  Some Pilot": two links, both flattened, matching
     /// nothing.</para>
     ///
     /// <para>The raw body was in the database the whole time — it is what gets cached — and only

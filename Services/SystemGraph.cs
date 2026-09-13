@@ -92,6 +92,32 @@ public sealed class SystemGraph
         return seen;
     }
 
+    /// <summary>
+    /// Every system within <paramref name="maxJumps"/> of <paramref name="origin"/>, with how
+    /// many gate jumps away it is — the origin at zero. The same walk as
+    /// <see cref="WithinJumpsAsync"/>, keeping the depth it found each system at, which is the
+    /// shortest route because the walk is breadth-first.
+    /// </summary>
+    public async Task<Dictionary<int, int>> DistancesWithinAsync(int origin, int maxJumps, CancellationToken ct = default)
+    {
+        var adjacency = await AdjacencyAsync(ct);
+
+        var distance = new Dictionary<int, int> { [origin] = 0 };
+        var frontier = new List<int> { origin };
+        for (var depth = 1; depth <= maxJumps && frontier.Count > 0; depth++)
+        {
+            var next = new List<int>();
+            foreach (var id in frontier)
+            {
+                if (!adjacency.TryGetValue(id, out var neighbours)) continue;
+                foreach (var n in neighbours)
+                    if (distance.TryAdd(n, depth)) next.Add(n);
+            }
+            frontier = next;
+        }
+        return distance;
+    }
+
     /// <summary>Drops the cached graph, so a fresh SDE import is picked up without a restart.</summary>
     public void Invalidate() => _adjacency = null;
 }

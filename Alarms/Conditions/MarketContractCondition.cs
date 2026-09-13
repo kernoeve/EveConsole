@@ -139,8 +139,8 @@ public sealed class MarketContractCondition : IAlarmCondition
         int typeId;
         await using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = AppDb.CaseInsensitiveLike("""SELECT "TypeId" FROM "SdeTypes" WHERE upper("Name") = upper($n) LIMIT 1""");
-            cmd.AddWithValue("$n", item.Trim());
+            cmd.CommandText = AppDb.CaseInsensitiveLike("""SELECT "TypeId" FROM "SdeTypes" WHERE upper("Name") = upper(@n) LIMIT 1""");
+            cmd.AddWithValue("@n", item.Trim());
             var found = await cmd.ExecuteScalarAsync(ct);
             if (found is null or DBNull) return [];
             typeId = Convert.ToInt32(found);
@@ -167,17 +167,17 @@ public sealed class MarketContractCondition : IAlarmCondition
             FROM "MarketRawOrders" o
             JOIN "MarketPricingConfigs" cfg ON cfg."Id" = o."ConfigId"
             LEFT JOIN "SdeSolarSystems" s ON s."SolarSystemId" = o."SystemId"
-            WHERE o."TypeId" = $type AND o."IsBuyOrder" = FALSE
-              AND o."Price" <= $price AND o."VolumeRemain" >= $qty
-              {(string.IsNullOrWhiteSpace(market) ? "" : """AND upper(cfg."LocationName") LIKE upper($market)""")}
+            WHERE o."TypeId" = @type AND o."IsBuyOrder" = FALSE
+              AND o."Price" <= @price AND o."VolumeRemain" >= @qty
+              {(string.IsNullOrWhiteSpace(market) ? "" : """AND upper(cfg."LocationName") LIKE upper(@market)""")}
             ORDER BY o."Price"
             LIMIT {MaxOffers}
             """);
-        cmd.AddWithValue("$type", typeId);
-        cmd.AddWithValue("$price", maxPrice);
-        cmd.AddWithValue("$qty", minQty);
+        cmd.AddWithValue("@type", typeId);
+        cmd.AddWithValue("@price", maxPrice);
+        cmd.AddWithValue("@qty", minQty);
         if (!string.IsNullOrWhiteSpace(market))
-            cmd.AddWithValue("$market", "%" + market.Trim() + "%");
+            cmd.AddWithValue("@market", "%" + market.Trim() + "%");
 
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
@@ -219,10 +219,10 @@ public sealed class MarketContractCondition : IAlarmCondition
             JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
             WHERE c."OwnerType" = 'public' AND c."Type" = 'item_exchange'
               AND c."Status" = 'outstanding'
-              AND i."TypeId" = $type AND i."IsIncluded" = TRUE
-              AND i."Quantity" >= $qty
+              AND i."TypeId" = @type AND i."IsIncluded" = TRUE
+              AND i."Quantity" >= @qty
               AND CAST(c."Price" AS DOUBLE PRECISION) > 0
-              AND CAST(c."Price" AS DOUBLE PRECISION) / i."Quantity" <= $price
+              AND CAST(c."Price" AS DOUBLE PRECISION) / i."Quantity" <= @price
               {(bundled ? "" : """
                 AND (SELECT COUNT(DISTINCT x."TypeId") FROM "EsiContractItems" x
                      WHERE x."ContractId" = c."ContractId" AND x."IsIncluded" = TRUE) = 1
@@ -230,9 +230,9 @@ public sealed class MarketContractCondition : IAlarmCondition
             ORDER BY CAST(c."Price" AS DOUBLE PRECISION) / i."Quantity"
             LIMIT {MaxOffers}
             """);
-        cmd.AddWithValue("$type", typeId);
-        cmd.AddWithValue("$price", maxPrice);
-        cmd.AddWithValue("$qty", minQty);
+        cmd.AddWithValue("@type", typeId);
+        cmd.AddWithValue("@price", maxPrice);
+        cmd.AddWithValue("@qty", minQty);
 
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))

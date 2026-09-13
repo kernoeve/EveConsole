@@ -52,6 +52,79 @@ public class EsiClient
     /// spent, or Tranquility is down. Both mean "do not spend a request right now".</summary>
     internal bool IsErrorLimitBlocked => _serverOffline || IsErrorLimited;
 
+    // ── Per-route rate limits, shared by every caller ─────────────────────────
+    //
+    // ESI limits some routes per group of routes, and says so with X-Ratelimit-Group and a 429
+    // carrying Retry-After. The budget is the application's, not the caller's: a poll and an
+    // agent call on the same route draw on the same allowance. The polling service kept the
+    // only record of refusals, keyed by its own endpoint names, so an agent call had no way to
+    // know a route was blocked and no way to say it had been refused — the poller and the agent
+    // could take turns exhausting one route and each blame the other. The record lives here now,
+    // keyed by the route's shape, and every request path checks it before sending and writes to
+    // it after. A blocked route answers with a 429 of its own, Retry-After and all, without a
+    // request leaving the machine; callers already know what a 429 means.
+    //
+    // ⚠️ By route template and by group. The group is what ESI actually limits, but a refusal
+    // does not always name one, and a route that was refused is a route to leave alone either way.
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _routeBlocks = new();
+    private readonly ConcurrentDictionary<string, string>         _routeGroups = new();
+    private const string GroupPrefix = "group:";
+
+    /// <summary>
+    /// The shape of a route: numeric segments and killmail hashes replaced, query and any
+    /// version prefix dropped, so characters/123/assets/?page=2 and characters/456/assets/ are
+    /// one route — as they are to ESI.
+    /// </summary>
+    internal static string RouteTemplate(string path)
+    {
+        var p = path;
+        var scheme = p.IndexOf("://", StringComparison.Ordinal);
+        if (scheme >= 0)
+        {
+            var slash = p.IndexOf('/', scheme + 3);
+            p = slash >= 0 ? p[(slash + 1)..] : "";
+        }
+        var q = p.IndexOf('?');
+        if (q >= 0) p = p[..q];
+
+        var segments = p.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
+        if (segments.Count > 0 && (segments[0] == "latest" || segments[0] == "dev" || System.Text.RegularExpressions.Regex.IsMatch(segments[0], "^v[0-9]+$")))
+            segments.RemoveAt(0);
+        for (var i = 0; i < segments.Count; i++)
+            if (segments[i].All(char.IsDigit) || (segments[i].Length == 40 && segments[i].All(Uri.IsHexDigit)))
+                segments[i] = "{}";
+        return string.Join('/', segments).ToLowerInvariant();
+    }
+
+    /// <summary>Seconds a route must still wait after a refusal, or null when it may be called.</summary>
+    internal int? RouteBlockedFor(string path)
+    {
+        var template = RouteTemplate(path);
+        var until    = DateTimeOffset.MinValue;
+        if (_routeBlocks.TryGetValue(template, out var byRoute)) until = byRoute;
+        if (_routeGroups.TryGetValue(template, out var group)
+            && _routeBlocks.TryGetValue(GroupPrefix + group, out var byGroup) && byGroup > until)
+            until = byGroup;
+
+        var wait = until - DateTimeOffset.UtcNow;
+        return wait > TimeSpan.Zero ? (int)Math.Ceiling(wait.TotalSeconds) : null;
+    }
+
+    /// <summary>What a response said about its route's limit, whoever asked.</summary>
+    private void RecordRouteLimit(string path, int statusCode, string? group, int? retryAfter, int? errorLimitReset)
+    {
+        var template = RouteTemplate(path);
+        if (group is not null) _routeGroups[template] = group;
+        if (statusCode != 429) return;
+
+        var until = DateTimeOffset.UtcNow.AddSeconds((retryAfter ?? errorLimitReset ?? 60) + 1);
+        _routeBlocks[template] = until;
+        if (group is not null) _routeBlocks[GroupPrefix + group] = until;
+    }
+
+    private static string RouteBlockedMessage(int wait)
+        => $"This route was rate-limited by ESI a moment ago; not called. Retry after {wait} s.";
+
     private void UpdateErrorLimitState(int statusCode, int? errorLimitRemain, int? errorLimitReset)
     {
         if (statusCode == 420)
@@ -387,10 +460,12 @@ public class EsiClient
         int regionId, int typeId, CancellationToken ct = default)
     {
         if (IsErrorLimitBlocked) return (null, 0);
+        var historyPath = $"markets/{regionId}/history/?type_id={typeId}";
+        if (RouteBlockedFor(historyPath) is not null) return (null, 429);
 
         await _httpGate.WaitAsync(ct);
         HttpResponseMessage response;
-        try { response = await _http.GetAsync($"markets/{regionId}/history/?type_id={typeId}", ct); }
+        try { response = await _http.GetAsync(historyPath, ct); }
         finally { _httpGate.Release(); }
 
         // Feed the shared error-limit tracker so the background history sweep self-throttles
@@ -401,6 +476,10 @@ public class EsiClient
         int? reset  = headers.TryGetValues("X-Esi-Error-Limit-Reset", out var sv)
                       && int.TryParse(sv.FirstOrDefault(), out var s) ? s : null;
         UpdateErrorLimitState((int)response.StatusCode, remain, reset);
+        RecordRouteLimit(historyPath, (int)response.StatusCode,
+            headers.TryGetValues("X-Ratelimit-Group", out var gv) ? gv.FirstOrDefault() : null,
+            headers.TryGetValues("Retry-After", out var ra) && int.TryParse(ra.FirstOrDefault(), out var raSecs) ? raSecs : null,
+            reset);
 
         if (!response.IsSuccessStatusCode) return (null, (int)response.StatusCode);
         var data = await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
@@ -479,6 +558,8 @@ public class EsiClient
     internal async Task<EsiCallResult<T>> ExecuteAuthAsync<T>(
         long characterId, string path, CancellationToken ct, int page = 0)
     {
+        if (RouteBlockedFor(path) is { } wait)
+            return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
         {
             var token = await EnsureValidTokenAsync(characterId, ct);
@@ -514,6 +595,7 @@ public class EsiClient
             var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
             var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
             UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+            RecordRouteLimit(path, statusCode, TryGetStr("X-Ratelimit-Group"), TryGetInt("Retry-After"), errorLimitReset);
 
             return new EsiCallResult<T>
             {
@@ -607,6 +689,8 @@ public class EsiClient
     private async Task<EsiCallResult<T>> ExecutePublicAsync<T>(
         string path, CancellationToken ct, int page = 0)
     {
+        if (RouteBlockedFor(path) is { } wait)
+            return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
         {
             var url      = page > 0 ? $"{path}?page={page}" : path;
@@ -643,6 +727,9 @@ public class EsiClient
             var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
             var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
             UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+            string? TryGetStr(string name) =>
+                response.Headers.TryGetValues(name, out var vals) ? vals.FirstOrDefault() : null;
+            RecordRouteLimit(path, statusCode, TryGetStr("X-Ratelimit-Group"), TryGetInt("Retry-After"), errorLimitReset);
 
             return new EsiCallResult<T>
             {
@@ -659,6 +746,78 @@ public class EsiClient
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
+        }
+    }
+
+    /// <summary>What a request the agent composed came back with, as text.</summary>
+    public sealed record RawResult(int StatusCode, string Body, int? ErrorLimitRemain, DateTimeOffset? Expires, string? Error,
+                                   int TotalPages = 1, int? RetryAfterSeconds = null)
+    {
+        public bool IsSuccess => StatusCode is >= 200 and < 300;
+    }
+
+    /// <summary>
+    /// A request the agent composed — path, optional JSON body, optional character to sign it as —
+    /// returned as the raw response text rather than deserialised into a type.
+    ///
+    /// <para>⚠️ Through this client and not an HttpClient of its own, and that is the point. The
+    /// error budget, the concurrency gate, the compatibility date and the token refresh all live
+    /// here; an agent that reached ESI directly would spend the same 100-errors-a-minute budget
+    /// as the polling without the polling knowing, which is exactly how the killmail backfill
+    /// once took 607 rejections while the rest of the app believed the budget untouched.</para>
+    ///
+    /// <para>Refused outright while the client is error-limited or the server is offline, with a
+    /// status of 0 and a reason — a call that cannot succeed should not cost an error.</para>
+    /// </summary>
+    public async Task<RawResult> RequestRawAsync(
+        HttpMethod method, string path, string? jsonBody, long? characterId, CancellationToken ct = default)
+    {
+        if (IsErrorLimitBlocked)
+            return new RawResult(0, "", null, null,
+                _serverOffline ? "Tranquility is offline; ESI is paused."
+                               : "ESI error limit reached; calls are paused until it resets.");
+        if (RouteBlockedFor(path) is { } wait)
+            return new RawResult(429, "", null, null, RouteBlockedMessage(wait), RetryAfterSeconds: wait);
+        try
+        {
+            using var request = new HttpRequestMessage(method, path);
+            if (jsonBody is not null)
+                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            if (characterId is { } charId)
+            {
+                var token = await EnsureValidTokenAsync(charId, ct);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+            }
+
+            await _httpGate.WaitAsync(ct);
+            HttpResponseMessage response;
+            try { response = await _http.SendAsync(request, ct); }
+            finally { _httpGate.Release(); }
+            using (response)
+            {
+                int? TryGetInt(string name) =>
+                    response.Headers.TryGetValues(name, out var vals)
+                    && int.TryParse(vals.FirstOrDefault(), out var v) ? v : null;
+
+                var statusCode       = (int)response.StatusCode;
+                var body             = await response.Content.ReadAsStringAsync(ct);
+                var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
+                var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
+                UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+                RecordRouteLimit(path, statusCode,
+                    response.Headers.TryGetValues("X-Ratelimit-Group", out var g) ? g.FirstOrDefault() : null,
+                    TryGetInt("Retry-After"), errorLimitReset);
+
+                return new RawResult(statusCode, body, errorLimitRemain, response.Content.Headers.Expires,
+                                     response.IsSuccessStatusCode ? null : body,
+                                     TryGetInt("X-Pages") ?? 1,
+                                     TryGetInt("Retry-After"));
+            }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            return new RawResult(0, "", null, null, ex.Message);
         }
     }
 
@@ -743,6 +902,8 @@ public class EsiClient
         long corpId, string path, CancellationToken ct, int page = 0,
         IReadOnlyDictionary<string, string>? extraHeaders = null)
     {
+        if (RouteBlockedFor(path) is { } wait)
+            return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
         {
             var token = await EnsureValidCorpTokenAsync(corpId, ct);
@@ -781,6 +942,7 @@ public class EsiClient
             var esiErrorRemain = TryGetInt("X-Esi-Error-Limit-Remain");
             var esiErrorReset  = TryGetInt("X-Esi-Error-Limit-Reset");
             UpdateErrorLimitState(statusCode, esiErrorRemain, esiErrorReset);
+            RecordRouteLimit(path, statusCode, TryGetStr("X-Ratelimit-Group"), TryGetInt("Retry-After"), esiErrorReset);
 
             return new EsiCallResult<T>
             {

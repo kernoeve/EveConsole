@@ -279,7 +279,7 @@
               <Grid ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
                          AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
-                         Watermark="e.g. Contracts are issued from UALX-3." FontSize="11"
+                         Watermark="e.g. Contracts are issued from Jita 4-4." FontSize="11"
                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                 <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
                                      VerticalAlignment="Top"

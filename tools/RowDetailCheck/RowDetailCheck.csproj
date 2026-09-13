@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Excluded from the app: EveConsole.csproj sits at the repo root and globs **/*.cs, so
+       without the matching <Compile Remove="tools/**" /> there this file's code would be
+       compiled into the shipped application. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EveConsole.Tools.RowDetailCheck</RootNamespace>
+    <AssemblyName>RowDetailCheck</AssemblyName>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pinned to the app's Avalonia: the check drives the real DataGrid, and the fault it
+         guards lives in that control's row recycling. -->
+    <PackageReference Include="Avalonia.Headless" Version="11.2.3" />
+    <ProjectReference Include="..\..\EveConsole.csproj" />
+  </ItemGroup>
+
+</Project>

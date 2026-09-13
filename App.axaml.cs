@@ -335,6 +335,18 @@ public class App : Application
                 if (written > 0)
                     await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
             };
+            // An undock, likewise: the location poll is what knows, and it says so the moment
+            // the character's pass is done, so the undock alarms are evaluated then — seconds
+            // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
+            // its stages are minutes out.
+            polling.CharacterUndocked += characterId =>
+                _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
+
+            // And a store order's state is worked out by the fulfilment pass — which the store
+            // mail runs the moment it books an order — so the store-order alarms follow the pass.
+            Services.GetRequiredService<OrderFulfilmentService>().AfterPass =
+                ct => Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
+
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
@@ -1498,6 +1510,8 @@ public class App : Application
                         "IsBlueprintCopy" INTEGER,
                         "RootLocationId"   INTEGER NOT NULL DEFAULT 0,
                         "RootLocationType" TEXT    NOT NULL DEFAULT '',
+                        "SolarSystemId"    INTEGER NULL,
+                        "RegionId"         INTEGER NULL,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
                     )
                     """);
@@ -2436,7 +2450,12 @@ public class App : Application
                         "ShipName"          TEXT,
                         "OnlineCheckedAt"   TEXT,
                         "LocationCheckedAt" TEXT,
-                        "ShipCheckedAt"     TEXT
+                        "ShipCheckedAt"     TEXT,
+                        "UndockedAt"        TEXT,
+                        "UndockedFromId"    INTEGER,
+                        "UndockedSystemId"  INTEGER,
+                        "SystemChangedAt"   TEXT,
+                        "PreviousSystemId"  INTEGER
                     )
                     """);
 
@@ -2554,12 +2573,14 @@ public class App : Application
                         "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
                         "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
                         "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1,
-                        "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1
+                        "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
+                        "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -2568,8 +2589,8 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1)
+                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -2733,7 +2754,7 @@ public class App : Application
                 // ⚠️ These two are what make the Corporations and Alliances pages of the entity
                 // browser usable. Their header runs COUNT(DISTINCT CharacterId) and COUNT(*) over
                 // KillMailAttackers filtered on CorporationId / AllianceId — neither of which was
-                // indexed, so both were full scans. Measured on Brave Newbies against 8.4M attacker
+                // indexed, so both were full scans. Measured on a 10,000-member corporation against 8.4M attacker
                 // rows: 22 seconds warm for one corp header, against 139 ms for the same figures on
                 // a pilot, which filters on the already-indexed CharacterId. That asymmetry was the
                 // whole bug — pilots opened instantly while corps looked hung.
@@ -2983,6 +3004,27 @@ public class App : Application
                     // existed such an item aborted the whole calculation.
                     """ALTER TABLE "IndyParks" ADD COLUMN "DefaultStructureId" INTEGER NULL""",
 
+                    // ── Assets: where the root location IS ──────────────────────────────
+                    // Filled by AssetLocations on every asset poll; null until the first poll
+                    // after this upgrade, and for the few roots nothing can resolve. Nullable
+                    // rather than defaulted so that null keeps meaning "unknown".
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
+
+                    // ── Alarms: the hours an alarm is on ────────────────────────────────
+                    """ALTER TABLE "Alarms" ADD COLUMN "ActiveFrom" TEXT NULL""",
+                    """ALTER TABLE "Alarms" ADD COLUMN "ActiveThru" TEXT NULL""",
+
+                    // ── Character status: the last undock ───────────────────────────────
+                    // Stamped by the location poll on a docked→space transition; what the
+                    // Ship Undocks alarm keys on. Null until a character next undocks.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedAt" TEXT NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedFromId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedSystemId" INTEGER NULL""",
+                    // And the last change of system, for the wake-up alarm's arrival mode.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "SystemChangedAt" TEXT NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "PreviousSystemId" INTEGER NULL""",
+
                     // ── SDE columns ─────────────────────────────────────────────────────
                     // Deliberately NOT here any more. Twenty of them were mirrored into this
                     // list from SdeImportService with an instruction to keep the two in step,
@@ -3035,7 +3077,7 @@ public class App : Application
                     // NB: braces are doubled. ExecuteSqlRaw runs the statement through string.Format,
                     // so a literal '{}' default is read as a format placeholder and throws — and
                     // since this loop swallows exceptions, the table would simply never be created.
-                    """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL)""",
+                    """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL, "ActiveFrom" TEXT NULL, "ActiveThru" TEXT NULL)""",
                     """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
 
                     """CREATE TABLE IF NOT EXISTS "AlarmActions" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "Kind" INTEGER NOT NULL DEFAULT 0, "ConfigJson" TEXT NOT NULL DEFAULT '{{}}', "Ordinal" INTEGER NOT NULL DEFAULT 0)""",
@@ -3043,6 +3085,8 @@ public class App : Application
 
                     // The ledger that stops an alarm re-announcing what it has already announced.
                     """CREATE TABLE IF NOT EXISTS "AlarmSeenKeys" ("AlarmId" INTEGER NOT NULL, "MatchKey" TEXT NOT NULL, "FirstSeenAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "MatchKey"))""",
+                    // A staged alarm's acknowledgements: this character's episode is quiet until then.
+                    """CREATE TABLE IF NOT EXISTS "AlarmSnoozes" ("AlarmId" INTEGER NOT NULL, "ScopeKey" TEXT NOT NULL, "Episode" TEXT NOT NULL DEFAULT '', "Until" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "ScopeKey"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
 
                     """CREATE TABLE IF NOT EXISTS "AlarmEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "FiredAt" TEXT NOT NULL DEFAULT '', "Summary" TEXT NOT NULL DEFAULT '', "DetailJson" TEXT NULL, "MatchCount" INTEGER NOT NULL DEFAULT 0)""",
@@ -3096,6 +3140,61 @@ public class App : Application
                 // PostgreSQL never had this split — PostgresSchema.Apply covers SDE and non-SDE
                 // together, above — and this is SQLite catching up to that shape.
                 SdeImportService.EnsureSdeSchema(db);
+
+                // ── Agent telemetry ─────────────────────────────────────────────────
+                //
+                // Same reason as the SDE block above: these tables arrived after most databases
+                // did, and EnsureCreated only ever builds a new one.
+                //
+                // ⚠️ Unconditional, not gated on the agent being configured. The retention sweep
+                // and the usage views read these tables whether or not anyone has set up a
+                // provider, and a missing table there breaks a screen that has nothing to do with
+                // the agent.
+                AgentTelemetrySchema.Ensure(db);
+            }
+
+            // ⚠️ Outside the engine branch, because the rate list is DATA rather than schema and
+            // both engines need it. PostgresSchema.Apply creates the table and seeds nothing, so
+            // leaving this inside the SQLite arm — where it started — would have left every
+            // PostgreSQL install with an empty price list and every cost reading zero.
+            //
+            // Insert-if-absent, so a capsuleer's corrections are never overwritten, and the unique
+            // index settles any race between two clients starting together.
+            if (!skipSchema) AgentTelemetrySchema.SeedRates(db);
+
+            // Where each asset is, for rows written before the columns existed. Both engines,
+            // outside the engine branch for the same reason as the rates above; nothing to do
+            // once the columns are filled, which after the first start they are.
+            if (!skipSchema)
+            {
+                // Ship Undocks alarms saved on the check's first shape (unfit / fuel_below /
+                // ammo_below) are rewritten to its choices, once, so they go on meaning what they
+                // meant rather than quietly widening to "any undock".
+                try
+                {
+                    foreach (var alarm in db.Alarms.Where(a => a.ConditionType == "ship_undock").ToList())
+                        if (EveConsole.Alarms.Conditions.ShipUndockCondition.UpgradeConfig(alarm.ConditionJson) is { } upgraded)
+                            alarm.ConditionJson = upgraded;
+                    db.SaveChanges();
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading ship_undock alarms", ex); }
+
+                try { AssetLocations.FillMissing(db); }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
+
+                // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
+                // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling
+                // the same pilot are one sighting and nobody is named for reporting. An alarm
+                // still holding keys of the old shape is re-primed, so the first evaluation banks
+                // what is in its two-hour window instead of announcing all of it, and the old
+                // keys go. Both engines — the previous key migration lived in the SQLite list
+                // alone and a server install never had it. No-ops once no old keys remain.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""UPDATE "Alarms" SET "Primed" = FALSE WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:____-__-__T%')""");
+                    db.Database.ExecuteSqlRaw("""DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:____-__-__T%'""");
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel key migration", ex); }
             }
         }
         }); // end Task.Run — schema migration complete
@@ -3103,6 +3202,12 @@ public class App : Application
         p.Report((80, "Loading settings…"));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
+        try
+        {
+            var endpoints = Services.GetRequiredService<EsiPollingService>();
+            await timerSettings.ForgetMinuteRoundingAsync(endpoints.CharacterEndpointInfos.Concat(endpoints.CorpEndpointInfos));
+        }
+        catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Timers", "minute rounding", ex); }
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
 
@@ -3625,9 +3730,48 @@ public class App : Application
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();
-        services.AddSingleton<AgentService>();
-        services.AddSingleton<TtsService>();
-        services.AddSingleton<SpeechInputService>();
+        // ⚠️ Telemetry is set here rather than after startup because AgentService.Initialize is
+        // what builds the tool list, and the decorator can only wrap tools that do not exist yet.
+        // A telemetry service attached later would measure token usage and no tool calls at all.
+        services.AddSingleton<AgentTelemetryService>();
+
+        // ⚠️ Built once from the entity model, not per question: reflecting over 200 entity types
+        // is not free, and the model cannot change while the app is running.
+        services.AddSingleton<AgentSchema>(sp => AgentSchema.Build(sp));
+
+        services.AddSingleton<AgentService>(sp =>
+        {
+            // ⚠️ The schema is optional and its failure must not be fatal. It is built by
+            // reflecting over the model during container construction, and this runs on the
+            // startup path — an exception here would stop the whole application from opening over
+            // a feature that only makes the assistant better at finding tables. Without it the
+            // agent keeps every tool it had before; it simply cannot discover new ones.
+            AgentSchema? schema = null;
+            try   { schema = sp.GetRequiredService<AgentSchema>(); }
+            catch (Exception ex)
+            {
+                sp.GetRequiredService<AppErrorLogger>()
+                  .Log("AgentSchema", "Build", ex);
+            }
+
+            return new AgentService
+            {
+                Telemetry   = sp.GetRequiredService<AgentTelemetryService>(),
+                Schema      = schema,
+                Preferences = sp.GetRequiredService<AppPreferencesService>(),
+            };
+        });
+        // Speech in and out are billable too, and on their own units — characters for a voice,
+        // audio seconds for a transcriber — so they record into the same ledger as the LLM.
+        services.AddSingleton<TtsService>(sp => new TtsService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+        });
+        services.AddSingleton<SpeechInputService>(sp => new SpeechInputService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+            Errors    = sp.GetRequiredService<AppErrorLogger>(),
+        });
         services.AddSingleton<GlobalHotkeyService>();
         services.AddSingleton<KillMailService>();
         services.AddSingleton<EveMailService>();

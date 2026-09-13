@@ -145,10 +145,13 @@ public sealed class AlarmService : ReactiveObject
             List<long> ids;
             await using (var db = await _dbFactory.CreateDbContextAsync(ct))
             {
-                ids = await db.Alarms
+                var now = DateTimeOffset.Now;
+                ids = (await db.Alarms
                     .Where(a => a.Enabled && a.ConditionType == conditionType)
+                    .ToListAsync(ct))
+                    .Where(a => a.IsActiveAt(now))
                     .Select(a => a.Id)
-                    .ToListAsync(ct);
+                    .ToList();
             }
 
             if (ids.Count == 0) return;
@@ -193,7 +196,7 @@ public sealed class AlarmService : ReactiveObject
                 Now              = DateTimeOffset.Now,
             }, ct);
 
-            if (matches.Count > 0) BankKeys(db, alarmId, matches, DateTimeOffset.Now);
+            if (matches.Count > 0) BankKeys(db, alarmId, matches, await SeenAsync(db, alarmId, ct), DateTimeOffset.Now);
             alarm.Primed = true;
             await db.SaveChangesAsync(ct);
         }
@@ -255,7 +258,7 @@ public sealed class AlarmService : ReactiveObject
                 _nextDue.Remove(gone);
 
             foreach (var a in alarms)
-                if (!_nextDue.TryGetValue(a.Id, out var at) || at <= now)
+                if (a.IsActiveAt(now) && (!_nextDue.TryGetValue(a.Id, out var at) || at <= now))
                     due.Add(a);
 
             NextDueAt = _nextDue.Count > 0 ? _nextDue.Values.Min() : now;
@@ -279,6 +282,7 @@ public sealed class AlarmService : ReactiveObject
             {
                 _errors.Log("AlarmService", $"alarm {alarm.Id} ({alarm.Name})", ex);
                 alarm.LastError = ex.Message;
+                DropPending(db, alarm.Id);
             }
 
             alarm.LastCheckedAt = now;
@@ -319,12 +323,15 @@ public sealed class AlarmService : ReactiveObject
         try { config = JsonDocument.Parse(alarm.ConditionJson ?? "{}").RootElement.Clone(); }
         catch (Exception ex) { alarm.LastError = $"Bad condition config: {ex.Message}"; return false; }
 
+        var seenSet = await SeenAsync(db, alarm.Id, ct);
+
         var ctx = new AlarmEvaluationContext
         {
             DbFactory        = _dbFactory,
             ConnectionString = _connString,
             Alarm            = alarm,
             Now              = now,
+            Seen             = seenSet,
         };
 
         var matches = await condition.EvaluateAsync(config, ctx, ct);
@@ -339,7 +346,7 @@ public sealed class AlarmService : ReactiveObject
         // alarm would never fire at all.
         if (!alarm.Primed)
         {
-            if (matches.Count > 0) BankKeys(db, alarm.Id, matches, now);
+            if (matches.Count > 0) BankKeys(db, alarm.Id, matches, seenSet, now);
             alarm.Primed = true;
             return false;
         }
@@ -352,18 +359,24 @@ public sealed class AlarmService : ReactiveObject
 
         if (matches.Count == 0) return false;
 
-        var seen = await db.AlarmSeenKeys.AsNoTracking()
-            .Where(k => k.AlarmId == alarm.Id)
-            .Select(k => k.MatchKey)
-            .ToListAsync(ct);
-        var seenSet = seen.ToHashSet(StringComparer.Ordinal);
+        // Silent matches are banked and never announced: what a check folded into another
+        // announcement, or an event kind the user switched off, which must not fire later if
+        // switched back on.
+        var unseen = matches.Where(m => !seenSet.Contains(m.Key)).ToList();
+        var fresh  = unseen.Where(m => !m.Silent).ToList();
+        if (fresh.Count == 0)
+        {
+            if (unseen.Count > 0) BankKeys(db, alarm.Id, unseen, seenSet, now);
+            return false;
+        }
 
-        var fresh = matches.Where(m => !seenSet.Contains(m.Key)).ToList();
-        if (fresh.Count == 0) return false;
+        // A staged check sets its own cadence — a cooldown would swallow stage two, and one-shot
+        // would end the alarm at stage one.
+        var staged = condition.Stages > 0;
 
         // A cooldown suppresses the firing but must NOT bank the keys, or the matches it is
         // damping would be lost for good. They stay unseen and go out together once it lapses.
-        if (alarm.CooldownSeconds > 0 && alarm.LastFiredAt is { } last
+        if (!staged && alarm.CooldownSeconds > 0 && alarm.LastFiredAt is { } last
             && now < last.AddSeconds(alarm.CooldownSeconds))
         {
             return false;
@@ -384,11 +397,11 @@ public sealed class AlarmService : ReactiveObject
         };
         db.AlarmEvents.Add(evt);
 
-        BankKeys(db, alarm.Id, fresh, now);
+        BankKeys(db, alarm.Id, unseen, seenSet, now);
 
         alarm.LastFiredAt = now;
         alarm.FireCount  += 1;
-        if (alarm.Repeat == AlarmRepeat.OneShot) alarm.Enabled = false;
+        if (!staged && alarm.Repeat == AlarmRepeat.OneShot) alarm.Enabled = false;
 
         // Persist before acting: an action that raises a dialog or calls the agent must not be
         // able to run twice because the write that recorded it had not landed yet.
@@ -399,12 +412,62 @@ public sealed class AlarmService : ReactiveObject
             .OrderBy(a => a.Ordinal)
             .ToListAsync(ct);
 
-        // The condition supplies wording for any Alert or Dialog left on its default, so what
-        // the capsuleer reads reflects what was actually being watched for.
-        var defaults = condition.DefaultText(alarm.Name, config, fresh);
+        if (!staged)
+        {
+            // The condition supplies wording for any Alert or Dialog left on its default, so what
+            // the capsuleer reads reflects what was actually being watched for.
+            var defaults = condition.DefaultText(alarm.Name, config, fresh);
 
-        await _actions.RunAsync(alarm, actions, evt, fresh, defaults, ct);
+            // And, for a condition that would rather be quoted than paraphrased, the exact words.
+            var announcement = condition.Announcement(config, fresh);
+
+            await _actions.RunAsync(alarm, actions, evt, fresh, defaults, announcement, ct: ct);
+            return true;
+        }
+
+        // Staged: one firing per scope and stage — two pilots adrift are two wake-up calls, each
+        // with the actions under its stage (an action with no stage, as the agent's tool may
+        // make, runs at every stage).
+        foreach (var group in fresh.GroupBy(m => (Stage: IAlarmCondition.StageOf(m), Scope: DetailText(m, "scope_key"))))
+        {
+            var list  = group.ToList();
+            var first = list[0];
+            var stage = new AlarmStageInfo(
+                group.Key.Stage,
+                group.Key.Scope,
+                DetailText(first, "episode"),
+                first.Detail is { } d && d.TryGetValue("snooze_minutes", out var sm) && sm is int m ? m : 30,
+                condition.TypeKey);
+
+            var stageActions = actions.Where(a => ActionStage(a) is not { } s || s == group.Key.Stage).ToList();
+            if (stageActions.Count == 0) continue;
+
+            await _actions.RunAsync(
+                alarm, stageActions, evt, list,
+                condition.DefaultText(alarm.Name, config, list),
+                condition.Announcement(config, list),
+                stage,
+                condition.AgentPrompt(config, list),
+                ct);
+        }
         return true;
+    }
+
+    private static string DetailText(AlarmMatch m, string key)
+        => m.Detail is { } d && d.TryGetValue(key, out var v) && v is string s ? s : "";
+
+    /// <summary>The stage an action runs at, from its config — null for every stage.</summary>
+    internal static int? ActionStage(AlarmAction action)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(action.ConfigJson ?? "{}");
+            return doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("stage", out var p)
+                && p.ValueKind == JsonValueKind.Number && p.TryGetInt32(out var stage) && stage > 0
+                ? stage : null;
+        }
+        catch { return null; }
     }
 
     /// <summary>
@@ -440,22 +503,67 @@ public sealed class AlarmService : ReactiveObject
 #pragma warning restore EF1002
     }
 
-    private static void BankKeys(AppDbContext db, long alarmId, IEnumerable<AlarmMatch> matches, DateTimeOffset now)
+    private static async Task<HashSet<string>> SeenAsync(AppDbContext db, long alarmId, CancellationToken ct)
     {
-        foreach (var m in matches)
-            db.AlarmSeenKeys.Add(new AlarmSeenKey
-            {
-                AlarmId     = alarmId,
-                MatchKey    = m.Key,
-                FirstSeenAt = now,
-            });
+        var seen = await db.AlarmSeenKeys.AsNoTracking()
+            .Where(k => k.AlarmId == alarmId)
+            .Select(k => k.MatchKey)
+            .ToListAsync(ct);
+        return seen.ToHashSet(StringComparer.Ordinal);
     }
 
-    private static string BuildSummary(IReadOnlyList<AlarmMatch> fresh) =>
-        fresh.Count == 1
-            ? fresh[0].Summary
-            : $"{fresh.Count} new: " + string.Join("; ", fresh.Take(3).Select(m => m.Summary))
-              + (fresh.Count > 3 ? $"; +{fresh.Count - 3} more" : "");
+    /// <summary>
+    /// Adds each key in <paramref name="matches"/> to the ledger once, skipping those already in
+    /// <paramref name="banked"/> — which is grown as it goes, so the caller's set stays true.
+    /// </summary>
+    private static void BankKeys(
+        AppDbContext db, long alarmId, IEnumerable<AlarmMatch> matches, HashSet<string> banked, DateTimeOffset now)
+    {
+        // ⚠️ One row per KEY, not per match. A condition may key several matches alike on
+        // purpose — intel keys the same pilots in the same system inside five minutes as one
+        // sighting however many people called it — and the ledger's primary key takes each once;
+        // EF's identity map refused the second Add before the database ever saw it, which
+        // left the alarm unprimed with half its keys landed, and the next tick tripping over
+        // those. The set is what is already on the ledger, so a priming pass after a partial
+        // bank is safe too.
+        foreach (var m in matches)
+            if (banked.Add(m.Key))
+                db.AlarmSeenKeys.Add(new AlarmSeenKey
+                {
+                    AlarmId     = alarmId,
+                    MatchKey    = m.Key,
+                    FirstSeenAt = now,
+                });
+    }
+
+    /// <summary>
+    /// Detaches whatever a failed evaluation had queued for this alarm — ledger rows, its event —
+    /// so it neither lands half done nor takes the tick's own save, and every other alarm's
+    /// bookkeeping with it, down. Anything already saved by the evaluation is not pending.
+    /// </summary>
+    private static void DropPending(AppDbContext db, long alarmId)
+    {
+        foreach (var e in db.ChangeTracker.Entries().Where(e => e.State == EntityState.Added).ToList())
+        {
+            var mine = e.Entity switch
+            {
+                AlarmSeenKey k  => k.AlarmId  == alarmId,
+                AlarmEvent   ev => ev.AlarmId == alarmId,
+                _               => false,
+            };
+            if (mine) e.State = EntityState.Detached;
+        }
+    }
+
+    // Matches that share a key are one thing said several times; the record says it once.
+    private static string BuildSummary(IReadOnlyList<AlarmMatch> fresh)
+    {
+        var lines = fresh.Select(m => m.Summary).Distinct(StringComparer.Ordinal).ToList();
+        return lines.Count == 1
+            ? lines[0]
+            : $"{lines.Count} new: " + string.Join("; ", lines.Take(3))
+              + (lines.Count > 3 ? $"; +{lines.Count - 3} more" : "");
+    }
 
     /// <summary>
     /// Keeps the ledger from growing without bound on high-volume checks. Retention is far
@@ -476,6 +584,10 @@ public sealed class AlarmService : ReactiveObject
         var cutoff = (now - SeenKeyRetention).ToUniversalTime();
         await db.Database.ExecuteSqlRawAsync(
             """DELETE FROM "AlarmSeenKeys" WHERE "FirstSeenAt" < {0}""", [cutoff], ct);
+
+        // Acknowledgements are only meaningful while their episode lasts; a day is generous.
+        await db.Database.ExecuteSqlRawAsync(
+            """DELETE FROM "AlarmSnoozes" WHERE "Until" < {0}""", [now.ToUniversalTime().AddDays(-1)], ct);
 
         // ⚠️ EF1002 suppressed rather than worked around, and only because of what is interpolated:
         // AppDb.RowId is the engine's row-address identifier ("rowid" or "ctid") and

@@ -881,58 +881,21 @@ public class WalletViewModel : ReactiveObject
 
     private async Task BuildChartsAsync(AppDbContext db, WalletOwnerOption? owner, DateTimeOffset cutoff)
     {
-        var groups = new List<(string RefType, decimal Total)>();
-
+        // One wallet, or all of the player's. Either way ISK moved between the player's own
+        // wallets is left out: a transfer in from an alt is not this character's income any more
+        // than it is the player's — see WalletJournalTotals.
+        List<(string OwnerType, long OwnerId)> chartOwners;
         if (owner?.OwnerId != null)
-        {
-            var oid = owner.OwnerId.Value;
-            var ot  = owner.OwnerType!;
-            var rows = await db.Database.SqlQuery<JournalGroup>(
-                $"""
-                 SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
-                 FROM "EsiWalletJournal"
-                 WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                 GROUP BY "RefType"
-                 """).ToListAsync();
-            groups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
-        }
+            chartOwners = [(owner.OwnerType!, owner.OwnerId.Value)];
         else
         {
-            var chars = await db.Characters
-                .Select(c => new { Id = c.Id, Type = "character" }).ToListAsync();
-            var corps = await db.Corporations
-                .Where(c => c.IsPersonal)
-                .Select(c => new { Id = (long)c.Id, Type = "corporation" }).ToListAsync();
-
-            foreach (var c in chars)
-            {
-                var oid = c.Id; var ot = c.Type;
-                var rows = await db.Database.SqlQuery<JournalGroup>(
-                    $"""
-                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
-                     FROM "EsiWalletJournal"
-                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                     GROUP BY "RefType"
-                     """).ToListAsync();
-                groups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
-            }
-            foreach (var c in corps)
-            {
-                var oid = c.Id; var ot = c.Type;
-                var rows = await db.Database.SqlQuery<JournalGroup>(
-                    $"""
-                     SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
-                     FROM "EsiWalletJournal"
-                     WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                     GROUP BY "RefType"
-                     """).ToListAsync();
-                groups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
-            }
+            var charIds = await db.Characters.Select(c => c.Id).ToListAsync();
+            var corpIds = await db.Corporations.Where(c => c.IsPersonal).Select(c => (long)c.Id).ToListAsync();
+            chartOwners = charIds.Select(id => ("character", id))
+                .Concat(corpIds.Select(id => ("corporation", id))).ToList();
         }
 
-        var byType = groups
-            .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
+        var byType = await WalletJournalTotals.ByRefTypeAsync(db, chartOwners, cutoff);
 
         var bountyTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             { "bounty_prizes", "npc_bounty", "bounty_prize", "corporate_reward", "agent_bounty_prize" };
@@ -1112,12 +1075,6 @@ public class WalletViewModel : ReactiveObject
         if (abs >= 1_000_000m)     return $"{v / 1_000_000m:F2}M";
         if (abs >= 1_000m)         return $"{v / 1_000m:F1}K";
         return $"{v:N0}";
-    }
-
-    private sealed class JournalGroup
-    {
-        public string RefType     { get; set; } = "";
-        public double TotalAmount { get; set; }
     }
 
     private sealed class BalanceSummary

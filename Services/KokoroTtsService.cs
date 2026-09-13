@@ -64,20 +64,58 @@ public sealed class KokoroTtsService : IDisposable
         _tts = KokoroTTS.LoadModel(); // downloads + caches automatically
     });
 
+    /// <summary>
+    /// Speaks one utterance and does not return until it has finished playing.
+    ///
+    /// <para>⚠️ Blocking on purpose, and this is the whole fix for speech being skipped.
+    /// <c>SpeakFast</c> hands back a handle immediately — it SUBMITS the work, it does not play
+    /// it — and a later call arriving while the previous one is still speaking cancels it. That
+    /// did not matter while the entire answer was spoken in one go. It matters completely now that
+    /// sentences are handed over as they stream, because each new one cut off its predecessor and
+    /// the listener lost whole passages.</para>
+    ///
+    /// <para>⚠️ Serialising the CALLS is not enough, which is why the first attempt at this did
+    /// not work: they return in microseconds, so every sentence was submitted almost at once and
+    /// each cancelled the one before. What has to be serialised is the PLAYBACK, and the only
+    /// thing that knows when that ends is the handle.</para>
+    ///
+    /// <para>Callers arrive through TtsService's queue, which already runs this on a pool thread,
+    /// so blocking holds up nothing but the next utterance — which is the point.</para>
+    /// </summary>
     public void SpeakAsync(string text)
     {
         if (_tts is null) return;
         var stripped = StripMarkdown(text);
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
-        var voice = KokoroVoiceManager.GetVoice(_voiceId);
-        _tts.SpeakFast(stripped, voice);
+        var voice  = KokoroVoiceManager.GetVoice(_voiceId);
+        var done   = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var handle = _tts.SpeakFast(stripped, voice);
+
+        handle.OnSpeechCompleted += _ => done.TrySetResult();
+        handle.OnSpeechCanceled  += _ => done.TrySetResult();
+
+        // ⚠️ The job can finish between being returned and these callbacks being attached — a very
+        // short utterance does — and then neither ever fires and this waits out the timeout for
+        // nothing.
+        if (handle.Job?.isDone == true) done.TrySetResult();
+
+        // A ceiling, not an expectation: if a completion signal is ever missed, speech resumes
+        // late rather than stopping for the rest of the session.
+        done.Task.Wait(TimeSpan.FromMinutes(2));
     }
 
+    /// <summary>
+    /// Stops whatever is currently being spoken.
+    ///
+    /// <para>⚠️ This was empty, with a comment saying KokoroSharp exposes no stop or cancel API.
+    /// It does — <c>StopPlayback</c> — so asking the agent to stop talking did nothing, and the
+    /// previous answer carried on over the next question.</para>
+    /// </summary>
     public void Stop()
     {
-        // KokoroSharp's job-queue system doesn't expose a public stop/cancel API.
-        // The current utterance finishes naturally; mute state prevents new speech.
+        try   { _tts?.StopPlayback(); }
+        catch { /* nothing useful to do if the engine has already gone */ }
     }
 
     public void Dispose()

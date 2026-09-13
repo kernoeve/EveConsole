@@ -115,6 +115,11 @@
     <!-- Cross-platform microphone recording (includes win-x64, linux-x64, osx runtimes) -->
     <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
 
+    <!-- Markdown parsing for the agent's document tabs. Parser only — the rendering into themed
+         Avalonia controls is ours, in Views/MarkdownRenderer.cs, so reports follow the palette
+         rather than arriving with a stylesheet of their own. Pure managed, no natives. -->
+    <PackageReference Include="Markdig" Version="0.41.3" />
+
     <!-- Local Whisper STT.
          ⚠️ Whisper.net.Runtime.Linux does not exist either, and is not needed: the main
          runtime package already carries linux-x64, linux-arm and linux-arm64 natives. -->

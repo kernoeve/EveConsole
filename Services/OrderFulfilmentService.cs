@@ -50,6 +50,13 @@ public class OrderFulfilmentService(
     private CancellationTokenSource? _cts;
 
     /// <summary>
+    /// Run after every pass, on the same client: what lets a store-order alarm be evaluated the
+    /// moment an order's state has been worked out rather than at its own next interval. Set
+    /// at startup.
+    /// </summary>
+    public Func<CancellationToken, Task>? AfterPass { get; set; }
+
+    /// <summary>
     /// Starts the poll. Five minutes rather than on demand: the inputs are polled ESI data —
     /// assets, industry jobs and contracts — so checking more often than they change would only
     /// re-read the same rows.
@@ -106,6 +113,20 @@ public class OrderFulfilmentService(
 
     /// <summary>One pass over the pending orders. Public so the tool can force it after an edit.</summary>
     public async Task RunOnceAsync(CancellationToken ct = default)
+    {
+        try { await PassAsync(ct); }
+        finally
+        {
+            if (AfterPass is { } after)
+            {
+                try { await after(ct); }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { errorLogger.Log(nameof(OrderFulfilmentService), "after pass", ex); }
+            }
+        }
+    }
+
+    private async Task PassAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -363,9 +384,11 @@ public class OrderFulfilmentService(
     /// <para>Deliberately strict, because the consequence is marking an order complete:</para>
     /// <list type="bullet">
     /// <item>issued by one of our characters or personal corporations — not just any contract;</item>
-    /// <item>assigned to this order's buyer, by id. ⚠️ An order whose buyer predates the id column
-    /// carries a typed name only, and is skipped rather than matched by name: the wrong contract
-    /// would silently close somebody else's order;</item>
+    /// <item>assigned, by id, to this order's buyer — or to whoever the order says the contract
+    /// is to be made out to, when it names someone (an alt that will fly the thing, their
+    /// corporation). ⚠️ An order whose buyer predates the id column carries a typed name only,
+    /// and is skipped rather than matched by name: the wrong contract would silently close
+    /// somebody else's order;</item>
     /// <item>issued AFTER the order was placed, so a delivery from three months ago cannot be read
     /// as fulfilling something ordered today;</item>
     /// <item>carrying at least the ordered units of the ordered type;</item>
@@ -397,7 +420,14 @@ public class OrderFulfilmentService(
     private static async Task<ContractHit?> FindContractAsync(
         AppDbContext db, TrackedOrder order, OurIds ours, HashSet<int> claimed, CancellationToken ct)
     {
-        if (order.BuyerId <= 0) return null;
+        // The order said who the contract goes to, or it goes to the buyer; a contract to either
+        // is this order's. The recipient can be a corporation — ESI puts a corporation's id in
+        // assignee_id just the same. ⚠️ This field was on the order for a release before anything
+        // here read it, and a titan contracted to the buyer's alt sat unmatched beside its order.
+        var recipients = new List<long>();
+        if (order.BuyerId      > 0) recipients.Add(order.BuyerId);
+        if (order.ContractToId > 0 && !recipients.Contains(order.ContractToId)) recipients.Add(order.ContractToId);
+        if (recipients.Count == 0) return null;
         if (ours.Characters.Count == 0 && ours.Corporations.Count == 0) return null;
 
         // ⚠️ Raw SQL, not a LINQ Where. ContractRecord.DateIssued is a DateTimeOffset and EF Core's
@@ -431,7 +461,7 @@ public class OrderFulfilmentService(
             FROM "EsiContracts" c
             JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
             WHERE c."Status" IN ('finished', 'outstanding', 'in_progress', 'rejected')
-              AND c."AssigneeId" = {0}
+              AND c."AssigneeId" IN ({{string.Join(",", recipients)}})
               AND c."DateIssued" > {1}
               AND ({{string.Join(" OR ", tests)}})
               AND i."TypeId" = {2} AND i."IsIncluded" = TRUE AND i."Quantity" >= {3}
@@ -442,6 +472,8 @@ public class OrderFulfilmentService(
         // ⚠️ Scalar ids only. SqlQueryRaw with an unmapped result type is not something to rely on
         // here — the details are read back through EF below, where there is no DateTimeOffset
         // comparison left to translate and the columns arrive properly typed.
+        // {0} is no longer used by the text — the recipients are embedded, being our own ids —
+        // but the placeholders are positional, so it keeps its slot.
         var ids = await db.Database
             .SqlQueryRaw<int>(sql, order.BuyerId, placed, order.TypeId, order.Units)
             .ToListAsync(ct);

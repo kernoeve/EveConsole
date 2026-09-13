@@ -214,7 +214,7 @@ public static class IntelRules
     /// <summary>
     /// Every token run that could be a character name, for the caller to resolve in one batch.
     /// Runs that already match a system are skipped: a system name is never also asked about as
-    /// a character, which is what keeps "C-FD0D Kerno C-FD0D" from being resolved twice.
+    /// a character, which is what keeps "C-FD0D Some Pilot C-FD0D" from being resolved twice.
     /// </summary>
     public static IReadOnlyList<string> NameCandidates(string message, Func<string, bool> isSystem)
     {

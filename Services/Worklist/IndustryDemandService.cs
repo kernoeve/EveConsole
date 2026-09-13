@@ -60,6 +60,14 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     public bool IsFinal { get; init; }
 
     /// <summary>
+    /// Wanted in its own right — by a customer order or a tripped inventory rule — rather than
+    /// only as a material of something above it. What the purchase generator acquires prints
+    /// for: a sub-assembly's missing print is the job generator's to raise, on the job that
+    /// cannot start without it.
+    /// </summary>
+    public bool IsRoot { get; init; }
+
+    /// <summary>
     /// What this item's own demand justifies, before inheritance.
     ///
     /// <para>⚠️ Inherited priority is only true while something upstream still needs this.
@@ -163,6 +171,88 @@ public sealed record ScopeStock(
         Corp.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
         + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
         + (InBuild?.GetValueOrDefault(typeId) ?? 0);
+
+    /// <summary>
+    /// Everything in scope: assets by owner, what running jobs will deliver, and what delivered
+    /// jobs have put in hangars that the asset poll has not seen yet.
+    ///
+    /// <para>One loader for the three tools that net demand against it — jobs, hauling and
+    /// purchasing — so they cannot disagree about what exists. Purchasing planned against
+    /// assets alone for a long time, and the running jobs it could not see were its own: a
+    /// component's raw materials were bought over again the moment its job started, because
+    /// the inputs had left the hangar and the output was not yet anywhere assets could see.
+    /// Measured on a live list: 80 billion ISK of purchases became 155 billion over an
+    /// afternoon of starting exactly the jobs the list asked for.</para>
+    /// </summary>
+    /// <param name="scope">Root locations that count, or null for anywhere.</param>
+    /// <param name="wrapped">Item ids in asset safety and its container chain, which cannot fill a job.</param>
+    /// <param name="corps">Corporations whose hangars count, or null for all of them.</param>
+    public static async Task<ScopeStock> LoadAsync(
+        AppDbContext db, HashSet<long>? scope, HashSet<long> wrapped, HashSet<long>? corps,
+        CancellationToken ct)
+    {
+        bool Ours(string ownerType, long ownerId) =>
+            ownerType != "corporation" || corps is null || corps.Contains(ownerId);
+
+        var rows = (await (scope is null
+                    ? db.EsiAssets.AsNoTracking()
+                    : db.EsiAssets.AsNoTracking().Where(a => scope.Contains(a.RootLocationId)))
+                .Select(a => new { a.ItemId, a.TypeId, a.OwnerType, a.OwnerId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => !wrapped.Contains(a.ItemId) && Ours(a.OwnerType, a.OwnerId))
+            .GroupBy(a => (a.TypeId, a.OwnerType, a.OwnerId))
+            .Select(g => new { g.Key.TypeId, g.Key.OwnerType, g.Key.OwnerId,
+                               Qty = g.Sum(a => (long)a.Quantity) })
+            .ToList();
+
+        // What is already on its way out of a machine. "ready" counts: the job has finished and
+        // eaten its inputs, and the output exists — it is just not collected yet.
+        //
+        // ⚠️ Runs times what a run YIELDS, not runs. A reaction turns 250 runs into 50,000 units,
+        // and netting off the run count would credit a two-hundredth of what is arriving.
+        var running = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => (j.Status == "active" || j.Status == "paused" || j.Status == "ready")
+                            && j.ProductTypeId != null)
+                .Select(j => new { j.ProductTypeId, j.Runs, j.FacilityId, j.BlueprintTypeId })
+                .ToListAsync(ct))
+            .Where(j => scope is null || scope.Contains(j.FacilityId))
+            .ToList();
+
+        var runningPrints = running.Select(j => j.BlueprintTypeId).Distinct().ToList();
+
+        var runningYield = (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => runningPrints.Contains(p.TypeId))
+                .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
+                .ToListAsync(ct))
+            .GroupBy(p => (p.TypeId, p.ProductTypeId))
+            .ToDictionary(x => x.Key, x => (long)Math.Max(1, x.Max(p => p.Quantity)));
+
+        var inBuild = running
+            .GroupBy(j => j.ProductTypeId!.Value)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Sum(j => j.Runs * runningYield.GetValueOrDefault(
+                                    (j.BlueprintTypeId, j.ProductTypeId!.Value), 1L)));
+
+        var corpStock = rows.Where(a => a.OwnerType == "corporation")
+            .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty));
+        var personalStock = rows.Where(a => a.OwnerType != "corporation")
+            .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty));
+
+        // And what delivered jobs have put in hangars that the asset poll has not seen yet —
+        // counted as the stock it is, under the owner whose hangar it landed in. Without it a
+        // delivered component is in no asset row and no running job for up to an hour, and the
+        // list plans it again. See DeliveryLag.
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(d.Site)) continue;
+            if (!Ours(d.OwnerType, d.OwnerId)) continue;
+            var pile = d.OwnerType == "corporation" ? corpStock : personalStock;
+            pile[(d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.TypeId, d.OwnerId)) + d.Units;
+        }
+
+        return new ScopeStock(corpStock, personalStock, inBuild);
+    }
 }
 
 /// What industry has to build, from every demand at once.
@@ -254,10 +344,16 @@ public class IndustryDemandService(
     /// and never mentioned the fifty-odd component jobs in between — every one of which is real
     /// work someone has to queue.</para>
     /// </summary>
+    /// <param name="meOverrides">The efficiency of the print each item would really be built
+    /// with, where the caller knows it. Every level of the cascade is then planned at it, so a
+    /// child's requirement is what the parent's actual print will take rather than what a
+    /// default one would — the purchase generator's rule, applied to the quantities it buys
+    /// for. Null plans every level at the default efficiency.</param>
     public async Task<Dictionary<int, BuildDemand>> GatherAsync(
         AppDbContext db, ProductionContext ctx, List<WorklistInvRule> rules,
         Dictionary<int, InvLevelGroup> groups, HashSet<long>? scope, HashSet<long> wrapped,
-        HashSet<long>? corps, ScopeStock inScope, CancellationToken ct)
+        HashSet<long>? corps, ScopeStock inScope, CancellationToken ct,
+        IReadOnlyDictionary<int, int>? meOverrides = null)
     {
         var gross = new Dictionary<int, Gross>();
 
@@ -436,7 +532,7 @@ public class IndustryDemandService(
             PlanJob? root;
             try
             {
-                root = production.Calculate([entry], ctx)
+                root = production.Calculate([entry], ctx, meOverrides: meOverrides)
                                  .AllJobs.FirstOrDefault(j => j.OutputTypeId == typeId);
             }
             catch (OperationCanceledException) { throw; }
@@ -548,9 +644,12 @@ public class IndustryDemandService(
         // is waiting on it", and the picker sorts on it: a base reaction feeding a long covered
         // chain outranked the component four stopped hulls were waiting for, and took the one
         // free reaction slot with it.
+        var roots = topLevel.Select(t => t.TypeId).ToHashSet();
+
         foreach (var typeId in result.Keys.ToList())
             result[typeId] = result[typeId] with
             {
+                IsRoot      = roots.Contains(typeId),
                 Blocks      = gross[typeId].Dependents.Count(result.ContainsKey),
                 Dependents  = [.. gross[typeId].Dependents.Where(result.ContainsKey)],
                 IsFinal     = gross[typeId].IsFinal,
@@ -639,18 +738,199 @@ public class IndustryDemandService(
             .GroupBy(j => j.ProductTypeId!.Value)
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
+        // Delivered since the asset poll is on hand, for the same reason it is everywhere else.
+        var delivered = (await DeliveryLag.ItemsAsync(db, ct, wanted))
+            .Where(d => scope is null || scope.Contains(d.Site))
+            .Where(d => d.OwnerType != "corporation" || corps is null || corps.Contains(d.OwnerId))
+            .GroupBy(d => d.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(d => d.Units));
+
         return orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key)
             .Select(g =>
             {
                 var units = g.Sum(o => (long)o.Units);
                 return (g.Key, units,
                         Math.Max(0, units - onHand.GetValueOrDefault(g.Key)
-                                          - inBuild.GetValueOrDefault(g.Key)),
+                                          - inBuild.GetValueOrDefault(g.Key)
+                                          - delivered.GetValueOrDefault(g.Key)),
                         g.Count(),
                         // Several orders can want the same item; the most urgent of them decides
                         // how urgent building it is.
                         Rank: g.Min(o => rankOf.GetValueOrDefault(o.Id, int.MaxValue)));
             })
             .ToList();
+    }
+
+    // ── Raw materials ─────────────────────────────────────────────────────────
+
+    /// <summary>What one material is wanted for, in units, and by which builds.</summary>
+    public sealed class RawNeed
+    {
+        public long Units;
+        public readonly List<RawConsumer> Consumers = [];
+    }
+
+    /// <summary>A build wanting a raw material: what it makes, how many runs, how much of the material.</summary>
+    public sealed record RawConsumer(int TypeId, string Name, long Runs, long Units);
+
+    /// <summary>
+    /// The bought materials of every build in <paramref name="demand"/>, one level deep each.
+    ///
+    /// <para>Each item is planned for its NET units — what the cascade left after stock and
+    /// running jobs at every level were taken off — and only the root job's own inputs are
+    /// taken from the plan. The sub-assemblies beneath it are builds in their own right, netted
+    /// on their own row of the demand, and their materials arrive from those rows. Taking the
+    /// whole tree here would put back exactly the double-counting the cascade removed: a
+    /// component on the shelf, or in a machine, has no materials left to buy.</para>
+    ///
+    /// <para>"Bought" is the plan's own word for it: a material with no blueprint, one the
+    /// build-cost pass found cheaper to buy, or a copy a BPC-only item spends per run.</para>
+    /// </summary>
+    public async Task<Dictionary<int, RawNeed>> RawMaterialsAsync(
+        ProductionContext ctx, IEnumerable<BuildDemand> demand,
+        IReadOnlyDictionary<int, int>? meOverrides, CancellationToken ct)
+    {
+        var raw = new Dictionary<int, RawNeed>();
+
+        foreach (var d in demand.OrderBy(d => d.TypeId))
+        {
+            if (d.Units <= 0) continue;
+
+            var root = await RootJobAsync(ctx, d.TypeId, d.Units, null, meOverrides, ct);
+            if (root is null) continue;
+
+            foreach (var m in root.Materials)
+            {
+                if (!m.IsBought || m.TotalQty <= 0) continue;
+
+                if (!raw.TryGetValue(m.MaterialTypeId, out var need))
+                    raw[m.MaterialTypeId] = need = new RawNeed();
+
+                need.Units += m.TotalQty;
+                need.Consumers.Add(new RawConsumer(d.TypeId, root.OutputTypeName, root.Runs, m.TotalQty));
+            }
+        }
+
+        return raw;
+    }
+
+    /// <summary>
+    /// Materials that jobs already running have consumed but the asset snapshot has yet to
+    /// notice, by the facility the job runs in.
+    ///
+    /// <para>⚠️ Assets are polled hourly; industry jobs every five minutes. Starting a job
+    /// takes its inputs out of the hangar at once, so for up to an hour a plan is built
+    /// against a pile that includes material already gone — and since the plan is rebuilt
+    /// every few minutes, it offers that same material to the next job, and the next. Run
+    /// exactly the runs the list asks for and you still run out, which is what this is for.
+    /// Purchasing has the mirror image: for that hour the inputs still count as on hand, so
+    /// a shortfall they no longer cover goes unbought until the poll catches up.</para>
+    ///
+    /// <para>⚠️ Each job is measured against the snapshot for its OWN owner. A corp job's
+    /// inputs come out of the corp hangar, so it is the corporation's asset poll that would
+    /// have seen it; deducting against somebody else's clock would double-count a job the
+    /// snapshot already reflects and hide stock that is really there.</para>
+    /// </summary>
+    /// <param name="facilities">Facilities whose jobs count, or null for every job.</param>
+    public async Task<Dictionary<(long Site, int TypeId), long>> AlreadyConsumedAsync(
+        AppDbContext db, ProductionContext ctx, IReadOnlySet<long>? facilities, CancellationToken ct)
+    {
+        var consumed = new Dictionary<(long Site, int TypeId), long>();
+        if (facilities is { Count: 0 }) return consumed;
+
+        // When each owner's hangar was last read.
+        //
+        // ⚠️ Compared in memory. EF Core on SQLite cannot translate a DateTimeOffset
+        // comparison and throws rather than saying so, which is how a background loop dies
+        // without leaving a mark.
+        var snapshot = (await db.EsiCallRecords.AsNoTracking()
+                .Where(r => r.Endpoint == "char.assets" || r.Endpoint == "corp.assets")
+                .Select(r => new { r.OwnerId, r.LastCalledAt })
+                .ToListAsync(ct))
+            .GroupBy(r => r.OwnerId)
+            .ToDictionary(g => g.Key, g => g.Max(r => r.LastCalledAt));
+
+        if (snapshot.Count == 0) return consumed;   // nothing polled yet; nothing to correct
+
+        // ⚠️ Deduped by JobId. A corp job comes back from the corporation's endpoint and from
+        // the installer's under one id, and counted twice it would deduct its materials twice.
+        //
+        // Manufacturing (1) and reactions (9, and the legacy 11) only: research, copying and
+        // invention consume the blueprint's time rather than a bill of materials.
+        var started = (await db.EsiIndustryJobs.AsNoTracking()
+                .Where(j => j.Status == "active"
+                         && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
+                         && j.ProductTypeId != null)
+                .Select(j => new { j.JobId, j.OwnerId, j.FacilityId, j.BlueprintId,
+                                   j.ProductTypeId, j.Runs, j.StartDate })
+                .ToListAsync(ct))
+            .GroupBy(j => j.JobId)
+            .Select(g => g.First())
+            .Where(j => facilities is null || facilities.Contains(j.FacilityId))
+            .Where(j => snapshot.TryGetValue(j.OwnerId, out var taken) && j.StartDate > taken)
+            .ToList();
+
+        if (started.Count == 0) return consumed;
+
+        // The ME of the print each job is actually running, so the deduction matches what the
+        // job took rather than what a default print would have taken.
+        var printIds = started.Select(j => j.BlueprintId).Distinct().ToList();
+        var printMe  = await db.EsiBlueprints.AsNoTracking()
+            .Where(b => printIds.Contains(b.ItemId))
+            .GroupBy(b => b.ItemId)
+            .Select(g => new { ItemId = g.Key, Me = g.Max(b => b.MaterialEfficiency) })
+            .ToDictionaryAsync(x => x.ItemId, x => x.Me, ct);
+
+        // Two jobs off the same print at the same size are common in a split, and planning is
+        // pure given the context.
+        var cache = new Dictionary<(int TypeId, long Qty, int? Me), Dictionary<int, long>>();
+
+        foreach (var j in started)
+        {
+            var typeId  = j.ProductTypeId!.Value;
+            var product = ctx.BlueprintByProduct.GetValueOrDefault(typeId);
+            if (product is null) continue;   // nothing in the SDE makes it; nothing to deduct
+
+            var me  = printMe.TryGetValue(j.BlueprintId, out var m) ? m : (int?)null;
+            var qty = (long)j.Runs * Math.Max(1, product.Quantity);
+            var key = (typeId, qty, me);
+
+            if (!cache.TryGetValue(key, out var mats))
+            {
+                var root = await RootJobAsync(ctx, typeId, qty, me, null, ct);
+                cache[key] = mats = root is null
+                    ? []
+                    : root.Materials
+                          .GroupBy(x => x.MaterialTypeId)
+                          .ToDictionary(g => g.Key, g => (long)g.Sum(x => x.TotalQty));
+            }
+
+            foreach (var (matId, amount) in mats)
+                consumed[(j.FacilityId, matId)] =
+                    consumed.GetValueOrDefault((j.FacilityId, matId)) + amount;
+        }
+
+        return consumed;
+    }
+
+    /// <summary>
+    /// The root job of a plan for one item: its own inputs, at the efficiency it would really
+    /// be built at. Sub-components the plan would build are separate jobs, not read here.
+    /// </summary>
+    /// <param name="me">The print's own efficiency when a specific print is known, applied to
+    /// this item; <paramref name="meOverrides"/> wins at any depth where it names the item.</param>
+    private async Task<PlanJob?> RootJobAsync(
+        ProductionContext ctx, int typeId, long units, int? me,
+        IReadOnlyDictionary<int, int>? meOverrides, CancellationToken ct)
+    {
+        var entry = new ProductionQueueEntry
+        {
+            TypeId   = typeId,
+            Quantity = Math.Clamp(units, 1, int.MaxValue),
+            MeLevel  = me ?? await production.GetDefaultMeAsync(typeId, ct),
+        };
+
+        return production.Calculate([entry], ctx, meOverrides: meOverrides)
+                         .AllJobs.FirstOrDefault(j => j.OutputTypeId == typeId);
     }
 }
