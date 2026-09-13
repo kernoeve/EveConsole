@@ -129,8 +129,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         if (matches.Count == 1 && matches[0].Detail is { } d && d.ContainsKey("character"))
         {
             var minutes = Minutes(d);
-            return ($"Wake up, {Str(d, "character")}",
-                    $"Your {HullWord(d)} has been undocked in {Str(d, "system")} for {minutes} " +
+            return ($"Wake up, {User(d)}",
+                    $"{Str(d, "character")}'s {HullWord(d)} has been undocked in {Str(d, "system")} for {minutes} " +
                     $"{(minutes == 1 ? "minute" : "minutes")} and has not docked. " +
                     $"Press I'm awake to keep this quiet for {Snooze(config)} minutes while the ship stays out.");
         }
@@ -160,14 +160,21 @@ public sealed class ShipAdriftCondition : IAlarmCondition
              and is still there, not docked. Stage {stage} of {StageCount}.
 
              Say exactly this, word for word, and nothing before it: {line}
-             Then stop and wait. The capsuleer may be asleep at the keyboard. Any reply from them,
+             Then stop and wait. You are speaking to {User(d)}, the person at the keyboard, about
+             their character {Str(d, "character")}. They may be asleep. Any reply from them,
              whatever it says, resets this alarm by itself — you need not do anything for that. If
              they say all is well, acknowledge in a few words. Do not call any tools.
              """;
     }
 
+    /// <summary>
+    /// Addressed to the person at the keyboard, by the name they gave the agent; the character is
+    /// named too, because they may have several clients up and need to know which one. The
+    /// character is not who is being spoken to.
+    /// </summary>
     internal static string StageLine(int stage, IReadOnlyDictionary<string, object?> d)
     {
+        var user    = User(d);
         var name    = Str(d, "character");
         var hull    = HullWord(d);
         var system  = Str(d, "system");
@@ -175,11 +182,17 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         var span    = minutes == 1 ? "1 minute" : $"{minutes} minutes";
         return stage switch
         {
-            1 => $"{name}, your {hull} has been undocked in {system} for {span}. Is everything all right?",
-            2 => $"Wake up, {name}. Your {hull} undocked in {system} {span} ago and still is not docked. Dock up, or answer me.",
-            _ => $"{name}! Your {hull} is still undocked in {system} after {span}. Wake up and dock now.",
+            1 => $"{Cap(user)}, {name}'s {hull} has been undocked in {system} for {span}. Is everything all right?",
+            2 => $"Wake up, {user}. {name}'s {hull} undocked in {system} {span} ago and still is not docked. Dock up, or answer me.",
+            _ => $"{Cap(user)}! {name}'s {hull} is still undocked in {system} after {span}. Wake up and dock now.",
         };
     }
+
+    /// <summary>The person's name as the agent knows it, or "capsuleer" when they never gave one.</summary>
+    private static string User(IReadOnlyDictionary<string, object?> d)
+        => Str(d, "user") is { Length: > 0 } u ? u : "capsuleer";
+
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     public async Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
@@ -220,6 +233,11 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         var snoozes = await db.AlarmSnoozes.AsNoTracking()
             .Where(s => s.AlarmId == ctx.Alarm.Id).ToDictionaryAsync(s => s.ScopeKey, ct);
 
+        // Who to address: the name the person gave the agent, shared in the database like the
+        // rest of the agent's personalisation, so every client says the same thing.
+        var user = (await db.AppPreferences.AsNoTracking()
+            .Where(p => p.Key == "agent.user_name").Select(p => p.Value).FirstOrDefaultAsync(ct))?.Trim();
+
         var firstStage = stages[0].Seconds;
         var matches    = new List<AlarmMatch>();
         foreach (var s in adrift)
@@ -251,6 +269,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
             {
                 ["character_id"]   = s.CharacterId,
                 ["character"]      = names.GetValueOrDefault(s.CharacterId) ?? $"Character {s.CharacterId}",
+                ["user"]           = string.IsNullOrEmpty(user) ? null : user,
                 ["hull"]           = hull.Name,
                 ["ship_class"]     = hull.Group,
                 ["is_pod"]         = isPod,
