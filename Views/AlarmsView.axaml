@@ -241,6 +241,21 @@
                         Margin="14 0 0 4" />
             </Grid>
 
+            <!-- The hours it is on -->
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
+              <StackPanel Grid.Column="0">
+                <TextBlock Classes="flabel" Text="ACTIVE FROM" />
+                <TextBox Text="{Binding ActiveFrom}" Width="80" Watermark="always" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="8 0 0 0">
+                <TextBlock Classes="flabel" Text="THRU" />
+                <TextBox Text="{Binding ActiveThru}" Width="80" Watermark="always" />
+              </StackPanel>
+              <TextBlock Grid.Column="2" Margin="10 0 0 6" VerticalAlignment="Bottom" FontSize="9.5"
+                         Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                         Text="Hours on this machine's clock, e.g. 18:00 thru 02:00. Blank means always. Outside them the alarm is not checked at all." />
+            </Grid>
+
             <!-- Condition -->
             <StackPanel Spacing="8">
               <TextBlock Classes="section" Text="WHEN" />

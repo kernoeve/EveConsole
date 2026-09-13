@@ -423,6 +423,14 @@ public static class PostgresSchema
         ALTER TABLE "EsiAssets" ADD COLUMN IF NOT EXISTS "RegionId" INTEGER NULL
         """,
 
+        // The hours an alarm is on; null means always. Older builds neither read nor write them.
+        """
+        ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveFrom" TEXT NULL
+        """,
+        """
+        ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveThru" TEXT NULL
+        """,
+
         // The last undock the location poll saw, for the Ship Undocks alarm. Null until a
         // character next undocks; an older build never writes them and never needs to.
         """

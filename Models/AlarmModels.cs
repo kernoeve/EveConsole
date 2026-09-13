@@ -48,6 +48,38 @@ public class Alarm
     public int CooldownSeconds { get; set; }
 
     /// <summary>
+    /// The hours the alarm is on, as "HH:mm" wall-clock times on the machine evaluating it;
+    /// both empty means always. From 18:00 through 02:00 wraps midnight. Outside the window an
+    /// enabled alarm is not evaluated at all — not muted after the fact, not run.
+    /// </summary>
+    public string? ActiveFrom { get; set; }
+    public string? ActiveThru { get; set; }
+
+    /// <summary>Whether <paramref name="localNow"/> falls in the active window, always when none is set.</summary>
+    public bool IsActiveAt(DateTimeOffset localNow)
+    {
+        var from = ParseClock(ActiveFrom);
+        var thru = ParseClock(ActiveThru);
+        if (from is null && thru is null) return true;
+        var f = from ?? TimeSpan.Zero;
+        var t = thru ?? new TimeSpan(23, 59, 0);
+        var now = new TimeSpan(localNow.Hour, localNow.Minute, 0);
+        return f <= t ? now >= f && now <= t          // 09:00 → 17:00
+                      : now >= f || now <= t;         // 18:00 → 02:00, across midnight
+    }
+
+    /// <summary>"18:00", "18", "6pm"-free: hours and minutes, leniently, or null for blank/unreadable.</summary>
+    public static TimeSpan? ParseClock(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var parts = text.Trim().Split(':');
+        if (!int.TryParse(parts[0], out var h) || h < 0 || h > 23) return null;
+        var m = 0;
+        if (parts.Length > 1 && (!int.TryParse(parts[1], out m) || m < 0 || m > 59)) return null;
+        return new TimeSpan(h, m, 0);
+    }
+
+    /// <summary>
     /// False until the first evaluation has banked the matches that already existed when the
     /// alarm was created. Without this, a killmail alarm would fire on every kill in history
     /// the moment it is switched on.

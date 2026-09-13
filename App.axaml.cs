@@ -3002,6 +3002,10 @@ public class App : Application
                     """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
                     """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
 
+                    // ── Alarms: the hours an alarm is on ────────────────────────────────
+                    """ALTER TABLE "Alarms" ADD COLUMN "ActiveFrom" TEXT NULL""",
+                    """ALTER TABLE "Alarms" ADD COLUMN "ActiveThru" TEXT NULL""",
+
                     // ── Character status: the last undock ───────────────────────────────
                     // Stamped by the location poll on a docked→space transition; what the
                     // Ship Undocks alarm keys on. Null until a character next undocks.
@@ -3061,7 +3065,7 @@ public class App : Application
                     // NB: braces are doubled. ExecuteSqlRaw runs the statement through string.Format,
                     // so a literal '{}' default is read as a format placeholder and throws — and
                     // since this loop swallows exceptions, the table would simply never be created.
-                    """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL)""",
+                    """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL, "ActiveFrom" TEXT NULL, "ActiveThru" TEXT NULL)""",
                     """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
 
                     """CREATE TABLE IF NOT EXISTS "AlarmActions" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "Kind" INTEGER NOT NULL DEFAULT 0, "ConfigJson" TEXT NOT NULL DEFAULT '{{}}', "Ordinal" INTEGER NOT NULL DEFAULT 0)""",

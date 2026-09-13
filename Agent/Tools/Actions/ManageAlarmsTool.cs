@@ -74,6 +74,8 @@ public sealed class ManageAlarmsTool : IAgentTool
          - repeat: "continuous" (default, stays armed) or "one_shot" (disables itself after
            firing once). Use one_shot for a reminder, continuous for a watch.
          - cooldown_seconds: optional minimum gap between firings.
+         - active_from / active_thru: optional "HH:mm" wall-clock hours the alarm is on, on the
+           machine running it — "18:00" thru "02:00" wraps midnight. Outside them it is not checked.
 
          HOW ALARMS AVOID BEING NOISY — read before writing a query
          An alarm announces only things it has not announced before. Every match carries a key,
@@ -146,6 +148,8 @@ public sealed class ManageAlarmsTool : IAgentTool
             poll_seconds     = new { type = "integer", description = "Check interval in seconds (default 60, min 10)." },
             repeat           = new { type = "string",  @enum = new[] { "continuous", "one_shot" } },
             cooldown_seconds = new { type = "integer", description = "Minimum gap between firings." },
+            active_from      = new { type = "string",  description = "Optional \"HH:mm\": the alarm is on from this local time." },
+            active_thru      = new { type = "string",  description = "Optional \"HH:mm\": …through this local time; wraps midnight." },
         },
         required = new[] { "action" },
     };
@@ -303,6 +307,8 @@ public sealed class ManageAlarmsTool : IAgentTool
             Repeat          = repeat,
             PollSeconds     = Math.Max(10, Int(input, "poll_seconds") ?? 60),
             CooldownSeconds = Math.Max(0, Int(input, "cooldown_seconds") ?? 0),
+            ActiveFrom      = Alarm.ParseClock(Str(input, "active_from")) is { } af ? af.ToString(@"hh\:mm") : null,
+            ActiveThru      = Alarm.ParseClock(Str(input, "active_thru")) is { } at ? at.ToString(@"hh\:mm") : null,
             CreatedBy       = "agent",
             CreatedAt       = DateTimeOffset.Now,
         };

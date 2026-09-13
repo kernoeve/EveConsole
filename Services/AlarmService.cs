@@ -145,10 +145,13 @@ public sealed class AlarmService : ReactiveObject
             List<long> ids;
             await using (var db = await _dbFactory.CreateDbContextAsync(ct))
             {
-                ids = await db.Alarms
+                var now = DateTimeOffset.Now;
+                ids = (await db.Alarms
                     .Where(a => a.Enabled && a.ConditionType == conditionType)
+                    .ToListAsync(ct))
+                    .Where(a => a.IsActiveAt(now))
                     .Select(a => a.Id)
-                    .ToListAsync(ct);
+                    .ToList();
             }
 
             if (ids.Count == 0) return;
@@ -255,7 +258,7 @@ public sealed class AlarmService : ReactiveObject
                 _nextDue.Remove(gone);
 
             foreach (var a in alarms)
-                if (!_nextDue.TryGetValue(a.Id, out var at) || at <= now)
+                if (a.IsActiveAt(now) && (!_nextDue.TryGetValue(a.Id, out var at) || at <= now))
                     due.Add(a);
 
             NextDueAt = _nextDue.Count > 0 ? _nextDue.Values.Min() : now;

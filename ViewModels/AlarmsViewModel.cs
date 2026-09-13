@@ -638,6 +638,13 @@ public sealed class AlarmsViewModel : ReactiveObject
     private bool _enabled = true;
     public bool Enabled { get => _enabled; set => this.RaiseAndSetIfChanged(ref _enabled, value); }
 
+    /// <summary>The hours the alarm is on, "HH:mm" on this machine's clock; both blank = always.</summary>
+    private string _activeFrom = "";
+    public string ActiveFrom { get => _activeFrom; set => this.RaiseAndSetIfChanged(ref _activeFrom, value); }
+
+    private string _activeThru = "";
+    public string ActiveThru { get => _activeThru; set => this.RaiseAndSetIfChanged(ref _activeThru, value); }
+
     private IAlarmCondition? _selectedCondition;
     public IAlarmCondition? SelectedCondition
     {
@@ -774,6 +781,8 @@ public sealed class AlarmsViewModel : ReactiveObject
         EditingId         = 0;
         Name              = "New alarm";
         Enabled           = true;
+        ActiveFrom        = "";
+        ActiveThru        = "";
         Repeat            = AlarmRepeat.Continuous;
         PollSeconds       = 60;
         CooldownSeconds   = 0;
@@ -802,6 +811,8 @@ public sealed class AlarmsViewModel : ReactiveObject
         EditingId       = alarm.Id;
         Name            = alarm.Name;
         Enabled         = alarm.Enabled;
+        ActiveFrom      = alarm.ActiveFrom ?? "";
+        ActiveThru      = alarm.ActiveThru ?? "";
         Repeat          = alarm.Repeat;
         PollSeconds     = alarm.PollSeconds;
         CooldownSeconds = alarm.CooldownSeconds;
@@ -1279,6 +1290,14 @@ public sealed class AlarmsViewModel : ReactiveObject
             return;
         }
 
+        // A window half-typed is a window nobody meant: refuse rather than guess.
+        foreach (var (label, text) in new[] { ("from", ActiveFrom), ("thru", ActiveThru) })
+            if (!string.IsNullOrWhiteSpace(text) && Alarm.ParseClock(text) is null)
+            {
+                StatusText = $"Active {label} needs a time like 18:00.";
+                return;
+            }
+
         var conditionType = SelectedCondition.TypeKey;
         var conditionJson = BuildConfigJson();
         var actionRows    = AllActions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
@@ -1304,6 +1323,8 @@ public sealed class AlarmsViewModel : ReactiveObject
                                 || alarm.ConditionJson != conditionJson;
 
             alarm.Name            = Name.Trim();
+            alarm.ActiveFrom      = Alarm.ParseClock(ActiveFrom) is { } f ? f.ToString(@"hh\:mm") : null;
+            alarm.ActiveThru      = Alarm.ParseClock(ActiveThru) is { } t ? t.ToString(@"hh\:mm") : null;
             alarm.Enabled         = Enabled;
             alarm.ConditionType   = conditionType;
             alarm.ConditionJson   = conditionJson;
