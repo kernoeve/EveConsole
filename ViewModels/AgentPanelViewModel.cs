@@ -311,7 +311,19 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// the fact the alarm exists to establish, and no model has to remember to call anything.
     /// </summary>
     private AlarmAck? _pendingAck;
-    public void ExpectReply(AlarmAck ack) => _pendingAck = ack;
+    private string?   _pendingAckText;
+
+    /// <param name="spokenText">
+    /// What the app said aloud, when it was the app and not the model that said it. Handed to
+    /// the model with the reply, so it knows what the reply is to: a line the app put in its
+    /// mouth reads, to it, like an announcement it happened to make, and "I'm awake" after it
+    /// was being answered as a morning greeting.
+    /// </param>
+    public void ExpectReply(AlarmAck ack, string? spokenText = null)
+    {
+        _pendingAck     = ack;
+        _pendingAckText = spokenText;
+    }
 
     /// <summary>Set by MainWindow: takes the acknowledgement back to the alarm runner.</summary>
     public Func<AlarmAck, Task>? AcknowledgeCallback { get; set; }
@@ -376,9 +388,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
         if (string.IsNullOrEmpty(text) || IsBusy) return;
 
         // Only a message the capsuleer wrote counts; an alarm's own prompt arrives this way too.
+        string? replyingTo = null;
         if (showUserMessage && _pendingAck is { } ack)
         {
-            _pendingAck = null;
+            _pendingAck     = null;
+            replyingTo      = _pendingAckText;
+            _pendingAckText = null;
             if (AcknowledgeCallback is { } acknowledge)
                 _ = acknowledge(ack);
         }
@@ -406,6 +421,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
             StatusText = "";
         }
         _summarizationTask = null;
+
+        // A reply to something the app said aloud goes to the model with a note of what that
+        // was — hidden, like an alarm's own prompt, because the capsuleer already heard it.
+        if (replyingTo is not null)
+            _history.Add(new AgentMessage(MessageRole.User,
+                $"[The capsuleer is answering the alarm the app just spoke aloud: \"{replyingTo}\" " +
+                "Their answer has already reset that alarm — nothing to do about it. Reply to " +
+                "them in that light: the ship it names is still undocked unless they say otherwise.]")
+            { ShowInChat = false });
 
         var userMsg = new AgentMessage(MessageRole.User, text) { ShowInChat = showUserMessage };
         _history.Add(userMsg);

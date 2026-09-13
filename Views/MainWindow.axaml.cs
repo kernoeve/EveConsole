@@ -310,7 +310,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         // A wake-up call is acknowledged by answering the agent — anything at all — and the
         // acknowledgement goes back through the runner, which is what quiets every client.
-        vm.AlarmActions.AwaitReplyCallback  = ack     => vm.AgentVm.ExpectReply(ack);
+        vm.AlarmActions.AwaitReplyCallback  = (ack, said) => vm.AgentVm.ExpectReply(ack, said);
         vm.AgentVm.AcknowledgeCallback      = ack     => vm.AlarmActions.AcknowledgeAsync(ack);
 
         // A repeating sound brings its own window with the one button that stops it, whether or

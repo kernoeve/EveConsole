@@ -49,7 +49,7 @@ public sealed class AlarmActionRunner
     /// this situation. Set by MainWindow. Deterministic on purpose: a wake-up call must not
     /// depend on a model remembering to call a tool.
     /// </summary>
-    public Action<AlarmAck>? AwaitReplyCallback { get; set; }
+    public Action<AlarmAck, string?>? AwaitReplyCallback { get; set; }
 
     /// <summary>
     /// Raises a top-most dialog: (title, message, button, on-acknowledge). The button and the
@@ -276,15 +276,16 @@ public sealed class AlarmActionRunner
         // all the same, since the line shows in the agent window and answering it means awake.
         if (s.DirectText is not null && AnnounceCallback is { } speak)
         {
-            if (s.ReplyAcknowledges && ack is not null) AwaitReplyCallback?.Invoke(ack);
+            if (s.ReplyAcknowledges && ack is not null) AwaitReplyCallback?.Invoke(ack, s.DirectText);
             try { await speak(s.DirectText); }
             catch (Exception ex) { _errors.Log("AlarmActionRunner", $"direct speech for alarm {s.AlarmId}", ex); }
         }
 
         if (s.AgentText is not null && CanSpeak())
         {
-            // Armed before the agent speaks, so a reply that comes mid-sentence still counts.
-            if (s.ReplyAcknowledges && ack is not null) AwaitReplyCallback?.Invoke(ack);
+            // Armed before the agent speaks, so a reply that comes mid-sentence still counts. No
+            // text: the model composed the question and remembers it.
+            if (s.ReplyAcknowledges && ack is not null) AwaitReplyCallback?.Invoke(ack, null);
             try { await NotifyAgentCallback!(s.AgentText); }
             catch (Exception ex) { _errors.Log("AlarmActionRunner", $"agent notify for alarm {s.AlarmId}", ex); }
         }
