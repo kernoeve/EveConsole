@@ -211,7 +211,11 @@ public sealed class AlarmActionRunner
             return;
         }
 
-        if (signal.SoundKey is null && signal.DialogTitle is null && signal.AgentText is null && signal.SpeakText is null) return;
+        // ⚠️ Every kind of effect, or a stage whose only action is the voice is dropped here
+        // unheard — which is how stages one and two of a wake-up call went by in silence.
+        if (signal.SoundKey is null && signal.DialogTitle is null && signal.AgentText is null
+            && signal.SpeakText is null && signal.DirectText is null)
+            return;
 
         await _signals.PublishAsync(JsonSerializer.Serialize(signal), ct);
     }

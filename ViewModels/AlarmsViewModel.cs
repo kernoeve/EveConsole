@@ -560,11 +560,7 @@ public sealed class AlarmsViewModel : ReactiveObject
             .Subscribe(a => _ = LoadEditorAsync(a!.Id));
 
         this.WhenAnyValue(x => x.SelectedCondition)
-            .Subscribe(_ =>
-            {
-                RebuildFields();
-                RebuildStages();
-            });
+            .Subscribe(_ => RebuildFields());
     }
 
     /// <summary>
@@ -957,6 +953,12 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             Fields.Add(field);
         }
+
+        // ⚠️ Rebuilt here, with the fields, and not only when the condition changes: reopening
+        // an alarm of the same condition does not change the condition, and the stage lists
+        // kept what they had while the loaded actions were adopted on top — every save doubled
+        // them. The explicit RebuildFields on every load and new-alarm path now clears both.
+        RebuildStages();
 
         UpdateDefaultTextPreview();
     }
