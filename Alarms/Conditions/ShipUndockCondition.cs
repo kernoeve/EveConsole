@@ -103,7 +103,9 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 @default    = Any,
                 title       = "Fit",
                 description = "\"Not fit\": nothing at all in any slot. \"Fit\": something is. A pod or " +
-                              "shuttle has no slots and matches neither.",
+                              "shuttle has no slots and matches neither. Judged from the last asset " +
+                              "snapshot, which ESI refreshes only hourly — it can be up to an hour behind " +
+                              "what is aboard right now.",
             },
             fuel = new
             {
@@ -115,7 +117,8 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 title       = "Jump fuel",
                 description = "Jump-capable hulls only; any other hull matches neither. The units are " +
                               "of the isotope the hull's jump drive burns, fuel bay and cargo hold " +
-                              "together.",
+                              "together — as of the last asset snapshot, which ESI refreshes only " +
+                              "hourly, so fuel loaded in the last hour may not be counted yet.",
             },
             fuel_units = new
             {
@@ -135,7 +138,8 @@ public sealed class ShipUndockCondition : IAlarmCondition
                               "loaded plus cargo, all compatible types together. \"Lower than\": any " +
                               "weapon short. \"Not lower than\": weapons fitted and none short. An " +
                               "energy turret only needs one crystal. A ship without weapons matches " +
-                              "neither.",
+                              "neither. As of the last asset snapshot, which ESI refreshes only hourly — " +
+                              "ammunition loaded in the last hour may not be counted yet.",
             },
             ammo_units = new
             {
