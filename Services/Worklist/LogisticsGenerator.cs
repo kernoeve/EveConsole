@@ -241,13 +241,10 @@ public class LogisticsGenerator(
             .GroupBy(a => (Station: a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        // The same view of stock the demand service nets against, so both agree on what exists.
-        var inScope = new ScopeStock(
-            reachable.Where(a => a.OwnerType == "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)),
-            reachable.Where(a => a.OwnerType != "corporation")
-                     .GroupBy(a => (a.TypeId, a.OwnerId))
-                     .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)));
+        // The same view of stock the demand service nets against — running jobs included, so a
+        // sub-assembly already in a machine has nothing hauled for it — and the same loader the
+        // job and purchase generators use, so all three agree on what exists.
+        var inScope = await ScopeStock.LoadAsync(db, scope, wrapped, corps, ct);
 
         var want    = new Dictionary<(long Station, int TypeId), Want>();
         var drivers = new Dictionary<(long Station, int TypeId), List<NeedDriver>>();
