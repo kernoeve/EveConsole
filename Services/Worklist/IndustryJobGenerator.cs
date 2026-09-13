@@ -143,6 +143,18 @@ public class IndustryJobGenerator(
                       .GroupBy(a => (a.RootLocationId, a.TypeId, a.OwnerId))
                       .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)));
 
+        // Output delivered since the asset poll is in a hangar at the site the job ran in,
+        // whatever the snapshot says. The mirror of the started-job deduction seeded into
+        // `committed` below: a component delivered ten minutes ago is exactly what the next job
+        // at this site is waiting for, and without this it reads as missing for up to an hour
+        // while the job that made it has already stopped counting.
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
+        {
+            if (!siteIds.Contains(d.Site) || !Ours(d.OwnerType, d.OwnerId)) continue;
+            var pile = d.OwnerType == "corporation" ? stock.Corp : stock.Personal;
+            pile[(d.Site, d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.Site, d.TypeId, d.OwnerId)) + d.Units;
+        }
+
         // Everything in scope, wherever it sits — assets and running jobs. Separate from the
         // per-site view above and asking a different question: the site view decides whether a
         // job can start now, this one decides whether the material exists at all — a haul or a

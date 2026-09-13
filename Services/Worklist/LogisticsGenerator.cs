@@ -241,6 +241,15 @@ public class LogisticsGenerator(
             .GroupBy(a => (Station: a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
+        // Plus what delivered jobs have put in a hangar the asset poll has not seen: stock at the
+        // station the job ran in, so nothing is hauled there to replace it. See DeliveryLag.
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(d.Site)) continue;
+            if (d.OwnerType == "corporation" && corps is not null && !corps.Contains(d.OwnerId)) continue;
+            stock[(d.Site, d.TypeId)] = stock.GetValueOrDefault((d.Site, d.TypeId)) + d.Units;
+        }
+
         // The same view of stock the demand service nets against — running jobs included, so a
         // sub-assembly already in a machine has nothing hauled for it — and the same loader the
         // job and purchase generators use, so all three agree on what exists.

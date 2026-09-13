@@ -151,6 +151,15 @@ public class MaterialPurchaseGenerator(
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
+        // Plus what delivered jobs have put in a hangar the asset poll has not seen since — a
+        // bought material somebody made anyway, on the shelf whatever the snapshot says.
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, rawIds))
+        {
+            if (scope is not null && !scope.Contains(d.Site)) continue;
+            if (d.OwnerType == "corporation" && corps is not null && !corps.Contains(d.OwnerId)) continue;
+            onHand[d.TypeId] = onHand.GetValueOrDefault(d.TypeId) + d.Units;
+        }
+
         // Less what jobs started since the last asset poll have already taken out of it. The
         // job generator makes the same correction for the same reason; here it is the mirror
         // image — inputs still counted as on hand cover a shortfall they no longer can, and for

@@ -90,7 +90,6 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct))
             .Where(b => !wrapped.Contains(b.ItemId) && !wrapped.Contains(b.LocationId))
             .ToList();
-        if (rows.Count == 0) return [];
 
         // Container item id → the station or structure it is ultimately in. Only the locations
         // actually referenced are looked up, which is a handful of rows rather than the assets
@@ -110,7 +109,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct))
             .ToHashSet();
 
-        return rows
+        var prints = rows
             .Select(r => new BlueprintStock
             {
                 ItemId      = r.ItemId,
@@ -125,6 +124,30 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 LockedInJob = locked.Contains(r.ItemId),
             })
             .Where(b => b.Runs > 0)   // a spent copy is a row that has not caught up yet
+            .ToList();
+
+        // Copies delivered since the owner's blueprint poll: in a hangar at the facility the job
+        // ran in, and in no blueprint row yet. Without them a copy job's output is invisible for
+        // up to an hour, the copies read as still wanted, and the copying is planned again. Given
+        // ids no real print can carry, one per copy, so a split hands them out a job each like
+        // any other copy. See DeliveryLag.
+        foreach (var p in await DeliveryLag.PrintsAsync(db, ct, blueprintTypeIds))
+            for (var i = 0; i < p.Copies; i++)
+                prints.Add(new BlueprintStock
+                {
+                    ItemId      = -((long)p.JobId * 100_000 + i),
+                    TypeId      = p.TypeId,
+                    IsOriginal  = false,
+                    Runs        = p.RunsEach,
+                    Me          = p.Me,
+                    Te          = p.Te,
+                    LocationId  = p.Site,
+                    OwnerType   = p.OwnerType,
+                    OwnerId     = p.OwnerId,
+                    LockedInJob = false,
+                });
+
+        return prints
             .GroupBy(b => b.TypeId)
             .ToDictionary(g => g.Key, g => g.ToList());
     }
@@ -145,6 +168,8 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var ids = await db.EsiBlueprints.AsNoTracking().Select(b => b.TypeId).Distinct().ToListAsync(ct);
+        // A type whose only copies were delivered since the blueprint poll has no row yet.
+        ids = ids.Concat((await DeliveryLag.PrintsAsync(db, ct)).Select(p => p.TypeId)).Distinct().ToList();
         return (await LoadAsync(ids, ct)).SelectMany(kv => kv.Value).ToList();
     }
 

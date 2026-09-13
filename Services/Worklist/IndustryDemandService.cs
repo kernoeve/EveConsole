@@ -173,7 +173,8 @@ public sealed record ScopeStock(
         + (InBuild?.GetValueOrDefault(typeId) ?? 0);
 
     /// <summary>
-    /// Everything in scope: assets by owner, and what running jobs will deliver.
+    /// Everything in scope: assets by owner, what running jobs will deliver, and what delivered
+    /// jobs have put in hangars that the asset poll has not seen yet.
     ///
     /// <para>One loader for the three tools that net demand against it — jobs, hauling and
     /// purchasing — so they cannot disagree about what exists. Purchasing planned against
@@ -233,12 +234,24 @@ public sealed record ScopeStock(
                 x => x.Sum(j => j.Runs * runningYield.GetValueOrDefault(
                                     (j.BlueprintTypeId, j.ProductTypeId!.Value), 1L)));
 
-        return new ScopeStock(
-            rows.Where(a => a.OwnerType == "corporation")
-                .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
-            rows.Where(a => a.OwnerType != "corporation")
-                .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty)),
-            inBuild);
+        var corpStock = rows.Where(a => a.OwnerType == "corporation")
+            .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty));
+        var personalStock = rows.Where(a => a.OwnerType != "corporation")
+            .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty));
+
+        // And what delivered jobs have put in hangars that the asset poll has not seen yet —
+        // counted as the stock it is, under the owner whose hangar it landed in. Without it a
+        // delivered component is in no asset row and no running job for up to an hour, and the
+        // list plans it again. See DeliveryLag.
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(d.Site)) continue;
+            if (!Ours(d.OwnerType, d.OwnerId)) continue;
+            var pile = d.OwnerType == "corporation" ? corpStock : personalStock;
+            pile[(d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.TypeId, d.OwnerId)) + d.Units;
+        }
+
+        return new ScopeStock(corpStock, personalStock, inBuild);
     }
 }
 
@@ -725,13 +738,21 @@ public class IndustryDemandService(
             .GroupBy(j => j.ProductTypeId!.Value)
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
+        // Delivered since the asset poll is on hand, for the same reason it is everywhere else.
+        var delivered = (await DeliveryLag.ItemsAsync(db, ct, wanted))
+            .Where(d => scope is null || scope.Contains(d.Site))
+            .Where(d => d.OwnerType != "corporation" || corps is null || corps.Contains(d.OwnerId))
+            .GroupBy(d => d.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(d => d.Units));
+
         return orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key)
             .Select(g =>
             {
                 var units = g.Sum(o => (long)o.Units);
                 return (g.Key, units,
                         Math.Max(0, units - onHand.GetValueOrDefault(g.Key)
-                                          - inBuild.GetValueOrDefault(g.Key)),
+                                          - inBuild.GetValueOrDefault(g.Key)
+                                          - delivered.GetValueOrDefault(g.Key)),
                         g.Count(),
                         // Several orders can want the same item; the most urgent of them decides
                         // how urgent building it is.

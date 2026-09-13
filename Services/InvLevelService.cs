@@ -430,6 +430,26 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 // could not be wrong about what it was counting.
                 assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
             }
+
+            // ⚠️ Plus what delivered jobs have put in hangars that the asset and blueprint polls
+            // have not seen yet. A delivered job stops counting under Industry Jobs within
+            // minutes, and for up to an hour its output is in no asset row either — so a level
+            // that was comfortably covered by a running job read as short the moment the job was
+            // collected, and the worklist raised the same job again. Items in units; blueprint
+            // types in runs, as the level is written. See DeliveryLag.
+            foreach (var d in await DeliveryLag.ItemsAsync(db, ct, typeIds))
+            {
+                if (!ownerFilter.Contains(d.OwnerId)) continue;
+                if (stationFilter != null && !stationFilter.Contains(d.Site)) continue;
+                assets[d.TypeId] = assets.GetValueOrDefault(d.TypeId) + d.Units;
+            }
+            if (bpTypeIds.Count > 0)
+                foreach (var p in await DeliveryLag.PrintsAsync(db, ct, bpTypeIds))
+                {
+                    if (!ownerFilter.Contains(p.OwnerId)) continue;
+                    if (stationFilter != null && !stationFilter.Contains(p.Site)) continue;
+                    assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
+                }
         }
 
         // Industry Jobs — active manufacturing (1) and reactions (9, plus legacy 11).
