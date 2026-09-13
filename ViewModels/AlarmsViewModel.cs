@@ -933,6 +933,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                 field.Text = dflt;
                 if (kind == "threshold") field.Flag = true;
             }
+            if (kind == "boolean" && string.Equals(dflt, "true", StringComparison.OrdinalIgnoreCase)) field.Flag = true;
 
             // A date-time field with nothing in it is more useful pointing at the near future
             // than at 01/01/0001 — the overwhelmingly common case is "remind me shortly".

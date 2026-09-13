@@ -323,12 +323,15 @@ public sealed class AlarmService : ReactiveObject
         try { config = JsonDocument.Parse(alarm.ConditionJson ?? "{}").RootElement.Clone(); }
         catch (Exception ex) { alarm.LastError = $"Bad condition config: {ex.Message}"; return false; }
 
+        var seenSet = await SeenAsync(db, alarm.Id, ct);
+
         var ctx = new AlarmEvaluationContext
         {
             DbFactory        = _dbFactory,
             ConnectionString = _connString,
             Alarm            = alarm,
             Now              = now,
+            Seen             = seenSet,
         };
 
         var matches = await condition.EvaluateAsync(config, ctx, ct);
@@ -343,7 +346,7 @@ public sealed class AlarmService : ReactiveObject
         // alarm would never fire at all.
         if (!alarm.Primed)
         {
-            if (matches.Count > 0) BankKeys(db, alarm.Id, matches, await SeenAsync(db, alarm.Id, ct), now);
+            if (matches.Count > 0) BankKeys(db, alarm.Id, matches, seenSet, now);
             alarm.Primed = true;
             return false;
         }
@@ -356,10 +359,16 @@ public sealed class AlarmService : ReactiveObject
 
         if (matches.Count == 0) return false;
 
-        var seenSet = await SeenAsync(db, alarm.Id, ct);
-
-        var fresh = matches.Where(m => !seenSet.Contains(m.Key)).ToList();
-        if (fresh.Count == 0) return false;
+        // Silent matches are banked and never announced: what a check folded into another
+        // announcement, or an event kind the user switched off, which must not fire later if
+        // switched back on.
+        var unseen = matches.Where(m => !seenSet.Contains(m.Key)).ToList();
+        var fresh  = unseen.Where(m => !m.Silent).ToList();
+        if (fresh.Count == 0)
+        {
+            if (unseen.Count > 0) BankKeys(db, alarm.Id, unseen, seenSet, now);
+            return false;
+        }
 
         // A staged check sets its own cadence — a cooldown would swallow stage two, and one-shot
         // would end the alarm at stage one.
@@ -388,7 +397,7 @@ public sealed class AlarmService : ReactiveObject
         };
         db.AlarmEvents.Add(evt);
 
-        BankKeys(db, alarm.Id, fresh, seenSet, now);
+        BankKeys(db, alarm.Id, unseen, seenSet, now);
 
         alarm.LastFiredAt = now;
         alarm.FireCount  += 1;

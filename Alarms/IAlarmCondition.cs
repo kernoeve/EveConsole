@@ -12,6 +12,13 @@ public sealed class AlarmEvaluationContext
     public required string                          ConnectionString { get; init; }
     public required Alarm                           Alarm            { get; init; }
     public required DateTimeOffset                  Now              { get; init; }
+
+    /// <summary>
+    /// The keys this alarm has already announced or banked. Most checks never look: the service
+    /// does the diff. A check that folds several facts into one announcement needs to know
+    /// whether the thing is new to say it as new, and that is the one question this answers.
+    /// </summary>
+    public IReadOnlySet<string> Seen { get; init; } = new HashSet<string>();
 }
 
 /// <summary>

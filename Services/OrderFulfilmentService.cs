@@ -50,6 +50,13 @@ public class OrderFulfilmentService(
     private CancellationTokenSource? _cts;
 
     /// <summary>
+    /// Run after every pass, on the same client: what lets a store-order alarm be evaluated the
+    /// moment an order's state has been worked out rather than at its own next interval. Set
+    /// at startup.
+    /// </summary>
+    public Func<CancellationToken, Task>? AfterPass { get; set; }
+
+    /// <summary>
     /// Starts the poll. Five minutes rather than on demand: the inputs are polled ESI data —
     /// assets, industry jobs and contracts — so checking more often than they change would only
     /// re-read the same rows.
@@ -106,6 +113,20 @@ public class OrderFulfilmentService(
 
     /// <summary>One pass over the pending orders. Public so the tool can force it after an edit.</summary>
     public async Task RunOnceAsync(CancellationToken ct = default)
+    {
+        try { await PassAsync(ct); }
+        finally
+        {
+            if (AfterPass is { } after)
+            {
+                try { await after(ct); }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { errorLogger.Log(nameof(OrderFulfilmentService), "after pass", ex); }
+            }
+        }
+    }
+
+    private async Task PassAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 

@@ -278,6 +278,9 @@ public static class AppKnowledge
           it fires you are told what to say and that ANY reply from the capsuleer resets it —
           ask, then wait.
         - "market_contract" for an item listed at or below a price.
+        - "store_order" for the EVE Mail store: a new order (with the store, buyer, item, price
+          and whether it is in stock or must be built), an order contracted, accepted, canceled,
+          or newly fillable from stock or in build — each kind switchable.
         - "sql" for anything else — it runs a SELECT on an interval.
 
         For the action, "agent_notify" is what the capsuleer means by "tell me": when the alarm

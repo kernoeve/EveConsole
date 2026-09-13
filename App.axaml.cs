@@ -342,6 +342,11 @@ public class App : Application
             polling.CharacterUndocked += characterId =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
 
+            // And a store order's state is worked out by the fulfilment pass — which the store
+            // mail runs the moment it books an order — so the store-order alarms follow the pass.
+            Services.GetRequiredService<OrderFulfilmentService>().AfterPass =
+                ct => Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
+
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
