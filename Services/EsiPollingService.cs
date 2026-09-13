@@ -1621,6 +1621,14 @@ public class EsiPollingService : ReactiveObject
                 _undockSeen[charId]     = true;
             }
 
+            // A change of system is travel, whatever carried them; where from is kept so the
+            // stargate map can say whether a gate could have.
+            if (status.SolarSystemId is { } previous && previous != r.Data.SolarSystemId)
+            {
+                status.SystemChangedAt  = DateTimeOffset.UtcNow;
+                status.PreviousSystemId = previous;
+            }
+
             status.SolarSystemId     = r.Data.SolarSystemId;
             status.StationId         = r.Data.StationId;
             status.StructureId       = r.Data.StructureId;

@@ -2448,7 +2448,9 @@ public class App : Application
                         "ShipCheckedAt"     TEXT,
                         "UndockedAt"        TEXT,
                         "UndockedFromId"    INTEGER,
-                        "UndockedSystemId"  INTEGER
+                        "UndockedSystemId"  INTEGER,
+                        "SystemChangedAt"   TEXT,
+                        "PreviousSystemId"  INTEGER
                     )
                     """);
 
@@ -3012,6 +3014,9 @@ public class App : Application
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedAt" TEXT NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedFromId" INTEGER NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedSystemId" INTEGER NULL""",
+                    // And the last change of system, for the wake-up alarm's arrival mode.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "SystemChangedAt" TEXT NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "PreviousSystemId" INTEGER NULL""",
 
                     // ── SDE columns ─────────────────────────────────────────────────────
                     // Deliberately NOT here any more. Twenty of them were mirrored into this

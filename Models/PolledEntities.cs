@@ -1245,6 +1245,13 @@ public class CharacterStatus
     /// <summary>Its system — taken from the docked location itself, so it needs no structure lookup.</summary>
     public int?            UndockedSystemId { get; set; }
 
+    // The last change of system the location poll saw, and where from: a gate, a jump drive,
+    // a bridge — the poll cannot tell which, but the stargate map can (a jump drive lands you
+    // somewhere no gate leads from where you were). What the wake-up alarm's arrival mode keys
+    // on: landed, and not docked yet.
+    public DateTimeOffset? SystemChangedAt  { get; set; }
+    public int?            PreviousSystemId { get; set; }
+
     /// <summary>True when the character is docked (station or structure).</summary>
     public bool IsDocked => StationId is not null || StructureId is not null;
 }
