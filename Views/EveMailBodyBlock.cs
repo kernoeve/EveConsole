@@ -50,6 +50,16 @@ public class EveMailBodyBlock : SelectableTextBlock
         MarkupProperty.Changed.AddClassHandler<EveMailBodyBlock>((tb, _) => tb.Rebuild());
     }
 
+    public EveMailBodyBlock()
+    {
+        // ⚠️ Transparent, not null. A control with no background is hit-testable only where it
+        // has drawn something, which for a text block is the glyphs themselves — the gap between
+        // two letters, the descender space under a line, the padding, all belong to whatever is
+        // behind. A click that misses the ink by a pixel never reaches this control. Transparent
+        // draws nothing visible and makes the whole bounds ours.
+        Background = Brushes.Transparent;
+    }
+
     private void Rebuild()
     {
         _links.Clear();
@@ -103,10 +113,30 @@ public class EveMailBodyBlock : SelectableTextBlock
     {
         if (_links.Count == 0 || TextLayout is null) return null;
 
-        var hit = TextLayout.HitTestPoint(new Point(p.X - Padding.Left, p.Y - Padding.Top));
-        if (!hit.IsInside) return null;
+        var x = p.X - Padding.Left;
+        var y = p.Y - Padding.Top;
 
-        var idx = hit.TextPosition;
+        // ⚠️ Not TextHitTestResult.IsInside. That flag compares the point's Y against the height
+        // of the ONE line that was hit, not against where that line sits — so it is true on the
+        // first line and false on every line below it, and a mail's links are never on the first
+        // line. It rejected every hover and every click; the cursor never changed and nothing
+        // opened. The check below is the one it was meant to be: inside the text vertically, and
+        // not past the end of the line it landed on, so a click in the empty space to the right
+        // of a line does not open the last link on it.
+        if (y < 0 || y > TextLayout.Height || x < 0) return null;
+
+        var lineTop = 0.0;
+        foreach (var line in TextLayout.TextLines)
+        {
+            if (y < lineTop + line.Height)
+            {
+                if (x > line.WidthIncludingTrailingWhitespace) return null;
+                break;
+            }
+            lineTop += line.Height;
+        }
+
+        var idx = TextLayout.HitTestPoint(new Point(x, y)).TextPosition;
         foreach (var l in _links)
             if (idx >= l.Start && idx < l.Start + l.Length) return l.Link;
         return null;
