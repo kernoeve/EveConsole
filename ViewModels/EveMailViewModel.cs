@@ -179,11 +179,13 @@ public class EveMailViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _selectedFromPortrait, value);
     }
 
-    private string _bodyText = "";
-    public string BodyText
+    // The body as EVE wrote it, markup included; the view renders it. Status text — "Loading…",
+    // an error — goes through the same property and simply has no markup to render.
+    private string _bodyMarkup = "";
+    public string BodyMarkup
     {
-        get => _bodyText;
-        private set => this.RaiseAndSetIfChanged(ref _bodyText, value);
+        get => _bodyMarkup;
+        private set => this.RaiseAndSetIfChanged(ref _bodyMarkup, value);
     }
 
     private string _statusText = "";
@@ -358,14 +360,14 @@ public class EveMailViewModel : ReactiveObject
         var ct   = cts.Token;
         var mail = _selectedMail;
 
-        if (mail is null) { BodyText = ""; return; }
+        if (mail is null) { BodyMarkup = ""; return; }
         IsLoading = true;
-        BodyText  = "Loading…";
+        BodyMarkup = "Loading…";
         try
         {
-            var body = await _svc.GetBodyAsync(mail.CharId, mail.MailId, ct);
+            var body = await _svc.GetRawBodyAsync(mail.CharId, mail.MailId, ct);
             if (ct.IsCancellationRequested) return;   // superseded; the newer load owns the pane
-            BodyText = body;
+            BodyMarkup = body;
 
             if (!mail.IsRead)
             {
@@ -379,7 +381,7 @@ public class EveMailViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            if (!ct.IsCancellationRequested) BodyText = $"(Error loading body: {ex.Message})";
+            if (!ct.IsCancellationRequested) BodyMarkup = $"(Error loading body: {ex.Message})";
         }
         finally
         {

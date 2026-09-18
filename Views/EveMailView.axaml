@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.EveMailView"
              x:DataType="vm:EveMailViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -220,12 +221,14 @@
 
         <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
 
-        <!-- Body -->
+        <!-- Body. Rendered from EVE's own markup — bold, colour, and links that open the
+             item, pilot, corporation, killmail or contract they point at — rather than the
+             stripped text this used to show. -->
         <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled">
-          <TextBlock Text="{Binding BodyText}"
-                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
-                     TextWrapping="Wrap" Padding="14 12"
-                     LineHeight="20" />
+          <views:EveMailBodyBlock Markup="{Binding BodyMarkup}"
+                                  FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                                  TextWrapping="Wrap" Padding="14 12"
+                                  LineHeight="20" />
         </ScrollViewer>
       </Grid>
 
