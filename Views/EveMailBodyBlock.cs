@@ -60,15 +60,20 @@ public class EveMailBodyBlock : SelectableTextBlock
         if (segs.Count == 0) { Text = ""; return; }
 
         // The character offset each run starts at, in the flattened text the layout sees.
-        // LineBreak counts as one character ("\n") in TextLayout's coordinate space.
+        //
+        // ⚠️ A LineBreak is Environment.NewLine in that text — TWO characters on Windows, not
+        // one. Counted as one, every link after the first line break was recorded a character
+        // early per break above it, and in a store mail the item link sits on line three: the
+        // hit-test landed two characters past the range and nothing was clickable.
         var offset = 0;
+        var newline = Environment.NewLine.Length;
         foreach (var seg in segs)
         {
             var link = seg.Href is null ? null : MailLink.Parse(seg.Href);
             var lines = seg.Text.Split('\n');
             for (var i = 0; i < lines.Length; i++)
             {
-                if (i > 0) { Inlines.Add(new LineBreak()); offset++; }
+                if (i > 0) { Inlines.Add(new LineBreak()); offset += newline; }
                 if (lines[i].Length == 0) continue;
 
                 var run = new Run(lines[i]);
