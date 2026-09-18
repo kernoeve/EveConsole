@@ -72,6 +72,9 @@ public sealed class EntityNameBackfillService(
 
     private async Task RunAsync(CancellationToken ct)
     {
+        // Background for the ESI gate: never holds the slot kept for whatever the user is doing.
+        using var _ = EsiClient.Background();
+
         await Task.Delay(TimeSpan.FromSeconds(StartupDelaySecs), ct);
 
         while (!ct.IsCancellationRequested)

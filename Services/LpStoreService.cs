@@ -108,6 +108,9 @@ public class LpStoreService : ReactiveObject
     private async Task RunLoopAsync(string timerKey, int defaultSeconds,
                                     Func<CancellationToken, Task> sweep, CancellationToken ct)
     {
+        // Background for the ESI gate: never holds the slot kept for whatever the user is doing.
+        using var _ = EsiClient.Background();
+
         // Let startup settle before adding a few hundred calls to the queue.
         try { await Task.Delay(TimeSpan.FromSeconds(120), ct); }
         catch (OperationCanceledException) { return; }

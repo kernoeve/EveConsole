@@ -20,9 +20,73 @@ public class EsiClient
     private readonly ConcurrentDictionary<long, TokenSet> _tokens     = new();
     private readonly ConcurrentDictionary<long, TokenSet> _corpTokens = new();
 
-    // Limits simultaneous ESI HTTP calls app-wide; prevents request bursts from exhausting
-    // ESI's per-client error limit when many characters/corps poll in parallel.
-    private readonly SemaphoreSlim _httpGate = new(2, 2);
+    // ── The HTTP gate, in two lanes ─────────────────────────────────────────
+    //
+    // Limits simultaneous ESI HTTP calls app-wide, so a burst from many characters and corps
+    // polling at once cannot exhaust ESI's per-client error limit.
+    //
+    // ⚠️ A person clicking on a mail must not wait behind the poller. This used to be one
+    // semaphore of two, first come first served, and on a slow link with a deep poll cycle a
+    // body fetch queued behind every asset page ahead of it: "Loading…" for a minute, which
+    // the user cannot tell from a failure, and by the time it answered they had clicked
+    // something else. Background work now takes a slot from its own smaller gate FIRST, so
+    // polling can hold at most two of the three HTTP slots, and an interactive call always
+    // finds the third free or about to be. Total concurrency rises from two to three, which
+    // the error limit has ample room for.
+    //
+    // Which lane a call is on is carried by an AsyncLocal rather than an argument. The ESI
+    // surface is wide and every method would otherwise need the flag threaded through. The
+    // polling loop marks itself once at the top and the mark flows down every await from
+    // there; a UI-driven call into the same service runs on the UI's own async chain and
+    // never sees it. Interactive is the default, so nothing is demoted by accident — only
+    // the loops that declare themselves background are.
+    private readonly SemaphoreSlim _httpGate       = new(3, 3);
+    private readonly SemaphoreSlim _backgroundGate = new(2, 2);
+    private static readonly AsyncLocal<bool> _isBackground = new();
+
+    /// <summary>
+    /// Marks everything awaited from here until disposal as background for the ESI gate:
+    /// it will never hold more than two of the three HTTP slots, leaving one for whatever
+    /// the user is doing. Use at the top of a polling loop, not around individual calls.
+    /// </summary>
+    public static IDisposable Background()
+    {
+        var previous = _isBackground.Value;
+        _isBackground.Value = true;
+        return new LaneRestore(previous);
+    }
+
+    private sealed class LaneRestore(bool previous) : IDisposable
+    {
+        public void Dispose() => _isBackground.Value = previous;
+    }
+
+    /// <summary>
+    /// Takes an HTTP slot for the current lane. Dispose to give it back. The background lane
+    /// holds its own gate for as long as it holds the HTTP one, which is what caps it at two.
+    /// </summary>
+    private async Task<IDisposable> AcquireSlotAsync(CancellationToken ct)
+    {
+        if (!_isBackground.Value)
+        {
+            await _httpGate.WaitAsync(ct);
+            return new SlotRelease(_httpGate, null);
+        }
+
+        await _backgroundGate.WaitAsync(ct);
+        try { await _httpGate.WaitAsync(ct); }
+        catch { _backgroundGate.Release(); throw; }
+        return new SlotRelease(_httpGate, _backgroundGate);
+    }
+
+    private sealed class SlotRelease(SemaphoreSlim http, SemaphoreSlim? background) : IDisposable
+    {
+        public void Dispose()
+        {
+            http.Release();
+            background?.Release();
+        }
+    }
 
     // ESI global error limit block — set on HTTP 420 or when error budget is nearly exhausted.
     // Written by authenticated-endpoint responses; checked by all callers including market refresh.
@@ -51,6 +115,18 @@ public class EsiClient
     /// <summary>Callers should hold off entirely: either ESI's error budget is nearly
     /// spent, or Tranquility is down. Both mean "do not spend a request right now".</summary>
     internal bool IsErrorLimitBlocked => _serverOffline || IsErrorLimited;
+
+    /// <summary>Whole seconds until the error-limit block lifts; 0 when not blocked.</summary>
+    private int ErrorLimitSecondsRemaining
+    {
+        get
+        {
+            var ticks = Interlocked.Read(ref _errorLimitBlockedTicks);
+            if (ticks == 0) return 0;
+            var left = new DateTimeOffset(ticks, TimeSpan.Zero) - DateTimeOffset.UtcNow;
+            return Math.Max(0, (int)Math.Ceiling(left.TotalSeconds));
+        }
+    }
 
     // ── Per-route rate limits, shared by every caller ─────────────────────────
     //
@@ -463,10 +539,9 @@ public class EsiClient
         var historyPath = $"markets/{regionId}/history/?type_id={typeId}";
         if (RouteBlockedFor(historyPath) is not null) return (null, 429);
 
-        await _httpGate.WaitAsync(ct);
         HttpResponseMessage response;
-        try { response = await _http.GetAsync(historyPath, ct); }
-        finally { _httpGate.Release(); }
+        using (await AcquireSlotAsync(ct))
+            response = await _http.GetAsync(historyPath, ct);
 
         // Feed the shared error-limit tracker so the background history sweep self-throttles
         // and can never push us over ESI's error limit — even when it runs on its own.
@@ -558,6 +633,20 @@ public class EsiClient
     internal async Task<EsiCallResult<T>> ExecuteAuthAsync<T>(
         long characterId, string path, CancellationToken ct, int page = 0)
     {
+        // ⚠️ The same stand-down the public and raw paths already make. This one did not, so
+        // while the app was sitting out a 420 every authenticated call still went to the wire —
+        // each one another error against a budget that was exhausted, which is what keeps it
+        // exhausted. The caller gets the reason in words, the way a route block is reported,
+        // instead of a bare failure it cannot tell from a dropped connection.
+        if (IsErrorLimitBlocked)
+            return new EsiCallResult<T>
+            {
+                StatusCode        = _serverOffline ? 503 : 420,
+                RetryAfterSeconds = ErrorLimitSecondsRemaining,
+                Error             = _serverOffline
+                    ? "Tranquility is offline; ESI is paused."
+                    : $"ESI error limit reached; calls are paused for {ErrorLimitSecondsRemaining}s.",
+            };
         if (RouteBlockedFor(path) is { } wait)
             return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
@@ -569,10 +658,9 @@ public class EsiClient
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
             var headers  = response.Headers;
 
             int? TryGetInt(string name) =>
@@ -789,10 +877,9 @@ public class EsiClient
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             }
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
             using (response)
             {
                 int? TryGetInt(string name) =>
@@ -916,10 +1003,9 @@ public class EsiClient
                 foreach (var (k, v) in extraHeaders)
                     request.Headers.TryAddWithoutValidation(k, v);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
             var headers  = response.Headers;
 
             int? TryGetInt(string name) =>
@@ -1076,10 +1162,9 @@ public class EsiClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Content = JsonBody(body);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
 
             var statusCode = (int)response.StatusCode;
             T? data = default;
@@ -1130,10 +1215,9 @@ public class EsiClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Content = JsonBody(body);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
 
             var statusCode = (int)response.StatusCode;
 
@@ -1168,10 +1252,9 @@ public class EsiClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Content = JsonBody(body);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
 
             return response.IsSuccessStatusCode;
         }

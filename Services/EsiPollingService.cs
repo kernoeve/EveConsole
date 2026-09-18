@@ -371,6 +371,14 @@ public class EsiPollingService : ReactiveObject
 
     private async Task RunPollingLoopAsync(CancellationToken ct)
     {
+        // ⚠️ Everything under this loop is background for the ESI gate — the character and corp
+        // cycles, the kill mail fetch, the structure sweep — and may hold at most two of its
+        // three HTTP slots, so whatever the user is clicking on is never queued behind a poll.
+        // Marked here, once, rather than around each call: the mark flows down every await.
+        // A UI-driven call into this same service arrives on the UI's own async chain and is
+        // NOT covered by it, which is the intent — a "refresh now" is the user waiting.
+        using var _ = EsiClient.Background();
+
         await LoadLastCallTimesAsync(ct);
         await LoadCharacterTokensAsync(ct);
         await LoadCorpTokensAsync(ct);
