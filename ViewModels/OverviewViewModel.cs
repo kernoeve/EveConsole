@@ -67,11 +67,8 @@ public class NewsItemVm : ReactiveObject
         CanExpand   = HasBody && FullText.Length > PreviewText.Length;
 
         ToggleCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
-        OpenCommand   = ReactiveCommand.Create(() =>
-        {
-            if (!string.IsNullOrEmpty(Link))
-                Process.Start(new ProcessStartInfo(Link) { UseShellExecute = true });
-        });
+        // A news item's link is the feed's, not ours: confirmed like any other content link.
+        OpenCommand   = ReactiveCommand.Create(() => ExternalLinks.Open(Link));
     }
 
     private static string HtmlToText(string html)

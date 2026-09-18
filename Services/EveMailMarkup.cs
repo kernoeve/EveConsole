@@ -231,7 +231,7 @@ public abstract record MailLink
             case Structure st: nav.OpenStructure?.Invoke(st.StructureId); break;
             case Killmail km: nav.OpenKillmail?.Invoke(km.KillmailId); break;
             case Contract ct: nav.OpenContract?.Invoke(ct.ContractId); break;
-            case Url u:       ViewModels.EntityTabViewModel.OpenUrl(u.Address); break;
+            case Url u:       ExternalLinks.Open(u.Address); break;
             case Unsupported: break;
         }
     }

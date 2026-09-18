@@ -32,6 +32,8 @@ public static class UiState
     public const string CollapsedCollections = "invlevels.collapsed_collections";
     public const string StructuresShowUnknown = "structures.show_unknown";
     public const string Theme                 = "ui.theme";
+    /// <summary>"0" once the user has ticked "don't ask again" on the external-link warning.</summary>
+    public const string ConfirmExternalLinks  = "links.confirm_external";
 
     /// <summary>
     /// This client's value for <paramref name="key"/>.
