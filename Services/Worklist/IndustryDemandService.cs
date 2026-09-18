@@ -390,16 +390,27 @@ public class IndustryDemandService(
         // Units minus what is still outstanding is what the existing stock covered.
         var claimedByOrders = orderDemand.ToDictionary(o => o.TypeId, o => o.Units - o.Outstanding);
 
+        // ⚠️ Every group's items in one query and every group's availability in one batch, before
+        // the loop. Asked per rule, this was one InvLevelItems read plus the ten or so queries
+        // behind LoadAvailableAsync for each of twenty-eight rules — the bulk of the round trips
+        // this gatherer made, and it runs once per demand-driven generator. Over a remote link
+        // that was minutes. The answers are the same; they are just fetched together.
+        var ruleGroupIds = rules.Select(r => r.GroupId).Where(groups.ContainsKey).Distinct().ToList();
+        var itemsByGroup = (await db.InvLevelItems.AsNoTracking()
+                .Where(i => ruleGroupIds.Contains(i.GroupId)).ToListAsync(ct))
+            .GroupBy(i => i.GroupId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        var availByGroup = await invLevels.LoadAvailableAsync(
+            itemsByGroup.Select(kv => (groups[kv.Key],
+                                       (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
+                        .ToList(), ct);
+
         foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
         {
             if (!groups.TryGetValue(rule.GroupId, out var group)) continue;
+            if (!itemsByGroup.TryGetValue(group.Id, out var groupItems)) continue;
 
-            var groupItems = await db.InvLevelItems.AsNoTracking()
-                .Where(i => i.GroupId == group.Id).ToListAsync(ct);
-            if (groupItems.Count == 0) continue;
-
-            var typeIds = groupItems.Select(i => i.TypeId).Distinct().ToList();
-            var avail   = await invLevels.LoadAvailableAsync(group, typeIds, ct);
+            var avail = availByGroup.GetValueOrDefault(group.Id) ?? [];
 
             foreach (var gi in groupItems.OrderBy(i => i.TypeId))
             {
@@ -520,7 +531,7 @@ public class IndustryDemandService(
             expanded[typeId] = net;
 
             if (!meCache.TryGetValue(typeId, out var me))
-                meCache[typeId] = me = await production.GetDefaultMeAsync(typeId, ct);
+                meCache[typeId] = me = ProductionCalculatorService.DefaultMe(ctx, typeId);
 
             var entry = new ProductionQueueEntry
             {
@@ -927,7 +938,7 @@ public class IndustryDemandService(
         {
             TypeId   = typeId,
             Quantity = Math.Clamp(units, 1, int.MaxValue),
-            MeLevel  = me ?? await production.GetDefaultMeAsync(typeId, ct),
+            MeLevel  = me ?? ProductionCalculatorService.DefaultMe(ctx, typeId),
         };
 
         return production.Calculate([entry], ctx, meOverrides: meOverrides)

@@ -1003,9 +1003,32 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         };
     }
 
+    /// <summary>
+    /// The default ME for a product, from a context that already holds everything the rule
+    /// needs. Same answer as <see cref="GetDefaultMeAsync"/>, no database.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ This is the one the worklist must use. The async form below is four round trips per
+    /// product, and the worklist generators called it once per type in the build tree — the
+    /// material-purchase generator alone sent 1,881 commands over a remote link, seven minutes
+    /// of waiting for an answer that <see cref="Calculate"/> was already computing in memory
+    /// from the same context (see the ME resolution there). Same rule, same inputs, same result;
+    /// the async form remains for the calculator screen, which asks once, for one item, before a
+    /// context exists.
+    /// </remarks>
+    public static int DefaultMe(ProductionContext ctx, int productTypeId)
+    {
+        if (!ctx.BlueprintByProduct.TryGetValue(productTypeId, out var bp)) return 10;
+        var isReaction = bp.Activity == RxnActivity;
+        var bpoSourced = ctx.MarketBlueprints.Contains(bp.TypeId) || ctx.InventedFromMarket.Contains(bp.TypeId);
+        return IndustryMe.DefaultMe(isReaction, !isReaction && !bpoSourced,
+                                    ctx.T2TypeIds.Contains(productTypeId), ctx.TitanKeepstarIds.Contains(productTypeId));
+    }
+
     // Default ME to pre-select when an item is added to the production queue, per the shared rule
     // (ME10 / T2 ME3 / BPC-only ME0 / titan, Keepstar & Fortizar ME9 / reactions ME0). Users can
-    // override it.
+    // override it. ⚠️ Four queries — for one item from the calculator screen. Anything with a
+    // ProductionContext in hand uses DefaultMe above.
     public async Task<int> GetDefaultMeAsync(int productTypeId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);

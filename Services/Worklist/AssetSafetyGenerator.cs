@@ -291,5 +291,6 @@ public class AssetSafetyGenerator(
         AppDbContext db, List<int> typeIds, CancellationToken ct) =>
         await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 }

@@ -134,7 +134,7 @@ public class MaterialPurchaseGenerator(
                 Quantity = Math.Clamp(d.Units, 1, int.MaxValue),
                 MeLevel  = meMap.TryGetValue(d.TypeId, out var me)
                              ? me
-                             : await production.GetDefaultMeAsync(d.TypeId, ct),
+                             : ProductionCalculatorService.DefaultMe(ctx, d.TypeId),
             });
 
         // ── Supply against those needs ────────────────────────────────────────

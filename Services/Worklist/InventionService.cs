@@ -114,6 +114,7 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
 
         var names = await db.SdeTypes.AsNoTracking()
             .Where(t => t.GroupId == GenericDecryptorGroupId)
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
         if (names.Count == 0) return [];
 
@@ -189,6 +190,7 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
         var skillIds   = skillRows.Select(s => s.SkillTypeId).Distinct().ToList();
         var skillNames = await db.SdeTypes.AsNoTracking()
             .Where(t => skillIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         // The three invention skills split two ways and are weighted differently, so they have to
@@ -210,6 +212,7 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
 
         var sourceNames = await db.SdeTypes.AsNoTracking()
             .Where(t => sourceIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         var inventionByT2Bp = invention.ToDictionary(i => i.InventedBp, i => i);

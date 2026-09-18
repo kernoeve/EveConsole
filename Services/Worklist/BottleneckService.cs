@@ -580,6 +580,7 @@ public class BottleneckService(
 
         var names = await db.SdeTypes.AsNoTracking()
             .Where(t => productIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         var result = new List<ItemBandwidth>();

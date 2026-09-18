@@ -132,6 +132,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         // IndyStructure.StructureTypeKey holds ("raitaru", "sotiyo", …).
         var structNames = await db.SdeTypes.AsNoTracking()
             .Where(t => structTypeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name.ToLowerInvariant(), ct);
 
         var structMfg = new Dictionary<string, double>();
@@ -158,6 +159,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         var rigTypeIds = rigs.Select(r => r.RigTypeId).Distinct().ToList();
         var rigNames = await db.SdeTypes.AsNoTracking()
             .Where(t => rigTypeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         return new TimeContext

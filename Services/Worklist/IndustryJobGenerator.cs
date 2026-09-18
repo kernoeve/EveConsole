@@ -980,7 +980,7 @@ public class IndustryJobGenerator(
                     // exceptions — titans, supercarriers and Keepstars are ME9, because that is
                     // where their research stops — so a row for a print nobody owns quotes the
                     // efficiency the job would really run at.
-                    var refMe = reference?.Me ?? await production.GetDefaultMeAsync(d.TypeId, ct);
+                    var refMe = reference?.Me ?? ProductionCalculatorService.DefaultMe(ctx, d.TypeId);
 
                     var refSecs = IndustryTimeService.PerRunSeconds(
                         timeCtx, product.TypeId, isReaction, refTe, structure, catKey,
@@ -1243,7 +1243,7 @@ public class IndustryJobGenerator(
         {
             TypeId   = productTypeId,
             Quantity = (int)Math.Clamp(quantity, 1, int.MaxValue),
-            MeLevel  = me ?? await production.GetDefaultMeAsync(productTypeId, ct),
+            MeLevel  = me ?? ProductionCalculatorService.DefaultMe(ctx, productTypeId),
         };
 
         return production.Calculate([entry], ctx)
