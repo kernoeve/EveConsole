@@ -177,10 +177,21 @@ public class MaterialPurchaseGenerator(
         var buildManaged = await BuildManagedTypesAsync(db, ctx, ct);
 
         // Blueprints the builds themselves ask to buy — BPC-only items carry their copies as a
-        // material with a real quantity, at every level of the tree. Those are better handled
-        // there than by the nothing-owned check below, which cannot say "you have two copies and
-        // need four".
-        var bpShortfalls = rawIds.Where(t => ctx.BpTypeIds.Contains(t) && Missing(t) > 0).ToHashSet();
+        // material with a real quantity, at every level of the tree, and that quantity is RUNS:
+        // the calculator adds one copy per run ("1 BPC per run @ contract price"), so a
+        // sub-component needing seven units puts seven runs of its print in the tree.
+        //
+        // ⚠️ Handed to the print path below, not raised by the material loop. The material loop
+        // nets a need against what assets hold, and for a print that is a COUNT OF COPIES —
+        // seven runs needed less one copy owned read as six to buy, when the one copy might be
+        // good for ten. PrintTasks does the subtraction in runs on both sides, which is the only
+        // arithmetic that means anything for a copy. It used to be the other way round — the
+        // print path skipped anything the tree already asked for, on the reasoning that the
+        // tree's quantity was the better one — and the tree's quantity IS better, which is why it
+        // now feeds the path that knows what to subtract from it.
+        var treeNeed = rawIds
+            .Where(t => ctx.BpTypeIds.Contains(t) && raw[t].Units > 0)
+            .ToDictionary(t => t, t => (Runs: raw[t].Units, For: WantedBy(raw[t])));
 
         var buyAt   = settings.IndustryBuyLocationId;
         var buyName = settings.IndustryBuyLocationName;
@@ -197,7 +208,7 @@ public class MaterialPurchaseGenerator(
         var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
 
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, bpShortfalls, inventable, inAssets, shelfWant,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, shelfWant,
                                   buyAt, buyName, alt));
 
         var shortIds = rawIds.Where(t => Missing(t) > 0).ToList();
@@ -223,6 +234,9 @@ public class MaterialPurchaseGenerator(
         {
             if (buildManaged.Contains(typeId)) continue;
 
+            // Every print goes through PrintTasks — see treeNeed. This loop cannot value a copy.
+            if (ctx.BpTypeIds.Contains(typeId)) continue;
+
             var need     = raw[typeId];
             var have     = onHand.GetValueOrDefault(typeId);
             var taken    = Math.Min(have, eaten.GetValueOrDefault(typeId));
@@ -241,13 +255,6 @@ public class MaterialPurchaseGenerator(
 
             var typeName = ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}");
 
-            // A blueprint is acquired, not market-ordered, so it is titled the way the print
-            // tasks are — either a BPO or a copy will do, and which is the player's call.
-            var isPrint = ctx.BpTypeIds.Contains(typeId);
-
-            // Invention raises this one, and raising it here as well would be two plans for one gap.
-            if (isPrint && inventable.Contains(typeId)) continue;
-
             items.Add(new WorklistItem
             {
                 Key           = $"industry_buy:{typeId}",
@@ -256,12 +263,8 @@ public class MaterialPurchaseGenerator(
                 // instruction — but the name leads, because the column sorts on this string and
                 // a leading count sorts by digit, scattering an item's rows across the list.
                 Kind          = WorklistKind.Buy,
-                // "BPO/BPC" trails the name for the same reason, while still saying the purchase
-                // is a contract rather than a market order, which the kind column cannot.
-                Title         = isPrint ? $"{typeName} — BPO/BPC × {short_:N0}"
-                                        : $"{typeName} × {short_:N0}",
+                Title         = $"{typeName} × {short_:N0}",
                 Quantity      = short_,
-                TitleTag      = isPrint ? "BPO/BPC" : null,
                 // Prints merge too. A job needing copies and a stocking rule wanting some on the
                 // shelf are one trip to the contract window, exactly as two demands for the same
                 // mineral are one order — the contract-versus-market distinction only matters
@@ -396,8 +399,8 @@ public class MaterialPurchaseGenerator(
     private static List<WorklistItem> PrintTasks(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
-        HashSet<int> alreadyCounted, HashSet<int> inventable, Dictionary<int, int> ownedInAssets,
-        Dictionary<int, long> shelfWant,
+        Dictionary<int, (long Runs, string For)> treeNeed, HashSet<int> inventable,
+        Dictionary<int, int> ownedInAssets, Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
@@ -414,13 +417,24 @@ public class MaterialPurchaseGenerator(
             forWhat.TryAdd(bp.TypeId, entry.TypeName);
         }
 
+        // What the material tree asks for, in runs, at every level — the queue above only sees
+        // the root product's own print, and a Revelation's seven Capital Absorption Thruster
+        // Arrays need seven runs of a print the queue never names. Where both count the same
+        // print — a BPC-only root product is in both — they are counting the same job, so the
+        // larger is taken rather than the sum. The tree's figure is already net of sub-assemblies
+        // on hand, so it is the more exact of the two whenever they differ.
+        foreach (var (bpTypeId, (runs, @for)) in treeNeed)
+        {
+            jobNeed[bpTypeId] = Math.Max(jobNeed.GetValueOrDefault(bpTypeId), runs);
+            forWhat.TryAdd(bpTypeId, @for);
+        }
+
         // The union, so a blueprint that is only stocked — nothing queued to build with it — is
         // still acquired. Iterating the queue alone would lose it the moment this became the one
         // place the demand is totalled.
         foreach (var bpTypeId in jobNeed.Keys.Concat(shelfWant.Keys).Distinct().OrderBy(id => id))
         {
-            if (alreadyCounted.Contains(bpTypeId)) continue;   // the plan is already buying it
-            if (inventable.Contains(bpTypeId))     continue;   // and this one is invented, not bought
+            if (inventable.Contains(bpTypeId)) continue;   // invented, not bought
 
             // Supply from both tables. The blueprints table does not cover every structure the
             // assets table does — this corporation has 5,518 blueprint rows and none at the staging structure,
