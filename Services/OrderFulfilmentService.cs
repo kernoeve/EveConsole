@@ -146,11 +146,16 @@ public class OrderFulfilmentService(
 
         var ours = await OurIdsAsync(db, ct);
 
-        // Stock, counted once for every type in play. Assets are a snapshot of what is sitting in
-        // hangars; nothing here reserves anything in game, so the reservation below is purely this
-        // app's own bookkeeping across its own orders.
+        // ⚠️ Only what is OURS counts as supply: an authenticated character's own hangar, or a
+        // corporation marked personal. A corporation token lets the app SEE an alliance corp's
+        // assets and jobs — that is what it is for — and both of these queries used to count
+        // them. An order for a Phoenix read "in stock" off five of Brave Newbies' capitals in a
+        // hangar the user could not sell from, while the two actually being built for it sat
+        // unattached. The same test the contract match already applies, for the same reason.
         var stock = await db.EsiAssets
             .Where(a => typeIds.Contains(a.TypeId))
+            .Where(a => (a.OwnerType == "character"   && ours.Characters.Contains(a.OwnerId))
+                     || (a.OwnerType == "corporation" && ours.Corporations.Contains(a.OwnerId)))
             .GroupBy(a => a.TypeId)
             .Select(g => new { TypeId = g.Key, Units = g.Sum(a => (long)a.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => x.Units, ct);
@@ -161,6 +166,8 @@ public class OrderFulfilmentService(
             .Where(j => j.ProductTypeId != null
                      && typeIds.Contains(j.ProductTypeId!.Value)
                      && j.Status != "delivered" && j.Status != "cancelled")
+            .Where(j => (j.OwnerType == "character"   && ours.Characters.Contains(j.OwnerId))
+                     || (j.OwnerType == "corporation" && ours.Corporations.Contains(j.OwnerId)))
             .ToListAsync(ct);
 
         // A contract already spoken for cannot deliver a second order.
