@@ -165,6 +165,13 @@ public class EveMailViewModel : ReactiveObject
         }
     }
 
+    // ⚠️ One body load in flight at a time. Selecting a mail while the previous one is still
+    // fetching used to leave both running, and whichever finished LAST owned the pane: on a
+    // slow link the first fetch would land after the second and quietly replace the mail the
+    // user was now looking at with the one they had left — or clear IsLoading while the real
+    // load was still going. Each selection now cancels the one before it.
+    private CancellationTokenSource? _bodyCts;
+
     private Bitmap? _selectedFromPortrait;
     public Bitmap? SelectedFromPortrait
     {
@@ -345,25 +352,39 @@ public class EveMailViewModel : ReactiveObject
 
     private async Task LoadBodyAsync()
     {
-        if (_selectedMail is null) { BodyText = ""; return; }
+        _bodyCts?.Cancel();
+        _bodyCts?.Dispose();
+        var cts  = _bodyCts = new CancellationTokenSource();
+        var ct   = cts.Token;
+        var mail = _selectedMail;
+
+        if (mail is null) { BodyText = ""; return; }
         IsLoading = true;
         BodyText  = "Loading…";
         try
         {
-            BodyText = await _svc.GetBodyAsync(_selectedMail.CharId, _selectedMail.MailId);
-            if (!_selectedMail.IsRead)
+            var body = await _svc.GetBodyAsync(mail.CharId, mail.MailId, ct);
+            if (ct.IsCancellationRequested) return;   // superseded; the newer load owns the pane
+            BodyText = body;
+
+            if (!mail.IsRead)
             {
-                await _svc.MarkReadAsync(_selectedMail.CharId, _selectedMail.MailId);
-                _selectedMail.MarkAsRead();
+                await _svc.MarkReadAsync(mail.CharId, mail.MailId);
+                mail.MarkAsRead();
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer selection, which has already taken over the pane.
         }
         catch (Exception ex)
         {
-            BodyText = $"(Error loading body: {ex.Message})";
+            if (!ct.IsCancellationRequested) BodyText = $"(Error loading body: {ex.Message})";
         }
         finally
         {
-            IsLoading = false;
+            // Only the load that still owns the pane may clear the spinner.
+            if (ReferenceEquals(cts, _bodyCts)) IsLoading = false;
         }
     }
 

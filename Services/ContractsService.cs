@@ -137,6 +137,9 @@ public class ContractsService : ReactiveObject
 
     private async Task RunLoopAsync(string timerKey, int defaultSeconds, Func<CancellationToken, Task> sweep, CancellationToken ct)
     {
+        // Background for the ESI gate: never holds the slot kept for whatever the user is doing.
+        using var _ = EsiClient.Background();
+
         try { await Task.Delay(TimeSpan.FromSeconds(60), ct); }
         catch (OperationCanceledException) { return; }
 

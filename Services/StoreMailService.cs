@@ -88,6 +88,10 @@ public class StoreMailService(
 
         _loop = Task.Run(async () =>
         {
+            // Background for the ESI gate: never holds the slot kept for whatever the user is
+            // doing. Inside the lambda, so a RunOnceAsync the user forces stays interactive.
+            using var _ = EsiClient.Background();
+
             while (!ct.IsCancellationRequested)
             {
                 try { await RunOnceAsync(ct); }
