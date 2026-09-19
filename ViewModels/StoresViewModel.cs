@@ -736,8 +736,9 @@ public class StoresViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _webEveClientId, value ?? "");
-            _ = SaveAsync(s => s.WebEveClientId = (value ?? "").Trim());
+            _ = SaveEveKeyAsync(s => s.WebEveClientId = (value ?? "").Trim());
             RefreshSsoWarning();
+
 
         }
     }
@@ -751,8 +752,9 @@ public class StoresViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _webEveClientSecret, value ?? "");
-            _ = SaveAsync(s => s.WebEveClientSecret = (value ?? "").Trim());
+            _ = SaveEveKeyAsync(s => s.WebEveClientSecret = (value ?? "").Trim());
             RefreshSsoWarning();
+
         }
     }
 
@@ -855,6 +857,20 @@ public class StoresViewModel : ReactiveObject
         _subdomains = new Dictionary<string, string>();
         RefreshTokenText();
         DeployStatusText = "The token is gone from this machine. The site keeps running; only deploying and updating from here need one.";
+    }
+
+    /// <summary>
+    /// Saves a key and, once both are present on a site deployed from here, puts them on the site
+    /// at once — sign-in then works without another deploy. Left alone while a store is loading.
+    /// </summary>
+    private async Task SaveEveKeyAsync(Action<Store> apply)
+    {
+        if (_suppressSave || SelectedStore is not StoreRowVm row) return;
+        await SaveAsync(apply);
+        if (_webEveClientId.Trim().Length == 0 || _webEveClientSecret.Trim().Length == 0) return;
+        if (!AppConfig.HasCloudflareToken || CloudflareAccount is null) return;
+        var r = await _deploy.PutEveKeysAsync(row.Id);
+        await Dispatcher.UIThread.InvokeAsync(() => DeployStatusText = r.Text);
     }
 
     /// <summary>Deploys, or updates, the site; the same button for both.</summary>

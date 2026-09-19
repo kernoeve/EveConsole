@@ -61,6 +61,13 @@ public sealed class CloudflareClient(HttpClient http)
             new StringContent(JsonSerializer.Serialize(new { subdomain }), Encoding.UTF8, "application/json"), ct);
     }
 
+    /// <summary>Sets one secret on a Worker without a new upload — what <c>wrangler secret put</c> does.</summary>
+    public async Task PutSecretAsync(string token, string accountId, string scriptName, string name, string text, CancellationToken ct)
+    {
+        using var doc = await CallAsync(token, HttpMethod.Put, $"accounts/{accountId}/workers/scripts/{scriptName}/secrets",
+            new StringContent(JsonSerializer.Serialize(new { name, text, type = "secret_text" }), Encoding.UTF8, "application/json"), ct);
+    }
+
     public async Task<Database?> FindDatabaseAsync(string token, string accountId, string name, CancellationToken ct)
     {
         using var doc = await CallAsync(token, HttpMethod.Get, $"accounts/{accountId}/d1/database?name={Uri.EscapeDataString(name)}", null, ct);

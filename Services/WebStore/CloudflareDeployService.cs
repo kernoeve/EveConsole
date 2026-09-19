@@ -2,7 +2,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace EveConsole.Services.WebStore;
 
@@ -155,19 +157,18 @@ public sealed partial class CloudflareDeployService(
 
             if (store.WebSecret.Length == 0) store.WebSecret = WebStoreSigner.NewSecret();
 
+            // What the upload declares. Secrets are not among them: they go through the secrets
+            // endpoint after the upload, the way wrangler sets them, and keep_bindings below keeps
+            // every secret the site already has across the new version.
             var bindings = new List<Dictionary<string, string>>
             {
-                new() { ["type"] = "d1",          ["name"] = manifest.Bindings?.D1 ?? "DB", ["id"]   = database.Id },
-                new() { ["type"] = "plain_text",  ["name"] = "SITE_VERSION",                ["text"] = manifest.Version },
-                new() { ["type"] = "secret_text", ["name"] = "STORE_SYNC_SECRET",           ["text"] = store.WebSecret },
+                new() { ["type"] = "d1",         ["name"] = manifest.Bindings?.D1 ?? "DB", ["id"]   = database.Id },
+                new() { ["type"] = "plain_text", ["name"] = "SITE_VERSION",                ["text"] = manifest.Version },
             };
             foreach (var (key, value) in manifest.Bindings?.Vars ?? new Dictionary<string, string>())
                 if (key != "SITE_VERSION")
                     bindings.Add(new() { ["type"] = "plain_text", ["name"] = key, ["text"] = value });
-            if (store.WebEveClientId.Trim().Length > 0)
-                bindings.Add(new() { ["type"] = "secret_text", ["name"] = "EVE_CLIENT_ID",     ["text"] = store.WebEveClientId.Trim() });
-            if (store.WebEveClientSecret.Trim().Length > 0)
-                bindings.Add(new() { ["type"] = "secret_text", ["name"] = "EVE_CLIENT_SECRET", ["text"] = store.WebEveClientSecret.Trim() });
+
 
             var metadata = JsonSerializer.Serialize(new
             {
@@ -175,14 +176,19 @@ public sealed partial class CloudflareDeployService(
                 compatibility_date  = string.IsNullOrEmpty(manifest.CompatibilityDate) ? "2025-06-01" : manifest.CompatibilityDate,
                 compatibility_flags = manifest.CompatibilityFlags ?? [],
                 bindings,
-                // Secrets already on the site stay unless re-declared above, so an update never
-                // needs the EVE application's secret typed again.
+                // Every secret the site holds stays across the upload; the ones the store knows
+                // are set again right after it.
                 keep_bindings       = new[] { "secret_text" },
+
                 observability       = new { enabled = true },
             });
 
             progress?.Report($"Uploading site {manifest.Version} as {name}…");
             await cf.UploadScriptAsync(token, accountId, name, metadata, release.Module, ct);
+
+            progress?.Report("Setting the site's secrets…");
+            await PutSecretsAsync(cf, token, accountId, name, store, ct);
+
 
             progress?.Report("Switching on the workers.dev address…");
             await cf.EnableWorkersDevAsync(token, accountId, name, ct);
@@ -219,7 +225,10 @@ public sealed partial class CloudflareDeployService(
                     ? $"Site {manifest.Version} is up at {store.WebUrl}."
                     : $"Site uploaded to {store.WebUrl}; it still answers as {seen.Value.Version}, so give it a minute.";
             if (store.WebEveClientId.Trim().Length == 0 || store.WebEveClientSecret.Trim().Length == 0)
-                text += $" Buyers cannot sign in yet: register an EVE application with callback {store.WebUrl}/auth/callback, enter its Client ID and Secret Key, and deploy again.";
+                text += $" Buyers cannot sign in yet: register an EVE application with callback {store.WebUrl}/auth/callback and enter its Client ID and Secret Key; they go to the site as soon as they are saved.";
+            else if (seen?.SsoConfigured == false)
+                text += " The site does not report its EVE application keys yet; give it a minute and press Check.";
+
 
             if (store.WebEnabled) sync.Nudge();
             return new Outcome(true, text, store.WebUrl, manifest.Version);
@@ -231,7 +240,54 @@ public sealed partial class CloudflareDeployService(
         }
     }
 
+    // ── The site's secrets ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Puts the store's EVE application keys on a site this app deployed, without a new upload:
+    /// what the Config tab does the moment the keys are saved, so sign-in works from then on.
+    /// </summary>
+    public async Task<Outcome> PutEveKeysAsync(int storeId, CancellationToken ct = default)
+    {
+        var token = TokenSource();
+        if (token is null)
+            return new Outcome(false, "No Cloudflare API token is saved on this machine, so the keys wait here for the next deploy.");
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId, ct);
+        if (store is null) return new Outcome(false, "The store no longer exists.");
+        if (store.WebCloudflareAccountId.Length == 0 || store.WebWorkerName.Length == 0)
+            return new Outcome(false, "This site was not deployed from here: set the keys on it as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets (wrangler secret put).");
+        if (store.WebEveClientId.Trim().Length == 0 || store.WebEveClientSecret.Trim().Length == 0)
+            return new Outcome(false, "Both the Client ID and the Secret Key are needed before they can go on the site.");
+
+        try
+        {
+            var cf = Cloudflare;
+            await cf.PutSecretAsync(token, store.WebCloudflareAccountId, store.WebWorkerName, "EVE_CLIENT_ID",     store.WebEveClientId.Trim(),     ct);
+            await cf.PutSecretAsync(token, store.WebCloudflareAccountId, store.WebWorkerName, "EVE_CLIENT_SECRET", store.WebEveClientSecret.Trim(), ct);
+            return new Outcome(true, "EVE application keys placed on the site; buyers can sign in from now on.", store.WebUrl);
+        }
+        catch (Exception ex) when (ex is CloudflareException or HttpRequestException or TaskCanceledException or JsonException)
+        {
+            errorLogger.Log(nameof(CloudflareDeployService), "put keys", ex);
+            return new Outcome(false, Plain(ex));
+        }
+    }
+
+    /// <summary>The store's secret and its EVE application keys, one call each; a blank one is left as the site has it.</summary>
+    private static async Task PutSecretsAsync(CloudflareClient cf, string token, string accountId, string script, Store store, CancellationToken ct)
+    {
+        foreach (var (name, value) in new[]
+        {
+            ("STORE_SYNC_SECRET", store.WebSecret),
+            ("EVE_CLIENT_ID",     store.WebEveClientId.Trim()),
+            ("EVE_CLIENT_SECRET", store.WebEveClientSecret.Trim()),
+        })
+            if (value.Length > 0) await cf.PutSecretAsync(token, accountId, script, name, value, ct);
+    }
+
     // ── Check, which changes nothing ──────────────────────────────────────────
+
 
     /// <summary>What the site runs, against what is released.</summary>
     public async Task<Outcome> CheckSiteAsync(int storeId, CancellationToken ct = default)
@@ -246,7 +302,8 @@ public sealed partial class CloudflareDeployService(
         {
             var seen = await SiteVersionAsync(store.WebUrl, attempts: 1, ct);
             if (seen is null) return new Outcome(false, $"{store.WebUrl} is not answering at /api/version.");
-            var (version, protocol) = seen.Value;
+            var (version, protocol, sso) = seen.Value;
+
             if (version != store.WebSiteVersion) { store.WebSiteVersion = version; await db.SaveChangesAsync(ct); }
 
             var text = $"Site runs {version}";
@@ -261,7 +318,10 @@ public sealed partial class CloudflareDeployService(
             else if (newest.Protocol > WebStoreProtocol.Version)  text += $". Release {newest.Version} is out but needs a newer EVE Console (protocol {newest.Protocol}).";
             else if (Newer(newest.Version, version))              text += $". Release {newest.Version} is available — press Deploy to update.";
             else                                                  text += $"; the newest release is {newest.Version}.";
+            if (sso == false)
+                text += " Sign-in is not set up on the site: it has no EVE application keys. Enter them on this tab; a site deployed from here gets them at once.";
             return new Outcome(true, text, store.WebUrl, version);
+
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or InvalidOperationException)
         {
@@ -284,7 +344,8 @@ public sealed partial class CloudflareDeployService(
         return null;
     }
 
-    private async Task<(string Version, int Protocol)?> SiteVersionAsync(string url, int attempts, CancellationToken ct)
+    private async Task<(string Version, int Protocol, bool? SsoConfigured)?> SiteVersionAsync(string url, int attempts, CancellationToken ct)
+
     {
         var web = httpFactory.CreateClient("webstore");
         for (var i = 0; i < attempts; i++)
@@ -297,7 +358,11 @@ public sealed partial class CloudflareDeployService(
                     using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
                     var v = doc.RootElement.TryGetProperty("siteVersion", out var sv) ? sv.GetString() ?? "" : "";
                     var p = doc.RootElement.TryGetProperty("protocol", out var pr) && pr.ValueKind == JsonValueKind.Number ? pr.GetInt32() : 0;
-                    if (v.Length > 0) return (v, p);
+                    // Sites from 0.1.1 say whether they hold EVE application keys; older ones say nothing.
+                    var sso = doc.RootElement.TryGetProperty("ssoConfigured", out var sc) && sc.ValueKind is JsonValueKind.True or JsonValueKind.False
+                        ? sc.GetBoolean() : (bool?)null;
+                    if (v.Length > 0) return (v, p, sso);
+
                 }
             }
             catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException && !ct.IsCancellationRequested) { }
