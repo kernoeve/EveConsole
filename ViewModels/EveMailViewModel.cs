@@ -293,13 +293,19 @@ public class EveMailViewModel : ReactiveObject
 
             var rows = await _svc.GetMailsAsync(singleCharId, charIds, _selectedFolder?.LabelId, ct);
 
-            // ⚠️ Reconciled in place, never cleared and refilled. Clearing the list made the
-            // ListBox drop its selection, which nulled SelectedMail and blanked the message the
-            // user was reading — every sixty seconds. Rows that are still there keep their
-            // identity (and so the selection); a new mail is inserted where it belongs, which
-            // for the newest is the top; a mail that has gone is removed. A refresh that finds
-            // nothing new changes nothing on screen.
-            var added = Reconcile(rows);
+            // ⚠️ Two different operations, and which one depends on why we are here.
+            //
+            // A background refresh of the SAME list is reconciled in place. Clearing and
+            // refilling made the ListBox drop its selection, which nulled SelectedMail and
+            // blanked the message being read — every sixty seconds. Rows still present keep
+            // their identity (and so the selection); a new mail is inserted where it belongs,
+            // the newest at the top; a mail that has gone is removed. Nothing new, nothing moves.
+            //
+            // A folder or character change is a DIFFERENT list, and is replaced. Reconciling
+            // one list into another moves and trims rows under the ListBox, and it was left
+            // scrolled to the bottom of the shorter list — the old offset, clamped to the new
+            // extent. Replacing resets the scroll to the top, which is where a new folder opens.
+            var added = quiet ? Reconcile(rows) : Replace(rows);
 
             // Portraits for the new rows only — throttled to 4 concurrent HTTP requests.
             if (added.Count > 0)
@@ -330,6 +336,19 @@ public class EveMailViewModel : ReactiveObject
         {
             if (!quiet) IsLoading = false;
         }
+    }
+
+    /// <summary>A new list: everything replaced, scroll back at the top, no selection.</summary>
+    private List<EveMailRowVm> Replace(List<EveMailRow> rows)
+    {
+        Mails.Clear();
+        foreach (var r in rows)
+        {
+            var charName = _sourceChars.FirstOrDefault(c => c.Id == r.CharacterId)?.Name
+                           ?? _selectedChar?.Name ?? "";
+            Mails.Add(new EveMailRowVm(r, charName));
+        }
+        return Mails.ToList();
     }
 
     /// <summary>
@@ -519,7 +538,7 @@ public class EveMailViewModel : ReactiveObject
         {
             var (ok, err) = await _svc.SendMailAsync(result.FromCharId, result.Subject, result.Body, result.Recipients);
             StatusText = ok ? "Mail sent." : $"Send failed: {err}";
-            if (ok) _ = LoadMailsAsync();
+            if (ok) _ = LoadMailsAsync(quiet: true);   // the same list, with the sent mail in it
         }
         catch (Exception ex)
         {
