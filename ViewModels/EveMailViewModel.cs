@@ -224,6 +224,7 @@ public class EveMailViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> ComposeCommand { get; }
     public ReactiveCommand<Unit, Unit> ReplyCommand   { get; }
+    public ReactiveCommand<Unit, Unit> ForwardCommand { get; }
 
     public Func<ComposeMailArgs, Task<ComposeMailResult?>>? ShowComposeDialog { get; set; }
 
@@ -241,6 +242,8 @@ public class EveMailViewModel : ReactiveObject
 
         ComposeCommand = ReactiveCommand.CreateFromTask(OpenComposeAsync);
         ReplyCommand   = ReactiveCommand.CreateFromTask(OpenReplyAsync,
+                             this.WhenAnyValue(vm => vm.SelectedMail).Select(m => m is not null));
+        ForwardCommand = ReactiveCommand.CreateFromTask(OpenForwardAsync,
                              this.WhenAnyValue(vm => vm.SelectedMail).Select(m => m is not null));
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
@@ -492,11 +495,34 @@ public class EveMailViewModel : ReactiveObject
     /// "RE:" on the subject unless it already carries one, and the original quoted below three
     /// blank lines with the caret on the first of them.
     /// </summary>
-    private async Task OpenReplyAsync()
+    private Task OpenReplyAsync()   => QuoteSelectedAsync(forward: false);
+
+    /// <summary>
+    /// A forward of the selected mail: the same quote, "FW:" on the subject in place of any
+    /// "RE:", and nobody in the To line — that is the whole point of a forward.
+    /// </summary>
+    private Task OpenForwardAsync() => QuoteSelectedAsync(forward: true);
+
+    /// <summary>What a subject becomes on reply or forward.</summary>
+    public static string QuotedSubject(string subject, bool forward)
+    {
+        var s = subject.TrimStart();
+        var prefix = forward ? "FW:" : "RE:";
+
+        // Already this kind of message: leave it as it is, whatever the case.
+        if (s.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return s;
+
+        // Forwarding a reply: the RE: goes, since what is sent on is not an answer to anyone.
+        if (forward && s.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)) s = s[3..].TrimStart();
+
+        return prefix + " " + s;
+    }
+
+    private async Task QuoteSelectedAsync(bool forward)
     {
         if (ShowComposeDialog is null || _selectedMail is not { } mail) return;
 
-        // The character the mail was delivered to is the one answering. That is the row's
+        // The character the mail was delivered to is the one sending. That is the row's
         // mailbox owner, not whichever character the list happens to be filtered on.
         if (_sourceChars.All(c => c.Id != mail.CharId))
         {
@@ -507,9 +533,6 @@ public class EveMailViewModel : ReactiveObject
         // The stored body is EVE's markup; the compose box is plain text.
         var original = EveMailMarkup.ToPlainText(await _svc.GetRawBodyAsync(mail.CharId, mail.MailId));
 
-        var subject = mail.Subject.TrimStart();
-        if (!subject.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)) subject = "RE: " + subject;
-
         var quote = "\n\n\n"
                   + "--------------------------------\n"
                   + $"{mail.FromText} wrote on {mail.TimeText}:\n\n"
@@ -519,12 +542,15 @@ public class EveMailViewModel : ReactiveObject
         {
             Characters        = _sourceChars.ToList(),
             FromCharId        = mail.CharId,
-            InitialRecipients = mail.FromId > 0 ? [new EveMailResolvedRecipient(mail.FromId, mail.FromText, "character")] : [],
-            InitialSubject    = subject,
+            InitialRecipients = !forward && mail.FromId > 0
+                                    ? [new EveMailResolvedRecipient(mail.FromId, mail.FromText, "character")]
+                                    : [],
+            InitialSubject    = QuotedSubject(mail.Subject, forward),
             InitialBody       = quote,
             StartInBody       = true,
         });
     }
+
 
     private async Task ComposeAndSendAsync(ComposeMailArgs args)
     {

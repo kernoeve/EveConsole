@@ -347,6 +347,31 @@ public class StoreMailService(
         {
             ct.ThrowIfCancellationRequested();
 
+            // ⚠️ A reply or a forward is part of a conversation a person is having, not an
+            // order, and it is left alone — not answered with the usage page as an unrecognised
+            // subject would be. Decided from the header, before the body is read: reading it
+            // would spend a char-social call on a mail we are not going to act on. Recorded so
+            // the next pass does not look at it again.
+            if (IsConversation(header.Subject))
+            {
+                db.StoreMails.Add(new StoreMail
+                {
+                    StoreId   = store.Id,
+                    Direction = "in",
+                    MailId    = header.MailId,
+                    PartyId   = header.FromId,
+                    PartyName = header.FromName,
+                    Subject   = header.Subject ?? "",
+                    At        = header.Timestamp,
+                    Outcome   = "ignored",
+                    Detail    = "A reply or forward — part of a conversation, not a command.",
+                });
+                await db.SaveChangesAsync(ct);
+                db.ChangeTracker.Clear();
+                handled++;
+                continue;
+            }
+
             var body = "";
             // ⚠️ RAW. The order parser reads links out of the markup, and the stripped version
             // has already thrown every one of them away.
@@ -1268,6 +1293,14 @@ public class StoreMailService(
 
     /// <summary>The body's size in the unit the limit is enforced in.</summary>
     private static int Weigh(string s) => Encoding.UTF8.GetByteCount(s);
+
+    /// <summary>A subject that is a reply or a forward — "RE:" or "FW:", any case.</summary>
+    public static bool IsConversation(string? subject)
+    {
+        var s = (subject ?? "").TrimStart();
+        return s.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)
+            || s.StartsWith("FW:", StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>Whether a send was refused for length — which no retry can change.</summary>
     private static bool TooLong(string? error) =>
