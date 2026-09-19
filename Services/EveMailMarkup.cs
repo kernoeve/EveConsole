@@ -120,6 +120,17 @@ public static class EveMailMarkup
         return segs;
     }
 
+    /// <summary>
+    /// The body as readable text, for quoting into a reply: markup dropped, line breaks kept.
+    /// The compose box is plain text, and a reply quotes the words, not the dressing.
+    /// </summary>
+    public static string ToPlainText(string? body)
+    {
+        var sb = new StringBuilder();
+        foreach (var seg in Parse(body)) sb.Append(seg.Text);
+        return Regex.Replace(sb.ToString(), @"\n{3,}", "\n\n").Trim();
+    }
+
     private static Dictionary<string, string> Attrs(string raw)
     {
         var d = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

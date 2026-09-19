@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Models;
@@ -69,6 +70,18 @@ public class EveMailRowVm : ReactiveObject
         SubjectColor = Palette.TextFaint;
     }
 
+    /// <summary>The row's identity in the list: one mail, in one character's mailbox.</summary>
+    public (int, long) Key => (MailId, CharId);
+
+    /// <summary>
+    /// Takes whatever the poll has changed since this row was built — read in the game, say —
+    /// without replacing the row. Replacing it is what lost the selection on every refresh.
+    /// </summary>
+    public void Update(EveMailRow r)
+    {
+        if (r.IsRead && !IsRead) MarkAsRead();
+    }
+
     public Task LoadPortraitAsync()
     {
         var url = $"https://images.evetech.net/characters/{FromId}/portrait?size=32";
@@ -116,6 +129,13 @@ public sealed class ComposeMailArgs
     public string                   InitialTo      { get; set; } = "";
     public string                   InitialSubject { get; set; } = "";
     public string                   InitialBody    { get; set; } = "";
+
+    /// <summary>Recipients already known — a reply's original sender — added without a search.</summary>
+    public IReadOnlyList<EveMailResolvedRecipient> InitialRecipients { get; set; } = [];
+
+    /// <summary>True for a reply: the body is prefilled with the quote, so the dialog opens with
+    /// the caret on the first line and focus in the body, ready to type above it.</summary>
+    public bool StartInBody { get; set; }
 }
 
 public sealed class ComposeMailResult
@@ -203,6 +223,7 @@ public class EveMailViewModel : ReactiveObject
     }
 
     public ReactiveCommand<Unit, Unit> ComposeCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReplyCommand   { get; }
 
     public Func<ComposeMailArgs, Task<ComposeMailResult?>>? ShowComposeDialog { get; set; }
 
@@ -219,9 +240,11 @@ public class EveMailViewModel : ReactiveObject
         Folders.Add(new EveMailFolderVm("Alliance",  8));
 
         ComposeCommand = ReactiveCommand.CreateFromTask(OpenComposeAsync);
+        ReplyCommand   = ReactiveCommand.CreateFromTask(OpenReplyAsync,
+                             this.WhenAnyValue(vm => vm.SelectedMail).Select(m => m is not null));
 
         var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
-        timer.Tick += (_, _) => _ = LoadMailsAsync();
+        timer.Tick += (_, _) => _ = LoadMailsAsync(quiet: true);
         timer.Start();
 
         // Populate character list — include items already in the collection
@@ -255,11 +278,12 @@ public class EveMailViewModel : ReactiveObject
             _ = LoadMailsAsync();
     }
 
-    public async Task LoadMailsAsync(CancellationToken ct = default)
+    /// <param name="quiet">A background refresh: no spinner, no "Loading…", and nothing on
+    /// screen moves unless a mail has actually arrived or gone.</param>
+    public async Task LoadMailsAsync(CancellationToken ct = default, bool quiet = false)
     {
         if (_selectedChar is null) return;
-        IsLoading  = true;
-        StatusText = "Loading…";
+        if (!quiet) { IsLoading = true; StatusText = "Loading…"; }
         try
         {
             List<long>? charIds = _selectedChar.IsAllCharacters
@@ -269,26 +293,26 @@ public class EveMailViewModel : ReactiveObject
 
             var rows = await _svc.GetMailsAsync(singleCharId, charIds, _selectedFolder?.LabelId, ct);
 
-            Mails.Clear();
-            foreach (var r in rows)
-            {
-                var charName = _sourceChars.FirstOrDefault(c => c.Id == r.CharacterId)?.Name
-                               ?? _selectedChar.Name;
-                Mails.Add(new EveMailRowVm(r, charName));
-            }
+            // ⚠️ Reconciled in place, never cleared and refilled. Clearing the list made the
+            // ListBox drop its selection, which nulled SelectedMail and blanked the message the
+            // user was reading — every sixty seconds. Rows that are still there keep their
+            // identity (and so the selection); a new mail is inserted where it belongs, which
+            // for the newest is the top; a mail that has gone is removed. A refresh that finds
+            // nothing new changes nothing on screen.
+            var added = Reconcile(rows);
 
-            // Load portraits in background — throttle to 4 concurrent HTTP requests.
-            var snapshot = Mails.ToList();
-            _ = Task.Run(async () =>
-            {
-                using var sem = new SemaphoreSlim(4, 4);
-                await Task.WhenAll(snapshot.Select(async vm =>
+            // Portraits for the new rows only — throttled to 4 concurrent HTTP requests.
+            if (added.Count > 0)
+                _ = Task.Run(async () =>
                 {
-                    await sem.WaitAsync(ct);
-                    try { await vm.LoadPortraitAsync(); }
-                    finally { sem.Release(); }
-                }));
-            });
+                    using var sem = new SemaphoreSlim(4, 4);
+                    await Task.WhenAll(added.Select(async vm =>
+                    {
+                        await sem.WaitAsync(ct);
+                        try { await vm.LoadPortraitAsync(); }
+                        finally { sem.Release(); }
+                    }));
+                });
 
             // Rebuild folder list every load — clears stale custom labels when switching chars.
             var customLabels = !_selectedChar.IsAllCharacters
@@ -304,8 +328,45 @@ public class EveMailViewModel : ReactiveObject
         }
         finally
         {
-            IsLoading = false;
+            if (!quiet) IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Brings <see cref="Mails"/> to exactly <paramref name="rows"/>, in that order, touching
+    /// only what differs. Returns the rows that were new.
+    /// </summary>
+    private List<EveMailRowVm> Reconcile(List<EveMailRow> rows)
+    {
+        var added   = new List<EveMailRowVm>();
+        var existing = new Dictionary<(int, long), EveMailRowVm>();
+        foreach (var vm in Mails) existing[vm.Key] = vm;
+
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var r   = rows[i];
+            var key = (r.MailId, r.CharacterId);
+
+            if (existing.TryGetValue(key, out var vm))
+            {
+                vm.Update(r);
+                var at = Mails.IndexOf(vm);
+                if (at != i) Mails.Move(at, i);
+                continue;
+            }
+
+            var charName = _sourceChars.FirstOrDefault(c => c.Id == r.CharacterId)?.Name
+                           ?? _selectedChar?.Name ?? "";
+            vm = new EveMailRowVm(r, charName);
+            Mails.Insert(i, vm);
+            existing[key] = vm;
+            added.Add(vm);
+        }
+
+        // Anything past the end is a mail the rows no longer contain.
+        while (Mails.Count > rows.Count) Mails.RemoveAt(Mails.Count - 1);
+
+        return added;
     }
 
     private void RebuildFolders(List<EveMailLabelOption> customLabels)
@@ -400,11 +461,55 @@ public class EveMailViewModel : ReactiveObject
             ? _selectedChar.Id
             : _sourceChars[0].Id;
 
-        var args = new ComposeMailArgs
+        await ComposeAndSendAsync(new ComposeMailArgs
         {
             Characters = _sourceChars.ToList(),
             FromCharId = defaultFrom,
-        };
+        });
+    }
+
+    /// <summary>
+    /// A reply to the selected mail: from the character it was sent to, to whoever sent it,
+    /// "RE:" on the subject unless it already carries one, and the original quoted below three
+    /// blank lines with the caret on the first of them.
+    /// </summary>
+    private async Task OpenReplyAsync()
+    {
+        if (ShowComposeDialog is null || _selectedMail is not { } mail) return;
+
+        // The character the mail was delivered to is the one answering. That is the row's
+        // mailbox owner, not whichever character the list happens to be filtered on.
+        if (_sourceChars.All(c => c.Id != mail.CharId))
+        {
+            StatusText = "The character this mail was sent to is no longer available to send from.";
+            return;
+        }
+
+        // The stored body is EVE's markup; the compose box is plain text.
+        var original = EveMailMarkup.ToPlainText(await _svc.GetRawBodyAsync(mail.CharId, mail.MailId));
+
+        var subject = mail.Subject.TrimStart();
+        if (!subject.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)) subject = "RE: " + subject;
+
+        var quote = "\n\n\n"
+                  + "--------------------------------\n"
+                  + $"{mail.FromText} wrote on {mail.TimeText}:\n\n"
+                  + original;
+
+        await ComposeAndSendAsync(new ComposeMailArgs
+        {
+            Characters        = _sourceChars.ToList(),
+            FromCharId        = mail.CharId,
+            InitialRecipients = mail.FromId > 0 ? [new EveMailResolvedRecipient(mail.FromId, mail.FromText, "character")] : [],
+            InitialSubject    = subject,
+            InitialBody       = quote,
+            StartInBody       = true,
+        });
+    }
+
+    private async Task ComposeAndSendAsync(ComposeMailArgs args)
+    {
+        if (ShowComposeDialog is null) return;
         var result = await ShowComposeDialog(args);
         if (result is null) return;
 

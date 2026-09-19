@@ -352,6 +352,26 @@ public class EveMailService(
     // ── UI-facing reads ───────────────────────────────────────────────────────
 
     // charId=null + charIds=list → "All Characters" mode
+    /// <summary>EVE's fixed label ids. Custom labels are numbered from 16 up.</summary>
+    public const int InboxLabel = 1, SentLabel = 2, CorpLabel = 4, AllianceLabel = 8;
+
+    /// <summary>
+    /// Headers carrying a label. Labels are stored as a comma-joined list, so a label is matched
+    /// as the whole string or as a delimited element of it — never as a substring, or label 1
+    /// would match 16.
+    /// </summary>
+    /// <remarks>⚠️ The one definition of "in this folder". The Eve Mail tool's folders and the
+    /// store's notion of "sent to me" both come here, so what the user sees under Inbox and what
+    /// the shop will answer cannot drift apart.</remarks>
+    public static IQueryable<EveMailHeader> WithLabel(IQueryable<EveMailHeader> q, int labelId)
+    {
+        var label = labelId.ToString();
+        return q.Where(h => h.Labels == label
+                          || h.Labels.StartsWith(label + ",")
+                          || h.Labels.Contains("," + label + ",")
+                          || h.Labels.EndsWith("," + label));
+    }
+
     public async Task<List<EveMailRow>> GetMailsAsync(
         long? charId, List<long>? charIds = null, int? labelFilter = null, CancellationToken ct = default)
     {
@@ -363,13 +383,7 @@ public class EveMailService(
             : db.EsiMailHeaders.Where(h => charIds == null || charIds.Contains(h.CharacterId));
 
         if (labelFilter.HasValue)
-        {
-            var label = labelFilter.Value.ToString();
-            q = q.Where(h => h.Labels == label
-                           || h.Labels.StartsWith(label + ",")
-                           || h.Labels.Contains("," + label + ",")
-                           || h.Labels.EndsWith("," + label));
-        }
+            q = WithLabel(q, labelFilter.Value);
 
         // Sort by MailId DESC in SQL (int — EF can translate) to get the 500 newest,
         // then reorder by Timestamp in memory (DateTimeOffset ordering unsupported in EF SQLite).

@@ -285,8 +285,11 @@ public class StoreMailService(
         // The inbox as the ordinary mail poll left it. Deliberately not a fetch of its own: the
         // shop reads the same headers every other part of the app does, so a mail cannot be seen
         // here and be missing from the Eve Mail tool.
-        var incoming = await db.EsiMailHeaders
-            .AsNoTracking()
+        // ⚠️ Inbox only — exactly the mail the Eve Mail tool files under Inbox, by the same label
+        // test. Everything in the character's mailbox used to qualify, corp and alliance mail
+        // included, and the shop answered a corporation announcement as though it were an order.
+        // A mail addressed to the corporation is not addressed to the store.
+        var incoming = await EveMailService.WithLabel(db.EsiMailHeaders.AsNoTracking(), EveMailService.InboxLabel)
             .Where(h => h.CharacterId == store.CharacterId && h.FromId != store.CharacterId)
             .Select(h => new { h.MailId, h.FromId, h.FromName, h.Subject, h.Timestamp })
             .ToListAsync(ct);
