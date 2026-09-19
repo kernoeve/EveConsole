@@ -70,6 +70,14 @@ jobs:
       - name: Agent stream check
         run: dotnet run --project tools/AgentStreamCheck/AgentStreamCheck.csproj -c Release
 
+      # ⚠️ Does the web store's copy of the palette still match Themes/Palette.axaml? A store's
+      # site is themed from WebThemes, a table of the XAML's colours — a copy, because the site
+      # wears the STORE's theme resolved by key, never the desktop's, and the client pushing it
+      # may be headless with no resource dictionary loaded. A colour adjusted in one and not the
+      # other would ship silently; this reads the XAML as XML and fails on the first difference.
+      - name: Web themes check
+        run: dotnet run --project tools/WebThemesCheck/WebThemesCheck.csproj -c Release
+
       # ⚠️ Does a detail popup stay with the row that is showing its item? The DataGrid keeps
       # rows in the tree after they leave the screen — recycled in place, or parked when they
       # hold focus — and a popup anchored to one hangs at the old position while the item's new

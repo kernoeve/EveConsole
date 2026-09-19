@@ -1103,6 +1103,14 @@ public class TrackedOrder
     public string OrderRef      { get; set; } = "";
 
     /// <summary>
+    /// The web site's own id for an order placed there, or empty.
+    ///
+    /// <para>What ties a row back to the site's record, and what says the order arrived by web
+    /// rather than by mail: a store order with no web id was mailed in.</para>
+    /// </summary>
+    public string WebOrderId    { get; set; } = "";
+
+    /// <summary>
     /// What the buyer was last told about this line: its status and estimated date, joined.
     ///
     /// <para>⚠️ How a mailed order knows it owes an update, without the fulfilment pass having to

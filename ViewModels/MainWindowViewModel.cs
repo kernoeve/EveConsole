@@ -810,6 +810,7 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
         StoreMailService                storeMailService,
+        EveConsole.Services.WebStore.WebStoreSyncService webStoreSync,
         OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
@@ -930,7 +931,7 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
-        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease);
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;

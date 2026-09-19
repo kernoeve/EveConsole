@@ -138,8 +138,12 @@ public class StoreMailService(
         // ⚠️ !IsDeleted as well as Enabled. A deleted store is closed on the way out, but relying
         // on that alone would mean one row edited by hand — or a future path that forgets — could
         // leave a shop nobody can see quietly answering mail.
+        // ⚠️ A store whose mail channel is closed still gets its update pass when it has a web
+        // channel and wants its web buyers mailed: the character is then an address to write
+        // FROM only. Serving — reading and answering mail — needs the mail channel open.
         var stores = await db.Stores
-            .Where(s => !s.IsDeleted && s.Enabled && s.CharacterId != 0 && s.PostingId != 0)
+            .Where(s => !s.IsDeleted && s.CharacterId != 0 && s.PostingId != 0
+                     && (s.Enabled || (s.WebEnabled && s.WebMailUpdates)))
             .ToListAsync(ct);
 
         if (stores.Count == 0) { StatusText = "No open stores."; return; }
@@ -149,8 +153,8 @@ public class StoreMailService(
         foreach (var store in stores)
         {
             ct.ThrowIfCancellationRequested();
-            handled += await ServeAsync(db, store, ct);
-            told    += await NotifyAsync(db, store, ct);
+            if (store.Enabled) handled += await ServeAsync(db, store, ct);
+            told += await NotifyAsync(db, store, ct);
         }
 
         StatusText = handled == 0 && told == 0
@@ -171,8 +175,30 @@ public class StoreMailService(
     /// actionable in a way that "still on its way" is not — and without this the row would look
     /// unchanged and the buyer would never be told.</para>
     /// </summary>
-    private static string StateOf(TrackedOrder o) =>
+    internal static string StateOf(TrackedOrder o) =>
         $"{o.Status}|{o.FulfilmentSource}|{o.EstimatedDate}|{o.LinkedContractId}";
+
+    /// <summary>
+    /// An expected date for anything coming off the shelf, before the state is stamped.
+    ///
+    /// <para>Nothing else would ever give one: only a job-sourced order gets a date, from its
+    /// job, so a stock order would sit blank until a contract appeared. Blank reads as "no idea"
+    /// when the truth is "as soon as somebody writes the contract". Shared with the web channel,
+    /// which books orders the same way.</para>
+    /// </summary>
+    internal static void AutoEstimate(Store store, IEnumerable<TrackedOrder> settled)
+    {
+        if (!store.AutoEstimateInStock) return;
+
+        var due = DateTimeOffset.UtcNow.AddDays(Math.Max(0, store.AutoEstimateDays))
+                                .UtcDateTime.ToString("yyyy-MM-dd");
+
+        foreach (var o in settled)
+            // Only stock, and only where nothing has set one. A job's date is a real forecast
+            // and must not be replaced by a guess.
+            if (o.FulfilmentSource == "stock" && string.IsNullOrEmpty(o.EstimatedDate))
+                o.EstimatedDate = due;
+    }
 
     /// <summary>Still open, with nothing behind it — no stock, no job, no contract.</summary>
     private static bool Uninformative(TrackedOrder o) =>
@@ -679,30 +705,9 @@ public class StoreMailService(
     /// authorisation decision, and a stale row would serve someone who left the corporation
     /// months ago, or refuse someone who just joined.</para>
     /// </summary>
-    private async Task<bool> IsAllowedAsync(AppDbContext db, Store store, long senderId, CancellationToken ct)
-    {
-        if (store.SenderPolicy == "Anyone") return true;
-
-        var allowed = await db.StoreSenders
-            .Where(s => s.StoreId == store.Id)
-            .Select(s => new { s.EntityId, s.EntityType })
-            .ToListAsync(ct);
-        if (allowed.Count == 0) return false;
-
-        if (allowed.Any(a => a.EntityType == "character" && a.EntityId == senderId)) return true;
-
-        var needsOrg = allowed.Any(a => a.EntityType is "corporation" or "alliance");
-        if (!needsOrg) return false;
-
-        var affiliation = await esi.GetAffiliationsAsync([senderId], ct);
-        if (affiliation.Count == 0) return false;   // unknown is not permission
-
-        var (_, corpId, allianceId) = affiliation[0];
-
-        return allowed.Any(a =>
-            (a.EntityType == "corporation" && a.EntityId == corpId) ||
-            (a.EntityType == "alliance"    && allianceId is { } al && a.EntityId == al));
-    }
+    // The one rule, shared with the web channel: see StoreSenderPolicy.
+    private Task<bool> IsAllowedAsync(AppDbContext db, Store store, long senderId, CancellationToken ct) =>
+        StoreSenderPolicy.IsAllowedAsync(db, esi, store, senderId, ct);
 
     // ── PRICES ────────────────────────────────────────────────────────────────
 
@@ -883,17 +888,7 @@ public class StoreMailService(
         // Nothing else would ever give one: only a job-sourced order gets a date, from its job,
         // so a stock order would sit blank until a contract appeared. Blank reads as "no idea"
         // when the truth is "as soon as somebody writes the contract".
-        if (store.AutoEstimateInStock)
-        {
-            var due = DateTimeOffset.UtcNow.AddDays(Math.Max(0, store.AutoEstimateDays))
-                                    .UtcDateTime.ToString("yyyy-MM-dd");
-
-            foreach (var o in settled)
-                // Only stock, and only where nothing has set one. A job's date is a real
-                // forecast and must not be replaced by a guess.
-                if (o.FulfilmentSource == "stock" && string.IsNullOrEmpty(o.EstimatedDate))
-                    o.EstimatedDate = due;
-        }
+        AutoEstimate(store, settled);
 
         foreach (var o in settled) o.NotifiedState = StateOf(o);
         await db.SaveChangesAsync(ct);
@@ -1631,7 +1626,7 @@ public class StoreMailService(
     /// they may order. Anything above it is a typo or an attack, and either way is worth a person
     /// reading the mail.</para>
     /// </summary>
-    private const int MaxUnitsPerLine = 10_000;
+    internal const int MaxUnitsPerLine = 10_000;
 
     /// <summary>
     /// The most lines one mailed order may create.
@@ -1639,7 +1634,7 @@ public class StoreMailService(
     /// <para>⚠️ One mail is one order, and every line is a row. Without this, a body full of item
     /// links is a few hundred rows in the Order Tracker from a single message.</para>
     /// </summary>
-    private const int MaxLinesPerOrder = 40;
+    internal const int MaxLinesPerOrder = 40;
 
     /// <summary>
     /// The most of a body this will read.

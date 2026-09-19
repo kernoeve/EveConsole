@@ -225,6 +225,10 @@ public class AppDbContext : DbContext
     public DbSet<ScheduledTask> ScheduledTasks => Set<ScheduledTask>();
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
+
+    // The web channel's ledger and log. ⚠️ New tables: hand-written CREATEs in both schema paths.
+    public DbSet<StoreWebPush>  StoreWebPushes => Set<StoreWebPush>();
+    public DbSet<StoreWebEvent> StoreWebEvents => Set<StoreWebEvent>();
     public DbSet<OrderLabel>  OrderLabels  => Set<OrderLabel>();
     public DbSet<SaleLabel>   SaleLabels   => Set<SaleLabel>();
 
@@ -1070,6 +1074,15 @@ public class AppDbContext : DbContext
         mb.Entity<StoreMail>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("StoreMails"); });
+
+        mb.Entity<StoreWebPush>(e => {
+            e.HasKey(x => new { x.StoreId, x.OrderId });
+            e.ToTable("StoreWebPushes"); });
+
+        mb.Entity<StoreWebEvent>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.StoreId, x.Seq });
+            e.ToTable("StoreWebEvents"); });
 
         mb.Entity<OrderLabel>(e => {
             e.HasKey(x => new { x.OrderId, x.Label });

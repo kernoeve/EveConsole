@@ -82,7 +82,7 @@
                Orders above messages, and both starred rather than one of them auto-sized: what
                the shop still owes people is the reason to open this tab, and a mail log that
                took the whole window pushed it off the bottom. -->
-          <Grid Margin="14" RowDefinitions="Auto,14,*,14,*">
+          <Grid Margin="14" RowDefinitions="Auto,14,*,14,*,14,*">
           <!-- Stats -->
           <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
@@ -162,6 +162,48 @@
               </DataGrid>
             </DockPanel>
           </Border>
+          <!-- Web events: everything the site sent, and what became of it. An order the checks
+               would not book waits here for a decision, with the reason beside it. -->
+          <Border Grid.Row="6" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Web site events" FontSize="13" FontWeight="SemiBold"
+                         Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
+              <DataGrid ItemsSource="{Binding WebEvents}" AutoGenerateColumns="False" IsReadOnly="True"
+                        Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="When"    Binding="{Binding When}"     Width="130" />
+                  <DataGridTextColumn Header="Kind"    Binding="{Binding Kind}"     Width="70" />
+                  <DataGridTextColumn Header="Buyer"   Binding="{Binding Buyer}"    Width="150" />
+                  <DataGridTextColumn Header="Outcome" Binding="{Binding Outcome}"  Width="120" />
+                  <DataGridTextColumn Header="Order"   Binding="{Binding OrderRef}" Width="80" />
+                  <DataGridTemplateColumn Header="Note" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreWebEventRowVm">
+                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="4 2" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="" Width="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreWebEventRowVm">
+                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHeld}">
+                          <Button Click="OnApproveWebEvent" Content="Book it"
+                                  Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                                  BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
+                                  Padding="6 1" FontSize="10" Cursor="Hand" />
+                          <Button Click="OnDeclineWebEvent" Content="Decline"
+                                  Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                  BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
+                                  Padding="6 1" FontSize="10" Cursor="Hand" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
           </Grid>
         </TabItem>
 
@@ -219,7 +261,7 @@
                           Margin="0 0 0 6" />
 
                 <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding StoreEnabled}"
-                          Content="Open — read and answer mail" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                          Content="Open by EVE mail — read and answer mail sent to the character" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
               </Grid>
 
               <!-- An order filled from the shelf has no job behind it, so nothing else would ever
@@ -335,6 +377,75 @@
                   </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
+            </StackPanel>
+          </Border>
+
+          <!-- The web channel. A site the owner hosts; the app pushes the posting and the order
+               book to it and pulls orders from it. The same price list, the same allow list and
+               the same order book as the mail channel — only the doorway differs. -->
+          <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="10">
+              <TextBlock Text="Web site" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="A shop front on the web, on a site you host. Buyers sign in with EVE SSO, see this price list with what is in stock, in build and reserved, place orders and follow them. The app sends the site what it may show and collects what buyers did every few minutes; nothing on the site reaches the database. Who may buy is the Serve setting above, the same as for mail." />
+
+              <CheckBox IsChecked="{Binding WebEnabled}"
+                        Content="Open on the web — publish to the site and take its orders" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+              <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Site address" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WebUrl, UpdateSourceTrigger=LostFocus}"
+                         Watermark="https://your-shop.your-account.workers.dev" FontSize="11" Margin="0 0 0 6"
+                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Secret" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 6">
+                  <!-- Read-only and selectable: it is shown to be copied into the site's secrets,
+                       never typed. A new one is a button, so it cannot be mistyped either. -->
+                  <TextBox Grid.Column="0" Text="{Binding WebSecret}" IsReadOnly="True" FontSize="11"
+                           FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <Button Grid.Column="1" Click="OnCopySecret" Content="Copy" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <Button Grid.Column="2" Command="{Binding NewSecretCommand}" Content="New secret" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                </Grid>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                  <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding WebTheme}" FontSize="11" MinWidth="160"
+                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <CheckBox IsChecked="{Binding WebBuyerMaySwitch}" Content="Buyers may switch between its dark and light pair"
+                            FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding WebMailUpdates}"
+                          Content="Also mail web buyers as their orders move (needs the character above)"
+                          FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+              </Grid>
+
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                         Text="The theme is the store's own and has nothing to do with the theme this desktop is showing. The secret is what the app signs each call with; set the same value as the site's STORE_SYNC_SECRET when you set the site up by hand." />
+
+              <TextBlock Text="ABOUT THIS STORE, ON THE SITE" FontSize="10"
+                         FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
+              <TextBox Text="{Binding WebBlurb, UpdateSourceTrigger=LostFocus}"
+                       AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
+                       Watermark="Contract terms, pickup, whatever a buyer should read before ordering. Plain text; a blank line starts a paragraph."
+                       FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+
+              <Grid ColumnDefinitions="Auto,*">
+                <Button Grid.Column="0" Command="{Binding SyncWebNowCommand}" Content="Sync now" Padding="12 4" FontSize="11"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                        BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                <TextBlock Grid.Column="1" Text="{Binding WebStatusText}" FontSize="10" TextWrapping="Wrap"
+                           VerticalAlignment="Center" Margin="12 0 0 0"
+                           Foreground="{DynamicResource TextDimBrush}" Classes.warn="{Binding WebHasError}" />
+              </Grid>
             </StackPanel>
           </Border>
             </StackPanel>

@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Services.WebStore;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -33,10 +34,17 @@ public class StoreRowVm : ReactiveObject
     public string Name          => _model.Name.Length > 0 ? _model.Name : "(unnamed)";
     public string CharacterName => _model.CharacterName;
     public bool   Enabled       => _model.Enabled;
+    public bool   WebEnabled    => _model.WebEnabled;
 
-    /// <summary>Open or closed, said plainly — the list is the first place someone looks to
-    /// find out why a buyer got no answer.</summary>
-    public string StateText => _model.Enabled ? "Open" : "Closed";
+    /// <summary>Which channels are open, said plainly — the list is the first place someone
+    /// looks to find out why a buyer got no answer.</summary>
+    public string StateText => (_model.Enabled, _model.WebEnabled) switch
+    {
+        (true,  true)  => "Mail and web open",
+        (true,  false) => "Mail open",
+        (false, true)  => "Web open",
+        _              => "Closed",
+    };
 
     public void Refresh(Store model)
     {
@@ -44,6 +52,7 @@ public class StoreRowVm : ReactiveObject
         this.RaisePropertyChanged(nameof(Name));
         this.RaisePropertyChanged(nameof(CharacterName));
         this.RaisePropertyChanged(nameof(Enabled));
+        this.RaisePropertyChanged(nameof(WebEnabled));
         this.RaisePropertyChanged(nameof(StateText));
     }
 }
@@ -64,6 +73,30 @@ public class StoreMailRowVm(StoreMail m)
     /// <summary>Rejections and failures are the rows worth finding, so they say so rather than
     /// relying on the reader to notice a word in a column.</summary>
     public bool IsProblem => m.Outcome is "rejected" or "error" or "failed";
+}
+
+/// <summary>One thing the web site sent, and what the app did with it.</summary>
+public class StoreWebEventRowVm(StoreWebEvent e)
+{
+    public int    Id       => e.Id;
+    public string When     => e.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+    public string Kind     => e.Kind switch { "order" => "Order", "cancel" => "Cancel", _ => e.Kind };
+    public string Buyer    => e.BuyerName.Length > 0 ? e.BuyerName : e.BuyerId.ToString();
+    public string Outcome  => e.Outcome switch
+    {
+        "booked"   => "Booked",
+        "applied"  => "Applied",
+        "review"   => "Needs a decision",
+        "rejected" => "Declined",
+        "error"    => "Failed",
+        _          => e.Outcome,
+    };
+    public string Detail   => e.Detail;
+    public string OrderRef => e.OrderRef;
+
+    /// <summary>Waiting on the owner: an order the checks would not book on their own.</summary>
+    public bool IsHeld     => e.Kind == "order" && e.Outcome is "review" or "error";
+    public bool IsProblem  => e.Outcome is "review" or "rejected" or "error";
 }
 
 /// <summary>One allow-list entry.</summary>
@@ -93,11 +126,24 @@ public class StoresViewModel : ReactiveObject
     private readonly StoreMailService                _storeMail;
     private readonly OrderLabelService               _labels;
     private readonly AppErrorLogger                  _errorLogger;
+    private readonly WebStoreSyncService             _webSync;
+    private readonly WorkerLease                     _lease;
 
-    public ObservableCollection<StoreRowVm>       Stores  { get; } = [];
-    public ObservableCollection<StoreMailRowVm>   Mails   { get; } = [];
-    public ObservableCollection<OrderSummaryRowVm> Orders { get; } = [];
-    public ObservableCollection<StoreSenderRowVm> Senders { get; } = [];
+    public ObservableCollection<StoreRowVm>          Stores    { get; } = [];
+    public ObservableCollection<StoreMailRowVm>      Mails     { get; } = [];
+    public ObservableCollection<OrderSummaryRowVm>   Orders    { get; } = [];
+    public ObservableCollection<StoreSenderRowVm>    Senders   { get; } = [];
+    public ObservableCollection<StoreWebEventRowVm>  WebEvents { get; } = [];
+
+    /// <summary>The app's themes, for the web site — the store's own choice, nothing to do
+    /// with the theme this desktop wears.</summary>
+    public IReadOnlyList<ThemeOption> ThemeOptions { get; } =
+        WebThemes.All.Select(t => new ThemeOption(t.Key, t.Name)).ToList();
+
+    public sealed record ThemeOption(string Key, string Name)
+    {
+        public override string ToString() => Name;
+    }
 
     /// <summary>Characters we hold a token for — the only ones that can be a shop's address.</summary>
     public ObservableCollection<CharacterOption> CharacterOptions { get; } = [];
@@ -120,22 +166,28 @@ public class StoresViewModel : ReactiveObject
         SalePostingService              postings,
         StoreMailService                storeMail,
         OrderLabelService               labels,
-        AppErrorLogger                  errorLogger)
+        AppErrorLogger                  errorLogger,
+        WebStoreSyncService             webSync,
+        WorkerLease                     lease)
     {
         _dbFactory   = dbFactory;
         _postings    = postings;
         _storeMail   = storeMail;
         _labels      = labels;
         _errorLogger = errorLogger;
+        _webSync     = webSync;
+        _lease       = lease;
 
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
         DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
         RefreshCommand     = ReactiveCommand.CreateFromTask(LoadAsync);
         CheckMailCommand   = ReactiveCommand.CreateFromTask(CheckMailNowAsync);
         AddSenderCommand   = ReactiveCommand.CreateFromTask(AddSenderAsync);
+        SyncWebNowCommand  = ReactiveCommand.CreateFromTask(SyncWebNowAsync);
+        NewSecretCommand   = ReactiveCommand.CreateFromTask(NewSecretAsync);
 
         foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
-                                  CheckMailCommand, AddSenderCommand })
+                                  CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand })
             c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(StoresViewModel), "command", ex));
 
         this.WhenAnyValue(x => x.SelectedStore)
@@ -156,6 +208,8 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RefreshCommand     { get; }
     public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
+    public ReactiveCommand<Unit, Unit> SyncWebNowCommand  { get; }
+    public ReactiveCommand<Unit, Unit> NewSecretCommand   { get; }
 
     private StoreRowVm? _selectedStore;
     public StoreRowVm? SelectedStore
@@ -445,6 +499,158 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    // ── The web channel ───────────────────────────────────────────────────────
+    //
+    // Written through like everything else here, and each save nudges the sync loop so the
+    // site shows the change on its next call rather than at the next interval.
+
+    private bool _webEnabled;
+    public bool WebEnabled
+    {
+        get => _webEnabled;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webEnabled, value);
+            _ = SaveAsync(s => s.WebEnabled = value, nudge: true);
+        }
+    }
+
+    private string _webUrl = "";
+    public string WebUrl
+    {
+        get => _webUrl;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webUrl, value ?? "");
+            _ = SaveAsync(s => s.WebUrl = (value ?? "").Trim().TrimEnd('/'), nudge: true);
+        }
+    }
+
+    private string _webSecret = "";
+
+    /// <summary>Shown so it can be copied into the site's secrets by hand; generated here.</summary>
+    public string WebSecret
+    {
+        get => _webSecret;
+        private set => this.RaiseAndSetIfChanged(ref _webSecret, value);
+    }
+
+    private ThemeOption? _webTheme;
+    public ThemeOption? WebTheme
+    {
+        get => _webTheme;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webTheme, value);
+            if (value is null) return;
+            _ = SaveAsync(s => s.WebTheme = value.Key, nudge: true);
+        }
+    }
+
+    private bool _webBuyerMaySwitch = true;
+    public bool WebBuyerMaySwitch
+    {
+        get => _webBuyerMaySwitch;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webBuyerMaySwitch, value);
+            _ = SaveAsync(s => s.WebBuyerMaySwitch = value, nudge: true);
+        }
+    }
+
+    private bool _webMailUpdates = true;
+    public bool WebMailUpdates
+    {
+        get => _webMailUpdates;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webMailUpdates, value);
+            _ = SaveAsync(s => s.WebMailUpdates = value, nudge: true);
+        }
+    }
+
+    private string _webBlurb = "";
+    public string WebBlurb
+    {
+        get => _webBlurb;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webBlurb, value ?? "");
+            _ = SaveAsync(s => s.WebBlurb = (value ?? "").Trim(), nudge: true);
+        }
+    }
+
+    private string _webStatusText = "";
+
+    /// <summary>When the site was last reached, what it runs, and why not if not.</summary>
+    public string WebStatusText
+    {
+        get => _webStatusText;
+        private set => this.RaiseAndSetIfChanged(ref _webStatusText, value);
+    }
+
+    private bool _webHasError;
+    public bool WebHasError
+    {
+        get => _webHasError;
+        private set => this.RaiseAndSetIfChanged(ref _webHasError, value);
+    }
+
+    private static string DescribeWeb(Store s)
+    {
+        if (!s.WebEnabled) return "The web channel is closed.";
+        if (s.WebUrl.Length == 0 || s.WebSecret.Length == 0) return "Needs a site address and a secret before it can sync.";
+        var last = s.WebLastSyncAt is { } t ? $"Last synced {t.ToLocalTime():yyyy-MM-dd HH:mm}" : "Not synced yet";
+        var ver  = s.WebSiteVersion.Length > 0 ? $", site version {s.WebSiteVersion}" : "";
+        return s.WebLastError.Length > 0 ? $"{last}{ver}. ⚠ {s.WebLastError}" : $"{last}{ver}.";
+    }
+
+    /// <summary>
+    /// Pushes and pulls this store now, on this client.
+    ///
+    /// <para>⚠️ Only from the client holding the worker lease. The loop there keeps the cursor
+    /// and the ledger; a second client syncing the same store would race it over both.</para>
+    /// </summary>
+    private async Task SyncWebNowAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        if (!_lease.IsHolder)
+        {
+            Status = "Another client is running the background work and syncs the web site; it will pick the change up on its next cycle.";
+            _webSync.Nudge();
+            return;
+        }
+
+        Status = "Syncing the web site…";
+        var line = await _webSync.SyncStoreNowAsync(row.Id);
+        await LoadSelectedAsync();
+        Status = line;
+    }
+
+    /// <summary>A fresh secret. The site keeps working only once the new one is set there too.</summary>
+    private async Task NewSecretAsync()
+    {
+        var secret = WebStoreSigner.NewSecret();
+        await SaveAsync(s => s.WebSecret = secret);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            WebSecret = secret;
+            Status    = "New secret generated. Set the same value on the site, or the next sync is refused.";
+        });
+    }
+
+    public async Task ApproveWebEventAsync(StoreWebEventRowVm row)
+    {
+        Status = await _webSync.ApproveAsync(row.Id);
+        await LoadSelectedAsync();
+    }
+
+    public async Task DeclineWebEventAsync(StoreWebEventRowVm row)
+    {
+        Status = await _webSync.RejectAsync(row.Id, "Declined by the store.");
+        await LoadSelectedAsync();
+    }
+
     /// <summary>Typed name for the allow list, resolved when added.</summary>
     private string _senderName = "";
     public string SenderName { get => _senderName; set => this.RaiseAndSetIfChanged(ref _senderName, value); }
@@ -625,6 +831,12 @@ public class StoresViewModel : ReactiveObject
             var senders = await db.StoreSenders.AsNoTracking()
                 .Where(s => s.StoreId == row.Id).OrderBy(s => s.Name).ToListAsync();
 
+            var webEvents = await db.StoreWebEvents.AsNoTracking()
+                .Where(e => e.StoreId == row.Id)
+                .OrderByDescending(e => e.Id)
+                .Take(100)
+                .ToListAsync();
+
             // ⚠️ Counted off orders, not off the mail log. A mail says what was asked for; only
             // the order says what became of it, and an order cancelled in the Order Tracker by
             // hand never produced a mail at all.
@@ -696,6 +908,16 @@ public class StoresViewModel : ReactiveObject
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;
                     MessageFooterColor = store.MessageFooterColor;
+
+                    WebEnabled        = store.WebEnabled;
+                    WebUrl            = store.WebUrl;
+                    WebSecret         = store.WebSecret;
+                    WebTheme          = ThemeOptions.FirstOrDefault(t => t.Key == store.WebTheme) ?? ThemeOptions[0];
+                    WebBuyerMaySwitch = store.WebBuyerMaySwitch;
+                    WebMailUpdates    = store.WebMailUpdates;
+                    WebBlurb          = store.WebBlurb;
+                    WebStatusText     = DescribeWeb(store);
+                    WebHasError       = store.WebEnabled && store.WebLastError.Length > 0;
                 }
                 finally { _suppressSave = false; }
 
@@ -707,6 +929,9 @@ public class StoresViewModel : ReactiveObject
 
                 Senders.Clear();
                 foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
+
+                WebEvents.Clear();
+                foreach (var e in webEvents) WebEvents.Add(new StoreWebEventRowVm(e));
 
                 StatInquiries = inquiries.ToString("N0");
                 StatActive    = active.ToString("N0");
@@ -730,7 +955,7 @@ public class StoresViewModel : ReactiveObject
     /// store's values onto it in the instant before the rest arrive.</summary>
     private bool _suppressSave;
 
-    private async Task SaveAsync(Action<Store> apply)
+    private async Task SaveAsync(Action<Store> apply, bool nudge = false)
     {
         if (_suppressSave || SelectedStore is not StoreRowVm row) return;
 
@@ -746,6 +971,10 @@ public class StoresViewModel : ReactiveObject
             // The list shows the name and whether it is open, so it has to follow — in place, so
             // the row the user is editing stays the row that is selected.
             await Dispatcher.UIThread.InvokeAsync(() => row.Refresh(store));
+
+            // A web setting changed: the site should show it on the next call, not the next
+            // interval. Only the lease holder's loop is listening, which is the point.
+            if (nudge) _webSync.Nudge();
         }
         catch (Exception ex)
         {

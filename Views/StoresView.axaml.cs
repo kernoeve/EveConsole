@@ -31,4 +31,27 @@ public partial class StoresView : UserControl
     {
         if (DataContext is StoresViewModel vm) vm.ResetUsage();
     }
+
+    // The row's own DataContext, as for Remove above: a decision is about the row whose button
+    // was pressed, whatever the grid's selection happens to be.
+    private async void OnApproveWebEvent(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not StoreWebEventRowVm row) return;
+        if (DataContext is not StoresViewModel vm) return;
+        await vm.ApproveWebEventAsync(row);
+    }
+
+    private async void OnDeclineWebEvent(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not StoreWebEventRowVm row) return;
+        if (DataContext is not StoresViewModel vm) return;
+        await vm.DeclineWebEventAsync(row);
+    }
+
+    private async void OnCopySecret(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not StoresViewModel vm || vm.WebSecret.Length == 0) return;
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is not null) await clipboard.SetTextAsync(vm.WebSecret);
+    }
 }
