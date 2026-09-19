@@ -201,9 +201,12 @@ public static class AppKnowledge
         decline. Every order, whichever doorway placed it, is in Order Tracker with a channel of
         mail, web or manual, and a buyer sees all of theirs on the site. The Stores screen's
         Config tab holds the site address, the shared secret the app signs each call with, the
-        site's theme (the store's own, independent of this desktop's) and a Cloudflare section
-        that can deploy the site to the owner's own account and update it to the newest release
-        with a saved API token; a site set up by hand with wrangler works the same.
+        site's theme (the store's own, independent of this desktop's), the EVE developer
+        application's Client ID and Secret Key the site signs buyers in with (required whoever
+        hosts the site), and a Cloudflare section used only by the Deploy or update site button,
+        which puts the site on the owner's own account with a saved API token and updates it to
+        the newest release; a site set up by hand with wrangler works the same.
+
 
         ## Finance tools
 

@@ -54,6 +54,13 @@ public sealed class CloudflareClient(HttpClient http)
         return string.IsNullOrWhiteSpace(s) ? null : s;
     }
 
+    /// <summary>Chooses the account's workers.dev name. Refused when the name is taken or malformed.</summary>
+    public async Task CreateSubdomainAsync(string token, string accountId, string subdomain, CancellationToken ct)
+    {
+        using var doc = await CallAsync(token, HttpMethod.Put, $"accounts/{accountId}/workers/subdomain",
+            new StringContent(JsonSerializer.Serialize(new { subdomain }), Encoding.UTF8, "application/json"), ct);
+    }
+
     public async Task<Database?> FindDatabaseAsync(string token, string accountId, string name, CancellationToken ct)
     {
         using var doc = await CallAsync(token, HttpMethod.Get, $"accounts/{accountId}/d1/database?name={Uri.EscapeDataString(name)}", null, ct);

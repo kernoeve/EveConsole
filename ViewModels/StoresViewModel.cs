@@ -531,6 +531,8 @@ public class StoresViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _webEnabled, value);
             _ = SaveAsync(s => s.WebEnabled = value, nudge: true);
+            RefreshSsoWarning();
+
         }
     }
 
@@ -542,6 +544,8 @@ public class StoresViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _webUrl, value ?? "");
             _ = SaveAsync(s => s.WebUrl = (value ?? "").Trim().TrimEnd('/'), nudge: true);
+            RefreshCallbackText();
+
         }
     }
 
@@ -733,24 +737,49 @@ public class StoresViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _webEveClientId, value ?? "");
             _ = SaveAsync(s => s.WebEveClientId = (value ?? "").Trim());
+            RefreshSsoWarning();
+
         }
     }
 
     private string _webEveClientSecret = "";
 
-    /// <summary>Goes to the site's secrets on the next deploy and is cleared; the app keeps no copy.</summary>
+    /// <summary>Kept with the store, like the sync secret: the Deploy button places it on the site each time.</summary>
     public string WebEveClientSecret
     {
         get => _webEveClientSecret;
-        set => this.RaiseAndSetIfChanged(ref _webEveClientSecret, value ?? "");
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webEveClientSecret, value ?? "");
+            _ = SaveAsync(s => s.WebEveClientSecret = (value ?? "").Trim());
+            RefreshSsoWarning();
+        }
     }
 
-    private string _webCallbackText = "";
-    public string WebCallbackText
+
+    private string _webCallbackUrl = "";
+
+    /// <summary>The callback the EVE application must be registered with, once the address is known.</summary>
+    public string WebCallbackUrl
     {
-        get => _webCallbackText;
-        private set => this.RaiseAndSetIfChanged(ref _webCallbackText, value);
+        get => _webCallbackUrl;
+        private set => this.RaiseAndSetIfChanged(ref _webCallbackUrl, value);
     }
+
+    private bool _webSsoMissing;
+
+    /// <summary>Red on the screen: the web channel is open and the site has no way to sign anyone in.</summary>
+    public bool WebSsoMissing
+    {
+        get => _webSsoMissing;
+        private set => this.RaiseAndSetIfChanged(ref _webSsoMissing, value);
+    }
+
+    public string WebSsoWarningText =>
+        "Buyers cannot sign in until the site has the EVE application's Client ID and Secret Key. Enter them here: "
+        + "the Deploy button places them on the site, and a site set up by hand needs the same values as its "
+        + "EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
+
 
     private string _deployStatusText = "";
     public string DeployStatusText
@@ -771,17 +800,19 @@ public class StoresViewModel : ReactiveObject
             : "No token is saved on this machine. Deploying and updating need one; syncing does not.";
     }
 
-    /// <summary>The address the EVE application must be registered with, as far as it is known.</summary>
+    /// <summary>The callback address, from the site's address or from where a deploy would put it.</summary>
     private void RefreshCallbackText()
     {
         var url = _webUrl.Length > 0 ? _webUrl.TrimEnd('/')
             : CloudflareAccount is { } a && _subdomains.TryGetValue(a.Id, out var sub) && _webWorkerName.Length > 0
                 ? $"https://{_webWorkerName}.{sub}.workers.dev"
                 : "";
-        WebCallbackText = url.Length > 0
-            ? $"Sign-in needs an EVE application: register one at developers.eveonline.com with callback {url}/auth/callback and no scopes, then enter its client id and secret key here and deploy."
-            : "Sign-in needs an EVE application registered at developers.eveonline.com; its callback is the site's address plus /auth/callback, known once the account and worker name are set.";
+        WebCallbackUrl = url.Length > 0 ? url + "/auth/callback" : "";
     }
+
+    private void RefreshSsoWarning() =>
+        WebSsoMissing = _webEnabled && (_webEveClientId.Trim().Length == 0 || _webEveClientSecret.Trim().Length == 0);
+
 
     /// <summary>The option for a saved account id — the listed one, or a stand-in until the token is checked again.</summary>
     private AccountOption? AccountFor(string id)
@@ -831,10 +862,9 @@ public class StoresViewModel : ReactiveObject
     {
         if (SelectedStore is not StoreRowVm row) return;
         var progress = new Progress<string>(s => DeployStatusText = s);
-        var secret   = WebEveClientSecret.Trim();
-        var r = await _deploy.DeployAsync(row.Id, WebEveClientId.Trim(), secret.Length > 0 ? secret : null, progress);
-        if (r.Ok) WebEveClientSecret = "";
+        var r = await _deploy.DeployAsync(row.Id, progress);
         await LoadSelectedAsync();
+
         DeployStatusText = r.Text;
         RefreshCallbackText();
     }
@@ -1116,8 +1146,11 @@ public class StoresViewModel : ReactiveObject
                     WebHasError       = store.WebEnabled && store.WebLastError.Length > 0;
                     WebWorkerName     = store.WebWorkerName.Length > 0 ? store.WebWorkerName : CloudflareDeployService.DefaultWorkerName(store.Name);
                     WebEveClientId    = store.WebEveClientId;
+                    WebEveClientSecret = store.WebEveClientSecret;
                     CloudflareAccount = AccountFor(store.WebCloudflareAccountId);
                     RefreshCallbackText();
+                    RefreshSsoWarning();
+
 
                 }
                 finally { _suppressSave = false; }

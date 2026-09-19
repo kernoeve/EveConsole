@@ -49,18 +49,21 @@ public sealed partial class CloudflareDeployService(
     private SiteReleases     Releases   => new(httpFactory.CreateClient("github"));
 
     /// <summary>A name Cloudflare accepts — lower-case letters, digits and hyphens — from the store's name.</summary>
-    public static string DefaultWorkerName(string storeName)
+    public static string DefaultWorkerName(string storeName) => "eveconsole-" + Slug(storeName, 29, "store");
+
+    /// <summary>Lower-case letters, digits and single hyphens, at most <paramref name="max"/> long.</summary>
+    private static string Slug(string text, int max, string fallback)
     {
-        var sb   = new StringBuilder("eveconsole-");
+        var sb   = new StringBuilder();
         var dash = true;
-        foreach (var ch in storeName.ToLowerInvariant())
+        foreach (var ch in text.ToLowerInvariant())
         {
             if (ch is >= 'a' and <= 'z' or >= '0' and <= '9') { sb.Append(ch); dash = false; }
             else if (!dash) { sb.Append('-'); dash = true; }
-            if (sb.Length >= 40) break;
+            if (sb.Length >= max) break;
         }
-        var name = sb.ToString().TrimEnd('-');
-        return name.Length > "eveconsole-".Length ? name : "eveconsole-store";
+        var s = sb.ToString().Trim('-');
+        return s.Length > 0 ? s : fallback;
     }
 
     public static bool IsValidWorkerName(string name) => WorkerName().IsMatch(name);
@@ -92,8 +95,9 @@ public sealed partial class CloudflareDeployService(
             if (accounts.Count == 1)
                 text = subdomains.TryGetValue(accounts[0].Id, out var sub)
                     ? $"Token works for {accounts[0].Name}; sites go to *.{sub}.workers.dev."
-                    : $"Token works for {accounts[0].Name}, which has no workers.dev name yet — choose one under Workers & Pages in the Cloudflare dashboard before deploying.";
+                    : $"Token works for {accounts[0].Name}, which has no workers.dev name yet; the first deploy chooses one.";
             else
+
                 text = $"Token works for {accounts.Count} accounts; pick the one to deploy to.";
             return new TokenCheck(true, text, accounts, subdomains);
         }
@@ -107,12 +111,11 @@ public sealed partial class CloudflareDeployService(
 
     /// <summary>
     /// Puts the newest compatible site release on Cloudflare for this store, creating what does
-    /// not exist and keeping what does. The EVE application's id and secret are set when given
-    /// and left as they are on the site when not.
+    /// not exist and keeping what does. The store's secret and its EVE application keys go on
+    /// the site every time; secrets the site holds that the store does not know stay as they are.
     /// </summary>
-    public async Task<Outcome> DeployAsync(
-        int storeId, string? eveClientId, string? eveClientSecret,
-        IProgress<string>? progress = null, CancellationToken ct = default)
+    public async Task<Outcome> DeployAsync(int storeId, IProgress<string>? progress = null, CancellationToken ct = default)
+
     {
         var token = TokenSource();
 
@@ -161,10 +164,10 @@ public sealed partial class CloudflareDeployService(
             foreach (var (key, value) in manifest.Bindings?.Vars ?? new Dictionary<string, string>())
                 if (key != "SITE_VERSION")
                     bindings.Add(new() { ["type"] = "plain_text", ["name"] = key, ["text"] = value });
-            if (!string.IsNullOrWhiteSpace(eveClientId))
-                bindings.Add(new() { ["type"] = "secret_text", ["name"] = "EVE_CLIENT_ID",     ["text"] = eveClientId.Trim() });
-            if (!string.IsNullOrWhiteSpace(eveClientSecret))
-                bindings.Add(new() { ["type"] = "secret_text", ["name"] = "EVE_CLIENT_SECRET", ["text"] = eveClientSecret.Trim() });
+            if (store.WebEveClientId.Trim().Length > 0)
+                bindings.Add(new() { ["type"] = "secret_text", ["name"] = "EVE_CLIENT_ID",     ["text"] = store.WebEveClientId.Trim() });
+            if (store.WebEveClientSecret.Trim().Length > 0)
+                bindings.Add(new() { ["type"] = "secret_text", ["name"] = "EVE_CLIENT_SECRET", ["text"] = store.WebEveClientSecret.Trim() });
 
             var metadata = JsonSerializer.Serialize(new
             {
@@ -184,11 +187,18 @@ public sealed partial class CloudflareDeployService(
             progress?.Report("Switching on the workers.dev address…");
             await cf.EnableWorkersDevAsync(token, accountId, name, ct);
             var subdomain = await cf.SubdomainAsync(token, accountId, ct);
+            if (subdomain is null)
+            {
+                // The account has no workers.dev name yet. One is chosen from the account's name,
+                // as the dashboard would suggest, with a number added when that one is taken.
+                progress?.Report("Choosing the account's workers.dev name…");
+                subdomain = await ChooseSubdomainAsync(cf, token, accountId, ct);
+            }
 
             store.WebCloudflareAccountId = accountId;
             store.WebWorkerName          = name;
-            if (!string.IsNullOrWhiteSpace(eveClientId)) store.WebEveClientId = eveClientId.Trim();
             // The workers.dev address, unless the owner has put a domain of their own in.
+
             if (subdomain is not null
                 && (store.WebUrl.Length == 0 || store.WebUrl.EndsWith(".workers.dev", StringComparison.OrdinalIgnoreCase)))
                 store.WebUrl = $"https://{name}.{subdomain}.workers.dev";
@@ -197,7 +207,7 @@ public sealed partial class CloudflareDeployService(
 
             if (store.WebUrl.Length == 0)
                 return new Outcome(true,
-                    $"Site {manifest.Version} uploaded as {name}, but the account has no workers.dev name yet, so it has no address. "
+                    $"Site {manifest.Version} uploaded as {name}, but no workers.dev name could be chosen for the account, so it has no address yet. "
                     + "Choose one under Workers & Pages in the Cloudflare dashboard, then deploy again.",
                     "", manifest.Version);
 
@@ -208,8 +218,8 @@ public sealed partial class CloudflareDeployService(
                 : Same(seen.Value.Version, manifest.Version)
                     ? $"Site {manifest.Version} is up at {store.WebUrl}."
                     : $"Site uploaded to {store.WebUrl}; it still answers as {seen.Value.Version}, so give it a minute.";
-            if (store.WebEveClientId.Length == 0)
-                text += $" Sign-in needs an EVE application registered at developers.eveonline.com with callback {store.WebUrl}/auth/callback and no scopes; enter its id and secret here and deploy again.";
+            if (store.WebEveClientId.Trim().Length == 0 || store.WebEveClientSecret.Trim().Length == 0)
+                text += $" Buyers cannot sign in yet: register an EVE application with callback {store.WebUrl}/auth/callback, enter its Client ID and Secret Key, and deploy again.";
 
             if (store.WebEnabled) sync.Nudge();
             return new Outcome(true, text, store.WebUrl, manifest.Version);
@@ -260,6 +270,19 @@ public sealed partial class CloudflareDeployService(
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>The account's name as a workers.dev name, or that with a number when it is taken; null when neither can be had.</summary>
+    private static async Task<string?> ChooseSubdomainAsync(CloudflareClient cf, string token, string accountId, CancellationToken ct)
+    {
+        var accounts = await cf.AccountsAsync(token, ct);
+        var basis    = Slug(accounts.FirstOrDefault(a => a.Id == accountId)?.Name ?? "", 40, "eveconsole");
+        foreach (var candidate in new[] { basis, $"{basis}-{Random.Shared.Next(1000, 9999)}", $"{basis}-{Random.Shared.Next(10000, 99999)}" })
+        {
+            try { await cf.CreateSubdomainAsync(token, accountId, candidate, ct); return candidate; }
+            catch (CloudflareException) { /* taken, or refused: the next candidate */ }
+        }
+        return null;
+    }
 
     private async Task<(string Version, int Protocol)?> SiteVersionAsync(string url, int attempts, CancellationToken ct)
     {

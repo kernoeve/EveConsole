@@ -197,9 +197,14 @@ public class Store
     /// <summary>The Worker's name on that account, which is the D1 database's name too.</summary>
     public string WebWorkerName        { get; set; } = "";
 
-    /// <summary>The EVE developer application's client id the site signs buyers in with. Its
-    /// secret key is never kept here: it goes to the site's secrets and stays there.</summary>
+    /// <summary>The EVE developer application the site signs buyers in with: its client id…</summary>
     public string WebEveClientId       { get; set; } = "";
+
+    /// <summary>…and its secret key, kept with the store like <see cref="WebSecret"/> and for the
+    /// same reason. The Deploy button places both on the site every time; a site set up by hand
+    /// takes the same values as its own secrets.</summary>
+    public string WebEveClientSecret   { get; set; } = "";
+
 
 
     public DateTimeOffset CreatedAt { get; set; }

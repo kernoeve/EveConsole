@@ -852,6 +852,8 @@ public class App : Application
                         "WebCloudflareAccountId" TEXT NOT NULL DEFAULT '',
                         "WebWorkerName"       TEXT    NOT NULL DEFAULT '',
                         "WebEveClientId"      TEXT    NOT NULL DEFAULT '',
+                        "WebEveClientSecret"  TEXT    NOT NULL DEFAULT '',
+
 
                         "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                     )
@@ -895,6 +897,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCloudflareAccountId" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebWorkerName" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ScheduledTasks" (

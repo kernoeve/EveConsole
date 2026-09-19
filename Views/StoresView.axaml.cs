@@ -54,4 +54,12 @@ public partial class StoresView : UserControl
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard is not null) await clipboard.SetTextAsync(vm.WebSecret);
     }
+
+    private async void OnCopyCallback(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not StoresViewModel vm || vm.WebCallbackUrl.Length == 0) return;
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is not null) await clipboard.SetTextAsync(vm.WebCallbackUrl);
+    }
+
 }
