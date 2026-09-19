@@ -29,7 +29,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
     /// of a plan's cost, so a caller costing thousands of items should load it once and pass it
     /// to <see cref="Calculate"/> rather than going through <see cref="CalculateAsync"/> each time.
     /// </summary>
-    public async Task<ProductionContext> LoadContextAsync(int parkId, CancellationToken ct = default)
+    /// <summary>
+    /// Everything a plan needs, for one park. Some twenty-five queries — and inside a worklist
+    /// build, fetched once and shared by every generator that asks for the same park (see
+    /// <see cref="Worklist.BuildCache"/>). Shareable because nothing mutates a context:
+    /// <see cref="Calculate"/> copies the price table before overlaying it.
+    /// </summary>
+    public Task<ProductionContext> LoadContextAsync(int parkId, CancellationToken ct = default)
+        => Worklist.BuildCache.GetOrAddAsync($"ProductionContext:{parkId}", () => LoadContextUncachedAsync(parkId, ct));
+
+    private async Task<ProductionContext> LoadContextUncachedAsync(int parkId, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 

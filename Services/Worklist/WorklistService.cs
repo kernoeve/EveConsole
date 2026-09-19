@@ -37,6 +37,11 @@ public class WorklistService(
 
     public async Task<WorklistRun> BuildAsync(CancellationToken ct = default)
     {
+        // Every load the generators share — the production context, the delivery-lag snapshot,
+        // the industry characters — is fetched once for the whole build rather than once per
+        // generator. See BuildCache; it flows into the fan-out below and closes with it.
+        using var _ = BuildCache.Begin();
+
         // Newly authorised characters join the industry list here, once, before the fan-out below.
         // Inside a generator it would run once per generator in parallel, and they would race to
         // insert the same rows.

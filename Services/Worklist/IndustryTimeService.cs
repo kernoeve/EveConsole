@@ -86,7 +86,11 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             BaseSeconds.ContainsKey((bpTypeId, activity));
     }
 
-    public async Task<TimeContext> LoadAsync(int parkId, CancellationToken ct = default)
+    // Once per build for a park; every caller only reads it.
+    public Task<TimeContext> LoadAsync(int parkId, CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync($"TimeContext:{parkId}", () => LoadUncachedAsync(parkId, ct));
+
+    private async Task<TimeContext> LoadUncachedAsync(int parkId, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 

@@ -256,6 +256,17 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     public static async Task<HashSet<long>?> ResolveScopeFilterAsync(
         AppDbContext db, string scope, long? locationId, CancellationToken ct)
     {
+        // A region resolves through five queries, and inside a worklist build the same scope is
+        // resolved by five or six generators. Once per build, per (scope, location) — and handed
+        // out as a COPY, because callers union their own extra stations onto the set they get.
+        var resolved = await Worklist.BuildCache.GetOrAddAsync(
+            $"ScopeFilter:{scope}:{locationId}", () => ResolveScopeFilterUncachedAsync(db, scope, locationId, ct));
+        return resolved is null ? null : new HashSet<long>(resolved);
+    }
+
+    private static async Task<HashSet<long>?> ResolveScopeFilterUncachedAsync(
+        AppDbContext db, string scope, long? locationId, CancellationToken ct)
+    {
         if (scope == "Station" && locationId.HasValue)
             return [locationId.Value];
 
@@ -336,7 +347,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>Same rule the Order Tracker's fulfilment matching and the Worklist's industry
     /// assignment already use, so the tools agree about what "we have" means.</para>
     /// </summary>
-    private static async Task<HashSet<long>> OwnedIdsAsync(AppDbContext db, CancellationToken ct)
+    private static Task<HashSet<long>> OwnedIdsAsync(AppDbContext db, CancellationToken ct)
+        => Worklist.BuildCache.GetOrAddAsync("InvLevel.OwnedIds", () => OwnedIdsUncachedAsync(db, ct));
+
+    private static async Task<HashSet<long>> OwnedIdsUncachedAsync(AppDbContext db, CancellationToken ct)
     {
         var ids = await db.Characters.AsNoTracking()
             .Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync(ct);
@@ -391,9 +405,23 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>The scope is resolved once per distinct (scope, location) rather than per group,
     /// since rules routinely share one.</para>
     /// </remarks>
-    public async Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableAsync(
+    public Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableAsync(
         IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
         CancellationToken ct = default, bool packagedOnly = false)
+    {
+        // Three generators gather the same demand from the same rules, so they ask this with
+        // the same groups and the same types. Keyed by exactly that, so a different request —
+        // the inventory tool asking for one group — is its own load. Results are records the
+        // callers only read.
+        var key = "InvLevel.Available:" + (packagedOnly ? "P:" : "A:")
+                + string.Join("|", requests.OrderBy(r => r.Group.Id)
+                      .Select(r => $"{r.Group.Id}=" + string.Join(",", r.TypeIds.Distinct().OrderBy(t => t))));
+        return Worklist.BuildCache.GetOrAddAsync(key, () => LoadAvailableUncachedAsync(requests, ct, packagedOnly));
+    }
+
+    private async Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableUncachedAsync(
+        IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
+        CancellationToken ct, bool packagedOnly)
     {
         var result = new Dictionary<int, Dictionary<int, InvAvailability>>();
         requests = requests.Where(r => r.TypeIds.Count > 0).ToList();

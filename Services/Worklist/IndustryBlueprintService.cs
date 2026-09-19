@@ -164,7 +164,11 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     /// Every print in reach, whatever its type, for building an efficiency map across a whole
     /// production tree.
     /// </summary>
-    public async Task<List<BlueprintStock>> LoadAllAsync(CancellationToken ct = default)
+    // Once per build; read-only for every caller.
+    public Task<List<BlueprintStock>> LoadAllAsync(CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync("IndustryBlueprints.All", () => LoadAllUncachedAsync(ct));
+
+    private async Task<List<BlueprintStock>> LoadAllUncachedAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var ids = await db.EsiBlueprints.AsNoTracking().Select(b => b.TypeId).Distinct().ToListAsync(ct);

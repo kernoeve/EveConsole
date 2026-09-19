@@ -43,6 +43,21 @@ public static class DeliveryLag
     public static async Task<List<DeliveredOutput>> ItemsAsync(
         AppDbContext db, CancellationToken ct, IReadOnlyCollection<int>? typeIds = null)
     {
+        // Inside a worklist build every generator asks this, each for its own types, and the
+        // answer is a few dozen rows: load the lot once and hand each caller its slice. Outside
+        // a build, the filtered query as before.
+        if (!Worklist.BuildCache.IsActive) return await ItemsUncachedAsync(db, ct, typeIds);
+
+        var all = await Worklist.BuildCache.GetOrAddAsync("DeliveryLag.Items", () => ItemsUncachedAsync(db, ct, null));
+        if (typeIds is null) return all;
+        if (typeIds.Count == 0) return [];
+        var set = typeIds as IReadOnlySet<int> ?? typeIds.ToHashSet();
+        return all.Where(d => set.Contains(d.TypeId)).ToList();
+    }
+
+    private static async Task<List<DeliveredOutput>> ItemsUncachedAsync(
+        AppDbContext db, CancellationToken ct, IReadOnlyCollection<int>? typeIds)
+    {
         var snapshot = await SnapshotAsync(db, "char.assets", "corp.assets", ct);
         if (snapshot.Count == 0) return [];
 
@@ -105,6 +120,19 @@ public static class DeliveryLag
     /// <param name="typeIds">Only these blueprint types, where the caller has a list; null for all.</param>
     public static async Task<List<DeliveredPrint>> PrintsAsync(
         AppDbContext db, CancellationToken ct, IReadOnlyCollection<int>? typeIds = null)
+    {
+        // Once per build and sliced per caller, as ItemsAsync.
+        if (!Worklist.BuildCache.IsActive) return await PrintsUncachedAsync(db, ct, typeIds);
+
+        var all = await Worklist.BuildCache.GetOrAddAsync("DeliveryLag.Prints", () => PrintsUncachedAsync(db, ct, null));
+        if (typeIds is null) return all;
+        if (typeIds.Count == 0) return [];
+        var set = typeIds as IReadOnlySet<int> ?? typeIds.ToHashSet();
+        return all.Where(p => set.Contains(p.TypeId)).ToList();
+    }
+
+    private static async Task<List<DeliveredPrint>> PrintsUncachedAsync(
+        AppDbContext db, CancellationToken ct, IReadOnlyCollection<int>? typeIds)
     {
         var snapshot = await SnapshotAsync(db, "char.blueprints", "corp.blueprints", ct);
         if (snapshot.Count == 0) return [];
