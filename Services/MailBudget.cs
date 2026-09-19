@@ -91,6 +91,16 @@ public sealed class MailBudget
         lock (_gate) return Refill(characterId).Tokens - calls >= floor;
     }
 
+    /// <summary>
+    /// Whether the background body prefetch may spend <paramref name="calls"/> more.
+    ///
+    /// <para>The same floor as the store, for the same reason: it is automated, it works
+    /// through a backlog, and the owner's own reading must always have room left. It is a
+    /// separate name so the two ceilings can part company later without a search for which
+    /// "store" calls were really the prefetch.</para>
+    /// </summary>
+    public bool PrefetchMayUse(long characterId, int calls) => StoreMayUse(characterId, calls);
+
     /// <summary>For the status line — a number nobody has to reason about.</summary>
     public string Describe(long characterId) =>
         $"{Remaining(characterId)} of {MaxTokens} mail calls left in this 15-minute window";

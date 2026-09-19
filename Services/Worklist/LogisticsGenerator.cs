@@ -447,6 +447,7 @@ public class LogisticsGenerator(
             // that way: a Vexor is 10,000 m³ packaged against 115,000 assembled, so every
             // figure here was more than eleven times too large. Zero means the SDE gives no
             // packaged figure, which is most items -- for those the two are the same.
+            .Select(t => new { t.TypeId, t.PackagedVolume, t.Volume })
             .ToDictionaryAsync(t => t.TypeId, t => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume, ct);
 
         var settings = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);

@@ -38,8 +38,13 @@ public static class AssetExclusions
     /// jobs; they were the corporation's working freighters, and the fleet that would have moved
     /// them was the fleet being asked to move.</para>
     /// </summary>
-    public static async Task<HashSet<long>> UnusableItemIdsAsync(
-        AppDbContext db, CancellationToken ct = default)
+    public static Task<HashSet<long>> UnusableItemIdsAsync(AppDbContext db, CancellationToken ct = default)
+        // Seven generators ask this in one build and none of them changes the answer; fetched
+        // once per build (see BuildCache), and the set is only ever read by its callers.
+        => Worklist.BuildCache.GetOrAddAsync("AssetExclusions.Unusable", () => UnusableItemIdsUncachedAsync(db, ct));
+
+    private static async Task<HashSet<long>> UnusableItemIdsUncachedAsync(
+        AppDbContext db, CancellationToken ct)
     {
         // ⚠️ Ships and wraps read separately, because they are not excluded on the same terms.
         // Both are walked INTO, but only the assembled ships are themselves unusable.

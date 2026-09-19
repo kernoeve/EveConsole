@@ -191,7 +191,14 @@ public class OrderFulfilmentService(
             .Select(g => new { TypeId = g.Key, Qty = g.Max(x => x.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => Math.Max(1, x.Qty), ct);
 
-        var claimedJobs = new HashSet<int>();
+        // ⚠️ Units left on each job, not a set of jobs claimed. A job was claimed whole by the
+        // first order to reach it, so a two-run Phoenix job covered one order for one hull and
+        // the second order for one hull found nothing — while the job was making both. An
+        // order now takes only the units it is short from a job and leaves the rest for the
+        // next; the job is spent when its output is, which is what "claimed" was meant to say.
+        var jobUnitsLeft = openJobs.ToDictionary(
+            j => j.JobId,
+            j => (long)j.Runs * perRun.GetValueOrDefault(j.ProductTypeId!.Value, 1));
         var changed = false;
 
         foreach (var order in orders)
@@ -292,29 +299,30 @@ public class OrderFulfilmentService(
             }
 
             // ── Being made? ────────────────────────────────────────────────────
-            // Unclaimed jobs producing it, soonest first, taken until the shortfall is covered.
-            // A job is claimed by at most one order for the same reason a contract is: two orders
-            // pointing at one job would both promise its output.
+            // Jobs producing it with output still unspoken for, soonest first, each drawn on for
+            // what this order is short and no more — a job with output left over serves the next
+            // order too. What cannot happen is two orders being promised the same unit, which is
+            // what the per-job units above guarantee.
             //
             // ⚠️ As many as it takes, not one. An order for fifty took the soonest job and stopped,
             // so a run of five looked exactly like a run of fifty and the other jobs really
             // building the order were left unattached and free for another order to claim.
             var shortfall = order.Units - take;
-            var yield     = perRun.GetValueOrDefault(order.TypeId, 1);
 
             var picked  = new List<int>();
             var made    = 0;
             DateTimeOffset? lastEnd = null;
 
             foreach (var j in openJobs
-                         .Where(j => j.ProductTypeId == order.TypeId && !claimedJobs.Contains(j.JobId))
+                         .Where(j => j.ProductTypeId == order.TypeId && jobUnitsLeft[j.JobId] > 0)
                          .OrderBy(j => j.EndDate))
             {
                 if (made >= shortfall) break;
 
-                claimedJobs.Add(j.JobId);
+                var taken = (int)Math.Min(jobUnitsLeft[j.JobId], shortfall - made);
+                jobUnitsLeft[j.JobId] -= taken;
                 picked.Add(j.JobId);
-                made   += j.Runs * yield;
+                made   += taken;
                 lastEnd = j.EndDate;
             }
 

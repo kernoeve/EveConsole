@@ -285,8 +285,11 @@ public class StoreMailService(
         // The inbox as the ordinary mail poll left it. Deliberately not a fetch of its own: the
         // shop reads the same headers every other part of the app does, so a mail cannot be seen
         // here and be missing from the Eve Mail tool.
-        var incoming = await db.EsiMailHeaders
-            .AsNoTracking()
+        // ⚠️ Inbox only — exactly the mail the Eve Mail tool files under Inbox, by the same label
+        // test. Everything in the character's mailbox used to qualify, corp and alliance mail
+        // included, and the shop answered a corporation announcement as though it were an order.
+        // A mail addressed to the corporation is not addressed to the store.
+        var incoming = await EveMailService.WithLabel(db.EsiMailHeaders.AsNoTracking(), EveMailService.InboxLabel)
             .Where(h => h.CharacterId == store.CharacterId && h.FromId != store.CharacterId)
             .Select(h => new { h.MailId, h.FromId, h.FromName, h.Subject, h.Timestamp })
             .ToListAsync(ct);
@@ -343,6 +346,31 @@ public class StoreMailService(
         foreach (var header in todo)
         {
             ct.ThrowIfCancellationRequested();
+
+            // ⚠️ A reply or a forward is part of a conversation a person is having, not an
+            // order, and it is left alone — not answered with the usage page as an unrecognised
+            // subject would be. Decided from the header, before the body is read: reading it
+            // would spend a char-social call on a mail we are not going to act on. Recorded so
+            // the next pass does not look at it again.
+            if (IsConversation(header.Subject))
+            {
+                db.StoreMails.Add(new StoreMail
+                {
+                    StoreId   = store.Id,
+                    Direction = "in",
+                    MailId    = header.MailId,
+                    PartyId   = header.FromId,
+                    PartyName = header.FromName,
+                    Subject   = header.Subject ?? "",
+                    At        = header.Timestamp,
+                    Outcome   = "ignored",
+                    Detail    = "A reply or forward — part of a conversation, not a command.",
+                });
+                await db.SaveChangesAsync(ct);
+                db.ChangeTracker.Clear();
+                handled++;
+                continue;
+            }
 
             var body = "";
             // ⚠️ RAW. The order parser reads links out of the markup, and the stripped version
@@ -1265,6 +1293,14 @@ public class StoreMailService(
 
     /// <summary>The body's size in the unit the limit is enforced in.</summary>
     private static int Weigh(string s) => Encoding.UTF8.GetByteCount(s);
+
+    /// <summary>A subject that is a reply or a forward — "RE:" or "FW:", any case.</summary>
+    public static bool IsConversation(string? subject)
+    {
+        var s = (subject ?? "").TrimStart();
+        return s.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)
+            || s.StartsWith("FW:", StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>Whether a send was refused for length — which no retry can change.</summary>
     private static bool TooLong(string? error) =>

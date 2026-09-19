@@ -35,8 +35,22 @@ public partial class ComposeMailDialog : Window
         BodyBox.Text    = args.InitialBody;
         RecipientList.ItemsSource = _recipients;
 
+        // A reply already knows who it is to; no search, no round trip.
+        foreach (var r in args.InitialRecipients)
+            if (_recipients.All(x => x.Id != r.Id)) _recipients.Add(r);
+
         if (!string.IsNullOrEmpty(args.InitialTo))
             RecipientSearchBox.Text = args.InitialTo;
+
+        // A reply opens with the quote already in the body and the caret on the first — blank —
+        // line, so typing starts above the quote. Deferred to Opened: focus and caret set before
+        // the window is shown are reset when it is.
+        if (args.StartInBody)
+            Opened += (_, _) =>
+            {
+                BodyBox.Focus();
+                BodyBox.CaretIndex = 0;
+            };
     }
 
     private void OnFromCharacterChanged(object? sender, SelectionChangedEventArgs e)
