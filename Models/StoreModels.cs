@@ -186,6 +186,22 @@ public class Store
     /// <summary>Why the last exchange failed, in words, or empty. Shown on the Stores screen.</summary>
     public string WebLastError     { get; set; } = "";
 
+    // ── Hosting on Cloudflare, from this app ──────────────────────────────────
+    //
+    // Filled in by the Deploy button so that Update knows where the site is. A site set up by
+    // hand leaves them empty and is updated by hand; the address above is all syncing needs.
+
+    /// <summary>The Cloudflare account the site was deployed to.</summary>
+    public string WebCloudflareAccountId { get; set; } = "";
+
+    /// <summary>The Worker's name on that account, which is the D1 database's name too.</summary>
+    public string WebWorkerName        { get; set; } = "";
+
+    /// <summary>The EVE developer application's client id the site signs buyers in with. Its
+    /// secret key is never kept here: it goes to the site's secrets and stays there.</summary>
+    public string WebEveClientId       { get; set; } = "";
+
+
     public DateTimeOffset CreatedAt { get; set; }
 }
 

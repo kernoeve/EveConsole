@@ -446,6 +446,69 @@
                            VerticalAlignment="Center" Margin="12 0 0 0"
                            Foreground="{DynamicResource TextDimBrush}" Classes.warn="{Binding WebHasError}" />
               </Grid>
+
+              <!-- Hosting. The app can put the site on the owner's own Cloudflare account and keep
+                   it current; the token for that stays on this machine. A site set up by hand with
+                   wrangler is the same thing afterwards and can be updated from here too. -->
+              <TextBlock Text="HOSTING ON CLOUDFLARE" FontSize="10"
+                         FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="The app can put the site on your own Cloudflare account and keep it current: it creates the database, uploads the newest release of the site, sets the secret above and switches on the free workers.dev address. It needs an API token, made at dash.cloudflare.com from the Edit Cloudflare Workers template with D1 Edit added; the token is kept on this machine only. Deploying again updates the site without touching its orders. A site set up by hand works the same." />
+
+              <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="API token" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 6">
+                  <TextBox Grid.Column="0" Text="{Binding CloudflareToken}" PasswordChar="•" Watermark="Paste a token to save it on this machine" FontSize="11"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <Button Grid.Column="1" Command="{Binding SaveCloudflareTokenCommand}" Content="Save token" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <Button Grid.Column="2" Command="{Binding ForgetCloudflareTokenCommand}" Content="Forget" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                </Grid>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Account" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                  <ComboBox ItemsSource="{Binding CloudflareAccounts}" SelectedItem="{Binding CloudflareAccount}" FontSize="11" MinWidth="220"
+                            PlaceholderText="Save a token to list accounts"
+                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <TextBlock Text="{Binding CloudflareTokenText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                             TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Worker name" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                  <TextBox Text="{Binding WebWorkerName, UpdateSourceTrigger=LostFocus}" FontSize="11" MinWidth="220"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <TextBlock Text="Also the database's name. Lower-case letters, digits and hyphens; the site's address is this name on the account's workers.dev."
+                             FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="EVE application" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,*" Margin="0 0 0 6">
+                  <TextBox Grid.Column="0" Text="{Binding WebEveClientId, UpdateSourceTrigger=LostFocus}" Watermark="Client ID" FontSize="11" Margin="0 0 6 0"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <TextBox Grid.Column="1" Text="{Binding WebEveClientSecret}" PasswordChar="•" Watermark="Secret key — sent to the site on the next deploy, not kept here" FontSize="11"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                </Grid>
+              </Grid>
+
+              <TextBlock Text="{Binding WebCallbackText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+
+              <Grid ColumnDefinitions="Auto,Auto,*">
+                <Button Grid.Column="0" Command="{Binding DeploySiteCommand}" Content="Deploy or update site" Padding="12 4" FontSize="11"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                        BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
+                <Button Grid.Column="1" Command="{Binding CheckSiteCommand}" Content="Check" Margin="6 0 0 0" Padding="12 4" FontSize="11"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                        BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                <TextBlock Grid.Column="2" Text="{Binding DeployStatusText}" FontSize="10" TextWrapping="Wrap"
+                           VerticalAlignment="Center" Margin="12 0 0 0" Foreground="{DynamicResource TextDimBrush}" />
+              </Grid>
+
             </StackPanel>
           </Border>
             </StackPanel>

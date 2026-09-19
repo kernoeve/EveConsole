@@ -849,6 +849,10 @@ public class App : Application
                         "WebSiteVersion"      TEXT    NOT NULL DEFAULT '',
                         "WebLastSyncAt"       TEXT    NULL,
                         "WebLastError"        TEXT    NOT NULL DEFAULT '',
+                        "WebCloudflareAccountId" TEXT NOT NULL DEFAULT '',
+                        "WebWorkerName"       TEXT    NOT NULL DEFAULT '',
+                        "WebEveClientId"      TEXT    NOT NULL DEFAULT '',
+
                         "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                     )
                     """);
@@ -888,6 +892,10 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebSiteVersion" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebLastSyncAt" TEXT NULL"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebLastError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCloudflareAccountId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebWorkerName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ScheduledTasks" (
                         "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -3750,6 +3758,8 @@ public class App : Application
         // A store's web site: the catalogue it is pushed and the loop that pushes it.
         services.AddSingleton<EveConsole.Services.WebStore.StoreCatalogueBuilder>();
         services.AddSingleton<EveConsole.Services.WebStore.WebStoreSyncService>();
+        services.AddSingleton<EveConsole.Services.WebStore.CloudflareDeployService>();
+
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
         services.AddSingleton<IndyStructureLinkService>();
@@ -3912,6 +3922,23 @@ public class App : Application
             c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
             c.Timeout = TimeSpan.FromSeconds(60);
         });
+        // Cloudflare's API and the site's releases on GitHub, for the store's Deploy and Check
+        // buttons. The token rides in each Cloudflare request's own header, never on the client.
+        services.AddHttpClient("cloudflare", c =>
+        {
+            c.BaseAddress = new Uri("https://api.cloudflare.com/client/v4/");
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(120);
+        });
+        services.AddHttpClient("github", c =>
+        {
+            c.BaseAddress = new Uri("https://api.github.com/");
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            c.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+            c.Timeout = TimeSpan.FromSeconds(120);
+        });
+
 
         services.AddSingleton<MapStatsSettings>();
         services.AddSingleton<EveRefArchiveClient>();

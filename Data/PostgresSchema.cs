@@ -523,6 +523,16 @@ public static class PostgresSchema
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebLastError" TEXT NOT NULL DEFAULT ''
         """,
         """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebCloudflareAccountId" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebWorkerName" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebEveClientId" TEXT NOT NULL DEFAULT ''
+        """,
+
+        """
         ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "WebOrderId" TEXT NOT NULL DEFAULT ''
         """,
 

@@ -128,6 +128,8 @@ public class StoresViewModel : ReactiveObject
     private readonly AppErrorLogger                  _errorLogger;
     private readonly WebStoreSyncService             _webSync;
     private readonly WorkerLease                     _lease;
+    private readonly CloudflareDeployService         _deploy;
+
 
     public ObservableCollection<StoreRowVm>          Stores    { get; } = [];
     public ObservableCollection<StoreMailRowVm>      Mails     { get; } = [];
@@ -168,7 +170,9 @@ public class StoresViewModel : ReactiveObject
         OrderLabelService               labels,
         AppErrorLogger                  errorLogger,
         WebStoreSyncService             webSync,
-        WorkerLease                     lease)
+        WorkerLease                     lease,
+        CloudflareDeployService         deploy)
+
     {
         _dbFactory   = dbFactory;
         _postings    = postings;
@@ -177,6 +181,8 @@ public class StoresViewModel : ReactiveObject
         _errorLogger = errorLogger;
         _webSync     = webSync;
         _lease       = lease;
+        _deploy      = deploy;
+
 
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
         DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
@@ -185,9 +191,17 @@ public class StoresViewModel : ReactiveObject
         AddSenderCommand   = ReactiveCommand.CreateFromTask(AddSenderAsync);
         SyncWebNowCommand  = ReactiveCommand.CreateFromTask(SyncWebNowAsync);
         NewSecretCommand   = ReactiveCommand.CreateFromTask(NewSecretAsync);
+        SaveCloudflareTokenCommand   = ReactiveCommand.CreateFromTask(SaveCloudflareTokenAsync);
+        ForgetCloudflareTokenCommand = ReactiveCommand.Create(ForgetCloudflareToken);
+        DeploySiteCommand            = ReactiveCommand.CreateFromTask(DeploySiteAsync);
+        CheckSiteCommand             = ReactiveCommand.CreateFromTask(CheckSiteAsync);
+        RefreshTokenText();
+
 
         foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
-                                  CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand })
+                                  CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand,
+                                  SaveCloudflareTokenCommand, ForgetCloudflareTokenCommand, DeploySiteCommand, CheckSiteCommand })
+
             c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(StoresViewModel), "command", ex));
 
         this.WhenAnyValue(x => x.SelectedStore)
@@ -209,6 +223,11 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
     public ReactiveCommand<Unit, Unit> SyncWebNowCommand  { get; }
+    public ReactiveCommand<Unit, Unit> SaveCloudflareTokenCommand   { get; }
+    public ReactiveCommand<Unit, Unit> ForgetCloudflareTokenCommand { get; }
+    public ReactiveCommand<Unit, Unit> DeploySiteCommand            { get; }
+    public ReactiveCommand<Unit, Unit> CheckSiteCommand             { get; }
+
     public ReactiveCommand<Unit, Unit> NewSecretCommand   { get; }
 
     private StoreRowVm? _selectedStore;
@@ -651,6 +670,183 @@ public class StoresViewModel : ReactiveObject
         await LoadSelectedAsync();
     }
 
+    // ── Hosting on Cloudflare ─────────────────────────────────────────────────
+    //
+    // The token is this machine's (AppConfig); the account, worker name and EVE application id
+    // are the store's; the EVE application's secret key passes through once, to the site.
+
+    public sealed record AccountOption(string Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    public ObservableCollection<AccountOption> CloudflareAccounts { get; } = [];
+
+    private IReadOnlyDictionary<string, string> _subdomains = new Dictionary<string, string>();
+
+    private string _cloudflareToken = "";
+
+    /// <summary>Typed here and saved by the button; never read back out of the machine's store.</summary>
+    public string CloudflareToken
+    {
+        get => _cloudflareToken;
+        set => this.RaiseAndSetIfChanged(ref _cloudflareToken, value ?? "");
+    }
+
+    private string _cloudflareTokenText = "";
+    public string CloudflareTokenText
+    {
+        get => _cloudflareTokenText;
+        private set => this.RaiseAndSetIfChanged(ref _cloudflareTokenText, value);
+    }
+
+    private AccountOption? _cloudflareAccount;
+    public AccountOption? CloudflareAccount
+    {
+        get => _cloudflareAccount;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _cloudflareAccount, value);
+            if (value is not null) _ = SaveAsync(s => s.WebCloudflareAccountId = value.Id);
+            RefreshCallbackText();
+        }
+    }
+
+    private string _webWorkerName = "";
+    public string WebWorkerName
+    {
+        get => _webWorkerName;
+        set
+        {
+            var name = (value ?? "").Trim().ToLowerInvariant();
+            this.RaiseAndSetIfChanged(ref _webWorkerName, name);
+            _ = SaveAsync(s => s.WebWorkerName = name);
+            RefreshCallbackText();
+        }
+    }
+
+    private string _webEveClientId = "";
+    public string WebEveClientId
+    {
+        get => _webEveClientId;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webEveClientId, value ?? "");
+            _ = SaveAsync(s => s.WebEveClientId = (value ?? "").Trim());
+        }
+    }
+
+    private string _webEveClientSecret = "";
+
+    /// <summary>Goes to the site's secrets on the next deploy and is cleared; the app keeps no copy.</summary>
+    public string WebEveClientSecret
+    {
+        get => _webEveClientSecret;
+        set => this.RaiseAndSetIfChanged(ref _webEveClientSecret, value ?? "");
+    }
+
+    private string _webCallbackText = "";
+    public string WebCallbackText
+    {
+        get => _webCallbackText;
+        private set => this.RaiseAndSetIfChanged(ref _webCallbackText, value);
+    }
+
+    private string _deployStatusText = "";
+    public string DeployStatusText
+    {
+        get => _deployStatusText;
+        private set => this.RaiseAndSetIfChanged(ref _deployStatusText, value);
+    }
+
+    private void RefreshTokenText()
+    {
+        CloudflareTokenText = AppConfig.HasCloudflareToken
+            ? AppConfig.CloudflareTokenProtection switch
+            {
+                SecretProtection.Dpapi     => "A token is saved on this machine, encrypted by Windows for your account.",
+                SecretProtection.LibSecret => "A token is saved in this machine's keyring.",
+                _                          => "A token is saved on this machine in config.json as typed; no keyring was available.",
+            }
+            : "No token is saved on this machine. Deploying and updating need one; syncing does not.";
+    }
+
+    /// <summary>The address the EVE application must be registered with, as far as it is known.</summary>
+    private void RefreshCallbackText()
+    {
+        var url = _webUrl.Length > 0 ? _webUrl.TrimEnd('/')
+            : CloudflareAccount is { } a && _subdomains.TryGetValue(a.Id, out var sub) && _webWorkerName.Length > 0
+                ? $"https://{_webWorkerName}.{sub}.workers.dev"
+                : "";
+        WebCallbackText = url.Length > 0
+            ? $"Sign-in needs an EVE application: register one at developers.eveonline.com with callback {url}/auth/callback and no scopes, then enter its client id and secret key here and deploy."
+            : "Sign-in needs an EVE application registered at developers.eveonline.com; its callback is the site's address plus /auth/callback, known once the account and worker name are set.";
+    }
+
+    /// <summary>The option for a saved account id — the listed one, or a stand-in until the token is checked again.</summary>
+    private AccountOption? AccountFor(string id)
+    {
+        if (id.Length == 0) return null;
+        var known = CloudflareAccounts.FirstOrDefault(a => a.Id == id);
+        if (known is not null) return known;
+        var placeholder = new AccountOption(id, $"Account {id[..Math.Min(8, id.Length)]}…");
+        CloudflareAccounts.Add(placeholder);
+        return placeholder;
+    }
+
+    private async Task SaveCloudflareTokenAsync()
+    {
+        var token = CloudflareToken.Trim();
+        if (token.Length == 0) { DeployStatusText = "Paste the token first."; return; }
+
+        DeployStatusText = "Checking the token…";
+        var check = await _deploy.CheckTokenAsync(token);
+        if (!check.Ok) { DeployStatusText = check.Text; return; }
+
+        AppConfig.SetCloudflareToken(token);
+        CloudflareToken = "";
+        _subdomains     = check.Subdomains;
+
+        var wanted = CloudflareAccount?.Id ?? "";
+        CloudflareAccounts.Clear();
+        foreach (var a in check.Accounts) CloudflareAccounts.Add(new AccountOption(a.Id, a.Name));
+        CloudflareAccount = CloudflareAccounts.FirstOrDefault(a => a.Id == wanted)
+                         ?? (CloudflareAccounts.Count == 1 ? CloudflareAccounts[0] : null);
+
+        RefreshTokenText();
+        RefreshCallbackText();
+        DeployStatusText = check.Text;
+    }
+
+    private void ForgetCloudflareToken()
+    {
+        AppConfig.SetCloudflareToken(null);
+        _subdomains = new Dictionary<string, string>();
+        RefreshTokenText();
+        DeployStatusText = "The token is gone from this machine. The site keeps running; only deploying and updating from here need one.";
+    }
+
+    /// <summary>Deploys, or updates, the site; the same button for both.</summary>
+    private async Task DeploySiteAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        var progress = new Progress<string>(s => DeployStatusText = s);
+        var secret   = WebEveClientSecret.Trim();
+        var r = await _deploy.DeployAsync(row.Id, WebEveClientId.Trim(), secret.Length > 0 ? secret : null, progress);
+        if (r.Ok) WebEveClientSecret = "";
+        await LoadSelectedAsync();
+        DeployStatusText = r.Text;
+        RefreshCallbackText();
+    }
+
+    private async Task CheckSiteAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        DeployStatusText = "Asking the site…";
+        var r = await _deploy.CheckSiteAsync(row.Id);
+        DeployStatusText = r.Text;
+    }
+
     /// <summary>Typed name for the allow list, resolved when added.</summary>
     private string _senderName = "";
     public string SenderName { get => _senderName; set => this.RaiseAndSetIfChanged(ref _senderName, value); }
@@ -918,6 +1114,11 @@ public class StoresViewModel : ReactiveObject
                     WebBlurb          = store.WebBlurb;
                     WebStatusText     = DescribeWeb(store);
                     WebHasError       = store.WebEnabled && store.WebLastError.Length > 0;
+                    WebWorkerName     = store.WebWorkerName.Length > 0 ? store.WebWorkerName : CloudflareDeployService.DefaultWorkerName(store.Name);
+                    WebEveClientId    = store.WebEveClientId;
+                    CloudflareAccount = AccountFor(store.WebCloudflareAccountId);
+                    RefreshCallbackText();
+
                 }
                 finally { _suppressSave = false; }
 
