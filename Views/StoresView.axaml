@@ -216,7 +216,8 @@
             <StackPanel Spacing="10">
               <TextBlock Text="Store" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
-              <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" >
+              <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                 <!-- LostFocus, not the default per-keystroke: every change writes to the
@@ -226,13 +227,19 @@
                          FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="0 0 0 6" />
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Character" FontSize="11"
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="EVE Mailbox" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
-                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding CharacterOptions}"
-                          SelectedItem="{Binding StoreCharacter}" FontSize="11" MinWidth="220"
-                          HorizontalAlignment="Left"
-                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
-                          Margin="0 0 0 6" />
+                <!-- The character whose mailbox the store uses. Order status notifications go out
+                     from it whatever doorway took the order; its inbox is read for store requests
+                     only while the EVE mail doorway below is open. -->
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                  <ComboBox ItemsSource="{Binding CharacterOptions}"
+                            SelectedItem="{Binding StoreCharacter}" FontSize="11" MinWidth="220"
+                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <TextBlock Text="Used for order status notifications, and for store requests when the EVE mail store below is open."
+                             FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                </StackPanel>
+
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
@@ -259,10 +266,8 @@
                           HorizontalAlignment="Left"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                           Margin="0 0 0 6" />
-
-                <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding StoreEnabled}"
-                          Content="Open by EVE mail — read and answer mail sent to the character" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
               </Grid>
+
 
               <!-- An order filled from the shelf has no job behind it, so nothing else would ever
                    give it a date. Blank reads as "no idea" when the truth is "as soon as someone
@@ -282,10 +287,8 @@
                            VerticalAlignment="Center" />
               </StackPanel>
 
-              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                         Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
-
               <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 4" />
+
 
               <!-- Put on every order this store takes, so a shop can be a programme: tag the
                    orders once here rather than remembering to tag each one later. -->
@@ -296,9 +299,26 @@
               <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                          Text="Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives." />
 
-              <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 4" />
+            </StackPanel>
+          </Border>
+
+          <!-- The EVE mail doorway. The mailbox above is read for store requests only while this
+               is open; the header and footer go on every mail the store sends, so they live here. -->
+          <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="14 12">
+            <StackPanel Spacing="10">
+              <TextBlock Text="EVE Mail" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="A shop front in the mailbox: buyers write to the character above and the app answers, books orders and keeps them posted. Who may buy is the Serve setting above, the same as for the web site." />
+
+              <CheckBox IsChecked="{Binding StoreEnabled}"
+                        Content="Open by EVE mail — read and answer mail sent to the mailbox" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
 
               <!-- On every mail the shop sends: answers, rejections and unprompted order updates
+
                    alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
                    links — because this is the owner's text, not a buyer's. -->
               <TextBlock Text="MESSAGE HEADER  (on every mail this store sends)" FontSize="10"
