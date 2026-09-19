@@ -123,7 +123,7 @@ public static class WebThemes
             ["TextSecondary"] = "#b6c8dc", ["TextPrimary"] = "#d2e0ee", ["TextBright"] = "#eef4fa",
             ["Accent"] = "#5fb0d8", ["AccentHover"] = "#7cc4e6", ["AccentPressed"] = "#4090b8",
             ["AccentSurface"] = "#1e3040", ["AccentDeep"] = "#2a5f7a", ["AccentPale"] = "#a8d8ee",
-            ["SurfaceOverlay"] = "#192434cc",
+            ["SurfaceOverlay"] = "#cc192434",
         },
         ["blue-light"] = new()
         {
@@ -135,7 +135,7 @@ public static class WebThemes
             ["TextSecondary"] = "#3a4959", ["TextPrimary"] = "#26333f", ["TextBright"] = "#141d26",
             ["Accent"] = "#1f5f8a", ["AccentHover"] = "#2b7aad", ["AccentPressed"] = "#164a6c",
             ["AccentSurface"] = "#dceaf4", ["AccentDeep"] = "#123a54", ["AccentPale"] = "#9cc6e0",
-            ["SurfaceOverlay"] = "#f0f4f9cc",
+            ["SurfaceOverlay"] = "#ccf0f4f9",
         },
         ["pink-dark"] = new()
         {
@@ -147,7 +147,7 @@ public static class WebThemes
             ["TextSecondary"] = "#cdbcd4", ["TextPrimary"] = "#e4d6e9", ["TextBright"] = "#f6eef8",
             ["Accent"] = "#e08aa8", ["AccentHover"] = "#eca0bc", ["AccentPressed"] = "#c06a88",
             ["AccentSurface"] = "#3a2230", ["AccentDeep"] = "#6a3a4e", ["AccentPale"] = "#f4c0d2",
-            ["SurfaceOverlay"] = "#271c2ccc",
+            ["SurfaceOverlay"] = "#cc271c2c",
         },
         ["pink-light"] = new()
         {
@@ -159,7 +159,7 @@ public static class WebThemes
             ["TextSecondary"] = "#52434c", ["TextPrimary"] = "#3a2d35", ["TextBright"] = "#241a20",
             ["Accent"] = "#a03a5e", ["AccentHover"] = "#bc5077", ["AccentPressed"] = "#7e2846",
             ["AccentSurface"] = "#f8e6ee", ["AccentDeep"] = "#641c34", ["AccentPale"] = "#d894ac",
-            ["SurfaceOverlay"] = "#faf5f8cc",
+            ["SurfaceOverlay"] = "#ccfaf5f8",
         },
         ["beige-dark"] = new()
         {
@@ -171,7 +171,7 @@ public static class WebThemes
             ["TextSecondary"] = "#cdc3b4", ["TextPrimary"] = "#e4dbcd", ["TextBright"] = "#f7f2e9",
             ["Accent"] = "#d0a870", ["AccentHover"] = "#e0be8e", ["AccentPressed"] = "#a88450",
             ["AccentSurface"] = "#332a1c", ["AccentDeep"] = "#5c4a2e", ["AccentPale"] = "#ecd8b4",
-            ["SurfaceOverlay"] = "#29241ecc",
+            ["SurfaceOverlay"] = "#cc29241e",
         },
         ["beige-light"] = new()
         {
@@ -183,7 +183,7 @@ public static class WebThemes
             ["TextSecondary"] = "#4c453c", ["TextPrimary"] = "#35302a", ["TextBright"] = "#201c18",
             ["Accent"] = "#8a6a3a", ["AccentHover"] = "#a8834c", ["AccentPressed"] = "#6a5028",
             ["AccentSurface"] = "#f4e9d6", ["AccentDeep"] = "#4c3818", ["AccentPale"] = "#cfae7c",
-            ["SurfaceOverlay"] = "#f7f3eccc",
+            ["SurfaceOverlay"] = "#ccf7f3ec",
         },
     };
 
