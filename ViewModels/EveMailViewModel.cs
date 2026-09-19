@@ -44,7 +44,24 @@ public class EveMailRowVm : ReactiveObject
     public IBrush FromColor    { get => _fromColor;    private set => this.RaiseAndSetIfChanged(ref _fromColor,    value); }
     public IBrush SubjectColor { get => _subjectColor; private set => this.RaiseAndSetIfChanged(ref _subjectColor, value); }
 
-    public EveMailRowVm(EveMailRow r, string charName)
+    /// <summary>The name the row leads with, and whose image it shows: the sender, except in the
+    /// Sent folder, where every mail is from the same person and the one worth seeing is who it
+    /// went to — the first recipient, when there are several.</summary>
+    public string PartyText  { get; }
+    public long   PartyId    { get; }
+    public string PartyType  { get; }
+
+    /// <summary>The image server path for the party, or null for a mailing list, which has none.</summary>
+    public string? PartyImageUrl => PartyType switch
+    {
+        "character"   => $"https://images.evetech.net/characters/{PartyId}/portrait?size=32",
+        "corporation" => $"https://images.evetech.net/corporations/{PartyId}/logo?size=32",
+        "alliance"    => $"https://images.evetech.net/alliances/{PartyId}/logo?size=32",
+        _             => null,
+    };
+
+    /// <param name="showRecipient">True in the Sent folder: lead with who the mail went to.</param>
+    public EveMailRowVm(EveMailRow r, string charName, bool showRecipient = false)
     {
         MailId        = r.MailId;
         CharId        = r.CharacterId;
@@ -60,6 +77,20 @@ public class EveMailRowVm : ReactiveObject
         _isUnread     = !r.IsRead;
         _fromColor    = r.IsRead ? Palette.TextMuted : Palette.TextBright;
         _subjectColor = r.IsRead ? Palette.TextFaint : Palette.TextPrimary;
+
+        var to = showRecipient ? r.Recipients.FirstOrDefault() : null;
+        if (to is not null)
+        {
+            PartyText = string.IsNullOrEmpty(to.Name) ? $"#{to.Id}" : to.Name;
+            PartyId   = to.Id;
+            PartyType = to.Type;
+        }
+        else
+        {
+            PartyText = FromText;
+            PartyId   = FromId;
+            PartyType = "character";
+        }
     }
 
     public void MarkAsRead()
@@ -84,7 +115,7 @@ public class EveMailRowVm : ReactiveObject
 
     public Task LoadPortraitAsync()
     {
-        var url = $"https://images.evetech.net/characters/{FromId}/portrait?size=32";
+        if (PartyImageUrl is not { } url) return Task.CompletedTask;
         return EveImageCache.GetAsync(url)
             .ContinueWith(t => Dispatcher.UIThread.Post(() => Portrait = t.Result),
                 TaskScheduler.Default);
@@ -163,6 +194,9 @@ public class EveMailViewModel : ReactiveObject
         get => _selectedChar;
         set { this.RaiseAndSetIfChanged(ref _selectedChar, value); _ = LoadMailsAsync(); }
     }
+
+    /// <summary>In Sent, a row leads with who the mail went to rather than who sent it.</summary>
+    private bool InSentFolder => _selectedFolder?.LabelId == EveMailService.SentLabel;
 
     private bool _suppressFolderLoad;
     private EveMailFolderVm? _selectedFolder;
@@ -361,7 +395,7 @@ public class EveMailViewModel : ReactiveObject
         {
             var charName = _sourceChars.FirstOrDefault(c => c.Id == r.CharacterId)?.Name
                            ?? _selectedChar?.Name ?? "";
-            Mails.Add(new EveMailRowVm(r, charName));
+            Mails.Add(new EveMailRowVm(r, charName, InSentFolder));
         }
         return Mails.ToList();
     }
@@ -391,7 +425,7 @@ public class EveMailViewModel : ReactiveObject
 
             var charName = _sourceChars.FirstOrDefault(c => c.Id == r.CharacterId)?.Name
                            ?? _selectedChar?.Name ?? "";
-            vm = new EveMailRowVm(r, charName);
+            vm = new EveMailRowVm(r, charName, InSentFolder);
             Mails.Insert(i, vm);
             existing[key] = vm;
             added.Add(vm);
@@ -438,7 +472,7 @@ public class EveMailViewModel : ReactiveObject
     private async Task LoadSelectedPortraitAsync(EveMailRowVm vm)
     {
         // Use the 32px portrait already in-flight/cached from the list to avoid a second fetch.
-        var url   = $"https://images.evetech.net/characters/{vm.FromId}/portrait?size=32";
+        if (vm.PartyImageUrl is not { } url) return;
         var bmp   = await EveImageCache.GetAsync(url);
         await Dispatcher.UIThread.InvokeAsync(() =>
         {

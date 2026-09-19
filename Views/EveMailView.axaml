@@ -131,7 +131,7 @@
                   <Grid Grid.Column="1" RowDefinitions="Auto,Auto">
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                       <TextBlock Grid.Column="0"
-                                 Text="{Binding FromText}"
+                                 Text="{Binding PartyText}"
                                  FontSize="12" FontWeight="SemiBold"
                                  Foreground="{Binding FromColor}" />
                       <TextBlock Grid.Column="1"
