@@ -250,10 +250,11 @@ public class EveMailViewModel : ReactiveObject
         timer.Tick += (_, _) => _ = LoadMailsAsync(quiet: true);
         timer.Start();
 
-        // Populate character list — include items already in the collection
+        // Populate character list — include items already in the collection. "All Characters"
+        // stays first; everyone else is kept in alphabetical order, however they arrive.
         Characters.Add(EveMailCharacterOption.All);
         foreach (var c in characters)
-            Characters.Add(new EveMailCharacterOption(c));
+            InsertSorted(new EveMailCharacterOption(c));
 
         // Observe future adds/removes (fires when LoadFromDatabaseAsync populates the list)
         characters.CollectionChanged += OnSourceCharsChanged;
@@ -263,11 +264,22 @@ public class EveMailViewModel : ReactiveObject
         _selectedFolder = Folders[0];      // "All Mail"
     }
 
+    /// <summary>Places a character after "All Characters" and before the first name that sorts
+    /// after it, so the list reads alphabetically whatever order the characters loaded in.</summary>
+    private void InsertSorted(EveMailCharacterOption option)
+    {
+        var at = 1;   // index 0 is always "All Characters"
+        while (at < Characters.Count
+               && string.Compare(Characters[at].Name, option.Name, StringComparison.OrdinalIgnoreCase) < 0)
+            at++;
+        Characters.Insert(at, option);
+    }
+
     private void OnSourceCharsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems is not null)
             foreach (Character c in e.NewItems)
-                Characters.Add(new EveMailCharacterOption(c));
+                InsertSorted(new EveMailCharacterOption(c));
 
         if (e.OldItems is not null)
             foreach (Character c in e.OldItems)
