@@ -240,7 +240,6 @@
                              FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                 </StackPanel>
 
-
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                 <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
@@ -268,7 +267,6 @@
                           Margin="0 0 0 6" />
               </Grid>
 
-
               <!-- An order filled from the shelf has no job behind it, so nothing else would ever
                    give it a date. Blank reads as "no idea" when the truth is "as soon as someone
                    writes the contract". -->
@@ -288,7 +286,6 @@
               </StackPanel>
 
               <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 4" />
-
 
               <!-- Put on every order this store takes, so a shop can be a programme: tag the
                    orders once here rather than remembering to tag each one later. -->
@@ -474,7 +471,8 @@
               <TextBlock Text="EVE APPLICATION  (needed before buyers can sign in)" FontSize="10"
                          FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
               <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                         Text="Register an application on the EVE developer site: any name and description, Authentication only (no scopes), and the callback address shown below. Copy its Client ID and Secret Key into the two boxes. The Deploy button places them on the site; a site set up by hand needs the same values as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets." />
+                         Text="Deploy first, so the site has an address. Then register an application on the EVE developer site: any name and description, Authentication only (no scopes), and the callback address shown below. Copy its Client ID and Secret Key into the two boxes: a site deployed from here receives them the moment they are saved, and the line under the boxes says whether the site holds these keys. A site set up by hand needs the same values as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets." />
+
               <HyperlinkButton Content="Open developers.eveonline.com to create the application" NavigateUri="https://developers.eveonline.com/applications/create"
                                FontSize="11" Padding="0" HorizontalAlignment="Left" />
 
@@ -505,6 +503,12 @@
 
               <TextBlock Text="{Binding WebSsoWarningText}" IsVisible="{Binding WebSsoMissing}" FontSize="11"
                          Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+              <!-- What the site itself says (sites from 0.1.1; from 0.1.2 which keys): the one line
+                   that tells the owner whether the keys typed here are the ones the site holds. -->
+              <TextBlock Text="{Binding WebSiteSsoText}" IsVisible="{Binding WebSiteSsoBad}" FontSize="11"
+                         Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding WebSiteSsoText}" IsVisible="{Binding WebSiteSsoGood}" FontSize="11"
+                         Foreground="{DynamicResource GoodBrush}" TextWrapping="Wrap" />
 
               <!-- Automatic deployment. Only the Deploy button needs any of this: a site put up by
                    hand with wrangler is the same thing afterwards, and the address and secret
@@ -563,7 +567,6 @@
                 <TextBlock Grid.Column="2" Text="{Binding DeployStatusText}" FontSize="10" TextWrapping="Wrap"
                            VerticalAlignment="Center" Margin="12 0 0 0" Foreground="{DynamicResource TextDimBrush}" />
               </Grid>
-
 
             </StackPanel>
           </Border>

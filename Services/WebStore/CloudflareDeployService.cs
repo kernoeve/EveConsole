@@ -5,7 +5,6 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace EveConsole.Services.WebStore;
 
 /// <summary>
@@ -169,7 +168,6 @@ public sealed partial class CloudflareDeployService(
                 if (key != "SITE_VERSION")
                     bindings.Add(new() { ["type"] = "plain_text", ["name"] = key, ["text"] = value });
 
-
             var metadata = JsonSerializer.Serialize(new
             {
                 main_module         = "index.js",
@@ -188,7 +186,6 @@ public sealed partial class CloudflareDeployService(
 
             progress?.Report("Setting the site's secrets…");
             await PutSecretsAsync(cf, token, accountId, name, store, ct);
-
 
             progress?.Report("Switching on the workers.dev address…");
             await cf.EnableWorkersDevAsync(token, accountId, name, ct);
@@ -221,14 +218,14 @@ public sealed partial class CloudflareDeployService(
             var seen = await SiteVersionAsync(store.WebUrl, VerifyAttempts, ct);
             var text = seen is null
                 ? $"Site {manifest.Version} uploaded to {store.WebUrl}, but it is not answering yet; give it a minute and press Check."
-                : Same(seen.Value.Version, manifest.Version)
+                : Same(seen.Version, manifest.Version)
                     ? $"Site {manifest.Version} is up at {store.WebUrl}."
-                    : $"Site uploaded to {store.WebUrl}; it still answers as {seen.Value.Version}, so give it a minute.";
+                    : $"Site uploaded to {store.WebUrl}; it still answers as {seen.Version}, so give it a minute.";
+
             if (store.WebEveClientId.Trim().Length == 0 || store.WebEveClientSecret.Trim().Length == 0)
                 text += $" Buyers cannot sign in yet: register an EVE application with callback {store.WebUrl}/auth/callback and enter its Client ID and Secret Key; they go to the site as soon as they are saved.";
             else if (seen?.SsoConfigured == false)
                 text += " The site does not report its EVE application keys yet; give it a minute and press Check.";
-
 
             if (store.WebEnabled) sync.Nudge();
             return new Outcome(true, text, store.WebUrl, manifest.Version);
@@ -288,7 +285,6 @@ public sealed partial class CloudflareDeployService(
 
     // ── Check, which changes nothing ──────────────────────────────────────────
 
-
     /// <summary>What the site runs, against what is released.</summary>
     public async Task<Outcome> CheckSiteAsync(int storeId, CancellationToken ct = default)
     {
@@ -302,7 +298,7 @@ public sealed partial class CloudflareDeployService(
         {
             var seen = await SiteVersionAsync(store.WebUrl, attempts: 1, ct);
             if (seen is null) return new Outcome(false, $"{store.WebUrl} is not answering at /api/version.");
-            var (version, protocol, sso) = seen.Value;
+            var (version, protocol) = (seen.Version, seen.Protocol);
 
             if (version != store.WebSiteVersion) { store.WebSiteVersion = version; await db.SaveChangesAsync(ct); }
 
@@ -318,8 +314,10 @@ public sealed partial class CloudflareDeployService(
             else if (newest.Protocol > WebStoreProtocol.Version)  text += $". Release {newest.Version} is out but needs a newer EVE Console (protocol {newest.Protocol}).";
             else if (Newer(newest.Version, version))              text += $". Release {newest.Version} is available — press Deploy to update.";
             else                                                  text += $"; the newest release is {newest.Version}.";
-            if (sso == false)
+            if (seen.SsoConfigured == false)
                 text += " Sign-in is not set up on the site: it has no EVE application keys. Enter them on this tab; a site deployed from here gets them at once.";
+            else if (seen.SsoClientId is not null && store.WebEveClientId.Trim().Length > 0 && store.WebEveClientSecret.Trim().Length > 0 && !KeysMatch(store, seen))
+                text += " The site's EVE application keys are not the ones saved here; press Deploy or update site to send these.";
             return new Outcome(true, text, store.WebUrl, version);
 
         }
@@ -344,7 +342,24 @@ public sealed partial class CloudflareDeployService(
         return null;
     }
 
-    private async Task<(string Version, int Protocol, bool? SsoConfigured)?> SiteVersionAsync(string url, int attempts, CancellationToken ct)
+    /// <summary>What a site answers at /api/version. The sign-in fields came with 0.1.1 (whether it has keys) and 0.1.2 (which).</summary>
+    public sealed record SiteProbe(string Version, int Protocol, bool? SsoConfigured, string? SsoClientId, string? SsoFingerprint);
+
+    /// <summary>The first 12 hex characters of SHA-256 over the secret: enough to tell two keys apart, useless for finding one.</summary>
+    public static string KeyFingerprint(string secret) =>
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(secret.Trim()))).ToLowerInvariant()[..12];
+
+    /// <summary>Whether the keys a site reports are the store's own. False for a site too old to say.</summary>
+    public static bool KeysMatch(Store store, SiteProbe probe) =>
+        probe.SsoClientId is not null && probe.SsoFingerprint is not null
+        && probe.SsoClientId == store.WebEveClientId.Trim()
+        && probe.SsoFingerprint == KeyFingerprint(store.WebEveClientSecret);
+
+    /// <summary>What the site answers at /api/version, for the Config tab's sign-in line; null when it does not answer.</summary>
+    public Task<SiteProbe?> ProbeSiteAsync(string url, CancellationToken ct = default)
+        => SiteVersionAsync(url, attempts: 1, ct);
+
+    private async Task<SiteProbe?> SiteVersionAsync(string url, int attempts, CancellationToken ct)
 
     {
         var web = httpFactory.CreateClient("webstore");
@@ -361,7 +376,9 @@ public sealed partial class CloudflareDeployService(
                     // Sites from 0.1.1 say whether they hold EVE application keys; older ones say nothing.
                     var sso = doc.RootElement.TryGetProperty("ssoConfigured", out var sc) && sc.ValueKind is JsonValueKind.True or JsonValueKind.False
                         ? sc.GetBoolean() : (bool?)null;
-                    if (v.Length > 0) return (v, p, sso);
+                    var cid = doc.RootElement.TryGetProperty("ssoClientId",       out var ci) && ci.ValueKind == JsonValueKind.String ? ci.GetString() : null;
+                    var fp  = doc.RootElement.TryGetProperty("ssoKeyFingerprint", out var kf) && kf.ValueKind == JsonValueKind.String ? kf.GetString() : null;
+                    if (v.Length > 0) return new SiteProbe(v, p, sso, cid, fp);
 
                 }
             }

@@ -130,7 +130,6 @@ public class StoresViewModel : ReactiveObject
     private readonly WorkerLease                     _lease;
     private readonly CloudflareDeployService         _deploy;
 
-
     public ObservableCollection<StoreRowVm>          Stores    { get; } = [];
     public ObservableCollection<StoreMailRowVm>      Mails     { get; } = [];
     public ObservableCollection<OrderSummaryRowVm>   Orders    { get; } = [];
@@ -183,7 +182,6 @@ public class StoresViewModel : ReactiveObject
         _lease       = lease;
         _deploy      = deploy;
 
-
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
         DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
         RefreshCommand     = ReactiveCommand.CreateFromTask(LoadAsync);
@@ -196,7 +194,6 @@ public class StoresViewModel : ReactiveObject
         DeploySiteCommand            = ReactiveCommand.CreateFromTask(DeploySiteAsync);
         CheckSiteCommand             = ReactiveCommand.CreateFromTask(CheckSiteAsync);
         RefreshTokenText();
-
 
         foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
                                   CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand,
@@ -739,7 +736,6 @@ public class StoresViewModel : ReactiveObject
             _ = SaveEveKeyAsync(s => s.WebEveClientId = (value ?? "").Trim());
             RefreshSsoWarning();
 
-
         }
     }
 
@@ -757,7 +753,6 @@ public class StoresViewModel : ReactiveObject
 
         }
     }
-
 
     private string _webCallbackUrl = "";
 
@@ -781,7 +776,6 @@ public class StoresViewModel : ReactiveObject
         "Buyers cannot sign in until the site has the EVE application's Client ID and Secret Key. Enter them here: "
         + "the Deploy button places them on the site, and a site set up by hand needs the same values as its "
         + "EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
-
 
     private string _deployStatusText = "";
     public string DeployStatusText
@@ -814,7 +808,6 @@ public class StoresViewModel : ReactiveObject
 
     private void RefreshSsoWarning() =>
         WebSsoMissing = _webEnabled && (_webEveClientId.Trim().Length == 0 || _webEveClientSecret.Trim().Length == 0);
-
 
     /// <summary>The option for a saved account id — the listed one, or a stand-in until the token is checked again.</summary>
     private AccountOption? AccountFor(string id)
@@ -871,7 +864,83 @@ public class StoresViewModel : ReactiveObject
         if (!AppConfig.HasCloudflareToken || CloudflareAccount is null) return;
         var r = await _deploy.PutEveKeysAsync(row.Id);
         await Dispatcher.UIThread.InvokeAsync(() => DeployStatusText = r.Text);
+        await ProbeSiteSsoAsync(row.Id, force: true);
     }
+
+    // ── What the site itself says about sign-in ──────────────────────────────
+
+    private string _webSiteSsoText = "";
+    public string WebSiteSsoText
+    {
+        get => _webSiteSsoText;
+        private set => this.RaiseAndSetIfChanged(ref _webSiteSsoText, value);
+    }
+
+    private bool _webSiteSsoGood;
+
+    /// <summary>The site confirms it holds the keys.</summary>
+    public bool WebSiteSsoGood
+    {
+        get => _webSiteSsoGood;
+        private set => this.RaiseAndSetIfChanged(ref _webSiteSsoGood, value);
+    }
+
+    private bool _webSiteSsoBad;
+
+    /// <summary>The site says it has no keys: whatever is typed here has not reached it.</summary>
+    public bool WebSiteSsoBad
+    {
+        get => _webSiteSsoBad;
+        private set => this.RaiseAndSetIfChanged(ref _webSiteSsoBad, value);
+    }
+
+    private (int StoreId, DateTime At) _lastSiteProbe;
+
+    /// <summary>
+    /// Asks the site whether it holds the EVE application keys and says so in a line of its own —
+    /// the one place that tells the owner the site still needs updating after they typed the keys.
+    /// Quiet when the site cannot be reached or is too old to say. A few minutes apart per store
+    /// unless a save or a deploy forces it.
+    /// </summary>
+    private async Task ProbeSiteSsoAsync(int storeId, bool force)
+    {
+        if (!force && _lastSiteProbe.StoreId == storeId && DateTime.UtcNow - _lastSiteProbe.At < TimeSpan.FromMinutes(5)) return;
+        _lastSiteProbe = (storeId, DateTime.UtcNow);
+
+        var url = _webUrl;
+        if (url.Length == 0) { SetSiteSso("", null); return; }
+
+        var probe = await _deploy.ProbeSiteAsync(url);
+        if (SelectedStore is not StoreRowVm row || row.Id != storeId) return;   // the selection moved on
+        if (probe?.SsoConfigured is not { } sso) { SetSiteSso("", null); return; }
+
+        var haveKeys = _webEveClientId.Trim().Length > 0 && _webEveClientSecret.Trim().Length > 0;
+        const string sendThem = "Press Deploy or update site to send them; a site set up by hand needs them as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
+        if (!sso)
+        {
+            SetSiteSso(haveKeys
+                ? "The keys are saved here, but the site does not have them yet. " + sendThem
+                : "The site has no EVE application keys yet: register the application and enter its keys above.", false);
+            return;
+        }
+        // Sites from 0.1.2 say which keys they hold, so a key changed here and not there shows up too.
+        if (probe!.SsoClientId is null || probe.SsoFingerprint is null)
+            SetSiteSso("The site has EVE application keys; sign-in is set up.", true);
+        else if (!haveKeys)
+            SetSiteSso("The site has EVE application keys, but none are saved here: enter the same ones above so an update keeps them.", false);
+        else if (probe.SsoClientId == _webEveClientId.Trim() && probe.SsoFingerprint == CloudflareDeployService.KeyFingerprint(_webEveClientSecret))
+            SetSiteSso("The site has these EVE application keys; sign-in is set up.", true);
+        else
+            SetSiteSso("The site has different EVE application keys from the ones saved here. " + sendThem, false);
+
+    }
+
+    private void SetSiteSso(string text, bool? good) => Dispatcher.UIThread.Post(() =>
+    {
+        WebSiteSsoText = text;
+        WebSiteSsoGood = good == true;
+        WebSiteSsoBad  = good == false;
+    });
 
     /// <summary>Deploys, or updates, the site; the same button for both.</summary>
     private async Task DeploySiteAsync()
@@ -880,9 +949,10 @@ public class StoresViewModel : ReactiveObject
         var progress = new Progress<string>(s => DeployStatusText = s);
         var r = await _deploy.DeployAsync(row.Id, progress);
         await LoadSelectedAsync();
-
         DeployStatusText = r.Text;
         RefreshCallbackText();
+        _ = ProbeSiteSsoAsync(row.Id, force: true);
+
     }
 
     private async Task CheckSiteAsync()
@@ -1166,7 +1236,7 @@ public class StoresViewModel : ReactiveObject
                     CloudflareAccount = AccountFor(store.WebCloudflareAccountId);
                     RefreshCallbackText();
                     RefreshSsoWarning();
-
+                    _ = ProbeSiteSsoAsync(store.Id, force: false);
 
                 }
                 finally { _suppressSave = false; }
