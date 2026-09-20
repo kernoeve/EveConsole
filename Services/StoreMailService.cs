@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services.WebStore;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -802,6 +803,24 @@ public class StoreMailService(
                 (parsed.Unknown.Count > 0
                     ? Warn("Not found: " + Esc(string.Join(", ", parsed.Unknown))) + Gap
                     : "") +
+                Usage(store), ct);
+            return;
+        }
+
+        // The store's purchase limit — the same check the site makes before it asks and the web
+        // sync makes when it books. An order by mail that would take the buyer past it is turned
+        // down, with the sum that says why and the rule itself.
+        if (store.LimitEnabled
+            && await PurchaseLimit.OverLimitAsync(db, store, log.PartyId,
+                   parsed.Lines.Select(l => (l.Item.TypeId, l.Units)).ToList(),
+                   typeId => byTypeId[typeId].TypeName, ct) is { } over)
+        {
+            log.Outcome = "rejected";
+            log.Detail  = over;
+            await ReplyAsync(store, log, $"{store.Name} — order over the limit",
+                "This order is over the store's purchase limit, so it was not taken.<br><br>" +
+                Warn(Esc(over)) + Gap +
+                Esc(PurchaseLimit.Describe(store)) + Gap +
                 Usage(store), ct);
             return;
         }
