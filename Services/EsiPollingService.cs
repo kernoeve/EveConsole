@@ -115,12 +115,12 @@ public class EsiPollingService : ReactiveObject
     /// the cache has rolled again and the data is fifty minutes old — the same miss, every time.
     /// Re-phasing costs one short cycle, once.</para>
     /// </summary>
-    private bool IsDue(string callKey, string endpointKey, int defaultInterval, DateTimeOffset now)
+    private bool IsDue(string callKey, string endpointKey, int minCacheSeconds, int defaultInterval, DateTimeOffset now)
     {
         if (!_lastCallTimes.TryGetValue(callKey, out var lastCalled)) return true;
 
         DateTimeOffset? expires = _expiresAt.TryGetValue(callKey, out var e) ? e : null;
-        var due = NextDueAt(endpointKey, defaultInterval, lastCalled, expires);
+        var due = NextDueAt(endpointKey, minCacheSeconds, defaultInterval, lastCalled, expires);
         return due is null || now >= due.Value;
     }
 
@@ -135,15 +135,20 @@ public class EsiPollingService : ReactiveObject
     ///
     /// <para>Null means never called, which is due now.</para>
     /// </summary>
-    public DateTimeOffset? NextDueAt(string endpointKey, int defaultInterval,
+    public DateTimeOffset? NextDueAt(string endpointKey, int minCacheSeconds, int defaultInterval,
                                      DateTimeOffset? lastCalled, DateTimeOffset? expiresAt)
     {
         if (lastCalled is not { } last) return null;
 
         var interval = TimeSpan.FromSeconds(_timerSettings.GetInterval(endpointKey, defaultInterval));
 
+        // ⚠️ Grace and floor scale with the endpoint's own cache. Fifteen seconds of lateness is
+        // nothing against an hourly cache and three whole copies of a five-second one, and a
+        // sixty-second floor under a five-second endpoint is a schedule, not a guard: it held
+        // location and ship to a call a minute, so a docked character read as in space for
+        // most of one.
         var due = expiresAt.HasValue
-            ? expiresAt.Value + ExpiryGrace
+            ? expiresAt.Value + GraceFor(minCacheSeconds)
             : last + interval;
 
         // ⚠️ Applied to the stored value at READ time rather than when it is written, so a record
@@ -157,9 +162,17 @@ public class EsiPollingService : ReactiveObject
 
         // The hot-loop guard applies to the answer, not only to the interval branch: an expiry
         // already in the past would otherwise read as due on every cycle.
-        var floor = last + MinimumSpacing;
+        var floor = last + FloorFor(minCacheSeconds);
         return due < floor ? floor : due;
     }
+
+    /// <summary>A fifth of the cache, from one second up to <see cref="ExpiryGrace"/>.</summary>
+    private static TimeSpan GraceFor(int minCacheSeconds)
+        => TimeSpan.FromSeconds(Math.Clamp(minCacheSeconds * 0.2, 1, ExpiryGrace.TotalSeconds));
+
+    /// <summary>The cache itself for a short one, <see cref="MinimumSpacing"/> for the rest.</summary>
+    private static TimeSpan FloorFor(int minCacheSeconds)
+        => TimeSpan.FromSeconds(Math.Clamp(minCacheSeconds, 1, MinimumSpacing.TotalSeconds));
     private readonly ConcurrentDictionary<string, GroupState>     _rateLimits     = new();
     private readonly ConcurrentDictionary<string, string>         _endpointGroups = new(); // endpoint→group
 
@@ -180,6 +193,7 @@ public class EsiPollingService : ReactiveObject
     private long _errorLimitBlockedUntilTicks;
     private CancellationTokenSource? _cts;
     private Task? _pollingTask;
+    private Task? _sessionTask;
 
     private string _statusText = "Polling: Not started";
     public string StatusText
@@ -292,13 +306,14 @@ public class EsiPollingService : ReactiveObject
     {
         // ⚠️ Guarded. Without it a second Start overwrites _cts and abandons the first loop,
         // still running on a token nothing holds any more: two polling loops in one process,
-        // doubling ESI traffic and racing each other\x{2019}s writes. That is the exact failure the
+        // doubling ESI traffic and racing each other's writes. That is the exact failure the
         // worker lease exists to prevent, and it would have been reachable from inside a single
         // client the moment the lease started driving Start.
         if (_cts is not null) return;
 
         _cts         = new CancellationTokenSource();
         _pollingTask = Task.Run(() => RunPollingLoopAsync(_cts.Token));
+        _sessionTask = Task.Run(() => RunSessionLoopAsync(_cts.Token));
     }
 
     public async Task StopAsync()
@@ -307,8 +322,11 @@ public class EsiPollingService : ReactiveObject
         await _cts.CancelAsync();
         if (_pollingTask is not null)
             try { await _pollingTask; } catch (OperationCanceledException) { }
+        if (_sessionTask is not null)
+            try { await _sessionTask; } catch (OperationCanceledException) { }
         _cts         = null;
         _pollingTask = null;
+        _sessionTask = null;
         StatusText = "Polling: Stopped";
     }
 
@@ -504,71 +522,17 @@ public class EsiPollingService : ReactiveObject
         {
             ct.ThrowIfCancellationRequested();
 
-            if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
-                continue;
-
-            // Skip before the call so no API-activity record is written for a request
-            // that was never made. Offline characters still get one fix per app run
-            // so their last-known location and ship are recorded.
-            if (s_onlineOnlyEndpoints.Contains(ep.Key)
-                && _onlineState.TryGetValue(character.Id, out var isOnline) && !isOnline
-                && _offlineFixTaken.ContainsKey((character.Id, ep.Key)))
-                continue;
-
-            var callKey = $"{ep.Key}:{character.Id}:character";
-
-            if (!IsDue(callKey, ep.Key, ep.DefaultIntervalSeconds, now))
-                continue;
-
-            if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&
-                _rateLimits.TryGetValue(groupName, out var gs) &&
-                gs.BlockedUntil.HasValue && now < gs.BlockedUntil.Value)
-                continue;
-
-            // And the endpoint's own block, which is set whether or not the refusal named a group.
-            if (_endpointBlocks.TryGetValue(ep.Key, out var until) && now < until)
-                continue;
+            // The session lane's, on its own clock — see RunSessionLoopAsync.
+            if (s_sessionEndpoints.Contains(ep.Key)) continue;
 
             // Re-check global error limit — a parallel task may have tripped it since cycle start.
-            if (Interlocked.Read(ref _errorLimitBlockedUntilTicks) is var bt and > 0 && DateTimeOffset.UtcNow.UtcTicks < bt)
-                return;
+            if (ErrorLimited()) return;
 
-            using var scope  = _scopeFactory.CreateScope();
-            var callDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            var name = _charNames.TryGetValue(character.Id, out var n) ? n : character.Id.ToString();
-            using var handle = _log.StartCall(name, ep.Key);
-
-            PollingResult result;
-            try
-            {
-                result = await ep.Handler(character.Id, callDb, ct);
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                result = new PollingResult(false, 0, ex.InnerException?.Message ?? ex.Message);
-                _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}", ex);
-            }
-
-            var callTime = DateTimeOffset.UtcNow;
-            _lastCallTimes[callKey] = callTime;
-            RecordExpiry(callKey, result);
-            await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode,
-                                         result.Expires, ETagFor(callKey), ct);
-
-            UpdateRateLimitState(ep.Key, result);
-            handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
-
-            if (!result.Success && result.StatusCode > 0)
-                _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}",
-                    $"HTTP {result.StatusCode}", result.ErrorMessage);
+            var result = await CallEndpointAsync(character, ep, now, ct);
+            if (result is null) continue;
 
             if (result.Success && s_netWorthCharEndpoints.Contains(ep.Key))
                 netWorthDirty = true;
-
-            if (result.Success && s_onlineOnlyEndpoints.Contains(ep.Key))
-                _offlineFixTaken[(character.Id, ep.Key)] = true;
 
             await Task.Delay(500, ct);
         }
@@ -576,10 +540,153 @@ public class EsiPollingService : ReactiveObject
         if (netWorthDirty)
             _ = _netWorth.RecalculateAsync(character.Id, "character", ct);
 
-        if (_undockSeen.TryRemove(character.Id, out _) && CharacterUndocked is { } undocked)
+        RaiseUndockIfSeen(character.Id);
+    }
+
+    /// <summary>
+    /// One endpoint for one character, if it is due and allowed: the call, its record, its log
+    /// line and the rate-limit bookkeeping. Null when nothing was called — not due, a scope the
+    /// token lacks, an offline character already fixed once, or a block still standing.
+    /// </summary>
+    private async Task<PollingResult?> CallEndpointAsync(Character character, EndpointDef ep, DateTimeOffset now, CancellationToken ct)
+    {
+        if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+            return null;
+
+        // Skip before the call so no API-activity record is written for a request that was
+        // never made. Offline characters still get one fix per app run so their last-known
+        // location and ship are recorded.
+        if (s_onlineOnlyEndpoints.Contains(ep.Key)
+            && _onlineState.TryGetValue(character.Id, out var isOnline) && !isOnline
+            && _offlineFixTaken.ContainsKey((character.Id, ep.Key)))
+            return null;
+
+        var callKey = $"{ep.Key}:{character.Id}:character";
+
+        if (!IsDue(callKey, ep.Key, ep.MinCacheSeconds, ep.DefaultIntervalSeconds, now))
+            return null;
+
+        if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&
+            _rateLimits.TryGetValue(groupName, out var gs) &&
+            gs.BlockedUntil.HasValue && now < gs.BlockedUntil.Value)
+            return null;
+
+        // And the endpoint's own block, which is set whether or not the refusal named a group.
+        if (_endpointBlocks.TryGetValue(ep.Key, out var until) && now < until)
+            return null;
+
+        if (ErrorLimited()) return null;
+
+        using var scope  = _scopeFactory.CreateScope();
+        var callDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var name = _charNames.TryGetValue(character.Id, out var n) ? n : character.Id.ToString();
+        using var handle = _log.StartCall(name, ep.Key);
+
+        PollingResult result;
+        try
         {
-            try { undocked(character.Id); }
-            catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"undock of {character.Id}", ex); }
+            result = await ep.Handler(character.Id, callDb, ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            result = new PollingResult(false, 0, ex.InnerException?.Message ?? ex.Message);
+            _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}", ex);
+        }
+
+        var callTime = DateTimeOffset.UtcNow;
+        _lastCallTimes[callKey] = callTime;
+        RecordExpiry(callKey, result);
+        await PersistCallRecordAsync(character.Id, "character", ep.Key, callTime, result.StatusCode,
+                                     result.Expires, ETagFor(callKey), ct);
+
+        UpdateRateLimitState(ep.Key, result);
+        handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
+
+        if (!result.Success && result.StatusCode > 0)
+            _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}",
+                $"HTTP {result.StatusCode}", result.ErrorMessage);
+
+        if (result.Success && s_onlineOnlyEndpoints.Contains(ep.Key))
+            _offlineFixTaken[(character.Id, ep.Key)] = true;
+
+        return result;
+    }
+
+    private bool ErrorLimited()
+        => Interlocked.Read(ref _errorLimitBlockedUntilTicks) is var bt and > 0 && DateTimeOffset.UtcNow.UtcTicks < bt;
+
+    /// <summary>Fires <see cref="CharacterUndocked"/> once for a pass that saw the undock — after
+    /// the pass, so the ship poll that follows the location poll has had its turn.</summary>
+    private void RaiseUndockIfSeen(long characterId)
+    {
+        if (_undockSeen.TryRemove(characterId, out _) && CharacterUndocked is { } undocked)
+        {
+            try { undocked(characterId); }
+            catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"undock of {characterId}", ex); }
+        }
+    }
+
+    // ── The session lane ──────────────────────────────────────────────────────
+    //
+    // ⚠️ Online, location and ship on their own clock. They used to sit at the end of the main
+    // cycle's endpoint list, behind its ten-second sleep and half a second of pacing after every
+    // other call — and the due rule's sixty-second floor, a hot-loop guard sized for hourly
+    // endpoints, held each of them to about one call a minute besides. So a character who had
+    // docked read as in space for the best part of a minute, and the wake-up call for a
+    // freighter on a tether went off after its pilot was safely inside. ESI caches these three
+    // for five seconds (sixty for online); asked a second after each copy lapses they are as
+    // fresh as ESI allows, and cheap: two small calls per online character every six seconds.
+
+    private static readonly HashSet<string> s_sessionEndpoints = ["char.online", "char.location", "char.ship"];
+    private static readonly TimeSpan SessionTick        = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan SessionRosterEvery = TimeSpan.FromSeconds(30);
+
+    private async Task RunSessionLoopAsync(CancellationToken ct)
+    {
+        var lane     = _characterEndpoints.Where(e => s_sessionEndpoints.Contains(e.Key)).ToList();
+        var roster   = new List<Character>();
+        var rosterAt = DateTimeOffset.MinValue;
+
+        using var timer = new PeriodicTimer(SessionTick);
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                if (!_esi.ServerOffline && !ErrorLimited())
+                {
+                    var now = DateTimeOffset.UtcNow;
+                    if (now - rosterAt >= SessionRosterEvery)
+                    {
+                        using var scope = _scopeFactory.CreateScope();
+                        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        roster = await db.Characters.Where(c => c.RefreshToken != "").AsNoTracking().ToListAsync(ct);
+                        foreach (var ch in roster) _charNames[ch.Id] = ch.Name;
+                        rosterAt = now;
+                    }
+
+                    // Characters side by side; within one, online first so the gate below it
+                    // reads this tick's answer, then location, then ship.
+                    await Task.WhenAll(roster.Select(async ch =>
+                    {
+                        foreach (var ep in lane)
+                        {
+                            ct.ThrowIfCancellationRequested();
+                            await CallEndpointAsync(ch, ep, now, ct);
+                        }
+                        RaiseUndockIfSeen(ch.Id);
+                    }));
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
+            catch (Exception ex)
+            {
+                _errorLogger.Log("EsiPollingService", "RunSessionLoopAsync", ex);
+            }
+
+            try { await timer.WaitForNextTickAsync(ct); }
+            catch (OperationCanceledException) { break; }
         }
     }
 
@@ -1515,7 +1622,7 @@ public class EsiPollingService : ReactiveObject
     // Current online / location / ship per character, stored in CharacterStatuses.
     // Unlike the other endpoints these overwrite rather than accumulate — only the
     // present state matters. Location and ship are skipped while a character is
-    // offline, which is what keeps the call volume reasonable at a 10s cadence.
+    // offline, which is what keeps the call volume reasonable at a five-second cadence.
 
     private static async Task<CharacterStatus> GetOrCreateStatusAsync(
         AppDbContext db, long charId, CancellationToken ct)
@@ -1532,7 +1639,7 @@ public class EsiPollingService : ReactiveObject
     /// <summary>
     /// How stale a "checked at" stamp may get before it is written for its own sake.
     ///
-    /// <para>⚠️ These three endpoints poll every ten seconds and the answer is the same almost
+    /// <para>⚠️ These three endpoints poll every few seconds and the answer is the same almost
     /// every time — a character sits in one system, in one ship, logged in. The row was written
     /// anyway, because the stamp was set to UtcNow unconditionally and EF then saw a modified
     /// entity every pass. With five characters online that is roughly 1.3 writes a second and
@@ -2099,10 +2206,11 @@ public class EsiPollingService : ReactiveObject
         // char-social group, which a minute's cadence per character sits comfortably inside.
         new("char.mail",             30,    600, FetchMailAsync),
         // Live session state. Much faster cadence than everything else here — these
-        // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes.
+        // endpoints cache for 5s (location, ship) and 60s (online) rather than minutes —
+        // and polled on their own lane, see RunSessionLoopAsync.
         new("char.online",          60,      60, FetchOnlineAsync),
-        new("char.location",         5,      10, FetchLocationAsync),
-        new("char.ship",             5,      10, FetchShipAsync),
+        new("char.location",         5,       5, FetchLocationAsync),
+        new("char.ship",             5,       5, FetchShipAsync),
     ];
 
     // ── Token loading ────────────────────────────────────────────────────────
@@ -2177,7 +2285,7 @@ public class EsiPollingService : ReactiveObject
 
             var callKey = $"{ep.Key}:{corp.Id}:corporation";
 
-            if (!IsDue(callKey, ep.Key, ep.DefaultIntervalSeconds, now))
+            if (!IsDue(callKey, ep.Key, ep.MinCacheSeconds, ep.DefaultIntervalSeconds, now))
                 continue;
 
             if (_endpointGroups.TryGetValue(ep.Key, out var groupName) &&

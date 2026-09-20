@@ -1330,7 +1330,8 @@ public sealed class AlarmsViewModel : ReactiveObject
             alarm.ConditionType   = conditionType;
             alarm.ConditionJson   = conditionJson;
             alarm.Repeat          = Repeat;
-            alarm.PollSeconds     = Math.Max(10, PollSeconds);
+            // Two seconds is the service's own tick; anything lower would be a promise it cannot keep.
+            alarm.PollSeconds     = Math.Max(2, PollSeconds);
             alarm.CooldownSeconds = Math.Max(0, CooldownSeconds);
             alarm.LastError       = null;
 
