@@ -215,8 +215,7 @@
                 Padding="8 5"
                 IsEnabled="{Binding !IsBusy}"
                 IsVisible="{Binding HasSpeechInput}"
-                Click="OnMicClick"
-                ToolTip.Tip="Click to start recording; click again to transcribe. Or hold the global hotkey.">
+                ToolTip.Tip="Hold to talk, release to send. Or hold the global hotkey.">
           <Panel>
             <TextBlock Text="🎙" IsVisible="{Binding !IsRecording}" />
             <TextBlock Text="⏹" Foreground="{DynamicResource BadBrush}" IsVisible="{Binding IsRecording}" />

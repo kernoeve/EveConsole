@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Services;
 
 namespace EveConsole.ViewModels;
 
@@ -18,6 +19,47 @@ public class AssetBrowserViewModel : ReactiveObject
 
     private record ActiveFilter(string Column, FilterOp Op, string Value);
     private readonly List<ActiveFilter> _activeFilters = [];
+
+    // ── Scope: whose assets at all, before any filter ─────────────────────────
+    //
+    // Every filter row sits inside it: WHERE <scope> AND (<filters>). "Personal" is the user's
+    // own characters and the corporations marked personal; "Everything" adds no clause at all.
+
+    public sealed record ScopeOption(string Key, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    public static readonly IReadOnlyList<ScopeOption> AllScopes =
+    [
+        new("all",      "Everything"),
+        new("personal", "Characters and personal corps"),
+    ];
+
+    public IReadOnlyList<ScopeOption> ScopeOptions => AllScopes;
+
+    private ScopeOption _scope = AllScopes[1];
+
+    /// <summary>The chosen scope, remembered on this machine; a change reloads every tab.</summary>
+    public ScopeOption Scope
+    {
+        get => _scope;
+        set
+        {
+            if (value is null || ReferenceEquals(value, _scope)) return;
+            this.RaiseAndSetIfChanged(ref _scope, value);
+            UiState.Set(UiState.AssetScope, value.Key);
+            _cts.Cancel();
+            _cts = new CancellationTokenSource();
+            _ = LoadAsync(_cts.Token);
+        }
+    }
+
+    /// <summary>The scope as SQL over the Base columns, or "" for everything. ⚠️ IsPersonal stands
+    /// on its own: INTEGER on SQLite, BOOLEAN on PostgreSQL, and "= 1" fails on the latter.</summary>
+    private string ScopeClause() => _scope.Key == "personal"
+        ? """("Owner Type" = 'character' OR ("Owner Type" = 'corporation' AND "Owner Id" IN (SELECT "Id" FROM "Corporations" WHERE "IsPersonal")))"""
+        : "";
 
     public static readonly List<string> FilterableColumns =
     [
@@ -116,6 +158,8 @@ public class AssetBrowserViewModel : ReactiveObject
     public AssetBrowserViewModel(string connectionString)
     {
         _connectionString = connectionString;
+        var remembered = UiState.Get(UiState.AssetScope);
+        _scope = AllScopes.FirstOrDefault(s => s.Key == remembered) ?? AllScopes[1];
         _ = LoadAsync();
     }
 
@@ -749,11 +793,15 @@ public class AssetBrowserViewModel : ReactiveObject
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
+    /// <summary>WHERE scope AND (filter AND filter …): the filters only ever narrow within the scope.</summary>
     private string BuildWhere()
     {
-        if (_activeFilters.Count == 0) return "";
-        var clauses = _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i));
-        return $"WHERE {string.Join(" AND ", clauses)}";
+        var scope   = ScopeClause();
+        var filters = _activeFilters.Count == 0
+            ? ""
+            : $"({string.Join(" AND ", _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i)))})";
+        var parts = new[] { scope, filters }.Where(p => p.Length > 0).ToList();
+        return parts.Count == 0 ? "" : $"WHERE {string.Join(" AND ", parts)}";
     }
 
     private void AddFilterParams(DbCommand cmd)

@@ -320,6 +320,34 @@ public static class AppConfig
         Save(c);
     }
 
+    // ── Cloudflare, for deploying store sites ─────────────────────────────────
+    //
+    // ⚠️ Per machine, and protected like the database password. The token opens the owner's
+    // Cloudflare account; it belongs on the machine they deploy from, not in a database that other
+    // clients read and that gets backed up and moved. Syncing a site needs no token.
+
+    /// <summary>The token, or null when none is saved or it cannot be opened on this machine.</summary>
+    public static string? GetCloudflareToken()
+    {
+        var t = SecretStore.Unprotect(Load().CloudflareToken);
+        return string.IsNullOrEmpty(t) ? null : t;
+    }
+
+    public static bool HasCloudflareToken => !string.IsNullOrEmpty(Load().CloudflareToken);
+
+    /// <summary>How the token is being held, for the screen to state.</summary>
+    public static SecretProtection CloudflareTokenProtection =>
+        SecretStore.IsProtected(Load().CloudflareToken) ? SecretStore.Available : SecretProtection.None;
+
+    /// <summary>Saves a token, or removes it when given nothing.</summary>
+    public static void SetCloudflareToken(string? token)
+    {
+        var c = Load();
+        c.CloudflareToken = string.IsNullOrWhiteSpace(token) ? null : SecretStore.Protect(token.Trim(), "cloudflare");
+        Save(c);
+    }
+
+
     // ── UI state ──────────────────────────────────────────────────────────────
     //
     // A plain key/value bag for the small remembered-view settings: which overlay was showing,
@@ -526,6 +554,9 @@ public static class AppConfig
         // that could not protect it; either way it is read as-is and protected the next time the
         // user saves.
         [JsonPropertyName("postgresPassword")]   public string? PostgresPassword   { get; set; }
+        // The Cloudflare API token, protected the same way and for the same reason.
+        [JsonPropertyName("cloudflareToken")]    public string? CloudflareToken    { get; set; }
+
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
 

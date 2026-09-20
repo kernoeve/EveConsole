@@ -84,6 +84,9 @@ public sealed class AgentSettings
     public SpeechInputProvider SpeechInputProvider { get; set; } = SpeechInputProvider.None;
     // OpenAI Whisper reuses OpenAiApiKey above
     public string WhisperLocalModel     { get; set; } = "tiny";
+    /// <summary>The language spoken, as a two-letter code, or "auto" for the model's own guess —
+    /// which on a two-second clip is often wrong and always costs an extra pass.</summary>
+    public string WhisperLanguage       { get; set; } = "en";
     public string MicrophoneDeviceName  { get; set; } = "";   // empty = use system default
     public int    PushToTalkKey         { get; set; } = 0;    // 0 = disabled; Win32 VK code otherwise
 }

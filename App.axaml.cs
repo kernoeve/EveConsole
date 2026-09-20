@@ -344,8 +344,24 @@ public class App : Application
 
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
-            Services.GetRequiredService<OrderFulfilmentService>().AfterPass =
-                ct => Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
+            // Two things follow the pass: the store-order alarms, and the web sites, whose next
+            // push carries the confirmations the pass just worked out.
+            Services.GetRequiredService<OrderFulfilmentService>().AfterPass = async ct =>
+            {
+                await Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
+                Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>().Nudge();
+            };
+
+            // And the pass is worth running the moment ESI has brought in what it reads, rather
+            // than at its own next interval: a contract or a job shows against its order seconds
+            // after the poll that saw it.
+            polling.EndpointPolled += key =>
+            {
+                if (key is "char.industry.jobs" or "corp.industry.jobs"
+                        or "char.contracts"     or "corp.contracts"
+                        or "char.assets"        or "corp.assets")
+                    Services.GetRequiredService<OrderFulfilmentService>().Nudge();
+            };
 
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
@@ -780,6 +796,10 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsInBuild" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContractId" INTEGER NULL"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
+                // The web site's id for an order placed there.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "WebOrderId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "MailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)
                 db.Database.ExecuteSqlRaw("""
@@ -830,6 +850,32 @@ public class App : Application
                         "MessageFooterColor" TEXT NOT NULL DEFAULT '',
                         "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1,
                         "AutoEstimateDays"    INTEGER NOT NULL DEFAULT 1,
+                        "LimitEnabled"        INTEGER NOT NULL DEFAULT 0,
+                        "LimitUnits"          INTEGER NOT NULL DEFAULT 1,
+                        "LimitScope"          TEXT    NOT NULL DEFAULT 'type',
+                        "LimitPeriod"         TEXT    NOT NULL DEFAULT 'all',
+                        "LimitPeriodCount"    INTEGER NOT NULL DEFAULT 1,
+
+                        "WebEnabled"          INTEGER NOT NULL DEFAULT 0,
+                        "WebUrl"              TEXT    NOT NULL DEFAULT '',
+                        "WebSecret"           TEXT    NOT NULL DEFAULT '',
+                        "WebTheme"            TEXT    NOT NULL DEFAULT 'dark',
+                        "WebBuyerMaySwitch"   INTEGER NOT NULL DEFAULT 1,
+                        "WebThemes"           TEXT    NOT NULL DEFAULT '',
+                        "WebMailUpdates"      INTEGER NOT NULL DEFAULT 1,
+                        "WebBlurb"            TEXT    NOT NULL DEFAULT '',
+                        "WebCursor"           INTEGER NOT NULL DEFAULT 0,
+                        "WebGeneration"       TEXT    NOT NULL DEFAULT '',
+                        "WebSiteVersion"      TEXT    NOT NULL DEFAULT '',
+                        "WebLastSyncAt"       TEXT    NULL,
+                        "WebLastError"        TEXT    NOT NULL DEFAULT '',
+                        "WebCloudflareAccountId" TEXT NOT NULL DEFAULT '',
+                        "WebWorkerName"       TEXT    NOT NULL DEFAULT '',
+                        "WebCustomHostname"   TEXT    NOT NULL DEFAULT '',
+                        "WebEveClientId"      TEXT    NOT NULL DEFAULT '',
+                        "WebEveClientSecret"  TEXT    NOT NULL DEFAULT '',
+
+
                         "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                     )
                     """);
@@ -845,6 +891,12 @@ public class App : Application
                 // An expected date for orders filled from stock, which have no job to take one from.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitEnabled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitUnits" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitScope" TEXT NOT NULL DEFAULT 'type'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitPeriod" TEXT NOT NULL DEFAULT 'all'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitPeriodCount" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
                 // Text the shop puts on every mail it sends, with a colour each.
                 // Labels put on every order this store takes.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }
@@ -855,6 +907,28 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // The web channel. Every column has a default, so an older build that never
+                // reads them keeps working against an upgraded database.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEnabled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebUrl" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebTheme" TEXT NOT NULL DEFAULT 'dark'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBuyerMaySwitch" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebThemes" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebMailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBlurb" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCursor" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebGeneration" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebSiteVersion" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebLastSyncAt" TEXT NULL"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebLastError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCloudflareAccountId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebWorkerName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCustomHostname" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ScheduledTasks" (
                         "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -3095,6 +3169,14 @@ public class App : Application
                     """CREATE TABLE IF NOT EXISTS "AlarmAlerts" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "AlarmEventId" INTEGER NOT NULL DEFAULT 0, "CreatedAt" TEXT NOT NULL DEFAULT '', "Title" TEXT NOT NULL DEFAULT '', "Body" TEXT NULL, "Dismissed" INTEGER NOT NULL DEFAULT 0, "DismissedAt" TEXT NULL)""",
                     """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
 
+                    // The web store channel: what the app has told a site about each order, and
+                    // everything a site has sent back.
+                    """CREATE TABLE IF NOT EXISTS "StoreWebPushes" ("StoreId" INTEGER NOT NULL, "OrderId" INTEGER NOT NULL, "Hash" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("StoreId", "OrderId"))""",
+                    """CREATE TABLE IF NOT EXISTS "StoreWebEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "StoreId" INTEGER NOT NULL DEFAULT 0, "Seq" INTEGER NOT NULL DEFAULT 0, "Kind" TEXT NOT NULL DEFAULT '', "WebOrderId" TEXT NOT NULL DEFAULT '', "BuyerId" INTEGER NOT NULL DEFAULT 0, "BuyerName" TEXT NOT NULL DEFAULT '', "Payload" TEXT NOT NULL DEFAULT '', "ReceivedAt" TEXT NOT NULL DEFAULT '', "Outcome" TEXT NOT NULL DEFAULT '', "Detail" TEXT NOT NULL DEFAULT '', "OrderRef" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")""",
+                    // Pictures the site shows for a store: the banner, bytes and all.
+                    """CREATE TABLE IF NOT EXISTS "StoreWebAssets" ("StoreId" INTEGER NOT NULL, "Kind" TEXT NOT NULL DEFAULT 'banner', "ContentType" TEXT NOT NULL DEFAULT '', "Sha256" TEXT NOT NULL DEFAULT '', "FileName" TEXT NOT NULL DEFAULT '', "Width" INTEGER NOT NULL DEFAULT 0, "Height" INTEGER NOT NULL DEFAULT 0, "Bytes" BLOB NOT NULL, "UpdatedAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("StoreId", "Kind"))""",
+
                     // Intel alarm keys used to be the report's row id, which changes whenever a chat
                     // log is re-read — so old sightings kept looking new. They are now content-based
                     // and contain a '|'. Re-prime any alarm still holding the old style so the
@@ -3433,6 +3515,10 @@ public class App : Application
             // and has been switched on, and never replies to mail older than that moment.
             Start("store mail",         () => Services.GetRequiredService<StoreMailService>().Start());
 
+            // Pushes each store's posting and order book to its web site and pulls what buyers
+            // did there. Does nothing until a store has the web channel switched on.
+            Start("web stores",         () => Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>().Start());
+
             // Cheap when idle: the loop only touches the database for alarms whose interval is up.
             //
             // ⚠️ Leader-only even though alarms are user-facing. Both readers show alerts from
@@ -3493,6 +3579,7 @@ public class App : Application
                 Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
                 Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
+                Halt("web stores",          Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>(), s => s.StopAsync()),
                 Halt("alarms",              Services.GetRequiredService<AlarmService>(),              s => s.StopAsync()),
                 Halt("retention sweep",     Services.GetRequiredService<DataRetentionService>(),      s => s.StopAsync()),
 
@@ -3702,6 +3789,12 @@ public class App : Application
         services.AddSingleton<HoboImportService>();
         services.AddSingleton<ApiActivityLog>();
         services.AddSingleton<AppErrorLogger>();
+
+        // A store's web site: the catalogue it is pushed and the loop that pushes it.
+        services.AddSingleton<EveConsole.Services.WebStore.StoreCatalogueBuilder>();
+        services.AddSingleton<EveConsole.Services.WebStore.WebStoreSyncService>();
+        services.AddSingleton<EveConsole.Services.WebStore.CloudflareDeployService>();
+
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
         services.AddSingleton<IndyStructureLinkService>();
@@ -3857,6 +3950,31 @@ public class App : Application
             c.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (+https://github.com/kernoeve/EveConsole)");
             c.Timeout = TimeSpan.FromSeconds(60);
         });
+        // The store web sites the owner hosts. Not ESI: its own client, so an ESI gate or a
+        // slow poll cannot hold up a buyer's confirmation.
+        services.AddHttpClient("webstore", c =>
+        {
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(60);
+        });
+        // Cloudflare's API and the site's releases on GitHub, for the store's Deploy and Check
+        // buttons. The token rides in each Cloudflare request's own header, never on the client.
+        services.AddHttpClient("cloudflare", c =>
+        {
+            c.BaseAddress = new Uri("https://api.cloudflare.com/client/v4/");
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(120);
+        });
+        services.AddHttpClient("github", c =>
+        {
+            c.BaseAddress = new Uri("https://api.github.com/");
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            c.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+            c.Timeout = TimeSpan.FromSeconds(120);
+        });
+
+
         services.AddSingleton<MapStatsSettings>();
         services.AddSingleton<EveRefArchiveClient>();
         services.AddSingleton<MapStatsService>();

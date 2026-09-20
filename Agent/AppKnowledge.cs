@@ -57,9 +57,11 @@ public static class AppKnowledge
         ## Assets tools
 
         ### Assets (Asset Browser)
-        The full asset list across all characters and personal corporations. Search and
-        filter by item name, location, and owner. Use set_asset_filter to apply filters
-        programmatically.
+        The asset list, with a Scope dropdown above the filters: "Characters and personal
+        corps" (the default, remembered per machine) or "Everything", which also shows
+        corporations not marked personal. Every filter, set_asset_filter included, searches
+        within that scope. Search and filter by item name, location, and owner. Use
+        set_asset_filter to apply filters programmatically.
 
         How asset locations nest (important when answering "where is X?"): every asset
         sits in a location that is either a station, a solar system, a player-owned
@@ -185,6 +187,28 @@ public static class AppKnowledge
         (Blueprints & Reactions, Ship SKINs, Special Edition Assets, Apparel, Skills,
         Trade Goods). Results are a shopping list within cargo/ISK limits, sortable by any
         column, defaulting to highest Total Profit first.
+
+        ### Stores (EVE Mail store and web shop)
+        A store sells a sale posting — a price list priced from build costs or the market — to
+        buyers through one or both of two doorways. EVE Mail: buyers mail the store's character
+        PRICES, ORDER, STATUS or CANCEL and the app answers and books orders. Web: a site the
+        owner hosts on Cloudflare (one Worker and one D1 database per store) where buyers sign
+        in with EVE SSO, see the price list with what is in stock, in build and reserved, place
+        orders and follow them. The app pushes the site the price list and the order book and
+        pulls what buyers did every few minutes (every half minute while somebody is on the
+        site); nothing on the site ever reaches the database. A web order is booked only when
+        its item is on the posting, its quantity is within bounds, the buyer passes the store's
+        Serve policy (Anyone, or the allow list) and the quoted price is close to the posting's;
+        anything else waits under "Web site events" on the Overview for the owner to book or
+        decline. Every order, whichever doorway placed it, is in Order Tracker with a channel of
+        mail, web or manual, and a buyer sees all of theirs on the site. The Stores screen's
+        Config tab holds the site address, the shared secret the app signs each call with, the
+        site's theme (the store's own, independent of this desktop's), the words under "About this store" on the front page (plain text or HTML) with an optional banner picture across its top, the EVE developer
+        application's Client ID and Secret Key the site signs buyers in with (required whoever
+        hosts the site), and a Cloudflare section used only by the Deploy or update site button,
+        which puts the site on the owner's own account with a saved API token, at the free workers.dev address or a domain of their own on that account, and updates it to
+        the newest release; a site set up by hand with wrangler works the same.
+
 
         ## Finance tools
 

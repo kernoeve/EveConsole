@@ -114,22 +114,84 @@ public sealed class GlobalHotkeyService : IDisposable
 
     private IntPtr                _winHookHandle;
     private LowLevelKeyboardProc? _winHookProc; // keep alive — prevents GC collecting the delegate
+    private Thread?               _winThread;
+    private uint                  _winThreadId;
 
+    [DllImport("user32.dll")]
+    private static extern int GetMessage(out MSG lpMsg, IntPtr hWnd, uint wMsgFilterMin, uint wMsgFilterMax);
+
+    [DllImport("user32.dll")]
+    private static extern bool TranslateMessage(ref MSG lpMsg);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr DispatchMessage(ref MSG lpMsg);
+
+    [DllImport("user32.dll")]
+    private static extern bool PostThreadMessage(uint idThread, uint msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MSG
+    {
+        public IntPtr hwnd;
+        public uint   message;
+        public IntPtr wParam;
+        public IntPtr lParam;
+        public uint   time;
+        public int    ptX;
+        public int    ptY;
+    }
+
+    private const uint WM_QUIT = 0x0012;
+
+    /// <summary>
+    /// ⚠️ The hook lives on a thread of its own, with its own message loop, not on the UI thread.
+    /// Windows delivers a low-level keyboard hook through the message queue of the thread that
+    /// installed it and gives that thread a few hundred milliseconds to answer; a thread busy
+    /// with anything else — opening a microphone, laying out a grid, playing a voice — misses
+    /// the keystroke, and one that misses often enough has the hook removed without a word.
+    /// That is how a release could go unseen and a recording run on into the next press. This
+    /// thread does nothing but pump, so the callback answers at once every time.
+    /// </summary>
     private void WinInstall()
     {
-        if (_winHookHandle != IntPtr.Zero) return;
-        _winHookProc   = WinHookCallback;
-        _winHookHandle = SetWindowsHookEx(WH_KEYBOARD_LL, _winHookProc, GetModuleHandle(null), 0);
-        if (_winHookHandle == IntPtr.Zero)
-            System.Diagnostics.Debug.WriteLine($"[Hotkey] SetWindowsHookEx failed: {Marshal.GetLastWin32Error()}");
+        if (_winThread?.IsAlive == true) return;
+
+        var ready = new ManualResetEventSlim(false);
+        _winThread = new Thread(() =>
+        {
+            _winHookProc   = WinHookCallback;
+            _winHookHandle = SetWindowsHookEx(WH_KEYBOARD_LL, _winHookProc, GetModuleHandle(null), 0);
+            _winThreadId   = GetCurrentThreadId();
+            if (_winHookHandle == IntPtr.Zero)
+                System.Diagnostics.Debug.WriteLine($"[Hotkey] SetWindowsHookEx failed: {Marshal.GetLastWin32Error()}");
+            ready.Set();
+            if (_winHookHandle == IntPtr.Zero) return;
+
+            while (GetMessage(out var msg, IntPtr.Zero, 0, 0) > 0)
+            {
+                TranslateMessage(ref msg);
+                DispatchMessage(ref msg);
+            }
+
+            UnhookWindowsHookEx(_winHookHandle);
+            _winHookHandle = IntPtr.Zero;
+            _winHookProc   = null;
+        }) { IsBackground = true, Name = "GlobalHotkey-Win" };
+        _winThread.Start();
+        ready.Wait(TimeSpan.FromSeconds(2));
     }
 
     private void WinUninstall()
     {
-        if (_winHookHandle == IntPtr.Zero) return;
-        UnhookWindowsHookEx(_winHookHandle);
-        _winHookHandle = IntPtr.Zero;
-        _winHookProc   = null;
+        if (_winThread is null) return;
+        if (_winThreadId != 0) PostThreadMessage(_winThreadId, WM_QUIT, IntPtr.Zero, IntPtr.Zero);
+        if (!_winThread.Join(TimeSpan.FromSeconds(2)))
+            System.Diagnostics.Debug.WriteLine("[Hotkey] the hook thread did not stop in time");
+        _winThread   = null;
+        _winThreadId = 0;
     }
 
     private IntPtr WinHookCallback(int nCode, IntPtr wParam, IntPtr lParam)

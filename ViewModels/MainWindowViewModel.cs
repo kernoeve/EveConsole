@@ -810,6 +810,9 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
         StoreMailService                storeMailService,
+        EveConsole.Services.WebStore.WebStoreSyncService webStoreSync,
+        EveConsole.Services.WebStore.CloudflareDeployService cloudflareDeploy,
+
         OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
@@ -930,7 +933,8 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
-        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
+
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
@@ -987,7 +991,7 @@ public class MainWindowViewModel : ReactiveObject
         // typed into.
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
 
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
@@ -1158,7 +1162,7 @@ public class MainWindowViewModel : ReactiveObject
         var s = agentService.Settings;
         ttsService.Configure(s);
         speechInputService.Configure(s.SpeechInputProvider, s.OpenAiApiKey,
-                                     s.WhisperLocalModel, s.MicrophoneDeviceName);
+                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage);
 
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 

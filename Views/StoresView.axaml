@@ -82,7 +82,7 @@
                Orders above messages, and both starred rather than one of them auto-sized: what
                the shop still owes people is the reason to open this tab, and a mail log that
                took the whole window pushed it off the bottom. -->
-          <Grid Margin="14" RowDefinitions="Auto,14,*,14,*">
+          <Grid Margin="14" RowDefinitions="Auto,14,*,14,*,14,*">
           <!-- Stats -->
           <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
@@ -162,183 +162,537 @@
               </DataGrid>
             </DockPanel>
           </Border>
-          </Grid>
-        </TabItem>
-
-        <TabItem Header="Config" FontSize="12">
-          <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="14" Spacing="14">
-          <!-- Settings -->
-          <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+          <!-- Web events: everything the site sent, and what became of it. An order the checks
+               would not book waits here for a decision, with the reason beside it. -->
+          <Border Grid.Row="6" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
-            <StackPanel Spacing="10">
-              <TextBlock Text="Store" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-
-              <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" >
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontSize="11"
-                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
-                <!-- LostFocus, not the default per-keystroke: every change writes to the
-                     database, and a store name typed at speed would be a dozen writes. -->
-                <TextBox Grid.Row="0" Grid.Column="1"
-                         Text="{Binding StoreName, UpdateSourceTrigger=LostFocus}"
-                         FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-                         BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="0 0 0 6" />
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Character" FontSize="11"
-                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
-                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding CharacterOptions}"
-                          SelectedItem="{Binding StoreCharacter}" FontSize="11" MinWidth="220"
-                          HorizontalAlignment="Left"
-                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
-                          Margin="0 0 0 6" />
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
-                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
-                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
-                  <ComboBox ItemsSource="{Binding PostingOptions}"
-                            SelectedItem="{Binding StorePosting}" FontSize="11" MinWidth="220"
-                            HorizontalAlignment="Left"
-                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-
-                  <!-- Measured through the same pagination the send uses, so what this says and
-                       what a buyer receives cannot disagree. Amber once it splits; the byte count
-                       is there either way, because knowing the headroom is what lets a posting be
-                       trimmed back under the limit rather than guessed at. -->
-                  <TextBlock Text="{Binding PostingSizeText}" FontSize="10" TextWrapping="Wrap"
-                             MaxWidth="420" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}"
-                             Classes.warn="{Binding PostingSplits}"
-                             IsVisible="{Binding PostingSizeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-                </StackPanel>
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Serve" FontSize="11"
-                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
-                <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding PolicyOptions}"
-                          SelectedItem="{Binding SenderPolicy}" FontSize="11" MinWidth="120"
-                          HorizontalAlignment="Left"
-                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
-                          Margin="0 0 0 6" />
-
-                <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding StoreEnabled}"
-                          Content="Open — read and answer mail" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
-              </Grid>
-
-              <!-- An order filled from the shelf has no job behind it, so nothing else would ever
-                   give it a date. Blank reads as "no idea" when the truth is "as soon as someone
-                   writes the contract". -->
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <CheckBox IsChecked="{Binding AutoEstimate}"
-                          Content="Give in-stock orders an expected date" FontSize="11"
-                          Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                <!-- ⚠️ Wide enough for the DIGITS. A NumericUpDown spends most of its width on
-                     the two spinner buttons, so 88 left the text box narrower than one character
-                     and the value could not be read at all. -->
-                <NumericUpDown Value="{Binding AutoEstimateDays}" Minimum="0" Maximum="60"
-                               Increment="1" FormatString="0" Width="130" FontSize="11"
-                               IsEnabled="{Binding AutoEstimate}"
-                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                <TextBlock Text="day(s) from the order" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                           VerticalAlignment="Center" />
-              </StackPanel>
-
-              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                         Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
-
-              <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 4" />
-
-              <!-- Put on every order this store takes, so a shop can be a programme: tag the
-                   orders once here rather than remembering to tag each one later. -->
-              <TextBlock Text="ORDER LABELS  (on every order this store takes)" FontSize="10"
-                         FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
-              <controls:LabelsBox LabelsText="{Binding StoreOrderLabels, Mode=TwoWay}"
-                                  KnownLabels="{Binding KnownLabels}" />
-              <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                         Text="Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives." />
-
-              <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 4" />
-
-              <!-- On every mail the shop sends: answers, rejections and unprompted order updates
-                   alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
-                   links — because this is the owner's text, not a buyer's. -->
-              <TextBlock Text="MESSAGE HEADER  (on every mail this store sends)" FontSize="10"
-                         FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBox Grid.Column="0" Text="{Binding MessageHeader, UpdateSourceTrigger=LostFocus}"
-                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
-                         Watermark="e.g. Thanks for shopping with us." FontSize="11"
-                         ToolTip.Tip="EVE markup works here: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, dragged links, and [color=#rrggbb]text[/color]. The colour beside this box tints the whole block; the tag colours part of it."
-                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
-                                     VerticalAlignment="Top"
-                                     Value="{Binding MessageHeaderColor, Mode=TwoWay}" />
-              </Grid>
-
-              <TextBlock Text="MESSAGE FOOTER" FontSize="10"
-                         FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
-              <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                         Text="Both accept EVE markup — bold, italic, underline, dragged links — and [color=#rrggbb]text[/color] for part of a line. The picker beside each box tints the whole block." />
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
-                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
-                         Watermark="e.g. Contracts are issued from Jita 4-4." FontSize="11"
-                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
-                                     VerticalAlignment="Top"
-                                     Value="{Binding MessageFooterColor, Mode=TwoWay}" />
-              </Grid>
-            </StackPanel>
-          </Border>
-          <!-- Allow list -->
-          <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                  CornerRadius="4" Padding="14 12">
-            <StackPanel Spacing="8">
-              <TextBlock Text="Who may order" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-              <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                         Text="Used when Serve is set to List. A sender matches by their own name, their corporation, or their alliance. Names are resolved against ids the app has already seen." />
-
-              <Grid ColumnDefinitions="Auto,*,Auto">
-                <ComboBox Grid.Column="0" ItemsSource="{Binding SenderKinds}"
-                          SelectedItem="{Binding SenderKind}" FontSize="11" MinWidth="110"
-                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                <!-- ⚠️ AsyncPopulator, not ItemsSource: the name cache holds 267,000 characters
-                     and 39,000 corporations, and handing the box that list would have it lay out
-                     every one. FilterMode must be None — the populator has already narrowed the
-                     list, and letting the box filter again would drop matches it never got. -->
-                <AutoCompleteBox Grid.Column="1"
-                                 AsyncPopulator="{Binding SenderPopulator}"
-                                 SelectedItem="{Binding SenderMatch}"
-                                 Text="{Binding SenderName}"
-                                 ValueMemberBinding="{Binding Name}"
-                                 FilterMode="None" MinimumPrefixLength="2"
-                                 Watermark="Type two letters of the name…"
-                                 FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-                                 BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="8 0" />
-                <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="Add"
-                        Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
-                        BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" />
-              </Grid>
-
-              <DataGrid ItemsSource="{Binding Senders}" SelectedItem="{Binding SelectedSender}"
-                        AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="160"
+            <DockPanel LastChildFill="True">
+              <TextBlock DockPanel.Dock="Top" Text="Web site events" FontSize="13" FontWeight="SemiBold"
+                         Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
+              <DataGrid ItemsSource="{Binding WebEvents}" AutoGenerateColumns="False" IsReadOnly="True"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Kind" Binding="{Binding Kind}" Width="110" />
-                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
-                  <DataGridTemplateColumn Header="" Width="70">
+                  <DataGridTextColumn Header="When"    Binding="{Binding When}"     Width="130" />
+                  <DataGridTextColumn Header="Kind"    Binding="{Binding Kind}"     Width="70" />
+                  <DataGridTextColumn Header="Buyer"   Binding="{Binding Buyer}"    Width="150" />
+                  <DataGridTextColumn Header="Outcome" Binding="{Binding Outcome}"  Width="120" />
+                  <DataGridTextColumn Header="Order"   Binding="{Binding OrderRef}" Width="80" />
+                  <DataGridTemplateColumn Header="Note" Width="*">
                     <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:StoreSenderRowVm">
-                        <Button Click="OnRemoveSender" Content="Remove"
-                                Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
-                                BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
-                                Padding="6 1" FontSize="10" Cursor="Hand" />
+                      <DataTemplate x:DataType="vm:StoreWebEventRowVm">
+                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="4 2" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="" Width="150">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:StoreWebEventRowVm">
+                        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHeld}">
+                          <Button Click="OnApproveWebEvent" Content="Book it"
+                                  Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                                  BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
+                                  Padding="6 1" FontSize="10" Cursor="Hand" />
+                          <Button Click="OnDeclineWebEvent" Content="Decline"
+                                  Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                  BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
+                                  Padding="6 1" FontSize="10" Cursor="Hand" />
+                        </StackPanel>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
-            </StackPanel>
+            </DockPanel>
           </Border>
-            </StackPanel>
-          </ScrollViewer>
+          </Grid>
+        </TabItem>
+
+        <TabItem Header="Config" FontSize="12">
+          <!-- Four sub-tabs: what the store is, who it serves and how much, and its two
+               doorways. Each holds the cards that were one long page. -->
+          <TabControl Margin="14 6 14 0" Padding="0" TabStripPlacement="Top">
+            <TabItem Header="General" FontSize="11">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0 10 0 14" Spacing="14">
+              <!-- Settings -->
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="Store" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+    
+                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
+    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <!-- LostFocus, not the default per-keystroke: every change writes to the
+                         database, and a store name typed at speed would be a dozen writes. -->
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             Text="{Binding StoreName, UpdateSourceTrigger=LostFocus}"
+                             FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                             BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="0 0 0 6" />
+    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="EVE Mailbox" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <!-- The character whose mailbox the store uses. Order status notifications go out
+                         from it whatever doorway took the order; its inbox is read for store requests
+                         only while the EVE mail doorway below is open. -->
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                      <ComboBox ItemsSource="{Binding CharacterOptions}"
+                                SelectedItem="{Binding StoreCharacter}" FontSize="11" MinWidth="220"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <TextBlock Text="Used for order status notifications, and for store requests when the EVE mail store is open."
+                                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                    </StackPanel>
+    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
+                      <ComboBox ItemsSource="{Binding PostingOptions}"
+                                SelectedItem="{Binding StorePosting}" FontSize="11" MinWidth="220"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+    
+                      <!-- Measured through the same pagination the send uses, so what this says and
+                           what a buyer receives cannot disagree. Amber once it splits; the byte count
+                           is there either way, because knowing the headroom is what lets a posting be
+                           trimmed back under the limit rather than guessed at. -->
+                      <TextBlock Text="{Binding PostingSizeText}" FontSize="10" TextWrapping="Wrap"
+                                 MaxWidth="420" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}"
+                                 Classes.warn="{Binding PostingSplits}"
+                                 IsVisible="{Binding PostingSizeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+    
+                  <!-- An order filled from the shelf has no job behind it, so nothing else would ever
+                       give it a date. Blank reads as "no idea" when the truth is "as soon as someone
+                       writes the contract". -->
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <CheckBox IsChecked="{Binding AutoEstimate}"
+                              Content="Give in-stock orders an expected date" FontSize="11"
+                              Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                    <!-- ⚠️ Wide enough for the DIGITS. A NumericUpDown spends most of its width on
+                         the two spinner buttons, so 88 left the text box narrower than one character
+                         and the value could not be read at all. -->
+                    <NumericUpDown Value="{Binding AutoEstimateDays}" Minimum="0" Maximum="60"
+                                   Increment="1" FormatString="0" Width="130" FontSize="11"
+                                   IsEnabled="{Binding AutoEstimate}"
+                                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <TextBlock Text="day(s) from the order" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                               VerticalAlignment="Center" />
+                  </StackPanel>
+    
+                  <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 4" />
+    
+                  <!-- Put on every order this store takes, so a shop can be a programme: tag the
+                       orders once here rather than remembering to tag each one later. -->
+                  <TextBlock Text="ORDER LABELS  (on every order this store takes)" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
+                  <controls:LabelsBox LabelsText="{Binding StoreOrderLabels, Mode=TwoWay}"
+                                      KnownLabels="{Binding KnownLabels}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives." />
+    
+                </StackPanel>
+              </Border>
+    
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Restrictions" FontSize="11">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0 10 0 14" Spacing="14">
+              <!-- Allow list -->
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="8">
+                  <TextBlock Text="Who may order" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="Used when Serve is set to List. A sender matches by their own name, their corporation, or their alliance. Names are resolved against ids the app has already seen." />
+    
+                  <!-- The policy itself, then the list it may refer to. -->
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Serve" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding PolicyOptions}" SelectedItem="{Binding SenderPolicy}" FontSize="11" MinWidth="120"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <TextBlock Text="Anyone, or only the list below. The same for EVE mail and the web site."
+                               FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                  </StackPanel>
+    
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding SenderKinds}"
+                              SelectedItem="{Binding SenderKind}" FontSize="11" MinWidth="110"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <!-- ⚠️ AsyncPopulator, not ItemsSource: the name cache holds 267,000 characters
+                         and 39,000 corporations, and handing the box that list would have it lay out
+                         every one. FilterMode must be None — the populator has already narrowed the
+                         list, and letting the box filter again would drop matches it never got. -->
+                    <AutoCompleteBox Grid.Column="1"
+                                     AsyncPopulator="{Binding SenderPopulator}"
+                                     SelectedItem="{Binding SenderMatch}"
+                                     Text="{Binding SenderName}"
+                                     ValueMemberBinding="{Binding Name}"
+                                     FilterMode="None" MinimumPrefixLength="2"
+                                     Watermark="Type two letters of the name…"
+                                     FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                     BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="8 0" />
+                    <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="Add"
+                            Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
+                            BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" />
+                  </Grid>
+    
+                  <DataGrid ItemsSource="{Binding Senders}" SelectedItem="{Binding SelectedSender}"
+                            AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="160"
+                            Background="Transparent" HeadersVisibility="Column" FontSize="11">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Kind" Binding="{Binding Kind}" Width="110" />
+                      <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                      <DataGridTemplateColumn Header="" Width="70">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate x:DataType="vm:StoreSenderRowVm">
+                            <Button Click="OnRemoveSender" Content="Remove"
+                                    Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                    BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
+                                    Padding="6 1" FontSize="10" Cursor="Hand" />
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </StackPanel>
+              </Border>
+    
+    
+              <!-- A per-buyer purchase limit: so many units of each item, each item group, or the
+                   whole store, within a rolling period or ever. Off by default. The site greys out
+                   what a buyer may no longer order; the app checks again when it books. -->
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="Purchase limit" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="How much one buyer may take, counted over their orders in this store that were not cancelled, whichever doorway placed them. For a programme that hands out the first hull of each kind: one unit of each item type, all time. On the site an item a buyer may no longer order is greyed out and the units box holds what remains; an order over the limit that reaches the app anyway is held for you to look at, never booked on its own." />
+    
+                  <CheckBox IsChecked="{Binding LimitEnabled}" Content="Limit each buyer" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+    
+                  <StackPanel Orientation="Horizontal" Spacing="8" IsEnabled="{Binding LimitEnabled}">
+                    <TextBlock Text="to" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <NumericUpDown Value="{Binding LimitUnits}" Minimum="1" Maximum="10000" Increment="1" FormatString="0" Width="130" FontSize="11"
+                                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <TextBlock Text="unit(s) of" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding LimitScopeOptions}" SelectedItem="{Binding LimitScope}" FontSize="11" MinWidth="140"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <TextBlock Text="per" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <NumericUpDown Value="{Binding LimitPeriodCount}" Minimum="1" Maximum="999" Increment="1" FormatString="0" Width="110" FontSize="11"
+                                   IsEnabled="{Binding LimitPeriodHasCount}"
+                                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <ComboBox ItemsSource="{Binding LimitPeriodOptions}" SelectedItem="{Binding LimitPeriod}" FontSize="11" MinWidth="110"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  </StackPanel>
+    
+                  <TextBlock Text="{Binding LimitSummary}" IsVisible="{Binding LimitEnabled}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+              </Border>
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem Header="EVE Mail" FontSize="11">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0 10 0 14" Spacing="14">
+              <!-- The EVE mail doorway. The mailbox above is read for store requests only while this
+                   is open; the header and footer go on every mail the store sends, so they live here. -->
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="EVE Mail" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="A shop front in the mailbox: buyers write to the character above and the app answers, books orders and keeps them posted. Who may buy is set on the Restrictions tab, the same for mail and the web." />
+    
+                  <CheckBox IsChecked="{Binding StoreEnabled}"
+                            Content="Open by EVE mail — read and answer mail sent to the mailbox" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+    
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
+    
+                  <!-- On every mail the shop sends: answers, rejections and unprompted order updates
+    
+                       alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
+                       links — because this is the owner's text, not a buyer's. -->
+                  <TextBlock Text="MESSAGE HEADER  (on every mail this store sends)" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0" Text="{Binding MessageHeader, UpdateSourceTrigger=LostFocus}"
+                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
+                             Watermark="e.g. Thanks for shopping with us." FontSize="11"
+                             ToolTip.Tip="EVE markup works here: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, dragged links, and [color=#rrggbb]text[/color]. The colour beside this box tints the whole block; the tag colours part of it."
+                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
+                                         VerticalAlignment="Top"
+                                         Value="{Binding MessageHeaderColor, Mode=TwoWay}" />
+                  </Grid>
+    
+                  <TextBlock Text="MESSAGE FOOTER" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="Both accept EVE markup — bold, italic, underline, dragged links — and [color=#rrggbb]text[/color] for part of a line. The picker beside each box tints the whole block." />
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
+                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
+                             Watermark="e.g. Contracts are issued from Jita 4-4." FontSize="11"
+                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
+                                         VerticalAlignment="Top"
+                                         Value="{Binding MessageFooterColor, Mode=TwoWay}" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+    
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Web site" FontSize="11">
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0 10 0 14" Spacing="14">
+              <!-- The web channel. A site the owner hosts; the app pushes the posting and the order
+                   book to it and pulls orders from it. The same price list, the same allow list and
+                   the same order book as the mail channel — only the doorway differs. -->
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                      CornerRadius="4" Padding="14 12">
+                <StackPanel Spacing="10">
+                  <TextBlock Text="Web site" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="A shop front on the web, on a site you host. Buyers sign in with EVE SSO, see this price list with what is in stock, in build and reserved, place orders and follow them. The app sends the site what it may show and collects what buyers did every few minutes; nothing on the site reaches the database. Who may buy is set on the Restrictions tab, the same for mail and the web." />
+    
+                  <CheckBox IsChecked="{Binding WebEnabled}"
+                            Content="Open on the web — publish to the site and take its orders" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+    
+                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Site address" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WebUrl, UpdateSourceTrigger=LostFocus}"
+                             Watermark="https://your-shop.your-account.workers.dev" FontSize="11" Margin="0 0 0 6"
+                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Secret" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 6">
+                      <!-- Read-only and selectable: it is shown to be copied into the site's secrets,
+                           never typed. A new one is a button, so it cannot be mistyped either. -->
+                      <TextBox Grid.Column="0" Text="{Binding WebSecret}" IsReadOnly="True" FontSize="11"
+                               FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
+                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <Button Grid.Column="1" Click="OnCopySecret" Content="Copy" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                      <Button Grid.Column="2" Command="{Binding NewSecretCommand}" Content="New secret" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                    </Grid>
+    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="6" Margin="0 0 0 6">
+                      <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding WebTheme}" FontSize="11" MinWidth="160" HorizontalAlignment="Left"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <!-- The themes a buyer may pick from in the site's header. The store's own is always
+                           among them; with more than one the site shows a dropdown like the app's, and
+                           remembers each buyer's pick. -->
+                      <TextBlock Text="Buyers may also choose:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                      <ItemsControl ItemsSource="{Binding WebThemeChoices}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ThemeChoiceVm">
+                            <CheckBox IsChecked="{Binding IsOffered}" IsEnabled="{Binding CanChange}" Content="{Binding Name}"
+                                      FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 14 2" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+    
+                    <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding WebMailUpdates}"
+                              Content="Also mail web buyers as their orders move (needs the character above)"
+                              FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  </Grid>
+    
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="The theme is the store's own and has nothing to do with the theme this desktop is showing. The secret is what the app signs each call with; set the same value as the site's STORE_SYNC_SECRET when you set the site up by hand." />
+    
+                  <TextBlock Text="ABOUT THIS STORE, ON THE SITE" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBox Text="{Binding WebBlurb, UpdateSourceTrigger=LostFocus}"
+                           AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="220"
+                           Watermark="Contract terms, pickup, whatever a buyer should read before ordering. Plain text or HTML."
+                           FontSize="11" FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="HTML is welcome: &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt; and the mail markup's &lt;font color&gt;. Line breaks and blank lines are kept as written until you lay it out with paragraph or list tags, after which the tags decide. The site drops scripts, handlers and tags it does not know, and closes any tag left open." />
+
+                  <!-- The banner: a picture across the top of the price list. Kept with the store,
+                       bytes and all, so every client of the database pushes the same one; the app
+                       scales it for the site, which holds one row of up to a megabyte. -->
+                  <TextBlock Text="BANNER" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="Optional. Shown across the top of the price list, the width of the page and up to 300 pixels tall; a wide picture, about 1100 by 250, fits best, and a taller one shows its middle. A big file is scaled down and sent as WebP." />
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Border IsVisible="{Binding HasWebBanner}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3"
+                            Background="{DynamicResource SurfaceRaisedBrush}" VerticalAlignment="Center">
+                      <Image Source="{Binding WebBannerPreview}" MaxHeight="64" MaxWidth="300" Stretch="Uniform" />
+                    </Border>
+                    <StackPanel Spacing="6" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding WebBannerText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Click="OnChooseBanner" Content="Choose picture…" Padding="10 4" FontSize="11"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                        <Button Command="{Binding RemoveWebBannerCommand}" Content="Remove" IsVisible="{Binding HasWebBanner}" Padding="10 4" FontSize="11"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                      </StackPanel>
+                    </StackPanel>
+                  </StackPanel>
+    
+                  <Grid ColumnDefinitions="Auto,*">
+                    <Button Grid.Column="0" Command="{Binding SyncWebNowCommand}" Content="Sync now" Padding="12 4" FontSize="11"
+                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                            BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                    <TextBlock Grid.Column="1" Text="{Binding WebStatusText}" FontSize="10" TextWrapping="Wrap"
+                               VerticalAlignment="Center" Margin="12 0 0 0"
+                               Foreground="{DynamicResource TextDimBrush}" Classes.warn="{Binding WebHasError}" />
+                  </Grid>
+    
+                  <!-- Buyers sign in with EVE SSO, so the site needs an EVE developer application
+                       whoever hosts it. The keys are the store's: the Deploy button places them on
+                       the site, and a site set up by hand takes the same values as its own secrets. -->
+                  <TextBlock Text="EVE APPLICATION  (needed before buyers can sign in)" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="Deploy first, so the site has an address. Then register an application on the EVE developer site: any name and description, Authentication only (no scopes), and the callback address shown below. Copy its Client ID and Secret Key into the two boxes: a site deployed from here receives them the moment they are saved, and the line under the boxes says whether the site holds these keys. A site set up by hand needs the same values as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets." />
+    
+                  <HyperlinkButton Content="Open developers.eveonline.com to create the application" NavigateUri="https://developers.eveonline.com/applications/create"
+                                   FontSize="11" Padding="0" HorizontalAlignment="Left" />
+    
+                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Callback URL" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
+                      <TextBox Grid.Column="0" Text="{Binding WebCallbackUrl}" IsReadOnly="True" FontSize="11"
+                               Watermark="Known once the site has an address, or an account and worker name below"
+                               FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
+                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <Button Grid.Column="1" Click="OnCopyCallback" Content="Copy" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                    </Grid>
+    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Client ID" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding WebEveClientId, UpdateSourceTrigger=LostFocus}" FontSize="11" Margin="0 0 0 6"
+                             Watermark="From the application's page on the developer site"
+                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Secret Key" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding WebEveClientSecret, UpdateSourceTrigger=LostFocus}" PasswordChar="•" FontSize="11" Margin="0 0 0 6"
+                             Watermark="Shown once, when the application is created"
+                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  </Grid>
+    
+                  <TextBlock Text="{Binding WebSsoWarningText}" IsVisible="{Binding WebSsoMissing}" FontSize="11"
+                             Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+                  <!-- What the site itself says (sites from 0.1.1; from 0.1.2 which keys): the one line
+                       that tells the owner whether the keys typed here are the ones the site holds. -->
+                  <TextBlock Text="{Binding WebSiteSsoText}" IsVisible="{Binding WebSiteSsoBad}" FontSize="11"
+                             Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding WebSiteSsoText}" IsVisible="{Binding WebSiteSsoGood}" FontSize="11"
+                             Foreground="{DynamicResource GoodBrush}" TextWrapping="Wrap" />
+    
+                  <!-- Automatic deployment. Only the Deploy button needs any of this: a site put up by
+                       hand with wrangler is the same thing afterwards, and the address and secret
+                       above are all that syncing needs. The token stays on this machine. -->
+                  <TextBlock Text="AUTOMATIC DEPLOYMENT AND UPDATES ON CLOUDFLARE  (only for the Deploy button)" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 8 0 0" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                             Text="Fill these in only to have the app put the site on your own Cloudflare account and keep it current with the Deploy or update site button: it creates the database, uploads the newest release of the site, sets the secrets above and puts it on the free workers.dev address or a domain of your own on that account. Deploying again updates the site without touching its orders. To set the site up by hand instead, follow the documentation, then enter the site address and secret above; none of these fields is needed for that." />
+                  <StackPanel Orientation="Horizontal" Spacing="18">
+                    <HyperlinkButton Content="Documentation" NavigateUri="https://docs.eveconsole.com/stores/web-site/" FontSize="11" Padding="0" />
+                    <HyperlinkButton Content="Site source and releases" NavigateUri="https://github.com/kernoeve/eveconsole-store" FontSize="11" Padding="0" />
+                    <HyperlinkButton Content="Create a Cloudflare API token" NavigateUri="https://dash.cloudflare.com/profile/api-tokens" FontSize="11" Padding="0" />
+                  </StackPanel>
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="On the Cloudflare token page: Create Token, the “Edit Cloudflare Workers” template, add the permission D1 Edit, then Continue and Create. Paste it below and press Save token; it is checked, then kept on this machine only, encrypted for your account." />
+    
+                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="API token" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 6">
+                      <TextBox Grid.Column="0" Text="{Binding CloudflareToken}" PasswordChar="•" Watermark="Paste a token to save it on this machine" FontSize="11"
+                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <Button Grid.Column="1" Command="{Binding SaveCloudflareTokenCommand}" Content="Save token" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                      <Button Grid.Column="2" Command="{Binding ForgetCloudflareTokenCommand}" Content="Forget" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                    </Grid>
+    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Account" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                      <ComboBox ItemsSource="{Binding CloudflareAccounts}" SelectedItem="{Binding CloudflareAccount}" FontSize="11" MinWidth="220"
+                                PlaceholderText="Save a token to list accounts"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <TextBlock Text="{Binding CloudflareTokenText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                                 TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                    </StackPanel>
+    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Worker name" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                      <TextBox Text="{Binding WebWorkerName, UpdateSourceTrigger=LostFocus}" FontSize="11" MinWidth="220"
+                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <TextBlock Text="Also the database's name. Lower-case letters, digits and hyphens; the site's address is this name on the account's workers.dev unless a domain of your own is chosen below."
+                                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
+                    </StackPanel>
+                  </Grid>
+    
+                  <!-- Where the site lives: Cloudflare's free address, or a domain of the owner's own
+                       that is already on the account. Asked once at the first deploy; changed here. -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesFreeAddress}"
+                                   Content="The free workers.dev address: the worker name on the account's workers.dev"
+                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <!-- The dashboard's own rename, from here: every Worker on the account moves with it,
+                           and the stores' addresses follow. -->
+                      <Button Command="{Binding RenameSubdomainCommand}" Content="Rename the account's workers.dev name…" Padding="8 2" FontSize="10"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesOwnDomain}" Content="A domain of my own on Cloudflare:"
+                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <TextBox Text="{Binding WebCustomHostname, UpdateSourceTrigger=LostFocus}" IsEnabled="{Binding WebUsesOwnDomain}"
+                               Watermark="store.example.com" FontSize="11" MinWidth="220"
+                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    </StackPanel>
+                    <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"
+                               Text="A domain must already be on this Cloudflare account with its DNS there. The next Deploy attaches the site to it, Cloudflare makes the record and the certificate, and the workers.dev address is switched off so buyers and the EVE application's callback see one name; switching back lets the domain go. Either way the callback URL above changes, so update the EVE application to match." />
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="Auto,Auto,*">
+                    <Button Grid.Column="0" Command="{Binding DeploySiteCommand}" Content="Deploy or update site" Padding="12 4" FontSize="11"
+                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
+                            BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
+                    <Button Grid.Column="1" Command="{Binding CheckSiteCommand}" Content="Check" Margin="6 0 0 0" Padding="12 4" FontSize="11"
+                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                            BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                    <TextBlock Grid.Column="2" Text="{Binding DeployStatusText}" FontSize="10" TextWrapping="Wrap"
+                               VerticalAlignment="Center" Margin="12 0 0 0" Foreground="{DynamicResource TextDimBrush}" />
+                  </Grid>
+    
+                </StackPanel>
+              </Border>
+                </StackPanel>
+              </ScrollViewer>
+            </TabItem>
+          </TabControl>
         </TabItem>
 
         <TabItem Header="Info" FontSize="12">

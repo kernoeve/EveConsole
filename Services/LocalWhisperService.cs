@@ -1,6 +1,7 @@
 using System.Text;
 using Whisper.net;
 using Whisper.net.Ggml;
+using Whisper.net.LibraryLoader;
 
 namespace EveConsole.Services;
 
@@ -72,6 +73,60 @@ public sealed class LocalWhisperService : IDisposable
         File.Move(temp, dest, overwrite: true);
     }
 
+    /// <summary>Where the model runs, once it has loaded: Vulkan for a GPU, else the CPU.</summary>
+    public string LoadedRuntime => RuntimeOptions.LoadedLibrary?.ToString() ?? "not loaded yet";
+
+    /// <summary>
+    /// ⚠️ Whisper.net's default is four threads, whatever the machine has. On the CPU that is
+    /// the whole speed of transcription; on the GPU it still runs the parts that stay on the CPU.
+    /// Half the cores, so a game in the other window keeps the rest.
+    /// </summary>
+    private static readonly int Threads = Math.Clamp(Environment.ProcessorCount / 2, 4, 16);
+
+    static LocalWhisperService()
+    {
+        // The GPU first, through Vulkan, which every current GPU driver on Windows and Linux
+        // provides; the CPU when there is none. Measured on the CPU alone: six to eleven seconds
+        // for a two-second utterance, because Whisper pads every clip to a thirty-second window
+        // and the small model's encoder pays for the whole window each time.
+        RuntimeOptions.RuntimeLibraryOrder = [RuntimeLibrary.Vulkan, RuntimeLibrary.Cpu];
+    }
+
+    /// <summary>"en" as the owner spelt it, or "auto" for the model's own guess.</summary>
+    private static string LanguageOrAuto(string? language)
+    {
+        var l = (language ?? "").Trim().ToLowerInvariant();
+        return l.Length == 0 ? "auto" : l;
+    }
+
+    /// <summary>The factory for this model file, loaded once and kept until the file changes.</summary>
+    private WhisperFactory EnsureFactory(string modelId)
+    {
+        var path = ModelPath(modelId);
+
+        // ⚠️ Thrown, not returned as null. A null here reached the panel as "No speech
+        // detected — try speaking a bit longer", so a capsuleer who had simply never
+        // downloaded the model was told, every single time, that their microphone had not
+        // heard them — the one thing that message could not do was mention the model.
+        if (!File.Exists(path))
+            throw new InvalidOperationException(
+                $"The local speech model '{modelId}' has not been downloaded yet. "
+              + "Settings → AI Agent → Speech Input → Download Model.");
+
+        // Reloaded only when the model actually changed. The timestamp matters as well as
+        // the path: re-downloading the SAME model writes a new file at the same location,
+        // and keying on the path alone would go on using the old one for the session.
+        var stamp = File.GetLastWriteTimeUtc(path);
+        if (_factory is null || _loadedPath != path || _loadedStamp != stamp)
+        {
+            _factory?.Dispose();
+            _factory     = WhisperFactory.FromPath(path);
+            _loadedPath  = path;
+            _loadedStamp = stamp;
+        }
+        return _factory;
+    }
+
     /// <summary>
     /// Transcribes recorded audio locally.
     ///
@@ -85,40 +140,19 @@ public sealed class LocalWhisperService : IDisposable
     /// <para>An async method only leaves the caller's thread at its first suspension; work placed
     /// ahead of that runs inline however the method is named.</para>
     /// </summary>
-    public Task<string?> TranscribeAsync(byte[] wavBytes, string modelId, CancellationToken ct = default)
+    public Task<string?> TranscribeAsync(byte[] wavBytes, string modelId, string? language, CancellationToken ct = default)
         => Task.Run<string?>(async () =>
         {
-            var path = ModelPath(modelId);
-
-            // ⚠️ Thrown, not returned as null. A null here reached the panel as "No speech
-            // detected — try speaking a bit longer", so a capsuleer who had simply never
-            // downloaded the model was told, every single time, that their microphone had not
-            // heard them — the one thing that message could not do was mention the model.
-            if (!File.Exists(path))
-                throw new InvalidOperationException(
-                    $"The local speech model '{modelId}' has not been downloaded yet. "
-                  + "Settings → AI Agent → Speech Input → Download Model.");
-
             // ⚠️ Serialised. Two transcriptions at once would contend for the same native context,
             // and push-to-talk is inherently one at a time anyway — so the second waits rather
             // than racing. Held across the inference, not just the load, for that reason.
             await _gate.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                // Reloaded only when the model actually changed. The timestamp matters as well as
-                // the path: re-downloading the SAME model writes a new file at the same location,
-                // and keying on the path alone would go on using the old one for the session.
-                var stamp = File.GetLastWriteTimeUtc(path);
-                if (_factory is null || _loadedPath != path || _loadedStamp != stamp)
-                {
-                    _factory?.Dispose();
-                    _factory     = WhisperFactory.FromPath(path);
-                    _loadedPath  = path;
-                    _loadedStamp = stamp;
-                }
-
-                await using var processor = _factory.CreateBuilder()
-                    .WithLanguage("auto")
+                var factory = EnsureFactory(modelId);
+                await using var processor = factory.CreateBuilder()
+                    .WithLanguage(LanguageOrAuto(language))
+                    .WithThreads(Threads)
                     .Build();
 
                 using var ms = new MemoryStream(wavBytes);
@@ -133,6 +167,20 @@ public sealed class LocalWhisperService : IDisposable
                 _gate.Release();
             }
         }, ct);
+
+    /// <summary>
+    /// Loads the model and runs one second of silence through it, so the first real utterance
+    /// does not pay for the load, or for the GPU's first-use setup, which is the larger of the
+    /// two. Best-effort: a model not yet downloaded is simply not warmed.
+    /// </summary>
+    public async Task WarmUpAsync(string modelId, string? language, CancellationToken ct = default)
+    {
+        if (!IsModelDownloaded(modelId)) return;
+        var silence = SpeechInputService.BuildWav(new byte[16000 * 2]);
+        try { await TranscribeAsync(silence, modelId, language, ct).ConfigureAwait(false); }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[LocalWhisper] warm-up: {ex.Message}"); }
+    }
 
     /// <summary>
     /// Releases the loaded model.

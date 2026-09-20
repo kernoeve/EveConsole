@@ -59,10 +59,23 @@ public sealed class KokoroTtsService : IDisposable
     // Load (and download if necessary) the Kokoro ONNX model.
     // KokoroSharp caches the model file automatically.
     // Model is ~320 MB on first download; subsequent loads read from cache.
-    public Task LoadAsync() => Task.Run(() =>
+    private Task? _load;
+
+    /// <summary>
+    /// Loads the model once; later calls return the same task, so an utterance that arrives
+    /// while the engine is still loading has something to wait on. A failed load is retried on
+    /// the next call rather than remembered.
+    /// </summary>
+    public Task LoadAsync()
     {
-        _tts = KokoroTTS.LoadModel(); // downloads + caches automatically
-    });
+        if (_tts is not null) return Task.CompletedTask;
+        if (_load is { IsFaulted: true } or { IsCanceled: true }) _load = null;
+        return _load ??= Task.Run(() =>
+        {
+            _tts = KokoroTTS.LoadModel(); // downloads + caches automatically
+        });
+    }
+
 
     /// <summary>
     /// Speaks one utterance and does not return until it has finished playing.
@@ -84,8 +97,19 @@ public sealed class KokoroTtsService : IDisposable
     /// </summary>
     public void SpeakAsync(string text)
     {
-        if (_tts is null) return;
+        // ⚠️ An utterance that arrives while the model is still loading WAITS for it rather than
+        // being dropped. The model takes seconds to load at startup, and an alarm that fired in
+        // the first minute — a store order transition caught by the startup polls — was written
+        // as an alert and never spoken. Bounded, so a load that never finishes cannot hold the
+        // speech queue for ever; and on the queue's pool thread, so nothing else waits with it.
+        if (_tts is null)
+        {
+            try { LoadAsync().Wait(TimeSpan.FromSeconds(120)); }
+            catch { /* the load's own failure; there is no voice to speak with */ }
+            if (_tts is null) return;
+        }
         var stripped = StripMarkdown(text);
+
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
         var voice  = KokoroVoiceManager.GetVoice(_voiceId);
@@ -122,7 +146,9 @@ public sealed class KokoroTtsService : IDisposable
     {
         Stop();
         _tts?.Dispose();
-        _tts = null;
+        _tts  = null;
+        _load = null;
+
     }
 
     private static string StripMarkdown(string text)

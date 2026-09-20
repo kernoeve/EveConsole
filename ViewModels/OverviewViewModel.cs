@@ -128,6 +128,10 @@ public class AlertRowVm : ReactiveObject
     public string Message       { get; init; } = "";
     public bool   IsDismissible { get; init; } = false;
 
+    /// <summary>Names what a dismissal removes, so a refresh that began before the click does not bring it back.</summary>
+    public string? DismissKey    { get; init; }
+
+
     public ReactiveCommand<Unit, Unit>? DismissCommand { get; init; }
 
     public ReactiveCommand<Unit, Unit>? NavigateCommand { get; init; }
@@ -691,6 +695,28 @@ public class OverviewViewModel : ReactiveObject
     /// after the await stay exactly as they were.
     /// </summary>
     private static Task<T> Off<T>(Func<Task<T>> query) => Task.Run(query);
+
+    /// <summary>
+    /// Every dismissal made this session, by key. A refresh reads its rows over several seconds
+    /// and swaps the list at the end; an alert dismissed in between was read as open and came
+    /// back for a minute. Never pruned: a dismissed alert does not come undone, and the set is tiny.
+    /// </summary>
+    private readonly HashSet<string> _dismissedDuringLoad = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// A write made from a click, on a context of its own.
+    ///
+    /// <para>⚠️ Not on the shared context: the refresh runs its queries on that from a pool thread
+    /// for seconds at a time, and a dismissal landing in the middle of one threw "a second
+    /// operation was started on this context" — the click did nothing and the alert stayed.</para>
+    /// </summary>
+    private async Task ExecuteAsync(FormattableString sql)
+    {
+        if (_dbFactory is null) { await _db.Database.ExecuteSqlInterpolatedAsync(sql); return; }
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        await db.Database.ExecuteSqlInterpolatedAsync(sql);
+    }
+
 
     private async Task LoadCoreAsync()
     {
@@ -1545,12 +1571,15 @@ public class OverviewViewModel : ReactiveObject
                           + $"({(int)(deadline - now).TotalDays}d left) or the game picks one."
                         : $"{charName}: Items moved to Asset Safety on {dateText}.",
                     IsDismissible = true,
+                    DismissKey    = $"notif:{charId}:{notifId}",
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                     {
-                        await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                        _dismissedDuringLoad.Add($"notif:{charId}:{notifId}");
+                        await ExecuteAsync($"""
                             INSERT INTO "DismissedAlerts" ("CharacterId","NotificationId")
                             VALUES ({charId},{notifId}) ON CONFLICT DO NOTHING
                             """);
+
                         var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
                         if (toRemove is not null)
                         {
@@ -1696,12 +1725,15 @@ public class OverviewViewModel : ReactiveObject
             {
                 Message       = text,
                 IsDismissible = true,
+                DismissKey    = $"alarm:{alertId}",
                 DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                 {
-                    await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                    _dismissedDuringLoad.Add($"alarm:{alertId}");
+                    await ExecuteAsync($"""
                         UPDATE "AlarmAlerts" SET "Dismissed" = TRUE, "DismissedAt" = {DateTimeOffset.UtcNow}
                         WHERE "Id" = {alertId}
                         """);
+
                     var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
                     if (toRemove is not null)
                     {
@@ -1717,11 +1749,16 @@ public class OverviewViewModel : ReactiveObject
         // Inserted as a block so the newest alarm alert stays at the top of the box.
         newAlerts.InsertRange(0, alarmRows);
 
+        // ⚠️ Anything dismissed while this load was under way is left out, even though its row was
+        // read as open before the click: a refresh that began before a dismissal must not bring
+        // the alert back for the minute until the next one.
         Alerts.Clear();
-        foreach (var a in newAlerts) Alerts.Add(a);
+        foreach (var a in newAlerts)
+            if (a.DismissKey is null || !_dismissedDuringLoad.Contains(a.DismissKey)) Alerts.Add(a);
         HasAlerts = Alerts.Count > 0;
         this.RaisePropertyChanged(nameof(NoAlerts));
     }
+
 
     private void ResetAllMetrics()
     {

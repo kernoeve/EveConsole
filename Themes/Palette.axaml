@@ -216,7 +216,7 @@
       <Color x:Key="SystemAccentColorLight1">#7cc4e6</Color>
       <Color x:Key="SystemAccentColorLight2">#a8d8ee</Color>
       <Color x:Key="SystemAccentColorLight3">#a8d8ee</Color>
-      <Color x:Key="SurfaceOverlay">#192434cc</Color>
+      <Color x:Key="SurfaceOverlay">#cc192434</Color>
     </ResourceDictionary>
 
     <!-- ═══ BLUELIGHT — pale sky, a deep marine accent.
@@ -256,7 +256,7 @@
       <Color x:Key="SystemAccentColorLight1">#2b7aad</Color>
       <Color x:Key="SystemAccentColorLight2">#9cc6e0</Color>
       <Color x:Key="SystemAccentColorLight3">#9cc6e0</Color>
-      <Color x:Key="SurfaceOverlay">#f0f4f9cc</Color>
+      <Color x:Key="SurfaceOverlay">#ccf0f4f9</Color>
     </ResourceDictionary>
 
     <!-- ═══ PINKDARK — plum and rose.
@@ -296,7 +296,7 @@
       <Color x:Key="SystemAccentColorLight1">#eca0bc</Color>
       <Color x:Key="SystemAccentColorLight2">#f4c0d2</Color>
       <Color x:Key="SystemAccentColorLight3">#f4c0d2</Color>
-      <Color x:Key="SurfaceOverlay">#271c2ccc</Color>
+      <Color x:Key="SurfaceOverlay">#cc271c2c</Color>
     </ResourceDictionary>
 
     <!-- ═══ PINKLIGHT — blush, a deep rose accent.
@@ -336,7 +336,7 @@
       <Color x:Key="SystemAccentColorLight1">#bc5077</Color>
       <Color x:Key="SystemAccentColorLight2">#d894ac</Color>
       <Color x:Key="SystemAccentColorLight3">#d894ac</Color>
-      <Color x:Key="SurfaceOverlay">#faf5f8cc</Color>
+      <Color x:Key="SurfaceOverlay">#ccfaf5f8</Color>
     </ResourceDictionary>
 
     <!-- ═══ BEIGEDARK — warm stone, a tan highlight.
@@ -376,7 +376,7 @@
       <Color x:Key="SystemAccentColorLight1">#e0be8e</Color>
       <Color x:Key="SystemAccentColorLight2">#ecd8b4</Color>
       <Color x:Key="SystemAccentColorLight3">#ecd8b4</Color>
-      <Color x:Key="SurfaceOverlay">#29241ecc</Color>
+      <Color x:Key="SurfaceOverlay">#cc29241e</Color>
     </ResourceDictionary>
 
     <!-- ═══ BEIGELIGHT — cream and ink.
@@ -416,7 +416,7 @@
       <Color x:Key="SystemAccentColorLight1">#a8834c</Color>
       <Color x:Key="SystemAccentColorLight2">#cfae7c</Color>
       <Color x:Key="SystemAccentColorLight3">#cfae7c</Color>
-      <Color x:Key="SurfaceOverlay">#f7f3eccc</Color>
+      <Color x:Key="SurfaceOverlay">#ccf7f3ec</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>

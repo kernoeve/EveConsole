@@ -20,7 +20,7 @@ namespace EveConsole.Services;
 public sealed class AlarmService : ReactiveObject
 {
     /// <summary>Nothing is evaluated faster than this regardless of what an alarm asks for.</summary>
-    private const int MinPollSeconds = 5;
+    private const int MinPollSeconds = 2;
 
     /// <summary>
     /// How often the loop wakes to see whether any alarm is due. Cheap: a tick with nothing due
