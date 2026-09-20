@@ -31,6 +31,9 @@ public static class UiState
     public const string CollapsedGroups      = "invlevels.collapsed_groups";
     public const string CollapsedCollections = "invlevels.collapsed_collections";
     public const string StructuresShowUnknown = "structures.show_unknown";
+    /// <summary>"all" or "personal": whether the Asset Browser shows every owner it holds, or only
+    /// the user's characters and the corporations marked personal.</summary>
+    public const string AssetScope            = "assets.scope";
     public const string Theme                 = "ui.theme";
     /// <summary>"0" once the user has ticked "don't ask again" on the external-link warning.</summary>
     public const string ConfirmExternalLinks  = "links.confirm_external";

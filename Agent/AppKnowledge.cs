@@ -57,9 +57,11 @@ public static class AppKnowledge
         ## Assets tools
 
         ### Assets (Asset Browser)
-        The full asset list across all characters and personal corporations. Search and
-        filter by item name, location, and owner. Use set_asset_filter to apply filters
-        programmatically.
+        The asset list, with a Scope dropdown above the filters: "Characters and personal
+        corps" (the default, remembered per machine) or "Everything", which also shows
+        corporations not marked personal. Every filter, set_asset_filter included, searches
+        within that scope. Search and filter by item name, location, and owner. Use
+        set_asset_filter to apply filters programmatically.
 
         How asset locations nest (important when answering "where is X?"): every asset
         sits in a location that is either a station, a solar system, a player-owned
