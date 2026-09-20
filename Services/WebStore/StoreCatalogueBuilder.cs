@@ -38,8 +38,9 @@ public sealed class StoreCatalogueBuilder(
                 from t in db.SdeTypes.AsNoTracking()
                 join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
                 where typeIds.Contains(t.TypeId)
-                select new { t.TypeId, Group = g.Name })
-            .ToDictionaryAsync(x => x.TypeId, x => x.Group, ct);
+                select new { t.TypeId, t.GroupId, Group = g.Name })
+            .ToDictionaryAsync(x => x.TypeId, x => (x.GroupId, x.Group), ct);
+
 
         var dto = new CatalogueDto
         {
@@ -61,12 +62,13 @@ public sealed class StoreCatalogueBuilder(
                 Items = s.Items.Select(i => new CatalogueItemDto
                 {
                     TypeId    = i.TypeId,
-                    // The same rule the renderer applies: the override replaces the name, the
-                    // prefix goes in front of whichever is shown.
-                    Name      = (string.IsNullOrWhiteSpace(i.NamePrefix) ? "" : i.NamePrefix!.Trim() + " ")
-                              + (string.IsNullOrWhiteSpace(i.NameOverride) ? i.TypeName : i.NameOverride!),
+                    // ⚠️ No prefix. The posting's prefixes ("•", "★") belong to the mail and
+                    // Slack renderings; on the site the item's name is its name.
+                    Name      = string.IsNullOrWhiteSpace(i.NameOverride) ? i.TypeName : i.NameOverride!.Trim(),
                     TypeName  = i.TypeName,
-                    GroupName = groups.GetValueOrDefault(i.TypeId, ""),
+                    GroupName = groups.TryGetValue(i.TypeId, out var grp) ? grp.Group : "",
+                    GroupId   = grp.GroupId,
+
                     // ⚠️ Rounded as the price list rounds it, so the number the site quotes is the
                     // number a buyer would be shown by mail and the one their order is booked at.
                     UnitPrice = i.SalePrice is { } p ? MarketFmt.RoundToDisplay(p) : null,

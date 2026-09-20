@@ -152,6 +152,14 @@ public class StoresViewModel : ReactiveObject
 
     public IReadOnlyList<string> PolicyOptions { get; } = ["List", "Anyone"];
 
+    public sealed record LimitOption(string Key, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    public IReadOnlyList<LimitOption> LimitScopeOptions  { get; } = [new("type", "item type"), new("group", "item group"), new("store", "the whole store")];
+    public IReadOnlyList<LimitOption> LimitPeriodOptions { get; } = [new("days", "day(s)"), new("months", "month(s)"), new("years", "year(s)"), new("all", "all time")];
+
     public sealed record CharacterOption(long Id, string Name)
     {
         public override string ToString() => Name;
@@ -503,6 +511,93 @@ public class StoresViewModel : ReactiveObject
             _ = SaveAsync(s => s.AutoEstimateInStock = value);
         }
     }
+
+    // ── Purchase limit ────────────────────────────────────────────────────────
+    //
+    // Saved with a nudge, so the site hears of a change within the minute: what a buyer may
+    // order is decided there first, from what the app last pushed.
+
+    private bool _limitEnabled;
+    public bool LimitEnabled
+    {
+        get => _limitEnabled;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitEnabled, value);
+            _ = SaveAsync(s => s.LimitEnabled = value, nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private int _limitUnits = 1;
+    public int LimitUnits
+    {
+        get => _limitUnits;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitUnits, Math.Max(1, value));
+            _ = SaveAsync(s => s.LimitUnits = Math.Max(1, value), nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private LimitOption? _limitScope;
+    public LimitOption? LimitScope
+    {
+        get => _limitScope;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitScope, value);
+            if (value is null) return;
+            _ = SaveAsync(s => s.LimitScope = value.Key, nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private LimitOption? _limitPeriod;
+    public LimitOption? LimitPeriod
+    {
+        get => _limitPeriod;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitPeriod, value);
+            if (value is null) return;
+            _ = SaveAsync(s => s.LimitPeriod = value.Key, nudge: true);
+            this.RaisePropertyChanged(nameof(LimitPeriodHasCount));
+            RefreshLimitSummary();
+        }
+    }
+
+    /// <summary>"All time" takes no number.</summary>
+    public bool LimitPeriodHasCount => _limitPeriod is { Key: not "all" };
+
+    private int _limitPeriodCount = 1;
+    public int LimitPeriodCount
+    {
+        get => _limitPeriodCount;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitPeriodCount, Math.Max(1, value));
+            _ = SaveAsync(s => s.LimitPeriodCount = Math.Max(1, value), nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private string _limitSummary = "";
+    public string LimitSummary
+    {
+        get => _limitSummary;
+        private set => this.RaiseAndSetIfChanged(ref _limitSummary, value);
+    }
+
+    private void RefreshLimitSummary() =>
+        LimitSummary = PurchaseLimit.Describe(new Store
+        {
+            LimitUnits       = _limitUnits,
+            LimitScope       = _limitScope?.Key ?? "type",
+            LimitPeriod      = _limitPeriod?.Key ?? "all",
+            LimitPeriodCount = _limitPeriodCount,
+        });
 
     private int _autoEstimateDays = 1;
     public int AutoEstimateDays
@@ -1205,6 +1300,12 @@ public class StoresViewModel : ReactiveObject
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
+                    LimitEnabled     = store.LimitEnabled;
+                    LimitUnits       = Math.Max(1, store.LimitUnits);
+                    LimitScope       = LimitScopeOptions.FirstOrDefault(o => o.Key == store.LimitScope)   ?? LimitScopeOptions[0];
+                    LimitPeriod      = LimitPeriodOptions.FirstOrDefault(o => o.Key == store.LimitPeriod) ?? LimitPeriodOptions[^1];
+                    LimitPeriodCount = Math.Max(1, store.LimitPeriodCount);
+
                     StoreOrderLabels   = store.OrderLabels;
                     UseCustomUsage     = store.UseCustomUsage;
                     StoreInfo          = store.Info;

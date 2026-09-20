@@ -534,6 +534,22 @@ public static class PostgresSchema
         """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebEveClientSecret" TEXT NOT NULL DEFAULT ''
         """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitEnabled" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitUnits" INTEGER NOT NULL DEFAULT 1
+        """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitScope" TEXT NOT NULL DEFAULT 'type'
+        """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitPeriod" TEXT NOT NULL DEFAULT 'all'
+        """,
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitPeriodCount" INTEGER NOT NULL DEFAULT 1
+        """,
+
 
 
         """

@@ -375,20 +375,30 @@ public class WebStoreSyncService(
             },
         };
 
-        // ── Order rows: everything with a buyer id, whatever channel placed it ──
+        // ── Order rows: this store's, with a buyer id, whatever doorway placed them. Orders
+        //    of other stores and orders entered by hand with no store are not the site's to show.
         var orders = await db.TrackedOrders.AsNoTracking()
-            .Where(o => o.BuyerId != 0)
+            .Where(o => o.BuyerId != 0 && o.StoreId == store.Id)
             .ToListAsync(ct);
 
         var typeIds = orders.Select(o => o.TypeId).Distinct().ToList();
         var names = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        // The group too, so the site can count a per-group limit over orders whose item has
+        // since left the price list.
+        var groups = await (
+                from t in db.SdeTypes.AsNoTracking()
+                join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                where typeIds.Contains(t.TypeId)
+                select new { t.TypeId, t.GroupId, GroupName = g.Name })
+            .ToDictionaryAsync(x => x.TypeId, x => (x.GroupId, x.GroupName), ct);
 
         var current = new Dictionary<int, (OrderDto Dto, string Hash)>();
         foreach (var o in orders)
         {
-            var dto = ToDto(o, names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"));
+            var dto = ToDto(o, names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"), groups.GetValueOrDefault(o.TypeId));
+
             current[o.Id] = (dto, HashOf(dto));
         }
 
@@ -434,6 +444,16 @@ public class WebStoreSyncService(
                 SenderPolicy  = store.SenderPolicy == "Anyone" ? "anyone" : "list",
                 Allowed       = allowed,
                 MailUpdates   = store.CharacterId != 0 && store.WebMailUpdates,
+                Limit         = store.LimitEnabled
+                    ? new LimitDto
+                    {
+                        Units  = Math.Max(1, store.LimitUnits),
+                        Scope  = store.LimitScope,
+                        Period = store.LimitPeriod,
+                        Count  = Math.Max(1, store.LimitPeriodCount),
+                    }
+                    : null,
+
                 Theme         = theme,
             },
             Catalogue = catalogue,
@@ -446,7 +466,8 @@ public class WebStoreSyncService(
         return (request, page.ToDictionary(kv => kv.Key, kv => kv.Value.Hash));
     }
 
-    private static OrderDto ToDto(TrackedOrder o, string typeName) => new()
+    private static OrderDto ToDto(TrackedOrder o, string typeName, (int GroupId, string GroupName) group) => new()
+
     {
         Id             = o.Id,
         Ref            = o.OrderRef,
@@ -458,7 +479,10 @@ public class WebStoreSyncService(
         ContractToName = o.ContractToName,
         TypeId         = o.TypeId,
         TypeName       = typeName,
+        GroupId        = group.GroupId,
+        GroupName      = group.GroupName ?? "",
         Units          = o.Units,
+
         TotalPrice     = o.PurchasePrice,
         Status         = o.Status,
         Fulfilment     = o.FulfilmentSource,
@@ -615,6 +639,14 @@ public class WebStoreSyncService(
                         + $"({(unitPrice - shown) / shown * 100:+0;-0}%).", "");
             }
 
+        // ⚠️ The store's purchase limit, checked here as well as on the site: the site greys out
+        // what a buyer may no longer order, but the app holds the whole history and does the
+        // booking. Over the limit is a matter for the owner, not a refusal.
+        if (!force && store.LimitEnabled
+            && await OverLimitAsync(db, store, ev.Buyer.Id, lines.Select(l => (l.TypeId, (long)l.Units)).ToList(),
+                                    typeId => byTypeId[typeId].TypeName, ct) is { } over)
+            return ("review", over, "");
+
         var reference = await OrderReference.NewAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;
 
@@ -670,6 +702,50 @@ public class WebStoreSyncService(
         await db.SaveChangesAsync(ct);
 
         return ("booked", $"{created.Count} line(s), {created.Sum(o => o.PurchasePrice):N0} ISK.", reference);
+    }
+
+    /// <summary>
+    /// Why the order would take the buyer past the store's limit, or null. Counts the buyer's
+    /// orders in this store that were not cancelled — by type, group or altogether, within the
+    /// period — which is the same sum the site shows them.
+    /// </summary>
+    private static async Task<string?> OverLimitAsync(
+        AppDbContext db, Store store, long buyerId, List<(int TypeId, long Units)> lines,
+        Func<int, string> nameOf, CancellationToken ct)
+    {
+        var since   = PurchaseLimit.Since(store, DateTimeOffset.UtcNow);
+        var history = (await db.TrackedOrders.AsNoTracking()
+                .Where(o => o.StoreId == store.Id && o.BuyerId == buyerId && o.Status != "canceled")
+                .Select(o => new { o.TypeId, o.Units, o.CreatedAt })
+                .ToListAsync(ct))
+            .Where(o => since is null || o.CreatedAt >= since)   // compared here: a DateTimeOffset in a Where does not translate on SQLite
+            .ToList();
+
+        var typeIds = history.Select(o => o.TypeId).Concat(lines.Select(l => l.TypeId)).Distinct().ToList();
+        var groups  = await db.SdeTypes.AsNoTracking()
+            .Where(t => typeIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.GroupId, ct);
+        string Key(int typeId) => store.LimitScope switch
+        {
+            "group" => $"g:{groups.GetValueOrDefault(typeId)}",
+            "store" => "store",
+            _       => $"t:{typeId}",
+        };
+
+        var taken = new Dictionary<string, long>();
+        foreach (var o in history) taken[Key(o.TypeId)] = taken.GetValueOrDefault(Key(o.TypeId)) + o.Units;
+
+        var limit = Math.Max(1, store.LimitUnits);
+        foreach (var (typeId, units) in lines)
+        {
+            var key = Key(typeId);
+            var had = taken.GetValueOrDefault(key);
+            if (had + units > limit)
+                return $"Over the store's limit of {limit:N0} {PurchaseLimit.ScopeWords(store)} {PurchaseLimit.PeriodWords(store)}: "
+                     + $"{units:N0} × {nameOf(typeId)} on top of {had:N0} already ordered.";
+            taken[key] = had + units;   // two lines against one key add up within the order
+        }
+        return null;
     }
 
     // ── Cancelling from the site ──────────────────────────────────────────────

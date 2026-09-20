@@ -131,6 +131,29 @@ public class Store
     /// not a thing to build.</summary>
     public int  AutoEstimateDays    { get; set; } = 1;
 
+    // ── Purchase limit ────────────────────────────────────────────────────────
+    //
+    // How much one buyer may take, counted over their orders in this store that were not
+    // cancelled: so many units of each item type, of each item group, or of anything at all,
+    // within a rolling period or ever. Off by default; a programme that hands out the first
+    // hull of each kind is what it is for. The site greys out what a buyer may no longer order
+    // and refuses more than the remainder; the app checks again when it books.
+
+    public bool   LimitEnabled     { get; set; }
+
+    /// <summary>Units per <see cref="LimitScope"/> within the period.</summary>
+    public int    LimitUnits       { get; set; } = 1;
+
+    /// <summary>"type", "group" or "store".</summary>
+    public string LimitScope       { get; set; } = "type";
+
+    /// <summary>"days", "months", "years" or "all".</summary>
+    public string LimitPeriod      { get; set; } = "all";
+
+    /// <summary>How many of <see cref="LimitPeriod"/>; unused for "all".</summary>
+    public int    LimitPeriodCount { get; set; } = 1;
+
+
     // ── The web channel ───────────────────────────────────────────────────────
     //
     // A site the owner hosts, which the app pushes the posting and the order book to and pulls

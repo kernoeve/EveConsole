@@ -839,6 +839,12 @@ public class App : Application
                         "MessageFooterColor" TEXT NOT NULL DEFAULT '',
                         "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1,
                         "AutoEstimateDays"    INTEGER NOT NULL DEFAULT 1,
+                        "LimitEnabled"        INTEGER NOT NULL DEFAULT 0,
+                        "LimitUnits"          INTEGER NOT NULL DEFAULT 1,
+                        "LimitScope"          TEXT    NOT NULL DEFAULT 'type',
+                        "LimitPeriod"         TEXT    NOT NULL DEFAULT 'all',
+                        "LimitPeriodCount"    INTEGER NOT NULL DEFAULT 1,
+
                         "WebEnabled"          INTEGER NOT NULL DEFAULT 0,
                         "WebUrl"              TEXT    NOT NULL DEFAULT '',
                         "WebSecret"           TEXT    NOT NULL DEFAULT '',
@@ -872,6 +878,12 @@ public class App : Application
                 // An expected date for orders filled from stock, which have no job to take one from.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitEnabled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitUnits" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitScope" TEXT NOT NULL DEFAULT 'type'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitPeriod" TEXT NOT NULL DEFAULT 'all'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitPeriodCount" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
                 // Text the shop puts on every mail it sends, with a colour each.
                 // Labels put on every order this store takes.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }

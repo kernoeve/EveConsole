@@ -83,13 +83,14 @@ public sealed class StoreInfoDto
     /// <summary>Unused since site 0.1.4 — what the owner wants said about pickup goes in the blurb. Kept so older sites still read the field.</summary>
     public string Pickup        { get; set; } = "";
 
-
     /// <summary>"anyone" or "list". With "list", only <see cref="Allowed"/> may sign in.</summary>
     public string SenderPolicy  { get; set; } = "list";
     public List<AllowedDto> Allowed { get; set; } = [];
 
     /// <summary>Whether the owner also mails web buyers as their orders move. Informational.</summary>
     public bool MailUpdates     { get; set; }
+    /// <summary>The store's per-buyer purchase limit, when it has one; null for none.</summary>
+    public LimitDto? Limit      { get; set; }
 
     public ThemeDto Theme       { get; set; } = new();
 }
@@ -146,6 +147,22 @@ public sealed class CatalogueSectionDto
     public List<CatalogueItemDto> Items { get; set; } = [];
 }
 
+/// <summary>
+/// A per-buyer purchase limit: so many units of each item type, each item group, or anything in
+/// the store, within a rolling period or ever. The site counts the buyer's orders against it and
+/// greys out what they may no longer order; the app checks again when it books.
+/// </summary>
+public sealed class LimitDto
+{
+    public int    Units  { get; set; } = 1;
+    /// <summary>"type", "group" or "store".</summary>
+    public string Scope  { get; set; } = "type";
+    /// <summary>"days", "months", "years" or "all".</summary>
+    public string Period { get; set; } = "all";
+    /// <summary>How many of the period; unused for "all".</summary>
+    public int    Count  { get; set; } = 1;
+}
+
 public sealed class CatalogueItemDto
 {
     public int     TypeId    { get; set; }
@@ -154,6 +171,9 @@ public sealed class CatalogueItemDto
     /// <summary>The item's own name, for the icon and for search.</summary>
     public string  TypeName  { get; set; } = "";
     public string  GroupName { get; set; } = "";
+    /// <summary>The SDE group, for a limit counted per group.</summary>
+    public int     GroupId   { get; set; }
+
     /// <summary>Per unit, rounded exactly as the price list shows it. Null when the posting
     /// cannot price the item; the site lists it without a price and takes no order for it.</summary>
     public double? UnitPrice { get; set; }
@@ -182,6 +202,10 @@ public sealed class OrderDto
     public string  ContractToName { get; set; } = "";
     public int     TypeId        { get; set; }
     public string  TypeName      { get; set; } = "";
+    /// <summary>The item's SDE group, so the site can count a per-group limit over old orders too.</summary>
+    public int     GroupId       { get; set; }
+    public string  GroupName     { get; set; } = "";
+
     public int     Units         { get; set; }
     public double  TotalPrice    { get; set; }
     /// <summary>"pending", "completed" or "canceled".</summary>
@@ -253,7 +277,6 @@ public sealed class SiteEventDto
     public string CatalogueHash { get; set; } = "";
     /// <summary>The buyer's answer to the site's "keep me posted by EVE mail"; absent means yes.</summary>
     public bool?  MailUpdates { get; set; }
-
 
     // A cancellation, of an order the site knows by the app's id:
     public int?   OrderId { get; set; }
