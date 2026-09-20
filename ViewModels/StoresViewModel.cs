@@ -255,13 +255,14 @@ public class StoresViewModel : ReactiveObject
         ForgetCloudflareTokenCommand = ReactiveCommand.Create(ForgetCloudflareToken);
         DeploySiteCommand            = ReactiveCommand.CreateFromTask(DeploySiteAsync);
         CheckSiteCommand             = ReactiveCommand.CreateFromTask(CheckSiteAsync);
+        RenameSubdomainCommand       = ReactiveCommand.CreateFromTask(RenameSubdomainAsync);
         RemoveWebBannerCommand       = ReactiveCommand.CreateFromTask(RemoveWebBannerAsync);
         RefreshTokenText();
 
         foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
                                   CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand,
                                   SaveCloudflareTokenCommand, ForgetCloudflareTokenCommand, DeploySiteCommand, CheckSiteCommand,
-                                  RemoveWebBannerCommand })
+                                  RemoveWebBannerCommand, RenameSubdomainCommand })
 
             c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(StoresViewModel), "command", ex));
 
@@ -289,6 +290,7 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ForgetCloudflareTokenCommand { get; }
     public ReactiveCommand<Unit, Unit> DeploySiteCommand            { get; }
     public ReactiveCommand<Unit, Unit> CheckSiteCommand             { get; }
+    public ReactiveCommand<Unit, Unit> RenameSubdomainCommand       { get; }
 
     public ReactiveCommand<Unit, Unit> NewSecretCommand   { get; }
 
@@ -1697,6 +1699,33 @@ public class StoresViewModel : ReactiveObject
     /// <summary>Asks where a store's site should live before its first deploy, and for the
     /// account's workers.dev name when it has none; set by the view. Null when cancelled.</summary>
     public Func<DeployAddressPrompt, Task<DeployAddressChoice?>>? ChooseAddress { get; set; }
+
+    /// <summary>Asks for one line of text — title, label, watermark, what to start from; set by
+    /// the view. Null when cancelled.</summary>
+    public Func<string, string, string, string, Task<string?>>? AskText { get; set; }
+
+    /// <summary>Renames the account's workers.dev name from here, without the dashboard: asks
+    /// for the new one with the current one to edit, and the stores' addresses move with it.</summary>
+    private async Task RenameSubdomainAsync()
+    {
+        var accountId = CloudflareAccount?.Id ?? "";
+        if (accountId.Length == 0) { DeployStatusText = "Pick the Cloudflare account first."; return; }
+        if (AskText is not { } ask) return;
+
+        var typed = await ask("Rename the account's workers.dev name", "New name",
+            "lower-case letters, digits and hyphens", _subdomains.GetValueOrDefault(accountId) ?? "");
+        if (typed is null || typed.Trim().Length == 0) return;
+
+        DeployStatusText = "Renaming…";
+        var r = await _deploy.RenameSubdomainAsync(accountId, typed.Trim());
+        if (r.Ok)
+        {
+            _subdomains = new Dictionary<string, string>(_subdomains) { [accountId] = CloudflareDeployService.Slug(typed, 63, "") };
+            await LoadSelectedAsync();
+        }
+        DeployStatusText = r.Text;
+        RefreshCallbackText();
+    }
 
     private async Task DeleteStoreAsync()
     {

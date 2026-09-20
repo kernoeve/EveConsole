@@ -21,6 +21,10 @@ public partial class StoresView : UserControl
                 TopLevel.GetTopLevel(this) is Window owner
                     ? await new DeployAddressDialog(prompt).ShowDialog<DeployAddressChoice?>(owner)
                     : new DeployAddressChoice("", "");
+            vm.AskText = async (title, label, watermark, initial) =>
+                TopLevel.GetTopLevel(this) is Window owner
+                    ? await new TextPromptDialog(title, label, watermark, initial).ShowDialog<string?>(owner)
+                    : null;
         };
     }
 

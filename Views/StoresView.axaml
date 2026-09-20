@@ -656,9 +656,15 @@
                        that is already on the account. Asked once at the first deploy; changed here. -->
                   <StackPanel Spacing="4">
                     <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
-                    <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesFreeAddress}"
-                                 Content="The free workers.dev address: the worker name on the account's workers.dev"
-                                 FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesFreeAddress}"
+                                   Content="The free workers.dev address: the worker name on the account's workers.dev"
+                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <!-- The dashboard's own rename, from here: every Worker on the account moves with it,
+                           and the stores' addresses follow. -->
+                      <Button Command="{Binding RenameSubdomainCommand}" Content="Rename the account's workers.dev name…" Padding="8 2" FontSize="10"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesOwnDomain}" Content="A domain of my own on Cloudflare:"
                                    FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />

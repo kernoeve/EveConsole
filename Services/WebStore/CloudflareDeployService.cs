@@ -384,6 +384,59 @@ public sealed partial class CloudflareDeployService(
         }
     }
 
+    // ── The account's workers.dev name ────────────────────────────────────────
+
+    /// <summary>
+    /// Gives the account a new workers.dev name — the call the dashboard's own rename makes —
+    /// and moves every store whose site was on the old name to the new one, since all of them
+    /// move on Cloudflare the moment the name changes. The EVE applications' callbacks are the
+    /// owner's to update; the outcome says so.
+    /// </summary>
+    public async Task<Outcome> RenameSubdomainAsync(string accountId, string newName, CancellationToken ct = default)
+    {
+        var token = TokenSource();
+        if (token is null) return new Outcome(false, "No Cloudflare API token is saved on this machine. Paste one and press Save token first.");
+        if (accountId.Length == 0) return new Outcome(false, "Pick the Cloudflare account first.");
+        var wanted = Slug(newName, 63, "");
+        if (!IsValidWorkerName(wanted))
+            return new Outcome(false, $"\"{newName}\" is not a name workers.dev accepts: lower-case letters, digits and hyphens, up to 63 of them.");
+
+        var cf = Cloudflare;
+        try
+        {
+            var old = await cf.SubdomainAsync(token, accountId, ct);
+            if (old == wanted) return new Outcome(true, $"The account's workers.dev name is already {wanted}.");
+            await cf.CreateSubdomainAsync(token, accountId, wanted, ct);
+
+            var moved = 0;
+            if (old is not null)
+            {
+                await using var db = await dbFactory.CreateDbContextAsync(ct);
+                var suffix = $".{old}.workers.dev";
+                foreach (var store in await db.Stores.Where(s => s.WebCloudflareAccountId == accountId).ToListAsync(ct))
+                {
+                    if (!Uri.TryCreate(store.WebUrl, UriKind.Absolute, out var url)
+                        || !url.Host.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+                    store.WebUrl = $"https://{url.Host[..^suffix.Length]}.{wanted}.workers.dev";
+                    moved++;
+                }
+                await db.SaveChangesAsync(ct);
+                if (moved > 0) sync.Nudge();
+            }
+            return new Outcome(true, moved switch
+            {
+                0 => $"The account's workers.dev name is now {wanted}.",
+                1 => $"The account's workers.dev name is now {wanted}, and the store's site address followed. Update the EVE application's callback to the new address.",
+                _ => $"The account's workers.dev name is now {wanted}, and {moved} stores' site addresses followed. Update each EVE application's callback to the new address.",
+            });
+        }
+        catch (Exception ex) when (ex is CloudflareException or HttpRequestException or TaskCanceledException or JsonException)
+        {
+            errorLogger.Log(nameof(CloudflareDeployService), "rename subdomain", ex);
+            return new Outcome(false, Plain(ex) + " A workers.dev name is unique across all of Cloudflare, so somebody may have that one; try another.");
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>The zone on the account that holds a hostname: the name itself, then each parent
