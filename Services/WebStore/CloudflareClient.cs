@@ -103,10 +103,55 @@ public sealed class CloudflareClient(HttpClient http)
     }
 
     /// <summary>Puts the Worker on the account's workers.dev address.</summary>
-    public async Task EnableWorkersDevAsync(string token, string accountId, string scriptName, CancellationToken ct)
+    public Task EnableWorkersDevAsync(string token, string accountId, string scriptName, CancellationToken ct)
+        => SetWorkersDevAsync(token, accountId, scriptName, enabled: true, ct);
+
+    /// <summary>Puts the Worker on, or takes it off, the account's workers.dev address.</summary>
+    public async Task SetWorkersDevAsync(string token, string accountId, string scriptName, bool enabled, CancellationToken ct)
     {
         using var doc = await CallAsync(token, HttpMethod.Post, $"accounts/{accountId}/workers/scripts/{scriptName}/subdomain",
-            new StringContent(JsonSerializer.Serialize(new { enabled = true, previews_enabled = false }), Encoding.UTF8, "application/json"), ct);
+            new StringContent(JsonSerializer.Serialize(new { enabled, previews_enabled = false }), Encoding.UTF8, "application/json"), ct);
+    }
+
+    // ── A domain of the owner's own ───────────────────────────────────────────
+
+    public sealed record Zone(string Id, string Name);
+    public sealed record WorkerDomain(string Id, string Hostname, string Service);
+
+    /// <summary>The account's zone of exactly that name, or null.</summary>
+    public async Task<Zone?> FindZoneAsync(string token, string accountId, string name, CancellationToken ct)
+    {
+        using var doc = await CallAsync(token, HttpMethod.Get,
+            $"zones?name={Uri.EscapeDataString(name)}&account.id={Uri.EscapeDataString(accountId)}", null, ct);
+        foreach (var z in doc.RootElement.GetProperty("result").EnumerateArray())
+            return new Zone(z.GetProperty("id").GetString() ?? "", z.GetProperty("name").GetString() ?? "");
+        return null;
+    }
+
+    /// <summary>Attaches the Worker to a hostname in one of the account's zones. Cloudflare makes
+    /// the DNS record and the certificate itself; every path of the name goes to the Worker.</summary>
+    public async Task AttachDomainAsync(string token, string accountId, string zoneId, string hostname, string scriptName, CancellationToken ct)
+    {
+        using var doc = await CallAsync(token, HttpMethod.Put, $"accounts/{accountId}/workers/domains",
+            new StringContent(JsonSerializer.Serialize(new { zone_id = zoneId, hostname, service = scriptName, environment = "production" }),
+                              Encoding.UTF8, "application/json"), ct);
+    }
+
+    /// <summary>The Worker domains on the account for a hostname.</summary>
+    public async Task<IReadOnlyList<WorkerDomain>> DomainsAsync(string token, string accountId, string hostname, CancellationToken ct)
+    {
+        using var doc = await CallAsync(token, HttpMethod.Get, $"accounts/{accountId}/workers/domains?hostname={Uri.EscapeDataString(hostname)}", null, ct);
+        var list = new List<WorkerDomain>();
+        foreach (var d in doc.RootElement.GetProperty("result").EnumerateArray())
+            list.Add(new WorkerDomain(d.GetProperty("id").GetString() ?? "", d.GetProperty("hostname").GetString() ?? "",
+                                      d.TryGetProperty("service", out var s) ? s.GetString() ?? "" : ""));
+        return list;
+    }
+
+    /// <summary>Lets a domain go; Cloudflare removes the record it made.</summary>
+    public async Task DetachDomainAsync(string token, string accountId, string domainId, CancellationToken ct)
+    {
+        using var doc = await CallAsync(token, HttpMethod.Delete, $"accounts/{accountId}/workers/domains/{domainId}", null, ct, throwOnFailure: false);
     }
 
     // ── The envelope every call comes back in ─────────────────────────────────

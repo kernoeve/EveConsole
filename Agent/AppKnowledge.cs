@@ -206,7 +206,7 @@ public static class AppKnowledge
         site's theme (the store's own, independent of this desktop's), the words under "About this store" on the front page (plain text or HTML) with an optional banner picture across its top, the EVE developer
         application's Client ID and Secret Key the site signs buyers in with (required whoever
         hosts the site), and a Cloudflare section used only by the Deploy or update site button,
-        which puts the site on the owner's own account with a saved API token and updates it to
+        which puts the site on the owner's own account with a saved API token, at the free workers.dev address or a domain of their own on that account, and updates it to
         the newest release; a site set up by hand with wrangler works the same.
 
 

@@ -989,6 +989,50 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    // ── Where the site lives ──────────────────────────────────────────────────
+
+    private string _webCustomHostname = "";
+    /// <summary>The store's own domain for the site, or empty for the free workers.dev address.</summary>
+    public string WebCustomHostname
+    {
+        get => _webCustomHostname;
+        set
+        {
+            var host = (value ?? "").Trim();
+            if (host == _webCustomHostname) return;
+            _webCustomHostname = host;
+            RaiseAddressChanged();
+            _ = SaveAsync(s => s.WebCustomHostname = host);
+        }
+    }
+
+    private bool _webUsesOwnDomain;
+    /// <summary>The address choice as the two radio buttons show it. Picking the free address
+    /// clears the hostname; picking the domain merely opens the box for one.</summary>
+    public bool WebUsesOwnDomain
+    {
+        get => _webUsesOwnDomain || _webCustomHostname.Length > 0;
+        set
+        {
+            _webUsesOwnDomain = value;
+            if (!value && _webCustomHostname.Length > 0) { _webCustomHostname = ""; _ = SaveAsync(s => s.WebCustomHostname = ""); }
+            RaiseAddressChanged();
+        }
+    }
+
+    public bool WebUsesFreeAddress
+    {
+        get => !WebUsesOwnDomain;
+        set { if (value == WebUsesOwnDomain) WebUsesOwnDomain = !value; }
+    }
+
+    private void RaiseAddressChanged()
+    {
+        this.RaisePropertyChanged(nameof(WebCustomHostname));
+        this.RaisePropertyChanged(nameof(WebUsesOwnDomain));
+        this.RaisePropertyChanged(nameof(WebUsesFreeAddress));
+    }
+
     private string _webEveClientId = "";
     public string WebEveClientId
     {
@@ -1209,6 +1253,22 @@ public class StoresViewModel : ReactiveObject
     private async Task DeploySiteAsync()
     {
         if (SelectedStore is not StoreRowVm row) return;
+
+        // A store's first deploy asks where the site should live; afterwards the address row
+        // above the button holds the choice. Saved before the deploy reads the store, not after.
+        if (WebUrl.Length == 0 && WebCustomHostname.Length == 0 && ChooseAddress is { } ask)
+        {
+            var choice = await ask($"https://{WebWorkerName}.<your account's name>.workers.dev", WebCustomHostname);
+            if (choice is null) { DeployStatusText = "Deploy cancelled."; return; }
+            if (choice.Length > 0)
+            {
+                _webCustomHostname = choice;
+                _webUsesOwnDomain  = true;
+                RaiseAddressChanged();
+                await SaveAsync(s => s.WebCustomHostname = choice);
+            }
+        }
+
         var progress = new Progress<string>(s => DeployStatusText = s);
         var r = await _deploy.DeployAsync(row.Id, progress);
         await LoadSelectedAsync();
@@ -1500,6 +1560,9 @@ public class StoresViewModel : ReactiveObject
                     WebStatusText     = DescribeWeb(store);
                     WebHasError       = store.WebEnabled && store.WebLastError.Length > 0;
                     WebWorkerName     = store.WebWorkerName.Length > 0 ? store.WebWorkerName : CloudflareDeployService.DefaultWorkerName(store.Name);
+                    _webCustomHostname = store.WebCustomHostname.Trim();
+                    _webUsesOwnDomain  = _webCustomHostname.Length > 0;
+                    RaiseAddressChanged();
                     WebEveClientId    = store.WebEveClientId;
                     WebEveClientSecret = store.WebEveClientSecret;
                     _ = LoadWebBannerAsync(store.Id);
@@ -1602,6 +1665,11 @@ public class StoresViewModel : ReactiveObject
     /// this guards against — but every view that shows the button should set it.</para>
     /// </summary>
     public Func<string, Task<bool>>? ConfirmDelete { get; set; }
+
+    /// <summary>Asks where a store's site should live before its first deploy; set by the view.
+    /// Given a preview of the free address and the current hostname; answers null when cancelled,
+    /// "" for workers.dev, else the hostname.</summary>
+    public Func<string, string, Task<string?>>? ChooseAddress { get; set; }
 
     private async Task DeleteStoreAsync()
     {

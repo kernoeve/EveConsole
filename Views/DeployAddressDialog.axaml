@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.DeployAddressDialog"
+        Title="Where should the site live?"
+        Width="520"
+        MinWidth="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}"
+        CanResize="False"
+        SizeToContent="Height">
+
+  <!-- Asked once, on a store's first deploy: the free workers.dev address, or a domain of the
+       owner's own that is already on their Cloudflare account. The same choice sits on the
+       Config tab afterwards, so it can be changed later without this dialog. -->
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+
+    <TextBlock Grid.Row="0" TextWrapping="Wrap" FontSize="13" Margin="20 20 20 14"
+               Foreground="{DynamicResource TextPrimaryBrush}"
+               Text="The site needs an address. It can have the free one Cloudflare gives every Worker, or a domain of your own that is already on this Cloudflare account. Either can be changed later on the Web site tab." />
+
+    <StackPanel Grid.Row="1" Margin="20 0 20 6" Spacing="4">
+      <RadioButton x:Name="FreeOption" GroupName="address" IsChecked="True" FontSize="12"
+                   Foreground="{DynamicResource TextPrimaryBrush}" Content="The free workers.dev address" />
+      <TextBlock x:Name="FreePreview" FontSize="11" Margin="28 0 0 8" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+
+      <RadioButton x:Name="DomainOption" GroupName="address" FontSize="12"
+                   Foreground="{DynamicResource TextPrimaryBrush}" Content="A domain of my own on Cloudflare" />
+      <TextBlock FontSize="11" Margin="28 0 0 4" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                 Text="The domain must already be on this Cloudflare account, with its DNS there. Cloudflare creates the record and the certificate; the site answers only on this name." />
+      <TextBox x:Name="HostBox" Margin="28 0 0 0" FontSize="12" IsEnabled="False"
+               Watermark="store.example.com" />
+    </StackPanel>
+
+    <TextBlock Grid.Row="2" x:Name="Problem" FontSize="11" Margin="20 4 20 0" IsVisible="False"
+               Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+
+    <Border Grid.Row="3" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+        <Button Content="Cancel"   Click="OnCancel"   Padding="20 5" />
+        <Button Content="Continue" Click="OnContinue" Padding="20 5" x:Name="ContinueButton" />
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</Window>

@@ -547,6 +547,9 @@ public static class PostgresSchema
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebWorkerName" TEXT NOT NULL DEFAULT ''
         """,
         """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebCustomHostname" TEXT NOT NULL DEFAULT ''
+        """,
+        """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebEveClientId" TEXT NOT NULL DEFAULT ''
         """,
         """

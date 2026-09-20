@@ -146,6 +146,13 @@ public sealed partial class CloudflareDeployService(
             if (!IsValidWorkerName(name))
                 return new Outcome(false, $"\"{name}\" is not a name Cloudflare accepts: lower-case letters, digits and hyphens, up to 63 of them.");
 
+            var hostname = "";
+            if (store.WebCustomHostname.Trim().Length > 0)
+            {
+                hostname = CleanHostname(store.WebCustomHostname)
+                        ?? throw new InvalidOperationException($"\"{store.WebCustomHostname}\" is not a hostname: something like store.example.com, letters, digits, hyphens and dots only.");
+            }
+
             progress?.Report("Looking up the newest site release…");
             var release  = await Releases.LatestCompatibleAsync(WebStoreProtocol.Version, progress, ct);
             var manifest = release.Manifest;
@@ -187,24 +194,56 @@ public sealed partial class CloudflareDeployService(
             progress?.Report("Setting the site's secrets…");
             await PutSecretsAsync(cf, token, accountId, name, store, ct);
 
-            progress?.Report("Switching on the workers.dev address…");
-            await cf.EnableWorkersDevAsync(token, accountId, name, ct);
-            var subdomain = await cf.SubdomainAsync(token, accountId, ct);
-            if (subdomain is null)
+            string? subdomain = null;
+            var letGo = false;
+            if (hostname.Length > 0)
             {
-                // The account has no workers.dev name yet. One is chosen from the account's name,
-                // as the dashboard would suggest, with a number added when that one is taken.
-                progress?.Report("Choosing the account's workers.dev name…");
-                subdomain = await ChooseSubdomainAsync(cf, token, accountId, ct);
+                // A domain of the owner's own: the Worker is attached to it — Cloudflare makes the
+                // DNS record and the certificate — and taken off workers.dev, so buyers and the
+                // EVE application's callback see one name.
+                progress?.Report($"Putting the site on {hostname}…");
+                var zone = await FindZoneForAsync(cf, token, accountId, hostname, ct);
+                if (zone is null)
+                    return new Outcome(false,
+                        $"No domain on this Cloudflare account holds {hostname}. The domain must be on Cloudflare, in this account, with its DNS there: "
+                        + "add it in the dashboard first, or use the free workers.dev address.");
+                try { await cf.AttachDomainAsync(token, accountId, zone.Id, hostname, name, ct); }
+                catch (CloudflareException ex)
+                {
+                    return new Outcome(false, Plain(ex)
+                        + " If Cloudflare is saying the token may not do this, give the token Zone → Workers Routes: Edit and Zone → DNS: Edit for that domain, on top of the Workers permissions it has.");
+                }
+                await cf.SetWorkersDevAsync(token, accountId, name, enabled: false, ct);
+            }
+            else
+            {
+                progress?.Report("Switching on the workers.dev address…");
+                await cf.SetWorkersDevAsync(token, accountId, name, enabled: true, ct);
+                subdomain = await cf.SubdomainAsync(token, accountId, ct);
+                if (subdomain is null)
+                {
+                    // The account has no workers.dev name yet. One is chosen from the account's
+                    // name, as the dashboard would suggest, with a number added when that is taken.
+                    progress?.Report("Choosing the account's workers.dev name…");
+                    subdomain = await ChooseSubdomainAsync(cf, token, accountId, ct);
+                }
+
+                // A domain this Worker used to be on is let go, so the name stops pointing at it.
+                // Cloudflare's own list says whether the address was one of ours; an address the
+                // owner typed in by hand is not there and is left alone.
+                if (Uri.TryCreate(store.WebUrl, UriKind.Absolute, out var old) && old.Host.Length > 0
+                    && !old.Host.EndsWith(".workers.dev", StringComparison.OrdinalIgnoreCase))
+                    foreach (var d in await cf.DomainsAsync(token, accountId, old.Host, ct))
+                        if (d.Service == name) { await cf.DetachDomainAsync(token, accountId, d.Id, ct); letGo = true; }
             }
 
             store.WebCloudflareAccountId = accountId;
             store.WebWorkerName          = name;
-            // The workers.dev address, unless the owner has put a domain of their own in.
-
-            if (subdomain is not null
-                && (store.WebUrl.Length == 0 || store.WebUrl.EndsWith(".workers.dev", StringComparison.OrdinalIgnoreCase)))
-                store.WebUrl = $"https://{name}.{subdomain}.workers.dev";
+            if (hostname.Length > 0)
+                store.WebUrl = $"https://{hostname}";
+            else if (subdomain is not null
+                && (store.WebUrl.Length == 0 || letGo || store.WebUrl.EndsWith(".workers.dev", StringComparison.OrdinalIgnoreCase)))
+                store.WebUrl = $"https://{name}.{subdomain}.workers.dev";   // unless the owner put an address of their own in by hand
             store.WebLastError = "";
             await db.SaveChangesAsync(ct);
 
@@ -328,6 +367,29 @@ public sealed partial class CloudflareDeployService(
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>The zone on the account that holds a hostname: the name itself, then each parent
+    /// down to two labels — store.shop.example.com may sit in shop.example.com or in example.com.</summary>
+    private static async Task<CloudflareClient.Zone?> FindZoneForAsync(CloudflareClient cf, string token, string accountId, string hostname, CancellationToken ct)
+    {
+        var labels = hostname.Split('.');
+        for (var i = 0; i <= labels.Length - 2; i++)
+        {
+            var zone = await cf.FindZoneAsync(token, accountId, string.Join('.', labels[i..]), ct);
+            if (zone is not null) return zone;
+        }
+        return null;
+    }
+
+    /// <summary>A hostname as typed, tidied — no scheme, path or capitals — or null when it is
+    /// not one: labels of letters, digits and hyphens, at least two of them, dots between.</summary>
+    public static string? CleanHostname(string typed)
+    {
+        var s = typed.Trim().ToLowerInvariant();
+        if (s.StartsWith("https://")) s = s[8..]; else if (s.StartsWith("http://")) s = s[7..];
+        s = s.Split('/')[0].TrimEnd('.');
+        return System.Text.RegularExpressions.Regex.IsMatch(s, @"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$") ? s : null;
+    }
 
     /// <summary>The account's name as a workers.dev name, or that with a number when it is taken; null when neither can be had.</summary>
     private static async Task<string?> ChooseSubdomainAsync(CloudflareClient cf, string token, string accountId, CancellationToken ct)

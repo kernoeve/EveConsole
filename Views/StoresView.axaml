@@ -611,7 +611,7 @@
                   <TextBlock Text="AUTOMATIC DEPLOYMENT AND UPDATES ON CLOUDFLARE  (only for the Deploy button)" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 8 0 0" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Fill these in only to have the app put the site on your own Cloudflare account and keep it current with the Deploy or update site button: it creates the database, uploads the newest release of the site, sets the secrets above and switches on the free workers.dev address. Deploying again updates the site without touching its orders. To set the site up by hand instead, follow the documentation, then enter the site address and secret above; none of these fields is needed for that." />
+                             Text="Fill these in only to have the app put the site on your own Cloudflare account and keep it current with the Deploy or update site button: it creates the database, uploads the newest release of the site, sets the secrets above and puts it on the free workers.dev address or a domain of your own on that account. Deploying again updates the site without touching its orders. To set the site up by hand instead, follow the documentation, then enter the site address and secret above; none of these fields is needed for that." />
                   <StackPanel Orientation="Horizontal" Spacing="18">
                     <HyperlinkButton Content="Documentation" NavigateUri="https://docs.eveconsole.com/stores/web-site/" FontSize="11" Padding="0" />
                     <HyperlinkButton Content="Site source and releases" NavigateUri="https://github.com/kernoeve/eveconsole-store" FontSize="11" Padding="0" />
@@ -647,11 +647,29 @@
                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
                       <TextBox Text="{Binding WebWorkerName, UpdateSourceTrigger=LostFocus}" FontSize="11" MinWidth="220"
                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <TextBlock Text="Also the database's name. Lower-case letters, digits and hyphens; the site's address is this name on the account's workers.dev."
+                      <TextBlock Text="Also the database's name. Lower-case letters, digits and hyphens; the site's address is this name on the account's workers.dev unless a domain of your own is chosen below."
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                     </StackPanel>
                   </Grid>
     
+                  <!-- Where the site lives: Cloudflare's free address, or a domain of the owner's own
+                       that is already on the account. Asked once at the first deploy; changed here. -->
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                    <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesFreeAddress}"
+                                 Content="The free workers.dev address: the worker name on the account's workers.dev"
+                                 FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesOwnDomain}" Content="A domain of my own on Cloudflare:"
+                                   FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <TextBox Text="{Binding WebCustomHostname, UpdateSourceTrigger=LostFocus}" IsEnabled="{Binding WebUsesOwnDomain}"
+                               Watermark="store.example.com" FontSize="11" MinWidth="220"
+                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                    </StackPanel>
+                    <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"
+                               Text="A domain must already be on this Cloudflare account with its DNS there. The next Deploy attaches the site to it, Cloudflare makes the record and the certificate, and the workers.dev address is switched off so buyers and the EVE application's callback see one name; switching back lets the domain go. Either way the callback URL above changes, so update the EVE application to match." />
+                  </StackPanel>
+
                   <Grid ColumnDefinitions="Auto,Auto,*">
                     <Button Grid.Column="0" Command="{Binding DeploySiteCommand}" Content="Deploy or update site" Padding="12 4" FontSize="11"
                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"

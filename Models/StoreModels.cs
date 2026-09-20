@@ -225,6 +225,12 @@ public class Store
     /// <summary>The Worker's name on that account, which is the D1 database's name too.</summary>
     public string WebWorkerName        { get; set; } = "";
 
+    /// <summary>A domain of the owner's own for the site, on their Cloudflare account — e.g.
+    /// store.example.com — or empty for the free workers.dev address. The Deploy button attaches
+    /// the Worker to it and switches workers.dev off, so buyers and the EVE application's
+    /// callback see one name.</summary>
+    public string WebCustomHostname    { get; set; } = "";
+
     /// <summary>The EVE developer application the site signs buyers in with: its client id…</summary>
     public string WebEveClientId       { get; set; } = "";
 
