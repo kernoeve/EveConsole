@@ -131,7 +131,8 @@ public class OrderFulfilmentService(
     /// <summary>One pass over the pending orders. Public so the tool can force it after an edit.</summary>
     public async Task RunOnceAsync(CancellationToken ct = default)
     {
-        try { await PassAsync(ct); }
+        var changed = false;
+        try { changed = await PassAsync(ct); }
         finally
         {
             if (AfterPass is { } after)
@@ -140,17 +141,28 @@ public class OrderFulfilmentService(
                 catch (OperationCanceledException) { }
                 catch (Exception ex) { errorLogger.Log(nameof(OrderFulfilmentService), "after pass", ex); }
             }
+            if (changed && PassChanged is { } listeners)
+            {
+                try { listeners(); }
+                catch (Exception ex) { errorLogger.Log(nameof(OrderFulfilmentService), "pass changed", ex); }
+            }
         }
     }
 
-    private async Task PassAsync(CancellationToken ct)
+    /// <summary>Raised after a pass that wrote something — a source linked, a date set, an order
+    /// completed — and not after the many that find nothing new. What the Order Tracker reloads
+    /// on, so a change shows the moment it is made rather than at the grid's next refresh.</summary>
+    public event Action? PassChanged;
+
+    /// <summary>True when the pass changed an order.</summary>
+    private async Task<bool> PassAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var orders = await db.TrackedOrders
             .Where(o => o.Status == "pending")
             .ToListAsync(ct);
-        if (orders.Count == 0) return;
+        if (orders.Count == 0) return false;
 
         // Ranked the way the tool ranks them, because that is the order stock should be claimed
         // in: a priority order takes from the shelf before an older ordinary one.
@@ -381,6 +393,7 @@ public class OrderFulfilmentService(
         StatusText   = PendingCount == 0
             ? "No pending orders"
             : $"{LinkedCount:N0} of {PendingCount:N0} pending order(s) have a source";
+        return changed;
     }
 
     /// <summary>Sets the derived fields, reporting whether anything actually moved.</summary>

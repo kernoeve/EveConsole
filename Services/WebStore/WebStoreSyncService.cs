@@ -889,6 +889,9 @@ public class WebStoreSyncService(
         record.OrderRef = orderRef;
         await db.SaveChangesAsync(ct);
 
+        // The order the owner just approved is matched against stock, jobs and contracts now,
+        // and the pass's own after-step pushes what it worked out to the site.
+        if (outcome == "booked") fulfilment.Nudge();
         Nudge();
         return outcome == "booked" ? $"Booked as order {orderRef}." : detail;
     }

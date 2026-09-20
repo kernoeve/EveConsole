@@ -991,7 +991,7 @@ public class MainWindowViewModel : ReactiveObject
         // typed into.
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
 
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
