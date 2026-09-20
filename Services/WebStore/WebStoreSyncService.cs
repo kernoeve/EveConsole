@@ -625,7 +625,9 @@ public class WebStoreSyncService(
                 StoreId        = store.Id,
                 OrderRef       = reference,
                 WebOrderId     = ev.WebOrderId,
+                MailUpdates    = ev.MailUpdates ?? true,
                 NotifiedState  = "pending||",
+
                 ContractToId   = toId,
                 ContractToName = toName,
                 ContractToType = toKind,

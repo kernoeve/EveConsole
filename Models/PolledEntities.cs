@@ -1111,6 +1111,13 @@ public class TrackedOrder
     public string WebOrderId    { get; set; } = "";
 
     /// <summary>
+    /// Whether the buyer wants EVE mail as the order moves. Asked on the web site when it takes
+    /// an order; an order that came by mail, or was entered by hand, is mailed as it always was.
+    /// </summary>
+    public bool   MailUpdates   { get; set; } = true;
+
+
+    /// <summary>
     /// What the buyer was last told about this line: its status and estimated date, joined.
     ///
     /// <para>⚠️ How a mailed order knows it owes an update, without the fulfilment pass having to

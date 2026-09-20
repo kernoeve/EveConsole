@@ -224,10 +224,12 @@ public class StoreMailService(
     /// </summary>
     private async Task<int> NotifyAsync(AppDbContext db, Store store, CancellationToken ct)
     {
+        // A buyer who said no to mail on the web site is not written to; the site keeps them posted.
         var orders = await db.TrackedOrders
-            .Where(o => o.StoreId == store.Id && o.OrderRef != "" && o.BuyerId != 0)
+            .Where(o => o.StoreId == store.Id && o.OrderRef != "" && o.BuyerId != 0 && o.MailUpdates)
             .ToListAsync(ct);
         if (orders.Count == 0) return 0;
+
 
         var changed = orders
             .Where(o => StateOf(o) != o.NotifiedState)

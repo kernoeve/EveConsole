@@ -787,6 +787,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
                 // The web site's id for an order placed there.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "WebOrderId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "MailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)
                 db.Database.ExecuteSqlRaw("""

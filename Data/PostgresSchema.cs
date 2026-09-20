@@ -539,6 +539,10 @@ public static class PostgresSchema
         """
         ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "WebOrderId" TEXT NOT NULL DEFAULT ''
         """,
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "MailUpdates" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+
 
         // ── Agent telemetry ──────────────────────────────────────────────────
         //

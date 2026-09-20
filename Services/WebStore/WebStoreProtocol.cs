@@ -250,6 +250,9 @@ public sealed class SiteEventDto
     public string Note { get; set; } = "";
     /// <summary>The catalogue the buyer was looking at when they ordered.</summary>
     public string CatalogueHash { get; set; } = "";
+    /// <summary>The buyer's answer to the site's "keep me posted by EVE mail"; absent means yes.</summary>
+    public bool?  MailUpdates { get; set; }
+
 
     // A cancellation, of an order the site knows by the app's id:
     public int?   OrderId { get; set; }
