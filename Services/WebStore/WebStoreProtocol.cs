@@ -78,10 +78,11 @@ public sealed class StoreInfoDto
     public string Name          { get; set; } = "";
     /// <summary>The owner's own words for the web, plain text with blank lines as paragraphs.</summary>
     public string Blurb         { get; set; } = "";
-    /// <summary>Who issues the contracts, when the store has a character.</summary>
+    /// <summary>The store's mailbox character, when it has one. Informational; the site shows nothing from it.</summary>
     public string CharacterName { get; set; } = "";
-    /// <summary>The posting's location, for want of delivery locations of its own yet.</summary>
+    /// <summary>Unused since site 0.1.4 — what the owner wants said about pickup goes in the blurb. Kept so older sites still read the field.</summary>
     public string Pickup        { get; set; } = "";
+
 
     /// <summary>"anyone" or "list". With "list", only <see cref="Allowed"/> may sign in.</summary>
     public string SenderPolicy  { get; set; } = "list";

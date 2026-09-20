@@ -429,7 +429,8 @@ public class WebStoreSyncService(
                 Name          = store.Name,
                 Blurb         = store.WebBlurb,
                 CharacterName = store.CharacterName,
-                Pickup        = posting?.LocationName ?? "",
+                Pickup        = "",   // nothing is guessed from the posting: the owner's blurb says where and how
+
                 SenderPolicy  = store.SenderPolicy == "Anyone" ? "anyone" : "list",
                 Allowed       = allowed,
                 MailUpdates   = store.CharacterId != 0 && store.WebMailUpdates,
