@@ -274,7 +274,7 @@ public class StoresViewModel : ReactiveObject
         // touching this screen.
         Observable.Interval(TimeSpan.FromSeconds(30))
             .ObserveOnUi("Stores.AutoRefresh")
-            .SubscribeAsyncSafe(_ => LoadSelectedAsync(), errorLogger, "Stores.AutoRefresh");
+            .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh");
 
         _ = LoadAsync();
     }
@@ -908,6 +908,7 @@ public class StoresViewModel : ReactiveObject
     private async Task SyncWebNowAsync()
     {
         if (SelectedStore is not StoreRowVm row) return;
+        await _lastSave;   // an edit that just lost focus has its save on the way
         if (!_lease.IsHolder)
         {
             Status = "Another client is running the background work and syncs the web site; it will pick the change up on its next cycle.";
@@ -1264,6 +1265,7 @@ public class StoresViewModel : ReactiveObject
     private async Task DeploySiteAsync()
     {
         if (SelectedStore is not StoreRowVm row) return;
+        await _lastSave;   // a box that lost focus to this button has its save on the way
 
         // Whether the account has a workers.dev name is known from the token check; an account
         // not checked in this session is checked now, so the question below is only asked when
@@ -1311,6 +1313,7 @@ public class StoresViewModel : ReactiveObject
     private async Task CheckSiteAsync()
     {
         if (SelectedStore is not StoreRowVm row) return;
+        await _lastSave;   // an edit that just lost focus has its save on the way
         DeployStatusText = "Asking the site…";
         var r = await _deploy.CheckSiteAsync(row.Id);
         DeployStatusText = r.Text;
@@ -1472,7 +1475,11 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
-    private async Task LoadSelectedAsync()
+    /// <param name="fields">Whether to fill the editable fields from the database as well as the
+    /// log, the orders and the status. ⚠️ The half-minute refresh passes false: those fields hold
+    /// what the user has typed, saved or on its way, and re-reading them mid-edit took a choice
+    /// away — the address flipped back to workers.dev before Deploy could be pressed.</param>
+    private async Task LoadSelectedAsync(bool fields = true)
     {
         if (SelectedStore is not StoreRowVm row)
         {
@@ -1548,6 +1555,29 @@ public class StoresViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                Mails.Clear();
+                foreach (var m in mails) Mails.Add(new StoreMailRowVm(m));
+
+                Orders.Clear();
+                foreach (var o in orderRows) Orders.Add(o);
+
+                Senders.Clear();
+                foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
+
+                WebEvents.Clear();
+                foreach (var e in webEvents) WebEvents.Add(new StoreWebEventRowVm(e));
+
+                StatInquiries = inquiries.ToString("N0");
+                StatActive    = active.ToString("N0");
+                StatCompleted = completed.ToString("N0");
+                StatCancelled = cancelled.ToString("N0");
+
+                WebStatusText = DescribeWeb(store);
+                WebHasError   = store.WebEnabled && store.WebLastError.Length > 0;
+                this.RaisePropertyChanged(nameof(HasSelection));
+
+                if (!fields) return;
+
                 _suppressSave = true;
                 try
                 {
@@ -1603,25 +1633,6 @@ public class StoresViewModel : ReactiveObject
 
                 }
                 finally { _suppressSave = false; }
-
-                Mails.Clear();
-                foreach (var m in mails) Mails.Add(new StoreMailRowVm(m));
-
-                Orders.Clear();
-                foreach (var o in orderRows) Orders.Add(o);
-
-                Senders.Clear();
-                foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
-
-                WebEvents.Clear();
-                foreach (var e in webEvents) WebEvents.Add(new StoreWebEventRowVm(e));
-
-                StatInquiries = inquiries.ToString("N0");
-                StatActive    = active.ToString("N0");
-                StatCompleted = completed.ToString("N0");
-                StatCancelled = cancelled.ToString("N0");
-
-                this.RaisePropertyChanged(nameof(HasSelection));
             });
         }
         catch (Exception ex)
@@ -1638,7 +1649,25 @@ public class StoresViewModel : ReactiveObject
     /// store's values onto it in the instant before the rest arrive.</summary>
     private bool _suppressSave;
 
-    private async Task SaveAsync(Action<Store> apply, bool nudge = false)
+    /// <summary>The save most recently begun. An action that reads the store back from the
+    /// database — a deploy, a sync — awaits it first, since a box that has just lost focus has
+    /// its save on the way rather than done.</summary>
+    private Task _lastSave = Task.CompletedTask;
+
+    /// <summary>Saves one change after any save still in flight, so writes land in order.</summary>
+    private Task SaveAsync(Action<Store> apply, bool nudge = false)
+    {
+        var previous = _lastSave;
+        return _lastSave = SaveAfterAsync(previous, apply, nudge);
+    }
+
+    private async Task SaveAfterAsync(Task previous, Action<Store> apply, bool nudge)
+    {
+        try { await previous; } catch { /* reported where it happened */ }
+        await SaveCoreAsync(apply, nudge);
+    }
+
+    private async Task SaveCoreAsync(Action<Store> apply, bool nudge)
     {
         if (_suppressSave || SelectedStore is not StoreRowVm row) return;
 
