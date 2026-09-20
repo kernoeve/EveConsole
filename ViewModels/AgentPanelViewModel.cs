@@ -127,12 +127,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     public void StartRecording()
     {
         if (_speech is null || IsRecording) return;
-        ErrorText  = "";
-        StatusText = "Recording…";
-        if (_speech.StartRecording())
-        {
-            IsRecording = true;
-        }
+        if (_speech.BeginCapture()) OnCaptureBegan();
         else
         {
             StatusText = "";
@@ -140,15 +135,46 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
     }
 
+    private CancellationTokenSource? _captureGuard;
+    private static readonly TimeSpan LongestHold = TimeSpan.FromSeconds(45);
+
+    /// <summary>The capture has begun, by key or by button: the panel says so, and a guard is set
+    /// for a release the hook never sees, which would otherwise leave the microphone recording
+    /// until the next one. Nobody dictates for longer than this in one breath.</summary>
+    private void OnCaptureBegan()
+    {
+        IsRecording = true;
+        ErrorText   = "";
+        StatusText  = "Recording…";
+
+        _captureGuard?.Cancel();
+        var guard = _captureGuard = new CancellationTokenSource();
+        _ = Task.Delay(LongestHold, guard.Token).ContinueWith(t =>
+        {
+            if (t.IsCanceled || _speech?.EndCapture() != true) return;
+            Dispatcher.UIThread.Post(() => _ = FinishCaptureAsync());
+        }, TaskScheduler.Default);
+    }
+
     public async Task StopAndTranscribeAsync()
     {
         if (_speech is null || !IsRecording) return;
+        if (_speech.EndCapture()) await FinishCaptureAsync();
+        else IsRecording = false;
+    }
+
+    /// <summary>After the key came up: waits out the tail, transcribes, and sends what was said.</summary>
+    private async Task FinishCaptureAsync()
+    {
+        if (_speech is null) return;
+        _captureGuard?.Cancel();
         IsRecording = false;
         StatusText  = "Transcribing…";
         ErrorText   = "";
         try
         {
-            var text = await _speech.StopAndTranscribeAsync();
+            var pcm  = await _speech.CollectAsync();
+            var text = pcm is null ? null : await _speech.TranscribeAsync(pcm);
             StatusText = "";
             if (!string.IsNullOrWhiteSpace(text) && !IsBlankAudioResult(text))
             {
@@ -157,7 +183,9 @@ public sealed class AgentPanelViewModel : ReactiveObject
             }
             else
             {
-                StatusText = "No speech detected — try speaking a bit longer.";
+                StatusText = pcm is null
+                    ? "No speech captured — hold the key while you speak."
+                    : "No speech detected — try speaking a bit longer.";
             }
         }
         catch (Exception ex)
@@ -239,8 +267,10 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // Wire global hotkey callbacks — hook fires on hook thread, must marshal to UI thread.
         if (_hotkey is not null)
         {
-            _hotkey.OnPress   = () => Dispatcher.UIThread.Post(StartRecording);
-            _hotkey.OnRelease = () => Dispatcher.UIThread.Post(() => _ = StopAndTranscribeAsync());
+            // ⚠️ The flag flips happen HERE, on the hook's own thread, not after a hop to the UI
+            // thread: the capture window is the key hold itself, however busy the window is.
+            _hotkey.OnPress   = () => { if (_speech?.BeginCapture() == true) Dispatcher.UIThread.Post(OnCaptureBegan); };
+            _hotkey.OnRelease = () => { if (_speech?.EndCapture()   == true) Dispatcher.UIThread.Post(() => _ = FinishCaptureAsync()); };
             ConfigureHotkey(service.Settings.PushToTalkKey);
         }
 

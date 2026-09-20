@@ -24,12 +24,16 @@ public sealed class SpeechInputService : IDisposable
     private static bool   _paInitialized;
     private static object _paLock = new();
 
-    private PaStream?               _stream;
-    private PaStream.Callback?      _callbackDelegate; // keep reference to prevent GC collection
-    private readonly ConcurrentQueue<byte[]> _chunks = new();
-    private volatile bool _recording;
+    private PaStream?          _stream;
+    private PaStream.Callback? _callbackDelegate; // keep reference to prevent GC collection
+    private readonly object    _streamLock = new();
 
-    public bool IsRecording    => _recording;
+    // The rolling capture — see "Capture" below.
+    private readonly ConcurrentQueue<(long Tick, byte[] Bytes)> _chunks = new();
+    private volatile int _state;   // Idle, Capturing, or Released and waiting to be collected
+    private long _pressedTick, _releasedTick;
+
+    public bool IsRecording    => _state == Capturing;
     public bool IsAvailable    => _provider != SpeechInputProvider.None;
 
     public LocalWhisperService LocalWhisper => _local;
@@ -57,10 +61,16 @@ public sealed class SpeechInputService : IDisposable
 
     public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "")
     {
+        var reopen = provider != _provider || (microphoneDeviceName ?? "") != _microphoneDeviceName;
         _provider             = provider;
         _apiKey               = apiKey ?? "";
         _localModel           = string.IsNullOrWhiteSpace(localModel) ? "tiny" : localModel;
         _microphoneDeviceName = microphoneDeviceName ?? "";
+
+        // The microphone opens now rather than at the first press, so the first press is as quick
+        // as every later one — and closes when speech input is switched off.
+        if (reopen) CloseStream();
+        if (provider != SpeechInputProvider.None) _ = Task.Run(EnsureStreamOpen);
     }
 
     /// <summary>
@@ -256,52 +266,82 @@ public sealed class SpeechInputService : IDisposable
         return PortAudio.DefaultInputDevice;
     }
 
-    public bool StartRecording()
+    // ── Capture ────────────────────────────────────────────────────────────────
+    //
+    // ⚠️ The microphone stays open. Opening a capture device takes a few hundred milliseconds,
+    // and it used to happen on the UI thread AFTER the key press had queued behind whatever that
+    // thread was doing — so a one-second utterance could be half over, or entirely over, before
+    // a byte of it was captured, and the transcriber was handed a fragment that read as silence.
+    // Measured: utterances here run one to three seconds, and the failed ones captured under
+    // half a second. Now the stream runs from the moment speech input is configured; while
+    // nobody holds the key the callback keeps only the last half second, and a press turns that
+    // into the head of the recording. Press and release are flag flips any thread may make at
+    // once, so the capture window is the key hold itself, whatever the UI thread is busy with.
+    // The cost is a microphone that is open while the app runs; a provider of None closes it.
+
+    private const int PreRollMs = 400;    // kept from before the press: people speak as they press
+    private const int TailMs    = 150;    // kept after the release: the last word's last consonant
+    private const int MinHoldMs = 150;    // a shorter press is a tap, not an utterance
+
+    private const int Idle = 0, Capturing = 1, Released = 2;
+
+    /// <summary>Opens the microphone if it is not open. Any thread; a press pays for it only if
+    /// Configure's own attempt failed.</summary>
+    private bool EnsureStreamOpen()
     {
-        if (_recording || _provider == SpeechInputProvider.None) return false;
-        if (!EnsurePortAudioInit()) return false;
-
-        try
+        if (_provider == SpeechInputProvider.None) return false;
+        lock (_streamLock)
         {
-            while (_chunks.TryDequeue(out _)) { } // clear any leftover audio
-
-            int device = ResolveDeviceIndex();
-            if (device < 0) return false;
-
-            var info = PortAudio.GetDeviceInfo(device);
-
-            var inputParams = new StreamParameters
+            if (_stream is not null) return true;
+            if (!EnsurePortAudioInit()) return false;
+            try
             {
-                device                    = device,
-                channelCount              = 1,
-                sampleFormat              = SampleFormat.Int16,
-                suggestedLatency          = info.defaultLowInputLatency,
-                hostApiSpecificStreamInfo = IntPtr.Zero,
-            };
+                int device = ResolveDeviceIndex();
+                if (device < 0) return false;
 
-            _callbackDelegate = RecordCallback;
+                var info = PortAudio.GetDeviceInfo(device);
+                var inputParams = new StreamParameters
+                {
+                    device                    = device,
+                    channelCount              = 1,
+                    sampleFormat              = SampleFormat.Int16,
+                    suggestedLatency          = info.defaultLowInputLatency,
+                    hostApiSpecificStreamInfo = IntPtr.Zero,
+                };
 
-            _stream = new PaStream(
-                inParams:        inputParams,
-                outParams:       null,
-                sampleRate:      SampleRate,
-                framesPerBuffer: FramesPerBuffer,
-                streamFlags:     StreamFlags.ClipOff,
-                callback:        _callbackDelegate,
-                userData:        null);
-
-            _recording = true;
-            _stream.Start();
-            return true;
+                _callbackDelegate = RecordCallback;
+                var stream = new PaStream(
+                    inParams:        inputParams,
+                    outParams:       null,
+                    sampleRate:      SampleRate,
+                    framesPerBuffer: FramesPerBuffer,
+                    streamFlags:     StreamFlags.ClipOff,
+                    callback:        _callbackDelegate,
+                    userData:        null);
+                stream.Start();
+                _stream = stream;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Fail("Open microphone", ex.Message);
+                _callbackDelegate = null;
+                _stream           = null;
+                return false;
+            }
         }
-        catch (Exception ex)
+    }
+
+    private void CloseStream()
+    {
+        lock (_streamLock)
         {
-            Fail("StartRecording", ex.Message);
+            _state = Idle;
+            try { _stream?.Stop();    } catch { }
+            try { _stream?.Dispose(); } catch { }
+            _stream           = null;
             _callbackDelegate = null;
-            _stream?.Dispose();
-            _stream    = null;
-            _recording = false;
-            return false;
+            while (_chunks.TryDequeue(out _)) { }
         }
     }
 
@@ -313,7 +353,7 @@ public sealed class SpeechInputService : IDisposable
         StreamCallbackFlags statusFlags,
         IntPtr userDataPtr)
     {
-        if (!_recording || input == IntPtr.Zero)
+        if (input == IntPtr.Zero)
             return StreamCallbackResult.Continue;
 
         var buf = new short[(int)frameCount];
@@ -321,41 +361,81 @@ public sealed class SpeechInputService : IDisposable
 
         var bytes = new byte[buf.Length * 2];
         Buffer.BlockCopy(buf, 0, bytes, 0, bytes.Length);
-        _chunks.Enqueue(bytes);
+
+        var now = Environment.TickCount64;
+        _chunks.Enqueue((now, bytes));
+
+        // Idle: keep the pre-roll and no more. Capturing or released: keep everything until the
+        // collection after the release has taken what it wants.
+        if (_state == Idle)
+            while (_chunks.TryPeek(out var oldest) && now - oldest.Tick > PreRollMs + 100 && _chunks.TryDequeue(out _)) { }
 
         return StreamCallbackResult.Continue;
     }
 
-    public async Task<string?> StopAndTranscribeAsync(CancellationToken ct = default)
+    /// <summary>The key went down. Instant, from any thread. False when speech input is off, the
+    /// microphone will not open, or a hold is already in progress.</summary>
+    public bool BeginCapture()
     {
-        if (!_recording) return null;
+        if (_state != Idle) return false;
+        if (!EnsureStreamOpen()) return false;
+        _pressedTick = Environment.TickCount64;
+        _state       = Capturing;
+        return true;
+    }
 
-        _recording = false;
+    /// <summary>The key came up. Instant, from any thread; <see cref="CollectAsync"/> then takes
+    /// the recording. False when nothing was being captured.</summary>
+    public bool EndCapture()
+    {
+        if (_state != Capturing) return false;
+        _releasedTick = Environment.TickCount64;
+        _state        = Released;
+        return true;
+    }
 
-        try   { _stream?.Stop();    } catch { }
-        try   { _stream?.Dispose(); } catch { }
+    /// <summary>
+    /// The recording the last hold made — pre-roll, hold and tail — as raw PCM, or null when the
+    /// hold was too short to be speech. Waits out the tail, so not for the hook thread.
+    /// </summary>
+    public async Task<byte[]?> CollectAsync(CancellationToken ct = default)
+    {
+        if (_state != Released) return null;
+        try
+        {
+            await Task.Delay(TailMs + 50, ct);
+
+            var from  = _pressedTick - PreRollMs;
+            var to    = _releasedTick + TailMs;
+            var parts = new List<byte[]>();
+            // Chronological, so everything up to the window is dropped, the window is taken, and
+            // what came after it stays for the next hold's pre-roll.
+            while (_chunks.TryPeek(out var c) && c.Tick <= to)
+            {
+                _chunks.TryDequeue(out _);
+                if (c.Tick >= from) parts.Add(c.Bytes);
+            }
+
+            if (_releasedTick - _pressedTick < MinHoldMs || parts.Count == 0) return null;
+
+            var pcm    = new byte[parts.Sum(p => p.Length)];
+            var offset = 0;
+            foreach (var p in parts)
+            {
+                Buffer.BlockCopy(p, 0, pcm, offset, p.Length);
+                offset += p.Length;
+            }
+            return pcm;
+        }
         finally
         {
-            _stream           = null;
-            _callbackDelegate = null;
+            _state = Idle;
         }
+    }
 
-        // Collect all recorded PCM chunks
-        var allChunks = new List<byte[]>();
-        while (_chunks.TryDequeue(out var chunk))
-            allChunks.Add(chunk);
-
-        if (allChunks.Count == 0) return null;
-
-        int totalBytes = allChunks.Sum(b => b.Length);
-        var pcm        = new byte[totalBytes];
-        int offset     = 0;
-        foreach (var chunk in allChunks)
-        {
-            Buffer.BlockCopy(chunk, 0, pcm, offset, chunk.Length);
-            offset += chunk.Length;
-        }
-
+    /// <summary>The words in a recording, from whichever transcriber is configured.</summary>
+    public async Task<string?> TranscribeAsync(byte[] pcm, CancellationToken ct = default)
+    {
         if (pcm.Length / 2 < SampleRate / 5) return null; // < 0.2 s — too short
 
         var wav = BuildWav(pcm);
@@ -396,6 +476,17 @@ public sealed class SpeechInputService : IDisposable
                     durationMs: (int)(Environment.TickCount64 - startedTicks),
                     error:      failure);
         }
+    }
+
+    /// <summary>Begin, for a caller with a button rather than a key.</summary>
+    public bool StartRecording() => BeginCapture();
+
+    /// <summary>End, collect and transcribe in one, for the same caller.</summary>
+    public async Task<string?> StopAndTranscribeAsync(CancellationToken ct = default)
+    {
+        if (!EndCapture()) return null;
+        var pcm = await CollectAsync(ct);
+        return pcm is null ? null : await TranscribeAsync(pcm, ct);
     }
 
     private static byte[] BuildWav(byte[] pcmBytes)
@@ -446,11 +537,7 @@ public sealed class SpeechInputService : IDisposable
 
     public void Dispose()
     {
-        _recording = false;
-        try { _stream?.Stop();    } catch { }
-        try { _stream?.Dispose(); } catch { }
-        _stream           = null;
-        _callbackDelegate = null;
+        CloseStream();
 
         // ⚠️ Needed since the local model started being kept between utterances. It holds native
         // memory measured in hundreds of megabytes — 1.5 GB for the medium model — and before
