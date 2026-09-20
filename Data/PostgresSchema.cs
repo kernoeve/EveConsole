@@ -517,6 +517,9 @@ public static class PostgresSchema
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebBuyerMaySwitch" BOOLEAN NOT NULL DEFAULT TRUE
         """,
         """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebThemes" TEXT NOT NULL DEFAULT ''
+        """,
+        """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebMailUpdates" BOOLEAN NOT NULL DEFAULT TRUE
         """,
         """

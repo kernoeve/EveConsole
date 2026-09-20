@@ -370,17 +370,22 @@ public class WebStoreSyncService(
                 .Select(s => new AllowedDto { Id = s.EntityId, Kind = s.EntityType, Name = s.Name })
                 .ToListAsync(ct);
 
-        var choice = WebThemes.ChoiceOf(store.WebTheme);
+        var choice  = WebThemes.ChoiceOf(store.WebTheme);
+        var offered = WebThemes.Offered(store);
         var theme = new ThemeDto
         {
             Key            = choice.Key,
-            BuyerMaySwitch = store.WebBuyerMaySwitch,
+            // The pair, for a site older than the list: it may switch when the partner is offered.
+            BuyerMaySwitch = offered.Contains(choice.Pair),
             Default        = choice.Parent,
             Variants =
             {
                 [choice.Parent] = WebThemes.Resolve(choice.Key),
                 [choice.Parent == "dark" ? "light" : "dark"] = WebThemes.Resolve(choice.Pair),
             },
+            Themes = offered.Select(WebThemes.ChoiceOf)
+                .Select(t => new ThemeOptionDto { Key = t.Key, Name = t.Name, Base = t.Parent, Tokens = WebThemes.Resolve(t.Key) })
+                .ToList(),
         };
 
         // ── Order rows: this store's, with a buyer id, whatever doorway placed them. Orders

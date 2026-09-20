@@ -19,6 +19,48 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 /// <summary>
+/// One of the app's themes, with whether a store offers it on its site. The store's own theme
+/// is always offered and its tick is disabled; the rest are the owner's to tick.
+/// </summary>
+public sealed class ThemeChoiceVm : ReactiveObject
+{
+    private readonly Action _changed;
+    private bool _isOffered, _isOwn;
+
+    public ThemeChoiceVm(string key, string name, bool offered, bool own, Action changed)
+    {
+        Key = key; Name = name; _isOwn = own; _isOffered = offered || own; _changed = changed;
+    }
+
+    public string Key  { get; }
+    public string Name { get; }
+
+    public bool IsOffered
+    {
+        get => _isOffered;
+        set
+        {
+            if (_isOwn) value = true;
+            if (value == _isOffered) return;
+            this.RaiseAndSetIfChanged(ref _isOffered, value);
+            _changed();
+        }
+    }
+
+    public bool IsOwn     => _isOwn;
+    public bool CanChange => !_isOwn;
+
+    public void SetOwn(bool own)
+    {
+        if (own == _isOwn) return;
+        _isOwn = own;
+        this.RaisePropertyChanged(nameof(IsOwn));
+        this.RaisePropertyChanged(nameof(CanChange));
+        if (own && !_isOffered) { _isOffered = true; this.RaisePropertyChanged(nameof(IsOffered)); }
+    }
+}
+
+/// <summary>
 /// One store in the list on the left.
 ///
 /// <para>⚠️ Updated in place rather than replaced. The settings panel writes through as the user
@@ -664,19 +706,31 @@ public class StoresViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _webTheme, value);
             if (value is null) return;
+            foreach (var c in WebThemeChoices) c.SetOwn(c.Key == value.Key);
             _ = SaveAsync(s => s.WebTheme = value.Key, nudge: true);
         }
     }
 
-    private bool _webBuyerMaySwitch = true;
-    public bool WebBuyerMaySwitch
+    /// <summary>Every theme, with whether buyers may pick it in the site's header. The store's
+    /// own is always among them; more than one and the site shows a dropdown like the app's.</summary>
+    public ObservableCollection<ThemeChoiceVm> WebThemeChoices { get; } = [];
+
+    private void LoadWebThemeChoices(Store store)
     {
-        get => _webBuyerMaySwitch;
-        set
+        var offered = WebThemes.Offered(store);
+        WebThemeChoices.Clear();
+        foreach (var t in WebThemes.All)
+            WebThemeChoices.Add(new ThemeChoiceVm(t.Key, t.Name, offered.Contains(t.Key), t.Key == store.WebTheme, SaveWebThemes));
+    }
+
+    private void SaveWebThemes()
+    {
+        var keys = WebThemeChoices.Where(c => c.IsOffered).Select(c => c.Key).ToList();
+        _ = SaveAsync(s =>
         {
-            this.RaiseAndSetIfChanged(ref _webBuyerMaySwitch, value);
-            _ = SaveAsync(s => s.WebBuyerMaySwitch = value, nudge: true);
-        }
+            s.WebThemes        = string.Join(",", keys);
+            s.WebBuyerMaySwitch = keys.Count > 1;   // what a site older than the list goes by
+        }, nudge: true);
     }
 
     private bool _webMailUpdates = true;
@@ -1440,7 +1494,7 @@ public class StoresViewModel : ReactiveObject
                     WebUrl            = store.WebUrl;
                     WebSecret         = store.WebSecret;
                     WebTheme          = ThemeOptions.FirstOrDefault(t => t.Key == store.WebTheme) ?? ThemeOptions[0];
-                    WebBuyerMaySwitch = store.WebBuyerMaySwitch;
+                    LoadWebThemeChoices(store);
                     WebMailUpdates    = store.WebMailUpdates;
                     WebBlurb          = store.WebBlurb;
                     WebStatusText     = DescribeWeb(store);

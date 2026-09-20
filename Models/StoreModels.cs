@@ -187,6 +187,11 @@ public class Store
     /// <summary>Whether a buyer may flip the site between the theme's dark and light pair.</summary>
     public bool   WebBuyerMaySwitch { get; set; } = true;
 
+    /// <summary>The themes a buyer may pick from on the site, as keys separated by commas, the
+    /// store's own among them. Empty means the old rule: the store's theme and, with
+    /// <see cref="WebBuyerMaySwitch"/>, its dark or light partner.</summary>
+    public string WebThemes        { get; set; } = "";
+
     /// <summary>Also mail web buyers as their orders move, when the store has a character.</summary>
     public bool   WebMailUpdates   { get; set; } = true;
 

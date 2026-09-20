@@ -488,11 +488,26 @@
     
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
-                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
-                      <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding WebTheme}" FontSize="11" MinWidth="160"
+                    <StackPanel Grid.Row="2" Grid.Column="1" Spacing="6" Margin="0 0 0 6">
+                      <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding WebTheme}" FontSize="11" MinWidth="160" HorizontalAlignment="Left"
                                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <CheckBox IsChecked="{Binding WebBuyerMaySwitch}" Content="Buyers may switch between its dark and light pair"
-                                FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <!-- The themes a buyer may pick from in the site's header. The store's own is always
+                           among them; with more than one the site shows a dropdown like the app's, and
+                           remembers each buyer's pick. -->
+                      <TextBlock Text="Buyers may also choose:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                      <ItemsControl ItemsSource="{Binding WebThemeChoices}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ThemeChoiceVm">
+                            <CheckBox IsChecked="{Binding IsOffered}" IsEnabled="{Binding CanChange}" Content="{Binding Name}"
+                                      FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 14 2" />
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
                     </StackPanel>
     
                     <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding WebMailUpdates}"

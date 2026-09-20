@@ -35,6 +35,19 @@ public static class WebThemes
 
     public const string DefaultKey = "dark";
 
+    /// <summary>The themes a store offers its buyers, its own first: the keys the owner ticked
+    /// that exist, or under the old rule the store's theme and, when buyers may switch, its
+    /// dark or light partner.</summary>
+    public static List<string> Offered(EveConsole.Models.Store store)
+    {
+        var own  = ChoiceOf(store.WebTheme);
+        var keys = new List<string> { own.Key };
+        var listed = (store.WebThemes ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (listed.Length > 0) keys.AddRange(All.Select(t => t.Key).Where(k => k != own.Key && listed.Contains(k)));
+        else if (store.WebBuyerMaySwitch) keys.Add(own.Pair);
+        return keys;
+    }
+
     public static Choice ChoiceOf(string key) =>
         All.FirstOrDefault(c => c.Key == key) ?? All[0];
 

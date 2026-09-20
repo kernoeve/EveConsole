@@ -140,6 +140,19 @@ public sealed class ThemeDto
     public string Default        { get; set; } = "dark";
     /// <summary>"dark" and "light": token name → hex colour, the site's CSS custom properties.</summary>
     public Dictionary<string, Dictionary<string, string>> Variants { get; set; } = new();
+    /// <summary>Every theme the buyer may pick from, the store's own first, each with its whole
+    /// palette. A site that knows this list shows a dropdown of them; an older site uses the
+    /// pair above and never sees it.</summary>
+    public List<ThemeOptionDto> Themes { get; set; } = [];
+}
+
+public sealed class ThemeOptionDto
+{
+    public string Key  { get; set; } = "";
+    public string Name { get; set; } = "";
+    /// <summary>"dark" or "light": which the theme is built on, for the browser's colour scheme.</summary>
+    public string Base { get; set; } = "dark";
+    public Dictionary<string, string> Tokens { get; set; } = new();
 }
 
 public sealed class CatalogueDto
