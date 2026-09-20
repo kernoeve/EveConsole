@@ -18,6 +18,15 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>What the address dialog is asked with: the worker's name for the preview, the
+/// account's workers.dev name when it has one, a suggestion for when it has none, and the
+/// hostname chosen so far.</summary>
+public sealed record DeployAddressPrompt(string WorkerName, string? AccountSubdomain, string SuggestedSubdomain, string CurrentHostname);
+
+/// <summary>The answer: a hostname of the owner's own, or "" for workers.dev together with the
+/// name the account should get when it has none yet ("" when it has one).</summary>
+public sealed record DeployAddressChoice(string Hostname, string Subdomain);
+
 /// <summary>
 /// One of the app's themes, with whether a store offers it on its site. The store's own theme
 /// is always offered and its tick is disabled; the rest are the owner's to tick.
@@ -1254,23 +1263,42 @@ public class StoresViewModel : ReactiveObject
     {
         if (SelectedStore is not StoreRowVm row) return;
 
-        // A store's first deploy asks where the site should live; afterwards the address row
-        // above the button holds the choice. Saved before the deploy reads the store, not after.
-        if (WebUrl.Length == 0 && WebCustomHostname.Length == 0 && ChooseAddress is { } ask)
+        // Whether the account has a workers.dev name is known from the token check; an account
+        // not checked in this session is checked now, so the question below is only asked when
+        // there is something to ask.
+        var accountId = CloudflareAccount?.Id ?? "";
+        if (accountId.Length > 0 && !_subdomains.ContainsKey(accountId) && AppConfig.GetCloudflareToken() is { Length: > 0 } tokenNow)
         {
-            var choice = await ask($"https://{WebWorkerName}.<your account's name>.workers.dev", WebCustomHostname);
+            DeployStatusText = "Checking the account…";
+            var check = await _deploy.CheckTokenAsync(tokenNow);
+            if (check.Ok) _subdomains = check.Subdomains;
+        }
+        var needsName = WebCustomHostname.Length == 0 && accountId.Length > 0 && !_subdomains.ContainsKey(accountId);
+
+        // A store's first deploy asks where the site should live, and an account without a
+        // workers.dev name is asked to name it; afterwards the address row above the button
+        // holds the choice. Saved before the deploy reads the store, not after.
+        string? subdomain = null;
+        if ((WebUrl.Length == 0 && WebCustomHostname.Length == 0 || needsName) && ChooseAddress is { } ask)
+        {
+            var prompt = new DeployAddressPrompt(WebWorkerName, _subdomains.GetValueOrDefault(accountId),
+                CloudflareDeployService.Slug(CloudflareAccount?.Name ?? "", 40, ""), WebCustomHostname);
+            var choice = await ask(prompt);
             if (choice is null) { DeployStatusText = "Deploy cancelled."; return; }
-            if (choice.Length > 0)
+            if (choice.Hostname.Length > 0)
             {
-                _webCustomHostname = choice;
+                _webCustomHostname = choice.Hostname;
                 _webUsesOwnDomain  = true;
                 RaiseAddressChanged();
-                await SaveAsync(s => s.WebCustomHostname = choice);
+                await SaveAsync(s => s.WebCustomHostname = choice.Hostname);
             }
+            else subdomain = choice.Subdomain;
         }
 
         var progress = new Progress<string>(s => DeployStatusText = s);
-        var r = await _deploy.DeployAsync(row.Id, progress);
+        var r = await _deploy.DeployAsync(row.Id, progress, subdomain: subdomain);
+        if (r.Ok && subdomain is { Length: > 0 } && accountId.Length > 0)
+            _subdomains = new Dictionary<string, string>(_subdomains) { [accountId] = CloudflareDeployService.Slug(subdomain, 63, "") };
         await LoadSelectedAsync();
         DeployStatusText = r.Text;
         RefreshCallbackText();
@@ -1666,10 +1694,9 @@ public class StoresViewModel : ReactiveObject
     /// </summary>
     public Func<string, Task<bool>>? ConfirmDelete { get; set; }
 
-    /// <summary>Asks where a store's site should live before its first deploy; set by the view.
-    /// Given a preview of the free address and the current hostname; answers null when cancelled,
-    /// "" for workers.dev, else the hostname.</summary>
-    public Func<string, string, Task<string?>>? ChooseAddress { get; set; }
+    /// <summary>Asks where a store's site should live before its first deploy, and for the
+    /// account's workers.dev name when it has none; set by the view. Null when cancelled.</summary>
+    public Func<DeployAddressPrompt, Task<DeployAddressChoice?>>? ChooseAddress { get; set; }
 
     private async Task DeleteStoreAsync()
     {

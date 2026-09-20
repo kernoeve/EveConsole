@@ -53,7 +53,7 @@ public sealed partial class CloudflareDeployService(
     public static string DefaultWorkerName(string storeName) => "eveconsole-" + Slug(storeName, 29, "store");
 
     /// <summary>Lower-case letters, digits and single hyphens, at most <paramref name="max"/> long.</summary>
-    private static string Slug(string text, int max, string fallback)
+    public static string Slug(string text, int max, string fallback)
     {
         var sb   = new StringBuilder();
         var dash = true;
@@ -96,7 +96,7 @@ public sealed partial class CloudflareDeployService(
             if (accounts.Count == 1)
                 text = subdomains.TryGetValue(accounts[0].Id, out var sub)
                     ? $"Token works for {accounts[0].Name}; sites go to *.{sub}.workers.dev."
-                    : $"Token works for {accounts[0].Name}, which has no workers.dev name yet; the first deploy chooses one.";
+                    : $"Token works for {accounts[0].Name}, which has no workers.dev name yet; the first deploy asks you to name it.";
             else
 
                 text = $"Token works for {accounts.Count} accounts; pick the one to deploy to.";
@@ -115,7 +115,9 @@ public sealed partial class CloudflareDeployService(
     /// not exist and keeping what does. The store's secret and its EVE application keys go on
     /// the site every time; secrets the site holds that the store does not know stay as they are.
     /// </summary>
-    public async Task<Outcome> DeployAsync(int storeId, IProgress<string>? progress = null, CancellationToken ct = default)
+    /// <param name="subdomain">The workers.dev name to claim for the account when it has none
+    /// yet, as the owner typed it. Without one, an account that has none is not deployed to.</param>
+    public async Task<Outcome> DeployAsync(int storeId, IProgress<string>? progress = null, CancellationToken ct = default, string? subdomain = null)
 
     {
         var token = TokenSource();
@@ -151,6 +153,31 @@ public sealed partial class CloudflareDeployService(
             {
                 hostname = CleanHostname(store.WebCustomHostname)
                         ?? throw new InvalidOperationException($"\"{store.WebCustomHostname}\" is not a hostname: something like store.example.com, letters, digits, hyphens and dots only.");
+            }
+
+            // The free address needs the account's workers.dev name, which every Worker on the
+            // account shares, so it is the owner's to choose, not something made up from the
+            // account's name. Settled before anything is uploaded: an account without one is
+            // asked, and a name somebody else holds (they are unique across all of Cloudflare)
+            // is refused here rather than after the site has gone up.
+            string? accountSubdomain = null;
+            if (hostname.Length == 0)
+            {
+                accountSubdomain = await cf.SubdomainAsync(token, accountId, ct);
+                if (accountSubdomain is null)
+                {
+                    if (string.IsNullOrWhiteSpace(subdomain))
+                        return new Outcome(false, "This Cloudflare account has no workers.dev name yet, and every Worker on it shares one. Press Deploy again and give it a name.");
+                    var wanted = Slug(subdomain, 63, "");
+                    if (!IsValidWorkerName(wanted))
+                        return new Outcome(false, $"\"{subdomain}\" is not a name workers.dev accepts: lower-case letters, digits and hyphens, up to 63 of them.");
+                    progress?.Report($"Claiming {wanted}.workers.dev for the account…");
+                    try { await cf.CreateSubdomainAsync(token, accountId, wanted, ct); accountSubdomain = wanted; }
+                    catch (CloudflareException ex)
+                    {
+                        return new Outcome(false, $"{wanted}.workers.dev could not be claimed: {Plain(ex)} A workers.dev name is unique across all of Cloudflare, so somebody may have it already; try another.");
+                    }
+                }
             }
 
             progress?.Report("Looking up the newest site release…");
@@ -194,7 +221,6 @@ public sealed partial class CloudflareDeployService(
             progress?.Report("Setting the site's secrets…");
             await PutSecretsAsync(cf, token, accountId, name, store, ct);
 
-            string? subdomain = null;
             var letGo = false;
             if (hostname.Length > 0)
             {
@@ -219,14 +245,6 @@ public sealed partial class CloudflareDeployService(
             {
                 progress?.Report("Switching on the workers.dev address…");
                 await cf.SetWorkersDevAsync(token, accountId, name, enabled: true, ct);
-                subdomain = await cf.SubdomainAsync(token, accountId, ct);
-                if (subdomain is null)
-                {
-                    // The account has no workers.dev name yet. One is chosen from the account's
-                    // name, as the dashboard would suggest, with a number added when that is taken.
-                    progress?.Report("Choosing the account's workers.dev name…");
-                    subdomain = await ChooseSubdomainAsync(cf, token, accountId, ct);
-                }
 
                 // A domain this Worker used to be on is let go, so the name stops pointing at it.
                 // Cloudflare's own list says whether the address was one of ours; an address the
@@ -241,16 +259,16 @@ public sealed partial class CloudflareDeployService(
             store.WebWorkerName          = name;
             if (hostname.Length > 0)
                 store.WebUrl = $"https://{hostname}";
-            else if (subdomain is not null
+            else if (accountSubdomain is not null
                 && (store.WebUrl.Length == 0 || letGo || store.WebUrl.EndsWith(".workers.dev", StringComparison.OrdinalIgnoreCase)))
-                store.WebUrl = $"https://{name}.{subdomain}.workers.dev";   // unless the owner put an address of their own in by hand
+                store.WebUrl = $"https://{name}.{accountSubdomain}.workers.dev";   // unless the owner put an address of their own in by hand
             store.WebLastError = "";
             await db.SaveChangesAsync(ct);
 
             if (store.WebUrl.Length == 0)
                 return new Outcome(true,
-                    $"Site {manifest.Version} uploaded as {name}, but no workers.dev name could be chosen for the account, so it has no address yet. "
-                    + "Choose one under Workers & Pages in the Cloudflare dashboard, then deploy again.",
+                    $"Site {manifest.Version} uploaded as {name}, but the account has no workers.dev name, so it has no address yet. "
+                    + "Name one under Workers & Pages, Account details, in the Cloudflare dashboard, then deploy again.",
                     "", manifest.Version);
 
             progress?.Report("Waiting for the site to answer…");
@@ -391,18 +409,7 @@ public sealed partial class CloudflareDeployService(
         return System.Text.RegularExpressions.Regex.IsMatch(s, @"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$") ? s : null;
     }
 
-    /// <summary>The account's name as a workers.dev name, or that with a number when it is taken; null when neither can be had.</summary>
-    private static async Task<string?> ChooseSubdomainAsync(CloudflareClient cf, string token, string accountId, CancellationToken ct)
-    {
-        var accounts = await cf.AccountsAsync(token, ct);
-        var basis    = Slug(accounts.FirstOrDefault(a => a.Id == accountId)?.Name ?? "", 40, "eveconsole");
-        foreach (var candidate in new[] { basis, $"{basis}-{Random.Shared.Next(1000, 9999)}", $"{basis}-{Random.Shared.Next(10000, 99999)}" })
-        {
-            try { await cf.CreateSubdomainAsync(token, accountId, candidate, ct); return candidate; }
-            catch (CloudflareException) { /* taken, or refused: the next candidate */ }
-        }
-        return null;
-    }
+
 
     /// <summary>What a site answers at /api/version. The sign-in fields came with 0.1.1 (whether it has keys) and 0.1.2 (which).</summary>
     public sealed record SiteProbe(string Version, int Protocol, bool? SsoConfigured, string? SsoClientId, string? SsoFingerprint);

@@ -17,10 +17,10 @@ public partial class StoresView : UserControl
             vm.ConfirmDelete = async message =>
                 TopLevel.GetTopLevel(this) is Window owner
                 && await new ConfirmDialog(message).ShowDialog<bool>(owner);
-            vm.ChooseAddress = async (preview, current) =>
+            vm.ChooseAddress = async prompt =>
                 TopLevel.GetTopLevel(this) is Window owner
-                    ? await new DeployAddressDialog(preview, current).ShowDialog<string?>(owner)
-                    : "";
+                    ? await new DeployAddressDialog(prompt).ShowDialog<DeployAddressChoice?>(owner)
+                    : new DeployAddressChoice("", "");
         };
     }
 

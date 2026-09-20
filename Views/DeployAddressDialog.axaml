@@ -2,16 +2,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EveConsole.Views.DeployAddressDialog"
         Title="Where should the site live?"
-        Width="520"
-        MinWidth="420"
+        Width="540"
+        MinWidth="440"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource SurfaceBaseBrush}"
         CanResize="False"
         SizeToContent="Height">
 
-  <!-- Asked once, on a store's first deploy: the free workers.dev address, or a domain of the
-       owner's own that is already on their Cloudflare account. The same choice sits on the
-       Config tab afterwards, so it can be changed later without this dialog. -->
+  <!-- Asked before a store's first deploy, and again whenever the account has no workers.dev
+       name yet: the free address (and the account's name for it, when it has none), or a domain
+       of the owner's own that is already on their Cloudflare account. The same choice sits on
+       the Config tab afterwards, so it can be changed later without this dialog. -->
   <Grid RowDefinitions="Auto,Auto,Auto,Auto">
 
     <TextBlock Grid.Row="0" TextWrapping="Wrap" FontSize="13" Margin="20 20 20 14"
@@ -21,7 +22,19 @@
     <StackPanel Grid.Row="1" Margin="20 0 20 6" Spacing="4">
       <RadioButton x:Name="FreeOption" GroupName="address" IsChecked="True" FontSize="12"
                    Foreground="{DynamicResource TextPrimaryBrush}" Content="The free workers.dev address" />
-      <TextBlock x:Name="FreePreview" FontSize="11" Margin="28 0 0 8" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+      <TextBlock x:Name="FreePreview" FontSize="11" Margin="28 0 0 4" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+
+      <!-- Only when the account has no workers.dev name yet: every Worker on the account shares
+           the one name, so it is the account's to choose, not the store's. -->
+      <StackPanel x:Name="SubdomainPanel" Margin="28 0 0 8" Spacing="4" IsVisible="False">
+        <TextBlock FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Text="This account has no workers.dev name yet. Name it:" />
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <TextBox x:Name="SubBox" FontSize="12" MinWidth="200" Watermark="your-name" />
+          <TextBlock Text=".workers.dev" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+        </StackPanel>
+        <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                   Text="Every Worker on this Cloudflare account shares it, it has to be unique across all of Cloudflare, and it can be changed later in the dashboard under Workers &amp; Pages, Account details. Lower-case letters, digits and hyphens." />
+      </StackPanel>
 
       <RadioButton x:Name="DomainOption" GroupName="address" FontSize="12"
                    Foreground="{DynamicResource TextPrimaryBrush}" Content="A domain of my own on Cloudflare" />
