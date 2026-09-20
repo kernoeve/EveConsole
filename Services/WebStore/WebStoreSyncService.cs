@@ -508,7 +508,7 @@ public class WebStoreSyncService(
                     : "The site and the app disagree about the protocol version.");
             }
             if (!response.IsSuccessStatusCode)
-                return (null, $"The site answered {(int)response.StatusCode} {response.ReasonPhrase}.");
+                return (null, $"The site answered {(int)response.StatusCode} {response.ReasonPhrase}{Detail(bytes)}.");
 
             var parsed = JsonSerializer.Deserialize<SyncResponse>(bytes, WebStoreProtocol.Json);
             if (parsed is null) return (null, "The site's reply was empty.");
@@ -528,6 +528,23 @@ public class WebStoreSyncService(
         {
             return (null, "The site's reply could not be read: " + ex.Message);
         }
+    }
+
+    /// <summary>What the site said with an error, for the status line: its JSON "error", else the start of its text.</summary>
+    private static string Detail(byte[] bytes)
+    {
+        if (bytes.Length == 0) return "";
+        try
+        {
+            using var doc = JsonDocument.Parse(bytes);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("error", out var e) && e.ValueKind == JsonValueKind.String
+                && e.GetString() is { Length: > 0 } why)
+                return $": {why}";
+        }
+        catch (JsonException) { }
+        var text = Encoding.UTF8.GetString(bytes).Trim();
+        return text.Length == 0 || text.StartsWith('<') ? "" : $": {(text.Length > 160 ? text[..160] + "…" : text)}";
     }
 
     private static int? TryProtocol(byte[] bytes)
