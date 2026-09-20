@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -201,11 +204,13 @@ public class StoresViewModel : ReactiveObject
         ForgetCloudflareTokenCommand = ReactiveCommand.Create(ForgetCloudflareToken);
         DeploySiteCommand            = ReactiveCommand.CreateFromTask(DeploySiteAsync);
         CheckSiteCommand             = ReactiveCommand.CreateFromTask(CheckSiteAsync);
+        RemoveWebBannerCommand       = ReactiveCommand.CreateFromTask(RemoveWebBannerAsync);
         RefreshTokenText();
 
         foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
                                   CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand,
-                                  SaveCloudflareTokenCommand, ForgetCloudflareTokenCommand, DeploySiteCommand, CheckSiteCommand })
+                                  SaveCloudflareTokenCommand, ForgetCloudflareTokenCommand, DeploySiteCommand, CheckSiteCommand,
+                                  RemoveWebBannerCommand })
 
             c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(StoresViewModel), "command", ex));
 
@@ -228,6 +233,7 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
     public ReactiveCommand<Unit, Unit> SyncWebNowCommand  { get; }
+    public ReactiveCommand<Unit, Unit> RemoveWebBannerCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCloudflareTokenCommand   { get; }
     public ReactiveCommand<Unit, Unit> ForgetCloudflareTokenCommand { get; }
     public ReactiveCommand<Unit, Unit> DeploySiteCommand            { get; }
@@ -693,6 +699,114 @@ public class StoresViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _webBlurb, value ?? "");
             _ = SaveAsync(s => s.WebBlurb = (value ?? "").Trim(), nudge: true);
         }
+    }
+
+    // ── The banner across the top of the site's price list ────────────────────
+
+    private string _webBannerText = "None.";
+    /// <summary>What the banner is — file, size, how it goes to the site — or that there is none.</summary>
+    public string WebBannerText
+    {
+        get => _webBannerText;
+        private set => this.RaiseAndSetIfChanged(ref _webBannerText, value);
+    }
+
+    private Bitmap? _webBannerPreview;
+    public Bitmap? WebBannerPreview
+    {
+        get => _webBannerPreview;
+        private set => this.RaiseAndSetIfChanged(ref _webBannerPreview, value);
+    }
+
+    private bool _hasWebBanner;
+    public bool HasWebBanner
+    {
+        get => _hasWebBanner;
+        private set => this.RaiseAndSetIfChanged(ref _hasWebBanner, value);
+    }
+
+    /// <summary>The banner's facts and preview for the selected store; on a quick switch of
+    /// stores, the load that finishes for the store still selected is the one that shows.</summary>
+    private async Task LoadWebBannerAsync(int storeId)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var asset = await db.StoreWebAssets.AsNoTracking()
+                .FirstOrDefaultAsync(a => a.StoreId == storeId && a.Kind == StoreWebAsset.Banner);
+            Bitmap? preview = null;
+            if (asset is not null)
+            {
+                try { preview = new Bitmap(new MemoryStream(asset.Bytes)); }
+                catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), "banner preview", ex); }
+            }
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (SelectedStore?.Id != storeId) return;
+                HasWebBanner     = asset is not null;
+                WebBannerPreview = preview;
+                WebBannerText    = asset is null ? "None." : DescribeBanner(asset);
+            });
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), nameof(LoadWebBannerAsync), ex); }
+    }
+
+    private static string DescribeBanner(StoreWebAsset a)
+    {
+        var size = a.Bytes.Length >= 1024 * 1024 ? $"{a.Bytes.Length / (1024.0 * 1024):0.0} MB" : $"{a.Bytes.Length / 1024.0:0} KB";
+        var name = a.FileName.Length > 0 ? a.FileName + " · " : "";
+        return $"{name}{a.Width} × {a.Height} · {size} · {a.ContentType.Replace("image/", "").ToUpperInvariant()}";
+    }
+
+    /// <summary>Takes a picture the owner chose: kept as it is when it fits the site, else scaled
+    /// and re-encoded; saved with the store and sent on the next sync.</summary>
+    public async Task SetWebBannerAsync(byte[] source, string fileName)
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        try
+        {
+            var prepared = await Task.Run(() => BannerImage.Prepare(source));
+            var sha = Convert.ToHexString(SHA256.HashData(prepared.Bytes)).ToLowerInvariant();
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var asset = await db.StoreWebAssets.FirstOrDefaultAsync(a => a.StoreId == row.Id && a.Kind == StoreWebAsset.Banner);
+            if (asset is null) db.StoreWebAssets.Add(asset = new StoreWebAsset { StoreId = row.Id, Kind = StoreWebAsset.Banner });
+            asset.ContentType = prepared.ContentType;
+            asset.Sha256      = sha;
+            asset.FileName    = fileName;
+            asset.Width       = prepared.Width;
+            asset.Height      = prepared.Height;
+            asset.Bytes       = prepared.Bytes;
+            asset.UpdatedAt   = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+            _webSync.Nudge();
+            Status = ReferenceEquals(prepared.Bytes, source)
+                ? "Banner saved; it goes to the site on the next sync."
+                : $"Banner saved, scaled to {prepared.Width} × {prepared.Height} and sent as WebP; it goes to the site on the next sync.";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(SetWebBannerAsync), ex);
+            Status = "The banner could not be used: " + ex.Message;
+        }
+        await LoadWebBannerAsync(row.Id);
+    }
+
+    private async Task RemoveWebBannerAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.StoreWebAssets.Where(a => a.StoreId == row.Id && a.Kind == StoreWebAsset.Banner).ExecuteDeleteAsync();
+            _webSync.Nudge();
+            Status = "Banner removed; the site drops it on the next sync.";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(RemoveWebBannerAsync), ex);
+            Status = "The banner could not be removed: " + ex.Message;
+        }
+        await LoadWebBannerAsync(row.Id);
     }
 
     private string _webStatusText = "";
@@ -1334,6 +1448,7 @@ public class StoresViewModel : ReactiveObject
                     WebWorkerName     = store.WebWorkerName.Length > 0 ? store.WebWorkerName : CloudflareDeployService.DefaultWorkerName(store.Name);
                     WebEveClientId    = store.WebEveClientId;
                     WebEveClientSecret = store.WebEveClientSecret;
+                    _ = LoadWebBannerAsync(store.Id);
                     CloudflareAccount = AccountFor(store.WebCloudflareAccountId);
                     RefreshCallbackText();
                     RefreshSsoWarning();

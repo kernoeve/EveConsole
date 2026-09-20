@@ -98,6 +98,21 @@ public static class PostgresSchema
         """
         CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")
         """,
+        // Pictures the site shows for a store: the banner, bytes and all.
+        """
+        CREATE TABLE IF NOT EXISTS "StoreWebAssets" (
+            "StoreId"     INTEGER     NOT NULL,
+            "Kind"        TEXT        NOT NULL DEFAULT 'banner',
+            "ContentType" TEXT        NOT NULL DEFAULT '',
+            "Sha256"      TEXT        NOT NULL DEFAULT '',
+            "FileName"    TEXT        NOT NULL DEFAULT '',
+            "Width"       INTEGER     NOT NULL DEFAULT 0,
+            "Height"      INTEGER     NOT NULL DEFAULT 0,
+            "Bytes"       BYTEA       NOT NULL,
+            "UpdatedAt"   TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY ("StoreId", "Kind")
+        )
+        """,
         // The NPC corporation facts the SDE import drops, fetched from ESI when a page is opened.
         // ⚠️ DOUBLE PRECISION for the tax rate: REAL is float4 on PostgreSQL and would round it.
         // Map and station fields the import was leaving in the file.

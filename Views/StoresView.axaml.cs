@@ -1,5 +1,7 @@
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -60,6 +62,25 @@ public partial class StoresView : UserControl
         if (DataContext is not StoresViewModel vm || vm.WebCallbackUrl.Length == 0) return;
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard is not null) await clipboard.SetTextAsync(vm.WebCallbackUrl);
+    }
+
+    /// <summary>A picture from disk for the site's banner; the view model makes it fit.</summary>
+    private async void OnChooseBanner(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not StoresViewModel vm) return;
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null) return;
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title          = "Choose a banner picture",
+            AllowMultiple  = false,
+            FileTypeFilter = [FilePickerFileTypes.ImageAll],
+        });
+        if (files.Count == 0) return;
+        await using var stream = await files[0].OpenReadAsync();
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+        await vm.SetWebBannerAsync(buffer.ToArray(), files[0].Name);
     }
 
 }

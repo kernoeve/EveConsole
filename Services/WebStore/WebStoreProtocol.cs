@@ -26,6 +26,8 @@ public static class WebStoreProtocol
 
     /// <summary>The path on the site the app calls. Everything else the site serves is for buyers.</summary>
     public const string SyncPath = "/api/sync";
+    /// <summary>Where the banner's bytes go, on their own signed call.</summary>
+    public const string BannerPath = "/api/sync/banner";
 
     public const string TimestampHeader = "X-EveConsole-Timestamp";
     public const string SignatureHeader = "X-EveConsole-Signature";
@@ -91,8 +93,29 @@ public sealed class StoreInfoDto
     public bool MailUpdates     { get; set; }
     /// <summary>The store's per-buyer purchase limit, when it has one; null for none.</summary>
     public LimitDto? Limit      { get; set; }
+    /// <summary>The banner across the top of the price list, by hash and type; the bytes go on
+    /// their own call. ⚠️ Null is written out, not left off like other nulls: null tells the site
+    /// the store has no banner now, while a push without the field (an older app) leaves whatever
+    /// the site holds alone.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public BannerDto? Banner    { get; set; }
 
     public ThemeDto Theme       { get; set; } = new();
+}
+
+public sealed class BannerDto
+{
+    public string Sha256      { get; set; } = "";
+    public string ContentType { get; set; } = "";
+}
+
+/// <summary>PUT /api/sync/banner: the bytes, base64 in JSON so the type travels under the same
+/// signature. <see cref="Data"/> is a byte array here; the serializer writes it as base64.</summary>
+public sealed class BannerUpload
+{
+    public string Sha256      { get; set; } = "";
+    public string ContentType { get; set; } = "";
+    public byte[] Data        { get; set; } = [];
 }
 
 public sealed class AllowedDto
@@ -255,6 +278,10 @@ public sealed class SyncResponse
     /// <summary>The site holds no order rows, so the app resends them all: a fresh database, or
     /// one restored from before the app's ledger.</summary>
     public bool NeedsFullOrders { get; set; }
+
+    /// <summary>The hash of the banner the site holds, "" for none; null from a site too old to
+    /// know about banners, which then gets none.</summary>
+    public string? BannerSha256 { get; set; }
 
     public DateTimeOffset ServerTime { get; set; }
 }

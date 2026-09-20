@@ -277,6 +277,14 @@ public class WebStoreSyncService(
         store.WebLastError   = "";
         await db.SaveChangesAsync(ct);
 
+        // ── The banner: its bytes go on their own call, only when the site does not hold this
+        //    one. The reply says what the site has; a site too old to say gets none.
+        if (response.BannerSha256 is { } siteBanner && request.Store.Banner is { } banner && siteBanner != banner.Sha256)
+        {
+            var problem = await PutBannerAsync(db, store, banner.Sha256, ct);
+            if (problem is not null) { store.WebLastError = problem; await db.SaveChangesAsync(ct); }
+        }
+
         // ── What buyers did ──
         var booked = 0;
         var events = 0;
@@ -429,6 +437,12 @@ public class WebStoreSyncService(
             })
             .ToList();
 
+        // The banner by hash only; the bytes follow on their own call when the site lacks them.
+        var banner = await db.StoreWebAssets.AsNoTracking()
+            .Where(a => a.StoreId == store.Id && a.Kind == StoreWebAsset.Banner)
+            .Select(a => new BannerDto { Sha256 = a.Sha256, ContentType = a.ContentType })
+            .FirstOrDefaultAsync(ct);
+
         var request = new SyncRequest
         {
             AppVersion = AppVersion.Number,
@@ -455,6 +469,7 @@ public class WebStoreSyncService(
                     : null,
 
                 Theme         = theme,
+                Banner        = banner,
             },
             Catalogue = catalogue,
             Orders    = page.Select(kv => kv.Value.Dto).ToList(),
@@ -552,6 +567,44 @@ public class WebStoreSyncService(
         {
             return (null, "The site's reply could not be read: " + ex.Message);
         }
+    }
+
+    /// <summary>Sends the store's banner to the site. Null when it went; else why not, in words.</summary>
+    private async Task<string?> PutBannerAsync(AppDbContext db, Store store, string sha256, CancellationToken ct)
+    {
+        var asset = await db.StoreWebAssets.AsNoTracking()
+            .FirstOrDefaultAsync(a => a.StoreId == store.Id && a.Kind == StoreWebAsset.Banner, ct);
+        if (asset is null || asset.Sha256 != sha256) return null;   // changed since the push was built; the next call names the new one
+
+        var body = JsonSerializer.SerializeToUtf8Bytes(
+            new BannerUpload { Sha256 = asset.Sha256, ContentType = asset.ContentType, Data = asset.Bytes }, WebStoreProtocol.Json);
+        var (status, reply, error) = await SendSignedAsync(store, HttpMethod.Put, WebStoreProtocol.BannerPath, body, ct);
+        if (error is not null) return "The banner could not be sent: " + error + ".";
+        if (status == HttpStatusCode.NotFound) return "The site is too old to take a banner; update it.";
+        if ((int)status >= 300) return $"The site refused the banner ({(int)status}){Detail(reply)}.";
+        return null;
+    }
+
+    /// <summary>One signed call to the site: the sync call's own timestamp and signature headers.</summary>
+    private async Task<(HttpStatusCode Status, byte[] Body, string? Error)> SendSignedAsync(
+        Store store, HttpMethod method, string path, byte[] body, CancellationToken ct)
+    {
+        if (!Uri.TryCreate(store.WebUrl.TrimEnd('/') + path, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+            return (0, [], $"the site address \"{store.WebUrl}\" is not a valid https address");
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        try
+        {
+            using var content = new ByteArrayContent(body);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            using var message = new HttpRequestMessage(method, uri) { Content = content };
+            message.Headers.Add(WebStoreProtocol.TimestampHeader, now.ToString());
+            message.Headers.Add(WebStoreProtocol.SignatureHeader, WebStoreSigner.Sign(store.WebSecret, now, body));
+            using var response = await httpFactory.CreateClient("webstore").SendAsync(message, ct);
+            return (response.StatusCode, await response.Content.ReadAsByteArrayAsync(ct), null);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return (0, [], "the site did not answer within a minute"); }
+        catch (HttpRequestException ex) { return (0, [], "could not reach the site: " + ex.Message); }
     }
 
     /// <summary>What the site said with an error, for the status line: its JSON "error", else the start of its text.</summary>

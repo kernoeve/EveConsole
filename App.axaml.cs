@@ -3159,6 +3159,8 @@ public class App : Application
                     """CREATE TABLE IF NOT EXISTS "StoreWebPushes" ("StoreId" INTEGER NOT NULL, "OrderId" INTEGER NOT NULL, "Hash" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("StoreId", "OrderId"))""",
                     """CREATE TABLE IF NOT EXISTS "StoreWebEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "StoreId" INTEGER NOT NULL DEFAULT 0, "Seq" INTEGER NOT NULL DEFAULT 0, "Kind" TEXT NOT NULL DEFAULT '', "WebOrderId" TEXT NOT NULL DEFAULT '', "BuyerId" INTEGER NOT NULL DEFAULT 0, "BuyerName" TEXT NOT NULL DEFAULT '', "Payload" TEXT NOT NULL DEFAULT '', "ReceivedAt" TEXT NOT NULL DEFAULT '', "Outcome" TEXT NOT NULL DEFAULT '', "Detail" TEXT NOT NULL DEFAULT '', "OrderRef" TEXT NOT NULL DEFAULT '')""",
                     """CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")""",
+                    // Pictures the site shows for a store: the banner, bytes and all.
+                    """CREATE TABLE IF NOT EXISTS "StoreWebAssets" ("StoreId" INTEGER NOT NULL, "Kind" TEXT NOT NULL DEFAULT 'banner', "ContentType" TEXT NOT NULL DEFAULT '', "Sha256" TEXT NOT NULL DEFAULT '', "FileName" TEXT NOT NULL DEFAULT '', "Width" INTEGER NOT NULL DEFAULT 0, "Height" INTEGER NOT NULL DEFAULT 0, "Bytes" BLOB NOT NULL, "UpdatedAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("StoreId", "Kind"))""",
 
                     // Intel alarm keys used to be the report's row id, which changes whenever a chat
                     // log is re-read — so old sightings kept looking new. They are now content-based

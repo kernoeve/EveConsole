@@ -506,9 +506,35 @@
                   <TextBlock Text="ABOUT THIS STORE, ON THE SITE" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
                   <TextBox Text="{Binding WebBlurb, UpdateSourceTrigger=LostFocus}"
-                           AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="160"
-                           Watermark="Contract terms, pickup, whatever a buyer should read before ordering. Plain text; a blank line starts a paragraph."
-                           FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                           AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="220"
+                           Watermark="Contract terms, pickup, whatever a buyer should read before ordering. Plain text or HTML."
+                           FontSize="11" FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
+                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="HTML is welcome: &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt; and the mail markup's &lt;font color&gt;. Line breaks and blank lines are kept as written until you lay it out with paragraph or list tags, after which the tags decide. The site drops scripts, handlers and tags it does not know, and closes any tag left open." />
+
+                  <!-- The banner: a picture across the top of the price list. Kept with the store,
+                       bytes and all, so every client of the database pushes the same one; the app
+                       scales it for the site, which holds one row of up to a megabyte. -->
+                  <TextBlock Text="BANNER" FontSize="10"
+                             FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
+                  <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             Text="Optional. Shown across the top of the price list, the width of the page and up to 300 pixels tall; a wide picture, about 1100 by 250, fits best, and a taller one shows its middle. A big file is scaled down and sent as WebP." />
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Border IsVisible="{Binding HasWebBanner}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3"
+                            Background="{DynamicResource SurfaceRaisedBrush}" VerticalAlignment="Center">
+                      <Image Source="{Binding WebBannerPreview}" MaxHeight="64" MaxWidth="300" Stretch="Uniform" />
+                    </Border>
+                    <StackPanel Spacing="6" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding WebBannerText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Click="OnChooseBanner" Content="Choose picture…" Padding="10 4" FontSize="11"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                        <Button Command="{Binding RemoveWebBannerCommand}" Content="Remove" IsVisible="{Binding HasWebBanner}" Padding="10 4" FontSize="11"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                      </StackPanel>
+                    </StackPanel>
+                  </StackPanel>
     
                   <Grid ColumnDefinitions="Auto,*">
                     <Button Grid.Column="0" Command="{Binding SyncWebNowCommand}" Content="Sync now" Padding="12 4" FontSize="11"

@@ -234,6 +234,27 @@ public class Store
 }
 
 /// <summary>
+/// A picture the site shows for a store — today only the banner across the top of the price
+/// list. One row per store and kind, bytes and all, so every client of a shared database pushes
+/// the same site; the sync names it by hash and sends the bytes only when the site lacks them.
+/// </summary>
+public class StoreWebAsset
+{
+    public const string Banner = "banner";
+
+    public int    StoreId     { get; set; }
+    public string Kind        { get; set; } = Banner;
+    public string ContentType { get; set; } = "";
+    public string Sha256      { get; set; } = "";
+    /// <summary>The file it was chosen from, for the owner's eyes only.</summary>
+    public string FileName    { get; set; } = "";
+    public int    Width       { get; set; }
+    public int    Height      { get; set; }
+    public byte[] Bytes       { get; set; } = [];
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+/// <summary>
 /// One entry on a store's allow list: a character, a corporation, or an alliance.
 ///
 /// <para>All three in one table rather than three settings, because they answer one question and
