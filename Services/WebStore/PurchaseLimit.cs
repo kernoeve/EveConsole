@@ -64,27 +64,7 @@ public static class PurchaseLimit
         AppDbContext db, Store store, long buyerId, List<(int TypeId, long Units)> lines,
         Func<int, string> nameOf, CancellationToken ct)
     {
-        var since   = Since(store, DateTimeOffset.UtcNow);
-        var history = (await db.TrackedOrders.AsNoTracking()
-                .Where(o => o.StoreId == store.Id && o.BuyerId == buyerId && o.Status != "canceled")
-                .Select(o => new { o.TypeId, o.Units, o.CreatedAt })
-                .ToListAsync(ct))
-            .Where(o => since is null || o.CreatedAt >= since)   // compared here: a DateTimeOffset in a Where does not translate on SQLite
-            .ToList();
-
-        var typeIds = history.Select(o => o.TypeId).Concat(lines.Select(l => l.TypeId)).Distinct().ToList();
-        var groups  = await db.SdeTypes.AsNoTracking()
-            .Where(t => typeIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.GroupId, ct);
-        string Key(int typeId) => store.LimitScope switch
-        {
-            "group" => $"g:{groups.GetValueOrDefault(typeId)}",
-            "store" => "store",
-            _       => $"t:{typeId}",
-        };
-
-        var taken = new Dictionary<string, long>();
-        foreach (var o in history) taken[Key(o.TypeId)] = taken.GetValueOrDefault(Key(o.TypeId)) + o.Units;
+        var (taken, Key) = await TakenAsync(db, store, buyerId, lines.Select(l => l.TypeId), ct);
 
         var limit = Math.Max(1, store.LimitUnits);
         foreach (var (typeId, units) in lines)
@@ -97,5 +77,46 @@ public static class PurchaseLimit
             taken[key] = had + units;   // two lines against one key add up within the order
         }
         return null;
+    }
+
+    /// <summary>
+    /// The items among these a buyer may not order any more: what they have taken against the
+    /// limit leaves nothing. The site greys these rows out; the mailed price list dims them and
+    /// says so, since EVE mail has no strikethrough to draw.
+    /// </summary>
+    public static async Task<HashSet<int>> BlockedAsync(
+        AppDbContext db, Store store, long buyerId, IReadOnlyCollection<int> typeIds, CancellationToken ct)
+    {
+        var (taken, key) = await TakenAsync(db, store, buyerId, typeIds, ct);
+        var limit = Math.Max(1, store.LimitUnits);
+        return typeIds.Where(t => taken.GetValueOrDefault(key(t)) >= limit).ToHashSet();
+    }
+
+    /// <summary>What the buyer has taken against the limit, by scope key, with the key of any type.</summary>
+    private static async Task<(Dictionary<string, long> Taken, Func<int, string> Key)> TakenAsync(
+        AppDbContext db, Store store, long buyerId, IEnumerable<int> typeIds, CancellationToken ct)
+    {
+        var since   = Since(store, DateTimeOffset.UtcNow);
+        var history = (await db.TrackedOrders.AsNoTracking()
+                .Where(o => o.StoreId == store.Id && o.BuyerId == buyerId && o.Status != "canceled")
+                .Select(o => new { o.TypeId, o.Units, o.CreatedAt })
+                .ToListAsync(ct))
+            .Where(o => since is null || o.CreatedAt >= since)   // compared here: a DateTimeOffset in a Where does not translate on SQLite
+            .ToList();
+
+        var all    = history.Select(o => o.TypeId).Concat(typeIds).Distinct().ToList();
+        var groups = await db.SdeTypes.AsNoTracking()
+            .Where(t => all.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.GroupId, ct);
+        string Key(int typeId) => store.LimitScope switch
+        {
+            "group" => $"g:{groups.GetValueOrDefault(typeId)}",
+            "store" => "store",
+            _       => $"t:{typeId}",
+        };
+
+        var taken = new Dictionary<string, long>();
+        foreach (var o in history) taken[Key(o.TypeId)] = taken.GetValueOrDefault(Key(o.TypeId)) + o.Units;
+        return (taken, Key);
     }
 }

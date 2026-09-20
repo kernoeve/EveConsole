@@ -508,7 +508,7 @@ public class StoreMailService(
 
         switch (command)
         {
-            case "PRICES": await PricesAsync(store, log, ct); break;
+            case "PRICES": await PricesAsync(db, store, log, ct); break;
             case "ORDER":  await OrderAsync(db, store, log, ct); break;
             case "STATUS": await StatusAsync(db, store, log, ct); break;
             case "CANCEL": await CancelAsync(db, store, log, ct); break;
@@ -743,9 +743,23 @@ public class StoreMailService(
               .Select((t, i) => i == 0 ? t : "<br><br>" + t)
               .ToList();
 
-    private async Task PricesAsync(Store store, StoreMail log, CancellationToken ct)
+    private async Task PricesAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
-        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct);
+        // With a purchase limit, the list this reader gets marks what they may not order any
+        // more — the rows the site greys out for them, dimmed here with the reason beside them.
+        IReadOnlySet<int>? blocked = null;
+        if (store.LimitEnabled)
+        {
+            var typeIds = await (
+                    from i in db.SalePostingItems.AsNoTracking()
+                    join s in db.SalePostingSections.AsNoTracking() on i.SectionId equals s.Id
+                    where s.PostingId == store.PostingId
+                    select i.TypeId)
+                .Distinct().ToListAsync(ct);
+            blocked = await PurchaseLimit.BlockedAsync(db, store, log.PartyId, typeIds, ct);
+        }
+
+        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, blocked);
         if (blocks.Count == 0)
         {
             log.Outcome = "error";

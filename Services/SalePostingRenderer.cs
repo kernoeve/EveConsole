@@ -81,12 +81,17 @@ internal static class SalePostingRenderer
     /// </summary>
     private const int HeadingPoints = 14;
 
+    /// <summary>The colour of a row the reader may not order any more: dim, under every other rule.</summary>
+    private const string BlockedColor = "#8a8a99";
+
     /// <summary>Renders one post block, dispatching on its type.</summary>
-    public static string Render(PostingView v, OutputFormat fmt, SalePostingPost post) =>
+    /// <param name="blocked">Items this reader may not order any more (the store's purchase
+    /// limit), dimmed and said in the Detail block; null when the list is for nobody in particular.</param>
+    public static string Render(PostingView v, OutputFormat fmt, SalePostingPost post, IReadOnlySet<int>? blocked = null) =>
         post.PostType switch
         {
             "Summary" => Summary(v, fmt, post),
-            "Detail"  => Detail(v, fmt, post),
+            "Detail"  => Detail(v, fmt, post, blocked),
             // A Static block is all content and no header, so its one colour setting colours the
             // content. Applied per line, not to the whole block: a colour wrapped around text
             // containing line breaks would put a <font> across them, which EVE renders unevenly.
@@ -128,7 +133,7 @@ internal static class SalePostingRenderer
     }
 
     /// <summary>Every item under every section — the full list.</summary>
-    public static string Detail(PostingView v, OutputFormat fmt, SalePostingPost post)
+    public static string Detail(PostingView v, OutputFormat fmt, SalePostingPost post, IReadOnlySet<int>? blocked = null)
     {
         var sb = new StringBuilder();
         AppendBlock(sb, Lines(post.Header ?? "", fmt, post.HeaderColor));
@@ -138,7 +143,7 @@ internal static class SalePostingRenderer
             // standing in for the section) and repeating it here would print the shortcode twice.
             sb.AppendLine(fmt.Size(HeadingPoints,
                 fmt.Color(s.HeaderColor, fmt.Bold(fmt.Underline(s.Name)))));
-            foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt, s));
+            foreach (var it in s.Items) sb.AppendLine(ItemLine(it, v, fmt, s, blocked?.Contains(it.TypeId) == true));
         }
         AppendBlock(sb, Lines(post.Footer ?? "", fmt, post.FooterColor));
         return sb.ToString().TrimEnd();
@@ -166,7 +171,7 @@ internal static class SalePostingRenderer
     }
 
     private static string ItemLine(PostingItemView it, PostingView v, OutputFormat fmt,
-                                   PostingSectionView section)
+                                   PostingSectionView section, bool blocked = false)
     {
         // ⚠️ The prefix stays outside the link. It is a decoration — a chat icon shortcode in
         // practice — and wrapping it would make the clickable region include a token that is not
@@ -187,6 +192,10 @@ internal static class SalePostingRenderer
 
         var done = CompletionText(it, v.IncludeCompletionDate);
         if (done.Length > 0) sb.Append(" - ").Append(done);
+
+        // A row this reader may not order any more: dimmed and said, whatever colour its state
+        // would give it. The site greys such a row out; a mail can only tell.
+        if (blocked) return fmt.Color(BlockedColor, sb.Append(" - limit reached").ToString());
 
         // The whole line, so the price and counts carry the colour too — a coloured name beside
         // uncoloured numbers reads as a link rather than as a state.
