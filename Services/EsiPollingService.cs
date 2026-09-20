@@ -512,6 +512,18 @@ public class EsiPollingService : ReactiveObject
     /// </summary>
     public event Action<long>? CharacterUndocked;
 
+    /// <summary>Raised, with the endpoint key, after every successful poll of a character or
+    /// corporation endpoint. What lets the fulfilment pass run the moment jobs, contracts or
+    /// assets have arrived rather than at its own next interval.</summary>
+    public event Action<string>? EndpointPolled;
+
+    private void Polled(string endpointKey)
+    {
+        if (EndpointPolled is not { } handler) return;
+        try { handler(endpointKey); }
+        catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"after {endpointKey}", ex); }
+    }
+
     private readonly ConcurrentDictionary<long, bool> _undockSeen = new();
 
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
@@ -603,6 +615,7 @@ public class EsiPollingService : ReactiveObject
 
         UpdateRateLimitState(ep.Key, result);
         handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
+        if (result.Success) Polled(ep.Key);
 
         if (!result.Success && result.StatusCode > 0)
             _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}",
@@ -2322,6 +2335,7 @@ public class EsiPollingService : ReactiveObject
 
             UpdateRateLimitState(ep.Key, result);
             handle.Complete(result.Success, result.StatusCode, result.ErrorMessage);
+            if (result.Success) Polled(ep.Key);
 
             if (!result.Success && result.StatusCode > 0)
                 _errorLogger.Log("EsiPollingService", $"{ep.Key}:{corp.Id}",

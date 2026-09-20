@@ -352,6 +352,17 @@ public class App : Application
                 Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>().Nudge();
             };
 
+            // And the pass is worth running the moment ESI has brought in what it reads, rather
+            // than at its own next interval: a contract or a job shows against its order seconds
+            // after the poll that saw it.
+            polling.EndpointPolled += key =>
+            {
+                if (key is "char.industry.jobs" or "corp.industry.jobs"
+                        or "char.contracts"     or "corp.contracts"
+                        or "char.assets"        or "corp.assets")
+                    Services.GetRequiredService<OrderFulfilmentService>().Nudge();
+            };
+
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();

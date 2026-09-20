@@ -55,8 +55,8 @@
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" Margin="12 0 0 0" />
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
-            <!-- The grid loads on startup and after an edit; the fulfilment poll changes rows
-                 behind it every five minutes, so there has to be a way to pick that up. -->
+            <!-- The grid loads on startup and after an edit; the fulfilment pass changes rows
+                 behind it every half minute, so there has to be a way to pick that up. -->
             <Button Content="Refresh" Command="{Binding RefreshCommand}" Padding="12 4" />
             <Button Content="Add Order" Command="{Binding AddCommand}" Padding="12 4"
                     Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />

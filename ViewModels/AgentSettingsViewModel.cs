@@ -432,6 +432,16 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public IReadOnlyList<(string Id, string Label)> LocalWhisperModels =>
         LocalWhisperService.Models;
 
+    private string _whisperLanguage = "en";
+    public string WhisperLanguage
+    {
+        get => _whisperLanguage;
+        set => this.RaiseAndSetIfChanged(ref _whisperLanguage, value ?? "");
+    }
+
+    /// <summary>Where the local model runs, once it has loaded.</summary>
+    public string LocalWhisperRuntime => _speech?.LocalWhisper.LoadedRuntime ?? "";
+
     public IReadOnlyList<string> LocalWhisperModelLabels =>
         LocalWhisperService.Models.Select(m => m.Label).ToList();
 
@@ -549,6 +559,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
         _speechInputProvider      = s.SpeechInputProvider;
         _whisperLocalModel        = s.WhisperLocalModel;
+        _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
         _selectedMicrophoneDevice = string.IsNullOrEmpty(s.MicrophoneDeviceName) ? SystemDefaultMicrophone : s.MicrophoneDeviceName;
         _selectedPushToTalkKeyName = GlobalHotkeyService.VkName(s.PushToTalkKey) ?? GlobalHotkeyService.KeyOptions[0].Name;
 
@@ -590,6 +601,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
             SpeechInputProvider   = _speechInputProvider,
             WhisperLocalModel     = _whisperLocalModel,
+            WhisperLanguage       = string.IsNullOrWhiteSpace(_whisperLanguage) ? "en" : _whisperLanguage.Trim(),
             // The empty name is what the recorder reads as "the system default".
             MicrophoneDeviceName  = _selectedMicrophoneDevice is null or SystemDefaultMicrophone ? "" : _selectedMicrophoneDevice,
             PushToTalkKey         = GlobalHotkeyService.KeyOptions
@@ -600,7 +612,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         // when _service.Configure raises the Settings property-changed (which re-evaluates
         // HasSpeechInput and HasTts on AgentPanelViewModel).
         _speech?.Configure(settings.SpeechInputProvider, settings.OpenAiApiKey,
-                           settings.WhisperLocalModel, settings.MicrophoneDeviceName);
+                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage);
         _tts?.Configure(settings);
         _service.Configure(settings);
 

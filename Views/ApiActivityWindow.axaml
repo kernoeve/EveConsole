@@ -489,7 +489,7 @@
           </Grid>
 
           <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                     Text="Every five minutes, each pending order in the Order Tracker is matched against what could fill it: a contract issued by one of your characters or personal corporations to that buyer after the order was placed completes it outright; otherwise unreserved stock on hand, or the soonest industry job producing the item, whose completion date becomes the order's estimated date. Stock and jobs are reserved as they are claimed, so two orders never count the same units, and a contract already linked to one order is never reused for another." />
+                     Text="Every thirty seconds, and at once after a poll brings in jobs, contracts or assets, each pending order in the Order Tracker is matched against what could fill it: a contract issued by one of your characters or personal corporations to that buyer after the order was placed completes it outright; otherwise unreserved stock on hand, or the soonest industry job producing the item, whose completion date becomes the order's estimated date. Stock and jobs are reserved as they are claimed, so two orders never count the same units, and a contract already linked to one order is never reused for another." />
 
         </StackPanel>
       </ScrollViewer>

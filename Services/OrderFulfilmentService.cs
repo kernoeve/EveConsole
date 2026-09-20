@@ -27,7 +27,11 @@ public class OrderFulfilmentService(
     public const string SourceJob      = "job";
     public const string SourceContract = "contract";
 
-    private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
+
+    /// <summary>Released by <see cref="Nudge"/> to run the next pass at once. One slot, so a burst
+    /// of nudges is one early pass, not a queue of them.</summary>
+    private readonly SemaphoreSlim _wake = new(0, 1);
 
     // ── What the background-process view shows ────────────────────────────────
     //
@@ -57,9 +61,10 @@ public class OrderFulfilmentService(
     public Func<CancellationToken, Task>? AfterPass { get; set; }
 
     /// <summary>
-    /// Starts the poll. Five minutes rather than on demand: the inputs are polled ESI data —
-    /// assets, industry jobs and contracts — so checking more often than they change would only
-    /// re-read the same rows.
+    /// Starts the poll. Every thirty seconds, and at once when a poll has just brought in what a
+    /// pass reads — assets, industry jobs, contracts — see <see cref="Nudge"/>. A pass that finds
+    /// nothing changed is a few small queries, which is a fair price for a status that follows
+    /// the action by seconds rather than minutes.
     /// </summary>
     public void Start(CancellationToken outerCt = default)
     {
@@ -86,10 +91,22 @@ public class OrderFulfilmentService(
                 LastRunAt = DateTimeOffset.UtcNow;
                 NextRunAt = LastRunAt + Interval;
 
-                try { await Task.Delay(Interval, ct); }
+                // The interval, or sooner when nudged.
+                try { await _wake.WaitAsync(Interval, ct); }
                 catch (OperationCanceledException) { return; }
             }
         }, ct);
+    }
+
+    /// <summary>
+    /// Runs the next pass now rather than at the interval. Called when a poll has just brought in
+    /// what a pass reads, so a contract or a job shows against its order seconds after ESI
+    /// reported it. Harmless when the loop is not running.
+    /// </summary>
+    public void Nudge()
+    {
+        if (_wake.CurrentCount > 0) return;
+        try { _wake.Release(); } catch (SemaphoreFullException) { }
     }
 
     /// <summary>

@@ -2221,6 +2221,13 @@
                                   SelectedItem="{Binding SelectedWhisperModelLabel}"
                                   HorizontalAlignment="Stretch" />
 
+                        <TextBlock Text="Language" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                        <TextBox Text="{Binding WhisperLanguage}" Watermark="en" Width="120" HorizontalAlignment="Left" />
+                        <TextBlock FontSize="10" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                                   Text="A two-letter code such as en, or auto to let the model guess. A guess on a two-second clip is often wrong, and it costs an extra pass; name the language you speak." />
+                        <TextBlock FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                   Text="{Binding LocalWhisperRuntime, StringFormat='The model runs on: {0}'}" />
+
                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
                           <Button Content="Download Model"
                                   Command="{Binding DownloadModelCommand}"

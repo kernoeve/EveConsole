@@ -1162,7 +1162,7 @@ public class MainWindowViewModel : ReactiveObject
         var s = agentService.Settings;
         ttsService.Configure(s);
         speechInputService.Configure(s.SpeechInputProvider, s.OpenAiApiKey,
-                                     s.WhisperLocalModel, s.MicrophoneDeviceName);
+                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage);
 
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 

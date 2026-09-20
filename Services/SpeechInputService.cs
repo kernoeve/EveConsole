@@ -18,6 +18,7 @@ public sealed class SpeechInputService : IDisposable
     private SpeechInputProvider _provider             = SpeechInputProvider.None;
     private string              _apiKey               = "";
     private string              _localModel           = "tiny";
+    private string              _language             = "en";
     private string              _microphoneDeviceName = "";
 
     // PortAudio state — lazily initialized once per process
@@ -53,24 +54,31 @@ public sealed class SpeechInputService : IDisposable
     /// </summary>
     public AppErrorLogger? Errors { get; set; }
 
+    /// <summary>The last thing that went wrong, in words, for a harness or a status line to show.</summary>
+    public string? LastFailure { get; private set; }
+
     private void Fail(string context, string message)
     {
+        LastFailure = $"{context}: {message}";
         System.Diagnostics.Debug.WriteLine($"[SpeechInput] {context}: {message}");
         Errors?.Log("SpeechInput", context, message, null);
     }
 
-    public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "")
+    public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "", string language = "en")
     {
         var reopen = provider != _provider || (microphoneDeviceName ?? "") != _microphoneDeviceName;
         _provider             = provider;
         _apiKey               = apiKey ?? "";
         _localModel           = string.IsNullOrWhiteSpace(localModel) ? "tiny" : localModel;
+        _language             = language ?? "en";
         _microphoneDeviceName = microphoneDeviceName ?? "";
 
         // The microphone opens now rather than at the first press, so the first press is as quick
-        // as every later one — and closes when speech input is switched off.
+        // as every later one — and closes when speech input is switched off. The local model is
+        // loaded and run once now for the same reason.
         if (reopen) CloseStream();
         if (provider != SpeechInputProvider.None) _ = Task.Run(EnsureStreamOpen);
+        if (provider == SpeechInputProvider.LocalWhisper) _ = Task.Run(() => _local.WarmUpAsync(_localModel, _language));
     }
 
     /// <summary>
@@ -155,6 +163,7 @@ public sealed class SpeechInputService : IDisposable
         {
             var info = PortAudio.GetDeviceInfo(i);
             if (info.maxInputChannels <= 0) continue;
+            if (HostApiRank(info.hostApi) == Excluded) continue;
             if (!SupportsRecordingFormat(i, info)) continue;
             devices.Add((i, info.name, info.hostApi));
         }
@@ -176,9 +185,19 @@ public sealed class SpeechInputService : IDisposable
         var n when n.Contains("DirectSound", StringComparison.OrdinalIgnoreCase) => 0,
         var n when n.Contains("MME",         StringComparison.OrdinalIgnoreCase) => 1,
         var n when n.Contains("WASAPI",      StringComparison.OrdinalIgnoreCase) => 2,
-        var n when n.Contains("WDM-KS",      StringComparison.OrdinalIgnoreCase) => 3,
+        var n when n.Contains("WDM-KS",      StringComparison.OrdinalIgnoreCase) => Excluded,
         _                                                                        => 2,
     };
+
+    /// <summary>
+    /// ⚠️ WDM-KS is not offered at all, not merely ranked last. It opens the device EXCLUSIVELY:
+    /// measured with the stream held, WASAPI answered "device in use" and waveIn "already
+    /// allocated" — Discord, the game and everything else locked out of the microphone. Ranking
+    /// it last was meant to keep it as a fallback, but Windows names the same microphone
+    /// "Microphone (2- Foo)" for DirectSound and MME and "Microphone (Foo)" for WDM-KS, so a
+    /// saved name matched only the exclusive one and the ranking never came into it.
+    /// </summary>
+    private const int Excluded = 99;
 
     /// <summary>
     /// Whether this device can open a stream shaped the way <see cref="StartRecording"/> opens it.
@@ -249,6 +268,22 @@ public sealed class SpeechInputService : IDisposable
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { return ""; }
     }
 
+    /// <summary>
+    /// Whether two names are the same microphone. Windows numbers a second device of a make
+    /// "Microphone (2- Foo)" for some host APIs and not others, and MME cuts names at thirty-one
+    /// characters, so a saved name is compared with both of those allowed for.
+    /// </summary>
+    internal static bool SameDevice(string a, string b)
+    {
+        static string Plain(string s) => System.Text.RegularExpressions.Regex.Replace(s.Trim(), @"\((\d+)- ", "(");
+        var x = Plain(a);
+        var y = Plain(b);
+        if (string.Equals(x, y, StringComparison.Ordinal)) return true;
+        var shorter = x.Length < y.Length ? x : y;
+        var longer  = x.Length < y.Length ? y : x;
+        return shorter.Length >= 30 && longer.StartsWith(shorter, StringComparison.Ordinal);
+    }
+
     private int ResolveDeviceIndex()
     {
         if (string.IsNullOrEmpty(_microphoneDeviceName))
@@ -259,7 +294,7 @@ public sealed class SpeechInputService : IDisposable
         // host API happens to enumerate first — not necessarily one that can open at 16 kHz, and
         // not necessarily the one the capsuleer was shown when they chose it.
         foreach (var d in UsableInputDevices())
-            if (d.Name == _microphoneDeviceName)
+            if (SameDevice(d.Name, _microphoneDeviceName))
                 return d.Index;
 
         Fail("Microphone", $"'{_microphoneDeviceName}' is no longer available — using the system default instead.");
@@ -324,7 +359,7 @@ public sealed class SpeechInputService : IDisposable
             }
             catch (Exception ex)
             {
-                Fail("Open microphone", ex.Message);
+                Fail("Open microphone", $"{ex.GetType().Name}: {ex.Message}{(ex.InnerException is { } inner ? " — " + inner.Message : "")}");
                 _callbackDelegate = null;
                 _stream           = null;
                 return false;
@@ -452,7 +487,7 @@ public sealed class SpeechInputService : IDisposable
             return _provider switch
             {
                 SpeechInputProvider.OpenAiWhisper => await _cloud.TranscribeAsync(wav, _apiKey, ct),
-                SpeechInputProvider.LocalWhisper  => await _local.TranscribeAsync(wav, _localModel, ct),
+                SpeechInputProvider.LocalWhisper  => await _local.TranscribeAsync(wav, _localModel, _language, ct),
                 _                                  => null,
             };
         }
@@ -489,7 +524,7 @@ public sealed class SpeechInputService : IDisposable
         return pcm is null ? null : await TranscribeAsync(pcm, ct);
     }
 
-    private static byte[] BuildWav(byte[] pcmBytes)
+    internal static byte[] BuildWav(byte[] pcmBytes)
     {
         int dataLen = pcmBytes.Length;
         using var ms = new MemoryStream(44 + dataLen);
