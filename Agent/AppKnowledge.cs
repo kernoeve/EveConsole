@@ -200,7 +200,8 @@ public static class AppKnowledge
         its item is on the posting, its quantity is within bounds, the buyer passes the store's
         Serve policy (Anyone, or the allow list) and the quoted price is close to the posting's;
         anything else waits under "Web site events" on the Overview for the owner to book or
-        decline. Every order, whichever doorway placed it, is in Order Tracker with a channel of
+        decline; a visit (a buyer signing in, or back after half an hour or more away) is noted
+        there too. Every order, whichever doorway placed it, is in Order Tracker with a channel of
         mail, web or manual, and a buyer sees all of theirs on the site. The Stores screen's
         Config tab holds the site address, the shared secret the app signs each call with, the
         site's theme (the store's own, independent of this desktop's), the words under "About this store" on the front page (plain text or HTML) with an optional banner picture across its top, the EVE developer
