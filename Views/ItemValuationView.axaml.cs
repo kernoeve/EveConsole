@@ -23,6 +23,15 @@ public partial class ItemValuationView : UserControl
     private static readonly string[] WashKeys    = ["ColumnGroupABrush", "ColumnGroupBBrush", "ColumnGroupCBrush"];
     private static readonly string[] CellClasses = ["ga", "gb", "gc"];
 
+    /// <summary>The three values' headings over their columns; each carries its total, standing
+    /// and coverage beneath once there is a result.</summary>
+    private static readonly ColumnGroup[] ValueGroups =
+    [
+        new(3, 3, "Market value",      WashKeys[0]),
+        new(6, 3, "Build value",       WashKeys[1]),
+        new(9, 3, "Reprocessed value", WashKeys[2]),
+    ];
+
     /// <summary>The pasted list's pane: how wide, remembered on this machine. Whether it is folded
     /// away is not remembered: it folds once the list is valued and opens again to be changed.</summary>
     private const  string ListWidthKey     = "valuation.listWidth";
@@ -35,14 +44,9 @@ public partial class ItemValuationView : UserControl
         DataContextChanged += (_, _) => Attach(DataContext as ItemValuationViewModel);
 
         // Headings over the groups of columns, which the grid's own headers cannot span.
-        ValuesBand.Target = ValuesGrid;
-        ValuesBand.SetGroups(
-        [
-            new ColumnGroup(3, 3, "Market value",      WashKeys[0]),
-            new ColumnGroup(6, 3, "Build value",       WashKeys[1]),
-            new ColumnGroup(9, 3, "Reprocessed value", WashKeys[2]),
-        ]);
+        ValuesBand.Target  = ValuesGrid;
         CompareBand.Target = CompareGrid;
+        RefreshValuesBand();
 
         // The list pane at the width it was left, open until there is a result.
         _listWidth = Math.Max(120, UiState.GetLong(ListWidthKey, (long)DefaultListWidth));
@@ -94,6 +98,13 @@ public partial class ItemValuationView : UserControl
             e.Handled = true;
             var text = top.Clipboard is { } clipboard ? await clipboard.GetTextAsync() : null;
             if (string.IsNullOrWhiteSpace(text)) return;
+            // Whatever was last copied is not always a list: a paste that names no item leaves
+            // the list as it is, rather than putting the clipboard's stray text in its place.
+            if (!await _vm.NamesAnItemAsync(text))
+            {
+                _vm.ShowStatus("The clipboard names no item, so the list was left as it was. Edit list takes any text.");
+                return;
+            }
             _vm.InputText = text;
             await AppraiseAsync(foldAfter: true);
         }
@@ -146,14 +157,39 @@ public partial class ItemValuationView : UserControl
         _vm.CompareColumnsChanged += RebuildCompareColumns;
         _vm.PropertyChanged       += OnVmPropertyChanged;
         RebuildCompareColumns();
+        RefreshValuesBand();
         SetListHidden(_vm.HasResult);   // a view built afresh meets the list as its result left it
         _ = _vm.LoadAsync();
     }
 
-    /// <summary>The station lines in the band follow every appraisal, not only a change of stations.</summary>
+    /// <summary>The lines in both bands follow every appraisal, not only a change of stations.</summary>
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ItemValuationViewModel.CompareTotals)) RefreshCompareBand();
+        if      (e.PropertyName == nameof(ItemValuationViewModel.CompareTotals)) RefreshCompareBand();
+        else if (e.PropertyName == nameof(ItemValuationViewModel.ValueTotals))   RefreshValuesBand();
+    }
+
+    // ── The values grid's band ──────────────────────────────────────────────
+
+    /// <summary>Each value's heading, with its total, standing and coverage beneath once there
+    /// is a result; the market line carries the station's age as well.</summary>
+    private void RefreshValuesBand()
+    {
+        var totals = _vm?.ValueTotals ?? [];
+        ValuesBand.SetGroups(ValueGroups.Select((g, i) => g with { Detail = i < totals.Count ? BandLine(totals[i]) : null }));
+    }
+
+    private static StackPanel BandLine(ValueTotalVm t) => BandLine(t.TotalText, t.PctText, t.Color, t.CoverageText, t.AgeText, t.Stale);
+
+    /// <summary>A heading's second line: the total, its standing, the coverage, and the age when there is one.</summary>
+    private static StackPanel BandLine(string totalText, string pctText, IBrush color, string coverageText, string ageText, bool stale)
+    {
+        var line = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center };
+        line.Children.Add(Text(totalText, 12, FontWeight.SemiBold, color));
+        if (pctText.Length > 0) line.Children.Add(Text(pctText, 10, FontWeight.Normal, color));
+        line.Children.Add(Faint(coverageText, "TextFaintBrush"));
+        if (ageText.Length > 0) line.Children.Add(Faint(ageText, stale ? "WarnBrush" : "TextFaintBrush"));
+        return line;
     }
 
     // ── The compare grid's columns and band ─────────────────────────────────
@@ -199,11 +235,7 @@ public partial class ItemValuationView : UserControl
 
     private Control StationLine(CompareTotalVm total)
     {
-        var line = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center };
-        line.Children.Add(Text(total.TotalText, 12, FontWeight.SemiBold, total.Color));
-        line.Children.Add(Text(total.PctText,   10, FontWeight.Normal,   total.Color));
-        line.Children.Add(Faint(total.CoverageText, "TextFaintBrush"));
-        line.Children.Add(Faint(total.AgeText, total.Stale ? "WarnBrush" : "TextFaintBrush"));
+        var line = BandLine(total.TotalText, total.PctText, total.Color, total.CoverageText, total.AgeText, total.Stale);
         if (!total.IsPrimary)
         {
             var remove = new Button

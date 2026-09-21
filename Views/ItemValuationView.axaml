@@ -107,44 +107,21 @@
         <TabItem Header="Values">
           <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0 6 0 0">
 
-            <!-- The three totals: the best in green, the others with how far below it they sit. -->
-            <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
-                    BorderThickness="1" CornerRadius="4" Padding="14 10" Margin="0 0 0 10">
-              <StackPanel Orientation="Horizontal" Spacing="28">
-                <StackPanel ToolTip.Tip="{Binding MarketTip}">
-                  <TextBlock Text="{Binding MarketTotalText}" FontSize="22" FontWeight="SemiBold" Foreground="{Binding MarketColor}" />
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="market" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-                    <TextBlock Text="{Binding MarketPctText}" FontSize="10" Foreground="{Binding MarketColor}" />
-                  </StackPanel>
-                </StackPanel>
-                <StackPanel ToolTip.Tip="{Binding BuildTip}">
-                  <TextBlock Text="{Binding BuildTotalText}" FontSize="22" FontWeight="SemiBold" Foreground="{Binding BuildColor}" />
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="build" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-                    <TextBlock Text="{Binding BuildPctText}" FontSize="10" Foreground="{Binding BuildColor}" />
-                  </StackPanel>
-                </StackPanel>
-                <StackPanel ToolTip.Tip="{Binding ReprocessTip}">
-                  <TextBlock Text="{Binding ReprocessTotalText}" FontSize="22" FontWeight="SemiBold" Foreground="{Binding ReprocessColor}" />
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="reprocessed" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-                    <TextBlock Text="{Binding ReprocessPctText}" FontSize="10" Foreground="{Binding ReprocessColor}" />
-                  </StackPanel>
-                </StackPanel>
-                <StackPanel>
-                  <TextBlock Text="{Binding VolumeText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
-                  <TextBlock Text="volume" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-                </StackPanel>
-                <StackPanel>
-                  <TextBlock Text="{Binding ItemsText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
-                  <TextBlock Text="items / units" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-                </StackPanel>
-                <TextBox Text="{Binding Filter}" Watermark="filter by item name…" Width="220" FontSize="11" VerticalAlignment="Center"
-                         Background="{DynamicResource SurfaceInputBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
-                         ToolTip.Tip="Show only the items whose name holds this text, on both tabs." />
+            <!-- Volume and count beside the filter. Each value's total, standing and coverage sit
+                 in its heading over the columns, as each station's do on the compare tab. -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="24" Margin="0 0 0 8">
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="{Binding VolumeText}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                <TextBlock Text="volume" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
               </StackPanel>
-            </Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="{Binding ItemsText}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                <TextBlock Text="items / units" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+              </StackPanel>
+              <TextBox Text="{Binding Filter}" Watermark="filter by item name…" Width="220" FontSize="12" VerticalAlignment="Center"
+                       Background="{DynamicResource SurfaceInputBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                       ToolTip.Tip="Show only the items whose name holds this text, on both tabs." />
+            </StackPanel>
 
             <!-- Headings over the groups of three: the columns of one value share one. -->
             <controls:DataGridColumnGroups Grid.Row="1" x:Name="ValuesBand" />

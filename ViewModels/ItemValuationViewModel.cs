@@ -157,11 +157,16 @@ public sealed class CompareRowVm : ReactiveObject
     public Bitmap? Icon { get => _icon; set => this.RaiseAndSetIfChanged(ref _icon, value); }
 }
 
-/// <summary>A station's total on the compare tab's header line.</summary>
 /// <summary>A station's line in the compare band: its total, how it stands against the best,
 /// how much of the list it could price, and how old its prices are.</summary>
 public sealed record CompareTotalVm(MarketStation Station, string TotalText, string PctText, IBrush Color,
                                     string CoverageText, string AgeText, bool Stale, bool IsPrimary);
+
+/// <summary>One value's line in the Values band — market, build or reprocessed: its total, how
+/// it stands against the best of the three, how much of the list it could price, and on the
+/// market line how old the station's prices are.</summary>
+public sealed record ValueTotalVm(string Name, string TotalText, string Exact, string PctText, IBrush Color,
+                                  string CoverageText, string AgeText, bool Stale);
 
 /// <summary>ISK as the tool prints it: compact in a cell, exact in a tip; and the colour of a
 /// standing against the best of its row — the best in green, red only a long way behind, the
@@ -391,27 +396,14 @@ public sealed class ItemValuationViewModel : ReactiveObject
     private string _status = "Paste a list of items and press Appraise.";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
-    private string _marketTotalText = "—", _buildTotalText = "—", _reprocessTotalText = "—", _volumeText = "—", _itemsText = "—";
-    public string MarketTotalText    { get => _marketTotalText;    private set => this.RaiseAndSetIfChanged(ref _marketTotalText, value); }
-    public string BuildTotalText     { get => _buildTotalText;     private set => this.RaiseAndSetIfChanged(ref _buildTotalText, value); }
-    public string ReprocessTotalText { get => _reprocessTotalText; private set => this.RaiseAndSetIfChanged(ref _reprocessTotalText, value); }
-    public string VolumeText         { get => _volumeText;         private set => this.RaiseAndSetIfChanged(ref _volumeText, value); }
-    public string ItemsText          { get => _itemsText;          private set => this.RaiseAndSetIfChanged(ref _itemsText, value); }
+    private string _volumeText = "—", _itemsText = "—";
+    public string VolumeText { get => _volumeText; private set => this.RaiseAndSetIfChanged(ref _volumeText, value); }
+    public string ItemsText  { get => _itemsText;  private set => this.RaiseAndSetIfChanged(ref _itemsText, value); }
 
-    private string _marketPctText = "", _buildPctText = "", _reprocessPctText = "";
-    public string MarketPctText    { get => _marketPctText;    private set => this.RaiseAndSetIfChanged(ref _marketPctText, value); }
-    public string BuildPctText     { get => _buildPctText;     private set => this.RaiseAndSetIfChanged(ref _buildPctText, value); }
-    public string ReprocessPctText { get => _reprocessPctText; private set => this.RaiseAndSetIfChanged(ref _reprocessPctText, value); }
-
-    private IBrush _marketColor = Palette.TextPrimary, _buildColor = Palette.TextPrimary, _reprocessColor = Palette.TextPrimary;
-    public IBrush MarketColor    { get => _marketColor;    private set => this.RaiseAndSetIfChanged(ref _marketColor, value); }
-    public IBrush BuildColor     { get => _buildColor;     private set => this.RaiseAndSetIfChanged(ref _buildColor, value); }
-    public IBrush ReprocessColor { get => _reprocessColor; private set => this.RaiseAndSetIfChanged(ref _reprocessColor, value); }
-
-    private string _marketTip = "", _buildTip = "", _reprocessTip = "";
-    public string MarketTip    { get => _marketTip;    private set => this.RaiseAndSetIfChanged(ref _marketTip, value); }
-    public string BuildTip     { get => _buildTip;     private set => this.RaiseAndSetIfChanged(ref _buildTip, value); }
-    public string ReprocessTip { get => _reprocessTip; private set => this.RaiseAndSetIfChanged(ref _reprocessTip, value); }
+    /// <summary>The three values' lines in the Values band — market, build, reprocessed — each
+    /// with its total, its standing against the best of the three, and its coverage of the list.</summary>
+    private IReadOnlyList<ValueTotalVm> _valueTotals = [];
+    public IReadOnlyList<ValueTotalVm> ValueTotals { get => _valueTotals; private set => this.RaiseAndSetIfChanged(ref _valueTotals, value); }
 
     private string _unparsedText = "";
     public string UnparsedText { get => _unparsedText; private set => this.RaiseAndSetIfChanged(ref _unparsedText, value); }
@@ -495,10 +487,8 @@ public sealed class ItemValuationViewModel : ReactiveObject
         CompareColumns = [];
         CompareColumnsChanged?.Invoke();   // the emptied grid does not keep the last stations' headers
         HasResult  = false;
-        MarketTotalText = BuildTotalText = ReprocessTotalText = VolumeText = ItemsText = "—";
-        MarketPctText = BuildPctText = ReprocessPctText = "";
-        MarketColor = BuildColor = ReprocessColor = Palette.TextPrimary;
-        MarketTip = BuildTip = ReprocessTip = "";
+        VolumeText = ItemsText = "—";
+        ValueTotals = [];
         UnparsedText = "";
         this.RaisePropertyChanged(nameof(HasUnparsed));
         Status = "Paste a list of items and press Appraise.";
@@ -511,6 +501,10 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
     /// <summary>A word from the view for the status line: a paste that could not be read.</summary>
     public void ShowStatus(string text) => Status = text;
+
+    /// <summary>Whether the text names at least one item the SDE knows: what tells a pasted list
+    /// from whatever else was last copied.</summary>
+    public Task<bool> NamesAnItemAsync(string text) => Task.Run(() => _service.NamesAnItemAsync(text));
 
     /// <summary>
     /// Every row's picture, fetched as one batch rather than row by row as they scroll into
@@ -551,7 +545,8 @@ public sealed class ItemValuationViewModel : ReactiveObject
         foreach (var r in ValueRows)
             sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t{Num(r.Market.Unit)}\t{Num(r.Market.Total)}\t{r.Market.PctText}\t{Num(r.Build.Unit)}\t{Num(r.Build.Total)}\t{r.Build.PctText}\t{Num(r.Reprocess.Unit)}\t{Num(r.Reprocess.Total)}\t{r.Reprocess.PctText}\t{string.Join(" ", new[] { r.Section, r.Problem, r.Note }.Where(s => s.Length > 0))}");
         sb.AppendLine();
-        sb.AppendLine($"Total market\t{MarketTip}\nTotal build\t{BuildTip}\nTotal reprocessed\t{ReprocessTip}\nTotal volume m3\t{v.TotalVolume:0.##}");
+        foreach (var t in ValueTotals) sb.AppendLine($"Total {t.Name}\t{t.Exact}\t{t.PctText}\t{t.CoverageText}");
+        sb.AppendLine($"Total volume m3\t{v.TotalVolume:0.##}");
         if (CompareColumns.Count > 1)
         {
             sb.AppendLine();
@@ -583,12 +578,20 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
         _allValueRows = v.Values.Select(x => new ValueRowVm(x, factor)).ToList();
 
+        // The three values, each against the best of them. The market line carries the station's
+        // age; the reprocessed materials are priced at the same station, so it is theirs too.
         double market = v.TotalMarket * factor, build = v.TotalBuild * factor, reprocess = v.TotalReprocess * factor;
-        var totals = new[] { (market, v.Values.Any(x => x.MarketUnit > 0)), (build, v.Values.Any(x => x.BuildUnit > 0)), (reprocess, v.Values.Any(x => x.ReprocessUnit > 0)) };
-        var best = totals.Where(t => t.Item2).Select(t => t.Item1).DefaultIfEmpty(0).Max();
-        (MarketTotalText,    MarketPctText,    MarketColor,    MarketTip)    = Summary(market,    totals[0].Item2, best);
-        (BuildTotalText,     BuildPctText,     BuildColor,     BuildTip)     = Summary(build,     totals[1].Item2, best);
-        (ReprocessTotalText, ReprocessPctText, ReprocessColor, ReprocessTip) = Summary(reprocess, totals[2].Item2, best);
+        int marketPriced = v.Values.Count(x => x.MarketUnit > 0), buildPriced = v.Values.Count(x => x.BuildUnit > 0), reprocessPriced = v.Values.Count(x => x.ReprocessUnit > 0);
+        var bestValue  = new[] { (market, marketPriced), (build, buildPriced), (reprocess, reprocessPriced) }.Where(t => t.Item2 > 0).Select(t => t.Item1).DefaultIfEmpty(0).Max();
+        var stationAge = v.Stations[0].AsOf is { } at0 ? DateTimeOffset.UtcNow - at0 : (TimeSpan?)null;
+        var ageText    = stationAge is { } sa ? Age(sa) : "no orders held";
+        var stale      = stationAge is null || stationAge.Value.TotalHours >= 2;
+        ValueTotals =
+        [
+            ValueTotal("market",      market,    marketPriced,    v.Values.Count, bestValue, ageText, stale),
+            ValueTotal("build",       build,     buildPriced,     v.Values.Count, bestValue, "", false),
+            ValueTotal("reprocessed", reprocess, reprocessPriced, v.Values.Count, bestValue, "", false),
+        ];
         VolumeText = $"{v.TotalVolume:N0} m³";
         ItemsText  = $"{v.Values.Count:N0} / {v.TotalUnits:N0}";
 
@@ -621,19 +624,25 @@ public sealed class ItemValuationViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HasUnparsed));
         HasResult = v.Values.Count > 0;
 
-        var age = v.Stations[0].AsOf is { } t0 ? Age(DateTimeOffset.UtcNow - t0) : "no orders held";
         var problems = v.Unpriced > 0 ? $"; {v.Unpriced} could not be valued" : "";
-        Status = $"{v.Values.Count:N0} {(v.Reprocessed ? "rows after reprocessing" : "items")} at {v.Stations[0].Station.Name}, {SelectedBasis?.Name.ToLowerInvariant()} prices {age}{problems}.";
+        Status = $"{v.Values.Count:N0} {(v.Reprocessed ? "rows after reprocessing" : "items")} at {v.Stations[0].Station.Name}, {SelectedBasis?.Name.ToLowerInvariant()} prices {ageText}{problems}.";
     }
 
-    private static (string Text, string Pct, IBrush Color, string Tip) Summary(double total, bool has, double best)
+    /// <summary>One value's line for the Values band. A value that priced nothing has no total
+    /// and no standing, only the coverage that says so.</summary>
+    private static ValueTotalVm ValueTotal(string name, double total, int priced, int of, double best, string ageText, bool stale)
     {
-        if (!has) return ("—", "", Palette.TextFaint, "nothing to value this way");
-        var isBest = Math.Abs(total - best) < 0.005;
-        var pct = isBest ? "best" : best > 0 ? IskText.Pct((total - best) / best * 100) : "";
-        return (IskText.Compact(total), pct, IskText.Colour(true, isBest, best > 0 ? (total - best) / best * 100 : 0), IskText.Exact(total));
+        var has    = priced > 0;
+        var isBest = has && Math.Abs(total - best) < 0.005;
+        var pct    = has && best > 0 ? (total - best) / best * 100 : 0;
+        return new ValueTotalVm(name,
+            has ? IskText.Compact(total) : "—",
+            has ? IskText.Exact(total)   : "nothing to value this way",
+            !has ? "" : isBest ? "best" : IskText.Pct(pct),
+            IskText.Colour(has, isBest, pct),
+            $"{priced:N0} of {of:N0} priced",
+            ageText, stale);
     }
-
 
     private static string Age(TimeSpan span) =>
         span.TotalMinutes < 1  ? "fetched just now" :

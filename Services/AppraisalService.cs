@@ -351,6 +351,14 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
 
     // ── Types ──────────────────────────────────────────────────────────────
 
+    /// <summary>Whether the text names at least one item the SDE knows, read the ways a list is:
+    /// what tells a pasted list from whatever else was last copied.</summary>
+    public async Task<bool> NamesAnItemAsync(string text, CancellationToken ct = default)
+    {
+        await EnsureTypesAsync(ct);
+        return ItemListParser.Parse(text).Any(c => c.Readings.Any(r => _byName!.ContainsKey(r.Name)));
+    }
+
     /// <summary>The type list by name and by id, once. Names are unique in the SDE except for a
     /// handful of unpublished duplicates; the lower type id wins those, which is the published
     /// one in practice.</summary>
