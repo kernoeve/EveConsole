@@ -15,6 +15,15 @@ public enum AlarmActionKind
     AgentNotify = 1,
     Alert       = 2,
     Dialog      = 3,
+
+    /// <summary>
+    /// Spoken by text-to-speech at once, in the words the check composed (or the user's own
+    /// template) — no model reads it first. Shown in the agent window as the application's
+    /// line, so it reads like the agent speaking, and works with the agent switched off: it
+    /// needs a voice, not a model. For anything whose words are already known — an intel
+    /// call, an undock, a wake-up — the agent would only add a round trip and a bill.
+    /// </summary>
+    TtsDirect   = 4,
 }
 
 /// <summary>
@@ -37,6 +46,38 @@ public class Alarm
 
     /// <summary>Minimum gap between firings, on top of the new-match rule. 0 = no extra damping.</summary>
     public int CooldownSeconds { get; set; }
+
+    /// <summary>
+    /// The hours the alarm is on, as "HH:mm" wall-clock times on the machine evaluating it;
+    /// both empty means always. From 18:00 through 02:00 wraps midnight. Outside the window an
+    /// enabled alarm is not evaluated at all — not muted after the fact, not run.
+    /// </summary>
+    public string? ActiveFrom { get; set; }
+    public string? ActiveThru { get; set; }
+
+    /// <summary>Whether <paramref name="localNow"/> falls in the active window, always when none is set.</summary>
+    public bool IsActiveAt(DateTimeOffset localNow)
+    {
+        var from = ParseClock(ActiveFrom);
+        var thru = ParseClock(ActiveThru);
+        if (from is null && thru is null) return true;
+        var f = from ?? TimeSpan.Zero;
+        var t = thru ?? new TimeSpan(23, 59, 0);
+        var now = new TimeSpan(localNow.Hour, localNow.Minute, 0);
+        return f <= t ? now >= f && now <= t          // 09:00 → 17:00
+                      : now >= f || now <= t;         // 18:00 → 02:00, across midnight
+    }
+
+    /// <summary>"18:00", "18", "6pm"-free: hours and minutes, leniently, or null for blank/unreadable.</summary>
+    public static TimeSpan? ParseClock(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var parts = text.Trim().Split(':');
+        if (!int.TryParse(parts[0], out var h) || h < 0 || h > 23) return null;
+        var m = 0;
+        if (parts.Length > 1 && (!int.TryParse(parts[1], out m) || m < 0 || m > 59)) return null;
+        return new TimeSpan(h, m, 0);
+    }
 
     /// <summary>
     /// False until the first evaluation has banked the matches that already existed when the
@@ -84,6 +125,22 @@ public class AlarmEvent
     public string         Summary    { get; set; } = "";
     public string?        DetailJson { get; set; }
     public int            MatchCount { get; set; }
+}
+
+/// <summary>
+/// A staged alarm's acknowledgement: the situation it names — one character's episode — is to
+/// stay quiet until <see cref="Until"/>. Written by whichever client took the acknowledgement,
+/// read by the worker evaluating the condition and by every client deciding whether a repeating
+/// sound should go on. One row per alarm and scope; a later acknowledgement overwrites it.
+/// </summary>
+public class AlarmSnooze
+{
+    public long           AlarmId  { get; set; }
+    /// <summary>What the acknowledgement is about — a character id, for the undock alarms.</summary>
+    public string         ScopeKey { get; set; } = "";
+    /// <summary>The episode it was given in. A snooze from an earlier episode does not carry over.</summary>
+    public string         Episode  { get; set; } = "";
+    public DateTimeOffset Until    { get; set; }
 }
 
 /// <summary>A dismissible alert raised by the Alert action, persisted until the user clears it.</summary>

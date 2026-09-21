@@ -32,6 +32,98 @@
     </Style>
   </UserControl.Styles>
 
+  <UserControl.Resources>
+          <DataTemplate x:Key="ActionTemplate" x:DataType="vm:AlarmActionVm">
+            <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                    CornerRadius="3" Padding="10 8" Margin="0 0 0 6">
+              <StackPanel Spacing="8">
+
+                <Grid ColumnDefinitions="220,*,Auto">
+                  <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableKinds}"
+                            SelectedItem="{Binding Kind}" FontSize="11"
+                            HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding, Converter={x:Static views:AlarmActionKindNameConverter.Instance}}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Grid.Column="2" Content="Remove" FontSize="10.5"
+                          Background="Transparent" BorderThickness="0" Foreground="{DynamicResource WarnBrush}"
+                          Command="{Binding RemoveCommand}" />
+                </Grid>
+
+                <!-- Sound -->
+                <StackPanel IsVisible="{Binding IsSound}" Spacing="3">
+                  <Grid ColumnDefinitions="*,80,Auto,Auto">
+                    <StackPanel Grid.Column="0" Margin="0 0 8 0">
+                      <TextBlock Classes="flabel" Text="SOUND" />
+                      <ComboBox ItemsSource="{Binding AvailableSounds}" SelectedItem="{Binding Sound}"
+                                HorizontalAlignment="Stretch" FontSize="11" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0 0 8 0">
+                      <TextBlock Classes="flabel" Text="VOLUME" />
+                      <TextBox Text="{Binding Volume}" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="tool" Content="▶ Preview"
+                            Command="{Binding PreviewCommand}" VerticalAlignment="Bottom" />
+                    <Button Grid.Column="3" Classes="tool" Content="Add Sound…"
+                            Command="{Binding AddSoundCommand}" VerticalAlignment="Bottom"
+                            Margin="6 0 0 0" />
+                  </Grid>
+                  <TextBlock Text="{Binding ImportError}" FontSize="9.5" Foreground="{DynamicResource BadBrush}" />
+                  <CheckBox IsChecked="{Binding Loop}" IsVisible="{Binding HasStages}"
+                            Content="Repeat until acknowledged, or until the situation ends on its own"
+                            FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                </StackPanel>
+
+                <!-- TTS direct: the check's own words, or the user's, straight to the voice -->
+                <StackPanel IsVisible="{Binding IsTts}">
+                  <TextBlock Classes="flabel" Text="WORDS TO SAY (OPTIONAL)" />
+                  <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="40"
+                           Watermark="leave empty to say what the check composed" />
+                  <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
+                             Text="Spoken at once by text-to-speech, no agent involved — needs a voice under Settings → Agent, not a model, and works with the agent switched off. Shows in the agent window as the application's own line. Placeholders: {alarm} {summary} {count} {time} {date}" />
+                </StackPanel>
+
+                <!-- Agent -->
+                <StackPanel IsVisible="{Binding IsAgent}">
+                  <TextBlock Classes="flabel" Text="EXTRA INSTRUCTION FOR THE AGENT (OPTIONAL)" />
+                  <TextBox Text="{Binding Instruction}"
+                           Watermark="e.g. mention which system, and keep it short" />
+                  <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
+                             Text="The agent is told what fired and phrases it itself. It will speak aloud if you have text-to-speech configured; if the agent is not set up, this is recorded as an alert instead." />
+                </StackPanel>
+
+                <!-- Alert / Dialog -->
+                <StackPanel Spacing="6" IsVisible="{Binding HasText}">
+                  <CheckBox IsChecked="{Binding UseDefaultText}"
+                            Content="Use the default wording for this check"
+                            FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                             IsVisible="{Binding UseDefaultText}"
+                             Text="{Binding DefaultTextPreview}" />
+
+                  <StackPanel Spacing="6" IsVisible="{Binding !UseDefaultText}">
+                    <StackPanel>
+                      <TextBlock Classes="flabel" Text="TITLE" />
+                      <TextBox Text="{Binding Title}" Watermark="{}{alarm}" />
+                    </StackPanel>
+                    <StackPanel>
+                      <TextBlock Classes="flabel" Text="MESSAGE" />
+                      <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="54"
+                               Watermark="{}{summary}" />
+                    </StackPanel>
+                    <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                               Text="Placeholders: {alarm} {summary} {count} {time} {date}" />
+                  </StackPanel>
+                </StackPanel>
+
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+  </UserControl.Resources>
+
   <Grid RowDefinitions="Auto,1,*">
 
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
@@ -149,6 +241,21 @@
                         Margin="14 0 0 4" />
             </Grid>
 
+            <!-- The hours it is on -->
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
+              <StackPanel Grid.Column="0">
+                <TextBlock Classes="flabel" Text="ACTIVE FROM" />
+                <TextBox Text="{Binding ActiveFrom}" Width="80" Watermark="always" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="8 0 0 0">
+                <TextBlock Classes="flabel" Text="THRU" />
+                <TextBox Text="{Binding ActiveThru}" Width="80" Watermark="always" />
+              </StackPanel>
+              <TextBlock Grid.Column="2" Margin="10 0 0 6" VerticalAlignment="Bottom" FontSize="9.5"
+                         Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                         Text="Hours on this machine's clock, e.g. 18:00 thru 02:00. Blank means always. Outside them the alarm is not checked at all." />
+            </Grid>
+
             <!-- Condition -->
             <StackPanel Spacing="8">
               <TextBlock Classes="section" Text="WHEN" />
@@ -172,7 +279,7 @@
               <ItemsControl ItemsSource="{Binding Fields}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:AlarmFieldVm">
-                    <StackPanel Margin="0 0 0 8">
+                    <StackPanel Margin="0 0 0 8" IsVisible="{Binding !IsStage}">
                       <TextBlock Classes="flabel" Text="{Binding Label}" />
 
                       <TextBox Text="{Binding Text}" IsVisible="{Binding IsText}"
@@ -192,9 +299,71 @@
                       <CheckBox IsChecked="{Binding Flag}" IsVisible="{Binding IsBoolean}"
                                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
 
-                      <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
-                                IsVisible="{Binding IsEnum}" HorizontalAlignment="Stretch"
-                                FontSize="11" />
+                      <!-- A list: type-ahead entry, Add, then each entry as a chip with its × -->
+                      <StackPanel IsVisible="{Binding IsList}" Spacing="4">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <AutoCompleteBox Grid.Column="0"
+                                           Text="{Binding Text}"
+                                           AsyncPopulator="{Binding Populator}"
+                                           FilterMode="None"
+                                           MinimumPrefixLength="2"
+                                           MinimumPopulateDelay="0:0:0.2"
+                                           MaxDropDownHeight="260"
+                                           FontSize="11"
+                                           Watermark="start typing a name, then Add…">
+                            <AutoCompleteBox.KeyBindings>
+                              <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+                            </AutoCompleteBox.KeyBindings>
+                          </AutoCompleteBox>
+                          <Button Grid.Column="1" Classes="tool" Content="Add" Margin="6 0 0 0"
+                                  Command="{Binding AddCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}"
+                                   FontSize="9.5" Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding Items}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                              <Border Margin="0 2 4 2" Padding="7 2 4 2" CornerRadius="3"
+                                      Background="{DynamicResource SurfaceRaisedBrush}"
+                                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                  <TextBlock Text="{Binding}" FontSize="11" VerticalAlignment="Center" />
+                                  <Button Content="×" FontSize="12" Padding="3 0" MinHeight="0"
+                                          Background="Transparent" BorderThickness="0"
+                                          Foreground="{DynamicResource TextDimBrush}"
+                                          Command="{Binding $parent[ItemsControl].((vm:AlarmFieldVm)DataContext).RemoveCommand}"
+                                          CommandParameter="{Binding}" />
+                                </StackPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
+                      <!-- A threshold: the box arms the number -->
+                      <StackPanel IsVisible="{Binding IsThreshold}" Orientation="Horizontal" Spacing="6">
+                        <CheckBox IsChecked="{Binding Flag}" FontSize="11"
+                                  Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding Text}" Width="100" IsEnabled="{Binding Flag}" />
+                        <TextBlock Text="{Binding Suffix}" FontSize="11" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextDimBrush}" />
+                      </StackPanel>
+
+                      <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsEnum}">
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
+                                  HorizontalAlignment="Stretch" FontSize="11" />
+                        <!-- A choice that carries a number: "Lower than [5,000] units" -->
+                        <TextBox Grid.Column="1" Text="{Binding UnitsText}" Width="100" Margin="6 0 0 0"
+                                 IsVisible="{Binding HasUnits}" IsEnabled="{Binding UnitsEnabled}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Suffix}" FontSize="11" Margin="6 0 0 0"
+                                   IsVisible="{Binding HasUnits}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextDimBrush}" />
+                      </Grid>
 
                       <StackPanel IsVisible="{Binding IsDateTime}" Spacing="3">
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -216,7 +385,7 @@
               </ItemsControl>
 
               <Grid ColumnDefinitions="*,*,*">
-                <StackPanel Grid.Column="0" Margin="0 0 5 0">
+                <StackPanel Grid.Column="0" Margin="0 0 5 0" IsVisible="{Binding !IsStaged}">
                   <TextBlock Classes="flabel" Text="AFTER FIRING" />
                   <ComboBox ItemsSource="{Binding RepeatModes}" SelectedItem="{Binding Repeat}"
                             HorizontalAlignment="Stretch" FontSize="11" />
@@ -225,7 +394,7 @@
                   <TextBlock Classes="flabel" Text="CHECK EVERY (SEC)" />
                   <TextBox Text="{Binding PollSeconds}" />
                 </StackPanel>
-                <StackPanel Grid.Column="2" Margin="5 0 0 0">
+                <StackPanel Grid.Column="2" Margin="5 0 0 0" IsVisible="{Binding !IsStaged}">
                   <TextBlock Classes="flabel" Text="COOLDOWN (SEC)" />
                   <TextBox Text="{Binding CooldownSeconds}" />
                 </StackPanel>
@@ -235,91 +404,44 @@
                          Text="An alarm only announces things it has not announced before, so a condition that stays true does not repeat. Continuous stays armed until you disable it; One shot disables itself after firing once. Cooldown adds a minimum gap on top." />
             </StackPanel>
 
-            <!-- Actions -->
-            <StackPanel Spacing="8">
+            <!-- Actions: one flat list for an ordinary check … -->
+            <StackPanel Spacing="8" IsVisible="{Binding !IsStaged}">
               <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" Classes="section" Text="THEN" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Classes="tool" Content="Add Action"
                         Command="{Binding AddActionCommand}" />
               </Grid>
-
-              <ItemsControl ItemsSource="{Binding Actions}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="vm:AlarmActionVm">
-                    <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                            CornerRadius="3" Padding="10 8" Margin="0 0 0 6">
-                      <StackPanel Spacing="8">
-
-                        <Grid ColumnDefinitions="220,*,Auto">
-                          <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableKinds}"
-                                    SelectedItem="{Binding Kind}" FontSize="11"
-                                    HorizontalAlignment="Stretch" />
-                          <Button Grid.Column="2" Content="Remove" FontSize="10.5"
-                                  Background="Transparent" BorderThickness="0" Foreground="{DynamicResource WarnBrush}"
-                                  Command="{Binding $parent[ItemsControl].((vm:AlarmsViewModel)DataContext).RemoveActionCommand}"
-                                  CommandParameter="{Binding}" />
-                        </Grid>
-
-                        <!-- Sound -->
-                        <StackPanel IsVisible="{Binding IsSound}" Spacing="3">
-                          <Grid ColumnDefinitions="*,80,Auto,Auto">
-                            <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                              <TextBlock Classes="flabel" Text="SOUND" />
-                              <ComboBox ItemsSource="{Binding AvailableSounds}" SelectedItem="{Binding Sound}"
-                                        HorizontalAlignment="Stretch" FontSize="11" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Margin="0 0 8 0">
-                              <TextBlock Classes="flabel" Text="VOLUME" />
-                              <TextBox Text="{Binding Volume}" />
-                            </StackPanel>
-                            <Button Grid.Column="2" Classes="tool" Content="▶ Preview"
-                                    Command="{Binding PreviewCommand}" VerticalAlignment="Bottom" />
-                            <Button Grid.Column="3" Classes="tool" Content="Add Sound…"
-                                    Command="{Binding AddSoundCommand}" VerticalAlignment="Bottom"
-                                    Margin="6 0 0 0" />
-                          </Grid>
-                          <TextBlock Text="{Binding ImportError}" FontSize="9.5" Foreground="{DynamicResource BadBrush}" />
-                        </StackPanel>
-
-                        <!-- Agent -->
-                        <StackPanel IsVisible="{Binding IsAgent}">
-                          <TextBlock Classes="flabel" Text="EXTRA INSTRUCTION FOR THE AGENT (OPTIONAL)" />
-                          <TextBox Text="{Binding Instruction}"
-                                   Watermark="e.g. mention which system, and keep it short" />
-                          <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
-                                     Text="The agent is told what fired and phrases it itself. It will speak aloud if you have text-to-speech configured; if the agent is not set up, this is recorded as an alert instead." />
-                        </StackPanel>
-
-                        <!-- Alert / Dialog -->
-                        <StackPanel Spacing="6" IsVisible="{Binding HasText}">
-                          <CheckBox IsChecked="{Binding UseDefaultText}"
-                                    Content="Use the default wording for this check"
-                                    FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
-                          <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                                     IsVisible="{Binding UseDefaultText}"
-                                     Text="{Binding DefaultTextPreview}" />
-
-                          <StackPanel Spacing="6" IsVisible="{Binding !UseDefaultText}">
-                            <StackPanel>
-                              <TextBlock Classes="flabel" Text="TITLE" />
-                              <TextBox Text="{Binding Title}" Watermark="{}{alarm}" />
-                            </StackPanel>
-                            <StackPanel>
-                              <TextBlock Classes="flabel" Text="MESSAGE" />
-                              <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="54"
-                                       Watermark="{}{summary}" />
-                            </StackPanel>
-                            <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                                       Text="Placeholders: {alarm} {summary} {count} {time} {date}" />
-                          </StackPanel>
-                        </StackPanel>
-
-                      </StackPanel>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding Actions}" ItemTemplate="{StaticResource ActionTemplate}" />
             </StackPanel>
+
+            <!-- … and, for a staged check, a section per stage: when it fires, and what runs at it. -->
+            <ItemsControl ItemsSource="{Binding Stages}" IsVisible="{Binding IsStaged}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:AlarmStageVm">
+                  <StackPanel Spacing="6" Margin="0 0 0 14">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <TextBlock Grid.Column="0" Classes="section" Text="{Binding Title}" VerticalAlignment="Center" Margin="0" />
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="14 0 0 0"
+                                  VerticalAlignment="Center" IsVisible="{Binding HasField}">
+                        <CheckBox IsChecked="{Binding Field.Flag}" FontSize="11"
+                                  Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="after" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding Field.Text}" Width="80" IsEnabled="{Binding Field.Flag}" />
+                        <TextBlock Text="{Binding Field.Suffix}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <Button Grid.Column="2" Classes="tool" Content="Add Action"
+                              Command="{Binding AddActionCommand}" />
+                    </Grid>
+                    <TextBlock Text="{Binding Field.Description}" IsVisible="{Binding HasField}"
+                               FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 0 0 2" />
+                    <ItemsControl ItemsSource="{Binding Actions}" ItemTemplate="{StaticResource ActionTemplate}" />
+                    <TextBlock Text="No actions at this stage — add one, or leave the stage unticked."
+                               IsVisible="{Binding IsEmpty}"
+                               FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" Margin="2 0 0 0" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
           </StackPanel>
         </ScrollViewer>

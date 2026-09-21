@@ -12,6 +12,13 @@ public sealed class AlarmEvaluationContext
     public required string                          ConnectionString { get; init; }
     public required Alarm                           Alarm            { get; init; }
     public required DateTimeOffset                  Now              { get; init; }
+
+    /// <summary>
+    /// The keys this alarm has already announced or banked. Most checks never look: the service
+    /// does the diff. A check that folds several facts into one announcement needs to know
+    /// whether the thing is new to say it as new, and that is the one question this answers.
+    /// </summary>
+    public IReadOnlySet<string> Seen { get; init; } = new HashSet<string>();
 }
 
 /// <summary>
@@ -43,6 +50,50 @@ public interface IAlarmCondition
     (string Title, string Body) DefaultText(
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
         => (alarmName, JoinSummaries(matches));
+
+    /// <summary>
+    /// What the agent is to SAY when the alarm fires, word for word — or null, the default, to
+    /// let the agent put the matches into its own words.
+    ///
+    /// <para>For an alarm whose whole value is in the next few seconds, the model's own words are
+    /// the wrong tool: they arrive after a round trip, in whatever order the model chose, with
+    /// whatever it thought worth adding. A condition that knows the priority of its own facts
+    /// composes the sentence itself, and it is spoken as written, at once.</para>
+    /// </summary>
+    string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches) => null;
+
+    /// <summary>
+    /// How many stages a firing of this check can progress through, or 0 for an ordinary check.
+    ///
+    /// <para>A staged check emits matches that each carry a <c>stage</c>, a <c>scope_key</c>
+    /// (whose situation it is — a character), an <c>episode</c> (which occurrence of it) and a
+    /// <c>snooze_minutes</c> in their detail. The service fires each scope's stage separately,
+    /// with only the actions tied to that stage, and repeat and cooldown do not apply — the
+    /// stages are the cadence. An acknowledgement quiets the scope's episode for the snooze.</para>
+    /// </summary>
+    int Stages => 0;
+
+    /// <summary>
+    /// The whole of what the agent is told, for a check that needs more than "say this": a
+    /// wake-up call asks a question and must let the reply come. Null, the default, leaves it
+    /// to the runner's generic prompt. The capsuleer's standing instruction, if any, is appended
+    /// by the runner either way.
+    /// </summary>
+    string? AgentPrompt(JsonElement config, IReadOnlyList<AlarmMatch> matches) => null;
+
+    /// <summary>
+    /// For a staged check: whether the situation a firing was about is still going on and still
+    /// unacknowledged. Asked by a client between plays of a repeating sound, so it must read the
+    /// database rather than remember anything. False, the default, stops the sound.
+    /// </summary>
+    Task<bool> StillHoldsAsync(
+        long alarmId, string scopeKey, string episode,
+        IDbContextFactory<AppDbContext> dbFactory, CancellationToken ct)
+        => Task.FromResult(false);
+
+    /// <summary>The stage a match belongs to, for a staged check; 0 otherwise.</summary>
+    static int StageOf(AlarmMatch m)
+        => m.Detail is { } d && d.TryGetValue("stage", out var s) && s is int stage ? stage : 0;
 
     /// <summary>Shared body-building for the default text: the matches, one per line, capped.</summary>
     protected static string JoinSummaries(IReadOnlyList<AlarmMatch> matches, int max = 6)

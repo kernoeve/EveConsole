@@ -86,7 +86,11 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
             BaseSeconds.ContainsKey((bpTypeId, activity));
     }
 
-    public async Task<TimeContext> LoadAsync(int parkId, CancellationToken ct = default)
+    // Once per build for a park; every caller only reads it.
+    public Task<TimeContext> LoadAsync(int parkId, CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync($"TimeContext:{parkId}", () => LoadUncachedAsync(parkId, ct));
+
+    private async Task<TimeContext> LoadUncachedAsync(int parkId, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -132,6 +136,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         // IndyStructure.StructureTypeKey holds ("raitaru", "sotiyo", …).
         var structNames = await db.SdeTypes.AsNoTracking()
             .Where(t => structTypeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name.ToLowerInvariant(), ct);
 
         var structMfg = new Dictionary<string, double>();
@@ -158,6 +163,7 @@ public class IndustryTimeService(IDbContextFactory<AppDbContext> dbFactory)
         var rigTypeIds = rigs.Select(r => r.RigTypeId).Distinct().ToList();
         var rigNames = await db.SdeTypes.AsNoTracking()
             .Where(t => rigTypeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name })
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         return new TimeContext

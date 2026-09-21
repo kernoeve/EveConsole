@@ -29,10 +29,56 @@ public static partial class EvePronunciation
     private static readonly string[] Digits =
         ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 
-    public static string Expand(string text) =>
-        string.IsNullOrWhiteSpace(text)
-            ? text
-            : SystemNamePattern.Replace(text, m => Spell(m.Value));
+    /// <summary>
+    /// Words a speech engine says wrong because they look like something they are not.
+    ///
+    /// <para>EVE and ISK are the same problem in reverse: both are ordinary words that happen to
+    /// be written in capitals, so an engine reads them as initialisms — "E V E", "I S K".
+    /// Lower-casing is the whole fix.</para>
+    ///
+    /// <para>⚠️ The empire names are respelled phonetically rather than corrected, because there
+    /// is nothing to correct — the engine is guessing at an invented proper noun and guessing
+    /// plausibly. On the speech path the only lever is the text itself. Stress matters more than
+    /// the vowels: Gallente is "guh-LEN-tay", not "GAL-ent".</para>
+    /// </summary>
+    private static readonly (string Written, string Spoken)[] Words =
+    [
+        // Ordinary words wearing capitals.
+        ("EVE",       "Eve"),
+        ("ISK",       "isk"),
+
+        // The four empires. ⚠️ Amarrian before Amarr — the alternation below is ordered, so the
+        // shorter name would otherwise match first and leave "-ian" stranded.
+        ("Amarrian",  "uh-MAR-ee-an"),
+        ("Amarr",     "uh-MAR"),
+        ("Caldari",   "kal-DAR-ee"),
+        ("Gallente",  "guh-LEN-tay"),
+        ("Minmatar",  "MIN-muh-tar"),
+    ];
+
+    /// <summary>
+    /// ⚠️ Whole words only. Without the boundaries "ISK" matches inside "RISK" and "EVE" inside
+    /// "SEVEN", and the correction becomes the defect.
+    /// </summary>
+    [GeneratedRegex(@"\b(EVE|ISK|Amarrian|Amarr|Caldari|Gallente|Minmatar)\b")]
+    private static partial Regex WordPattern { get; }
+
+    public static string Expand(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+
+        // ⚠️ System names first, words second. Spell() emits single letters separated by spaces,
+        // so running it over the word pass's output could re-match letters it had just produced.
+        var spelled = SystemNamePattern.Replace(text, m => Spell(m.Value));
+
+        return WordPattern.Replace(spelled, m =>
+        {
+            foreach (var (written, spoken) in Words)
+                if (m.Value.Equals(written, StringComparison.Ordinal))
+                    return spoken;
+            return m.Value;
+        });
+    }
 
     /// <summary>"C-FD0D" → "C tac F D zero D".</summary>
     private static string Spell(string name)

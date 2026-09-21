@@ -78,13 +78,75 @@ public class DataRetentionService
         PriceHistory = new RetentionRule(prefs, "retention.pricehistory", defaultDays: 90,  minimumDays: 30);
         GameLog      = new RetentionRule(prefs, "retention.gamelog",      defaultDays: 365, minimumDays: 30);
         ChatMessages = new RetentionRule(prefs, "retention.chat",         defaultDays: 90,  minimumDays: 30);
+
+        // ⚠️ A week is a real floor here, not a formality. The whole point of these rows is to
+        // read back WHY an answer was poor, and that is usually noticed days later.
+        AgentTelemetry = new RetentionRule(prefs, "retention.agenttelemetry", defaultDays: 90, minimumDays: 7);
+
+        // ⚠️ The deliberate exception to "everything here is off by default" — and it should read
+        // as deliberate rather than as an oversight. That rule exists because deleting history the
+        // capsuleer did not ask to lose cannot be undone from inside the app. But this is not
+        // their history: it is the app's own diagnostic exhaust, several rows per agent turn, each
+        // carrying the SQL the model wrote. Nobody will think to enable a sweep for it, and the
+        // cost of never doing so is a table that grows for the life of the install.
+        //
+        // Enabled only when the capsuleer has never expressed a view. Untick it once and that
+        // choice stands — this must not switch itself back on at every start.
+        if (prefs.Get("retention.agenttelemetry.enabled") is null) AgentTelemetry.Enabled = true;
     }
 
-    public RetentionRule ErrorLog     { get; }
-    public RetentionRule Killmails    { get; }
-    public RetentionRule PriceHistory { get; }
-    public RetentionRule GameLog      { get; }
-    public RetentionRule ChatMessages { get; }
+    public RetentionRule ErrorLog       { get; }
+    public RetentionRule Killmails      { get; }
+    public RetentionRule PriceHistory   { get; }
+    public RetentionRule GameLog        { get; }
+    public RetentionRule ChatMessages   { get; }
+    public RetentionRule AgentTelemetry { get; }
+
+    // ── Agent telemetry ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Drops agent turns older than the window, and the tool calls and usage rows hanging off
+    /// them.
+    ///
+    /// <para>Children first, by the same reasoning as the killmail sweep: an interruption leaves
+    /// orphans that the next run clears, rather than a turn whose cost rows have gone and which
+    /// would quietly understate the total.</para>
+    ///
+    /// <para>⚠️ Deletes by joining back to the parent's timestamp rather than trusting the
+    /// children's own. A tool call and its turn are written in the same operation, so the two
+    /// agree today — but a future write path that batches differently would leave rows whose
+    /// parent is gone, and a cost query that reads ServiceUsage alone would then be wrong in the
+    /// direction that looks plausible.</para>
+    /// </summary>
+    public async Task<int> PurgeAgentTelemetryAsync(int days, CancellationToken ct = default)
+    {
+        days = Math.Max(AgentTelemetry.MinimumDays, days);
+        var cutoff = TimestampCutoff(days);
+
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             DELETE FROM "AgentToolCalls" WHERE "InteractionId" IN (
+                 SELECT "Id" FROM "AgentInteractions" WHERE "StartedAt" < {cutoff})
+             """, ct);
+
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             DELETE FROM "ServiceUsage" WHERE "InteractionId" IN (
+                 SELECT "Id" FROM "AgentInteractions" WHERE "StartedAt" < {cutoff})
+             """, ct);
+
+        // Usage with no turn behind it — a TTS or transcription call logged outside an exchange —
+        // ages out on its own timestamp, since there is no parent to date it by.
+        await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             DELETE FROM "ServiceUsage" WHERE "InteractionId" IS NULL AND "OccurredAt" < {cutoff}
+             """, ct);
+
+        return await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""DELETE FROM "AgentInteractions" WHERE "StartedAt" < {cutoff}""", ct);
+    }
 
     // ── Error log ─────────────────────────────────────────────────────────────
 
@@ -288,6 +350,7 @@ public class DataRetentionService
         await RunIfDue(PriceHistory, PurgePriceHistoryAsync);
         await RunIfDue(GameLog,      PurgeGameLogAsync);
         await RunIfDue(ChatMessages, PurgeChatMessagesAsync);
+        await RunIfDue(AgentTelemetry, PurgeAgentTelemetryAsync);
 
         async Task RunIfDue(RetentionRule rule, Func<int, CancellationToken, Task<int>> purge)
         {

@@ -98,8 +98,11 @@ public class IndustryAssignmentService(
     /// the Corporations tab. Authorising a main in a large alliance corp hands the app that
     /// corp's whole hangar, and treating it as material makes every shortfall look filled.</para>
     /// </summary>
-    public async Task<HashSet<long>?> UsableCorporationsAsync(
-        bool includeNonPersonal, CancellationToken ct = default)
+    public Task<HashSet<long>?> UsableCorporationsAsync(bool includeNonPersonal, CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync($"IndustryAssignment.Corps:{includeNonPersonal}", () => UsableCorporationsUncachedAsync(includeNonPersonal, ct));
+
+    private async Task<HashSet<long>?> UsableCorporationsUncachedAsync(
+        bool includeNonPersonal, CancellationToken ct)
     {
         if (includeNonPersonal) return null;
 
@@ -118,8 +121,11 @@ public class IndustryAssignmentService(
     /// a scheduling choice; which alts own things is a fact about the account, and conflating them
     /// makes the tool recommend buying a blueprint it can see sitting in a trading alt's hangar.</para>
     /// </summary>
-    public async Task<PrintOwnership> PrintOwnershipAsync(
-        bool includeNonPersonalCorps, CancellationToken ct = default)
+    public Task<PrintOwnership> PrintOwnershipAsync(bool includeNonPersonalCorps, CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync($"IndustryAssignment.Ownership:{includeNonPersonalCorps}", () => PrintOwnershipUncachedAsync(includeNonPersonalCorps, ct));
+
+    private async Task<PrintOwnership> PrintOwnershipUncachedAsync(
+        bool includeNonPersonalCorps, CancellationToken ct)
     {
         var corps = await UsableCorporationsAsync(includeNonPersonalCorps, ct);
 
@@ -191,7 +197,12 @@ public class IndustryAssignmentService(
 
     private readonly SemaphoreSlim _enrolGate = new(1, 1);
 
-    public async Task<List<IndustryCandidate>> LoadCandidatesAsync(CancellationToken ct = default)
+    // Once per build: every generator asks, none of them changes a candidate — the job planner
+    // copies FreeSlots before it decrements.
+    public Task<List<IndustryCandidate>> LoadCandidatesAsync(CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync("IndustryAssignment.Candidates", () => LoadCandidatesUncachedAsync(ct));
+
+    private async Task<List<IndustryCandidate>> LoadCandidatesUncachedAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 

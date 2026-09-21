@@ -67,11 +67,8 @@ public class NewsItemVm : ReactiveObject
         CanExpand   = HasBody && FullText.Length > PreviewText.Length;
 
         ToggleCommand = ReactiveCommand.Create(() => { IsExpanded = !IsExpanded; });
-        OpenCommand   = ReactiveCommand.Create(() =>
-        {
-            if (!string.IsNullOrEmpty(Link))
-                Process.Start(new ProcessStartInfo(Link) { UseShellExecute = true });
-        });
+        // A news item's link is the feed's, not ours: confirmed like any other content link.
+        OpenCommand   = ReactiveCommand.Create(() => ExternalLinks.Open(Link));
     }
 
     private static string HtmlToText(string html)
@@ -130,6 +127,10 @@ public class AlertRowVm : ReactiveObject
 {
     public string Message       { get; init; } = "";
     public bool   IsDismissible { get; init; } = false;
+
+    /// <summary>Names what a dismissal removes, so a refresh that began before the click does not bring it back.</summary>
+    public string? DismissKey    { get; init; }
+
 
     public ReactiveCommand<Unit, Unit>? DismissCommand { get; init; }
 
@@ -695,6 +696,28 @@ public class OverviewViewModel : ReactiveObject
     /// </summary>
     private static Task<T> Off<T>(Func<Task<T>> query) => Task.Run(query);
 
+    /// <summary>
+    /// Every dismissal made this session, by key. A refresh reads its rows over several seconds
+    /// and swaps the list at the end; an alert dismissed in between was read as open and came
+    /// back for a minute. Never pruned: a dismissed alert does not come undone, and the set is tiny.
+    /// </summary>
+    private readonly HashSet<string> _dismissedDuringLoad = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// A write made from a click, on a context of its own.
+    ///
+    /// <para>⚠️ Not on the shared context: the refresh runs its queries on that from a pool thread
+    /// for seconds at a time, and a dismissal landing in the middle of one threw "a second
+    /// operation was started on this context" — the click did nothing and the alert stayed.</para>
+    /// </summary>
+    private async Task ExecuteAsync(FormattableString sql)
+    {
+        if (_dbFactory is null) { await _db.Database.ExecuteSqlInterpolatedAsync(sql); return; }
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        await db.Database.ExecuteSqlInterpolatedAsync(sql);
+    }
+
+
     private async Task LoadCoreAsync()
     {
         // Step() names the section under way, which shows as progress text while the Overview
@@ -850,14 +873,29 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Contracts ─────────────────────────────────────────────────────
             Step("Loading contracts");
-            var contracts = new List<string>();
+            //
+            // ⚠️ Only contracts WE issued. ESI returns every contract an owner could act on, and
+            // for a corporation that includes everything assigned to its alliance: 73 of the 77
+            // "outstanding" this once showed were other people's alliance contracts, fetched
+            // through the personal corporation. A summary of our activity is what we are doing,
+            // not what we could accept.
+            //
+            // Deduped by contract id, because a corp contract issued by one of our characters
+            // comes back under the character and under the corporation.
+            var contracts = new HashSet<int>();
             foreach (var (ot, oid) in activityOwners)
-                contracts.AddRange(await Off(() => _db.EsiContracts.AsNoTracking()
-                    .Where(c => c.OwnerType == ot && c.OwnerId == oid)
-                    .Select(c => c.Status)
-                    .ToListAsync()));
+            {
+                var corpId = (int)oid;
+                var open = _db.EsiContracts.AsNoTracking()
+                    .Where(c => c.OwnerType == ot && c.OwnerId == oid && c.Status == "outstanding");
+                open = ot == "character"
+                    ? open.Where(c => c.IssuerId == oid)
+                    : open.Where(c => c.ForCorporation && c.IssuerCorporationId == corpId);
 
-            CtrActiveCount = contracts.Count(s => s == "outstanding").ToString("N0");
+                contracts.UnionWith(await Off(() => open.Select(c => c.ContractId).ToListAsync()));
+            }
+
+            CtrActiveCount = contracts.Count.ToString("N0");
 
             // ── Industry jobs ──────────────────────────────────────────────────
             Step("Loading industry jobs");
@@ -945,26 +983,9 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Wallet journal — pie chart categorisation ──────────────────────
             Step("Loading journal data");
-            // Group by RefType in SQL with date filter — avoids loading all rows.
-            // Amount stored as TEXT; CAST to REAL for SUM. Aggregated per RefType.
-            var journalGroups = new List<(string RefType, decimal Total)>();
-            foreach (var (ot, oid) in pieOwners)
-            {
-                var rows = await Off(() => _db.Database.SqlQuery<JournalGroup>(
-                    $"""
-                    SELECT "RefType", COALESCE(SUM(CAST("Amount" AS DOUBLE PRECISION)), 0.0) AS "TotalAmount"
-                    FROM "EsiWalletJournal"
-                    WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                    GROUP BY "RefType"
-                    """
-                ).ToListAsync());
-                journalGroups.AddRange(rows.Select(r => (r.RefType, (decimal)r.TotalAmount)));
-            }
-
-            // Merge duplicate RefTypes across owners
-            var journalByType = journalGroups
-                .GroupBy(g => g.RefType, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Total), StringComparer.OrdinalIgnoreCase);
+            // Summed per RefType in SQL, across every owner, with ISK moved between the player's
+            // own wallets left out — the same figures the Income & Expense tool shows.
+            var journalByType = await Off(() => WalletJournalTotals.ByRefTypeAsync(_db, pieOwners, cutoff));
 
             Step("Building charts");
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
@@ -1380,12 +1401,6 @@ public class OverviewViewModel : ReactiveObject
         public int    BuyCount  { get; set; }
     }
 
-    private sealed class JournalGroup
-    {
-        public string RefType     { get; set; } = "";
-        public double TotalAmount { get; set; }
-    }
-
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -1556,12 +1571,15 @@ public class OverviewViewModel : ReactiveObject
                           + $"({(int)(deadline - now).TotalDays}d left) or the game picks one."
                         : $"{charName}: Items moved to Asset Safety on {dateText}.",
                     IsDismissible = true,
+                    DismissKey    = $"notif:{charId}:{notifId}",
                     DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                     {
-                        await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                        _dismissedDuringLoad.Add($"notif:{charId}:{notifId}");
+                        await ExecuteAsync($"""
                             INSERT INTO "DismissedAlerts" ("CharacterId","NotificationId")
                             VALUES ({charId},{notifId}) ON CONFLICT DO NOTHING
                             """);
+
                         var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
                         if (toRemove is not null)
                         {
@@ -1656,6 +1674,35 @@ public class OverviewViewModel : ReactiveObject
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnriggedJobAlert", ex); }
         }
 
+        // Jobs finished and waiting to be delivered — the output is sitting there and the slot
+        // is held until someone collects. ESI marks a finished job "ready" only sometimes; more
+        // often it stays "active" past its end date, so both are counted. The date test is done
+        // here: a DateTimeOffset in a LINQ Where does not translate on SQLite.
+        if (_alertSettings.IndustryJobsReady)
+        {
+            try
+            {
+                var utcNow = DateTimeOffset.UtcNow;
+                var ready  = (await Off(() => _db.EsiIndustryJobs.AsNoTracking()
+                        .Where(j => j.Status == "ready" || j.Status == "active")
+                        .Select(j => new { j.Status, j.EndDate })
+                        .ToListAsync()))
+                    .Count(j => j.Status == "ready" || j.EndDate <= utcNow);
+
+                if (ready > 0)
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message = ready == 1
+                            ? "You have 1 industry job ready to deliver."
+                            : $"You have {ready} industry jobs ready to deliver.",
+                        NavigateCommand = NavigateToIndustryJobs is not null
+                            ? ReactiveCommand.Create(NavigateToIndustryJobs)
+                            : null
+                    });
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "IndustryJobsReadyAlert", ex); }
+        }
+
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
         // checks above there is nothing to enable, because the user asked for each of these
         // explicitly when they built the alarm.
@@ -1678,12 +1725,15 @@ public class OverviewViewModel : ReactiveObject
             {
                 Message       = text,
                 IsDismissible = true,
+                DismissKey    = $"alarm:{alertId}",
                 DismissCommand = ReactiveCommand.CreateFromTask(async () =>
                 {
-                    await _db.Database.ExecuteSqlInterpolatedAsync($"""
+                    _dismissedDuringLoad.Add($"alarm:{alertId}");
+                    await ExecuteAsync($"""
                         UPDATE "AlarmAlerts" SET "Dismissed" = TRUE, "DismissedAt" = {DateTimeOffset.UtcNow}
                         WHERE "Id" = {alertId}
                         """);
+
                     var toRemove = Alerts.FirstOrDefault(a => ReferenceEquals(a, row));
                     if (toRemove is not null)
                     {
@@ -1699,11 +1749,16 @@ public class OverviewViewModel : ReactiveObject
         // Inserted as a block so the newest alarm alert stays at the top of the box.
         newAlerts.InsertRange(0, alarmRows);
 
+        // ⚠️ Anything dismissed while this load was under way is left out, even though its row was
+        // read as open before the click: a refresh that began before a dismissal must not bring
+        // the alert back for the minute until the next one.
         Alerts.Clear();
-        foreach (var a in newAlerts) Alerts.Add(a);
+        foreach (var a in newAlerts)
+            if (a.DismissKey is null || !_dismissedDuringLoad.Contains(a.DismissKey)) Alerts.Add(a);
         HasAlerts = Alerts.Count > 0;
         this.RaisePropertyChanged(nameof(NoAlerts));
     }
+
 
     private void ResetAllMetrics()
     {

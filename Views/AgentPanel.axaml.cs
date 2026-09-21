@@ -13,6 +13,16 @@ public partial class AgentPanel : ReactiveUserControl<AgentPanelViewModel>
     public AgentPanel()
     {
         InitializeComponent();
+
+        // ⚠️ Hold to talk, like the key — not click to start and click again to stop. The toggle
+        // read as broken to anyone who held the button while speaking: the press started a
+        // recording, the release did nothing, and the NEXT press stopped and transcribed the
+        // earlier speech, which then appeared as if it had been delayed; a quick tap made a
+        // near-empty clip that read as "no speech". Tunnelled, because the button keeps the
+        // bubbling pointer events for its own click.
+        MicButton.AddHandler(PointerPressedEvent,     OnMicPressed,     RoutingStrategies.Tunnel);
+        MicButton.AddHandler(PointerReleasedEvent,    OnMicReleased,    RoutingStrategies.Tunnel);
+        MicButton.AddHandler(PointerCaptureLostEvent, OnMicCaptureLost, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -52,14 +62,18 @@ public partial class AgentPanel : ReactiveUserControl<AgentPanelViewModel>
         if (ViewModel is not null) ViewModel.IsMuted = !ViewModel.IsMuted;
     }
 
-    private void OnMicClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnMicPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (ViewModel is null) return;
-        if (ViewModel.IsRecording)
-            _ = ViewModel.StopAndTranscribeAsync();
-        else
-            ViewModel.StartRecording();
+        if (ViewModel is null || !e.GetCurrentPoint(MicButton).Properties.IsLeftButtonPressed) return;
+        ViewModel.StartRecording();
     }
+
+    private void OnMicReleased(object? sender, PointerReleasedEventArgs e)
+        => _ = ViewModel?.StopAndTranscribeAsync();
+
+    /// <summary>The window lost the pointer mid-hold — a switch to the game, say. Sent, not dropped.</summary>
+    private void OnMicCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+        => _ = ViewModel?.StopAndTranscribeAsync();
 
     private void OnClearClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ViewModel?.ClearHistory();

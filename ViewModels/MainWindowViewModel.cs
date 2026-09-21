@@ -16,6 +16,9 @@ using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>One line of the online-characters hover in the header.</summary>
+public sealed record OnlineCharacterVm(string Name, string Location, string Ship, bool IsDocked);
+
 public class MainWindowViewModel : ReactiveObject
 {
     public OverviewViewModel              OverviewVm             { get; }
@@ -223,6 +226,7 @@ public class MainWindowViewModel : ReactiveObject
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
+    public AgentUsageViewModel            AgentUsageVm           { get; }
     public GameLogViewerViewModel         GameLogViewerVm        { get; }
     public ChatLogViewerViewModel         ChatLogViewerVm        { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
@@ -419,12 +423,23 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _onlineCharactersText, value);
     }
 
-    private string _onlineCharactersTip = "";
-    public string OnlineCharactersTip
+    /// <summary>
+    /// Who is online, for the hover: one row each, replaced wholesale on every refresh so the
+    /// tooltip's columns re-measure together. Docked rows read green and in-space rows orange
+    /// in the view, because that is the one thing worth seeing at a glance.
+    /// </summary>
+    private IReadOnlyList<OnlineCharacterVm> _onlineCharacters = [];
+    public IReadOnlyList<OnlineCharacterVm> OnlineCharacters
     {
-        get => _onlineCharactersTip;
-        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersTip, value);
+        get => _onlineCharacters;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _onlineCharacters, value);
+            this.RaisePropertyChanged(nameof(HasOnlineCharacters));
+        }
     }
+
+    public bool HasOnlineCharacters => OnlineCharacters.Count > 0;
 
     /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
     private IBrush _onlineCharactersColor = Palette.BorderStrong;
@@ -457,7 +472,10 @@ public class MainWindowViewModel : ReactiveObject
                 await using var db = await dbFactory.CreateDbContextAsync();
 
                 // Left joins throughout: a character who has just logged in may not have had a
-                // location or ship poll yet, and should still be counted as online.
+                // location or ship poll yet, and should still be counted as online. The docked
+                // place is looked up in every table that names one — the SDE for NPC stations,
+                // three for player structures — so a pilot in a Keepstar reads as being in it
+                // rather than merely in its system.
                 return await (
                     from s in db.CharacterStatuses.AsNoTracking()
                     join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
@@ -465,11 +483,24 @@ public class MainWindowViewModel : ReactiveObject
                         .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
                     from ship in db.SdeTypes.AsNoTracking()
                         .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
+                    from sta in db.SdeStations.AsNoTracking()
+                        .Where(x => (long)x.StationId == s.StationId).DefaultIfEmpty()
+                    from str in db.Structures.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
+                    from strn in db.EsiStructureNames.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
+                    from cstr in db.EsiCorpStructures.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
                     select new
                     {
                         c.Name,
                         s.Online,
+                        Docked   = s.StationId != null || s.StructureId != null,
                         System   = sys != null ? sys.Name : null,
+                        Place    = sta  != null ? sta.Name
+                                 : str  != null ? str.Name
+                                 : strn != null ? strn.Name
+                                 : cstr != null ? cstr.Name : null,
                         Hull     = ship != null ? ship.Name : null,
                         s.ShipName,
                     }).ToListAsync();
@@ -479,26 +510,30 @@ public class MainWindowViewModel : ReactiveObject
 
             var text = $"{online.Count} of {rows.Count} Online";
 
-            var tip = online.Count == 0
-                ? "None of your characters are online."
-                : string.Join("\n", online.Select(r =>
-                {
-                    var where = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+            var list = online.Select(r =>
+            {
+                var system = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
 
-                    // The hull is what the ship IS; ShipName is what the pilot called it. Show
-                    // both only when the pilot bothered to rename it.
-                    var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
-                    if (!string.IsNullOrWhiteSpace(r.ShipName)
-                        && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
-                        ship = $"{r.Hull} \"{r.ShipName}\"";
+                // Docked: the station or structure, which says more than its system does. In
+                // space: the system, which is all there is to say.
+                var where = !r.Docked                              ? system
+                          : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
+                          :                                          $"a structure in {system}";
 
-                    return $"{r.Name} — {where} — {ship}";
-                }));
+                // The hull is what the ship IS; ShipName is what the pilot called it. Show
+                // both only when the pilot bothered to rename it.
+                var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                if (!string.IsNullOrWhiteSpace(r.ShipName)
+                    && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
+                    ship = $"{r.Hull} \"{r.ShipName}\"";
+
+                return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
+            }).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 OnlineCharactersText  = text;
-                OnlineCharactersTip   = tip;
+                OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
         }
@@ -660,6 +695,7 @@ public class MainWindowViewModel : ReactiveObject
             "notifications"  => ("Notifications",  NotificationsVm,   true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             "error_log"      => ("Error Log",      ErrorLogVm,        true),
+            "ai_usage"       => ("AI Usage",       AgentUsageVm,      true),
             "game_log"       => ("Game Log",       GameLogViewerVm,   true),
             "chat_log"       => ("Chat Log",       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
@@ -683,9 +719,40 @@ public class MainWindowViewModel : ReactiveObject
         // current and is not. Reading on open means closing the tab and opening it again reads
         // afresh, which is what somebody doing that is asking for.
         if (toolId == "error_log") ErrorLogVm.Reload();
+        if (toolId == "ai_usage")  AgentUsageVm.Reload();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Distinguishes agent-opened tabs, which are many, from tools, which are one each.
+    /// </summary>
+    public const string AgentTabPrefix = "agent_output:";
+
+    private int _agentTabCounter;
+
+    /// <summary>
+    /// Opens a tab holding something the agent produced, and selects it.
+    ///
+    /// <para>⚠️ Separate from OpenTool, and deliberately so. OpenTool maps a fixed id to a
+    /// singleton view model — asking for the Worklist twice returns to the one Worklist. These
+    /// are answers to particular questions, so every call gets an id of its own and a tab of its
+    /// own; the previous answer stays open beside it.</para>
+    ///
+    /// <para>They are reachable ONLY this way. There is no nav entry, because there is nothing to
+    /// open — an empty one of these would have no content and no reason to exist.</para>
+    ///
+    /// <para>⚠️ Marshalled to the UI thread by the caller's Dispatcher.Invoke. Agent tools run on
+    /// a background thread and OpenTabs is bound to the tab strip.</para>
+    /// </summary>
+    public string OpenAgentTab(string title, object viewModel)
+    {
+        var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
+        var tab = new ToolTab(id, title, viewModel, canClose: true);
+        OpenTabs.Add(tab);
+        SelectedTab = tab;
+        return id;
     }
 
     public void CloseTab(ToolTab tab)
@@ -743,6 +810,9 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
         StoreMailService                storeMailService,
+        EveConsole.Services.WebStore.WebStoreSyncService webStoreSync,
+        EveConsole.Services.WebStore.CloudflareDeployService cloudflareDeploy,
+
         OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
@@ -863,7 +933,8 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
-        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
+
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
@@ -920,7 +991,7 @@ public class MainWindowViewModel : ReactiveObject
         // typed into.
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
 
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
@@ -1061,6 +1132,7 @@ public class MainWindowViewModel : ReactiveObject
         var connString       = tmpDb.Database.GetConnectionString()!;
         ExplorerVm           = new EsiExplorerViewModel(connString);
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
+        AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
@@ -1074,6 +1146,11 @@ public class MainWindowViewModel : ReactiveObject
         // Set before Initialize — that is where the tool list is built.
         agentService.EntityBrowser = entityBrowser;
         agentService.MapService    = universeMapService;
+        agentService.Esi           = esi;
+        // The preferences were loaded during startup, before this view model exists; the
+        // capsuleer's shared settings are laid over the local file here, before the first prompt
+        // is built from them.
+        agentService.ApplyShared();
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;
@@ -1085,7 +1162,7 @@ public class MainWindowViewModel : ReactiveObject
         var s = agentService.Settings;
         ttsService.Configure(s);
         speechInputService.Configure(s.SpeechInputProvider, s.OpenAiApiKey,
-                                     s.WhisperLocalModel, s.MicrophoneDeviceName);
+                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage);
 
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
@@ -1183,6 +1260,7 @@ public class MainWindowViewModel : ReactiveObject
                 // here — it is a status indicator first and a tool second.
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
+                new NavItem("ai_usage",  "AI Usage"),
                 new NavItem("game_log", "Game Log"),
                 new NavItem("chat_log", "Chat Log"),
             ]),

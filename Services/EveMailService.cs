@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -229,7 +228,95 @@ public class EveMailService(
             }
         }
 
+        await PrefetchBodiesAsync(charId, db, ct);
+
         return FromResult(r);
+    }
+
+    // ── Body prefetch ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// How many bodies one poll will fetch for one character. A first sync of a busy mailbox
+    /// has hundreds outstanding; they arrive over a few polls rather than in one burst that
+    /// would spend the character's whole char-social allowance on the backlog.
+    /// </summary>
+    private const int PrefetchPerPoll = 25;
+
+    /// <summary>
+    /// Fetches and stores the body of every mail that does not have one yet, newest first.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ This is what makes opening a mail instant. Bodies used to be fetched on first view,
+    /// which meant every open was an ESI round trip — and on a slow link, behind a deep poll
+    /// queue, that round trip was the "Loading…" that never came back. Fetching them here,
+    /// in the poll that discovers the mail, puts the body in the database beside the header
+    /// before anyone asks for it. The on-view fetch stays as the fallback for a body this has
+    /// not reached yet.
+    ///
+    /// <para>⚠️ Budgeted like the store, for the same reason. Every body fetch spends
+    /// char-social, the bucket the owner's own reading and sending draw from, so an automated
+    /// backlog must stop before it empties that bucket. The floor is <see cref="MailBudget"/>'s:
+    /// a poll that finds the allowance low leaves the rest for the next one.</para>
+    ///
+    /// <para>Newest first, because the mail the user is about to open is almost always the one
+    /// that just arrived — and if the budget runs out mid-backlog it is the old mail that waits.
+    /// </para>
+    /// </remarks>
+    private async Task PrefetchBodiesAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        List<int> missing;
+        try
+        {
+            missing = await db.EsiMailHeaders
+                .Where(h => h.CharacterId == charId && !h.BodyFetched)
+                .Where(h => !db.EsiMailBodies.Any(b => b.MailId == h.MailId))
+                .OrderByDescending(h => h.Timestamp)
+                .Select(h => h.MailId)
+                .Take(PrefetchPerPoll)
+                .ToListAsync(ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log("EveMailService", $"prefetch query charId={charId}", ex);
+            return;
+        }
+        if (missing.Count == 0) return;
+
+        var fetched = 0;
+        foreach (var mailId in missing)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (esi.IsErrorLimitBlocked) break;                 // app-wide; nothing gained by trying
+            if (!budget.PrefetchMayUse(charId, 1)) break;       // leave the owner their headroom
+
+            budget.Spend(charId);
+            var r = await esi.ExecuteAuthAsync<EsiMailDetail>(
+                charId, $"characters/{charId}/mail/{mailId}/", ct);
+            budget.Observe(charId, r.RateLimitRemaining);
+
+            // A route limit is a "stop", not a "skip": the whole route is refused, so the rest
+            // of the list would only be refused too. Any other failure — a mail deleted between
+            // header and body, say — is that one mail's, and the next is still worth trying.
+            if (r.StatusCode is 420 or 429) break;
+            if (!r.IsSuccess || r.Data is null) continue;
+
+            // Another of the user's characters may have received the same mail and already
+            // stored it — MailId is shared — so this is an existence check, not a blind Add.
+            if (!await db.EsiMailBodies.AnyAsync(b => b.MailId == mailId, ct))
+                db.EsiMailBodies.Add(new EveMailBody { MailId = mailId, Body = r.Data.Body ?? "" });
+
+            var header = await db.EsiMailHeaders.FindAsync([mailId, charId], ct);
+            if (header is not null) header.BodyFetched = true;
+            fetched++;
+        }
+
+        if (fetched > 0)
+        {
+            try { await db.SaveChangesAsync(ct); }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { errorLogger.Log("EveMailService", $"prefetch save charId={charId}", ex); }
+        }
     }
 
     public async Task<PollingResult> FetchLabelsAsync(long charId, AppDbContext db, CancellationToken ct)
@@ -265,6 +352,26 @@ public class EveMailService(
     // ── UI-facing reads ───────────────────────────────────────────────────────
 
     // charId=null + charIds=list → "All Characters" mode
+    /// <summary>EVE's fixed label ids. Custom labels are numbered from 16 up.</summary>
+    public const int InboxLabel = 1, SentLabel = 2, CorpLabel = 4, AllianceLabel = 8;
+
+    /// <summary>
+    /// Headers carrying a label. Labels are stored as a comma-joined list, so a label is matched
+    /// as the whole string or as a delimited element of it — never as a substring, or label 1
+    /// would match 16.
+    /// </summary>
+    /// <remarks>⚠️ The one definition of "in this folder". The Eve Mail tool's folders and the
+    /// store's notion of "sent to me" both come here, so what the user sees under Inbox and what
+    /// the shop will answer cannot drift apart.</remarks>
+    public static IQueryable<EveMailHeader> WithLabel(IQueryable<EveMailHeader> q, int labelId)
+    {
+        var label = labelId.ToString();
+        return q.Where(h => h.Labels == label
+                          || h.Labels.StartsWith(label + ",")
+                          || h.Labels.Contains("," + label + ",")
+                          || h.Labels.EndsWith("," + label));
+    }
+
     public async Task<List<EveMailRow>> GetMailsAsync(
         long? charId, List<long>? charIds = null, int? labelFilter = null, CancellationToken ct = default)
     {
@@ -276,13 +383,7 @@ public class EveMailService(
             : db.EsiMailHeaders.Where(h => charIds == null || charIds.Contains(h.CharacterId));
 
         if (labelFilter.HasValue)
-        {
-            var label = labelFilter.Value.ToString();
-            q = q.Where(h => h.Labels == label
-                           || h.Labels.StartsWith(label + ",")
-                           || h.Labels.Contains("," + label + ",")
-                           || h.Labels.EndsWith("," + label));
-        }
+            q = WithLabel(q, labelFilter.Value);
 
         // Sort by MailId DESC in SQL (int — EF can translate) to get the 500 newest,
         // then reorder by Timestamp in memory (DateTimeOffset ordering unsupported in EF SQLite).
@@ -331,22 +432,20 @@ public class EveMailService(
             .ToList();
     }
 
-    /// <summary>A mail body as readable text, for showing a person.</summary>
-    public async Task<string> GetBodyAsync(long charId, int mailId, CancellationToken ct = default) =>
-        StripHtml(await GetRawBodyAsync(charId, mailId, ct));
-
     /// <summary>
     /// A mail body exactly as EVE wrote it, markup and all.
     ///
-    /// <para><b>⚠️ Anything reading the CONTENT of a mail must use this, not
-    /// <see cref="GetBodyAsync"/>.</b> Everything a buyer drags into a mail — an item, a
-    /// character, a structure — arrives as an anchor carrying its id, and stripping the markup
-    /// throws that id away and leaves a name to guess at. The store's order parser was reading
-    /// the stripped text and seeing "Apostle  Kerno Adler": two links, both flattened, matching
-    /// nothing.</para>
+    /// <para><b>⚠️ The markup is the point; do not strip it.</b> Everything a buyer drags into
+    /// a mail — an item, a character, a structure — arrives as an anchor carrying its id, and
+    /// stripping the markup throws that id away and leaves a name to guess at. The store's order
+    /// parser once read a stripped copy and saw "Apostle  Some Pilot": two links, both
+    /// flattened, matching nothing. The mail viewer used to show a stripped copy too, which
+    /// threw away the one thing in a mail worth clicking. There is no stripped variant any
+    /// more: <see cref="EveMailMarkup"/> renders this, and the store parses it.</para>
     ///
-    /// <para>The raw body was in the database the whole time — it is what gets cached — and only
-    /// the return value was stripped, which is why this is a split rather than a re-fetch.</para>
+    /// <para>Usually already in the database — the poll fetches bodies as it discovers headers,
+    /// see <see cref="PrefetchBodiesAsync"/> — so this is a read, not a round trip. The ESI fetch
+    /// remains for a body the poll has not reached yet.</para>
     /// </summary>
     public async Task<string> GetRawBodyAsync(long charId, int mailId, CancellationToken ct = default)
     {
@@ -448,27 +547,6 @@ public class EveMailService(
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static string StripHtml(string html)
-    {
-        if (string.IsNullOrEmpty(html)) return "";
-        // Replace common block-level tags with newlines
-        html = Regex.Replace(html, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
-        html = Regex.Replace(html, @"</p>",      "\n", RegexOptions.IgnoreCase);
-        html = Regex.Replace(html, @"</div>",    "\n", RegexOptions.IgnoreCase);
-        // Strip remaining tags
-        html = Regex.Replace(html, @"<[^>]+>", "");
-        // Decode common HTML entities
-        html = html.Replace("&lt;",   "<")
-                   .Replace("&gt;",   ">")
-                   .Replace("&amp;",  "&")
-                   .Replace("&quot;", "\"")
-                   .Replace("&nbsp;", " ")
-                   .Replace("&#13;",  "\r")
-                   .Replace("&#10;",  "\n");
-        // Collapse excessive blank lines
-        html = Regex.Replace(html, @"\n{3,}", "\n\n");
-        return html.Trim();
-    }
 
     private static PollingResult FromResult<T>(EsiCallResult<T> r) => new(
         r.IsSuccess, r.StatusCode, r.Error,

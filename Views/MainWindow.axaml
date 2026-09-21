@@ -156,10 +156,52 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
 
-          <!-- My characters online. Hover lists who, where, and in what. -->
+          <!-- My characters online. Hover lists who, where, and in what — three columns that
+               line up without a grid's chrome, green when docked, orange when in space. -->
           <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center"
                       Margin="0 0 12 0" Background="Transparent"
-                      ToolTip.Tip="{Binding OnlineCharactersTip}">
+                      ToolTip.Placement="Bottom" ToolTip.ShowDelay="300">
+            <StackPanel.Styles>
+              <Style Selector="TextBlock.docked">
+                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+              </Style>
+              <Style Selector="TextBlock.space">
+                <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+              </Style>
+            </StackPanel.Styles>
+            <ToolTip.Tip>
+              <!-- An explicit ToolTip, for its MaxWidth: the theme caps a tooltip at 320px, which
+                   clipped the ship column clean off. -->
+              <ToolTip MaxWidth="1400">
+              <StackPanel Spacing="2" Margin="2">
+                <TextBlock Text="None of your characters are online." FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           IsVisible="{Binding !HasOnlineCharacters}" />
+                <ItemsControl ItemsSource="{Binding OnlineCharacters}" Grid.IsSharedSizeScope="True"
+                              IsVisible="{Binding HasOnlineCharacters}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OnlineCharacterVm">
+                      <Grid Margin="0 1">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="who" />
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="where" />
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="ship" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Location}" FontSize="11"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                        <TextBlock Grid.Column="4" Text="{Binding Ship}" FontSize="11"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              </ToolTip>
+            </ToolTip.Tip>
             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                      Fill="{Binding OnlineCharactersColor}" />
             <TextBlock Text="{Binding OnlineCharactersText}"
@@ -606,6 +648,15 @@
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
               </DataTemplate>
+              <DataTemplate DataType="vm:AgentUsageViewModel">
+                <views:AgentUsageView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AgentGridViewModel">
+                <views:AgentGridView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AgentDocumentViewModel">
+                <views:AgentDocumentView />
+              </DataTemplate>
               <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
                 <views:StandingBuyOrdersView />
               </DataTemplate>
@@ -632,12 +683,27 @@
 
         </Grid>
 
-        <!-- Agent panel -->
-        <Border Grid.Column="1"
-                IsVisible="{Binding AgentVm.IsPanelVisible}"
-                BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1 0 0 0">
-          <views:AgentPanel DataContext="{Binding AgentVm}" />
-        </Border>
+        <!-- Agent panel, in a dock the capsuleer can widen by dragging its left edge. The dock
+             owns the width (the panel itself has none), so hiding it collapses the column to
+             nothing and showing it again brings the width back. The drag itself is in code-behind
+             rather than a GridSplitter: a splitter trades width between two columns of ITS grid,
+             and here the thing to resize is the dock as a whole inside an Auto column. -->
+        <Grid Grid.Column="1" x:Name="AgentDock"
+              IsVisible="{Binding AgentVm.IsPanelVisible}"
+              ColumnDefinitions="Auto,*" Width="360" MinWidth="360">
+          <Border Grid.Column="0" x:Name="AgentResizeHandle" Width="5" Cursor="SizeWestEast"
+                  Background="{DynamicResource SurfaceRaisedBrush}"
+                  PointerPressed="OnAgentResizePressed"
+                  PointerMoved="OnAgentResizeMoved"
+                  PointerReleased="OnAgentResizeReleased">
+            <Border.Styles>
+              <Style Selector="Border:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+              </Style>
+            </Border.Styles>
+          </Border>
+          <views:AgentPanel Grid.Column="1" DataContext="{Binding AgentVm}" />
+        </Grid>
 
       </Grid>
 

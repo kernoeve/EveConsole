@@ -257,6 +257,7 @@ public class OrderTrackerViewModel : ReactiveObject
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly EntityBrowserService            _entities;
     private readonly AppErrorLogger                  _errorLogger;
+    private readonly OrderFulfilmentService? _fulfilment;
 
     private readonly List<TrackedOrderRowVm> _all = new();
 
@@ -318,12 +319,14 @@ public class OrderTrackerViewModel : ReactiveObject
     public OrderTrackerViewModel(IDbContextFactory<AppDbContext> dbFactory,
                                  OrderLabelService labels,
                                  EntityBrowserService entities,
-                                 AppErrorLogger errorLogger)
+                                 AppErrorLogger errorLogger,
+                                 OrderFulfilmentService? fulfilment = null)
     {
         _dbFactory     = dbFactory;
         _labels        = labels;
         _entities      = entities;
         _errorLogger   = errorLogger;
+        _fulfilment    = fulfilment;
         _statusFilter  = StatusFilters[0];   // Active (pending)
 
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
@@ -341,11 +344,13 @@ public class OrderTrackerViewModel : ReactiveObject
         // — and none of it went through this view model, so the grid was only ever as current as
         // the last time somebody pressed Refresh or reopened the tab.
         //
-        // A minute matches the two things that feed it: the store checks its mail every minute,
-        // and the fulfilment pass runs every five.
+        // A minute is the backstop; a fulfilment pass that changed anything reloads the grid at
+        // once, below, and an order added or edited here reloads it itself.
         Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("OrderTracker.AutoRefresh")
             .SubscribeAsyncSafe(_ => LoadAsync(), errorLogger, "OrderTracker.AutoRefresh");
+        if (fulfilment is not null)
+            fulfilment.PassChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }
@@ -600,6 +605,7 @@ public class OrderTrackerViewModel : ReactiveObject
                 CreatedAt     = DateTimeOffset.UtcNow,
             });
             await db.SaveChangesAsync();
+            _fulfilment?.Nudge();   // a new order is matched against stock, jobs and contracts now, not at the next pass
 
             // ⚠️ After the save, because the labels key off the id the insert just assigned.
             if (r.Labels is { Count: > 0 })
@@ -648,6 +654,7 @@ public class OrderTrackerViewModel : ReactiveObject
                 if (r.LinkedContractId is null && r.CompletedOn is null) o.CompletedOn = null;
             }
             await db.SaveChangesAsync();
+            _fulfilment?.Nudge();
 
             // Null means the dialog did not touch them; a list — empty included — is what the
             // box was left holding, so clearing every chip really does clear the labels.

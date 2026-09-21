@@ -200,6 +200,16 @@ public static class AppConfig
         Save(c);
     }
 
+    /// <summary>How wide the capsuleer last dragged the agent panel. Null if never dragged.</summary>
+    public static int? GetAgentPanelWidth() => Load().AgentPanelWidth;
+
+    public static void SetAgentPanelWidth(int width)
+    {
+        var c = Load();
+        c.AgentPanelWidth = width;
+        Save(c);
+    }
+
     /// <summary>Where the main window was, and how big. Null on a fresh install.</summary>
     public static (int X, int Y, int Width, int Height, string State)? GetMainWindow()
     {
@@ -309,6 +319,34 @@ public static class AppConfig
         c.OverviewLayout = string.IsNullOrWhiteSpace(json) ? null : json;
         Save(c);
     }
+
+    // ── Cloudflare, for deploying store sites ─────────────────────────────────
+    //
+    // ⚠️ Per machine, and protected like the database password. The token opens the owner's
+    // Cloudflare account; it belongs on the machine they deploy from, not in a database that other
+    // clients read and that gets backed up and moved. Syncing a site needs no token.
+
+    /// <summary>The token, or null when none is saved or it cannot be opened on this machine.</summary>
+    public static string? GetCloudflareToken()
+    {
+        var t = SecretStore.Unprotect(Load().CloudflareToken);
+        return string.IsNullOrEmpty(t) ? null : t;
+    }
+
+    public static bool HasCloudflareToken => !string.IsNullOrEmpty(Load().CloudflareToken);
+
+    /// <summary>How the token is being held, for the screen to state.</summary>
+    public static SecretProtection CloudflareTokenProtection =>
+        SecretStore.IsProtected(Load().CloudflareToken) ? SecretStore.Available : SecretProtection.None;
+
+    /// <summary>Saves a token, or removes it when given nothing.</summary>
+    public static void SetCloudflareToken(string? token)
+    {
+        var c = Load();
+        c.CloudflareToken = string.IsNullOrWhiteSpace(token) ? null : SecretStore.Protect(token.Trim(), "cloudflare");
+        Save(c);
+    }
+
 
     // ── UI state ──────────────────────────────────────────────────────────────
     //
@@ -516,6 +554,9 @@ public static class AppConfig
         // that could not protect it; either way it is read as-is and protected the next time the
         // user saves.
         [JsonPropertyName("postgresPassword")]   public string? PostgresPassword   { get; set; }
+        // The Cloudflare API token, protected the same way and for the same reason.
+        [JsonPropertyName("cloudflareToken")]    public string? CloudflareToken    { get; set; }
+
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }
         [JsonPropertyName("windowY")] public int?    WindowY { get; set; }
 
@@ -528,6 +569,7 @@ public static class AppConfig
         [JsonPropertyName("mainHeight")] public int?    MainHeight { get; set; }
         [JsonPropertyName("mainState")]  public string? MainState  { get; set; }
         [JsonPropertyName("shrinkPending")] public bool? ShrinkPending { get; set; }
+        [JsonPropertyName("agentPanelWidth")] public int? AgentPanelWidth { get; set; }
         [JsonPropertyName("alarmsMuted")]   public bool? AlarmsMuted   { get; set; }
 
         // How this client's Overview sections are arranged. Beside the window geometry above and

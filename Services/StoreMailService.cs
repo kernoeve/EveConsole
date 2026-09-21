@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Services.WebStore;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -88,6 +89,10 @@ public class StoreMailService(
 
         _loop = Task.Run(async () =>
         {
+            // Background for the ESI gate: never holds the slot kept for whatever the user is
+            // doing. Inside the lambda, so a RunOnceAsync the user forces stays interactive.
+            using var _ = EsiClient.Background();
+
             while (!ct.IsCancellationRequested)
             {
                 try { await RunOnceAsync(ct); }
@@ -134,8 +139,12 @@ public class StoreMailService(
         // ⚠️ !IsDeleted as well as Enabled. A deleted store is closed on the way out, but relying
         // on that alone would mean one row edited by hand — or a future path that forgets — could
         // leave a shop nobody can see quietly answering mail.
+        // ⚠️ A store whose mail channel is closed still gets its update pass when it has a web
+        // channel and wants its web buyers mailed: the character is then an address to write
+        // FROM only. Serving — reading and answering mail — needs the mail channel open.
         var stores = await db.Stores
-            .Where(s => !s.IsDeleted && s.Enabled && s.CharacterId != 0 && s.PostingId != 0)
+            .Where(s => !s.IsDeleted && s.CharacterId != 0 && s.PostingId != 0
+                     && (s.Enabled || (s.WebEnabled && s.WebMailUpdates)))
             .ToListAsync(ct);
 
         if (stores.Count == 0) { StatusText = "No open stores."; return; }
@@ -145,8 +154,8 @@ public class StoreMailService(
         foreach (var store in stores)
         {
             ct.ThrowIfCancellationRequested();
-            handled += await ServeAsync(db, store, ct);
-            told    += await NotifyAsync(db, store, ct);
+            if (store.Enabled) handled += await ServeAsync(db, store, ct);
+            told += await NotifyAsync(db, store, ct);
         }
 
         StatusText = handled == 0 && told == 0
@@ -167,8 +176,30 @@ public class StoreMailService(
     /// actionable in a way that "still on its way" is not — and without this the row would look
     /// unchanged and the buyer would never be told.</para>
     /// </summary>
-    private static string StateOf(TrackedOrder o) =>
+    internal static string StateOf(TrackedOrder o) =>
         $"{o.Status}|{o.FulfilmentSource}|{o.EstimatedDate}|{o.LinkedContractId}";
+
+    /// <summary>
+    /// An expected date for anything coming off the shelf, before the state is stamped.
+    ///
+    /// <para>Nothing else would ever give one: only a job-sourced order gets a date, from its
+    /// job, so a stock order would sit blank until a contract appeared. Blank reads as "no idea"
+    /// when the truth is "as soon as somebody writes the contract". Shared with the web channel,
+    /// which books orders the same way.</para>
+    /// </summary>
+    internal static void AutoEstimate(Store store, IEnumerable<TrackedOrder> settled)
+    {
+        if (!store.AutoEstimateInStock) return;
+
+        var due = DateTimeOffset.UtcNow.AddDays(Math.Max(0, store.AutoEstimateDays))
+                                .UtcDateTime.ToString("yyyy-MM-dd");
+
+        foreach (var o in settled)
+            // Only stock, and only where nothing has set one. A job's date is a real forecast
+            // and must not be replaced by a guess.
+            if (o.FulfilmentSource == "stock" && string.IsNullOrEmpty(o.EstimatedDate))
+                o.EstimatedDate = due;
+    }
 
     /// <summary>Still open, with nothing behind it — no stock, no job, no contract.</summary>
     private static bool Uninformative(TrackedOrder o) =>
@@ -194,10 +225,12 @@ public class StoreMailService(
     /// </summary>
     private async Task<int> NotifyAsync(AppDbContext db, Store store, CancellationToken ct)
     {
+        // A buyer who said no to mail on the web site is not written to; the site keeps them posted.
         var orders = await db.TrackedOrders
-            .Where(o => o.StoreId == store.Id && o.OrderRef != "" && o.BuyerId != 0)
+            .Where(o => o.StoreId == store.Id && o.OrderRef != "" && o.BuyerId != 0 && o.MailUpdates)
             .ToListAsync(ct);
         if (orders.Count == 0) return 0;
+
 
         var changed = orders
             .Where(o => StateOf(o) != o.NotifiedState)
@@ -281,8 +314,11 @@ public class StoreMailService(
         // The inbox as the ordinary mail poll left it. Deliberately not a fetch of its own: the
         // shop reads the same headers every other part of the app does, so a mail cannot be seen
         // here and be missing from the Eve Mail tool.
-        var incoming = await db.EsiMailHeaders
-            .AsNoTracking()
+        // ⚠️ Inbox only — exactly the mail the Eve Mail tool files under Inbox, by the same label
+        // test. Everything in the character's mailbox used to qualify, corp and alliance mail
+        // included, and the shop answered a corporation announcement as though it were an order.
+        // A mail addressed to the corporation is not addressed to the store.
+        var incoming = await EveMailService.WithLabel(db.EsiMailHeaders.AsNoTracking(), EveMailService.InboxLabel)
             .Where(h => h.CharacterId == store.CharacterId && h.FromId != store.CharacterId)
             .Select(h => new { h.MailId, h.FromId, h.FromName, h.Subject, h.Timestamp })
             .ToListAsync(ct);
@@ -339,6 +375,31 @@ public class StoreMailService(
         foreach (var header in todo)
         {
             ct.ThrowIfCancellationRequested();
+
+            // ⚠️ A reply or a forward is part of a conversation a person is having, not an
+            // order, and it is left alone — not answered with the usage page as an unrecognised
+            // subject would be. Decided from the header, before the body is read: reading it
+            // would spend a char-social call on a mail we are not going to act on. Recorded so
+            // the next pass does not look at it again.
+            if (IsConversation(header.Subject))
+            {
+                db.StoreMails.Add(new StoreMail
+                {
+                    StoreId   = store.Id,
+                    Direction = "in",
+                    MailId    = header.MailId,
+                    PartyId   = header.FromId,
+                    PartyName = header.FromName,
+                    Subject   = header.Subject ?? "",
+                    At        = header.Timestamp,
+                    Outcome   = "ignored",
+                    Detail    = "A reply or forward — part of a conversation, not a command.",
+                });
+                await db.SaveChangesAsync(ct);
+                db.ChangeTracker.Clear();
+                handled++;
+                continue;
+            }
 
             var body = "";
             // ⚠️ RAW. The order parser reads links out of the markup, and the stripped version
@@ -447,7 +508,7 @@ public class StoreMailService(
 
         switch (command)
         {
-            case "PRICES": await PricesAsync(store, log, ct); break;
+            case "PRICES": await PricesAsync(db, store, log, ct); break;
             case "ORDER":  await OrderAsync(db, store, log, ct); break;
             case "STATUS": await StatusAsync(db, store, log, ct); break;
             case "CANCEL": await CancelAsync(db, store, log, ct); break;
@@ -647,30 +708,9 @@ public class StoreMailService(
     /// authorisation decision, and a stale row would serve someone who left the corporation
     /// months ago, or refuse someone who just joined.</para>
     /// </summary>
-    private async Task<bool> IsAllowedAsync(AppDbContext db, Store store, long senderId, CancellationToken ct)
-    {
-        if (store.SenderPolicy == "Anyone") return true;
-
-        var allowed = await db.StoreSenders
-            .Where(s => s.StoreId == store.Id)
-            .Select(s => new { s.EntityId, s.EntityType })
-            .ToListAsync(ct);
-        if (allowed.Count == 0) return false;
-
-        if (allowed.Any(a => a.EntityType == "character" && a.EntityId == senderId)) return true;
-
-        var needsOrg = allowed.Any(a => a.EntityType is "corporation" or "alliance");
-        if (!needsOrg) return false;
-
-        var affiliation = await esi.GetAffiliationsAsync([senderId], ct);
-        if (affiliation.Count == 0) return false;   // unknown is not permission
-
-        var (_, corpId, allianceId) = affiliation[0];
-
-        return allowed.Any(a =>
-            (a.EntityType == "corporation" && a.EntityId == corpId) ||
-            (a.EntityType == "alliance"    && allianceId is { } al && a.EntityId == al));
-    }
+    // The one rule, shared with the web channel: see StoreSenderPolicy.
+    private Task<bool> IsAllowedAsync(AppDbContext db, Store store, long senderId, CancellationToken ct) =>
+        StoreSenderPolicy.IsAllowedAsync(db, esi, store, senderId, ct);
 
     // ── PRICES ────────────────────────────────────────────────────────────────
 
@@ -703,9 +743,23 @@ public class StoreMailService(
               .Select((t, i) => i == 0 ? t : "<br><br>" + t)
               .ToList();
 
-    private async Task PricesAsync(Store store, StoreMail log, CancellationToken ct)
+    private async Task PricesAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
-        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct);
+        // With a purchase limit, the list this reader gets marks what they may not order any
+        // more — the rows the site greys out for them, dimmed here with the reason beside them.
+        IReadOnlySet<int>? blocked = null;
+        if (store.LimitEnabled)
+        {
+            var typeIds = await (
+                    from i in db.SalePostingItems.AsNoTracking()
+                    join s in db.SalePostingSections.AsNoTracking() on i.SectionId equals s.Id
+                    where s.PostingId == store.PostingId
+                    select i.TypeId)
+                .Distinct().ToListAsync(ct);
+            blocked = await PurchaseLimit.BlockedAsync(db, store, log.PartyId, typeIds, ct);
+        }
+
+        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, blocked);
         if (blocks.Count == 0)
         {
             log.Outcome = "error";
@@ -763,6 +817,24 @@ public class StoreMailService(
                 (parsed.Unknown.Count > 0
                     ? Warn("Not found: " + Esc(string.Join(", ", parsed.Unknown))) + Gap
                     : "") +
+                Usage(store), ct);
+            return;
+        }
+
+        // The store's purchase limit — the same check the site makes before it asks and the web
+        // sync makes when it books. An order by mail that would take the buyer past it is turned
+        // down, with the sum that says why and the rule itself.
+        if (store.LimitEnabled
+            && await PurchaseLimit.OverLimitAsync(db, store, log.PartyId,
+                   parsed.Lines.Select(l => (l.Item.TypeId, l.Units)).ToList(),
+                   typeId => byTypeId[typeId].TypeName, ct) is { } over)
+        {
+            log.Outcome = "rejected";
+            log.Detail  = over;
+            await ReplyAsync(store, log, $"{store.Name} — order over the limit",
+                "This order is over the store's purchase limit, so it was not taken.<br><br>" +
+                Warn(Esc(over)) + Gap +
+                Esc(PurchaseLimit.Describe(store)) + Gap +
                 Usage(store), ct);
             return;
         }
@@ -851,17 +923,7 @@ public class StoreMailService(
         // Nothing else would ever give one: only a job-sourced order gets a date, from its job,
         // so a stock order would sit blank until a contract appeared. Blank reads as "no idea"
         // when the truth is "as soon as somebody writes the contract".
-        if (store.AutoEstimateInStock)
-        {
-            var due = DateTimeOffset.UtcNow.AddDays(Math.Max(0, store.AutoEstimateDays))
-                                    .UtcDateTime.ToString("yyyy-MM-dd");
-
-            foreach (var o in settled)
-                // Only stock, and only where nothing has set one. A job's date is a real
-                // forecast and must not be replaced by a guess.
-                if (o.FulfilmentSource == "stock" && string.IsNullOrEmpty(o.EstimatedDate))
-                    o.EstimatedDate = due;
-        }
+        AutoEstimate(store, settled);
 
         foreach (var o in settled) o.NotifiedState = StateOf(o);
         await db.SaveChangesAsync(ct);
@@ -1262,6 +1324,14 @@ public class StoreMailService(
     /// <summary>The body's size in the unit the limit is enforced in.</summary>
     private static int Weigh(string s) => Encoding.UTF8.GetByteCount(s);
 
+    /// <summary>A subject that is a reply or a forward — "RE:" or "FW:", any case.</summary>
+    public static bool IsConversation(string? subject)
+    {
+        var s = (subject ?? "").TrimStart();
+        return s.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)
+            || s.StartsWith("FW:", StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Whether a send was refused for length — which no retry can change.</summary>
     private static bool TooLong(string? error) =>
         error is not null && error.Contains("body length", StringComparison.OrdinalIgnoreCase);
@@ -1591,7 +1661,7 @@ public class StoreMailService(
     /// they may order. Anything above it is a typo or an attack, and either way is worth a person
     /// reading the mail.</para>
     /// </summary>
-    private const int MaxUnitsPerLine = 10_000;
+    internal const int MaxUnitsPerLine = 10_000;
 
     /// <summary>
     /// The most lines one mailed order may create.
@@ -1599,7 +1669,7 @@ public class StoreMailService(
     /// <para>⚠️ One mail is one order, and every line is a row. Without this, a body full of item
     /// links is a few hundred rows in the Order Tracker from a single message.</para>
     /// </summary>
-    private const int MaxLinesPerOrder = 40;
+    internal const int MaxLinesPerOrder = 40;
 
     /// <summary>
     /// The most of a body this will read.

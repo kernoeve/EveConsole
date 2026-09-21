@@ -85,7 +85,20 @@ var allowed = File.ReadAllLines(Path.Combine(repo, "tools", "UpgradeCheck", "mod
 
 // Source files carrying schema statements. Both are read from the tag AND from the working
 // tree: the tag's copy builds the old database, the working tree's upgrades it.
-string[] files = ["App.axaml.cs", "Services/SdeImportService.cs"];
+//
+// ⚠️ EVERY file holding CREATE or ALTER statements has to be listed here. One that is not is
+// invisible to this check, so the tables it builds are reported as having no CREATE at all —
+// which reads exactly like the bug this tool exists to catch, coming from the file that fixes it.
+//
+// A file added this cycle does not exist at the older tags, and that is fine: Git() returns ""
+// for a path a tag never had, so the old database simply comes up without those tables — which
+// is the situation being tested.
+string[] files =
+[
+    "App.axaml.cs",
+    "Services/SdeImportService.cs",
+    "Data/AgentTelemetrySchema.cs",
+];
 var current = files.Select(f => File.ReadAllText(Path.Combine(repo, f))).ToList();
 
 var failed = 0;
@@ -172,8 +185,12 @@ static List<string> Extract(string source)
              Regex.Escape("ExecuteSqlRaw(") + @"\s*" + q3 + "(.*?)" + q3, RegexOptions.Singleline))
         found.Add(m.Groups[1].Value.Trim());
 
+    // ⚠️ \s* after the opening quotes, or this misses every multi-line raw string literal —
+    // which is how SQL is normally written here, the keyword starting on the line BELOW the
+    // quotes. Without it only the single-line index statements match, and a file whose CREATEs
+    // are all multi-line looks like a file with no CREATEs at all.
     foreach (Match m in Regex.Matches(source,
-             q3 + @"((?:ALTER TABLE|CREATE TABLE|CREATE INDEX|CREATE UNIQUE INDEX)\s.*?)" + q3,
+             q3 + @"\s*((?:ALTER TABLE|CREATE TABLE|CREATE INDEX|CREATE UNIQUE INDEX)\s.*?)" + q3,
              RegexOptions.Singleline))
         found.Add(m.Groups[1].Value.Trim());
 

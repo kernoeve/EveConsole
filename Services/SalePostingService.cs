@@ -602,8 +602,10 @@ public class SalePostingService(
     /// <para>Returns them in Ordinal order, the same sequence the tool previews and Slack posts
     /// in — block 0 is the parent and the rest are supporting detail.</para>
     /// </summary>
+    /// <param name="blocked">For a list rendered for one reader: the items they may not order any
+    /// more under the store's purchase limit, which the Detail block dims and says.</param>
     internal async Task<List<RenderedPost>> RenderAsync(
-        int postingId, string formatName, CancellationToken ct = default)
+        int postingId, string formatName, CancellationToken ct = default, IReadOnlySet<int>? blocked = null)
     {
         var view = await BuildViewAsync(postingId, ct);
         if (view is null) return [];
@@ -614,7 +616,7 @@ public class SalePostingService(
         return posts.OrderBy(p => p.Ordinal)
             .Select(p => new RenderedPost(
                 p.Name, p.PostType,
-                fmt.Finalize(SalePostingRenderer.Render(view, fmt, p))))
+                fmt.Finalize(SalePostingRenderer.Render(view, fmt, p, blocked))))
             .ToList();
     }
 

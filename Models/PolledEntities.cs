@@ -357,6 +357,12 @@ public class CharacterAsset
     // downstream query (asset browser, aggregations, etc.) can skip the chain walk.
     public long   RootLocationId   { get; set; }
     public string RootLocationType { get; set; } = "";
+    // Where that root IS — resolved by AssetLocations when the rows are written, so nothing
+    // downstream (the agent included) has to know that a station's system is in SdeStations
+    // and a structure's in Structures. Null when the place cannot be resolved: a structure
+    // never seen, or a hangar in another player's ship — not "in space", which has a system.
+    public int?   SolarSystemId    { get; set; }
+    public int?   RegionId         { get; set; }
 }
 
 public class CharacterBlueprint
@@ -1097,6 +1103,21 @@ public class TrackedOrder
     public string OrderRef      { get; set; } = "";
 
     /// <summary>
+    /// The web site's own id for an order placed there, or empty.
+    ///
+    /// <para>What ties a row back to the site's record, and what says the order arrived by web
+    /// rather than by mail: a store order with no web id was mailed in.</para>
+    /// </summary>
+    public string WebOrderId    { get; set; } = "";
+
+    /// <summary>
+    /// Whether the buyer wants EVE mail as the order moves. Asked on the web site when it takes
+    /// an order; an order that came by mail, or was entered by hand, is mailed as it always was.
+    /// </summary>
+    public bool   MailUpdates   { get; set; } = true;
+
+
+    /// <summary>
     /// What the buyer was last told about this line: its status and estimated date, joined.
     ///
     /// <para>⚠️ How a mailed order knows it owes an update, without the fulfilment pass having to
@@ -1118,7 +1139,7 @@ public class TrackedOrder
     /// than saying it in a separate conversation nobody can find later.</para>
     ///
     /// <para>⚠️ Set from a dragged link rather than typed text. A character and a corporation can
-    /// share a name, and "make the contract out to Kerno" is not something to guess at.</para>
+    /// share a name, and "make the contract out to my hauler" is not something to guess at.</para>
     /// </summary>
     public long   ContractToId   { get; set; }
     public string ContractToName { get; set; } = "";
@@ -1130,8 +1151,8 @@ public class TrackedOrder
 /// <summary>
 /// One tag on one order.
 ///
-/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "BNI
-/// First Capital Program" — and the list offered in the pickers is simply the distinct values in
+/// <para><b>Free text, and no table of its own.</b> A label is whatever somebody typed — "Capital
+/// Program" — and the list offered in the pickers is simply the distinct values in
 /// use. That means a label nothing carries any more stops being offered, which is the right
 /// behaviour: a list of tags nobody uses is a list nobody reads.</para>
 ///
@@ -1227,6 +1248,24 @@ public class CharacterStatus
     public DateTimeOffset? OnlineCheckedAt   { get; set; }
     public DateTimeOffset? LocationCheckedAt { get; set; }
     public DateTimeOffset? ShipCheckedAt     { get; set; }
+
+    // The last undock the location poll saw: a docked→space transition, stamped when it was
+    // observed, with where it was from. Current state alone cannot say "they just undocked" —
+    // in space is in space whether it began a second or a day ago — and this is what the
+    // Ship Undocks alarm keys on. One per character: a dock and undock inside one poll
+    // interval is one undock as far as anything reading this can tell.
+    public DateTimeOffset? UndockedAt       { get; set; }
+    /// <summary>The station or structure left. Stations are small ids, structures are 64-bit.</summary>
+    public long?           UndockedFromId   { get; set; }
+    /// <summary>Its system — taken from the docked location itself, so it needs no structure lookup.</summary>
+    public int?            UndockedSystemId { get; set; }
+
+    // The last change of system the location poll saw, and where from: a gate, a jump drive,
+    // a bridge — the poll cannot tell which, but the stargate map can (a jump drive lands you
+    // somewhere no gate leads from where you were). What the wake-up alarm's arrival mode keys
+    // on: landed, and not docked yet.
+    public DateTimeOffset? SystemChangedAt  { get; set; }
+    public int?            PreviousSystemId { get; set; }
 
     /// <summary>True when the character is docked (station or structure).</summary>
     public bool IsDocked => StationId is not null || StructureId is not null;

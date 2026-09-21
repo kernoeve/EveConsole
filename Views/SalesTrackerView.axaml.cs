@@ -91,7 +91,7 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
 
         var rows  = SelectedRows();
         var typed = await new TextPromptDialog(
-            "New label", "Label", "e.g. BNI First Capital Program").ShowDialog<string?>(owner);
+            "New label", "Label", "e.g. Capital Program").ShowDialog<string?>(owner);
 
         if (!string.IsNullOrWhiteSpace(typed)) await vm.AddLabelToAsync(rows, typed);
     }

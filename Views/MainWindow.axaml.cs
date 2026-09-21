@@ -230,22 +230,107 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (IsVisible) TryStartup();
     }
 
+    // ── Agent panel width ────────────────────────────────────────────────────
+    //
+    // The panel sits on the right, so dragging its left edge LEFT makes it wider. The floor is
+    // the width it was designed at; the ceiling leaves the content area a usable minimum.
+    private const double AgentPanelMinWidth   = 360;
+    private const double ContentMinWidth      = 480;
+    private double? _agentDragStartX;
+    private double  _agentDragStartWidth;
+
+    private void OnAgentResizePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        _agentDragStartX     = e.GetPosition(this).X;
+        _agentDragStartWidth = AgentDock.Bounds.Width;
+        e.Pointer.Capture(AgentResizeHandle);
+        e.Handled = true;
+    }
+
+    private void OnAgentResizeMoved(object? sender, PointerEventArgs e)
+    {
+        if (_agentDragStartX is not { } startX) return;
+        var proposed = _agentDragStartWidth - (e.GetPosition(this).X - startX);
+        var ceiling  = Math.Max(AgentPanelMinWidth, Bounds.Width - ContentMinWidth);
+        AgentDock.Width = Math.Clamp(proposed, AgentPanelMinWidth, ceiling);
+        e.Handled = true;
+    }
+
+    private void OnAgentResizeReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_agentDragStartX is null) return;
+        _agentDragStartX = null;
+        e.Pointer.Capture(null);
+        // Remembered per installation, like the window itself.
+        Services.AppConfig.SetAgentPanelWidth((int)AgentDock.Width);
+        e.Handled = true;
+    }
+
     private void TryStartup()
     {
         if (_started || DataContext is not MainWindowViewModel vm) return;
         _started = true;
+
+        // The width the capsuleer last dragged the agent panel to, if they ever did.
+        if (Services.AppConfig.GetAgentPanelWidth() is { } savedWidth && savedWidth >= AgentPanelMinWidth)
+            AgentDock.Width = savedWidth;
 
         var agentService = vm.AgentVm.Service;
         agentService.WindowOpenRequested  += name => Dispatcher.UIThread.Post(() => OpenToolByName(vm, name));
         agentService.DataRefreshRequested += ()   => Dispatcher.UIThread.Post(() => vm.ForceResolveNamesAsync());
         agentService.ContextProvider       = () => BuildAgentContext(vm);
 
+        // ⚠️ Invoke, not Post. The tool has to return a status message to the model in the same
+        // call, so it needs the tab name back — and the agent runs on a background thread, while
+        // the tab strip is bound to the UI thread.
+        agentService.ShowTableCallback = (title, caption, columns, rows) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                var grid = new EveConsole.ViewModels.AgentGridViewModel(title, caption, columns, rows);
+                vm.OpenAgentTab(title, grid);
+                return $"Opened a tab named \"{title}\" with {rows.Count:N0} row(s).";
+            });
+
+        agentService.ShowDocumentCallback = (title, markdown) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                var doc = new EveConsole.ViewModels.AgentDocumentViewModel(title, markdown);
+                vm.OpenAgentTab(title, doc);
+                return $"Opened a document tab named \"{title}\".";
+            });
+
         // Alarm actions that need the UI. The dialog is deliberately owner-less and top-most —
         // an alarm is usually wanted precisely when EVE Console is behind the game client.
-        vm.AlarmActions.ShowDialogCallback = (title, message) =>
-            new Views.AlarmDialogWindow(title, message).Show();
+        vm.AlarmActions.ShowDialogCallback = (title, message, button, onAcknowledge) =>
+            new Views.AlarmDialogWindow(title, message, button, onAcknowledge).Show();
 
         vm.AlarmActions.NotifyAgentCallback = message => vm.AgentVm.NotifyAsync(message);
+        vm.AlarmActions.AnnounceCallback    = text    => vm.AgentVm.AnnounceAsync(text);
+
+        // A wake-up call is acknowledged by answering the agent — anything at all — and the
+        // acknowledgement goes back through the runner, which is what quiets every client.
+        vm.AlarmActions.AwaitReplyCallback  = (ack, said) => vm.AgentVm.ExpectReply(ack, said);
+        vm.AgentVm.AcknowledgeCallback      = ack     => vm.AlarmActions.AcknowledgeAsync(ack);
+
+        // A repeating sound brings its own window with the one button that stops it, whether or
+        // not a Dialog action was chosen; the runner closes it when the sound ends of itself.
+        var soundWindows = new Dictionary<(long, string), Views.AlarmSoundWindow>();
+        vm.AlarmActions.SoundStartedCallback = (ack, name, summary, acknowledge) =>
+        {
+            var key = (ack.AlarmId, ack.ScopeKey);
+            if (soundWindows.TryGetValue(key, out var open)) { open.Activate(); return; }
+
+            var w = new Views.AlarmSoundWindow(name, summary, acknowledge);
+            w.Closed += (_, _) => soundWindows.Remove(key);
+            soundWindows[key] = w;
+            w.Show();
+        };
+        vm.AlarmActions.SoundStoppedCallback = ack =>
+        {
+            if (soundWindows.Remove((ack.AlarmId, ack.ScopeKey), out var w))
+                try { w.Close(); } catch { /* already gone */ }
+        };
         vm.AlarmActions.AgentAvailable      =
             () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
 
@@ -757,6 +842,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private string BuildAgentContext(MainWindowViewModel vm)
     {
         var sb = new StringBuilder();
+
+        // The clock, first. Every message in the history carries the time it was sent, and this
+        // is what those are measured against — without it the stamps are dates with no "ago".
+        var now = DateTimeOffset.UtcNow;
+        sb.AppendLine($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd}).");
 
         var activeTitle = vm.SelectedTab?.Title ?? "None";
         sb.AppendLine($"Active tab: {activeTitle}");

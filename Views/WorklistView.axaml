@@ -164,7 +164,7 @@
                FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" MaxWidth="520"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-    <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}"
+    <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="3" ItemsSource="{Binding RowsView}"
               IsReadOnly="True" AutoGenerateColumns="False" FontSize="12"
               Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 
@@ -689,7 +689,7 @@
         <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="2" ItemsSource="{Binding NeedsView}"
+        <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="2" ItemsSource="{Binding NeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
@@ -889,7 +889,7 @@
         <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
+        <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
@@ -1281,7 +1281,7 @@
                            Text="Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by the work each one is holding up. Hover a column heading for what it means. ⚠ Every rate here is a floor: nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted."/>
               </StackPanel>
 
-              <DataGrid Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
+              <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="1" ItemsSource="{Binding ItemShortages}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
@@ -1498,7 +1498,7 @@
                          Text="A blueprint bottleneck is having to WAIT for an original to free up — not running one a lot. Ranking on use ranks the fix above the problem: a formula run flat out across eight originals has never blocked anything, and buying the eighth is what settled it. Listed from 5% all-busy up, or 15% for single-BPO items, where the measure degenerates into plain use. Hover a column heading for what it means."/>
             </StackPanel>
 
-              <DataGrid Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
+              <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="1" ItemsSource="{Binding PrintPressure}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 
@@ -1733,7 +1733,7 @@
                 </Border>
               </StackPanel>
 
-              <DataGrid Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
+              <DataGrid LoadingRow="OnRowLoading" UnloadingRow="OnRowUnloading" Grid.Row="1" ItemsSource="{Binding HaulPressures}" IsReadOnly="True"
                         AutoGenerateColumns="False" FontSize="11"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
 

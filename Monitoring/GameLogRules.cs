@@ -16,7 +16,7 @@ namespace EveConsole.Monitoring;
 /// Header:
 ///   ------------------------------------------------------------
 ///     Gamelog
-///     Listener: Baltazar IV
+///     Listener: Some Pilot
 ///     Session Started: 2024.11.13 01:30:50
 ///   ------------------------------------------------------------
 ///
@@ -115,7 +115,7 @@ public static class GameLogRules
         @"^(?<amount>\d+)\s+remote\s+(?<what>shield|armor|armour|hull|capacitor)\s+(?<verb>boosted|repaired|transmitted)\s+(?:by|to)\s+(?<entity>.+?)\s+-\s+(?<module>.+?)\s*$",
         Opts);
 
-    /// <summary>"Jumping from UALX-3 to Y-ORBJ"</summary>
+    /// <summary>"Jumping from D-PNP9 to 1DQ1-A"</summary>
     private static readonly Regex JumpRx = new(
         @"^Jumping\s+from\s+(?<from>.+?)\s+to\s+(?<to>.+?)\s*$", Opts);
 

@@ -122,6 +122,9 @@ public class MarketHistoryService : ReactiveObject
 
     private async Task RunLoopAsync(CancellationToken ct)
     {
+        // Background for the ESI gate: never holds the slot kept for whatever the user is doing.
+        using var _ = EsiClient.Background();
+
         // Let the first market refresh populate raw orders (so we know which types trade)
         // before the initial sweep.
         try { await Task.Delay(TimeSpan.FromSeconds(90), ct); }

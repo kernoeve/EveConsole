@@ -82,26 +82,39 @@ public class InventoryLevelGenerator(
         // conclusion, and deciding it inside the loop would say it twice.
         var needed = new HashSet<int>();
 
+        // ⚠️ Every group's items in one query, every group's availability in one batch, and the
+        // names and blueprint flags for the union, before the loop. Per rule group this was
+        // fifteen or so queries, most of them the same questions again for the next group; over
+        // a remote link the per-group form was the bulk of this generator's time.
+        var ruleGroupIds = rules.Select(r => r.GroupId).Where(groups.ContainsKey).Distinct().ToList();
+        var itemsByGroup = (await db.InvLevelItems.AsNoTracking()
+                .Where(i => ruleGroupIds.Contains(i.GroupId)).ToListAsync(ct))
+            .GroupBy(i => i.GroupId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        var allTypeIds = itemsByGroup.Values.SelectMany(v => v).Select(i => i.TypeId).Distinct().ToList();
+
+        var availByGroup = await invLevels.LoadAvailableAsync(
+            itemsByGroup.Select(kv => (groups[kv.Key],
+                                       (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
+                        .ToList(), ct);
+        var allNames  = await invLevels.GetTypeNamesAsync(allTypeIds, ct);
+
+        // ⚠️ Blueprints are not raised here. MaterialPurchaseGenerator totals a print's stock
+        // target together with what queued jobs need and subtracts what is owned once, because
+        // one pile of copies cannot be spent twice — see PrintTasks. Raising the stock half
+        // here as well would put the same target on the list a second time, and subtract the
+        // same copies a second time to hide it.
+        var allBpTypeIds = await KillmailValuation.BlueprintTypeIdsAsync(db, allTypeIds, ct);
+
         foreach (var ruleGroup in rules.GroupBy(r => r.GroupId))
         {
             if (!groups.TryGetValue(ruleGroup.Key, out var group)) continue;
+            if (!itemsByGroup.TryGetValue(group.Id, out var groupItems)) continue;
 
-            var groupItems = await db.InvLevelItems.AsNoTracking()
-                .Where(i => i.GroupId == group.Id)
-                .ToListAsync(ct);
-            if (groupItems.Count == 0) continue;
-
-            var typeIds = groupItems.Select(i => i.TypeId).Distinct().ToList();
-
-            // ⚠️ Blueprints are not raised here. MaterialPurchaseGenerator totals a print's stock
-            // target together with what queued jobs need and subtracts what is owned once, because
-            // one pile of copies cannot be spent twice — see PrintTasks. Raising the stock half
-            // here as well would put the same target on the list a second time, and subtract the
-            // same copies a second time to hide it.
-            var bpTypeIds = await KillmailValuation.BlueprintTypeIdsAsync(db, typeIds, ct);
-
-            var avail   = await invLevels.LoadAvailableAsync(group, typeIds, ct);
-            var names   = await invLevels.GetTypeNamesAsync(typeIds, ct);
+            var typeIds   = groupItems.Select(i => i.TypeId).Distinct().ToList();
+            var bpTypeIds = allBpTypeIds;
+            var avail     = availByGroup.GetValueOrDefault(group.Id) ?? [];
+            var names     = allNames;
             var subHeld = await SubstituteStockAsync(db, subs, typeIds, onOrderAnywhere, ct);
 
             var locIds = ruleGroup.Select(r => r.LocationId).Distinct().ToList();

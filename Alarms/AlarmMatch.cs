@@ -13,4 +13,11 @@ public sealed record AlarmMatch(string Key, string Summary)
 {
     /// <summary>Structured payload stored on the event and offered to the agent.</summary>
     public IReadOnlyDictionary<string, object?>? Detail { get; init; }
+
+    /// <summary>
+    /// Banked without being announced. For a check whose one announcement covers several facts
+    /// — a new order, said together with the state it arrived in — the facts it covered are
+    /// banked silently so the next evaluation does not announce them again as changes.
+    /// </summary>
+    public bool Silent { get; init; }
 }

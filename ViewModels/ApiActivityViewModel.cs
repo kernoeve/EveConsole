@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Reactive;
 using Avalonia.Threading;
 using EveConsole.Data;
@@ -110,6 +111,117 @@ public class ApiActivityViewModel : ReactiveObject
 
     public ObservableCollection<ActivityEntry>       Entries        { get; }
     public ObservableCollection<InFlightCall>        InFlight       { get; }
+
+    // ── Filters over the log ───────────────────────────────────────────────────
+    //
+    // A character and an endpoint, each a dropdown of every value the log currently holds,
+    // "All" first. The list shows the entries that pass both. Unfiltered, the window binds the
+    // log's own collection; filtered, a copy kept in step entry by entry, because the log inserts
+    // at the front in bursts and trims from the back.
+
+    public const string AllOption = "All";
+
+    public ObservableCollection<string> CharacterOptions { get; } = [AllOption];
+    public ObservableCollection<string> EndpointOptions  { get; } = [AllOption];
+
+    private string _characterFilter = AllOption;
+    public string CharacterFilter
+    {
+        get => _characterFilter;
+        set
+        {
+            if (value is null || value == _characterFilter) return;
+            this.RaiseAndSetIfChanged(ref _characterFilter, value);
+            Refilter();
+        }
+    }
+
+    private string _endpointFilter = AllOption;
+    public string EndpointFilter
+    {
+        get => _endpointFilter;
+        set
+        {
+            if (value is null || value == _endpointFilter) return;
+            this.RaiseAndSetIfChanged(ref _endpointFilter, value);
+            Refilter();
+        }
+    }
+
+    private ObservableCollection<ActivityEntry> _visible = null!;
+    /// <summary>What the list shows: the log itself, or the entries that pass the filters.</summary>
+    public ObservableCollection<ActivityEntry> VisibleEntries
+    {
+        get => _visible;
+        private set => this.RaiseAndSetIfChanged(ref _visible, value);
+    }
+
+    public bool LogFiltered => _characterFilter != AllOption || _endpointFilter != AllOption;
+
+    private string _countText = "";
+    public string CountText { get => _countText; private set => this.RaiseAndSetIfChanged(ref _countText, value); }
+
+    public ReactiveCommand<Unit, Unit> ClearLogFiltersCommand { get; }
+
+    private bool Passes(ActivityEntry e)
+        => (_characterFilter == AllOption || e.OwnerName == _characterFilter)
+        && (_endpointFilter  == AllOption || e.Endpoint  == _endpointFilter);
+
+    private void Refilter()
+    {
+        VisibleEntries = LogFiltered ? new ObservableCollection<ActivityEntry>(Entries.Where(Passes)) : Entries;
+        this.RaisePropertyChanged(nameof(LogFiltered));
+        UpdateCountText();
+    }
+
+    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems is not null)
+            foreach (ActivityEntry entry in e.NewItems) Offer(entry);
+
+        if (LogFiltered)
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add when e.NewStartingIndex == 0 && e.NewItems is { Count: 1 }:
+                {
+                    var added = (ActivityEntry)e.NewItems[0]!;
+                    if (Passes(added)) _visible.Insert(0, added);
+                    break;
+                }
+                case NotifyCollectionChangedAction.Remove when e.OldItems is { Count: 1 }:
+                {
+                    // Trimming takes the oldest, which is the filtered list's last when it is there at all.
+                    var gone = (ActivityEntry)e.OldItems[0]!;
+                    if (_visible.Count > 0 && ReferenceEquals(_visible[^1], gone)) _visible.RemoveAt(_visible.Count - 1);
+                    else _visible.Remove(gone);
+                    break;
+                }
+                default:
+                    Refilter();
+                    return;
+            }
+        UpdateCountText();
+    }
+
+    /// <summary>A name or endpoint seen for the first time joins its dropdown, in order after "All".</summary>
+    private void Offer(ActivityEntry entry)
+    {
+        Offer(CharacterOptions, entry.OwnerName);
+        Offer(EndpointOptions,  entry.Endpoint);
+    }
+
+    private static void Offer(ObservableCollection<string> options, string value)
+    {
+        if (string.IsNullOrEmpty(value) || options.Contains(value)) return;
+        var at = 1;
+        while (at < options.Count && string.Compare(options[at], value, StringComparison.OrdinalIgnoreCase) < 0) at++;
+        options.Insert(at, value);
+    }
+
+    private void UpdateCountText()
+        => CountText = LogFiltered
+            ? $"{_visible.Count:N0} of {Entries.Count:N0} entries shown · the last 1,000 calls are kept"
+            : $"{Entries.Count:N0} entr{(Entries.Count == 1 ? "y" : "ies")} · the last 1,000 calls are kept";
     public ObservableCollection<TokenOption>         TokenOptions   { get; } = [];
     public ObservableCollection<ScheduleRowVm>       Schedule       { get; } = [];
     public ObservableCollection<ScheduleRowVm>       MarketSchedule { get; } = [];
@@ -214,6 +326,11 @@ public class ApiActivityViewModel : ReactiveObject
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
+        _visible       = Entries;
+        foreach (var entry in Entries) Offer(entry);
+        Entries.CollectionChanged += OnEntriesChanged;
+        ClearLogFiltersCommand = ReactiveCommand.Create(() => { CharacterFilter = AllOption; EndpointFilter = AllOption; });
+        UpdateCountText();
         _scopeFactory  = scopeFactory;
         _polling       = polling;
         _timerSettings = timerSettings;
@@ -631,7 +748,7 @@ public class ApiActivityViewModel : ReactiveObject
             // was shown as an hour away, and a manual poll looked like it had pushed the next
             // call back when it had not.
             DateTimeOffset? nextCall =
-                _polling.NextDueAt(ep.Key, ep.DefaultSeconds, lastCalled, rec?.ExpiresAt);
+                _polling.NextDueAt(ep.Key, ep.MinSeconds, ep.DefaultSeconds, lastCalled, rec?.ExpiresAt);
             return new ScheduleRowVm
             {
                 DisplayName  = ep.DisplayName,

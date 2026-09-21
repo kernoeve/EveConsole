@@ -47,10 +47,14 @@ public sealed class ManageAlarmsTool : IAgentTool
          {{DescribeConditions()}}
 
          ACTIONS AVAILABLE (the "actions" array; each entry has a "kind")
+         - {"kind":"tts"} — spoken at once by text-to-speech in the words the check composed,
+           with no model involved, and shown in the agent window as the application's line.
+           Prefer it for intel, ship_undock and undocked_too_long, whose words are already
+           written; add "message" to say something of your own instead (placeholders as below).
          - {"kind":"agent_notify"} — the alarm tells YOU it fired and you tell the capsuleer.
-           This is the right one when they said "tell me when…". Optionally add
-           "instruction" with anything they want mentioned. Nothing else is needed: when it
-           fires you get a message with the details and simply report it.
+           Use it when the capsuleer wants the detail put into words, or a question asked.
+           Optionally add "instruction" with anything they want mentioned. Nothing else is
+           needed: when it fires you get a message with the details and simply report it.
          - {"kind":"sound","sound":"<key>","volume":100} — plays a sound. Keys include
            chime-soft, chime-triad, ping-glass, bell-brass, bell-deep, gong-low, alert-double,
            alarm-urgent, two-tone-alert, klaxon-industrial, buzzer-harsh, siren-sweep, horn-low.
@@ -58,11 +62,20 @@ public sealed class ManageAlarmsTool : IAgentTool
          - {"kind":"dialog","title":"…","message":"…"} — a top-most pop-up window.
            In title/body/message you may use {alarm} {summary} {count} {time} {date}.
 
+         STAGED CONDITIONS
+         A condition that fires in stages (undocked_too_long) escalates: each stage is a number of
+         seconds in its parameters, and every action carries "stage": N — the stage it runs at
+         (an action without one runs at every stage). A sound action may add "loop": true to
+         repeat until the capsuleer acknowledges — by answering you, or pressing the button on
+         the window the sound brings with it. For a wake-up call use poll_seconds 10.
+
          OTHER FIELDS ON create
          - poll_seconds: how often to check (default 60, minimum 10).
          - repeat: "continuous" (default, stays armed) or "one_shot" (disables itself after
            firing once). Use one_shot for a reminder, continuous for a watch.
          - cooldown_seconds: optional minimum gap between firings.
+         - active_from / active_thru: optional "HH:mm" wall-clock hours the alarm is on, on the
+           machine running it — "18:00" thru "02:00" wraps midnight. Outside them it is not checked.
 
          HOW ALARMS AVOID BEING NOISY — read before writing a query
          An alarm announces only things it has not announced before. Every match carries a key,
@@ -88,6 +101,14 @@ public sealed class ManageAlarmsTool : IAgentTool
                      ORDER BY Id DESC LIMIT 20",
               "key_column":"Id"}
            actions: [{"kind":"agent_notify"}]
+
+         "Wake me up if my jump freighter sits undocked":
+           condition_type "undocked_too_long", poll_seconds 10, condition:
+             {"ships":["Jump Freighter","Freighter"],"stage1_seconds":180,"stage2_seconds":240,
+              "stage3_seconds":300,"snooze_minutes":30}
+           actions: [{"kind":"agent_notify","stage":1},
+                     {"kind":"agent_notify","stage":2},
+                     {"kind":"sound","sound":"klaxon-industrial","volume":100,"stage":3,"loop":true}]
 
          "Tell me when one of my characters logs in":
            condition_type "sql", poll_seconds 60, condition:
@@ -127,6 +148,8 @@ public sealed class ManageAlarmsTool : IAgentTool
             poll_seconds     = new { type = "integer", description = "Check interval in seconds (default 60, min 10)." },
             repeat           = new { type = "string",  @enum = new[] { "continuous", "one_shot" } },
             cooldown_seconds = new { type = "integer", description = "Minimum gap between firings." },
+            active_from      = new { type = "string",  description = "Optional \"HH:mm\": the alarm is on from this local time." },
+            active_thru      = new { type = "string",  description = "Optional \"HH:mm\": …through this local time; wraps midnight." },
         },
         required = new[] { "action" },
     };
@@ -242,12 +265,13 @@ public sealed class ManageAlarmsTool : IAgentTool
             var kind = kindText switch
             {
                 "agent_notify" or "agent" or "notify" => AlarmActionKind.AgentNotify,
+                "tts" or "tts_direct" or "speak"      => AlarmActionKind.TtsDirect,
                 "sound"                               => AlarmActionKind.Sound,
                 "alert"                               => AlarmActionKind.Alert,
                 "dialog"                              => AlarmActionKind.Dialog,
                 _                                     => (AlarmActionKind?)null,
             } ?? throw new InvalidOperationException(
-                $"Unknown action kind '{kindText}'. Use agent_notify, sound, alert or dialog.");
+                $"Unknown action kind '{kindText}'. Use tts, agent_notify, sound, alert or dialog.");
 
             // Everything except "kind" is that action's configuration.
             var cfgObj = new JsonObject();
@@ -283,6 +307,8 @@ public sealed class ManageAlarmsTool : IAgentTool
             Repeat          = repeat,
             PollSeconds     = Math.Max(10, Int(input, "poll_seconds") ?? 60),
             CooldownSeconds = Math.Max(0, Int(input, "cooldown_seconds") ?? 0),
+            ActiveFrom      = Alarm.ParseClock(Str(input, "active_from")) is { } af ? af.ToString(@"hh\:mm") : null,
+            ActiveThru      = Alarm.ParseClock(Str(input, "active_thru")) is { } at ? at.ToString(@"hh\:mm") : null,
             CreatedBy       = "agent",
             CreatedAt       = DateTimeOffset.Now,
         };

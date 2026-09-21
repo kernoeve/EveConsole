@@ -49,6 +49,23 @@ public class MessageRoleAlignmentConverter : IValueConverter
         => throw new NotSupportedException();
 }
 
+/// <summary>
+/// A width less a fixed margin, for a chat bubble whose ceiling should follow its panel. The
+/// agent panel is resizable; a bubble capped at a number stays narrow in a panel made wide.
+/// </summary>
+public class WidthLessConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var width = value is Rect r ? r.Width : value is double d ? d : 0;
+        var less  = parameter is string s && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var p) ? p : 0;
+        return Math.Max(120, width - less);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class MessageRoleBackgroundConverter : IValueConverter
 {
     public static readonly MessageRoleBackgroundConverter Instance = new();
@@ -113,18 +130,6 @@ public class NullableDecimalToPositiveDoubleConverter : IValueConverter
         if (value is not decimal v || v <= 0) return AvaloniaProperty.UnsetValue;
         return (double)v;
     }
-}
-
-// Display name for the LLM provider dropdown — flags Local as untested.
-public class AgentProviderDisplayConverter : IValueConverter
-{
-    public static readonly AgentProviderDisplayConverter Instance = new();
-
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is AgentProviderType.Local ? "Local (Untested)" : value?.ToString();
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
 }
 
 public class ProfitColorConverter : IValueConverter
@@ -213,6 +218,26 @@ public class DbEngineLogoConverter : IValueConverter
 /// grey rather than amber — the first read has not come back yet, and alarming about a worker
 /// that is very probably fine is how an indicator teaches people to ignore it.</para>
 /// </summary>
+/// <summary>What an alarm action's kind is called in the editor's picker.</summary>
+public class AlarmActionKindNameConverter : IValueConverter
+{
+    public static readonly AlarmActionKindNameConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            Models.AlarmActionKind.Sound       => "Sound",
+            Models.AlarmActionKind.TtsDirect   => "TTS direct (agent bypass)",
+            Models.AlarmActionKind.AgentNotify => "Agent notify",
+            Models.AlarmActionKind.Alert       => "Alert",
+            Models.AlarmActionKind.Dialog      => "Dialog",
+            _                                  => value?.ToString() ?? "",
+        };
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class WorkerStateBrushConverter : IValueConverter
 {
     public static readonly WorkerStateBrushConverter Instance = new();

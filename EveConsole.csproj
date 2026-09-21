@@ -9,7 +9,7 @@
     <AssemblyName>EveConsole</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <Version>0.9.13</Version>
+    <Version>0.9.14</Version>
   </PropertyGroup>
 
   <!--
@@ -115,11 +115,21 @@
     <!-- Cross-platform microphone recording (includes win-x64, linux-x64, osx runtimes) -->
     <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
 
+    <!-- Markdown parsing for the agent's document tabs. Parser only — the rendering into themed
+         Avalonia controls is ours, in Views/MarkdownRenderer.cs, so reports follow the palette
+         rather than arriving with a stylesheet of their own. Pure managed, no natives. -->
+    <PackageReference Include="Markdig" Version="0.41.3" />
+
     <!-- Local Whisper STT.
          ⚠️ Whisper.net.Runtime.Linux does not exist either, and is not needed: the main
          runtime package already carries linux-x64, linux-arm and linux-arm64 natives. -->
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+    <!-- ⚠️ The GPU build of the same runtime, through Vulkan, which every current GPU driver on
+         Windows and Linux provides; Whisper.net tries it first and falls back to the CPU one
+         above when there is no usable GPU. On the CPU alone a two-second utterance took six to
+         eleven seconds with the small model. Fifty-eight megabytes of native library per platform. -->
+    <PackageReference Include="Whisper.net.Runtime.Vulkan" Version="1.9.1" />
 
     <!-- Charting -->
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.5" />
