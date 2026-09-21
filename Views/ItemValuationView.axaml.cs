@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
@@ -17,24 +18,46 @@ public partial class ItemValuationView : UserControl
     public ItemValuationView()
     {
         InitializeComponent();
-        DataContextChanged += (_, _) =>
-        {
-            if (_vm is not null) _vm.CompareColumnsChanged -= RebuildCompareColumns;
-            _vm = DataContext as ItemValuationViewModel;
-            if (_vm is null) return;
-            _vm.CopyToClipboard = async text =>
-            {
-                var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-                if (clipboard is not null) await clipboard.SetTextAsync(text);
-            };
-            _vm.CompareColumnsChanged += RebuildCompareColumns;
-            _ = _vm.LoadAsync();
-        };
+        DataContextChanged += (_, _) => Attach(DataContext as ItemValuationViewModel);
 
         // A paste is the whole point of the box, so it appraises on its own. The event fires
         // before the text lands; the appraisal is queued behind it so the binding has caught up.
         InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) =>
             Dispatcher.UIThread.Post(() => { if (_vm is not null) _ = _vm.AppraiseAsync(); }, DispatcherPriority.Background));
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Attach(DataContext as ItemValuationViewModel);
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        Attach(null);
+    }
+
+    /// <summary>
+    /// Follows the view model. The main window builds a fresh view each time the tab is shown
+    /// while the view model keeps its result, so the compare columns are rebuilt on arrival
+    /// rather than left to the next change of stations, which is how they went missing after a
+    /// switch of tabs. A view on its way out lets go of the event, so it is not kept alive by it.
+    /// </summary>
+    private void Attach(ItemValuationViewModel? vm)
+    {
+        if (ReferenceEquals(_vm, vm)) return;
+        if (_vm is not null) _vm.CompareColumnsChanged -= RebuildCompareColumns;
+        _vm = vm;
+        if (_vm is null) return;
+        _vm.CopyToClipboard = async text =>
+        {
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard is not null) await clipboard.SetTextAsync(text);
+        };
+        _vm.CompareColumnsChanged += RebuildCompareColumns;
+        RebuildCompareColumns();
+        _ = _vm.LoadAsync();
     }
 
     /// <summary>

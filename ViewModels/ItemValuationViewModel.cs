@@ -404,6 +404,8 @@ public sealed class ItemValuationViewModel : ReactiveObject
         ValueRows   = [];
         CompareRows = [];
         CompareTotals = [];
+        CompareColumns = [];
+        CompareColumnsChanged?.Invoke();   // the emptied grid does not keep the last stations' headers
         HasResult  = false;
         MarketTotalText = BuildTotalText = ReprocessTotalText = VolumeText = ItemsText = "—";
         MarketPctText = BuildPctText = ReprocessPctText = "";
