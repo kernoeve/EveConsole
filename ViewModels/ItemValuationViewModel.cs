@@ -1,56 +1,159 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 using Avalonia.Media;
 using Avalonia.Threading;
 using EveConsole.Data;
-using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-/// <summary>One appraised line as the grid shows it, at the price percentage in force.</summary>
-public sealed class AppraisalRowVm(AppraisalRow row, double factor)
+/// <summary>One of the three ways an item is valued, as a cell: unit, total, and how far below
+/// the best of the three it sits.</summary>
+public sealed class ValueCellVm(double? unit, long quantity, double factor)
 {
-    public string Name       => row.Name;
-    public int    TypeId     => row.TypeId;
-    public long   Quantity   => row.Quantity;
-    public string QuantityText => row.Quantity.ToString("N0");
-    public double UnitVolume  => row.UnitVolume;
-    public double TotalVolume => row.TotalVolume;
-    public string VolumeText  => row.TypeId > 0 ? $"{row.TotalVolume:N2} m³" : "";
-    public double UnitBuy     => row.UnitBuy * factor;
-    public double UnitSell    => row.UnitSell * factor;
-    public double TotalBuy    => row.TotalBuy * factor;
-    public double TotalSell   => row.TotalSell * factor;
-    public string UnitBuyText   => Isk(UnitBuy);
-    public string UnitSellText  => Isk(UnitSell);
-    public string TotalBuyText  => Isk(TotalBuy);
-    public string TotalSellText => Isk(TotalSell);
-    public string Problem     => row.Problem;
-    public bool   IsProblem   => row.Problem.Length > 0;
-    public IBrush NameColor   => IsProblem ? Palette.Warn : Palette.TextPrimary;
-    public bool   HasType     => row.TypeId > 0;
+    public double? Unit  => unit is { } u ? u * factor : null;
+    public double? Total => unit is { } u ? u * factor * quantity : null;
+    public bool    Has   => unit is { } u && u > 0;
 
-    private static string Isk(double v) => v > 0 ? v.ToString("N2") : "—";
+    /// <summary>Set once the row knows its best value.</summary>
+    public bool   IsBest  { get; set; }
+    public double Pct     { get; set; }   // 0 for the best, negative below it
+
+    public string UnitText  => Has ? Unit!.Value.ToString("N2") : "—";
+    public string TotalText => Has ? Total!.Value.ToString("N2") : "—";
+    public string PctText   => !Has ? "—" : IsBest ? "0.0%" : $"{Pct:0.0}%";
+    public IBrush Color     => !Has ? Palette.TextFaint : IsBest ? Palette.Good : Palette.Bad;
 }
 
-/// <summary>A price mode as the picker names it.</summary>
-public sealed record PriceModeChoice(AppraisalPriceMode Mode, string Name)
+/// <summary>One item on the Values tab: what it is worth three ways at the primary station.</summary>
+public sealed class ValueRowVm
+{
+    public ValueRowVm(ItemValues v, double factor)
+    {
+        Name     = v.Item.Name;
+        TypeId   = v.Item.TypeId;
+        Quantity = v.Item.Quantity;
+        Section  = v.Item.Section;
+        Problem  = v.Item.Problem;
+        TotalVolume = v.Item.TotalVolume;
+        Market    = new ValueCellVm(v.MarketUnit, Quantity, factor);
+        Build     = new ValueCellVm(v.BuildUnit, Quantity, factor);
+        Reprocess = new ValueCellVm(v.ReprocessUnit, Quantity, factor);
+        MarketFromContract = v.MarketFromContract;
+
+        var cells = new[] { Market, Build, Reprocess }.Where(c => c.Has).ToList();
+        if (cells.Count > 0)
+        {
+            var best = cells.Max(c => c.Total!.Value);
+            foreach (var c in cells)
+            {
+                c.IsBest = Math.Abs(c.Total!.Value - best) < 0.005;
+                c.Pct    = best > 0 ? (c.Total.Value - best) / best * 100 : 0;
+            }
+        }
+    }
+
+    public string Name     { get; }
+    public int    TypeId   { get; }
+    public long   Quantity { get; }
+    public string Section  { get; }
+    public string Problem  { get; }
+    public double TotalVolume { get; }
+    public bool   MarketFromContract { get; }
+
+    public ValueCellVm Market    { get; }
+    public ValueCellVm Build     { get; }
+    public ValueCellVm Reprocess { get; }
+
+    public string QuantityText => Quantity.ToString("N0");
+    public string VolumeText   => TypeId > 0 ? $"{TotalVolume:N2} m³" : "";
+    public bool   HasType      => TypeId > 0;
+    public bool   IsProblem    => Problem.Length > 0;
+    public bool   HasSection   => Section.Length > 0;
+    public string Note         => MarketFromContract ? "contract" : "";
+    public bool   HasNote      => MarketFromContract;
+    public IBrush NameColor    => IsProblem ? Palette.Warn : Palette.TextPrimary;
+
+    // For the columns to sort on.
+    public double MarketTotal    => Market.Total ?? -1;
+    public double BuildTotal     => Build.Total ?? -1;
+    public double ReprocessTotal => Reprocess.Total ?? -1;
+    public double MarketUnit     => Market.Unit ?? -1;
+    public double BuildUnit      => Build.Unit ?? -1;
+    public double ReprocessUnit  => Reprocess.Unit ?? -1;
+}
+
+/// <summary>One station's cell on the compare tab.</summary>
+public sealed class CompareCellVm(double? unit, long quantity, double factor)
+{
+    public double? Unit  => unit is { } u ? u * factor : null;
+    public double? Total => unit is { } u ? u * factor * quantity : null;
+    public bool    Has   => unit is { } u && u > 0;
+    public bool    IsBest { get; set; }
+    public double  Pct    { get; set; }
+
+    public string UnitText  => Has ? Unit!.Value.ToString("N2") : "—";
+    public string TotalText => Has ? Total!.Value.ToString("N2") : "—";
+    public string PctText   => !Has ? "—" : IsBest ? "0.0%" : $"{Pct:0.0}%";
+    public IBrush Color     => !Has ? Palette.TextFaint : IsBest ? Palette.Good : Palette.Bad;
+}
+
+/// <summary>One item on the compare tab: its price at every station, best marked.</summary>
+public sealed class CompareRowVm
+{
+    public CompareRowVm(ValuedItem item, IReadOnlyList<StationPrices> stations, double factor)
+    {
+        Name     = item.Name;
+        TypeId   = item.TypeId;
+        Quantity = item.Quantity;
+        Cells = stations.Select(s => new CompareCellVm(item.TypeId > 0 && s.UnitByType.TryGetValue(item.TypeId, out var u) ? u : null, Quantity, factor)).ToList();
+        var priced = Cells.Where(c => c.Has).ToList();
+        if (priced.Count > 0)
+        {
+            var best = priced.Max(c => c.Total!.Value);
+            foreach (var c in priced)
+            {
+                c.IsBest = Math.Abs(c.Total!.Value - best) < 0.005;
+                c.Pct    = best > 0 ? (c.Total.Value - best) / best * 100 : 0;
+            }
+        }
+    }
+
+    public string Name     { get; }
+    public int    TypeId   { get; }
+    public long   Quantity { get; }
+    public string QuantityText => Quantity.ToString("N0");
+    public bool   HasType      => TypeId > 0;
+    public List<CompareCellVm> Cells { get; }
+}
+
+/// <summary>A station's total on the compare tab's header line.</summary>
+public sealed record CompareTotalVm(MarketStation Station, string TotalText, string PctText, IBrush Color, string AgeText);
+
+public sealed record PriceBasisChoice(PriceBasis Basis, string Name)
+{
+    public override string ToString() => Name;
+}
+
+public sealed record ValueTargetChoice(bool Reprocess, string Name)
 {
     public override string ToString() => Name;
 }
 
 /// <summary>
-/// Item Valuation: paste any list the client copies — a hangar, a cargo hold, a contract, a
-/// fit, a multibuy — and see what it is worth at one of the app's market sources, buy, sell and
-/// split, with the volume, the way an appraisal site shows it.
+/// Item Valuation: paste any list the client copies — a hangar, a cargo hold, a contract, a fit,
+/// a multibuy — and see what it is worth at a station of your choosing: at market, built, or
+/// reprocessed, side by side; then the same list priced at other stations to compare.
 /// </summary>
 public sealed class ItemValuationViewModel : ReactiveObject
 {
-    private const string SourceKey = "valuation.source";
-    private const string ModeKey   = "valuation.mode";
+    private const string StationKey = "valuation.station";
+    private const string BasisKey   = "valuation.basis";
+    private const string CompareKey = "valuation.compare";
+    private const string TargetKey  = "valuation.reprocess";
 
     private readonly AppraisalService _service;
     private bool _loaded;
@@ -66,68 +169,136 @@ public sealed class ItemValuationViewModel : ReactiveObject
     /// <summary>Set by the main window: opens a type in the Item Browser.</summary>
     public Action<int>? NavigateToItemAction { get; set; }
 
-    // ── Input and options ──────────────────────────────────────────────────
+    /// <summary>Raised when the stations compared change, so the view rebuilds the grid's columns.</summary>
+    public event Action? CompareColumnsChanged;
+
+    // ── Options ────────────────────────────────────────────────────────────
 
     private string _inputText = "";
-    public string InputText
-    {
-        get => _inputText;
-        set => this.RaiseAndSetIfChanged(ref _inputText, value);
-    }
+    public string InputText { get => _inputText; set => this.RaiseAndSetIfChanged(ref _inputText, value); }
 
-    public List<MarketPricingConfig> Sources { get; private set; } = [];
-
-    private MarketPricingConfig? _selectedSource;
-    public MarketPricingConfig? SelectedSource
+    private MarketStation? _selectedStation;
+    /// <summary>Where the list is valued. A station, not a market source: any station with
+    /// orders in the app's books, whichever source fetched them.</summary>
+    public MarketStation? SelectedStation
     {
-        get => _selectedSource;
+        get => _selectedStation;
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedSource, value);
-            if (value is not null && _loaded) UiState.Set(SourceKey, value.Id.ToString(CultureInfo.InvariantCulture));
+            this.RaiseAndSetIfChanged(ref _selectedStation, value);
+            if (value is not null && _loaded) UiState.Set(StationKey, value.LocationId.ToString(CultureInfo.InvariantCulture));
         }
     }
 
-    public IReadOnlyList<PriceModeChoice> Modes { get; } =
+    private string _stationText = "";
+    public string StationText { get => _stationText; set => this.RaiseAndSetIfChanged(ref _stationText, value); }
+
+    /// <summary>Stations whose name holds what was typed, busiest first. ⚠️ AsyncPopulator with
+    /// FilterMode None: the search already narrowed the list.</summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> StationPopulator =>
+        async (text, ct) => (await _service.SearchStationsAsync(text ?? "", 30, ct)).Cast<object>().ToList();
+
+    public IReadOnlyList<PriceBasisChoice> Bases { get; } =
     [
-        new(AppraisalPriceMode.Immediate,  "Immediate"),
-        new(AppraisalPriceMode.Percentile, "Top of book"),
+        new(PriceBasis.Sell,  "Sell"),
+        new(PriceBasis.Buy,   "Buy"),
+        new(PriceBasis.Split, "Split"),
     ];
 
-    private PriceModeChoice? _selectedMode;
-    public PriceModeChoice? SelectedMode
+    private PriceBasisChoice? _selectedBasis;
+    public PriceBasisChoice? SelectedBasis
     {
-        get => _selectedMode;
+        get => _selectedBasis;
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedMode, value);
-            if (value is not null && _loaded) UiState.Set(ModeKey, value.Mode.ToString());
+            this.RaiseAndSetIfChanged(ref _selectedBasis, value);
+            if (value is not null && _loaded) UiState.Set(BasisKey, value.Basis.ToString());
         }
     }
 
-    /// <summary>The percentage of the market price to value at: 100 is the price itself, 90 a
-    /// buyback that pays nine tenths.</summary>
+    public IReadOnlyList<ValueTargetChoice> Targets { get; } =
+    [
+        new(false, "The items"),
+        new(true,  "Reprocessed output"),
+    ];
+
+    private ValueTargetChoice? _selectedTarget;
+    public ValueTargetChoice? SelectedTarget
+    {
+        get => _selectedTarget;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTarget, value);
+            if (value is not null && _loaded) UiState.SetBool(TargetKey, value.Reprocess);
+        }
+    }
+
     private decimal _pricePercent = 100;
+    /// <summary>The share of the price to value at: 100 is the price itself, 90 a buyback that
+    /// pays nine tenths. Re-presents the last result without re-pricing.</summary>
     public decimal PricePercent
     {
         get => _pricePercent;
         set
         {
             this.RaiseAndSetIfChanged(ref _pricePercent, Math.Clamp(value, 1, 500));
-            if (_appraisal is not null) Present(_appraisal);
+            if (_valuation is not null) Present(_valuation);
         }
+    }
+
+    // ── Compare ────────────────────────────────────────────────────────────
+
+    public ObservableCollection<MarketStation> CompareStations { get; } = [];
+
+    private string _compareText = "";
+    public string CompareText { get => _compareText; set => this.RaiseAndSetIfChanged(ref _compareText, value); }
+
+    private MarketStation? _compareCandidate;
+    public MarketStation? CompareCandidate { get => _compareCandidate; set => this.RaiseAndSetIfChanged(ref _compareCandidate, value); }
+
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> ComparePopulator => StationPopulator;
+
+    public void AddCompare()
+    {
+        var station = CompareCandidate;
+        if (station is null || station.LocationId == SelectedStation?.LocationId || CompareStations.Any(s => s.LocationId == station.LocationId))
+        {
+            CompareText = ""; CompareCandidate = null;
+            return;
+        }
+        CompareStations.Add(station);
+        CompareText = ""; CompareCandidate = null;
+        SaveCompare();
+        if (_valuation is not null) _ = AppraiseAsync();   // the new station needs pricing
+    }
+
+    public void RemoveCompare(MarketStation station)
+    {
+        CompareStations.Remove(station);
+        SaveCompare();
+        if (_valuation is not null) Present(_valuation with { Stations = _valuation.Stations.Where(s => s.Station.LocationId != station.LocationId).ToList() });
+    }
+
+    private void SaveCompare()
+    {
+        if (_loaded) UiState.Set(CompareKey, string.Join(",", CompareStations.Select(s => s.LocationId.ToString(CultureInfo.InvariantCulture))));
     }
 
     // ── Result ─────────────────────────────────────────────────────────────
 
-    private Appraisal? _appraisal;
+    private Valuation? _valuation;
 
-    private IReadOnlyList<AppraisalRowVm> _rows = [];
-    public IReadOnlyList<AppraisalRowVm> Rows
-    {
-        get => _rows;
-        private set => this.RaiseAndSetIfChanged(ref _rows, value);
-    }
+    private IReadOnlyList<ValueRowVm> _valueRows = [];
+    public IReadOnlyList<ValueRowVm> ValueRows { get => _valueRows; private set => this.RaiseAndSetIfChanged(ref _valueRows, value); }
+
+    private IReadOnlyList<CompareRowVm> _compareRows = [];
+    public IReadOnlyList<CompareRowVm> CompareRows { get => _compareRows; private set => this.RaiseAndSetIfChanged(ref _compareRows, value); }
+
+    /// <summary>The stations the compare grid has columns for, primary first, as of the last result.</summary>
+    public IReadOnlyList<MarketStation> CompareColumns { get; private set; } = [];
+
+    private IReadOnlyList<CompareTotalVm> _compareTotals = [];
+    public IReadOnlyList<CompareTotalVm> CompareTotals { get => _compareTotals; private set => this.RaiseAndSetIfChanged(ref _compareTotals, value); }
 
     private bool _hasResult;
     public bool HasResult { get => _hasResult; private set => this.RaiseAndSetIfChanged(ref _hasResult, value); }
@@ -138,17 +309,27 @@ public sealed class ItemValuationViewModel : ReactiveObject
     private string _status = "Paste a list of items and press Appraise.";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
-    private string _totalBuyText = "—", _totalSellText = "—", _totalSplitText = "—", _totalVolumeText = "—", _totalItemsText = "—";
-    public string TotalBuyText    { get => _totalBuyText;    private set => this.RaiseAndSetIfChanged(ref _totalBuyText, value); }
-    public string TotalSellText   { get => _totalSellText;   private set => this.RaiseAndSetIfChanged(ref _totalSellText, value); }
-    public string TotalSplitText  { get => _totalSplitText;  private set => this.RaiseAndSetIfChanged(ref _totalSplitText, value); }
-    public string TotalVolumeText { get => _totalVolumeText; private set => this.RaiseAndSetIfChanged(ref _totalVolumeText, value); }
-    public string TotalItemsText  { get => _totalItemsText;  private set => this.RaiseAndSetIfChanged(ref _totalItemsText, value); }
+    private string _marketTotalText = "—", _buildTotalText = "—", _reprocessTotalText = "—", _volumeText = "—", _itemsText = "—";
+    public string MarketTotalText    { get => _marketTotalText;    private set => this.RaiseAndSetIfChanged(ref _marketTotalText, value); }
+    public string BuildTotalText     { get => _buildTotalText;     private set => this.RaiseAndSetIfChanged(ref _buildTotalText, value); }
+    public string ReprocessTotalText { get => _reprocessTotalText; private set => this.RaiseAndSetIfChanged(ref _reprocessTotalText, value); }
+    public string VolumeText         { get => _volumeText;         private set => this.RaiseAndSetIfChanged(ref _volumeText, value); }
+    public string ItemsText          { get => _itemsText;          private set => this.RaiseAndSetIfChanged(ref _itemsText, value); }
 
-    private string _totalBuyTip = "", _totalSellTip = "", _totalSplitTip = "";
-    public string TotalBuyTip   { get => _totalBuyTip;   private set => this.RaiseAndSetIfChanged(ref _totalBuyTip, value); }
-    public string TotalSellTip  { get => _totalSellTip;  private set => this.RaiseAndSetIfChanged(ref _totalSellTip, value); }
-    public string TotalSplitTip { get => _totalSplitTip; private set => this.RaiseAndSetIfChanged(ref _totalSplitTip, value); }
+    private string _marketPctText = "", _buildPctText = "", _reprocessPctText = "";
+    public string MarketPctText    { get => _marketPctText;    private set => this.RaiseAndSetIfChanged(ref _marketPctText, value); }
+    public string BuildPctText     { get => _buildPctText;     private set => this.RaiseAndSetIfChanged(ref _buildPctText, value); }
+    public string ReprocessPctText { get => _reprocessPctText; private set => this.RaiseAndSetIfChanged(ref _reprocessPctText, value); }
+
+    private IBrush _marketColor = Palette.TextPrimary, _buildColor = Palette.TextPrimary, _reprocessColor = Palette.TextPrimary;
+    public IBrush MarketColor    { get => _marketColor;    private set => this.RaiseAndSetIfChanged(ref _marketColor, value); }
+    public IBrush BuildColor     { get => _buildColor;     private set => this.RaiseAndSetIfChanged(ref _buildColor, value); }
+    public IBrush ReprocessColor { get => _reprocessColor; private set => this.RaiseAndSetIfChanged(ref _reprocessColor, value); }
+
+    private string _marketTip = "", _buildTip = "", _reprocessTip = "";
+    public string MarketTip    { get => _marketTip;    private set => this.RaiseAndSetIfChanged(ref _marketTip, value); }
+    public string BuildTip     { get => _buildTip;     private set => this.RaiseAndSetIfChanged(ref _buildTip, value); }
+    public string ReprocessTip { get => _reprocessTip; private set => this.RaiseAndSetIfChanged(ref _reprocessTip, value); }
 
     private string _unparsedText = "";
     public string UnparsedText { get => _unparsedText; private set => this.RaiseAndSetIfChanged(ref _unparsedText, value); }
@@ -156,47 +337,55 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
     // ── Commands ───────────────────────────────────────────────────────────
 
-    /// <summary>The market sources and the remembered choices. Once, when the tab first opens.</summary>
+    /// <summary>The stations and the remembered choices. Once, when the tab first opens.</summary>
     public async Task LoadAsync()
     {
         if (_loaded) return;
         try
         {
-            var sources   = await _service.SourcesAsync();
-            var defaultId = await _service.DefaultSourceIdAsync();
-            var savedId   = UiState.GetLong(SourceKey, defaultId ?? 0);
-            var savedMode = Enum.TryParse<AppraisalPriceMode>(UiState.Get(ModeKey), out var m) ? m : AppraisalPriceMode.Immediate;
+            var stations   = await _service.StationsAsync();
+            var savedId    = UiState.GetLong(StationKey, 0);
+            var savedBasis = Enum.TryParse<PriceBasis>(UiState.Get(BasisKey), out var b) ? b : PriceBasis.Sell;
+            var savedTarget = UiState.GetBool(TargetKey, false);
+            var savedCompare = (UiState.Get(CompareKey) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0).Where(id => id > 0).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Sources = sources;
-                this.RaisePropertyChanged(nameof(Sources));
-                SelectedSource = sources.FirstOrDefault(s => s.Id == savedId) ?? sources.FirstOrDefault(s => s.Id == defaultId) ?? sources.FirstOrDefault();
-                SelectedMode   = Modes.First(x => x.Mode == savedMode);
-                if (sources.Count == 0) Status = "No market source is set up. Add one under Settings > Market first.";
+                SelectedStation = stations.FirstOrDefault(s => s.LocationId == savedId) ?? stations.FirstOrDefault();
+                StationText     = SelectedStation?.Name ?? "";
+                SelectedBasis   = Bases.First(x => x.Basis == savedBasis);
+                SelectedTarget  = Targets.First(x => x.Reprocess == savedTarget);
+                foreach (var id in savedCompare)
+                    if (stations.FirstOrDefault(s => s.LocationId == id) is { } st && st.LocationId != SelectedStation?.LocationId) CompareStations.Add(st);
+                if (stations.Count == 0) Status = "No orders are held yet. Add a market source under Settings > Market and let it fetch first.";
                 _loaded = true;
+                CompareColumnsChanged?.Invoke();
             });
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Could not load the market sources: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Could not load the stations: {ex.Message}");
         }
     }
 
     public async Task AppraiseAsync()
     {
         if (IsBusy) return;
-        if (SelectedSource is null) { Status = "Pick a market source first."; return; }
+        if (SelectedStation is null) { Status = "Pick a station first."; return; }
         if (string.IsNullOrWhiteSpace(InputText)) { Status = "Nothing to appraise: paste a list of items first."; return; }
 
         IsBusy = true;
         Status = "Appraising…";
         try
         {
-            var text = InputText;
-            var mode = SelectedMode?.Mode ?? AppraisalPriceMode.Immediate;
-            var appraisal = await Task.Run(() => _service.AppraiseAsync(text, SelectedSource.Id, mode));
-            await Dispatcher.UIThread.InvokeAsync(() => Present(appraisal));
+            var text      = InputText;
+            var station   = SelectedStation;
+            var compare   = CompareStations.ToList();
+            var basis     = SelectedBasis?.Basis ?? PriceBasis.Sell;
+            var reprocess = SelectedTarget?.Reprocess ?? false;
+            var valuation = await Task.Run(() => _service.ValueAsync(text, station, compare, basis, reprocess));
+            await Dispatcher.UIThread.InvokeAsync(() => Present(valuation));
         }
         catch (Exception ex)
         {
@@ -210,33 +399,50 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
     public void Clear()
     {
-        InputText   = "";
-        _appraisal  = null;
-        Rows        = [];
-        HasResult   = false;
-        TotalBuyText = TotalSellText = TotalSplitText = TotalVolumeText = TotalItemsText = "—";
-        TotalBuyTip = TotalSellTip = TotalSplitTip = "";
+        InputText  = "";
+        _valuation = null;
+        ValueRows   = [];
+        CompareRows = [];
+        CompareTotals = [];
+        HasResult  = false;
+        MarketTotalText = BuildTotalText = ReprocessTotalText = VolumeText = ItemsText = "—";
+        MarketPctText = BuildPctText = ReprocessPctText = "";
+        MarketColor = BuildColor = ReprocessColor = Palette.TextPrimary;
+        MarketTip = BuildTip = ReprocessTip = "";
         UnparsedText = "";
         this.RaisePropertyChanged(nameof(HasUnparsed));
         Status = "Paste a list of items and press Appraise.";
     }
 
-    /// <summary>The table as text, tab-separated, for a spreadsheet or a chat: every row, then
-    /// the totals, priced as shown.</summary>
+    public void OpenItem(int typeId)
+    {
+        if (typeId > 0) NavigateToItemAction?.Invoke(typeId);
+    }
+
+    /// <summary>Both tables as tab-separated text, for a spreadsheet or a chat.</summary>
     public string ResultAsText()
     {
-        if (_appraisal is null) return "";
+        if (_valuation is null) return "";
+        var v  = _valuation;
         var sb = new StringBuilder();
-        sb.AppendLine("Item\tQuantity\tVolume m3\tUnit buy\tUnit sell\tTotal buy\tTotal sell");
-        foreach (var r in Rows)
-            sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t{r.UnitBuy:0.##}\t{r.UnitSell:0.##}\t{r.TotalBuy:0.##}\t{r.TotalSell:0.##}");
+        sb.AppendLine($"Valued at {v.Stations[0].Station.Name}, {SelectedBasis?.Name.ToLowerInvariant()} basis, {PricePercent:0.#}% of market{(v.Reprocessed ? ", as reprocessed" : "")}");
+        sb.AppendLine("Item\tQuantity\tVolume m3\tMarket unit\tMarket total\tMarket %\tBuild unit\tBuild total\tBuild %\tReprocess unit\tReprocess total\tReprocess %\tNote");
+        foreach (var r in ValueRows)
+            sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t{Num(r.Market.Unit)}\t{Num(r.Market.Total)}\t{r.Market.PctText}\t{Num(r.Build.Unit)}\t{Num(r.Build.Total)}\t{r.Build.PctText}\t{Num(r.Reprocess.Unit)}\t{Num(r.Reprocess.Total)}\t{r.Reprocess.PctText}\t{string.Join(" ", new[] { r.Section, r.Problem, r.Note }.Where(s => s.Length > 0))}");
         sb.AppendLine();
-        sb.AppendLine($"Total buy\t{Rows.Sum(r => r.TotalBuy):0.##}");
-        sb.AppendLine($"Total sell\t{Rows.Sum(r => r.TotalSell):0.##}");
-        sb.AppendLine($"Total split\t{Rows.Sum(r => (r.TotalBuy + r.TotalSell) / 2):0.##}");
-        sb.AppendLine($"Total volume m3\t{Rows.Sum(r => r.TotalVolume):0.##}");
-        sb.AppendLine($"Priced at {_appraisal.MarketName}, {(_appraisal.Mode == AppraisalPriceMode.Immediate ? "immediate" : $"top {_appraisal.PercentilePercent:0.#}% of the book")}, {PricePercent:0.#}% of market, {(_appraisal.PricesAsOf is { } t ? t.ToLocalTime().ToString("yyyy-MM-dd HH:mm") : "age unknown")}");
+        sb.AppendLine($"Total market\t{MarketTip}\nTotal build\t{BuildTip}\nTotal reprocessed\t{ReprocessTip}\nTotal volume m3\t{v.TotalVolume:0.##}");
+        if (CompareColumns.Count > 1)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Item\tQuantity\t" + string.Join("\t", CompareColumns.Select(s => $"{s.Name} unit\t{s.Name} total\t{s.Name} %")));
+            foreach (var r in CompareRows)
+                sb.AppendLine($"{r.Name}\t{r.Quantity}\t" + string.Join("\t", r.Cells.Select(c => $"{Num(c.Unit)}\t{Num(c.Total)}\t{c.PctText}")));
+            sb.AppendLine();
+            foreach (var t in CompareTotals) sb.AppendLine($"{t.Station.Name}\t{t.TotalText}\t{t.PctText}");
+        }
         return sb.ToString();
+
+        static string Num(double? d) => d is { } x ? x.ToString("0.##", CultureInfo.InvariantCulture) : "";
     }
 
     public async Task CopyAsync()
@@ -247,36 +453,56 @@ public sealed class ItemValuationViewModel : ReactiveObject
         Status = "Copied to the clipboard.";
     }
 
-    public void OpenItem(AppraisalRowVm row)
-    {
-        if (row.HasType) NavigateToItemAction?.Invoke(row.TypeId);
-    }
-
     // ── Presentation ───────────────────────────────────────────────────────
 
-    private void Present(Appraisal appraisal)
+    private void Present(Valuation v)
     {
-        _appraisal = appraisal;
+        _valuation = v;
         var factor = (double)PricePercent / 100;
-        Rows = appraisal.Rows.Select(r => new AppraisalRowVm(r, factor)).ToList();
 
-        double buy = appraisal.TotalBuy * factor, sell = appraisal.TotalSell * factor, split = appraisal.TotalSplit * factor;
-        TotalBuyText    = Compact(buy);
-        TotalSellText   = Compact(sell);
-        TotalSplitText  = Compact(split);
-        TotalBuyTip     = $"{buy:N2} ISK";
-        TotalSellTip    = $"{sell:N2} ISK";
-        TotalSplitTip   = $"{split:N2} ISK";
-        TotalVolumeText = $"{appraisal.TotalVolume:N0} m³";
-        TotalItemsText  = $"{appraisal.Rows.Count:N0} / {appraisal.TotalUnits:N0}";
-        UnparsedText    = appraisal.Unparsed.Count == 0 ? "" : "Not read: " + string.Join("  |  ", appraisal.Unparsed);
+        ValueRows = v.Values.Select(x => new ValueRowVm(x, factor)).ToList();
+
+        double market = v.TotalMarket * factor, build = v.TotalBuild * factor, reprocess = v.TotalReprocess * factor;
+        var totals = new[] { (market, v.Values.Any(x => x.MarketUnit > 0)), (build, v.Values.Any(x => x.BuildUnit > 0)), (reprocess, v.Values.Any(x => x.ReprocessUnit > 0)) };
+        var best = totals.Where(t => t.Item2).Select(t => t.Item1).DefaultIfEmpty(0).Max();
+        (MarketTotalText,    MarketPctText,    MarketColor,    MarketTip)    = Summary(market,    totals[0].Item2, best);
+        (BuildTotalText,     BuildPctText,     BuildColor,     BuildTip)     = Summary(build,     totals[1].Item2, best);
+        (ReprocessTotalText, ReprocessPctText, ReprocessColor, ReprocessTip) = Summary(reprocess, totals[2].Item2, best);
+        VolumeText = $"{v.TotalVolume:N0} m³";
+        ItemsText  = $"{v.Values.Count:N0} / {v.TotalUnits:N0}";
+
+        // The compare tab: every station side by side, the primary first.
+        var columnsChanged = !CompareColumns.Select(s => s.LocationId).SequenceEqual(v.Stations.Select(s => s.Station.LocationId));
+        CompareColumns = v.Stations.Select(s => s.Station).ToList();
+        CompareRows = v.Values.Select(x => new CompareRowVm(x.Item, v.Stations, factor)).ToList();
+        var stationTotals = v.Stations.Select(s => v.Values.Sum(x => x.Item.TypeId > 0 && s.UnitByType.TryGetValue(x.Item.TypeId, out var u) ? u * factor * x.Item.Quantity : 0)).ToList();
+        var bestStation = stationTotals.DefaultIfEmpty(0).Max();
+        CompareTotals = v.Stations.Select((s, i) =>
+        {
+            var t = stationTotals[i];
+            var isBest = t > 0 && Math.Abs(t - bestStation) < 0.005;
+            return new CompareTotalVm(s.Station, t > 0 ? Compact(t) : "—",
+                t <= 0 ? "no prices" : isBest ? "best" : $"{(t - bestStation) / bestStation * 100:0.0}%",
+                t <= 0 ? Palette.TextFaint : isBest ? Palette.Good : Palette.Bad,
+                s.AsOf is { } at ? Age(DateTimeOffset.UtcNow - at) : "no orders held");
+        }).ToList();
+        if (columnsChanged) CompareColumnsChanged?.Invoke();
+
+        UnparsedText = v.Unparsed.Count == 0 ? "" : "Not read: " + string.Join("  |  ", v.Unparsed);
         this.RaisePropertyChanged(nameof(HasUnparsed));
-        HasResult = appraisal.Rows.Count > 0;
+        HasResult = v.Values.Count > 0;
 
-        var age = appraisal.PricesAsOf is { } t ? Age(DateTimeOffset.UtcNow - t) : "never refreshed";
-        var mode = appraisal.Mode == AppraisalPriceMode.Immediate ? "best orders" : $"top {appraisal.PercentilePercent:0.#}% of the book";
-        var problems = appraisal.Unpriced > 0 ? $"; {appraisal.Unpriced} could not be priced" : "";
-        Status = $"{appraisal.Rows.Count:N0} items at {appraisal.MarketName}, {mode}, prices {age}{problems}.";
+        var age = v.Stations[0].AsOf is { } t0 ? Age(DateTimeOffset.UtcNow - t0) : "no orders held";
+        var problems = v.Unpriced > 0 ? $"; {v.Unpriced} could not be valued" : "";
+        Status = $"{v.Values.Count:N0} {(v.Reprocessed ? "rows after reprocessing" : "items")} at {v.Stations[0].Station.Name}, {SelectedBasis?.Name.ToLowerInvariant()} prices {age}{problems}.";
+    }
+
+    private static (string Text, string Pct, IBrush Color, string Tip) Summary(double total, bool has, double best)
+    {
+        if (!has) return ("—", "", Palette.TextFaint, "nothing to value this way");
+        var isBest = Math.Abs(total - best) < 0.005;
+        var pct = isBest ? "best" : best > 0 ? $"{(total - best) / best * 100:0.0}%" : "";
+        return (Compact(total), pct, isBest ? Palette.Good : Palette.Bad, $"{total:N2} ISK");
     }
 
     /// <summary>ISK the way the summary boxes read: 1.23B, 45.6M, 987K.</summary>

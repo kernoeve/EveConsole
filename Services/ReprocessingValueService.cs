@@ -9,13 +9,14 @@ public class ReprocessingValueService(
     IServiceScopeFactory scopeFactory,
     AppErrorLogger       errorLogger)
 {
-    private const int OreIceCategoryId = 25;   // Asteroid (ore, ice, moon ore)
+    // Shared with Item Valuation, which prices a list as reprocessed at the same yields.
+    public const int OreIceCategoryId = 25;   // Asteroid (ore, ice, moon ore)
 
     // Max efficiency: Tatara + T2 rig + nullsec + Reprocessing/Efficiency/Ore V + RX-804 implant
-    private const double OreIceYield  = 0.9063;
+    public const double OreIceYield  = 0.9063;
 
     // NPC base 50% × Scrapmetal Processing V (×1.10)
-    private const double GenItemYield = 0.55;
+    public const double GenItemYield = 0.55;
 
     public async Task RecalculateAllAsync(CancellationToken ct = default)
     {

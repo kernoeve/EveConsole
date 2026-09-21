@@ -4,92 +4,194 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-/// <summary>How a unit price is read off the order book.</summary>
-public enum AppraisalPriceMode
+/// <summary>Which side of the order book a value is read from.</summary>
+public enum PriceBasis
 {
-    /// <summary>The best order now: the lowest sell, the highest buy. What one unit costs or
-    /// fetches this minute.</summary>
-    Immediate,
-
-    /// <summary>The volume-weighted average of the best orders that together hold the config's
-    /// percentile of the side's volume — the price a whole stack would move at, less swayed by
-    /// one small order at a silly price.</summary>
-    Percentile,
-}
-
-/// <summary>One appraised line.</summary>
-public sealed record AppraisalRow(
-    string Name,
-    int    TypeId,
-    long   Quantity,
-    double UnitVolume,
-    double UnitBuy,
-    double UnitSell,
-    string Problem)
-{
-    public bool   Priced     => TypeId > 0 && (UnitBuy > 0 || UnitSell > 0);
-    public double TotalVolume => UnitVolume * Quantity;
-    public double TotalBuy    => UnitBuy * Quantity;
-    public double TotalSell   => UnitSell * Quantity;
-    public double TotalSplit  => (UnitBuy + UnitSell) / 2 * Quantity;
-}
-
-/// <summary>The whole appraisal: the rows, the lines that could not be read, and the totals.</summary>
-public sealed record Appraisal(
-    IReadOnlyList<AppraisalRow> Rows,
-    IReadOnlyList<string>       Unparsed,
-    string                      MarketName,
-    DateTimeOffset?             PricesAsOf,
-    AppraisalPriceMode          Mode,
-    double                      PercentilePercent)
-{
-    public double TotalBuy    => Rows.Sum(r => r.TotalBuy);
-    public double TotalSell   => Rows.Sum(r => r.TotalSell);
-    public double TotalSplit  => Rows.Sum(r => r.TotalSplit);
-    public double TotalVolume => Rows.Sum(r => r.TotalVolume);
-    public long   TotalUnits  => Rows.Sum(r => r.Quantity);
-    public int    Unpriced    => Rows.Count(r => !r.Priced);
+    /// <summary>The lowest sell order: what a unit costs to buy here, or lists at.</summary>
+    Sell,
+    /// <summary>The highest buy order: what a unit fetches sold into the book right now.</summary>
+    Buy,
+    /// <summary>Halfway between the two, or whichever side exists when one is empty.</summary>
+    Split,
 }
 
 /// <summary>
-/// Prices a pasted list of items off one of the app's market sources, the way an appraisal site
-/// does: each line resolved to a type, priced buy and sell, and totalled.
+/// A station or structure with orders in one of the app's order books: where a valuation is
+/// priced. ⚠️ A place, not a market source: a source may hold a whole region's orders, and every
+/// station in that region with orders is listed on its own, so two stations of the same region
+/// can be compared.
+/// </summary>
+public sealed record MarketStation(long LocationId, string Name, int SystemId, int ConfigId, int Orders)
+{
+    public override string ToString() => Name;
+}
+
+/// <summary>An item of the list being valued: the type it resolved to (0 for a name the SDE does
+/// not know), how many, and which part of the result it belongs to when reprocessing.</summary>
+public sealed record ValuedItem(int TypeId, string Name, long Quantity, double UnitVolume, string Section, string Problem)
+{
+    public double TotalVolume => UnitVolume * Quantity;
+}
+
+/// <summary>What one item is worth per unit, three ways, at the primary station.</summary>
+public sealed record ItemValues(ValuedItem Item, double? MarketUnit, bool MarketFromContract, double? BuildUnit, double? ReprocessUnit);
+
+/// <summary>Unit prices at one station for the types asked about, on the chosen basis.</summary>
+public sealed record StationPrices(MarketStation Station, IReadOnlyDictionary<int, double> UnitByType, DateTimeOffset? AsOf);
+
+/// <summary>The whole valuation: every item three ways at the primary station, the same items at
+/// each station compared, and what could not be read.</summary>
+public sealed record Valuation(
+    IReadOnlyList<ItemValues>    Values,
+    IReadOnlyList<StationPrices> Stations,
+    IReadOnlyList<string>        Unparsed,
+    PriceBasis                   Basis,
+    bool                         Reprocessed)
+{
+    public double TotalVolume    => Values.Sum(v => v.Item.TotalVolume);
+    public long   TotalUnits     => Values.Sum(v => v.Item.Quantity);
+    public double TotalMarket    => Values.Sum(v => (v.MarketUnit    ?? 0) * v.Item.Quantity);
+    public double TotalBuild     => Values.Sum(v => (v.BuildUnit     ?? 0) * v.Item.Quantity);
+    public double TotalReprocess => Values.Sum(v => (v.ReprocessUnit ?? 0) * v.Item.Quantity);
+    public int    Unpriced       => Values.Count(v => v.MarketUnit is null && v.BuildUnit is null && v.ReprocessUnit is null);
+}
+
+/// <summary>
+/// Values a pasted list of items the way an appraisal site does, at a station of the user's
+/// choosing rather than at a market source: each line resolved to a type, priced off the orders
+/// at that station, and set beside what it would cost to build and what it would yield
+/// reprocessed.
 ///
-/// <para>Prices come from the order book the market source last fetched (the raw orders it keeps),
-/// filtered to the source's station when it has one. Buy orders count when they were placed at
-/// that station, or anywhere in its system with a range wide enough to reach it, or region-wide;
-/// a buy order some jumps away that happens to reach the station is not counted, which is the one
-/// simplification against "everything fillable here". A source without an order book — a
-/// Fuzzwork feed, say — falls back to the prices it does hold.</para>
+/// <para>Sells count at the station itself. Buy orders count when placed at the station, anywhere
+/// in its system with a range wide enough to reach it, or region-wide; NPC buy orders (the
+/// 365-day ones at a floor price) and buy orders some jumps away that happen to reach the station
+/// are left out — the latter the one simplification against "everything fillable here". A type
+/// with no orders at the station takes its contract price where the app has one, which is how
+/// blueprint copies and the like get a value at all.</para>
+///
+/// <para>The reprocessed value uses the app's reprocessing yields and prices the materials at the
+/// same station on the same basis, so the three columns are comparable. Valuing the list "as
+/// reprocessed" turns the items into their materials first, batch by batch, and keeps whatever
+/// could not be reprocessed as items.</para>
 /// </summary>
 public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
 {
     private Dictionary<string, SdeType>? _byName;
     private Dictionary<int, SdeType>?    _byId;
+    private Dictionary<int, int>?        _categoryByGroup;
 
-    /// <summary>Every enabled market source, for the picker.</summary>
-    public async Task<List<MarketPricingConfig>> SourcesAsync(CancellationToken ct = default)
+    private List<MarketStation>? _stations;
+    private DateTime _stationsAt;
+
+    // ── Stations ───────────────────────────────────────────────────────────
+
+    /// <summary>Every station and structure with orders in any of the app's order books, busiest
+    /// first, so the trade hubs lead. Cached for a while: it is a pass over every order.</summary>
+    public async Task<IReadOnlyList<MarketStation>> StationsAsync(CancellationToken ct = default)
     {
+        if (_stations is not null && DateTime.UtcNow - _stationsAt < TimeSpan.FromMinutes(10)) return _stations;
+
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.MarketPricingConfigs.AsNoTracking()
-            .Where(c => c.IsEnabled)
-            .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
+        var counts = await db.MarketRawOrders.AsNoTracking()
+            .GroupBy(o => new { o.LocationId, o.SystemId, o.ConfigId })
+            .Select(g => new { g.Key.LocationId, g.Key.SystemId, g.Key.ConfigId, Orders = g.Count() })
             .ToListAsync(ct);
+
+        // A station in two books — a region's and a structure's own — is listed once, under the
+        // fuller one.
+        var best = counts.GroupBy(c => c.LocationId).Select(g => g.OrderByDescending(c => c.Orders).First()).ToList();
+        var stationIds   = best.Where(b => b.LocationId < 100_000_000).Select(b => (int)b.LocationId).ToList();
+        var structureIds = best.Where(b => b.LocationId >= 100_000_000).Select(b => b.LocationId).ToList();
+
+        var stationNames = await db.SdeStations.AsNoTracking()
+            .Where(s => stationIds.Contains(s.StationId))
+            .ToDictionaryAsync(s => (long)s.StationId, s => s.Name, ct);
+        var structureNames = await db.EsiStructureNames.AsNoTracking()
+            .Where(s => structureIds.Contains(s.StructureId))
+            .ToDictionaryAsync(s => s.StructureId, s => s.Name, ct);
+        var sourceNames = await db.MarketPricingConfigs.AsNoTracking()
+            .Where(c => structureIds.Contains(c.LocationId))
+            .ToDictionaryAsync(c => c.LocationId, c => c.LocationName, ct);
+
+        var list = best
+            .Select(b => new MarketStation(b.LocationId,
+                stationNames.GetValueOrDefault(b.LocationId)
+                    ?? structureNames.GetValueOrDefault(b.LocationId)
+                    ?? sourceNames.GetValueOrDefault(b.LocationId)
+                    ?? $"Structure {b.LocationId}",
+                b.SystemId, b.ConfigId, b.Orders))
+            .OrderByDescending(s => s.Orders).ThenBy(s => s.Name)
+            .ToList();
+
+        _stations   = list;
+        _stationsAt = DateTime.UtcNow;
+        return list;
     }
 
-    /// <summary>The source the app values assets with, as the picker's first choice.</summary>
-    public async Task<int?> DefaultSourceIdAsync(CancellationToken ct = default)
+    /// <summary>Stations whose name holds the text, busiest first.</summary>
+    public async Task<IReadOnlyList<MarketStation>> SearchStationsAsync(string text, int limit = 30, CancellationToken ct = default)
     {
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var defaults = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(ct);
-        return defaults?.AssetValueConfigId;
+        var all = await StationsAsync(ct);
+        var needle = text.Trim();
+        if (needle.Length == 0) return all.Take(limit).ToList();
+        return all.Where(s => s.Name.Contains(needle, StringComparison.OrdinalIgnoreCase)).Take(limit).ToList();
     }
 
-    public async Task<Appraisal> AppraiseAsync(string text, int configId, AppraisalPriceMode mode, CancellationToken ct = default)
+    // ── Valuation ──────────────────────────────────────────────────────────
+
+    public async Task<Valuation> ValueAsync(string text, MarketStation primary, IReadOnlyList<MarketStation> compare,
+        PriceBasis basis, bool reprocess, CancellationToken ct = default)
     {
         await EnsureTypesAsync(ct);
+        var (items, unparsed) = Resolve(text);
+        if (reprocess) items = await ReprocessAsync(items, ct);
 
-        // ── Names to types ──
+        var typeIds = items.Where(i => i.TypeId > 0).Select(i => i.TypeId).Distinct().ToList();
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+
+        // The materials each item reprocesses into are priced at the primary station too, so the
+        // reprocessed value sits on the same footing as the market one.
+        var materials = await db.SdeTypeMaterials.AsNoTracking()
+            .Where(m => typeIds.Contains(m.TypeId))
+            .ToListAsync(ct);
+        var allTypeIds = typeIds.Union(materials.Select(m => m.MaterialTypeId)).ToList();
+
+        var stations = new List<StationPrices> { await PriceAtAsync(db, primary, allTypeIds, basis, ct) };
+        foreach (var station in compare)
+            stations.Add(await PriceAtAsync(db, station, typeIds, basis, ct));
+        var primaryPrices = stations[0].UnitByType;
+
+        var contracts = (await db.ContractPrices.AsNoTracking()
+                .Where(c => typeIds.Contains(c.TypeId))
+                .ToListAsync(ct))
+            .ToDictionary(c => c.TypeId, c => ContractPricing.EffectivePrice(c));
+        var builds = await db.BuildCosts.AsNoTracking()
+            .Where(b => typeIds.Contains(b.TypeId) && b.TotalCost > 0)
+            .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
+        var reprocessUnits = ReprocessValues(materials, primaryPrices);
+
+        var values = new List<ItemValues>(items.Count);
+        foreach (var item in items)
+        {
+            double? market = null; var fromContract = false;
+            if (item.TypeId > 0)
+            {
+                if (primaryPrices.TryGetValue(item.TypeId, out var m)) market = m;
+                else if (contracts.TryGetValue(item.TypeId, out var c) && c is { } cp && cp > 0) { market = (double)cp; fromContract = true; }
+            }
+            double? build = builds.TryGetValue(item.TypeId, out var b) ? b : null;
+            double? reprocessed = reprocessUnits.TryGetValue(item.TypeId, out var r) ? r : null;
+            values.Add(new ItemValues(item, market, fromContract, build, reprocessed));
+        }
+
+        return new Valuation(values, stations, unparsed, basis, reprocess);
+    }
+
+    /// <summary>The pasted lines as items: names resolved and merged by type, names the SDE does
+    /// not know kept flagged so the count stays honest, and the lines nothing could be made of.</summary>
+    private (List<ValuedItem> Items, List<string> Unparsed) Resolve(string text)
+    {
         var quantities = new Dictionary<int, long>();
         var order      = new List<int>();
         var unknown    = new List<(string Name, long Quantity)>();
@@ -111,7 +213,6 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
             }
             if (!taken)
             {
-                // Read, but not a name the SDE knows: kept in the table so the count is honest.
                 // The reading that split a quantity off comes before the whole line: "Not An
                 // Item 12" is more usefully shown as twelve of something unknown than as one of
                 // "...12".
@@ -128,117 +229,137 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
             quantities[typeId] += qty;
         }
 
-        // ── Prices ──
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var config = await db.MarketPricingConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.Id == configId, ct)
-                     ?? throw new InvalidOperationException("That market source no longer exists.");
-        var prices = await PriceAsync(db, config, order, mode, ct);
-
-        var rows = new List<AppraisalRow>(order.Count + unknown.Count);
-        foreach (var typeId in order)
-        {
-            var type = _byId![typeId];
-            var (buy, sell) = prices.TryGetValue(typeId, out var p) ? p : (0, 0);
-            var volume = type.PackagedVolume > 0 ? type.PackagedVolume : type.Volume;
-            rows.Add(new AppraisalRow(type.Name, typeId, quantities[typeId], volume, buy, sell,
-                buy <= 0 && sell <= 0 ? "no orders at this market" : ""));
-        }
-        foreach (var (name, qty) in unknown)
-            rows.Add(new AppraisalRow(name, 0, qty, 0, 0, 0, "not an item name"));
-
-        return new Appraisal(rows, unparsed, config.LocationName, config.LastRefreshed, mode, config.PercentilePercent);
+        var items = order.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, quantities[id], Volume(t), "", ""); }).ToList();
+        items.AddRange(unknown.Select(u => new ValuedItem(0, u.Name, u.Quantity, 0, "", "not an item name")));
+        return (items, unparsed);
     }
 
-    /// <summary>Unit buy and sell for each type off the source's order book, or its price table
-    /// when it keeps no book.</summary>
-    private static async Task<Dictionary<int, (double Buy, double Sell)>> PriceAsync(
-        AppDbContext db, MarketPricingConfig config, List<int> typeIds, AppraisalPriceMode mode, CancellationToken ct)
+    /// <summary>The list as it comes out of a reprocessing plant: every item's materials, batch by
+    /// batch at the app's yields, then whatever could not go in — names not known, items with no
+    /// materials, and the short end of a stack that does not fill a whole batch.</summary>
+    private async Task<List<ValuedItem>> ReprocessAsync(List<ValuedItem> items, CancellationToken ct)
     {
-        var result = new Dictionary<int, (double, double)>();
-        if (typeIds.Count == 0) return result;
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var typeIds = items.Where(i => i.TypeId > 0).Select(i => i.TypeId).ToList();
+        var materials = (await db.SdeTypeMaterials.AsNoTracking()
+                .Where(m => typeIds.Contains(m.TypeId))
+                .ToListAsync(ct))
+            .GroupBy(m => m.TypeId).ToDictionary(g => g.Key, g => g.ToList());
 
-        var orders = await db.MarketRawOrders.AsNoTracking()
-            .Where(o => o.ConfigId == config.Id && typeIds.Contains(o.TypeId) && o.VolumeRemain > 0)
-            .Select(o => new { o.TypeId, o.IsBuyOrder, o.Price, o.VolumeRemain, o.LocationId, o.SystemId, o.Range, o.Duration })
-            .ToListAsync(ct);
-
-        if (orders.Count > 0)
+        var output = new Dictionary<int, long>();
+        var outputOrder = new List<int>();
+        var leftovers = new List<ValuedItem>();
+        foreach (var item in items)
         {
-            // The station's system, for buy orders placed elsewhere in it with a range that reaches.
-            int? stationSystem = null;
-            if (config.StationFilter is { } station)
-                stationSystem = orders.FirstOrDefault(o => o.LocationId == station)?.SystemId;
-
-            var pct = config.UsePercentileFilter ? config.PercentilePercent : 5.0;
-            foreach (var group in orders.GroupBy(o => o.TypeId))
+            if (item.TypeId == 0 || !materials.TryGetValue(item.TypeId, out var mats))
             {
-                var sells = group.Where(o => !o.IsBuyOrder && (config.StationFilter is null || o.LocationId == config.StationFilter))
-                                 .Select(o => (o.Price, (long)o.VolumeRemain)).OrderBy(x => x.Price).ToList();
-                // ⚠️ NPC buy orders run for 365 days and sit at a floor price; they are not what a
-                // seller would get, so they are left out.
-                var buys = group.Where(o => o.IsBuyOrder && o.Duration <= 90 && ReachesStation(o.LocationId, o.SystemId, o.Range, config.StationFilter, stationSystem))
-                                .Select(o => (o.Price, (long)o.VolumeRemain)).OrderByDescending(x => x.Price).ToList();
-                result[group.Key] = (Best(buys, mode, pct), Best(sells, mode, pct));
+                leftovers.Add(item with { Section = "Left over", Problem = item.TypeId == 0 ? item.Problem : "cannot be reprocessed" });
+                continue;
             }
+            var type    = _byId![item.TypeId];
+            var portion = Math.Max(1, type.PortionSize);
+            var yield   = Yield(type);
+            var batches = item.Quantity / portion;
+            var short_  = item.Quantity - batches * portion;
+            if (batches > 0)
+                foreach (var m in mats)
+                {
+                    var units = (long)Math.Floor(batches * (double)m.Quantity * yield);
+                    if (units <= 0) continue;
+                    if (!output.ContainsKey(m.MaterialTypeId)) { output[m.MaterialTypeId] = 0; outputOrder.Add(m.MaterialTypeId); }
+                    output[m.MaterialTypeId] += units;
+                }
+            if (short_ > 0)
+                leftovers.Add(item with { Quantity = short_, Section = "Left over", Problem = $"{short_:N0} short of a batch of {portion:N0}" });
         }
 
-        // No book, or a type with no orders: the source's own price table, if it has the type.
-        var missing = typeIds.Where(t => !result.TryGetValue(t, out var p) || (p.Item1 <= 0 && p.Item2 <= 0)).ToList();
-        if (missing.Count > 0)
-        {
-            var table = await db.MarketItemPrices.AsNoTracking()
-                .Where(p => p.ConfigId == config.Id && missing.Contains(p.TypeId))
-                .ToListAsync(ct);
-            foreach (var p in table)
-                if (p.BuyPrice > 0 || p.SellPrice > 0) result[p.TypeId] = (p.BuyPrice, p.SellPrice);
-        }
-
+        var result = outputOrder.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, output[id], Volume(t), "Output", ""); }).ToList();
+        result.AddRange(leftovers);
         return result;
     }
 
-    private static bool ReachesStation(long location, int system, string range, long? station, int? stationSystem)
+    /// <summary>What a unit of each type yields reprocessed, at the given material prices.</summary>
+    private Dictionary<int, double> ReprocessValues(List<SdeTypeMaterial> materials, IReadOnlyDictionary<int, double> prices)
     {
-        if (station is null) return true;                 // a regional source: every order counts
-        if (location == station) return true;             // placed here
-        if (range == "region") return true;               // reaches the whole region
-        if (stationSystem is { } s && system == s)        // same system, any range but "station"
-            return range != "station";
-        return false;                                     // some jumps away: not counted (see the class summary)
-    }
-
-    /// <summary>The best price of a side, or the volume-weighted average of the best orders that
-    /// hold the given percentage of the side's volume.</summary>
-    private static double Best(List<(double Price, long Volume)> sorted, AppraisalPriceMode mode, double percent)
-    {
-        if (sorted.Count == 0) return 0;
-        if (mode == AppraisalPriceMode.Immediate) return sorted[0].Price;
-
-        var total = sorted.Sum(x => x.Volume);
-        var want  = Math.Max(1, (long)Math.Ceiling(total * Math.Clamp(percent, 0.1, 100) / 100));
-        double weighted = 0; long counted = 0;
-        foreach (var (price, volume) in sorted)
+        var result = new Dictionary<int, double>();
+        foreach (var g in materials.GroupBy(m => m.TypeId))
         {
-            var take = Math.Min(volume, want - counted);
-            weighted += price * take;
-            counted  += take;
-            if (counted >= want) break;
+            var type    = _byId![g.Key];
+            var portion = Math.Max(1, type.PortionSize);
+            var yield   = Yield(type);
+            double perUnit = 0;
+            foreach (var m in g)
+                if (prices.TryGetValue(m.MaterialTypeId, out var p) && p > 0)
+                    perUnit += m.Quantity / (double)portion * p * yield;
+            if (perUnit > 0) result[g.Key] = perUnit;
         }
-        return counted > 0 ? weighted / counted : sorted[0].Price;
+        return result;
     }
 
-    /// <summary>The type list by name, once. Names are unique in the SDE except for a handful of
-    /// unpublished duplicates; the lower type id wins those, which is the published one in practice.</summary>
+    private double Yield(SdeType type) =>
+        _categoryByGroup!.GetValueOrDefault(type.GroupId) == ReprocessingValueService.OreIceCategoryId
+            ? ReprocessingValueService.OreIceYield
+            : ReprocessingValueService.GenItemYield;
+
+    private static double Volume(SdeType t) => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume;
+
+    // ── Prices at a station ────────────────────────────────────────────────
+
+    /// <summary>Unit prices at one station on the basis asked for, off the book that holds it.</summary>
+    private static async Task<StationPrices> PriceAtAsync(AppDbContext db, MarketStation station, List<int> typeIds, PriceBasis basis, CancellationToken ct)
+    {
+        var unit = new Dictionary<int, double>();
+        if (typeIds.Count == 0) return new StationPrices(station, unit, null);
+
+        var orders = await db.MarketRawOrders.AsNoTracking()
+            .Where(o => o.ConfigId == station.ConfigId && typeIds.Contains(o.TypeId) && o.VolumeRemain > 0)
+            .Select(o => new { o.TypeId, o.IsBuyOrder, o.Price, o.LocationId, o.SystemId, o.Range, o.Duration, o.FetchedAt })
+            .ToListAsync(ct);
+        DateTimeOffset? asOf = orders.Count > 0 ? orders.Max(o => o.FetchedAt) : null;
+
+        foreach (var group in orders.GroupBy(o => o.TypeId))
+        {
+            double? sell = group.Where(o => !o.IsBuyOrder && o.LocationId == station.LocationId)
+                                .Select(o => (double?)o.Price).Min();
+            // ⚠️ NPC buy orders run for 365 days at a floor price; they are not what a seller gets.
+            double? buy = group.Where(o => o.IsBuyOrder && o.Duration <= 90 && Reaches(o.LocationId, o.SystemId, o.Range, station))
+                               .Select(o => (double?)o.Price).Max();
+            double? v = basis switch
+            {
+                PriceBasis.Sell => sell,
+                PriceBasis.Buy  => buy,
+                _               => sell is { } s && buy is { } b ? (s + b) / 2 : sell ?? buy,
+            };
+            if (v is { } price && price > 0) unit[group.Key] = price;
+        }
+        return new StationPrices(station, unit, asOf);
+    }
+
+    private static bool Reaches(long location, int system, string range, MarketStation station)
+    {
+        if (location == station.LocationId) return true;   // placed here
+        if (range == "region") return true;                 // reaches the whole region
+        if (system == station.SystemId) return range != "station";   // elsewhere in the system, any wider range
+        return false;                                       // some jumps away: not counted (see the class summary)
+    }
+
+    // ── Types ──────────────────────────────────────────────────────────────
+
+    /// <summary>The type list by name and by id, once. Names are unique in the SDE except for a
+    /// handful of unpublished duplicates; the lower type id wins those, which is the published
+    /// one in practice.</summary>
     private async Task EnsureTypesAsync(CancellationToken ct)
     {
         if (_byName is not null) return;
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var types = await db.SdeTypes.AsNoTracking()
-            .Select(t => new SdeType { TypeId = t.TypeId, GroupId = t.GroupId, Name = t.Name, Volume = t.Volume, PackagedVolume = t.PackagedVolume })
+            .Select(t => new SdeType { TypeId = t.TypeId, GroupId = t.GroupId, Name = t.Name, Volume = t.Volume, PackagedVolume = t.PackagedVolume, PortionSize = t.PortionSize })
             .ToListAsync(ct);
         var byName = new Dictionary<string, SdeType>(StringComparer.OrdinalIgnoreCase);
         foreach (var t in types.OrderBy(t => t.TypeId))
             byName.TryAdd(t.Name, t);
-        _byName = byName;
+        _categoryByGroup = await db.SdeGroups.AsNoTracking().ToDictionaryAsync(g => g.GroupId, g => g.CategoryId, ct);
         _byId   = types.ToDictionary(t => t.TypeId);
+        _byName = byName;
     }
 }

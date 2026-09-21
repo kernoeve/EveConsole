@@ -322,16 +322,23 @@ public static class AppKnowledge
         ### Item Valuation (Market / Trade)
         An appraisal tool like the web ones: paste any list the client copies — a hangar or
         cargo hold, a contract's items, a fit, a multibuy list, or typed lines such as
-        "Tritanium 22222" or "Warrior II x5" — pick one of the market sources from Settings >
-        Market and press Appraise. Every line becomes a row with quantity, volume (packaged where
-        the SDE gives it), unit and total buy and sell, and the panel above totals sell, buy, split
-        and volume. Prices come from the order book that source last fetched, at its station when
-        it has one: "Immediate" is the best order now, "Top of book" the volume-weighted average
-        of the best orders holding the source's percentile of the volume. Price % values at a
-        share of market (a 90% buyback). Lines that are not item names stay in the table marked as
-        such; lines that could not be read at all are listed under it. Copy puts the table and
-        totals on the clipboard as tab-separated text; double-clicking a row opens it in the Item
-        Browser. Nothing is stored.
+        "Tritanium 22222" or "Warrior II x5" — pick a STATION (any station or structure with
+        orders in the app's books, whichever market source fetched them; not a market source,
+        so two stations of one region can be compared), a price basis (Sell = lowest sell
+        order, Buy = highest buy order, Split = halfway), whether to value the items or their
+        reprocessed output, and press Appraise. The Values tab shows every item three ways at
+        that station, unit and total side by side: market (from contracts where the station
+        has no orders, marked "contract"), build (the app's build cost) and reprocessed (the
+        materials at the same station's prices, at the app's yields); the highest of the three
+        is green, the others red with how far below they sit, and the panel above totals each
+        the same way plus volume and counts. "Reprocessed output" turns the list into its
+        materials batch by batch and keeps as "Left over" whatever could not be reprocessed. The
+        Market compare tab adds more stations: each item's unit, total and per cent below the
+        best across the stations, with a total per station. Price % values at a share of the
+        price (a 90% buyback). Buy orders count at the station, from its system, or
+        region-wide; NPC and jump-ranged ones do not. Names the SDE does not know stay in the
+        table flagged; item names open the Item Browser; Copy puts both tables on the clipboard
+        as tab-separated text. Nothing is stored.
 
         ## Settings (gear icon)
         Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE

@@ -1,44 +1,69 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
-             xmlns:models="clr-namespace:EveConsole.Models"
+             xmlns:services="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.ItemValuationView"
              x:DataType="vm:ItemValuationViewModel">
 
+  <UserControl.Styles>
+    <!-- A name that opens something: the same quiet link the LP and Killmail tools use. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock.linktext">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+    <!-- Figures line up on the right. -->
+    <Style Selector="DataGridCell.num TextBlock">
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0 0 6 0" />
+    </Style>
+  </UserControl.Styles>
+
   <!-- Item Valuation: a pasted list on the left, what it is worth on the right. The options sit
-       above both, because a change to the market or the price mode re-prices the same list. -->
+       above both, because a change to the station or the basis re-prices the same list. -->
   <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
 
     <!-- ── Options ─────────────────────────────────────────────────────── -->
     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 10">
-      <TextBlock Text="Market:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
-      <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource}" MinWidth="220" FontSize="12"
-                PlaceholderText="No market source"
-                ToolTip.Tip="One of the market sources under Settings > Market. Prices come from the order book it last fetched.">
-        <ComboBox.ItemTemplate>
-          <DataTemplate x:DataType="models:MarketPricingConfig">
-            <TextBlock Text="{Binding LocationName}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
+      <TextBlock Text="Station:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+      <AutoCompleteBox Width="330" FontSize="12"
+                       Text="{Binding StationText}"
+                       SelectedItem="{Binding SelectedStation}"
+                       AsyncPopulator="{Binding StationPopulator}"
+                       FilterMode="None" MinimumPrefixLength="0" MinimumPopulateDelay="0:0:0.15" MaxDropDownHeight="300"
+                       Watermark="type a station or structure name…"
+                       ToolTip.Tip="Any station or structure with orders in the app's books, whichever market source fetched them. Sells are read at the station; buys at the station, from its system, or region-wide." />
 
       <TextBlock Text="Prices:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
-      <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}" MinWidth="130" FontSize="12"
-                ToolTip.Tip="Immediate: the best order now — the lowest sell, the highest buy. Top of book: the volume-weighted average of the best orders holding the source's percentile of the volume, the price a whole stack would move at." />
+      <ComboBox ItemsSource="{Binding Bases}" SelectedItem="{Binding SelectedBasis}" MinWidth="90" FontSize="12"
+                ToolTip.Tip="Sell: the lowest sell order. Buy: the highest buy order. Split: halfway between." />
+
+      <TextBlock Text="Value:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+      <ComboBox ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget}" MinWidth="170" FontSize="12"
+                ToolTip.Tip="The items as pasted, or what they become reprocessed: the materials, batch by batch at the app's yields, and whatever could not go in." />
 
       <TextBlock Text="Price %:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
       <NumericUpDown Value="{Binding PricePercent}" Minimum="1" Maximum="500" Increment="5" FormatString="0.#"
                      Width="110" FontSize="12"
-                     ToolTip.Tip="The share of the market price to value at: 100 is the price itself, 90 a buyback paying nine tenths." />
+                     ToolTip.Tip="The share of the price to value at: 100 is the price itself, 90 a buyback paying nine tenths." />
 
       <Button Content="Appraise" Click="OnAppraiseClick" IsEnabled="{Binding !IsBusy}"
               Padding="14 5" FontSize="12" Margin="8 0 0 0"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
               BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
-              ToolTip.Tip="Price the list (Ctrl+Enter in the text box does the same)." />
-      <Button Content="Copy" Click="OnCopyClick" IsEnabled="{Binding HasResult}"
-              Padding="12 5" FontSize="12"
-              ToolTip.Tip="Copy the table and the totals as tab-separated text, for a spreadsheet or a chat." />
+              ToolTip.Tip="Value the list (Ctrl+Enter in the text box does the same)." />
+      <Button Content="Copy" Click="OnCopyClick" IsEnabled="{Binding HasResult}" Padding="12 5" FontSize="12"
+              ToolTip.Tip="Copy both tables and the totals as tab-separated text, for a spreadsheet or a chat." />
       <Button Content="Clear" Click="OnClearClick" Padding="12 5" FontSize="12" />
     </StackPanel>
 
@@ -47,7 +72,7 @@
                TextWrapping="Wrap" Margin="0 0 0 8" />
 
     <!-- ── Input and result ───────────────────────────────────────────── -->
-    <Grid Grid.Row="2" ColumnDefinitions="360,12,*">
+    <Grid Grid.Row="2" ColumnDefinitions="340,12,*">
 
       <TextBox Grid.Column="0" x:Name="InputBox"
                Text="{Binding InputText}"
@@ -57,71 +82,240 @@
                Watermark="Paste a list of items: a hangar or cargo hold copied from the client, a contract, a fit, a multibuy list, or lines like&#x0a;Tritanium 22222&#x0a;Pyerite x 3000&#x0a;Warrior II 5"
                KeyDown="OnInputKeyDown" />
 
-      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+      <TabControl Grid.Column="2" Padding="0" Background="Transparent">
 
-        <!-- Totals, as the numbers to read first. Full figures on hover. -->
-        <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
-                BorderThickness="1" CornerRadius="4" Padding="14 10" Margin="0 0 0 10">
-          <StackPanel Orientation="Horizontal" Spacing="28">
-            <StackPanel ToolTip.Tip="{Binding TotalSellTip}">
-              <TextBlock Text="{Binding TotalSellText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-              <TextBlock Text="sell" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-            </StackPanel>
-            <StackPanel ToolTip.Tip="{Binding TotalBuyTip}">
-              <TextBlock Text="{Binding TotalBuyText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-              <TextBlock Text="buy" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-            </StackPanel>
-            <StackPanel ToolTip.Tip="{Binding TotalSplitTip}">
-              <TextBlock Text="{Binding TotalSplitText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-              <TextBlock Text="split" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-            </StackPanel>
-            <StackPanel>
-              <TextBlock Text="{Binding TotalVolumeText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
-              <TextBlock Text="volume" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-            </StackPanel>
-            <StackPanel>
-              <TextBlock Text="{Binding TotalItemsText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
-              <TextBlock Text="items / units" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-            </StackPanel>
-          </StackPanel>
-        </Border>
+        <!-- ── Values ──────────────────────────────────────────────────── -->
+        <TabItem Header="Values">
+          <Grid RowDefinitions="Auto,*,Auto" Margin="0 6 0 0">
 
-        <DataGrid Grid.Row="1" x:Name="ResultGrid"
-                  ItemsSource="{Binding Rows}"
-                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
-                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
-                  DoubleTapped="OnRowDoubleTapped">
-          <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Name">
-              <DataGridTemplateColumn.CellTemplate>
-                <DataTemplate x:DataType="vm:AppraisalRowVm">
-                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Name}" Foreground="{Binding NameColor}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding Problem}" FontSize="10" Foreground="{DynamicResource WarnBrush}"
-                               IsVisible="{Binding IsProblem}" VerticalAlignment="Center" />
+            <!-- The three totals, the best in green, the others in red with how far below they sit. -->
+            <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                    BorderThickness="1" CornerRadius="4" Padding="14 10" Margin="0 0 0 10">
+              <StackPanel Orientation="Horizontal" Spacing="28">
+                <StackPanel ToolTip.Tip="{Binding MarketTip}">
+                  <TextBlock Text="{Binding MarketTotalText}" FontSize="22" FontWeight="SemiBold" Foreground="{Binding MarketColor}" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="market" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{Binding MarketPctText}" FontSize="10" Foreground="{Binding MarketColor}" />
                   </StackPanel>
-                </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Quantity"   Binding="{Binding QuantityText}"  Width="100" SortMemberPath="Quantity" />
-            <DataGridTextColumn Header="Volume"     Binding="{Binding VolumeText}"    Width="120" SortMemberPath="TotalVolume" />
-            <DataGridTextColumn Header="Unit buy"   Binding="{Binding UnitBuyText}"   Width="120" SortMemberPath="UnitBuy" />
-            <DataGridTextColumn Header="Unit sell"  Binding="{Binding UnitSellText}"  Width="120" SortMemberPath="UnitSell" />
-            <DataGridTextColumn Header="Total buy"  Binding="{Binding TotalBuyText}"  Width="140" SortMemberPath="TotalBuy" />
-            <DataGridTextColumn Header="Total sell" Binding="{Binding TotalSellText}" Width="140" SortMemberPath="TotalSell" />
-          </DataGrid.Columns>
-          <DataGrid.Styles>
-            <!-- Figures line up on the right; the name column stays left. -->
-            <Style Selector="DataGridCell:nth-child(n+2) TextBlock">
-              <Setter Property="TextAlignment" Value="Right" />
-              <Setter Property="Margin" Value="0 0 8 0" />
-            </Style>
-          </DataGrid.Styles>
-        </DataGrid>
+                </StackPanel>
+                <StackPanel ToolTip.Tip="{Binding BuildTip}">
+                  <TextBlock Text="{Binding BuildTotalText}" FontSize="22" FontWeight="SemiBold" Foreground="{Binding BuildColor}" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="build" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{Binding BuildPctText}" FontSize="10" Foreground="{Binding BuildColor}" />
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel ToolTip.Tip="{Binding ReprocessTip}">
+                  <TextBlock Text="{Binding ReprocessTotalText}" FontSize="22" FontWeight="SemiBold" Foreground="{Binding ReprocessColor}" />
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="reprocessed" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{Binding ReprocessPctText}" FontSize="10" Foreground="{Binding ReprocessColor}" />
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel>
+                  <TextBlock Text="{Binding VolumeText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <TextBlock Text="volume" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                </StackPanel>
+                <StackPanel>
+                  <TextBlock Text="{Binding ItemsText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                  <TextBlock Text="items / units" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
 
-        <TextBlock Grid.Row="2" Text="{Binding UnparsedText}" IsVisible="{Binding HasUnparsed}"
-                   FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 8 0 0" />
-      </Grid>
+            <DataGrid Grid.Row="1" x:Name="ValuesGrid"
+                      ItemsSource="{Binding ValueRows}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      FrozenColumnCount="1">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Item" Width="240" SortMemberPath="Name">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasType}" ToolTip.Tip="Open in Item Browser">
+                          <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasType}" Foreground="{Binding NameColor}"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Section}" IsVisible="{Binding HasSection}" FontSize="9"
+                                   Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Problem}" IsVisible="{Binding IsProblem}" FontSize="9"
+                                   Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" FontSize="9"
+                                   Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
+                                   ToolTip.Tip="No orders at this station: priced from contracts." />
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Qty"    Binding="{Binding QuantityText}" Width="80"  SortMemberPath="Quantity"    CellStyleClasses="num" />
+                <DataGridTextColumn Header="Volume" Binding="{Binding VolumeText}"   Width="100" SortMemberPath="TotalVolume" CellStyleClasses="num" />
+
+                <DataGridTemplateColumn Header="Market unit" Width="100" SortMemberPath="MarketUnit">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Market.UnitText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Market total" Width="120" SortMemberPath="MarketTotal">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Market.TotalText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="%" Width="64">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Market.PctText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Build unit" Width="100" SortMemberPath="BuildUnit">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Build.UnitText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Build total" Width="120" SortMemberPath="BuildTotal">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Build.TotalText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="%" Width="64">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Build.PctText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Reprocess unit" Width="110" SortMemberPath="ReprocessUnit">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Reprocess.UnitText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Reprocess total" Width="120" SortMemberPath="ReprocessTotal">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Reprocess.TotalText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="%" Width="64">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:ValueRowVm">
+                      <TextBlock Text="{Binding Reprocess.PctText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <TextBlock Grid.Row="2" Text="{Binding UnparsedText}" IsVisible="{Binding HasUnparsed}"
+                       FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 8 0 0" />
+          </Grid>
+        </TabItem>
+
+        <!-- ── Market compare ──────────────────────────────────────────── -->
+        <TabItem Header="Market compare">
+          <Grid RowDefinitions="Auto,Auto,*" Margin="0 6 0 0">
+
+            <!-- The station chosen above leads; more are added here. -->
+            <StackPanel Grid.Row="0" Spacing="6" Margin="0 0 0 8">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Text="Compare with:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                           VerticalAlignment="Center" Margin="0 0 10 0" />
+                <AutoCompleteBox Grid.Column="1" MaxWidth="420" HorizontalAlignment="Left" FontSize="12"
+                                 Text="{Binding CompareText}"
+                                 SelectedItem="{Binding CompareCandidate}"
+                                 AsyncPopulator="{Binding ComparePopulator}"
+                                 FilterMode="None" MinimumPrefixLength="0" MinimumPopulateDelay="0:0:0.15" MaxDropDownHeight="300"
+                                 Watermark="type a station or structure name, then Add…">
+                  <AutoCompleteBox.KeyBindings>
+                    <KeyBinding Gesture="Enter" Command="{Binding AddCompare}" />
+                  </AutoCompleteBox.KeyBindings>
+                </AutoCompleteBox>
+                <Button Grid.Column="2" Content="Add" Click="OnAddCompareClick" Padding="12 4" FontSize="12" Margin="6 0 0 0" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding CompareStations}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="services:MarketStation">
+                    <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                            CornerRadius="10" Padding="8 2" Margin="0 0 6 4">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <Button Content="×" Click="OnRemoveCompare" Background="Transparent" BorderThickness="0" Padding="2 0"
+                                FontSize="12" Foreground="{DynamicResource TextMutedBrush}" Cursor="Hand" ToolTip.Tip="Remove" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Each station's total, the best in green, the others with how far below they sit. -->
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding CompareTotals}" Margin="0 0 0 8">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:CompareTotalVm">
+                  <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                          CornerRadius="4" Padding="12 8" Margin="0 0 10 6">
+                    <StackPanel>
+                      <TextBlock Text="{Binding TotalText}" FontSize="20" FontWeight="SemiBold" Foreground="{Binding Color}" />
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Station.Name}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" MaxWidth="260" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding PctText}" FontSize="10" Foreground="{Binding Color}" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding AgeText}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Columns per station are built in code: the item and quantity here, then unit,
+                 total and per cent for each station compared. -->
+            <DataGrid Grid.Row="2" x:Name="CompareGrid"
+                      ItemsSource="{Binding CompareRows}"
+                      IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                      Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                      FrozenColumnCount="1">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Item" Width="240" SortMemberPath="Name">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate x:DataType="vm:CompareRowVm">
+                      <Panel>
+                        <Button Classes="link" Click="OnOpenCompareItem" IsVisible="{Binding HasType}" ToolTip.Tip="Open in Item Browser">
+                          <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                        </Button>
+                        <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasType}" Foreground="{DynamicResource WarnBrush}"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      </Panel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Qty" Binding="{Binding QuantityText}" Width="80" SortMemberPath="Quantity" CellStyleClasses="num" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </TabItem>
+
+      </TabControl>
     </Grid>
   </Grid>
 </UserControl>
