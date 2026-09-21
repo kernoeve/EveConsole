@@ -77,6 +77,11 @@ public sealed class SyncRequest
     /// <summary>That this app knows the "visit" event kind. A site sends visits only to an app
     /// that says so, since an older app would refuse a kind it does not know.</summary>
     public bool Visits { get; set; } = true;
+
+    /// <summary>How many order rows this app believes the site holds: its ledger's size. Zero
+    /// tells the site there is nothing to resend, so an order book that is simply empty is not
+    /// taken for one the site lost.</summary>
+    public int PushedOrders { get; set; }
 }
 
 public sealed class StoreInfoDto

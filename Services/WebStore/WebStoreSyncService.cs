@@ -251,8 +251,15 @@ public class WebStoreSyncService(
         }
         else if (response.NeedsFullOrders)
         {
-            await db.StoreWebPushes.Where(p => p.StoreId == store.Id).ExecuteDeleteAsync(ct);
-            resend = true;
+            // ⚠️ Only when there is something to resend. A store with no orders at all was told
+            // this on every call, resent nothing, and called straight back — four calls a cycle,
+            // each rewriting rows on the site, which is how a day's D1 allowance went on nothing.
+            var hadLedger = await db.StoreWebPushes.AnyAsync(p => p.StoreId == store.Id, ct);
+            if (hadLedger)
+            {
+                await db.StoreWebPushes.Where(p => p.StoreId == store.Id).ExecuteDeleteAsync(ct);
+                resend = true;
+            }
         }
 
         // ── What the site took: acknowledge in the ledger ──
@@ -482,6 +489,7 @@ public class WebStoreSyncService(
             Removed   = removed,
             WebOrders = held,
             More      = changed.Count > page.Count || removed.Count == OrdersPerPage,
+            PushedOrders = ledger.Count,
         };
 
         return (request, page.ToDictionary(kv => kv.Key, kv => kv.Value.Hash));
