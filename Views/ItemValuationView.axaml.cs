@@ -20,11 +20,21 @@ public partial class ItemValuationView : UserControl
         InitializeComponent();
         DataContextChanged += (_, _) => Attach(DataContext as ItemValuationViewModel);
 
-        // A paste is the whole point of the box, so it appraises on its own. The event fires
-        // before the text lands; the appraisal is queued behind it so the binding has caught up.
-        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) =>
-            Dispatcher.UIThread.Post(() => { if (_vm is not null) _ = _vm.AppraiseAsync(); }, DispatcherPriority.Background));
+        // Headings over the groups of columns, which the grid's own headers cannot span.
+        ValuesBand.Target = ValuesGrid;
+        ValuesBand.SetGroups([(3, 3, "Market value"), (6, 3, "Build value"), (9, 3, "Reprocessed value")]);
+        CompareBand.Target = CompareGrid;
+
+        // A paste is the whole point of the box, so it appraises on its own, and so does a line
+        // typed in: Enter puts its newline in as usual and the appraisal follows. Both events
+        // fire before the text lands, so the appraisal is queued behind them; and the key is
+        // watched even once the box has handled it, since handling it is what the box does.
+        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) => AppraiseSoon());
+        InputBox.AddHandler(KeyDownEvent, (_, e) => { if (e.Key == Key.Enter) AppraiseSoon(); }, RoutingStrategies.Bubble, handledEventsToo: true);
     }
+
+    private void AppraiseSoon() =>
+        Dispatcher.UIThread.Post(() => { if (_vm is not null) _ = _vm.AppraiseAsync(); }, DispatcherPriority.Background);
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -72,13 +82,13 @@ public partial class ItemValuationView : UserControl
 
         for (var i = 0; i < _vm.CompareColumns.Count; i++)
         {
-            var station = _vm.CompareColumns[i];
             var index = i;
-            var shortName = station.Name.Length > 28 ? station.Name[..28] + "…" : station.Name;
-            CompareGrid.Columns.Add(Column($"{shortName}  unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1));
-            CompareGrid.Columns.Add(Column("total",               $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1));
-            CompareGrid.Columns.Add(Column("%",                   $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64,  r => Priced(r, index)?.Pct   ?? -1000));
+            CompareGrid.Columns.Add(Column("unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1));
+            CompareGrid.Columns.Add(Column("total", $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1));
+            CompareGrid.Columns.Add(Column("%",     $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64,  r => Priced(r, index)?.Pct   ?? -1000));
         }
+        // The station's name sits over its three columns, after the item and quantity.
+        CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) => (2 + 3 * i, 3, s.Name)));
     }
 
     /// <summary>The row's cell for a station when it has a price: what the sort keys read, so
@@ -144,14 +154,4 @@ public partial class ItemValuationView : UserControl
         if (_vm is not null && (sender as Control)?.DataContext is CompareRowVm row) _vm.OpenItem(row.TypeId);
     }
 
-    /// <summary>Enter appraises without leaving the text box; Shift+Enter is the way to start a
-    /// new line when typing a list by hand, since a pasted one brings its own.</summary>
-    private void OnInputKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && !e.KeyModifiers.HasFlag(KeyModifiers.Shift) && _vm is not null)
-        {
-            e.Handled = true;
-            _ = _vm.AppraiseAsync();
-        }
-    }
 }

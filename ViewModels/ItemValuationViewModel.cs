@@ -374,9 +374,13 @@ public sealed class ItemValuationViewModel : ReactiveObject
         }
     }
 
+    /// <summary>Set when an appraisal is asked for while one runs — a line typed as the last one
+    /// was being priced — so the next runs as soon as this one is done rather than never.</summary>
+    private bool _appraiseAgain;
+
     public async Task AppraiseAsync()
     {
-        if (IsBusy) return;
+        if (IsBusy) { _appraiseAgain = true; return; }
         if (SelectedStation is null) { Status = "Pick a station first."; return; }
         if (string.IsNullOrWhiteSpace(InputText)) { Status = "Nothing to appraise: paste a list of items first."; return; }
 
@@ -400,6 +404,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         {
             await Dispatcher.UIThread.InvokeAsync(() => IsBusy = false);
         }
+        if (_appraiseAgain) { _appraiseAgain = false; await AppraiseAsync(); }
     }
 
     public void Clear()
