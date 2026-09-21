@@ -348,13 +348,13 @@ public class App : Application
 
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
-            // Two things follow the pass: the store-order alarms, and the web sites, whose next
-            // push carries the confirmations the pass just worked out.
+            // The web sites do NOT follow the pass: it runs every half minute and after every
+            // poll of jobs, contracts and assets, and nudging the site sync from here had every
+            // site called every few seconds whatever interval its store was set to. What the
+            // pass works out goes out with the store's next call, within its interval; only an
+            // owner's own action (a setting, an approval, Sync now, a deploy) calls at once.
             Services.GetRequiredService<OrderFulfilmentService>().AfterPass = async ct =>
-            {
                 await Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
-                Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>().Nudge();
-            };
 
             // And the pass is worth running the moment ESI has brought in what it reads, rather
             // than at its own next interval: a contract or a job shows against its order seconds
