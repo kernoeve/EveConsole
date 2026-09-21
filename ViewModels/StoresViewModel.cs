@@ -134,7 +134,7 @@ public class StoreWebEventRowVm(StoreWebEvent e)
 {
     public int    Id       => e.Id;
     public string When     => e.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
-    public string Kind     => e.Kind switch { "order" => "Order", "cancel" => "Cancel", _ => e.Kind };
+    public string Kind     => e.Kind switch { "order" => "Order", "cancel" => "Cancel", "visit" => "Visit", _ => e.Kind };
     public string Buyer    => e.BuyerName.Length > 0 ? e.BuyerName : e.BuyerId.ToString();
     public string Outcome  => e.Outcome switch
     {
@@ -143,6 +143,7 @@ public class StoreWebEventRowVm(StoreWebEvent e)
         "review"   => "Needs a decision",
         "rejected" => "Declined",
         "error"    => "Failed",
+        "noted"    => "Noted",
         _          => e.Outcome,
     };
     public string Detail   => e.Detail;
@@ -189,6 +190,26 @@ public class StoresViewModel : ReactiveObject
     public ObservableCollection<OrderSummaryRowVm>   Orders    { get; } = [];
     public ObservableCollection<StoreSenderRowVm>    Senders   { get; } = [];
     public ObservableCollection<StoreWebEventRowVm>  WebEvents { get; } = [];
+
+    private bool _showWebVisits = true;
+    private List<StoreWebEvent> _webEventRows = [];
+
+    /// <summary>Whether visits (a buyer signing in, or back after a while away) sit among the web
+    /// site events. They are logged either way; unticked, the list is orders and cancellations.</summary>
+    public bool ShowWebVisits
+    {
+        get => _showWebVisits;
+        set { this.RaiseAndSetIfChanged(ref _showWebVisits, value); FillWebEvents(); }
+    }
+
+    private void FillWebEvents()
+    {
+        WebEvents.Clear();
+        foreach (var e in _webEventRows)
+        {
+            if (_showWebVisits || e.Kind != "visit") WebEvents.Add(new StoreWebEventRowVm(e));
+        }
+    }
 
     /// <summary>The app's themes, for the web site — the store's own choice, nothing to do
     /// with the theme this desktop wears.</summary>
@@ -1503,11 +1524,19 @@ public class StoresViewModel : ReactiveObject
             var senders = await db.StoreSenders.AsNoTracking()
                 .Where(s => s.StoreId == row.Id).OrderBy(s => s.Name).ToListAsync();
 
+            // Visits come by the dozen and would push every order off a list of the latest
+            // hundred, so they have an allowance of their own and are merged in by arrival.
             var webEvents = await db.StoreWebEvents.AsNoTracking()
-                .Where(e => e.StoreId == row.Id)
+                .Where(e => e.StoreId == row.Id && e.Kind != "visit")
                 .OrderByDescending(e => e.Id)
                 .Take(100)
                 .ToListAsync();
+            var webVisits = await db.StoreWebEvents.AsNoTracking()
+                .Where(e => e.StoreId == row.Id && e.Kind == "visit")
+                .OrderByDescending(e => e.Id)
+                .Take(50)
+                .ToListAsync();
+            webEvents = webEvents.Concat(webVisits).OrderByDescending(e => e.Id).ToList();
 
             // ⚠️ Counted off orders, not off the mail log. A mail says what was asked for; only
             // the order says what became of it, and an order cancelled in the Order Tracker by
@@ -1564,8 +1593,8 @@ public class StoresViewModel : ReactiveObject
                 Senders.Clear();
                 foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
 
-                WebEvents.Clear();
-                foreach (var e in webEvents) WebEvents.Add(new StoreWebEventRowVm(e));
+                _webEventRows = webEvents;
+                FillWebEvents();
 
                 StatInquiries = inquiries.ToString("N0");
                 StatActive    = active.ToString("N0");

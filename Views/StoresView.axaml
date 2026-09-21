@@ -167,8 +167,13 @@
           <Border Grid.Row="6" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <DockPanel LastChildFill="True">
-              <TextBlock DockPanel.Dock="Top" Text="Web site events" FontSize="13" FontWeight="SemiBold"
-                         Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
+              <DockPanel DockPanel.Dock="Top" Margin="0 0 0 8" LastChildFill="False">
+                <TextBlock DockPanel.Dock="Left" Text="Web site events" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                <!-- Visits are logged either way; the tick only says whether they sit in the list. -->
+                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding ShowWebVisits}" Content="Show visits" FontSize="11"
+                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+              </DockPanel>
               <DataGrid ItemsSource="{Binding WebEvents}" AutoGenerateColumns="False" IsReadOnly="True"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>

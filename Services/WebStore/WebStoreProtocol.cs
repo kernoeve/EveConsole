@@ -73,6 +73,10 @@ public sealed class SyncRequest
 
     /// <summary>More order rows are waiting behind this page; the app will call again at once.</summary>
     public bool More { get; set; }
+
+    /// <summary>That this app knows the "visit" event kind. A site sends visits only to an app
+    /// that says so, since an older app would refuse a kind it does not know.</summary>
+    public bool Visits { get; set; } = true;
 }
 
 public sealed class StoreInfoDto
@@ -302,8 +306,10 @@ public sealed class SyncResponse
 public sealed class SiteEventDto
 {
     public long   Seq  { get; set; }
-    /// <summary>"order" or "cancel".</summary>
+    /// <summary>"order", "cancel" or "visit".</summary>
     public string Kind { get; set; } = "";
+    /// <summary>A visit: how long the buyer had been away, in minutes; null when they signed in.</summary>
+    public int?   AwayMinutes { get; set; }
     public DateTimeOffset At { get; set; }
 
     public string        WebOrderId { get; set; } = "";

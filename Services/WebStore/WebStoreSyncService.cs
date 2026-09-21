@@ -318,6 +318,7 @@ public class WebStoreSyncService(
                 {
                     "order"  => await BookAsync(store, ev, force: false, ct),
                     "cancel" => await CancelAsync(store, ev, ct),
+                    "visit"  => ("noted", VisitDetail(ev), ""),
                     _        => ("rejected", $"Unknown event kind \"{ev.Kind}\".", ""),
                 };
                 record.Outcome  = outcome;
@@ -610,6 +611,16 @@ public class WebStoreSyncService(
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return (0, [], "the site did not answer within a minute"); }
         catch (HttpRequestException ex) { return (0, [], "could not reach the site: " + ex.Message); }
+    }
+
+    /// <summary>A visit in words: signed in, or back after so long away.</summary>
+    private static string VisitDetail(SiteEventDto ev)
+    {
+        if (ev.AwayMinutes is not { } m) return "Signed in to the site.";
+        var away = m >= 1440 ? $"{m / 1440} day{(m / 1440 == 1 ? "" : "s")}"
+                 : m >= 60   ? $"{m / 60} hour{(m / 60 == 1 ? "" : "s")}"
+                 :             $"{m} minutes";
+        return $"Came to the site after {away} away.";
     }
 
     /// <summary>What the site said with an error, for the status line: its JSON "error", else the start of its text.</summary>

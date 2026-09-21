@@ -38,7 +38,7 @@ public class StoreWebEvent
     /// <summary>The site's sequence number for the event, unique per site.</summary>
     public long   Seq        { get; set; }
 
-    /// <summary>"order" or "cancel".</summary>
+    /// <summary>"order", "cancel" or "visit".</summary>
     public string Kind       { get; set; } = "";
 
     /// <summary>The site's own id for the order this concerns, where it concerns one.</summary>
@@ -52,7 +52,8 @@ public class StoreWebEvent
 
     public DateTimeOffset ReceivedAt { get; set; }
 
-    /// <summary>"booked" | "applied" | "review" | "rejected" | "error" — what the app did.</summary>
+    /// <summary>"booked" | "applied" | "review" | "rejected" | "error" — what the app did; a
+    /// visit is only ever "noted".</summary>
     public string Outcome    { get; set; } = "";
 
     /// <summary>Why, in words: what failed the check, or what was cancelled.</summary>
