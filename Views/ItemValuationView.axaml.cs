@@ -4,6 +4,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
 using EveConsole.Services;
 using EveConsole.ViewModels;
 
@@ -29,6 +30,11 @@ public partial class ItemValuationView : UserControl
             _vm.CompareColumnsChanged += RebuildCompareColumns;
             _ = _vm.LoadAsync();
         };
+
+        // A paste is the whole point of the box, so it appraises on its own. The event fires
+        // before the text lands; the appraisal is queued behind it so the binding has caught up.
+        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) =>
+            Dispatcher.UIThread.Post(() => { if (_vm is not null) _ = _vm.AppraiseAsync(); }, DispatcherPriority.Background));
     }
 
     /// <summary>
@@ -87,11 +93,11 @@ public partial class ItemValuationView : UserControl
         if (_vm is not null && (sender as Control)?.DataContext is CompareRowVm row) _vm.OpenItem(row.TypeId);
     }
 
-    /// <summary>Ctrl+Enter appraises without leaving the text box, since a paste is usually
-    /// followed by nothing else.</summary>
+    /// <summary>Enter appraises without leaving the text box; Shift+Enter is the way to start a
+    /// new line when typing a list by hand, since a pasted one brings its own.</summary>
     private void OnInputKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && e.KeyModifiers.HasFlag(KeyModifiers.Control) && _vm is not null)
+        if (e.Key == Key.Enter && !e.KeyModifiers.HasFlag(KeyModifiers.Shift) && _vm is not null)
         {
             e.Handled = true;
             _ = _vm.AppraiseAsync();

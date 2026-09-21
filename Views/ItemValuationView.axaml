@@ -66,7 +66,7 @@
               Padding="14 5" FontSize="12" Margin="8 0 0 0"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
               BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
-              ToolTip.Tip="Value the list (Ctrl+Enter in the text box does the same)." />
+              ToolTip.Tip="Value the list. A paste into the box, or Enter in it, does the same." />
       <Button Content="Copy" Click="OnCopyClick" IsEnabled="{Binding HasResult}" Padding="12 5" FontSize="12"
               ToolTip.Tip="Copy both tables and the totals as tab-separated text, for a spreadsheet or a chat." />
       <Button Content="Clear" Click="OnClearClick" Padding="12 5" FontSize="12" />
@@ -84,7 +84,7 @@
                AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap"
                FontFamily="Consolas, Courier New, monospace" FontSize="12"
                VerticalContentAlignment="Top"
-               Watermark="Paste a list of items: a hangar or cargo hold copied from the client, a contract, a fit, a multibuy list, or lines like&#x0a;Tritanium 22222&#x0a;Pyerite x 3000&#x0a;Warrior II 5"
+               Watermark="Paste a list of items: a hangar or cargo hold copied from the client, a contract, a fit, a multibuy list, or lines like&#x0a;Tritanium 22222&#x0a;Pyerite x 3000&#x0a;Warrior II 5&#x0a;&#x0a;A paste appraises on its own; so does Enter. Shift+Enter starts a new line."
                KeyDown="OnInputKeyDown" />
 
       <TabControl Grid.Column="2" Padding="0" Background="Transparent">
