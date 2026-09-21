@@ -75,17 +75,27 @@ public partial class ItemValuationView : UserControl
             var station = _vm.CompareColumns[i];
             var index = i;
             var shortName = station.Name.Length > 28 ? station.Name[..28] + "…" : station.Name;
-            CompareGrid.Columns.Add(Column($"{shortName}  unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110));
-            CompareGrid.Columns.Add(Column("total",               $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120));
-            CompareGrid.Columns.Add(Column("%",                   $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64));
+            CompareGrid.Columns.Add(Column($"{shortName}  unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1));
+            CompareGrid.Columns.Add(Column("total",               $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1));
+            CompareGrid.Columns.Add(Column("%",                   $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64,  r => Priced(r, index)?.Pct   ?? -1000));
         }
     }
 
-    private static DataGridTemplateColumn Column(string header, string textPath, string colorPath, double width) =>
+    /// <summary>The row's cell for a station when it has a price: what the sort keys read, so
+    /// a cell without one sorts under every real value.</summary>
+    private static CompareCellVm? Priced(CompareRowVm row, int index) =>
+        index < row.Cells.Count && row.Cells[index].Has ? row.Cells[index] : null;
+
+    /// <summary>A column bound by path and sorted by a key. A template column has no binding of
+    /// its own for the grid to sort on, so it is handed a comparer and told it may sort.</summary>
+    private static DataGridTemplateColumn Column(string header, string textPath, string colorPath, double width, Func<CompareRowVm, double> key) =>
         new()
         {
             Header = header,
             Width  = new DataGridLength(width),
+            CanUserSort        = true,
+            CustomSortComparer = Comparer<object>.Create((a, b) =>
+                (a is CompareRowVm ra ? key(ra) : double.MinValue).CompareTo(b is CompareRowVm rb ? key(rb) : double.MinValue)),
             CellTemplate = new FuncDataTemplate<CompareRowVm>((_, _) => new TextBlock
             {
                 TextAlignment = TextAlignment.Right,

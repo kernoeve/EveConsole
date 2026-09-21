@@ -172,7 +172,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="%" Width="64">
+                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="MarketPct">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Market.PctText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
@@ -194,7 +194,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="%" Width="64">
+                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="BuildPct">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Build.PctText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
@@ -216,7 +216,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="%" Width="64">
+                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="ReprocessPct">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Reprocess.PctText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />

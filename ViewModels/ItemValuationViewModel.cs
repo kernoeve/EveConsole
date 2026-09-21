@@ -84,6 +84,11 @@ public sealed class ValueRowVm
     public double MarketUnit     => Market.Unit ?? -1;
     public double BuildUnit      => Build.Unit ?? -1;
     public double ReprocessUnit  => Reprocess.Unit ?? -1;
+    // A per cent is nought for the best and negative below it, so a cell with no value sorts
+    // under every real one.
+    public double MarketPct      => Market.Has    ? Market.Pct    : -1000;
+    public double BuildPct       => Build.Has     ? Build.Pct     : -1000;
+    public double ReprocessPct   => Reprocess.Has ? Reprocess.Pct : -1000;
 }
 
 /// <summary>One station's cell on the compare tab.</summary>
