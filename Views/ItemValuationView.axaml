@@ -22,6 +22,11 @@
     <Style Selector="Button.link:pointerover TextBlock.linktext">
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
+    <!-- Cell text at the size the app's grids use: a DataGrid's own FontSize does not reach
+         templated cells, and every column here is templated for its colour. -->
+    <Style Selector="DataGrid TextBlock">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
     <!-- Figures line up on the right. -->
     <Style Selector="DataGridCell.num TextBlock">
       <Setter Property="TextAlignment" Value="Right" />
