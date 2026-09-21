@@ -7,6 +7,13 @@
              x:DataType="vm:ItemValuationViewModel">
 
   <UserControl.Styles>
+    <!-- A wash over each group of columns, so the three of one value read as one, and a station's
+         three as one on the compare tab. Faint enough for the row banding, hover and selection
+         underneath to show through; the band of headings above wears the same wash. -->
+    <Style Selector="DataGridCell.ga"><Setter Property="Background" Value="{DynamicResource ColumnGroupABrush}" /></Style>
+    <Style Selector="DataGridCell.gb"><Setter Property="Background" Value="{DynamicResource ColumnGroupBBrush}" /></Style>
+    <Style Selector="DataGridCell.gc"><Setter Property="Background" Value="{DynamicResource ColumnGroupCBrush}" /></Style>
+
     <!-- A name that opens something: the same quiet link the LP and Killmail tools use. -->
     <Style Selector="Button.link">
       <Setter Property="Background"          Value="Transparent" />
@@ -161,21 +168,21 @@
                 <DataGridTextColumn Header="Qty"    Binding="{Binding QuantityText}" Width="80"  SortMemberPath="Quantity"    CellStyleClasses="num" />
                 <DataGridTextColumn Header="Volume" Binding="{Binding VolumeText}"   Width="100" SortMemberPath="TotalVolume" CellStyleClasses="num" />
 
-                <DataGridTemplateColumn Header="unit" Width="100" SortMemberPath="MarketUnit">
+                <DataGridTemplateColumn Header="unit" Width="100" SortMemberPath="MarketUnit" CellStyleClasses="ga">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Market.UnitText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="total" Width="120" SortMemberPath="MarketTotal">
+                <DataGridTemplateColumn Header="total" Width="120" SortMemberPath="MarketTotal" CellStyleClasses="ga">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Market.TotalText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="MarketPct">
+                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="MarketPct" CellStyleClasses="ga">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Market.PctText}" Foreground="{Binding Market.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
@@ -183,21 +190,21 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="unit" Width="100" SortMemberPath="BuildUnit">
+                <DataGridTemplateColumn Header="unit" Width="100" SortMemberPath="BuildUnit" CellStyleClasses="gb">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Build.UnitText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="total" Width="120" SortMemberPath="BuildTotal">
+                <DataGridTemplateColumn Header="total" Width="120" SortMemberPath="BuildTotal" CellStyleClasses="gb">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Build.TotalText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="BuildPct">
+                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="BuildPct" CellStyleClasses="gb">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Build.PctText}" Foreground="{Binding Build.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
@@ -205,21 +212,21 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="unit" Width="110" SortMemberPath="ReprocessUnit">
+                <DataGridTemplateColumn Header="unit" Width="110" SortMemberPath="ReprocessUnit" CellStyleClasses="gc">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Reprocess.UnitText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="total" Width="120" SortMemberPath="ReprocessTotal">
+                <DataGridTemplateColumn Header="total" Width="120" SortMemberPath="ReprocessTotal" CellStyleClasses="gc">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Reprocess.TotalText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="ReprocessPct">
+                <DataGridTemplateColumn Header="%" Width="64" SortMemberPath="ReprocessPct" CellStyleClasses="gc">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <TextBlock Text="{Binding Reprocess.PctText}" Foreground="{Binding Reprocess.Color}" TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center" />

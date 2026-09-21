@@ -49,20 +49,21 @@ public sealed class DataGridColumnGroups : Panel
         }
     }
 
-    /// <summary>The headings, left to right: each over <c>Count</c> columns from <c>First</c>.</summary>
-    public void SetGroups(IEnumerable<(int First, int Count, string Title)> groups)
+    /// <summary>The headings, left to right: each over <c>Count</c> columns from <c>First</c>,
+    /// with the key of the brush that washes its cells, so the heading wears the same.</summary>
+    public void SetGroups(IEnumerable<(int First, int Count, string Title, string? Wash)> groups)
     {
         Children.Clear();
         _spans.Clear();
-        foreach (var (first, count, title) in groups)
+        foreach (var (first, count, title, wash) in groups)
         {
             _spans.Add((first, count));
-            Children.Add(Heading(title));
+            Children.Add(Heading(title, wash));
         }
         InvalidateMeasure();
     }
 
-    private static Control Heading(string title)
+    private static Control Heading(string title, string? wash)
     {
         var text = new TextBlock
         {
@@ -75,13 +76,17 @@ public sealed class DataGridColumnGroups : Panel
         };
         text.Bind(TextBlock.ForegroundProperty, text.GetResourceObservable("TextPrimaryBrush"));
 
+        // The wash sits on a raised surface, as the cells' wash sits on the rows.
+        var inner = new Border { Child = text, Padding = new Thickness(6, 3) };
+        if (wash is not null) inner.Bind(Border.BackgroundProperty, inner.GetResourceObservable(wash));
+
         var border = new Border
         {
-            Child           = text,
-            Padding         = new Thickness(6, 3),
+            Child           = inner,
             Margin          = new Thickness(0, 0, 2, 0),   // the gap that parts one heading from the next
             BorderThickness = new Thickness(0, 0, 0, 2),
             CornerRadius    = new CornerRadius(3, 3, 0, 0),
+            ClipToBounds    = true,
         };
         border.Bind(Border.BackgroundProperty,  border.GetResourceObservable("SurfaceRaisedBrush"));
         border.Bind(Border.BorderBrushProperty, border.GetResourceObservable("AccentBrush"));

@@ -15,6 +15,11 @@ public partial class ItemValuationView : UserControl
 {
     private ItemValuationViewModel? _vm;
 
+    /// <summary>The wash over each group of columns and its heading: three in turn, so on the
+    /// compare tab no two neighbouring stations share one. The classes are styled in the view.</summary>
+    private static readonly string[] WashKeys    = ["ColumnGroupABrush", "ColumnGroupBBrush", "ColumnGroupCBrush"];
+    private static readonly string[] CellClasses = ["ga", "gb", "gc"];
+
     public ItemValuationView()
     {
         InitializeComponent();
@@ -22,7 +27,7 @@ public partial class ItemValuationView : UserControl
 
         // Headings over the groups of columns, which the grid's own headers cannot span.
         ValuesBand.Target = ValuesGrid;
-        ValuesBand.SetGroups([(3, 3, "Market value"), (6, 3, "Build value"), (9, 3, "Reprocessed value")]);
+        ValuesBand.SetGroups([(3, 3, "Market value", WashKeys[0]), (6, 3, "Build value", WashKeys[1]), (9, 3, "Reprocessed value", WashKeys[2])]);
         CompareBand.Target = CompareGrid;
 
         // A paste is the whole point of the box, so it appraises on its own, and so does a line
@@ -83,12 +88,19 @@ public partial class ItemValuationView : UserControl
         for (var i = 0; i < _vm.CompareColumns.Count; i++)
         {
             var index = i;
-            CompareGrid.Columns.Add(Column("unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1));
-            CompareGrid.Columns.Add(Column("total", $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1));
-            CompareGrid.Columns.Add(Column("%",     $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64,  r => Priced(r, index)?.Pct   ?? -1000));
+            foreach (var column in new[]
+            {
+                Column("unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1),
+                Column("total", $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1),
+                Column("%",     $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64,  r => Priced(r, index)?.Pct   ?? -1000),
+            })
+            {
+                column.CellStyleClasses.Add(CellClasses[index % 3]);
+                CompareGrid.Columns.Add(column);
+            }
         }
-        // The station's name sits over its three columns, after the item and quantity.
-        CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) => (2 + 3 * i, 3, s.Name)));
+        // The station's name sits over its three columns, after the item and quantity, on their wash.
+        CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) => (2 + 3 * i, 3, s.Name, (string?)WashKeys[i % 3])));
     }
 
     /// <summary>The row's cell for a station when it has a price: what the sort keys read, so
