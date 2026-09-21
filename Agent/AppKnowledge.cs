@@ -322,8 +322,12 @@ public static class AppKnowledge
 
         ### Item Valuation (Market / Trade)
         An appraisal tool like the web ones: paste any list the client copies — a hangar or
-        cargo hold, a contract's items, a fit, a multibuy list, or typed lines such as
-        "Tritanium 22222" or "Warrior II x5" — pick a STATION (any station or structure with
+        cargo hold, a contract's items, a fit, a multibuy list, a spreadsheet's rows, or typed
+        lines such as "Tritanium 22222" or "Warrior II x5". The paste is read leniently: on a
+        line with columns (tabs, commas, semicolons, pipes or runs of spaces, quoted or not)
+        the first column is the item name, the first whole number after it is the count, and
+        every other column is ignored; no number means one; a header row is skipped; the same
+        item on several lines is added up. Then pick a STATION (any station or structure with
         orders in the app's books, whichever market source fetched them; not a market source,
         so two stations of one region can be compared), a price basis (Sell = lowest sell
         order, Buy = highest buy order, Split = halfway), whether to value the items or their

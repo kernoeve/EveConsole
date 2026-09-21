@@ -199,13 +199,15 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
 
         foreach (var candidate in ItemListParser.Parse(text))
         {
-            var taken = false;
+            var taken = false; var asFit = false;
             foreach (var reading in candidate.Readings)
             {
-                // A fit line yields a module and a charge as separate readings that both apply.
+                // A fit line yields a module and a charge as separate readings that both apply —
+                // unless the whole line already named an item, when they would count it twice.
                 if (reading.Source is "fit module" or "fit charge")
                 {
-                    if (_byName!.TryGetValue(reading.Name, out var part)) { Add(part.TypeId, reading.Quantity); taken = true; }
+                    if (taken && !asFit) continue;
+                    if (_byName!.TryGetValue(reading.Name, out var part)) { Add(part.TypeId, reading.Quantity); taken = true; asFit = true; }
                     continue;
                 }
                 if (taken) break;
