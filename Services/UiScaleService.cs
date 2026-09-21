@@ -10,16 +10,17 @@ namespace EveConsole.Services;
 /// The UI scale: every window's content drawn larger or smaller than the platform's own scaling
 /// would have it, 50% to 200%, chosen by the user and kept for this machine.
 ///
-/// <para>Applied through styles on Window and on PopupRoot. The attached property switches on for
-/// every window as it is created, and the window's content is wrapped in a LayoutTransformControl
-/// carrying the scale. A window with a fixed size is resized along with its content as it opens,
-/// since the dialog was authored for 100% and its frame has to hold what it now draws; the main
-/// window keeps the size the user gave it and its content simply gets denser or roomier.</para>
+/// <para>Applied through a style on Window. The attached property switches on for every window
+/// as it is created, and the window's content is wrapped in a LayoutTransformControl carrying the
+/// scale. A window with a fixed size is resized along with its content as it opens, since the
+/// dialog was authored for 100% and its frame has to hold what it now draws; the main window keeps
+/// the size the user gave it and its content simply gets denser or roomier.</para>
 ///
 /// <para>⚠️ Popups are top-levels of their own — tooltips, flyouts, menus, dropdown lists, the
-/// worklist's floating detail — outside the content a window's wrap covers. They get the same
-/// wrap through the PopupRoot style, or they would stay at 100% while everything around them
-/// scaled, which is exactly how the first build looked.</para>
+/// worklist's floating detail — outside the content a window's wrap covers, and their content
+/// cannot be wrapped the same way: it already has the popup as its parent, and taking it throws.
+/// They follow the scale through Popup.InheritsTransform, set for every popup in App.axaml, which
+/// has a popup apply the transform between its placement target and the window to itself.</para>
 ///
 /// <para>⚠️ Kept in this client's own config (UiState), never the shared preference table. Two
 /// clients on one database are two screens, and the note that says "this client only" has to be
@@ -55,12 +56,11 @@ public sealed class UiScaleService
     /// and picker that names it can follow.</summary>
     public static event Action? Changed;
 
-    /// <summary>On any top-level that holds content: a Window, or the PopupRoot behind a popup.</summary>
     public static readonly AttachedProperty<bool> IsEnabledProperty =
-        AvaloniaProperty.RegisterAttached<UiScaleService, WindowBase, bool>("IsEnabled");
+        AvaloniaProperty.RegisterAttached<UiScaleService, Window, bool>("IsEnabled");
 
-    public static void SetIsEnabled(WindowBase host, bool value) => host.SetValue(IsEnabledProperty, value);
-    public static bool GetIsEnabled(WindowBase host) => host.GetValue(IsEnabledProperty);
+    public static void SetIsEnabled(Window window, bool value) => window.SetValue(IsEnabledProperty, value);
+    public static bool GetIsEnabled(Window window) => window.GetValue(IsEnabledProperty);
 
     /// <summary>Off for a window whose size is the user's own — the main window — so only its
     /// content rescales, never its frame.</summary>
@@ -72,10 +72,10 @@ public sealed class UiScaleService
 
     static UiScaleService()
     {
-        IsEnabledProperty.Changed.AddClassHandler<WindowBase>((host, args) =>
+        IsEnabledProperty.Changed.AddClassHandler<Window>((window, args) =>
         {
             if (args.NewValue is true)
-                Attach(host);
+                Attach(window);
         });
     }
 
@@ -114,29 +114,28 @@ public sealed class UiScaleService
 
     public static double Clamp(double scale) => Math.Clamp(scale, MinimumScale, MaximumScale);
 
-    private static void Attach(WindowBase host)
+    private static void Attach(Window window)
     {
-        // The style can be evaluated before the host's content is assigned, and before its size
-        // is: the resize is tried now, so a dialog opens at its scaled size rather than jumping
-        // to it, and again once open in case the size was not there yet. A popup root sizes to
-        // its content, so only windows get their frame sized.
-        host.Opened += (_, _) => { WrapContent(host); if (host is Window w) ResizeFor(w); };
-        host.GetObservable(ContentControl.ContentProperty).Subscribe(_ => WrapContent(host));
-        WrapContent(host);
-        if (host is Window window) ResizeFor(window);
+        // The style can be evaluated before the Window's content is assigned, and before its
+        // size is: the resize is tried now, so a dialog opens at its scaled size rather than
+        // jumping to it, and again once open in case the size was not there yet.
+        window.Opened += (_, _) => { WrapContent(window); ResizeFor(window); };
+        window.GetObservable(ContentControl.ContentProperty).Subscribe(_ => WrapContent(window));
+        WrapContent(window);
+        ResizeFor(window);
     }
 
-    private static void WrapContent(ContentControl host)
+    private static void WrapContent(Window window)
     {
-        if (host.Content is null || host.Content is LayoutTransformControl)
+        if (window.Content is null || window.Content is LayoutTransformControl)
             return;
 
-        // A control cannot have two logical parents. Detach the original content from the host
+        // A control cannot have two logical parents. Detach the original content from the Window
         // before making the LayoutTransformControl its new parent.
-        if (host.Content is not Control content)
+        if (window.Content is not Control content)
             return;
 
-        host.Content = null;
+        window.Content = null;
 
         var transform = new LayoutTransformControl
         {
@@ -145,7 +144,7 @@ public sealed class UiScaleService
         };
 
         Transforms.Add(new WeakReference<LayoutTransformControl>(transform));
-        host.Content = transform;
+        window.Content = transform;
     }
 
     /// <summary>

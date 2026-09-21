@@ -48,10 +48,13 @@
       </Style>
 
       <!-- Popups are top-levels of their own — tooltips, flyouts, menus, dropdown lists, the
-           worklist's floating detail — outside the content the Window style scales, so they are
-           given the same scale here or they would stay at 100% while everything else changed. -->
-      <Style Selector="PopupRoot">
-        <Setter Property="services:UiScaleService.IsEnabled" Value="True" />
+           worklist's floating detail — outside the content the Window style scales. With this
+           on, a popup measures the transform between its placement target and the window and
+           applies the same to itself, so it opens at the scale of the control it belongs to.
+           ⚠️ Not by wrapping the popup's content: that content already has the popup as its
+           parent, and taking it throws, which left every popup blank. -->
+      <Style Selector="Popup">
+        <Setter Property="InheritsTransform" Value="True" />
       </Style>
 
       <!-- ── Button: outlined dark, amber border on hover ────────────────── -->
