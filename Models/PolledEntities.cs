@@ -999,6 +999,7 @@ public class TypePriceSnapshot
     public double? MarketValue   { get; set; }        // from the asset-value market config + price type
     public double? BuildCost     { get; set; }        // BuildCosts.TotalCost
     public double? ContractPrice { get; set; }        // ContractPricing.EffectivePrice
+    public double? ReprocessValue { get; set; }       // ReprocessingValues.Value (the ReprocessingItemValues set): a unit's materials, reprocessed, at the day's prices
     public DateTimeOffset ComputedAt { get; set; }
 }
 

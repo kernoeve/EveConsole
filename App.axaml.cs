@@ -395,13 +395,16 @@ public class App : Application
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
             var typePriceHistory = Services.GetRequiredService<TypePriceHistoryService>();
             marketPricing.AfterRefresh        = ct => buildCostService.RunAfterMarketRefreshAsync(ct);
-            // Fill price gaps first, then snapshot today's per-type prices (market + build now final).
+            // Fill price gaps first, work out what everything reprocesses to at those prices, then
+            // snapshot today's per-type prices (market, build and reprocessing now final). One
+            // handler, in that order: the event is a multicast delegate, and separate handlers
+            // would run side by side with only the last one awaited.
             buildCostService.AfterRecalculate += async ct =>
             {
                 await marketPricing.FillAllGapsAsync(ct);
+                await reprService.RecalculateAllAsync(ct);
                 await typePriceHistory.RecalculateAsync(ct);
             };
-            buildCostService.AfterRecalculate += ct => reprService.RecalculateAllAsync(ct);
 
             // LP values are priced off the market, so they follow the same trigger as build
             // costs — and run after the gap fill above, so they see final prices rather than
@@ -736,10 +739,13 @@ public class App : Application
                         "MarketValue"   REAL,
                         "BuildCost"     REAL,
                         "ContractPrice" REAL,
+                        "ReprocessValue" REAL,
                         "ComputedAt"    TEXT    NOT NULL DEFAULT '',
                         PRIMARY KEY ("TypeId", "Date")
                     )
                     """);
+                // The reprocessing value came later; a database from before gets the column here.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TypePriceSnapshots" ADD COLUMN "ReprocessValue" REAL"""); } catch { }
 
                 // Order Tracker — user-entered outgoing orders.
                 db.Database.ExecuteSqlRaw("""

@@ -1046,7 +1046,7 @@
                 <!-- Empty state -->
                 <TextBlock Grid.Row="2"
                            IsVisible="{Binding DerivedIsEmpty}"
-                           Text="No derived price history recorded for this item yet. A daily snapshot of market, build, and contract value is captured automatically as prices refresh."
+                           Text="No derived price history recorded for this item yet. A daily snapshot of market, build, contract and reprocessed value is captured automatically as prices refresh."
                            FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />

@@ -772,7 +772,7 @@ public class ItemBrowserViewModel : ReactiveObject
     // series each. Sourced from the TypePriceSnapshots table for the selected type.
 
     private CancellationTokenSource _derivedCts = new();
-    private record DerivedRow(string Date, double? Market, double? Build, double? Contract);
+    private record DerivedRow(string Date, double? Market, double? Build, double? Contract, double? Reprocess);
     private List<DerivedRow> _allDerivedRows = [];
 
     private PeriodOption _selectedDerivedPeriod;
@@ -1381,7 +1381,7 @@ public class ItemBrowserViewModel : ReactiveObject
         using var conn = AppDb.Connect();
         conn.Open();
         using var cmd = conn.Command("""
-            SELECT "Date", "MarketValue", "BuildCost", "ContractPrice"
+            SELECT "Date", "MarketValue", "BuildCost", "ContractPrice", "ReprocessValue"
             FROM "TypePriceSnapshots"
             WHERE "TypeId" = @typeId
             ORDER BY "Date"
@@ -1394,7 +1394,8 @@ public class ItemBrowserViewModel : ReactiveObject
                 r.GetString(0),
                 r.IsDBNull(1) ? null : r.GetDouble(1),
                 r.IsDBNull(2) ? null : r.GetDouble(2),
-                r.IsDBNull(3) ? null : r.GetDouble(3)));
+                r.IsDBNull(3) ? null : r.GetDouble(3),
+                r.IsDBNull(4) ? null : r.GetDouble(4)));
         }
         return rows;
     }
@@ -1438,7 +1439,8 @@ public class ItemBrowserViewModel : ReactiveObject
 
         var marketPts   = rows.Select(r => ToPoint(r, r.Market)).ToList();
         var buildPts    = rows.Select(r => ToPoint(r, r.Build)).ToList();
-        var contractPts = rows.Select(r => ToPoint(r, r.Contract)).ToList();
+        var contractPts  = rows.Select(r => ToPoint(r, r.Contract)).ToList();
+        var reprocessPts = rows.Select(r => ToPoint(r, r.Reprocess)).ToList();
 
         static LineSeries<DateTimePoint> Line(string name, List<DateTimePoint> pts, SKColor c) => new()
         {
@@ -1458,6 +1460,7 @@ public class ItemBrowserViewModel : ReactiveObject
             Line("Market",   marketPts,   new SKColor(0x5b, 0x9b, 0xd5)),
             Line("Build",    buildPts,    new SKColor(0xed, 0x7d, 0x31)),
             Line("Contract", contractPts, new SKColor(0xf1, 0xc4, 0x0f)),
+            Line("Reprocessed", reprocessPts, new SKColor(0x1a, 0xbc, 0x9c)),
         ];
 
         DerivedXAxes =
