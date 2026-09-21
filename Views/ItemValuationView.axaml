@@ -255,8 +255,8 @@
             </StackPanel>
 
 
-            <!-- Columns per station are built in code: the item and quantity here, then unit,
-                 total and per cent for each station compared. -->
+            <!-- Columns per station are built in code: the item, quantity and volume here, then
+                 unit, total and per cent for each station compared. -->
             <!-- Each station's name over its unit, total and per cent, with its total, standing,
                  coverage and age beneath, and a × to take it out; the primary station stays. -->
             <controls:DataGridColumnGroups Grid.Row="1" x:Name="CompareBand" />
@@ -280,7 +280,8 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Qty" Binding="{Binding QuantityText}" Width="80" SortMemberPath="Quantity" CellStyleClasses="num" />
+                <DataGridTextColumn Header="Qty"    Binding="{Binding QuantityText}" Width="80"  SortMemberPath="Quantity"    CellStyleClasses="num" />
+                <DataGridTextColumn Header="Volume" Binding="{Binding VolumeText}"   Width="100" SortMemberPath="TotalVolume" CellStyleClasses="num" />
               </DataGrid.Columns>
             </DataGrid>
           </Grid>

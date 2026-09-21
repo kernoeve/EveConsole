@@ -131,6 +131,7 @@ public sealed class CompareRowVm : ReactiveObject
         TypeId   = item.TypeId;
         Quantity = item.Quantity;
         Blueprint = item.Blueprint;
+        TotalVolume = item.TotalVolume;
         Cells = stations.Select(s => new CompareCellVm(item.TypeId > 0 && s.UnitByType.TryGetValue(item.TypeId, out var u) ? u : null, Quantity, factor)).ToList();
         var priced = Cells.Where(c => c.Has).ToList();
         if (priced.Count > 0)
@@ -147,7 +148,9 @@ public sealed class CompareRowVm : ReactiveObject
     public string Name     { get; }
     public int    TypeId   { get; }
     public long   Quantity { get; }
+    public double TotalVolume { get; }
     public string QuantityText => Quantity.ToString("N0");
+    public string VolumeText   => TypeId > 0 ? $"{TotalVolume:N2} m³" : "";
     public bool   HasType      => TypeId > 0;
     public List<CompareCellVm> Cells { get; }
     public bool Blueprint { get; }
@@ -550,9 +553,9 @@ public sealed class ItemValuationViewModel : ReactiveObject
         if (CompareColumns.Count > 1)
         {
             sb.AppendLine();
-            sb.AppendLine("Item\tQuantity\t" + string.Join("\t", CompareColumns.Select(s => $"{s.Name} unit\t{s.Name} total\t{s.Name} %")));
+            sb.AppendLine("Item\tQuantity\tVolume m3\t" + string.Join("\t", CompareColumns.Select(s => $"{s.Name} unit\t{s.Name} total\t{s.Name} %")));
             foreach (var r in CompareRows)
-                sb.AppendLine($"{r.Name}\t{r.Quantity}\t" + string.Join("\t", r.Cells.Select(c => $"{Num(c.Unit)}\t{Num(c.Total)}\t{c.PctText}")));
+                sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t" + string.Join("\t", r.Cells.Select(c => $"{Num(c.Unit)}\t{Num(c.Total)}\t{c.PctText}")));
             sb.AppendLine();
             foreach (var t in CompareTotals) sb.AppendLine($"{t.Station.Name}\t{t.TotalText}\t{t.PctText}");
         }

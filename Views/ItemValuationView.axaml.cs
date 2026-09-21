@@ -194,6 +194,9 @@ public partial class ItemValuationView : UserControl
 
     // ── The compare grid's columns and band ─────────────────────────────────
 
+    /// <summary>The compare grid's columns from the view: item, quantity and volume. The stations' follow.</summary>
+    private const int FixedCompareColumns = 3;
+
     /// <summary>
     /// The compare grid's columns follow the stations compared: unit, total and per cent for
     /// each, the primary first. Built here because a DataGrid's columns are not bindable, and
@@ -202,7 +205,7 @@ public partial class ItemValuationView : UserControl
     private void RebuildCompareColumns()
     {
         if (_vm is null) return;
-        while (CompareGrid.Columns.Count > 2) CompareGrid.Columns.RemoveAt(CompareGrid.Columns.Count - 1);
+        while (CompareGrid.Columns.Count > FixedCompareColumns) CompareGrid.Columns.RemoveAt(CompareGrid.Columns.Count - 1);
 
         for (var i = 0; i < _vm.CompareColumns.Count; i++)
         {
@@ -230,7 +233,7 @@ public partial class ItemValuationView : UserControl
         if (_vm is null) return;
         var totals = _vm.CompareTotals;
         CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) =>
-            new ColumnGroup(2 + 3 * i, 3, s.Name, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
+            new ColumnGroup(FixedCompareColumns + 3 * i, 3, s.Name, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
     }
 
     private Control StationLine(CompareTotalVm total)
