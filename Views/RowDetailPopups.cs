@@ -74,7 +74,7 @@ public sealed class RowDetailPopups
         return _gridOf.TryGetValue(row, out var grid)
             && grid.ItemsSource is IList list
             && list.IndexOf(item) is var index && index >= 0
-            && row.GetIndex() == index;
+            && row.Index == index;
     }
 
     /// <summary>
