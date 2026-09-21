@@ -258,18 +258,18 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> ComparePopulator => StationPopulator;
 
-    public void AddCompare()
+    /// <summary>Adds the station picked in the box, or the first match of what was typed when
+    /// nothing was picked from the list. The view clears the box afterwards.</summary>
+    public async Task AddCompareAsync()
     {
-        var station = CompareCandidate;
-        if (station is null || station.LocationId == SelectedStation?.LocationId || CompareStations.Any(s => s.LocationId == station.LocationId))
-        {
-            CompareText = ""; CompareCandidate = null;
-            return;
-        }
-        CompareStations.Add(station);
+        var station = CompareCandidate
+                      ?? (CompareText.Trim().Length > 0 ? (await _service.SearchStationsAsync(CompareText, 1)).FirstOrDefault() : null);
         CompareText = ""; CompareCandidate = null;
+        if (station is null || station.LocationId == SelectedStation?.LocationId || CompareStations.Any(s => s.LocationId == station.LocationId))
+            return;
+        CompareStations.Add(station);
         SaveCompare();
-        if (_valuation is not null) _ = AppraiseAsync();   // the new station needs pricing
+        if (_valuation is not null) await AppraiseAsync();   // the new station needs pricing
     }
 
     public void RemoveCompare(MarketStation station)

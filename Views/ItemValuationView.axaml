@@ -240,16 +240,13 @@
               <Grid ColumnDefinitions="Auto,*,Auto">
                 <TextBlock Grid.Column="0" Text="Compare with:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                            VerticalAlignment="Center" Margin="0 0 10 0" />
-                <AutoCompleteBox Grid.Column="1" MaxWidth="420" HorizontalAlignment="Left" FontSize="12"
+                <AutoCompleteBox Grid.Column="1" x:Name="CompareBox" MaxWidth="420" HorizontalAlignment="Left" FontSize="12"
                                  Text="{Binding CompareText}"
                                  SelectedItem="{Binding CompareCandidate}"
                                  AsyncPopulator="{Binding ComparePopulator}"
                                  FilterMode="None" MinimumPrefixLength="0" MinimumPopulateDelay="0:0:0.15" MaxDropDownHeight="300"
-                                 Watermark="type a station or structure name, then Add…">
-                  <AutoCompleteBox.KeyBindings>
-                    <KeyBinding Gesture="Enter" Command="{Binding AddCompare}" />
-                  </AutoCompleteBox.KeyBindings>
-                </AutoCompleteBox>
+                                 Watermark="type a station or structure name, then Add…"
+                                 KeyDown="OnCompareKeyDown" />
                 <Button Grid.Column="2" Content="Add" Click="OnAddCompareClick" Padding="12 4" FontSize="12" Margin="6 0 0 0" />
               </Grid>
               <ItemsControl ItemsSource="{Binding CompareStations}">

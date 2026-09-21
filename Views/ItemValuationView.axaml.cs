@@ -76,7 +76,25 @@ public partial class ItemValuationView : UserControl
     private void OnAppraiseClick(object? sender, RoutedEventArgs e) { if (_vm is not null) _ = _vm.AppraiseAsync(); }
     private void OnCopyClick(object? sender, RoutedEventArgs e)     { if (_vm is not null) _ = _vm.CopyAsync(); }
     private void OnClearClick(object? sender, RoutedEventArgs e)    { _vm?.Clear(); }
-    private void OnAddCompareClick(object? sender, RoutedEventArgs e) { _vm?.AddCompare(); }
+    private void OnAddCompareClick(object? sender, RoutedEventArgs e) { _ = AddCompareAsync(); }
+
+    /// <summary>Enter in the compare box adds, like the button.</summary>
+    private void OnCompareKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        e.Handled = true;
+        _ = AddCompareAsync();
+    }
+
+    /// <summary>Adds, then empties the box itself: its text binding has nothing new to push when
+    /// the view model's text was already empty, so the typed fragment would otherwise stay.</summary>
+    private async Task AddCompareAsync()
+    {
+        if (_vm is null) return;
+        await _vm.AddCompareAsync();
+        CompareBox.SelectedItem = null;
+        CompareBox.Text = "";
+    }
 
     private void OnRemoveCompare(object? sender, RoutedEventArgs e)
     {
