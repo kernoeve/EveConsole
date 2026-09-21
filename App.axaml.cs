@@ -69,6 +69,10 @@ public class App : Application
         // the file is being replaced.
         SplashWindow? splash = null;
 
+        // The UI scale is this machine's own and lives in config.json, so it can be known before
+        // the first window — the splash included — rather than applied to windows already open.
+        UiScaleService.Load();
+
         // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
         // process shows an icon and waits; a progress window flashing up at logon for something the
         // user did not launch would be the most annoying possible way to start.
@@ -3292,7 +3296,6 @@ public class App : Application
         catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Timers", "minute rounding", ex); }
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
-        UiScaleService.SetScale(ParseUiScale(appPrefs.Get(UiScaleService.PreferenceKey)));
 
         // ⚠️ Immediately after the preferences load and before anything reads a log directory.
         // The log setup used to live in the shared preferences; it is now this machine's own, and
@@ -3662,13 +3665,6 @@ public class App : Application
             catch (Exception ex) { return $"could not be read: {AppErrorLogger.Line("", ex)}"; }
         }
     }
-
-    private static double ParseUiScale(string? value)
-        => double.TryParse(value, System.Globalization.NumberStyles.Float,
-                           System.Globalization.CultureInfo.InvariantCulture, out var scale)
-            ? scale
-            : UiScaleService.DefaultScale;
-
 
     /// <summary>m:ss since a start time. Hand-formatted because ":" is a reserved character in
     /// TimeSpan custom format strings and an unescaped one throws at runtime, not at compile

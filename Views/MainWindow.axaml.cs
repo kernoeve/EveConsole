@@ -589,6 +589,30 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// theme can be changed from the Settings window too, and a menu assembled once would go on
     /// ticking whatever was on when it was made.</para>
     /// </summary>
+    /// <summary>The UI scale menu, built on click for the same reason as the theme's: the tick
+    /// has to show what is on now, and Settings can change it too.</summary>
+    private void OnUiScaleClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control anchor) return;
+
+        var menu = new MenuFlyout { Placement = PlacementMode.TopEdgeAlignedRight };
+
+        foreach (var choice in UiScaleChoice.All)
+        {
+            var item = new MenuItem
+            {
+                Header     = choice.Name,
+                ToggleType = MenuItemToggleType.Radio,
+                IsChecked  = Math.Abs(choice.Scale - UiScaleService.Scale) < 0.001,
+            };
+            var scale = choice.Scale;
+            item.Click += (_, _) => UiScaleService.Apply(scale);
+            menu.Items.Add(item);
+        }
+
+        menu.ShowAt(anchor);
+    }
+
     private void OnThemeClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Control anchor) return;

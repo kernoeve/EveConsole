@@ -2,7 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:services="clr-namespace:EveConsole.Services"
         x:Class="EveConsole.Views.MainWindow"
+        services:UiScaleService.ScalesSize="False"
         x:DataType="vm:MainWindowViewModel"
         Title="EVE Console"
         Icon="avares://EveConsole/Assets/ec.ico"
@@ -368,7 +370,7 @@
 
     <!-- ── Status bar ──────────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 4">
-      <Grid ColumnDefinitions="*,Auto,Auto">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
 
         <TextBlock Grid.Column="0"
                    Text="{Binding CharacterVm.StatusMessage}"
@@ -382,6 +384,22 @@
                 VerticalAlignment="Center"
                 ToolTip.Tip="Click to open the API activity log"
                 Click="OnPollingStatusClick" />
+
+        <!-- UI scale, shown and pickable, in the same quiet form as the theme label up top:
+             the current scale and a caret, a menu of the others on click. -->
+        <Button Grid.Column="3"
+                x:Name="UiScaleButton"
+                Background="Transparent" BorderThickness="0"
+                Padding="8 2" VerticalAlignment="Center" Cursor="Hand"
+                ToolTip.Tip="{Binding UiScaleTip}"
+                Click="OnUiScaleClick">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="{Binding UiScaleName}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Text="▼" FontSize="7" VerticalAlignment="Center" Margin="0 1 0 0"
+                       Foreground="{DynamicResource TextFaintBrush}" />
+          </StackPanel>
+        </Button>
 
       </Grid>
     </Border>

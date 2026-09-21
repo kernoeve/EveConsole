@@ -1,6 +1,4 @@
 using EveConsole.Services;
-using System.Globalization;
-using System.Reactive;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -16,31 +14,32 @@ public class OtherSettingsViewModel : ReactiveObject
     public const string CustomOption = "Custom URL…";
 
     private readonly UiLinkSettings _settings;
-    private readonly AppPreferencesService _prefs;
     private bool _loading = true;
 
-    public const double UiScaleMinimum = UiScaleService.MinimumScale;
-    public const double UiScaleMaximum = UiScaleService.MaximumScale;
+    // ── UI scale ──────────────────────────────────────────────────────────────
 
-    public ReactiveCommand<object?, Unit> ApplyUiScaleCommand { get; }
+    /// <summary>The scales on offer, 50% to 200%.</summary>
+    public IReadOnlyList<UiScaleChoice> UiScales { get; } = UiScaleChoice.All;
 
-    private double _uiScale = UiScaleService.Scale;
-    public double UiScale
+    private UiScaleChoice? _selectedUiScale = UiScaleChoice.Current();
+
+    /// <summary>
+    /// The scale in force. Picking one applies it to every open window at once and remembers it
+    /// for this machine; like the theme, its effect is its own preview.
+    /// </summary>
+    public UiScaleChoice? SelectedUiScale
     {
-        get => _uiScale;
+        get => _selectedUiScale;
         set
         {
-            var scale = Math.Clamp(value, UiScaleMinimum, UiScaleMaximum);
-            if (Math.Abs(scale - _uiScale) < 0.001) return;
-            this.RaiseAndSetIfChanged(ref _uiScale, scale);
-            UiScaleService.SetScale(scale);
-            this.RaisePropertyChanged(nameof(UiScaleLabel));
-            _ = _prefs.SetAsync(UiScaleService.PreferenceKey,
-                                scale.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+            this.RaiseAndSetIfChanged(ref _selectedUiScale, value);
+            if (value is not null) UiScaleService.Apply(value.Scale);
         }
     }
 
-    public string UiScaleLabel => $"{UiScale:P0}";
+    /// <summary>Follows the scale when the status bar changes it: the guard in Apply makes
+    /// arriving at the scale already on a no-op, so the setter re-applying is harmless.</summary>
+    private void OnUiScaleChanged() => SelectedUiScale = UiScaleChoice.Current();
 
     // ── Appearance ────────────────────────────────────────────────────────────
 
@@ -84,13 +83,12 @@ public class OtherSettingsViewModel : ReactiveObject
         CustomOption,
     ];
 
-    public OtherSettingsViewModel(UiLinkSettings settings, AppPreferencesService prefs)
+    public OtherSettingsViewModel(UiLinkSettings settings)
     {
         _settings = settings;
-        _prefs = prefs;
-        ApplyUiScaleCommand = ReactiveCommand.Create<object?>(ApplyUiScale);
 
-        ThemeService.Changed += OnThemeChanged;
+        ThemeService.Changed   += OnThemeChanged;
+        UiScaleService.Changed += OnUiScaleChanged;
 
         var stored = settings.EveTimeUrl;
         var isPreset = stored == UiLinkSettings.EveOnlineTimeUrl
@@ -100,15 +98,6 @@ public class OtherSettingsViewModel : ReactiveObject
         _customEveTimeUrl    = isPreset ? "" : stored;
 
         _loading = false;
-    }
-
-    private void ApplyUiScale(object? value)
-    {
-        if (value is null) return;
-
-        if (double.TryParse(value.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture,
-                            out var scale))
-            UiScale = scale;
     }
 
     private string _selectedEveTimeSite;
