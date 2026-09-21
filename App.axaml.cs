@@ -69,6 +69,10 @@ public class App : Application
         // the file is being replaced.
         SplashWindow? splash = null;
 
+        // The UI scale is this machine's own and lives in config.json, so it can be known before
+        // the first window — the splash included — rather than applied to windows already open.
+        UiScaleService.Load();
+
         // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
         // process shows an icon and waits; a progress window flashing up at logon for something the
         // user did not launch would be the most annoying possible way to start.
@@ -3661,7 +3665,6 @@ public class App : Application
             catch (Exception ex) { return $"could not be read: {AppErrorLogger.Line("", ex)}"; }
         }
     }
-
 
     /// <summary>m:ss since a start time. Hand-formatted because ":" is a reserved character in
     /// TimeSpan custom format strings and an unescaped one throws at runtime, not at compile

@@ -574,6 +574,18 @@ public class MainWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(ThemeTip));
     }
 
+    /// <summary>The UI scale as the status bar shows it, "100%", read from the service like the
+    /// theme so the bar and the Settings window can never disagree.</summary>
+    public string UiScaleName => UiScaleService.Label;
+
+    public string UiScaleTip => $"UI scale: {UiScaleName} — click to change";
+
+    private void OnUiScaleChanged()
+    {
+        this.RaisePropertyChanged(nameof(UiScaleName));
+        this.RaisePropertyChanged(nameof(UiScaleTip));
+    }
+
     // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
 
     private string _serverStatusText = "Online";
@@ -882,7 +894,8 @@ public class MainWindowViewModel : ReactiveObject
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
         DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
-        ThemeService.Changed += OnThemeChanged;
+        ThemeService.Changed   += OnThemeChanged;
+        UiScaleService.Changed += OnUiScaleChanged;
 
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);

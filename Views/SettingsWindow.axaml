@@ -3375,8 +3375,16 @@
                             SelectedItem="{Binding SelectedTheme}" />
                 </Grid>
 
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="UI scale:" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding UiScales}"
+                            SelectedItem="{Binding SelectedUiScale}" />
+                </Grid>
+
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="Applies immediately, and is remembered for this client only — a second client on the same database keeps its own." />
+                           Text="Both apply immediately to every window and dialog, and are remembered for this client only — a second client on the same database keeps its own. The scale is also on the status bar, at the right end, for a quick change." />
               </StackPanel>
             </StackPanel>
           </Border>

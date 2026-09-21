@@ -329,8 +329,9 @@ public static class AppKnowledge
         alerts), Price History (regions whose market history is swept in the background —
         every type that trades in those regions is refreshed on the "Price History Sweep"
         interval in Timers, default 24h, so the opportunity tools read it from the DB),
-        and Database (path, backups,
-        move/rename/repoint).
+        Database (path, backups, move/rename/repoint), and Other (the theme and the UI scale,
+        50% to 200%, both this desktop's own; the scale also sits at the right end of the status
+        bar, next to the background-processing link, where clicking it offers the same choices).
 
         ## Interactions & hidden functions (right-click menus, buttons, shortcuts)
         Many actions live in right-click context menus or row buttons that are not

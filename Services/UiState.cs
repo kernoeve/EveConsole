@@ -35,6 +35,8 @@ public static class UiState
     /// the user's characters and the corporations marked personal.</summary>
     public const string AssetScope            = "assets.scope";
     public const string Theme                 = "ui.theme";
+    /// <summary>The UI scale as a factor, "1.25"; 50% to 200%, this machine's own.</summary>
+    public const string Scale                 = "ui.scale";
     /// <summary>"0" once the user has ticked "don't ask again" on the external-link warning.</summary>
     public const string ConfirmExternalLinks  = "links.confirm_external";
 
