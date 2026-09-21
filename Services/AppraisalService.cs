@@ -28,7 +28,7 @@ public sealed record MarketStation(long LocationId, string Name, int SystemId, i
 
 /// <summary>An item of the list being valued: the type it resolved to (0 for a name the SDE does
 /// not know), how many, and which part of the result it belongs to when reprocessing.</summary>
-public sealed record ValuedItem(int TypeId, string Name, long Quantity, double UnitVolume, string Section, string Problem)
+public sealed record ValuedItem(int TypeId, string Name, long Quantity, double UnitVolume, string Section, string Problem, bool Blueprint = false)
 {
     public double TotalVolume => UnitVolume * Quantity;
 }
@@ -231,7 +231,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
             quantities[typeId] += qty;
         }
 
-        var items = order.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, quantities[id], Volume(t), "", ""); }).ToList();
+        var items = order.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, quantities[id], Volume(t), "", "", IsBlueprint(t.GroupId)); }).ToList();
         items.AddRange(unknown.Select(u => new ValuedItem(0, u.Name, u.Quantity, 0, "", "not an item name")));
         return (items, unparsed);
     }
@@ -275,7 +275,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
                 leftovers.Add(item with { Quantity = short_, Section = "Left over", Problem = $"{short_:N0} short of a batch of {portion:N0}" });
         }
 
-        var result = outputOrder.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, output[id], Volume(t), "Output", ""); }).ToList();
+        var result = outputOrder.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, output[id], Volume(t), "Output", "", IsBlueprint(t.GroupId)); }).ToList();
         result.AddRange(leftovers);
         return result;
     }
@@ -302,6 +302,10 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         _categoryByGroup!.GetValueOrDefault(type.GroupId) == ReprocessingValueService.OreIceCategoryId
             ? ReprocessingValueService.OreIceYield
             : ReprocessingValueService.GenItemYield;
+
+    /// <summary>A blueprint, whose picture the image server keeps on another path.</summary>
+    private bool IsBlueprint(int groupId) => _categoryByGroup!.GetValueOrDefault(groupId) == BlueprintCategoryId;
+    private const int BlueprintCategoryId = 9;
 
     private static double Volume(SdeType t) => t.PackagedVolume > 0 ? t.PackagedVolume : t.Volume;
 

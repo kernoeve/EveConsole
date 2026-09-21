@@ -1,11 +1,14 @@
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using EveConsole.Controls;
 using EveConsole.Services;
 using EveConsole.ViewModels;
 
@@ -20,6 +23,12 @@ public partial class ItemValuationView : UserControl
     private static readonly string[] WashKeys    = ["ColumnGroupABrush", "ColumnGroupBBrush", "ColumnGroupCBrush"];
     private static readonly string[] CellClasses = ["ga", "gb", "gc"];
 
+    /// <summary>The pasted list's pane: how wide, and whether it is folded away. This machine's.</summary>
+    private const  string ListWidthKey     = "valuation.listWidth";
+    private const  string ListHiddenKey    = "valuation.listHidden";
+    private const  double DefaultListWidth = 340;
+    private double _listWidth = DefaultListWidth;
+
     public ItemValuationView()
     {
         InitializeComponent();
@@ -27,8 +36,23 @@ public partial class ItemValuationView : UserControl
 
         // Headings over the groups of columns, which the grid's own headers cannot span.
         ValuesBand.Target = ValuesGrid;
-        ValuesBand.SetGroups([(3, 3, "Market value", WashKeys[0]), (6, 3, "Build value", WashKeys[1]), (9, 3, "Reprocessed value", WashKeys[2])]);
+        ValuesBand.SetGroups(
+        [
+            new ColumnGroup(3, 3, "Market value",      WashKeys[0]),
+            new ColumnGroup(6, 3, "Build value",       WashKeys[1]),
+            new ColumnGroup(9, 3, "Reprocessed value", WashKeys[2]),
+        ]);
         CompareBand.Target = CompareGrid;
+
+        // The list pane as it was left: its width, and folded away or not.
+        _listWidth = Math.Max(120, UiState.GetLong(ListWidthKey, (long)DefaultListWidth));
+        SetListHidden(UiState.GetBool(ListHiddenKey, false), save: false);
+        Split.ColumnDefinitions[0].PropertyChanged += (_, e) =>
+        {
+            if (e.Property != ColumnDefinition.WidthProperty) return;
+            var w = Split.ColumnDefinitions[0].Width;
+            if (w.IsAbsolute && w.Value > 0) { _listWidth = w.Value; UiState.SetLong(ListWidthKey, (long)w.Value); }
+        };
 
         // A paste is the whole point of the box, so it appraises on its own, and so does a line
         // typed in: Enter puts its newline in as usual and the appraisal follows. Both events
@@ -57,12 +81,16 @@ public partial class ItemValuationView : UserControl
     /// Follows the view model. The main window builds a fresh view each time the tab is shown
     /// while the view model keeps its result, so the compare columns are rebuilt on arrival
     /// rather than left to the next change of stations, which is how they went missing after a
-    /// switch of tabs. A view on its way out lets go of the event, so it is not kept alive by it.
+    /// switch of tabs. A view on its way out lets go of the events, so it is not kept alive by them.
     /// </summary>
     private void Attach(ItemValuationViewModel? vm)
     {
         if (ReferenceEquals(_vm, vm)) return;
-        if (_vm is not null) _vm.CompareColumnsChanged -= RebuildCompareColumns;
+        if (_vm is not null)
+        {
+            _vm.CompareColumnsChanged -= RebuildCompareColumns;
+            _vm.PropertyChanged       -= OnVmPropertyChanged;
+        }
         _vm = vm;
         if (_vm is null) return;
         _vm.CopyToClipboard = async text =>
@@ -71,9 +99,18 @@ public partial class ItemValuationView : UserControl
             if (clipboard is not null) await clipboard.SetTextAsync(text);
         };
         _vm.CompareColumnsChanged += RebuildCompareColumns;
+        _vm.PropertyChanged       += OnVmPropertyChanged;
         RebuildCompareColumns();
         _ = _vm.LoadAsync();
     }
+
+    /// <summary>The station lines in the band follow every appraisal, not only a change of stations.</summary>
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ItemValuationViewModel.CompareTotals)) RefreshCompareBand();
+    }
+
+    // ── The compare grid's columns and band ─────────────────────────────────
 
     /// <summary>
     /// The compare grid's columns follow the stations compared: unit, total and per cent for
@@ -88,19 +125,63 @@ public partial class ItemValuationView : UserControl
         for (var i = 0; i < _vm.CompareColumns.Count; i++)
         {
             var index = i;
-            foreach (var column in new[]
+            var columns = new[]
             {
-                Column("unit",  $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1),
-                Column("total", $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1),
-                Column("%",     $"Cells[{index}].PctText",   $"Cells[{index}].Color", 64,  r => Priced(r, index)?.Pct   ?? -1000),
-            })
+                Column("unit",    $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1,    $"Cells[{index}].UnitExact"),
+                Column("total",   $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1,    $"Cells[{index}].TotalExact"),
+                Column("vs best", $"Cells[{index}].PctText",   $"Cells[{index}].Color", 70,  r => Priced(r, index)?.Pct   ?? -1000, null),
+            };
+            columns[0].CellStyleClasses.Add("gs");   // the line where one station's wash ends and the next begins
+            foreach (var column in columns)
             {
                 column.CellStyleClasses.Add(CellClasses[index % 3]);
                 CompareGrid.Columns.Add(column);
             }
         }
-        // The station's name sits over its three columns, after the item and quantity, on their wash.
-        CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) => (2 + 3 * i, 3, s.Name, (string?)WashKeys[i % 3])));
+        RefreshCompareBand();
+    }
+
+    /// <summary>Each station's name over its three columns, with its total, standing, coverage
+    /// and age beneath, and a × to take it out of the comparison; the primary station stays.</summary>
+    private void RefreshCompareBand()
+    {
+        if (_vm is null) return;
+        var totals = _vm.CompareTotals;
+        CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) =>
+            new ColumnGroup(2 + 3 * i, 3, s.Name, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
+    }
+
+    private Control StationLine(CompareTotalVm total)
+    {
+        var line = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, HorizontalAlignment = HorizontalAlignment.Center };
+        line.Children.Add(Text(total.TotalText, 12, FontWeight.SemiBold, total.Color));
+        line.Children.Add(Text(total.PctText,   10, FontWeight.Normal,   total.Color));
+        line.Children.Add(Faint(total.CoverageText, "TextFaintBrush"));
+        line.Children.Add(Faint(total.AgeText, total.Stale ? "WarnBrush" : "TextFaintBrush"));
+        if (!total.IsPrimary)
+        {
+            var remove = new Button
+            {
+                Content = "×", FontSize = 12, Padding = new Thickness(4, 0),
+                Background = Brushes.Transparent, BorderThickness = new Thickness(0),
+                Cursor = new Cursor(StandardCursorType.Hand), VerticalAlignment = VerticalAlignment.Center,
+            };
+            remove.Bind(Button.ForegroundProperty, remove.GetResourceObservable("TextMutedBrush"));
+            ToolTip.SetTip(remove, "Take this station out of the comparison");
+            remove.Click += (_, _) => _vm?.RemoveCompare(total.Station);
+            line.Children.Add(remove);
+        }
+        return line;
+    }
+
+    private static TextBlock Text(string text, double size, FontWeight weight, IBrush brush) =>
+        new() { Text = text, FontSize = size, FontWeight = weight, Foreground = brush, VerticalAlignment = VerticalAlignment.Center };
+
+    private static TextBlock Faint(string text, string brushKey)
+    {
+        var block = new TextBlock { Text = text, FontSize = 9, VerticalAlignment = VerticalAlignment.Center };
+        block.Bind(TextBlock.ForegroundProperty, block.GetResourceObservable(brushKey));
+        return block;
     }
 
     /// <summary>The row's cell for a station when it has a price: what the sort keys read, so
@@ -108,9 +189,11 @@ public partial class ItemValuationView : UserControl
     private static CompareCellVm? Priced(CompareRowVm row, int index) =>
         index < row.Cells.Count && row.Cells[index].Has ? row.Cells[index] : null;
 
-    /// <summary>A column bound by path and sorted by a key. A template column has no binding of
-    /// its own for the grid to sort on, so it is handed a comparer and told it may sort.</summary>
-    private static DataGridTemplateColumn Column(string header, string textPath, string colorPath, double width, Func<CompareRowVm, double> key) =>
+    /// <summary>A column bound by path and sorted by a key, its exact figure in a tip. A template
+    /// column has no binding of its own for the grid to sort on, so it is handed a comparer and
+    /// told it may sort.</summary>
+    private static DataGridTemplateColumn Column(string header, string textPath, string colorPath, double width,
+                                                 Func<CompareRowVm, double> key, string? tipPath) =>
         new()
         {
             Header = header,
@@ -118,19 +201,40 @@ public partial class ItemValuationView : UserControl
             CanUserSort        = true,
             CustomSortComparer = Comparer<object>.Create((a, b) =>
                 (a is CompareRowVm ra ? key(ra) : double.MinValue).CompareTo(b is CompareRowVm rb ? key(rb) : double.MinValue)),
-            CellTemplate = new FuncDataTemplate<CompareRowVm>((_, _) => new TextBlock
+            CellTemplate = new FuncDataTemplate<CompareRowVm>((_, _) =>
             {
-                TextAlignment = TextAlignment.Right,
-                Margin = new Avalonia.Thickness(0, 0, 6, 0),
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                [!TextBlock.TextProperty]       = new Binding(textPath),
-                [!TextBlock.ForegroundProperty] = new Binding(colorPath),
+                var block = new TextBlock
+                {
+                    TextAlignment = TextAlignment.Right,
+                    Margin = new Thickness(0, 0, 6, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    [!TextBlock.TextProperty]       = new Binding(textPath),
+                    [!TextBlock.ForegroundProperty] = new Binding(colorPath),
+                };
+                if (tipPath is not null) block[!ToolTip.TipProperty] = new Binding(tipPath);
+                return block;
             }),
         };
 
-    private void OnAppraiseClick(object? sender, RoutedEventArgs e) { if (_vm is not null) _ = _vm.AppraiseAsync(); }
-    private void OnCopyClick(object? sender, RoutedEventArgs e)     { if (_vm is not null) _ = _vm.CopyAsync(); }
-    private void OnClearClick(object? sender, RoutedEventArgs e)    { _vm?.Clear(); }
+    // ── The list pane ───────────────────────────────────────────────────────
+
+    private void OnToggleListClick(object? sender, RoutedEventArgs e) =>
+        SetListHidden(Split.ColumnDefinitions[0].Width.Value > 0);
+
+    private void SetListHidden(bool hidden, bool save = true)
+    {
+        Split.ColumnDefinitions[0].Width = hidden ? new GridLength(0) : new GridLength(_listWidth);
+        ListSplitter.IsVisible   = !hidden;
+        InputBox.IsVisible       = !hidden;
+        ToggleListButton.Content = hidden ? "Show list" : "Hide list";
+        if (save) UiState.SetBool(ListHiddenKey, hidden);
+    }
+
+    // ── Buttons and boxes ───────────────────────────────────────────────────
+
+    private void OnAppraiseClick(object? sender, RoutedEventArgs e)   { if (_vm is not null) _ = _vm.AppraiseAsync(); }
+    private void OnCopyClick(object? sender, RoutedEventArgs e)       { if (_vm is not null) _ = _vm.CopyAsync(); }
+    private void OnClearClick(object? sender, RoutedEventArgs e)      { _vm?.Clear(); }
     private void OnAddCompareClick(object? sender, RoutedEventArgs e) { _ = AddCompareAsync(); }
 
     /// <summary>Enter in the compare box adds, like the button.</summary>
@@ -151,11 +255,6 @@ public partial class ItemValuationView : UserControl
         CompareBox.Text = "";
     }
 
-    private void OnRemoveCompare(object? sender, RoutedEventArgs e)
-    {
-        if (_vm is not null && (sender as Control)?.DataContext is MarketStation station) _vm.RemoveCompare(station);
-    }
-
     private void OnOpenItem(object? sender, RoutedEventArgs e)
     {
         if (_vm is not null && (sender as Control)?.DataContext is ValueRowVm row) _vm.OpenItem(row.TypeId);
@@ -165,5 +264,4 @@ public partial class ItemValuationView : UserControl
     {
         if (_vm is not null && (sender as Control)?.DataContext is CompareRowVm row) _vm.OpenItem(row.TypeId);
     }
-
 }

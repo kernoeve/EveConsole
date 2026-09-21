@@ -17,6 +17,11 @@ namespace EveConsole.Controls;
 /// <para>Groups are named by index in the grid's Columns collection, so the grid must not let
 /// its columns be reordered.</para>
 /// </summary>
+/// <summary>One heading: over <c>Count</c> columns from <c>First</c>, with the key of the brush
+/// that washes its cells so the heading wears the same, and whatever else belongs under the
+/// title — a total, a note, a button.</summary>
+public sealed record ColumnGroup(int First, int Count, string Title, string? Wash = null, Control? Detail = null);
+
 public sealed class DataGridColumnGroups : Panel
 {
     private DataGrid?  _target;
@@ -49,22 +54,23 @@ public sealed class DataGridColumnGroups : Panel
         }
     }
 
-    /// <summary>The headings, left to right: each over <c>Count</c> columns from <c>First</c>,
-    /// with the key of the brush that washes its cells, so the heading wears the same.</summary>
-    public void SetGroups(IEnumerable<(int First, int Count, string Title, string? Wash)> groups)
+    /// <summary>The headings, left to right.</summary>
+    public void SetGroups(IEnumerable<ColumnGroup> groups)
     {
         Children.Clear();
         _spans.Clear();
-        foreach (var (first, count, title, wash) in groups)
+        foreach (var g in groups)
         {
-            _spans.Add((first, count));
-            Children.Add(Heading(title, wash));
+            _spans.Add((g.First, g.Count));
+            Children.Add(Heading(g));
         }
         InvalidateMeasure();
     }
 
-    private static Control Heading(string title, string? wash)
+    private static Control Heading(ColumnGroup g)
     {
+        var title = g.Title;
+        var wash  = g.Wash;
         var text = new TextBlock
         {
             Text                = title,
@@ -76,8 +82,17 @@ public sealed class DataGridColumnGroups : Panel
         };
         text.Bind(TextBlock.ForegroundProperty, text.GetResourceObservable("TextPrimaryBrush"));
 
+        Control content = text;
+        if (g.Detail is { } detail)
+        {
+            var stack = new StackPanel { Spacing = 2 };
+            stack.Children.Add(text);
+            stack.Children.Add(detail);
+            content = stack;
+        }
+
         // The wash sits on a raised surface, as the cells' wash sits on the rows.
-        var inner = new Border { Child = text, Padding = new Thickness(6, 3) };
+        var inner = new Border { Child = content, Padding = new Thickness(6, 3) };
         if (wash is not null) inner.Bind(Border.BackgroundProperty, inner.GetResourceObservable(wash));
 
         var border = new Border

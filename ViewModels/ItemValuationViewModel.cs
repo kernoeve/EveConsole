@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
+using Avalonia.Media.Imaging;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -22,14 +23,16 @@ public sealed class ValueCellVm(double? unit, long quantity, double factor)
     public bool   IsBest  { get; set; }
     public double Pct     { get; set; }   // 0 for the best, negative below it
 
-    public string UnitText  => Has ? Unit!.Value.ToString("N2") : "—";
-    public string TotalText => Has ? Total!.Value.ToString("N2") : "—";
-    public string PctText   => !Has ? "—" : IsBest ? "0.0%" : $"{Pct:0.0}%";
-    public IBrush Color     => !Has ? Palette.TextFaint : IsBest ? Palette.Good : Palette.Bad;
+    public string UnitText   => Has ? IskText.Compact(Unit!.Value)  : "—";
+    public string TotalText  => Has ? IskText.Compact(Total!.Value) : "—";
+    public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : "no price";
+    public string TotalExact => Has ? IskText.Exact(Total!.Value)   : "no price";
+    public string PctText    => !Has ? "—" : IsBest ? "best" : $"{Pct:0.0}%";
+    public IBrush Color      => IskText.Colour(Has, IsBest, Pct);
 }
 
 /// <summary>One item on the Values tab: what it is worth three ways at the primary station.</summary>
-public sealed class ValueRowVm
+public sealed class ValueRowVm : ReactiveObject
 {
     public ValueRowVm(ItemValues v, double factor)
     {
@@ -43,6 +46,7 @@ public sealed class ValueRowVm
         Build     = new ValueCellVm(v.BuildUnit, Quantity, factor);
         Reprocess = new ValueCellVm(v.ReprocessUnit, Quantity, factor);
         MarketFromContract = v.MarketFromContract;
+        Blueprint = v.Item.Blueprint;
 
         var cells = new[] { Market, Build, Reprocess }.Where(c => c.Has).ToList();
         if (cells.Count > 0)
@@ -63,6 +67,11 @@ public sealed class ValueRowVm
     public string Problem  { get; }
     public double TotalVolume { get; }
     public bool   MarketFromContract { get; }
+    public bool   Blueprint { get; }
+
+    private Bitmap? _icon;
+    /// <summary>The item's picture, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; set => this.RaiseAndSetIfChanged(ref _icon, value); }
 
     public ValueCellVm Market    { get; }
     public ValueCellVm Build     { get; }
@@ -100,20 +109,23 @@ public sealed class CompareCellVm(double? unit, long quantity, double factor)
     public bool    IsBest { get; set; }
     public double  Pct    { get; set; }
 
-    public string UnitText  => Has ? Unit!.Value.ToString("N2") : "—";
-    public string TotalText => Has ? Total!.Value.ToString("N2") : "—";
-    public string PctText   => !Has ? "—" : IsBest ? "0.0%" : $"{Pct:0.0}%";
-    public IBrush Color     => !Has ? Palette.TextFaint : IsBest ? Palette.Good : Palette.Bad;
+    public string UnitText   => Has ? IskText.Compact(Unit!.Value)  : "—";
+    public string TotalText  => Has ? IskText.Compact(Total!.Value) : "—";
+    public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : "no price";
+    public string TotalExact => Has ? IskText.Exact(Total!.Value)   : "no price";
+    public string PctText    => !Has ? "—" : IsBest ? "best" : $"{Pct:0.0}%";
+    public IBrush Color      => IskText.Colour(Has, IsBest, Pct);
 }
 
 /// <summary>One item on the compare tab: its price at every station, best marked.</summary>
-public sealed class CompareRowVm
+public sealed class CompareRowVm : ReactiveObject
 {
     public CompareRowVm(ValuedItem item, IReadOnlyList<StationPrices> stations, double factor)
     {
         Name     = item.Name;
         TypeId   = item.TypeId;
         Quantity = item.Quantity;
+        Blueprint = item.Blueprint;
         Cells = stations.Select(s => new CompareCellVm(item.TypeId > 0 && s.UnitByType.TryGetValue(item.TypeId, out var u) ? u : null, Quantity, factor)).ToList();
         var priced = Cells.Where(c => c.Has).ToList();
         if (priced.Count > 0)
@@ -133,10 +145,41 @@ public sealed class CompareRowVm
     public string QuantityText => Quantity.ToString("N0");
     public bool   HasType      => TypeId > 0;
     public List<CompareCellVm> Cells { get; }
+    public bool Blueprint { get; }
+
+    private Bitmap? _icon;
+    /// <summary>The item's picture, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; set => this.RaiseAndSetIfChanged(ref _icon, value); }
 }
 
 /// <summary>A station's total on the compare tab's header line.</summary>
-public sealed record CompareTotalVm(MarketStation Station, string TotalText, string PctText, IBrush Color, string AgeText);
+/// <summary>A station's line in the compare band: its total, how it stands against the best,
+/// how much of the list it could price, and how old its prices are.</summary>
+public sealed record CompareTotalVm(MarketStation Station, string TotalText, string PctText, IBrush Color,
+                                    string CoverageText, string AgeText, bool Stale, bool IsPrimary);
+
+/// <summary>ISK as the tool prints it: compact in a cell, exact in a tip; and the colour of a
+/// value against the best of its row — the best in green, red only a long way behind, the rest
+/// plain, so a row of four stations is not three red cells and one green.</summary>
+public static class IskText
+{
+    /// <summary>1.23B, 45.6M, 18.3K; below ten thousand the figure itself, pennies only under a thousand.</summary>
+    public static string Compact(double v) =>
+        v >= 1e12 ? $"{v / 1e12:N2}T" :
+        v >= 1e9  ? $"{v / 1e9:N2}B" :
+        v >= 1e6  ? $"{v / 1e6:N2}M" :
+        v >= 1e4  ? $"{v / 1e3:N1}K" :
+        v >= 1e3  ? v.ToString("N0") :
+        v > 0     ? v.ToString("N2") : "—";
+
+    public static string Exact(double v) => $"{v:N2} ISK";
+
+    /// <summary>How far behind the best a value may fall before it shows in red.</summary>
+    public const double FarBehindPct = -25;
+
+    public static IBrush Colour(bool has, bool isBest, double pct) =>
+        !has ? Palette.TextFaint : isBest ? Palette.Good : pct <= FarBehindPct ? Palette.Bad : Palette.TextPrimary;
+}
 
 public sealed record PriceBasisChoice(PriceBasis Basis, string Name)
 {
@@ -299,6 +342,24 @@ public sealed class ItemValuationViewModel : ReactiveObject
     private IReadOnlyList<CompareRowVm> _compareRows = [];
     public IReadOnlyList<CompareRowVm> CompareRows { get => _compareRows; private set => this.RaiseAndSetIfChanged(ref _compareRows, value); }
 
+    // ── The filter: free text against the item's name, over both grids ───────
+    private IReadOnlyList<ValueRowVm>   _allValueRows   = [];
+    private IReadOnlyList<CompareRowVm> _allCompareRows = [];
+
+    private string _filter = "";
+    public string Filter
+    {
+        get => _filter;
+        set { this.RaiseAndSetIfChanged(ref _filter, value ?? ""); ApplyFilter(); }
+    }
+
+    private void ApplyFilter()
+    {
+        var f = _filter.Trim();
+        ValueRows   = f.Length == 0 ? _allValueRows   : _allValueRows.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
+        CompareRows = f.Length == 0 ? _allCompareRows : _allCompareRows.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
     /// <summary>The stations the compare grid has columns for, primary first, as of the last result.</summary>
     public IReadOnlyList<MarketStation> CompareColumns { get; private set; } = [];
 
@@ -411,6 +472,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
     {
         InputText  = "";
         _valuation = null;
+        _allValueRows = []; _allCompareRows = [];
         ValueRows   = [];
         CompareRows = [];
         CompareTotals = [];
@@ -429,6 +491,34 @@ public sealed class ItemValuationViewModel : ReactiveObject
     public void OpenItem(int typeId)
     {
         if (typeId > 0) NavigateToItemAction?.Invoke(typeId);
+    }
+
+    /// <summary>
+    /// Every row's picture, fetched as one batch rather than row by row as they scroll into
+    /// view: one request per distinct type, all queued at once behind the image cache's gate,
+    /// and from the copy on disk after the first time. A row's icon lands as its fetch does.
+    /// </summary>
+    private async Task LoadIconsAsync(IReadOnlyList<ValueRowVm> values, IReadOnlyList<CompareRowVm> compare)
+    {
+        try
+        {
+            var byType        = values.Where(r => r.TypeId > 0).ToLookup(r => r.TypeId);
+            var compareByType = compare.Where(r => r.TypeId > 0).ToLookup(r => r.TypeId);
+            await Task.WhenAll(byType.Select(async group =>
+            {
+                var bmp = await ItemIcons.GetAsync(group.Key, group.First().Blueprint);
+                if (bmp is null) return;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    foreach (var r in group)                     r.Icon = bmp;
+                    foreach (var c in compareByType[group.Key])  c.Icon = bmp;
+                });
+            }));
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => Status = AppErrorLogger.Line("Item icons", ex));
+        }
     }
 
     /// <summary>Both tables as tab-separated text, for a spreadsheet or a chat.</summary>
@@ -472,7 +562,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         _valuation = v;
         var factor = (double)PricePercent / 100;
 
-        ValueRows = v.Values.Select(x => new ValueRowVm(x, factor)).ToList();
+        _allValueRows = v.Values.Select(x => new ValueRowVm(x, factor)).ToList();
 
         double market = v.TotalMarket * factor, build = v.TotalBuild * factor, reprocess = v.TotalReprocess * factor;
         var totals = new[] { (market, v.Values.Any(x => x.MarketUnit > 0)), (build, v.Values.Any(x => x.BuildUnit > 0)), (reprocess, v.Values.Any(x => x.ReprocessUnit > 0)) };
@@ -486,17 +576,25 @@ public sealed class ItemValuationViewModel : ReactiveObject
         // The compare tab: every station side by side, the primary first.
         var columnsChanged = !CompareColumns.Select(s => s.LocationId).SequenceEqual(v.Stations.Select(s => s.Station.LocationId));
         CompareColumns = v.Stations.Select(s => s.Station).ToList();
-        CompareRows = v.Values.Select(x => new CompareRowVm(x.Item, v.Stations, factor)).ToList();
+        _allCompareRows = v.Values.Select(x => new CompareRowVm(x.Item, v.Stations, factor)).ToList();
+        ApplyFilter();
+        _ = LoadIconsAsync(_allValueRows, _allCompareRows);
         var stationTotals = v.Stations.Select(s => v.Values.Sum(x => x.Item.TypeId > 0 && s.UnitByType.TryGetValue(x.Item.TypeId, out var u) ? u * factor * x.Item.Quantity : 0)).ToList();
         var bestStation = stationTotals.DefaultIfEmpty(0).Max();
         CompareTotals = v.Stations.Select((s, i) =>
         {
-            var t = stationTotals[i];
+            var t      = stationTotals[i];
             var isBest = t > 0 && Math.Abs(t - bestStation) < 0.005;
-            return new CompareTotalVm(s.Station, t > 0 ? Compact(t) : "—",
-                t <= 0 ? "no prices" : isBest ? "best" : $"{(t - bestStation) / bestStation * 100:0.0}%",
-                t <= 0 ? Palette.TextFaint : isBest ? Palette.Good : Palette.Bad,
-                s.AsOf is { } at ? Age(DateTimeOffset.UtcNow - at) : "no orders held");
+            var pct    = t > 0 && bestStation > 0 ? (t - bestStation) / bestStation * 100 : 0;
+            var priced = v.Values.Count(x => x.Item.TypeId > 0 && s.UnitByType.TryGetValue(x.Item.TypeId, out var u) && u > 0);
+            var age    = s.AsOf is { } at ? DateTimeOffset.UtcNow - at : (TimeSpan?)null;
+            return new CompareTotalVm(s.Station, t > 0 ? IskText.Compact(t) : "—",
+                t <= 0 ? "no prices" : isBest ? "best" : $"{pct:0.0}%",
+                IskText.Colour(t > 0, isBest, pct),
+                $"{priced:N0} of {v.Values.Count:N0} priced",
+                age is { } a ? Age(a) : "no orders held",
+                Stale:     age is null || age.Value.TotalHours >= 2,
+                IsPrimary: i == 0);
         }).ToList();
         if (columnsChanged) CompareColumnsChanged?.Invoke();
 
@@ -514,16 +612,9 @@ public sealed class ItemValuationViewModel : ReactiveObject
         if (!has) return ("—", "", Palette.TextFaint, "nothing to value this way");
         var isBest = Math.Abs(total - best) < 0.005;
         var pct = isBest ? "best" : best > 0 ? $"{(total - best) / best * 100:0.0}%" : "";
-        return (Compact(total), pct, isBest ? Palette.Good : Palette.Bad, $"{total:N2} ISK");
+        return (IskText.Compact(total), pct, IskText.Colour(true, isBest, best > 0 ? (total - best) / best * 100 : 0), IskText.Exact(total));
     }
 
-    /// <summary>ISK the way the summary boxes read: 1.23B, 45.6M, 987K.</summary>
-    private static string Compact(double v) =>
-        v >= 1e12 ? $"{v / 1e12:N2}T" :
-        v >= 1e9  ? $"{v / 1e9:N2}B" :
-        v >= 1e6  ? $"{v / 1e6:N2}M" :
-        v >= 1e3  ? $"{v / 1e3:N1}K" :
-        v > 0     ? v.ToString("N0") : "—";
 
     private static string Age(TimeSpan span) =>
         span.TotalMinutes < 1  ? "fetched just now" :
