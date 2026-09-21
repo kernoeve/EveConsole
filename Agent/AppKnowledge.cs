@@ -195,8 +195,9 @@ public static class AppKnowledge
         owner hosts on Cloudflare (one Worker and one D1 database per store) where buyers sign
         in with EVE SSO, see the price list with what is in stock, in build and reserved, place
         orders and follow them. The app pushes the site the price list and the order book and
-        pulls what buyers did every few minutes (every half minute while somebody is on the
-        site); nothing on the site ever reaches the database. A web order is booked only when
+        pulls what buyers did every few minutes ("Check the site every N minutes" on the Config
+        tab, 5 by default; a buyer waits up to that long for a confirmation); nothing on the
+        site ever reaches the database. A web order is booked only when
         its item is on the posting, its quantity is within bounds, the buyer passes the store's
         Serve policy (Anyone, or the allow list) and the quoted price is close to the posting's;
         anything else waits under "Web site events" on the Overview for the owner to book or

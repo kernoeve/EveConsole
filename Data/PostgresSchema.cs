@@ -523,6 +523,9 @@ public static class PostgresSchema
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebMailUpdates" BOOLEAN NOT NULL DEFAULT TRUE
         """,
         """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebPollMinutes" INTEGER NOT NULL DEFAULT 5
+        """,
+        """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebBlurb" TEXT NOT NULL DEFAULT ''
         """,
         """

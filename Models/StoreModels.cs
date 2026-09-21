@@ -195,6 +195,11 @@ public class Store
     /// <summary>Also mail web buyers as their orders move, when the store has a character.</summary>
     public bool   WebMailUpdates   { get; set; } = true;
 
+    /// <summary>Minutes between the app's calls to the site: what a buyer waits, at most, for a
+    /// confirmation, and how many of the site's free daily requests a quiet day costs. Set on
+    /// the Stores screen, within the sync service's bounds.</summary>
+    public int    WebPollMinutes   { get; set; } = EveConsole.Services.WebStore.WebStoreSyncService.DefaultPollMinutes;
+
     /// <summary>The owner's own words on the site — terms, pickup, whatever a buyer should read.
     /// Plain text; blank lines separate paragraphs.</summary>
     public string WebBlurb         { get; set; } = "";

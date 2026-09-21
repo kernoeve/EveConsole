@@ -867,6 +867,7 @@ public class App : Application
                         "WebBuyerMaySwitch"   INTEGER NOT NULL DEFAULT 1,
                         "WebThemes"           TEXT    NOT NULL DEFAULT '',
                         "WebMailUpdates"      INTEGER NOT NULL DEFAULT 1,
+                        "WebPollMinutes"      INTEGER NOT NULL DEFAULT 5,
                         "WebBlurb"            TEXT    NOT NULL DEFAULT '',
                         "WebCursor"           INTEGER NOT NULL DEFAULT 0,
                         "WebGeneration"       TEXT    NOT NULL DEFAULT '',
@@ -920,6 +921,7 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBuyerMaySwitch" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebThemes" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebMailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebPollMinutes" INTEGER NOT NULL DEFAULT 5"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBlurb" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCursor" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebGeneration" TEXT NOT NULL DEFAULT ''"""); } catch { }
