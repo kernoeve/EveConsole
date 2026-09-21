@@ -47,6 +47,13 @@
         <Setter Property="services:UiScaleService.IsEnabled" Value="True" />
       </Style>
 
+      <!-- Popups are top-levels of their own — tooltips, flyouts, menus, dropdown lists, the
+           worklist's floating detail — outside the content the Window style scales, so they are
+           given the same scale here or they would stay at 100% while everything else changed. -->
+      <Style Selector="PopupRoot">
+        <Setter Property="services:UiScaleService.IsEnabled" Value="True" />
+      </Style>
+
       <!-- ── Button: outlined dark, amber border on hover ────────────────── -->
       <Style Selector="Button">
         <Setter Property="Background"       Value="Transparent" />
