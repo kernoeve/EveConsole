@@ -319,6 +319,20 @@ public static class AppKnowledge
         - Do not try to filter to "since I last looked". Write the query for current state over
           a sensible recent window; the alarm works out what is new.
 
+        ### Item Valuation (Market / Trade)
+        An appraisal tool like the web ones: paste any list the client copies — a hangar or
+        cargo hold, a contract's items, a fit, a multibuy list, or typed lines such as
+        "Tritanium 22222" or "Warrior II x5" — pick one of the market sources from Settings >
+        Market and press Appraise. Every line becomes a row with quantity, volume (packaged where
+        the SDE gives it), unit and total buy and sell, and the panel above totals sell, buy, split
+        and volume. Prices come from the order book that source last fetched, at its station when
+        it has one: "Immediate" is the best order now, "Top of book" the volume-weighted average
+        of the best orders holding the source's percentile of the volume. Price % values at a
+        share of market (a 90% buyback). Lines that are not item names stay in the table marked as
+        such; lines that could not be read at all are listed under it. Copy puts the table and
+        totals on the clipboard as tab-separated text; double-clicking a row opens it in the Item
+        Browser. Nothing is stored.
+
         ## Settings (gear icon)
         Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE
         (import/update the EVE Static Data Export — required before item and market

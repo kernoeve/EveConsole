@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:models="clr-namespace:EveConsole.Models"
+             x:Class="EveConsole.Views.ItemValuationView"
+             x:DataType="vm:ItemValuationViewModel">
+
+  <!-- Item Valuation: a pasted list on the left, what it is worth on the right. The options sit
+       above both, because a change to the market or the price mode re-prices the same list. -->
+  <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
+
+    <!-- ── Options ─────────────────────────────────────────────────────── -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 10">
+      <TextBlock Text="Market:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+      <ComboBox ItemsSource="{Binding Sources}" SelectedItem="{Binding SelectedSource}" MinWidth="220" FontSize="12"
+                PlaceholderText="No market source"
+                ToolTip.Tip="One of the market sources under Settings > Market. Prices come from the order book it last fetched.">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="models:MarketPricingConfig">
+            <TextBlock Text="{Binding LocationName}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <TextBlock Text="Prices:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+      <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}" MinWidth="130" FontSize="12"
+                ToolTip.Tip="Immediate: the best order now — the lowest sell, the highest buy. Top of book: the volume-weighted average of the best orders holding the source's percentile of the volume, the price a whole stack would move at." />
+
+      <TextBlock Text="Price %:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+      <NumericUpDown Value="{Binding PricePercent}" Minimum="1" Maximum="500" Increment="5" FormatString="0.#"
+                     Width="110" FontSize="12"
+                     ToolTip.Tip="The share of the market price to value at: 100 is the price itself, 90 a buyback paying nine tenths." />
+
+      <Button Content="Appraise" Click="OnAppraiseClick" IsEnabled="{Binding !IsBusy}"
+              Padding="14 5" FontSize="12" Margin="8 0 0 0"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+              BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
+              ToolTip.Tip="Price the list (Ctrl+Enter in the text box does the same)." />
+      <Button Content="Copy" Click="OnCopyClick" IsEnabled="{Binding HasResult}"
+              Padding="12 5" FontSize="12"
+              ToolTip.Tip="Copy the table and the totals as tab-separated text, for a spreadsheet or a chat." />
+      <Button Content="Clear" Click="OnClearClick" Padding="12 5" FontSize="12" />
+    </StackPanel>
+
+    <!-- ── Status ──────────────────────────────────────────────────────── -->
+    <TextBlock Grid.Row="1" Text="{Binding Status}" FontSize="12" Foreground="{DynamicResource AccentBrush}"
+               TextWrapping="Wrap" Margin="0 0 0 8" />
+
+    <!-- ── Input and result ───────────────────────────────────────────── -->
+    <Grid Grid.Row="2" ColumnDefinitions="360,12,*">
+
+      <TextBox Grid.Column="0" x:Name="InputBox"
+               Text="{Binding InputText}"
+               AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap"
+               FontFamily="Consolas, Courier New, monospace" FontSize="12"
+               VerticalContentAlignment="Top"
+               Watermark="Paste a list of items: a hangar or cargo hold copied from the client, a contract, a fit, a multibuy list, or lines like&#x0a;Tritanium 22222&#x0a;Pyerite x 3000&#x0a;Warrior II 5"
+               KeyDown="OnInputKeyDown" />
+
+      <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+
+        <!-- Totals, as the numbers to read first. Full figures on hover. -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1" CornerRadius="4" Padding="14 10" Margin="0 0 0 10">
+          <StackPanel Orientation="Horizontal" Spacing="28">
+            <StackPanel ToolTip.Tip="{Binding TotalSellTip}">
+              <TextBlock Text="{Binding TotalSellText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              <TextBlock Text="sell" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+            <StackPanel ToolTip.Tip="{Binding TotalBuyTip}">
+              <TextBlock Text="{Binding TotalBuyText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="buy" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+            <StackPanel ToolTip.Tip="{Binding TotalSplitTip}">
+              <TextBlock Text="{Binding TotalSplitText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="split" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="{Binding TotalVolumeText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+              <TextBlock Text="volume" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="{Binding TotalItemsText}" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+              <TextBlock Text="items / units" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <DataGrid Grid.Row="1" x:Name="ResultGrid"
+                  ItemsSource="{Binding Rows}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  DoubleTapped="OnRowDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Name">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:AppraisalRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" Foreground="{Binding NameColor}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Problem}" FontSize="10" Foreground="{DynamicResource WarnBrush}"
+                               IsVisible="{Binding IsProblem}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Quantity"   Binding="{Binding QuantityText}"  Width="100" SortMemberPath="Quantity" />
+            <DataGridTextColumn Header="Volume"     Binding="{Binding VolumeText}"    Width="120" SortMemberPath="TotalVolume" />
+            <DataGridTextColumn Header="Unit buy"   Binding="{Binding UnitBuyText}"   Width="120" SortMemberPath="UnitBuy" />
+            <DataGridTextColumn Header="Unit sell"  Binding="{Binding UnitSellText}"  Width="120" SortMemberPath="UnitSell" />
+            <DataGridTextColumn Header="Total buy"  Binding="{Binding TotalBuyText}"  Width="140" SortMemberPath="TotalBuy" />
+            <DataGridTextColumn Header="Total sell" Binding="{Binding TotalSellText}" Width="140" SortMemberPath="TotalSell" />
+          </DataGrid.Columns>
+          <DataGrid.Styles>
+            <!-- Figures line up on the right; the name column stays left. -->
+            <Style Selector="DataGridCell:nth-child(n+2) TextBlock">
+              <Setter Property="TextAlignment" Value="Right" />
+              <Setter Property="Margin" Value="0 0 8 0" />
+            </Style>
+          </DataGrid.Styles>
+        </DataGrid>
+
+        <TextBlock Grid.Row="2" Text="{Binding UnparsedText}" IsVisible="{Binding HasUnparsed}"
+                   FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 8 0 0" />
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

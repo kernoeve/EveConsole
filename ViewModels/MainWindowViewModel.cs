@@ -257,6 +257,7 @@ public class MainWindowViewModel : ReactiveObject
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
     public WorklistViewModel              WorklistVm             { get; }
     public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
+    public ItemValuationViewModel         ItemValuationVm        { get; }
     public PlayerEntitiesViewModel        PlayerEntitiesVm       { get; }
     public NpcEntitiesViewModel           NpcEntitiesVm          { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
@@ -699,6 +700,7 @@ public class MainWindowViewModel : ReactiveObject
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
             "worklist"       => ("Worklist",       WorklistVm,        true),
             "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
+            "item_valuation"   => ("Item Valuation",   ItemValuationVm,  true),
             "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
             "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
@@ -1034,6 +1036,7 @@ public class MainWindowViewModel : ReactiveObject
         };
 
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        ItemValuationVm        = new ItemValuationViewModel(dbFactory);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
@@ -1117,6 +1120,11 @@ public class MainWindowViewModel : ReactiveObject
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
         LpMarketValuesVm.NavigateToItemAction = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
+        ItemValuationVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
@@ -1239,6 +1247,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Market / Trade",
             [
                 new NavItem("market_viewer", "Market Overview"),
+                new NavItem("item_valuation", "Item Valuation"),
                 new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("market_levels", "Market Levels"),
                 new NavItem("contracts",     "Contracts"),
