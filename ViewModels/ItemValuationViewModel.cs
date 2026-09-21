@@ -27,8 +27,12 @@ public sealed class ValueCellVm(double? unit, long quantity, double factor)
     public string TotalText  => Has ? IskText.Compact(Total!.Value) : "—";
     public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : "no price";
     public string TotalExact => Has ? IskText.Exact(Total!.Value)   : "no price";
-    public string PctText    => !Has ? "—" : IsBest ? "best" : $"{Pct:0.0}%";
+    public string PctText    => !Has ? "—" : IsBest ? "best" : IskText.Pct(Pct);
+    /// <summary>The standing's colour: green for the best, red a long way behind.</summary>
     public IBrush Color      => IskText.Colour(Has, IsBest, Pct);
+    /// <summary>The figures' colour: plain, faint with no price. The standing beside them wears
+    /// the colour, so a table is not columns of red.</summary>
+    public IBrush FigureColor => IskText.FigureColour(Has);
 }
 
 /// <summary>One item on the Values tab: what it is worth three ways at the primary station.</summary>
@@ -113,8 +117,9 @@ public sealed class CompareCellVm(double? unit, long quantity, double factor)
     public string TotalText  => Has ? IskText.Compact(Total!.Value) : "—";
     public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : "no price";
     public string TotalExact => Has ? IskText.Exact(Total!.Value)   : "no price";
-    public string PctText    => !Has ? "—" : IsBest ? "best" : $"{Pct:0.0}%";
+    public string PctText    => !Has ? "—" : IsBest ? "best" : IskText.Pct(Pct);
     public IBrush Color      => IskText.Colour(Has, IsBest, Pct);
+    public IBrush FigureColor => IskText.FigureColour(Has);
 }
 
 /// <summary>One item on the compare tab: its price at every station, best marked.</summary>
@@ -159,8 +164,9 @@ public sealed record CompareTotalVm(MarketStation Station, string TotalText, str
                                     string CoverageText, string AgeText, bool Stale, bool IsPrimary);
 
 /// <summary>ISK as the tool prints it: compact in a cell, exact in a tip; and the colour of a
-/// value against the best of its row — the best in green, red only a long way behind, the rest
-/// plain, so a row of four stations is not three red cells and one green.</summary>
+/// standing against the best of its row — the best in green, red only a long way behind, the
+/// rest plain. The standing alone wears it and the figures beside it stay plain, so a row of four
+/// stations is not three red cells and one green.</summary>
 public static class IskText
 {
     /// <summary>1.23B, 45.6M, 18.3K; below ten thousand the figure itself, pennies only under a thousand.</summary>
@@ -174,11 +180,21 @@ public static class IskText
 
     public static string Exact(double v) => $"{v:N2} ISK";
 
+    /// <summary>"-18.2%"; a hair under nought is "0.0%", not "-0.0%".</summary>
+    public static string Pct(double pct)
+    {
+        var s = $"{pct:0.0}%";
+        return s == "-0.0%" ? "0.0%" : s;
+    }
+
     /// <summary>How far behind the best a value may fall before it shows in red.</summary>
     public const double FarBehindPct = -25;
 
     public static IBrush Colour(bool has, bool isBest, double pct) =>
         !has ? Palette.TextFaint : isBest ? Palette.Good : pct <= FarBehindPct ? Palette.Bad : Palette.TextPrimary;
+
+    /// <summary>A figure's colour: plain, or faint where there is no price.</summary>
+    public static IBrush FigureColour(bool has) => has ? Palette.TextPrimary : Palette.TextFaint;
 }
 
 public sealed record PriceBasisChoice(PriceBasis Basis, string Name)
@@ -493,6 +509,9 @@ public sealed class ItemValuationViewModel : ReactiveObject
         if (typeId > 0) NavigateToItemAction?.Invoke(typeId);
     }
 
+    /// <summary>A word from the view for the status line: a paste that could not be read.</summary>
+    public void ShowStatus(string text) => Status = text;
+
     /// <summary>
     /// Every row's picture, fetched as one batch rather than row by row as they scroll into
     /// view: one request per distinct type, all queued at once behind the image cache's gate,
@@ -589,7 +608,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
             var priced = v.Values.Count(x => x.Item.TypeId > 0 && s.UnitByType.TryGetValue(x.Item.TypeId, out var u) && u > 0);
             var age    = s.AsOf is { } at ? DateTimeOffset.UtcNow - at : (TimeSpan?)null;
             return new CompareTotalVm(s.Station, t > 0 ? IskText.Compact(t) : "—",
-                t <= 0 ? "no prices" : isBest ? "best" : $"{pct:0.0}%",
+                t <= 0 ? "no prices" : isBest ? "best" : IskText.Pct(pct),
                 IskText.Colour(t > 0, isBest, pct),
                 $"{priced:N0} of {v.Values.Count:N0} priced",
                 age is { } a ? Age(a) : "no orders held",
@@ -611,7 +630,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
     {
         if (!has) return ("—", "", Palette.TextFaint, "nothing to value this way");
         var isBest = Math.Abs(total - best) < 0.005;
-        var pct = isBest ? "best" : best > 0 ? $"{(total - best) / best * 100:0.0}%" : "";
+        var pct = isBest ? "best" : best > 0 ? IskText.Pct((total - best) / best * 100) : "";
         return (IskText.Compact(total), pct, IskText.Colour(true, isBest, best > 0 ? (total - best) / best * 100 : 0), IskText.Exact(total));
     }
 

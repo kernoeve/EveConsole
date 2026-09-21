@@ -23,9 +23,9 @@ public partial class ItemValuationView : UserControl
     private static readonly string[] WashKeys    = ["ColumnGroupABrush", "ColumnGroupBBrush", "ColumnGroupCBrush"];
     private static readonly string[] CellClasses = ["ga", "gb", "gc"];
 
-    /// <summary>The pasted list's pane: how wide, and whether it is folded away. This machine's.</summary>
+    /// <summary>The pasted list's pane: how wide, remembered on this machine. Whether it is folded
+    /// away is not remembered: it folds once the list is valued and opens again to be changed.</summary>
     private const  string ListWidthKey     = "valuation.listWidth";
-    private const  string ListHiddenKey    = "valuation.listHidden";
     private const  double DefaultListWidth = 340;
     private double _listWidth = DefaultListWidth;
 
@@ -44,9 +44,9 @@ public partial class ItemValuationView : UserControl
         ]);
         CompareBand.Target = CompareGrid;
 
-        // The list pane as it was left: its width, and folded away or not.
+        // The list pane at the width it was left, open until there is a result.
         _listWidth = Math.Max(120, UiState.GetLong(ListWidthKey, (long)DefaultListWidth));
-        SetListHidden(UiState.GetBool(ListHiddenKey, false), save: false);
+        SetListHidden(false);
         Split.ColumnDefinitions[0].PropertyChanged += (_, e) =>
         {
             if (e.Property != ColumnDefinition.WidthProperty) return;
@@ -58,22 +58,67 @@ public partial class ItemValuationView : UserControl
         // typed in: Enter puts its newline in as usual and the appraisal follows. Both events
         // fire before the text lands, so the appraisal is queued behind them; and the key is
         // watched even once the box has handled it, since handling it is what the box does.
-        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) => AppraiseSoon());
-        InputBox.AddHandler(KeyDownEvent, (_, e) => { if (e.Key == Key.Enter) AppraiseSoon(); }, RoutingStrategies.Bubble, handledEventsToo: true);
+        // A paste is the list, so once it is valued the box folds away; a line typed in leaves
+        // the box open, since the typing is not done.
+        InputBox.AddHandler(TextBox.PastingFromClipboardEvent, (_, _) => AppraiseSoon(foldAfter: true));
+        InputBox.AddHandler(KeyDownEvent, (_, e) => { if (e.Key == Key.Enter) AppraiseSoon(foldAfter: false); }, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
-    private void AppraiseSoon() =>
-        Dispatcher.UIThread.Post(() => { if (_vm is not null) _ = _vm.AppraiseAsync(); }, DispatcherPriority.Background);
+    private void AppraiseSoon(bool foldAfter) =>
+        Dispatcher.UIThread.Post(() => _ = AppraiseAsync(foldAfter), DispatcherPriority.Background);
+
+    /// <summary>Values the list; then, when asked and there is a result, folds the box away so the
+    /// tables have the width — the result being what a paste or the button was for.</summary>
+    private async Task AppraiseAsync(bool foldAfter)
+    {
+        if (_vm is null) return;
+        await _vm.AppraiseAsync();
+        if (foldAfter && _vm.HasResult) SetListHidden(true);
+    }
+
+    /// <summary>
+    /// A paste anywhere in the window while the tool is showing is the next list, when the box is
+    /// folded away or open and empty: copy a hangar in the client, come back, paste — no click on
+    /// Edit list or in the box first. The window hears it rather than the view, since after a
+    /// paste folds the box, or after a switch of tabs, the focus is seldom inside the tool. A box
+    /// that has the focus keeps its own paste, and a list being edited is not written over.
+    /// </summary>
+    private async void OnKeyDownAnywhere(object? sender, KeyEventArgs e)
+    {
+        try
+        {
+            if (_vm is null || _top is not { } top) return;
+            if (InputBox.IsVisible && !string.IsNullOrWhiteSpace(_vm.InputText)) return;
+            if (top.PlatformSettings?.HotkeyConfiguration.Paste.Any(g => g.Matches(e)) != true) return;
+            if (top.FocusManager?.GetFocusedElement() is TextBox) return;
+            e.Handled = true;
+            var text = top.Clipboard is { } clipboard ? await clipboard.GetTextAsync() : null;
+            if (string.IsNullOrWhiteSpace(text)) return;
+            _vm.InputText = text;
+            await AppraiseAsync(foldAfter: true);
+        }
+        catch (Exception ex)
+        {
+            _vm?.ShowStatus(AppErrorLogger.Line("Paste", ex));
+        }
+    }
+
+    /// <summary>The window, while the view is in it: it hears the paste (see OnKeyDownAnywhere).</summary>
+    private TopLevel? _top;
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
         Attach(DataContext as ItemValuationViewModel);
+        _top = TopLevel.GetTopLevel(this);
+        _top?.AddHandler(KeyDownEvent, OnKeyDownAnywhere, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
+        _top?.RemoveHandler(KeyDownEvent, OnKeyDownAnywhere);
+        _top = null;
         Attach(null);
     }
 
@@ -101,6 +146,7 @@ public partial class ItemValuationView : UserControl
         _vm.CompareColumnsChanged += RebuildCompareColumns;
         _vm.PropertyChanged       += OnVmPropertyChanged;
         RebuildCompareColumns();
+        SetListHidden(_vm.HasResult);   // a view built afresh meets the list as its result left it
         _ = _vm.LoadAsync();
     }
 
@@ -127,9 +173,9 @@ public partial class ItemValuationView : UserControl
             var index = i;
             var columns = new[]
             {
-                Column("unit",    $"Cells[{index}].UnitText",  $"Cells[{index}].Color", 110, r => Priced(r, index)?.Unit  ?? -1,    $"Cells[{index}].UnitExact"),
-                Column("total",   $"Cells[{index}].TotalText", $"Cells[{index}].Color", 120, r => Priced(r, index)?.Total ?? -1,    $"Cells[{index}].TotalExact"),
-                Column("vs best", $"Cells[{index}].PctText",   $"Cells[{index}].Color", 70,  r => Priced(r, index)?.Pct   ?? -1000, null),
+                Column("Unit",    $"Cells[{index}].UnitText",  $"Cells[{index}].FigureColor", 110, r => Priced(r, index)?.Unit  ?? -1,    $"Cells[{index}].UnitExact"),
+                Column("Total",   $"Cells[{index}].TotalText", $"Cells[{index}].FigureColor", 120, r => Priced(r, index)?.Total ?? -1,    $"Cells[{index}].TotalExact"),
+                Column("vs best", $"Cells[{index}].PctText",   $"Cells[{index}].Color",       70,  r => Priced(r, index)?.Pct   ?? -1000, null),
             };
             columns[0].CellStyleClasses.Add("gs");   // the line where one station's wash ends and the next begins
             foreach (var column in columns)
@@ -190,14 +236,15 @@ public partial class ItemValuationView : UserControl
         index < row.Cells.Count && row.Cells[index].Has ? row.Cells[index] : null;
 
     /// <summary>A column bound by path and sorted by a key, its exact figure in a tip. A template
-    /// column has no binding of its own for the grid to sort on, so it is handed a comparer and
-    /// told it may sort.</summary>
+    /// column has no binding of its own for the grid to sort on or to copy, so it is handed a
+    /// comparer and told it may sort, and told what Ctrl+C on a row copies: the text shown.</summary>
     private static DataGridTemplateColumn Column(string header, string textPath, string colorPath, double width,
                                                  Func<CompareRowVm, double> key, string? tipPath) =>
         new()
         {
             Header = header,
             Width  = new DataGridLength(width),
+            ClipboardContentBinding = new Binding(textPath),
             CanUserSort        = true,
             CustomSortComparer = Comparer<object>.Create((a, b) =>
                 (a is CompareRowVm ra ? key(ra) : double.MinValue).CompareTo(b is CompareRowVm rb ? key(rb) : double.MinValue)),
@@ -218,23 +265,36 @@ public partial class ItemValuationView : UserControl
 
     // ── The list pane ───────────────────────────────────────────────────────
 
-    private void OnToggleListClick(object? sender, RoutedEventArgs e) =>
-        SetListHidden(Split.ColumnDefinitions[0].Width.Value > 0);
+    /// <summary>Hide list folds the box away; Edit list brings it back, the caret at its end.</summary>
+    private void OnToggleListClick(object? sender, RoutedEventArgs e)
+    {
+        var open = InputBox.IsVisible;
+        SetListHidden(open);
+        if (!open) EditList();
+    }
 
-    private void SetListHidden(bool hidden, bool save = true)
+    private void EditList()
+    {
+        InputBox.Focus();
+        InputBox.CaretIndex = InputBox.Text?.Length ?? 0;
+    }
+
+    private void SetListHidden(bool hidden)
     {
         Split.ColumnDefinitions[0].Width = hidden ? new GridLength(0) : new GridLength(_listWidth);
         ListSplitter.IsVisible   = !hidden;
         InputBox.IsVisible       = !hidden;
-        ToggleListButton.Content = hidden ? "Show list" : "Hide list";
-        if (save) UiState.SetBool(ListHiddenKey, hidden);
+        ToggleListButton.Content = hidden ? "Edit list" : "Hide list";
+        ToolTip.SetTip(ToggleListButton, hidden
+            ? "Bring the list back to change it. While it is folded away, a paste anywhere on the tool values a new list."
+            : "Fold the list away to give the tables the whole width. It folds on its own once valued.");
     }
 
     // ── Buttons and boxes ───────────────────────────────────────────────────
 
-    private void OnAppraiseClick(object? sender, RoutedEventArgs e)   { if (_vm is not null) _ = _vm.AppraiseAsync(); }
+    private void OnAppraiseClick(object? sender, RoutedEventArgs e)   { _ = AppraiseAsync(foldAfter: true); }
     private void OnCopyClick(object? sender, RoutedEventArgs e)       { if (_vm is not null) _ = _vm.CopyAsync(); }
-    private void OnClearClick(object? sender, RoutedEventArgs e)      { _vm?.Clear(); }
+    private void OnClearClick(object? sender, RoutedEventArgs e)      { _vm?.Clear(); SetListHidden(false); EditList(); }
     private void OnAddCompareClick(object? sender, RoutedEventArgs e) { _ = AddCompareAsync(); }
 
     /// <summary>Enter in the compare box adds, like the button.</summary>
