@@ -1550,7 +1550,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     if (raw > 0)
                     {
                         marketValueText  = FormatIsk(raw);
-                        marketValueLabel = $"Market Value ({defaults.AssetValuePriceType})";
+                        marketValueLabel = $"Market Value ({MarketPriceType.Label(defaults.AssetValuePriceType)})";
                     }
                 }
             }

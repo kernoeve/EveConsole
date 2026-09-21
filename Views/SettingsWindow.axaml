@@ -562,7 +562,13 @@
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding MarketVm.PriceTypes}"
                         SelectedItem="{Binding MarketVm.AssetValuePriceType}"
-                        HorizontalAlignment="Stretch" />
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:CompileBindings="False">
+                    <TextBlock Text="{Binding Converter={x:Static views:PriceTypeLabelConverter.Instance}}" FontSize="12" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </Grid>
 
             <!-- Manufacturing Cost -->
@@ -582,7 +588,13 @@
               <ComboBox Grid.Column="3"
                         ItemsSource="{Binding MarketVm.PriceTypes}"
                         SelectedItem="{Binding MarketVm.ManufacturingPriceType}"
-                        HorizontalAlignment="Stretch" />
+                        HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:CompileBindings="False">
+                    <TextBlock Text="{Binding Converter={x:Static views:PriceTypeLabelConverter.Instance}}" FontSize="12" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </Grid>
 
             <!-- Missing Price Markup -->

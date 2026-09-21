@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using EveConsole.Agent;
+using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.ViewModels;
 
@@ -27,6 +28,15 @@ public class IsSummaryBorderConverter : IValueConverter
     public static readonly IsSummaryBorderConverter Instance = new();
     public object Convert(object? v, Type t, object? p, CultureInfo c) => v is true ? Palette.GoodSurface : Brushes.Transparent;
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
+}
+
+/// <summary>A price-type key as a person sees it: "Midpoint" shows as "Split". The key itself
+/// is what a ComboBox selects and saves, so nothing stored changes.</summary>
+public class PriceTypeLabelConverter : IValueConverter
+{
+    public static readonly PriceTypeLabelConverter Instance = new();
+    public object? Convert(object? v, Type t, object? p, CultureInfo c) => v is string s ? MarketPriceType.Label(s) : v;
+    public object? ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
 }
 
 public class IsSummaryForegroundConverter : IValueConverter

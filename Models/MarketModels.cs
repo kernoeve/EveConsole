@@ -12,6 +12,10 @@ public static class MarketPriceType
     public const string Midpoint = "Midpoint";
     public const string Buy      = "Buy";
     public const string Sell     = "Sell";
+
+    /// <summary>The name a person sees for a key. The midpoint of buy and sell is "Split", the
+    /// word the market tools use; the key stays "Midpoint" because databases and postings hold it.</summary>
+    public static string Label(string key) => key == Midpoint ? "Split" : key;
 }
 
 public class MarketPricingConfig
