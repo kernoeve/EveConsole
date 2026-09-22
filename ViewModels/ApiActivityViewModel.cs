@@ -482,7 +482,7 @@ public class ApiActivityViewModel : ReactiveObject
 
     public ContractSourceRowVm ContractPublicRow   { get; } = new("Public listings");
     public ContractSourceRowVm ContractOwnedRow    { get; } = new("Character and corporation");
-    public ContractSourceRowVm ContractDeferredRow { get; } = new("Deferred");
+    public ContractSourceRowVm ContractDeferredRow { get; } = new("Refused");
     public IReadOnlyList<ContractSourceRowVm> ContractSources { get; }
 
     private ObservableCollection<LpStoreCorpRowVm> _lpStoreCorps = [];
@@ -754,7 +754,7 @@ public class ApiActivityViewModel : ReactiveObject
 
         ContractsPublicText   = $"{s.PublicPulled:N0} / {s.PublicTotal:N0} pulled · {pubQueue:N0} queued";
         ContractsOwnedText    = $"{s.OwnedPulled:N0} / {s.OwnedTotal:N0} pulled · {ownedQueue:N0} queued";
-        ContractsDeferredText = $"{s.Deferred:N0} deferred (corp contracts issued by another corp — not pulled)";
+        ContractsDeferredText = $"{s.Refused:N0} refused (ESI answered 400/403/404 and holds no items of them)";
         ContractsState = s.Running
             ? $"● Running — {pubQueue + ownedQueue:N0} contracts queued for items"
             : (pubQueue + ownedQueue) > 0
@@ -762,8 +762,8 @@ public class ApiActivityViewModel : ReactiveObject
                 : "○ Idle — all item pulls complete";
 
         ContractPublicRow.Set($"{s.PublicTotal:N0}", $"{s.PublicPulled:N0}", $"{pubQueue:N0}", "the regions' public listings, browsed");
-        ContractOwnedRow.Set($"{s.OwnedTotal:N0}", $"{s.OwnedPulled:N0}", $"{ownedQueue:N0}", "issued by or assigned to your characters and corporations — pulled first");
-        ContractDeferredRow.Set($"{s.Deferred:N0}", "—", "—", "corporation contracts issued by another corporation, which ESI will not list items for");
+        ContractOwnedRow.Set($"{s.OwnedTotal:N0}", $"{s.OwnedPulled:N0}", $"{ownedQueue:N0}", "held by your characters and corporations — yours first, then the ones open to a corporation");
+        ContractDeferredRow.Set($"{s.Refused:N0}", "—", "—", "asked for and refused — ESI answered 400, 403 or 404 through every endpoint that had them; counted among the pulled");
     }
 
     // ── LP store monitor ────────────────────────────────────────────────────────

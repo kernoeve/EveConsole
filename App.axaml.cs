@@ -1491,12 +1491,14 @@ public class App : Application
                         "Volume"              TEXT    NOT NULL DEFAULT '0',
                         "RegionId"            INTEGER NOT NULL DEFAULT 0,
                         "ItemsPulled"         INTEGER NOT NULL DEFAULT 0,
+                        "ItemsStatus"         INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ContractId")
                     )
                     """);
                 // Columns added for the contracts feature — backfill on existing DBs.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "RegionId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsPulled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsStatus" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiContractItems" (
@@ -1514,6 +1516,23 @@ public class App : Application
                         PRIMARY KEY ("ContractId", "RecordId")
                     )
                     """);
+                // Corporation contracts issued by another corporation were, in July 2026, marked
+                // pulled without a call on the belief that ESI would not serve their items — a
+                // belief the data contradicted, so the sweep now asks. The rows that belief marked
+                // — pulled, no items, no answer recorded — go back to it here. Once ESI has
+                // answered, the status is on the row and it is left alone, so this is safe to run
+                // on every start. Mirrored for PostgreSQL in PostgresSchema.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""
+                        UPDATE "EsiContracts" SET "ItemsPulled" = 0
+                        WHERE "OwnerType" = 'corporation' AND "IssuerCorporationId" <> "OwnerId"
+                          AND "ItemsPulled" = 1 AND "ItemsStatus" = 0
+                          AND "Type" IN ('item_exchange', 'auction', 'courier')
+                          AND NOT EXISTS (SELECT 1 FROM "EsiContractItems" i WHERE i."ContractId" = "EsiContracts"."ContractId")
+                        """);
+                }
+                catch { }
 
                 // Persistent id→name cache, shared with the Industry Browser (which also creates it
                 // on demand). Names are immutable so rows are kept across sessions.

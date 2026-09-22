@@ -173,7 +173,7 @@
         <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Content="Pull items from ESI" Command="{Binding PullItemsAsync}" IsEnabled="{Binding CanPull}"
                   FontSize="11" Padding="10 3"
-                  ToolTip.Tip="Ask every endpoint this contract has for its items, once, and say what each answered. A corporation's contract issued by another corporation is one the sweep leaves alone." />
+                  ToolTip.Tip="Ask every endpoint this contract has for its items, once more, and say what each answered." />
           <TextBlock Text="{Binding PullMessage}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
         </StackPanel>

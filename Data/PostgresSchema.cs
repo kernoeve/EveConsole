@@ -479,6 +479,22 @@ public static class PostgresSchema
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "ExpiringContracts" BOOLEAN NOT NULL DEFAULT TRUE
         """,
 
+        // The HTTP status ESI answered a contract's item pull with, and the repair it makes
+        // possible: corporation contracts issued by another corporation were once marked pulled
+        // without a call, on a belief the data contradicted. Marked, no items, no answer
+        // recorded — those go back to the sweep. No-ops once every such row has an answer.
+        // Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "EsiContracts" ADD COLUMN IF NOT EXISTS "ItemsStatus" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        UPDATE "EsiContracts" SET "ItemsPulled" = FALSE
+        WHERE "OwnerType" = 'corporation' AND "IssuerCorporationId" <> "OwnerId"
+          AND "ItemsPulled" AND "ItemsStatus" = 0
+          AND "Type" IN ('item_exchange', 'auction', 'courier')
+          AND NOT EXISTS (SELECT 1 FROM "EsiContractItems" i WHERE i."ContractId" = "EsiContracts"."ContractId")
+        """,
+
         // The hours an alarm is on; null means always. Older builds neither read nor write them.
         """
         ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveFrom" TEXT NULL

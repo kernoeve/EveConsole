@@ -282,6 +282,11 @@ public class ContractDetailVm : ReactiveObject
         values    ??= ContractItemValues.None;
         _pull       = pull;
         ContractId  = c.ContractId;
+        // Why there are no items, when there are none: asked and refused, or not asked yet.
+        if (items.Count == 0)
+            _pullMessage = c.ItemsStatus >= 400 ? $"ESI answered HTTP {c.ItemsStatus} when the items were asked for."
+                         : c.ItemsPulled        ? "ESI listed no items for it."
+                         :                        "Not asked for yet — the background sweep will get to it.";
         Title       = string.IsNullOrWhiteSpace(c.Title) ? "(no title)" : c.Title!;
         TypeLabel   = ContractFmt.TypeLabel(c.Type);
         Status      = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);

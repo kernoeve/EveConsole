@@ -1019,6 +1019,18 @@ public class EsiClient
         long corpId, string path, CancellationToken ct, int page = 0,
         IReadOnlyDictionary<string, string>? extraHeaders = null)
     {
+        // The same stand-down the character path makes above, for the same reason: the error
+        // budget a corporation call spends while paused is the one everything else is waiting on.
+        if (IsErrorLimitBlocked)
+            return new EsiCallResult<T>
+            {
+                StatusCode        = _serverOffline ? 503 : 420,
+                RetryAfterSeconds = ErrorLimitSecondsRemaining,
+                NotSent           = true,
+                Error             = _serverOffline
+                    ? "Tranquility is offline; ESI is paused."
+                    : $"ESI error limit reached; calls are paused for {ErrorLimitSecondsRemaining}s.",
+            };
         if (RouteBlockedFor(path) is { } wait)
             return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
