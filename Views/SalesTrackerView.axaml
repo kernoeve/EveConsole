@@ -87,12 +87,13 @@
     <TabItem Header="Summary" FontSize="12">
       <Grid RowDefinitions="190,Auto,Auto,*">
 
-    <!-- Rollups: Top Buyers / By Market Group / By Item (grouped over the filtered sales) -->
+    <!-- Rollups: profit by buyer / by market group / by item, grouped over the filtered sales
+         and ranked by the profit. -->
     <Grid Grid.Row="0" ColumnDefinitions="*,8,*,8,*" Margin="10 8 10 0">
 
       <Border Grid.Column="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0" Text="Top Buyers" FontSize="11" FontWeight="SemiBold"
+          <TextBlock Grid.Row="0" Text="Profit by Buyer" FontSize="11" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" Margin="10 6 10 4" />
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopBuyers}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
@@ -118,7 +119,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="ISK"    Binding="{Binding Amount}" SortMemberPath="AmountRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Sales"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="%"      Binding="{Binding Share}"  SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
@@ -135,14 +136,15 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
                 <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate x:DataType="vm:ProfitGroupRowVm">
+                  <DataTemplate x:DataType="vm:GroupRowVm">
                     <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Group"  Binding="{Binding Name}"      Width="*" />
-              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}"    SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
-              <DataGridTextColumn Header="%"      Binding="{Binding Share}"     SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Group"  Binding="{Binding Name}"   Width="*" />
+              <DataGridTextColumn Header="Sales"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="%"      Binding="{Binding Share}"  SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -157,16 +159,16 @@
             <DataGrid.Columns>
               <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
                 <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate x:DataType="vm:ProfitGroupRowVm">
+                  <DataTemplate x:DataType="vm:GroupRowVm">
                     <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTemplateColumn Header="Item" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate x:DataType="vm:ProfitGroupRowVm">
+                  <DataTemplate x:DataType="vm:GroupRowVm">
                     <Panel>
-                      <Button Classes="link" Click="OnOpenProfitGroup" IsVisible="{Binding HasLink}"
+                      <Button Classes="link" Click="OnOpenGroup" IsVisible="{Binding HasLink}"
                               ToolTip.Tip="Open in the Item Browser">
                         <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                       </Button>
@@ -176,8 +178,9 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}"    SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
-              <DataGridTextColumn Header="%"      Binding="{Binding Share}"     SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Sales"  Binding="{Binding Sales}"  SortMemberPath="SalesRaw"  Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Profit" Binding="{Binding Profit}" SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
+              <DataGridTextColumn Header="%"      Binding="{Binding Share}"  SortMemberPath="ShareRaw"  Width="Auto" CellStyleClasses="num" />
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

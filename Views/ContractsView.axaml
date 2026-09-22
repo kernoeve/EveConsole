@@ -76,7 +76,7 @@
         </Border>
 
         <!-- Grid + detail -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,600">
           <DataGrid Grid.Column="0" x:Name="OwnedGrid"
                     ItemsSource="{Binding Rows}"
                     SelectedItem="{Binding SelectedRow}"
@@ -141,8 +141,8 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Acceptor" Binding="{Binding Acceptor}" Width="140" />
-              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
-              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
+              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
               <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
               <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
@@ -213,7 +213,7 @@
         </Border>
 
         <!-- Grid + detail -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,600">
           <DataGrid Grid.Column="0"
                     ItemsSource="{Binding Rows}"
                     SelectedItem="{Binding SelectedRow}"
@@ -263,9 +263,9 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
-              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
-              <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" />
+              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" CellStyleClasses="num" />
               <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
               <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
