@@ -666,6 +666,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (vm.MarketVm.RegionOptions.Count == 0)
             await vm.MarketVm.ReloadAsync();
 
+        await vm.CharacterVm.RefreshTokenStateAsync();
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);

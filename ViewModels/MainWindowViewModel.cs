@@ -911,7 +911,7 @@ public class MainWindowViewModel : ReactiveObject
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
-        CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
+        CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.

@@ -342,6 +342,13 @@ public class ContractsService : ReactiveObject
         static int CorpRank(long ownerId, int issuerCorp, long? assignee, long? acceptor)
             => issuerCorp == ownerId ? 2 : assignee == ownerId || acceptor == ownerId ? 1 : 0;
 
+        // Owners a token is held for. A contract whose only owner rows belong to a character or
+        // corporation that is not authorised — never was, or whose token the SSO has since
+        // refused — waits, unlogged, for a sweep after they are: asking would cost a call that
+        // cannot succeed and an error-log line per contract, every sweep.
+        var authedChars = (await db.Characters.AsNoTracking().Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync(ct)).ToHashSet();
+        var authedCorps = (await db.Corporations.AsNoTracking().Where(c => c.RefreshToken != "").Select(c => (long)c.Id).ToListAsync(ct)).ToHashSet();
+
         int done = 0, refused = 0, skipped = 0;
         _itemsTotal = pending.Count;
         _itemsDone  = 0;
@@ -352,13 +359,13 @@ public class ContractsService : ReactiveObject
 
             // Prefer the public endpoint (no token bucket, items always visible), then a
             // character token, then a corporation's.
-            var corp = group.Where(c => c.OwnerType == "corporation")
+            var corp = group.Where(c => c.OwnerType == "corporation" && authedCorps.Contains(c.OwnerId))
                 .OrderByDescending(c => CorpRank(c.OwnerId, c.IssuerCorporationId, c.AssigneeId, c.AcceptorId))
                 .FirstOrDefault();
             var src = group.FirstOrDefault(c => c.OwnerType == "public")
-                   ?? group.FirstOrDefault(c => c.OwnerType == "character")
+                   ?? group.FirstOrDefault(c => c.OwnerType == "character" && authedChars.Contains(c.OwnerId))
                    ?? corp;
-            if (src is null) { skipped++; continue; }   // cannot happen: every group has a row
+            if (src is null) { skipped++; continue; }   // no public listing and no authorised owner: later
 
             // The PUBLIC items endpoint serves item_exchange / auction only — couriers return
             // HTTP 400. There's no way to read a public courier's cargo, and left unmarked they
@@ -367,11 +374,14 @@ public class ContractsService : ReactiveObject
             // cargo); if the only source is public, mark done without calling.
             if (src.OwnerType == "public" && src.Type == "courier")
             {
-                var owned = group.FirstOrDefault(c => c.OwnerType == "character") ?? corp;
+                var owned = group.FirstOrDefault(c => c.OwnerType == "character" && authedChars.Contains(c.OwnerId)) ?? corp;
                 if (owned is null)
                 {
-                    await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
-                        .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
+                    // Marked done only when no owner row exists at all. One whose owner is
+                    // merely unauthorised right now is left for a sweep after re-authorisation.
+                    if (group.All(c => c.OwnerType == "public"))
+                        await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
+                            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
                     skipped++;
                     continue;
                 }
@@ -468,6 +478,9 @@ public class ContractsService : ReactiveObject
         // mark handled so we stop retrying and don't keep feeding ESI's global error limit.
         // Anything else is transient — log and retry next sweep.
         if (r.Status is 400 or 403 or 404) return (true, r.Status);
+        // Never sent — the owner is stood down, or ESI is paused — so nothing to report;
+        // the contract stays pending for the next sweep.
+        if (r.NotSent) return (false, r.Status);
         _errorLogger.Log("ContractsService",
             $"items contract={contractId} owner={ownerType}", $"HTTP {r.Status}: {r.Error}");
         return (false, r.Status);
@@ -476,7 +489,7 @@ public class ContractsService : ReactiveObject
     /// <summary>One call to one endpoint and the store that follows: how many were stored, or
     /// the status and words ESI answered with. A save that failed reads as status 0 and is
     /// retried by the next sweep.</summary>
-    private async Task<(int? Stored, int Status, string? Error)> FetchAndStoreItemsCoreAsync(
+    private async Task<(int? Stored, int Status, string? Error, bool NotSent)> FetchAndStoreItemsCoreAsync(
         AppDbContext db, int contractId, long ownerId, string ownerType, CancellationToken ct)
     {
         // NOTE: individual item calls are intentionally NOT logged to the API activity log —
@@ -484,12 +497,13 @@ public class ContractsService : ReactiveObject
         List<ContractItem>? items = null;
         int status = 0;
         string? error = null;
+        bool notSent = false;
 
         if (ownerType == "public")
         {
             var r = await _esi.ExecutePublicAllPagesAsync<EsiPublicContractItem>(
                 $"contracts/public/items/{contractId}/", ct);
-            status = r.StatusCode; error = r.Error;
+            status = r.StatusCode; error = r.Error; notSent = r.NotSent;
             if (r.IsSuccess && r.Data is not null)
                 items = r.Data.Select(i => new ContractItem
                 {
@@ -507,7 +521,7 @@ public class ContractsService : ReactiveObject
             var r = ownerType == "corporation"
                 ? await _esi.ExecuteCorpAllPagesAsync<EsiContractItem>(ownerId, path, ct)
                 : await _esi.ExecuteAllPagesAsync<EsiContractItem>(ownerId, path, ct);
-            status = r.StatusCode; error = r.Error;
+            status = r.StatusCode; error = r.Error; notSent = r.NotSent;
             if (r.IsSuccess && r.Data is not null)
                 items = r.Data.Select(i => new ContractItem
                 {
@@ -517,7 +531,7 @@ public class ContractsService : ReactiveObject
                 }).ToList();
         }
 
-        if (items is null) return (null, status, error);
+        if (items is null) return (null, status, error, notSent);
 
         // Dedupe by RecordId. ESI has been observed returning the same record twice inside
         // one contract's paged item list, and EF rejects the pair on the (ContractId,
@@ -531,7 +545,7 @@ public class ContractsService : ReactiveObject
         {
             if (deduped.Count > 0) db.EsiContractItems.AddRange(deduped);
             await db.SaveChangesAsync(ct);
-            return (deduped.Count, status, null);
+            return (deduped.Count, status, null, false);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -539,7 +553,7 @@ public class ContractsService : ReactiveObject
             // Retried next sweep rather than marked pulled — but not at the cost of the
             // rest of this one.
             _errorLogger.Log("ContractsService", $"items contract={contractId} owner={ownerType}", ex);
-            return (null, 0, ex.Message);
+            return (null, 0, ex.Message, false);
         }
         finally
         {

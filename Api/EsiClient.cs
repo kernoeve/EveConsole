@@ -24,8 +24,11 @@ public class EsiClient
     // that owner fails at once and in words, without another round trip to the SSO — a refused
     // token stays refused. Cleared by RegisterCharacter/RegisterCorporation: a re-authorisation
     // is the only thing that mends it.
-    private readonly ConcurrentDictionary<long, string> _revokedCharacters = new();
-    private readonly ConcurrentDictionary<long, string> _revokedCorps      = new();
+    private readonly ConcurrentDictionary<long, Refused> _revokedCharacters = new();
+    private readonly ConcurrentDictionary<long, Refused> _revokedCorps      = new();
+
+    /// <summary>The token the SSO refused, and its words for why.</summary>
+    private sealed record Refused(string Token, string Why);
 
     // ── The HTTP gate, in two lanes ─────────────────────────────────────────
     //
@@ -265,7 +268,7 @@ public class EsiClient
     /// </summary>
     public void RegisterCharacter(long characterId, string refreshToken)
     {
-        _revokedCharacters.TryRemove(characterId, out _);
+        if (StillRefused(_revokedCharacters, characterId, refreshToken)) return;
         _tokens[characterId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
     }
 
@@ -282,7 +285,7 @@ public class EsiClient
     /// </summary>
     public void RegisterCorporation(long corpId, string refreshToken)
     {
-        _revokedCorps.TryRemove(corpId, out _);
+        if (StillRefused(_revokedCorps, corpId, refreshToken)) return;
         _corpTokens[corpId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
     }
 
@@ -984,6 +987,7 @@ public class EsiClient
             {
                 Data               = firstPage.Data ?? [],
                 StatusCode         = firstPage.StatusCode,
+                NotSent            = firstPage.NotSent,
                 TotalPages         = firstPage.TotalPages,
                 RateLimitGroup     = firstPage.RateLimitGroup,
                 RateLimitRemaining = firstPage.RateLimitRemaining,
@@ -1159,6 +1163,7 @@ public class EsiClient
             {
                 Data               = firstPage.Data ?? [],
                 StatusCode         = firstPage.StatusCode,
+                NotSent            = firstPage.NotSent,
                 TotalPages         = firstPage.TotalPages,
                 RateLimitGroup     = firstPage.RateLimitGroup,
                 RateLimitRemaining = firstPage.RateLimitRemaining,
@@ -1343,8 +1348,8 @@ public class EsiClient
 
     private async Task<TokenSet> EnsureValidCorpTokenAsync(long corpId, CancellationToken ct)
     {
-        if (_revokedCorps.TryGetValue(corpId, out var why))
-            throw new EsiTokenRevokedException("invalid_grant", why);
+        if (_revokedCorps.TryGetValue(corpId, out var refused))
+            throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_corpTokens.TryGetValue(corpId, out var tokens))
             throw new InvalidOperationException(
                 $"No token registered for corporation {corpId}. Call RegisterCorporation() first.");
@@ -1365,8 +1370,8 @@ public class EsiClient
 
     private async Task<TokenSet> EnsureValidTokenAsync(long characterId, CancellationToken ct)
     {
-        if (_revokedCharacters.TryGetValue(characterId, out var why))
-            throw new EsiTokenRevokedException("invalid_grant", why);
+        if (_revokedCharacters.TryGetValue(characterId, out var refused))
+            throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_tokens.TryGetValue(characterId, out var tokens))
             throw new InvalidOperationException(
                 $"No token registered for character {characterId}. Call RegisterCharacter() or SetTokens() first.");
@@ -1427,18 +1432,41 @@ public class EsiClient
     /// </summary>
     public Func<long, string, string, Task>? TokenRevoked { get; set; }
 
+    /// <summary>
+    /// The same news for this process's own views, synchronously and before the database is
+    /// touched: a Settings window that is open should change the moment the refusal lands, not
+    /// after a reload. (ownerId, ownerType, reason.)
+    /// </summary>
+    public event Action<long, string, string>? OwnerRevoked;
+
     /// <summary>Owners this client has seen refused since it started. The status bar's cue to
     /// read the database again, which is where the count every client agrees on lives.</summary>
     public int RevokedThisSession => _revokedCharacters.Count + _revokedCorps.Count;
 
-    private void Revoke(ConcurrentDictionary<long, string> revoked, ConcurrentDictionary<long, TokenSet> tokens,
+    /// <summary>
+    /// Whether a registration should leave the stand-down in place. Only a DIFFERENT token
+    /// lifts it: a re-authorisation always mints a new one. The same token again is a view
+    /// model that loaded before the retire was written re-registering what it read — and an
+    /// empty one is the retired row itself — and either would have sent the client back to
+    /// the SSO with a token already refused, for another refusal and another log entry.
+    /// </summary>
+    private static bool StillRefused(ConcurrentDictionary<long, Refused> revoked, long ownerId, string refreshToken)
+    {
+        if (!revoked.TryGetValue(ownerId, out var r)) return false;
+        if (refreshToken.Length == 0 || refreshToken == r.Token) return true;
+        revoked.TryRemove(ownerId, out _);
+        return false;
+    }
+
+    private void Revoke(ConcurrentDictionary<long, Refused> revoked, ConcurrentDictionary<long, TokenSet> tokens,
                         long ownerId, string ownerType, EsiTokenRevokedException ex)
     {
         // First refusal only: with several pollers sharing an owner, the second and later arrive
         // while the first is still being written up, and one entry per owner is the point.
-        if (!revoked.TryAdd(ownerId, ex.Description)) return;
-        tokens.TryRemove(ownerId, out _);
+        tokens.TryRemove(ownerId, out var dead);
+        if (!revoked.TryAdd(ownerId, new Refused(dead?.RefreshToken ?? "", ex.Description))) return;
 
+        OwnerRevoked?.Invoke(ownerId, ownerType, ex.Message);
         if (TokenRevoked is not { } hook) return;
         _ = Task.Run(async () =>
         {

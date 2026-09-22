@@ -2,6 +2,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using Avalonia.Threading;
 using EveConsole.Api;
 using EveConsole.Auth;
 using EveConsole.Data;
@@ -23,6 +24,7 @@ public class CharacterViewModel : ReactiveObject
     private readonly EsiAuthService _auth;
     private readonly EsiClient      _esi;
     private readonly AppDbContext   _db;
+    private readonly AppErrorLogger? _errors;
 
     // -----------------------------------------------------------------------
     // Bindable collections
@@ -198,14 +200,36 @@ public class CharacterViewModel : ReactiveObject
 
     // -----------------------------------------------------------------------
 
-    public CharacterViewModel(EsiAuthService auth, EsiClient esi, AppDbContext db)
+    public CharacterViewModel(EsiAuthService auth, EsiClient esi, AppDbContext db, AppErrorLogger? errors = null)
     {
-        _auth = auth;
-        _esi  = esi;
-        _db   = db;
+        _auth   = auth;
+        _esi    = esi;
+        _db     = db;
+        _errors = errors;
 
         _charScopeGroups = BuildScopeGroups(EsiAuthService.CharacterScopes, stripCorporation: false);
         _corpScopeGroups = BuildScopeGroups(EsiAuthService.CorporationScopes, stripCorporation: true);
+
+        // A refusal seen by this process shows in the list at once. One seen by another client
+        // (the worker on another machine) reaches it through RefreshTokenStateAsync when
+        // Settings opens.
+        _esi.OwnerRevoked += (id, type, reason) => Dispatcher.UIThread.Post(() =>
+        {
+            if (type == "corporation")
+            {
+                var corp = Corporations.FirstOrDefault(c => c.Id == (int)id);
+                if (corp is null) return;
+                corp.RefreshToken = ""; corp.TokenError = reason;
+                RefreshCorpListItem(corp);
+            }
+            else
+            {
+                var ch = Characters.FirstOrDefault(c => c.Id == id);
+                if (ch is null) return;
+                ch.RefreshToken = ""; ch.TokenError = reason;
+                RefreshCharacterListItem(ch);
+            }
+        });
 
         this.WhenAnyValue(x => x.SelectedCharacterInSettings)
             .Subscribe(ch =>
@@ -259,7 +283,13 @@ public class CharacterViewModel : ReactiveObject
             { AddCharacterCommand, UpdateCharacterCommand, AddCorporationCommand, UpdateCorporationCommand,
               RefreshSkillsCommand, loadSkillsCommand, RemoveCharacterCommand, RemoveCorporationCommand })
         {
-            cmd.ThrownExceptions.Subscribe(ex => StatusMessage = $"Error: {ex.Message}");
+            // The status line AND the error log: the line is overwritten by the next thing
+            // that happens, and an add or update that failed is worth being able to look up.
+            cmd.ThrownExceptions.Subscribe(ex =>
+            {
+                StatusMessage = $"Error: {ex.Message}";
+                _errors?.Log("CharacterViewModel", "add/update/remove", ex);
+            });
         }
 
         this.WhenAnyValue(x => x.SelectedCharacter)
@@ -283,7 +313,10 @@ public class CharacterViewModel : ReactiveObject
 
             foreach (var ch in characters)
             {
-                _esi.RegisterCharacter(ch.Id, ch.RefreshToken);
+                // A retired token — refused by the SSO, cleared by the retire — is not one to
+                // register: the client would take the empty string to the SSO and be refused
+                // again, once per start, for a character that already says "Token Expired".
+                if (ch.RefreshToken.Length > 0) _esi.RegisterCharacter(ch.Id, ch.RefreshToken);
                 Characters.Add(ch);
             }
             foreach (var ch in characters)
@@ -620,6 +653,32 @@ public class CharacterViewModel : ReactiveObject
         return missing == 0
             ? new CorpListItem(corp, "All Scopes Included", GreenBrush)
             : new CorpListItem(corp, $"{missing} scopes not granted", OrangeBrush);
+    }
+
+    /// <summary>
+    /// Brings the token columns of every owner up to what the database holds now, and relabels
+    /// the rows that changed. The list is otherwise built once at startup, so a token retired
+    /// since — by this process's own hook, or by the worker on another machine — would read
+    /// "All Scopes Included" until the next start. Called as Settings opens.
+    /// </summary>
+    public async Task RefreshTokenStateAsync()
+    {
+        try
+        {
+            foreach (var ch in Characters.ToList())
+            {
+                var was = ch.TokenError;
+                await _db.Entry(ch).ReloadAsync();
+                if (ch.TokenError != was) RefreshCharacterListItem(ch);
+            }
+            foreach (var corp in Corporations.ToList())
+            {
+                var was = corp.TokenError;
+                await _db.Entry(corp).ReloadAsync();
+                if (corp.TokenError != was) RefreshCorpListItem(corp);
+            }
+        }
+        catch { /* a list that is a start stale is not worth failing the window over */ }
     }
 
     private void RefreshCharacterListItem(Character ch)
