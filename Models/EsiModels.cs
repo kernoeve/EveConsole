@@ -120,6 +120,10 @@ public class Character
     // Stored at auth time; access tokens auto-refresh, so use LastUpdated for "last authenticated".
     public DateTimeOffset? AccessTokenExpiresAt { get; set; }
     public DateTimeOffset LastUpdated { get; set; }
+    // Why the SSO refused the refresh token, in its words, or "" while the token is good. Set
+    // when a refresh comes back invalid_grant — RefreshToken is cleared at the same time, so the
+    // pollers drop the character — and cleared again by the next authorisation.
+    public string TokenError { get; set; } = "";
 
     public bool HasScope(string scope) =>
         GrantedScopes.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains(scope);
@@ -139,6 +143,8 @@ public class Corporation
     public DateTimeOffset? AccessTokenExpiresAt { get; set; }
     public DateTimeOffset  LastUpdated          { get; set; }
     public bool            IsPersonal           { get; set; } = false;
+    // As Character.TokenError.
+    public string          TokenError           { get; set; } = "";
 
     // Comma-separated corp endpoint keys the auth character cannot poll (lacks the required
     // in-corp role). Populated from the auth character's roles on add / role refresh, and

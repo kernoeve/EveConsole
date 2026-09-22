@@ -3072,15 +3072,18 @@ public class EsiPollingService : ReactiveObject
         // If a preferred structure-name character is configured, use only that character.
         // Otherwise try the primary auth char first, then fall back to all others.
         var preferredCharId = _prefs.GetLong(AppPreferencesService.StructureNameCharKey, 0);
-        var allCharIds = await db.Characters.Select(c => c.Id).ToListAsync(ct);
+        // Authorised characters only. One without a token — never authorised, or retired after
+        // the SSO refused it — cannot be asked, and asking through all twelve of them was one
+        // "all 12 character(s) failed" per structure, every sweep, with no call ever sent.
+        var allCharIds = await db.Characters.Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync(ct);
         var charIds = new List<long>();
         if (preferredCharId > 0)
         {
-            charIds.Add(preferredCharId); // single designated character only
+            if (allCharIds.Contains(preferredCharId)) charIds.Add(preferredCharId); // single designated character only
         }
         else
         {
-            if (primaryAuthCharId > 0) charIds.Add(primaryAuthCharId);
+            if (primaryAuthCharId > 0 && allCharIds.Contains(primaryAuthCharId)) charIds.Add(primaryAuthCharId);
             charIds.AddRange(allCharIds.Where(id => id != primaryAuthCharId));
         }
 
@@ -3116,6 +3119,11 @@ public class EsiPollingService : ReactiveObject
             if (detail is null)
             {
                 var sc = lastResult?.StatusCode ?? 0;
+
+                // Nothing was sent — every character is stood down, or ESI is paused — so there
+                // is nothing to record and nothing to log; the structure is asked for next sweep.
+                if (lastResult?.NotSent == true) continue;   // disposal drops the in-progress row without a log entry
+
                 handle.Complete(false, sc, $"all {charIds.Count} character(s) failed");
 
                 // 403 (no docking rights) and 404 (structure gone) are persistent — flag the

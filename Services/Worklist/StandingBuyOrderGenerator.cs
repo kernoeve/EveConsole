@@ -140,12 +140,14 @@ public class StandingBuyOrderGenerator(
         try
         {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
-            var rows = await db.MarketRawOrders.AsNoTracking()
-                .OrderByDescending(o => o.FetchedAt)
+            // ⚠️ Distinct values, newest picked here, not ORDER BY in SQL: a DateTimeOffset in
+            // ORDER BY throws on SQLite, and the catch below turned that into "no stamp" on
+            // every SQLite install. One value per fetch batch, so the list is short.
+            var stamps = await db.MarketRawOrders.AsNoTracking()
                 .Select(o => o.FetchedAt)
-                .Take(1)
+                .Distinct()
                 .ToListAsync(ct);
-            return rows.Count > 0 ? rows[0] : null;
+            return stamps.Count > 0 ? stamps.Max() : null;
         }
         catch { return null; }
     }

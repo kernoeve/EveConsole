@@ -23,6 +23,21 @@ public class SdeViewModel : ReactiveObject
     /// </summary>
     private readonly AppDbContext      _db;
 
+    // ⚠️ One context, several callers: the constructor fires InitializeAsync, MainWindow asks
+    // IsSdeImportedAsync at the same moment, and the hourly re-check runs whenever it runs. A
+    // DbContext allows one operation at a time, and two of these landing together is "A second
+    // operation was started on this context instance" in the Latest line — which is what a
+    // fresh install showed, where nothing takes long enough to keep them apart. Every read
+    // goes through this gate.
+    private readonly SemaphoreSlim _dbGate = new(1, 1);
+
+    private async Task<T> ReadAsync<T>(Func<AppDbContext, Task<T>> query)
+    {
+        await _dbGate.WaitAsync();
+        try { return await query(_db); }
+        finally { _dbGate.Release(); }
+    }
+
     // ── SDE state ─────────────────────────────────────────────────────────
     private string _statusText      = "SDE not loaded";
     private double _fraction        = 0;
@@ -149,7 +164,7 @@ public class SdeViewModel : ReactiveObject
 
             LatestBuild = FormatBuild(latest.BuildNumber, latest.ReleaseDate);
 
-            var stored = await _db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
+            var stored = await ReadAsync(db => db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1));
             UpdateAvailable = stored is null || stored.BuildNumber != latest.BuildNumber;
 
             // Only here, where a real build number came back and was compared against ours.
@@ -183,7 +198,7 @@ public class SdeViewModel : ReactiveObject
 
             HoboLatest = $"revision {meta.Revision:N0}";
 
-            var stored = await _db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
+            var stored = await ReadAsync(db => db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1));
             HoboUpdateAvailable = stored is null
                 || (stored.Revision > 0 && stored.Revision != meta.Revision);
         }
@@ -197,7 +212,7 @@ public class SdeViewModel : ReactiveObject
 
     private async Task LoadStoredBuildAsync()
     {
-        var info = await _db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
+        var info = await ReadAsync(db => db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1));
         LoadedBuild = info is null
             ? "not imported"
             : FormatBuild(info.BuildNumber, info.ReleaseDate);
@@ -208,7 +223,7 @@ public class SdeViewModel : ReactiveObject
 
     private async Task LoadHoboInfoAsync()
     {
-        var info = await _db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1);
+        var info = await ReadAsync(db => db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1));
 
         // ⚠️ Revision 0 means "imported before the app recorded one", not "revision zero". Saying
         // that is better than printing a number nobody wrote.
@@ -226,7 +241,7 @@ public class SdeViewModel : ReactiveObject
 
     // True once the SDE has been imported at least once.
     public async Task<bool> IsSdeImportedAsync()
-        => await _db.SdeBuildInfos.AsNoTracking().AnyAsync(x => x.Id == 1);
+        => await ReadAsync(db => db.SdeBuildInfos.AsNoTracking().AnyAsync(x => x.Id == 1));
 
     // Runs the SDE import followed by the Hoboleaks import, back to back. Used to
     // populate game data automatically the first time the application is launched.
@@ -234,6 +249,23 @@ public class SdeViewModel : ReactiveObject
     {
         await RunImportAsync();
         await RunHoboImportAsync();
+    }
+
+    /// <summary>
+    /// Re-imports whichever of the two the startup schema pass grew, silently, the way a first
+    /// launch imports both.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ A column the schema pass adds is empty. The pass stops the query throwing; it puts
+    /// nothing in the column. Upgrading to a build that added SDE columns used to leave every
+    /// one of them blank until the user noticed and ran the import by hand — and the tools
+    /// reading those columns did not throw, they just computed on zeros. Now the import that
+    /// fills them starts on its own, in the background, with no dialog.
+    /// </remarks>
+    public async Task RunSchemaRefreshAsync(bool sde, bool hobo)
+    {
+        if (sde  && !IsBusy)     await RunImportAsync();
+        if (hobo && !HoboIsBusy) await RunHoboImportAsync();
     }
 
     // ── SDE import ────────────────────────────────────────────────────────

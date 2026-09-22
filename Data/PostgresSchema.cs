@@ -701,6 +701,15 @@ public static class PostgresSchema
             "UpdatedAt"         TIMESTAMPTZ    NOT NULL DEFAULT now()
         )
         """,
+
+        // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored for SQLite
+        // in App.axaml.cs.
+        """
+        ALTER TABLE "Characters" ADD COLUMN IF NOT EXISTS "TokenError" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "TokenError" TEXT NOT NULL DEFAULT ''
+        """,
     ];
 
     /// <summary>

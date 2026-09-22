@@ -20,6 +20,16 @@ public class EsiClient
     private readonly ConcurrentDictionary<long, TokenSet> _tokens     = new();
     private readonly ConcurrentDictionary<long, TokenSet> _corpTokens = new();
 
+    // Owners whose refresh token the SSO has refused (invalid_grant). Kept so the next call for
+    // that owner fails at once and in words, without another round trip to the SSO — a refused
+    // token stays refused. Cleared by RegisterCharacter/RegisterCorporation: a re-authorisation
+    // is the only thing that mends it.
+    private readonly ConcurrentDictionary<long, Refused> _revokedCharacters = new();
+    private readonly ConcurrentDictionary<long, Refused> _revokedCorps      = new();
+
+    /// <summary>The token the SSO refused, and its words for why.</summary>
+    private sealed record Refused(string Token, string Why);
+
     // ── The HTTP gate, in two lanes ─────────────────────────────────────────
     //
     // Limits simultaneous ESI HTTP calls app-wide, so a burst from many characters and corps
@@ -257,22 +267,34 @@ public class EsiClient
     /// Use this on startup to restore characters from DB without hitting the network.
     /// </summary>
     public void RegisterCharacter(long characterId, string refreshToken)
-        => _tokens[characterId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    {
+        if (StillRefused(_revokedCharacters, characterId, refreshToken)) return;
+        _tokens[characterId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    }
 
     /// <summary>Register a freshly-obtained token set (e.g. after a live login).</summary>
     public void SetTokens(long characterId, TokenSet tokens)
-        => _tokens[characterId] = tokens;
+    {
+        _revokedCharacters.TryRemove(characterId, out _);
+        _tokens[characterId] = tokens;
+    }
 
     /// <summary>
     /// Register a corporation whose token will be lazy-refreshed on first API call.
     /// The refresh token must belong to a character with the director/accountant role.
     /// </summary>
     public void RegisterCorporation(long corpId, string refreshToken)
-        => _corpTokens[corpId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    {
+        if (StillRefused(_revokedCorps, corpId, refreshToken)) return;
+        _corpTokens[corpId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    }
 
     /// <summary>Register a freshly-obtained corp token set.</summary>
     public void SetCorpTokens(long corpId, TokenSet tokens)
-        => _corpTokens[corpId] = tokens;
+    {
+        _revokedCorps.TryRemove(corpId, out _);
+        _corpTokens[corpId] = tokens;
+    }
 
     // -----------------------------------------------------------------------
     // Character endpoints
@@ -728,6 +750,18 @@ public class EsiClient
             };
         }
         catch (OperationCanceledException) { throw; }
+        catch (EsiTokenRevokedException ex)
+        {
+            // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
+            // way an error-limit pause is, so the pollers neither record it nor advance on it.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -861,6 +895,18 @@ public class EsiClient
             };
         }
         catch (OperationCanceledException) { throw; }
+        catch (EsiTokenRevokedException ex)
+        {
+            // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
+            // way an error-limit pause is, so the pollers neither record it nor advance on it.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -953,6 +999,7 @@ public class EsiClient
             {
                 Data               = firstPage.Data ?? [],
                 StatusCode         = firstPage.StatusCode,
+                NotSent            = firstPage.NotSent,
                 TotalPages         = firstPage.TotalPages,
                 RateLimitGroup     = firstPage.RateLimitGroup,
                 RateLimitRemaining = firstPage.RateLimitRemaining,
@@ -1092,6 +1139,18 @@ public class EsiClient
             };
         }
         catch (OperationCanceledException) { throw; }
+        catch (EsiTokenRevokedException ex)
+        {
+            // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
+            // way an error-limit pause is, so the pollers neither record it nor advance on it.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -1122,6 +1181,7 @@ public class EsiClient
             {
                 Data               = firstPage.Data ?? [],
                 StatusCode         = firstPage.StatusCode,
+                NotSent            = firstPage.NotSent,
                 TotalPages         = firstPage.TotalPages,
                 RateLimitGroup     = firstPage.RateLimitGroup,
                 RateLimitRemaining = firstPage.RateLimitRemaining,
@@ -1306,13 +1366,20 @@ public class EsiClient
 
     private async Task<TokenSet> EnsureValidCorpTokenAsync(long corpId, CancellationToken ct)
     {
+        if (_revokedCorps.TryGetValue(corpId, out var refused))
+            throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_corpTokens.TryGetValue(corpId, out var tokens))
-            throw new InvalidOperationException(
+            throw new EsiOwnerNotRegisteredException(
                 $"No token registered for corporation {corpId}. Call RegisterCorporation() first.");
 
         if (tokens.IsExpired)
         {
-            tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
+            try { tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct); }
+            catch (EsiTokenRevokedException ex)
+            {
+                Revoke(_revokedCorps, _corpTokens, corpId, "corporation", ex);
+                throw;
+            }
             _corpTokens[corpId] = tokens;
             NotifyScopes(corpId, "corporation", tokens);
         }
@@ -1321,13 +1388,20 @@ public class EsiClient
 
     private async Task<TokenSet> EnsureValidTokenAsync(long characterId, CancellationToken ct)
     {
+        if (_revokedCharacters.TryGetValue(characterId, out var refused))
+            throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_tokens.TryGetValue(characterId, out var tokens))
-            throw new InvalidOperationException(
+            throw new EsiOwnerNotRegisteredException(
                 $"No token registered for character {characterId}. Call RegisterCharacter() or SetTokens() first.");
 
         if (tokens.IsExpired)
         {
-            tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
+            try { tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct); }
+            catch (EsiTokenRevokedException ex)
+            {
+                Revoke(_revokedCharacters, _tokens, characterId, "character", ex);
+                throw;
+            }
             _tokens[characterId] = tokens;
             NotifyScopes(characterId, "character", tokens);
         }
@@ -1345,12 +1419,16 @@ public class EsiClient
     /// Tokens are refreshed lazily, on the first call after the roughly twenty-minute expiry, so
     /// every character in regular use is put right within the hour without anyone re-authorising
     /// anything.</para>
+    ///
+    /// <para>The refresh token the SSO handed back rides along. It has been the same one every
+    /// time so far, but the OAuth contract allows a new one, and a rotated token this class held
+    /// only in memory would be gone at the next start — the character silently unauthorised.</para>
     /// </summary>
-    public Func<long, string, string[], Task>? AfterTokenRefreshed { get; set; }
+    public Func<long, string, string[], string, Task>? AfterTokenRefreshed { get; set; }
 
     private void NotifyScopes(long ownerId, string ownerType, TokenSet tokens)
     {
-        if (AfterTokenRefreshed is null) return;
+        if (AfterTokenRefreshed is not { } hook) return;
 
         var scopes = JwtHelper.GetScopes(tokens.AccessToken);
         if (scopes.Length == 0) return;   // unreadable claim: leave the stored list alone
@@ -1359,7 +1437,58 @@ public class EsiClient
         // never delay or fail it. Errors are swallowed here for the same reason.
         _ = Task.Run(async () =>
         {
-            try { await AfterTokenRefreshed(ownerId, ownerType, scopes); } catch { }
+            try { await hook(ownerId, ownerType, scopes, tokens.RefreshToken); } catch { }
+        });
+    }
+
+    /// <summary>
+    /// Raised once when the SSO refuses an owner's refresh token, with the SSO's reason. Wired
+    /// in <c>App.axaml.cs</c> to retire the token in the database — cleared, so every roster
+    /// query that selects on it drops the owner — and to record why, so Settings and the status
+    /// bar can say so. Like <see cref="AfterTokenRefreshed"/>, a delegate: this class does not
+    /// know about persistence.
+    /// </summary>
+    public Func<long, string, string, Task>? TokenRevoked { get; set; }
+
+    /// <summary>
+    /// The same news for this process's own views, synchronously and before the database is
+    /// touched: a Settings window that is open should change the moment the refusal lands, not
+    /// after a reload. (ownerId, ownerType, reason.)
+    /// </summary>
+    public event Action<long, string, string>? OwnerRevoked;
+
+    /// <summary>Owners this client has seen refused since it started. The status bar's cue to
+    /// read the database again, which is where the count every client agrees on lives.</summary>
+    public int RevokedThisSession => _revokedCharacters.Count + _revokedCorps.Count;
+
+    /// <summary>
+    /// Whether a registration should leave the stand-down in place. Only a DIFFERENT token
+    /// lifts it: a re-authorisation always mints a new one. The same token again is a view
+    /// model that loaded before the retire was written re-registering what it read — and an
+    /// empty one is the retired row itself — and either would have sent the client back to
+    /// the SSO with a token already refused, for another refusal and another log entry.
+    /// </summary>
+    private static bool StillRefused(ConcurrentDictionary<long, Refused> revoked, long ownerId, string refreshToken)
+    {
+        if (!revoked.TryGetValue(ownerId, out var r)) return false;
+        if (refreshToken.Length == 0 || refreshToken == r.Token) return true;
+        revoked.TryRemove(ownerId, out _);
+        return false;
+    }
+
+    private void Revoke(ConcurrentDictionary<long, Refused> revoked, ConcurrentDictionary<long, TokenSet> tokens,
+                        long ownerId, string ownerType, EsiTokenRevokedException ex)
+    {
+        // First refusal only: with several pollers sharing an owner, the second and later arrive
+        // while the first is still being written up, and one entry per owner is the point.
+        tokens.TryRemove(ownerId, out var dead);
+        if (!revoked.TryAdd(ownerId, new Refused(dead?.RefreshToken ?? "", ex.Description))) return;
+
+        OwnerRevoked?.Invoke(ownerId, ownerType, ex.Message);
+        if (TokenRevoked is not { } hook) return;
+        _ = Task.Run(async () =>
+        {
+            try { await hook(ownerId, ownerType, ex.Message); } catch { }
         });
     }
 }

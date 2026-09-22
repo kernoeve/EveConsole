@@ -481,15 +481,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else
         {
-            vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
-                .Where(available => available)
-                .Take(1)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(async _ =>
-                {
-                    var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
-                    await dialog.ShowDialog(this);
-                });
+            // This build added SDE or Hobo columns that the startup pass created empty. Refill
+            // them the way a first launch fills everything: in the background, no dialog.
+            if (App.SdeSchemaGrew || App.HoboSchemaGrew)
+                _ = vm.SdeVm.RunSchemaRefreshAsync(App.SdeSchemaGrew, App.HoboSchemaGrew);
+
+            // The "newer build available" prompt — unless the SDE import is already running in
+            // the background, in which case what the dialog would offer is what is happening,
+            // and the import fetches the newest build regardless. A Hobo-only refresh does not
+            // touch the SDE, so the prompt still stands for that.
+            if (!App.SdeSchemaGrew)
+                vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
+                    .Where(available => available)
+                    .Take(1)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(async _ =>
+                    {
+                        var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
+                        await dialog.ShowDialog(this);
+                    });
         }
 
         // App update prompt (Velopack) — only when a new version is found and not already declined.
@@ -656,6 +666,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (vm.MarketVm.RegionOptions.Count == 0)
             await vm.MarketVm.ReloadAsync();
 
+        await vm.CharacterVm.RefreshTokenStateAsync();
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
@@ -742,6 +753,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         if (DataContext is MainWindowViewModel vm && (sender as Control)?.DataContext is StatusBarItem item)
             vm.OpenBackgroundProcesses(item.Tab);
+    }
+
+    // The red "N bad tokens" beside ESI Calls: the fix is a re-authorisation, which lives on the
+    // ESI Tokens page, so that is where it goes.
+    private void OnStatusWarningClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "ESI Tokens");
     }
 
     // ── Tab detach (right-click → Open in New Window) ─────────────────────────

@@ -392,6 +392,13 @@
             <Style Selector="Button.bglabel.running">
               <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
             </Style>
+            <!-- Something the user has to act on, next to the line it belongs to: "2 bad tokens"
+                 beside ESI Calls. Red whatever the line is doing, and it opens Settings at the
+                 page where it is put right rather than the Background Processes tool. -->
+            <Style Selector="Button.bglabel.warning">
+              <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -400,9 +407,14 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:StatusBarItem">
-              <Button Classes="bglabel" Classes.running="{Binding Running}"
-                      Content="{Binding Label}" Click="OnBackgroundLabelClick"
-                      VerticalAlignment="Center" />
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <Button Classes="bglabel" Classes.running="{Binding Running}"
+                        Content="{Binding Label}" Click="OnBackgroundLabelClick"
+                        VerticalAlignment="Center" />
+                <Button Classes="bglabel warning" IsVisible="{Binding HasWarning}"
+                        Content="{Binding Warning}" Click="OnStatusWarningClick"
+                        VerticalAlignment="Center" />
+              </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>

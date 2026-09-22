@@ -157,10 +157,44 @@ public class EsiAuthService
         });
 
         var response = await _http.PostAsync(TokenEndpoint, body, ct);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            // Read the body before giving up on it: the status alone says "400" and nothing
+            // else, and a 400 from the SSO is one of two very different things. invalid_grant
+            // is the token itself being refused — dead for good, and the caller retires it.
+            // Anything else (a 5xx, Cloudflare's 5xx page, a malformed reply) is the road, not
+            // the token, and is reported as the transient failure it is, with the SSO's words.
+            var text = await response.Content.ReadAsStringAsync(ct);
+            if (response.StatusCode == HttpStatusCode.BadRequest && TryReadSsoError(text, out var err, out var desc)
+                && err == "invalid_grant")
+                throw new EsiTokenRevokedException(err, desc);
+
+            var detail = text.Length > 200 ? text[..200] : text;
+            throw new HttpRequestException(
+                $"SSO token refresh failed: HTTP {(int)response.StatusCode} {response.ReasonPhrase}"
+                + (detail.Length > 0 && !detail.TrimStart().StartsWith('<') ? $" — {detail}" : ""),
+                null, response.StatusCode);
+        }
 
         var json = await response.Content.ReadFromJsonAsync<TokenResponse>(ct);
         return TokenSet.FromResponse(json!);
+    }
+
+    /// <summary>The SSO's <c>{"error":"…","error_description":"…"}</c> body, if that is what came back.</summary>
+    private static bool TryReadSsoError(string text, out string error, out string description)
+    {
+        error = ""; description = "";
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+            if (doc.RootElement.TryGetProperty("error", out var e) && e.ValueKind == JsonValueKind.String)
+                error = e.GetString() ?? "";
+            if (doc.RootElement.TryGetProperty("error_description", out var d) && d.ValueKind == JsonValueKind.String)
+                description = d.GetString() ?? "";
+            return error.Length > 0;
+        }
+        catch (JsonException) { return false; }
     }
 
     // -----------------------------------------------------------------------

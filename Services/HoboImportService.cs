@@ -109,7 +109,7 @@ public class HoboImportService
         await AppDb.TuneForBulkImportAsync(db.Database, ct);
 
         Report(progress, "Preparing", "Creating Hobo schema…", 0.01);
-        await EnsureHoboSchemaAsync(db, ct);
+        EnsureHoboSchema(db);
 
         using var http = _httpFactory.CreateClient();
         http.Timeout = TimeSpan.FromMinutes(10);
@@ -218,14 +218,27 @@ public class HoboImportService
     // Schema + clear
     // -----------------------------------------------------------------------
 
-    public async Task EnsureSchemaAsync(CancellationToken ct = default)
+    public Task EnsureSchemaAsync(CancellationToken ct = default)
     {
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await EnsureHoboSchemaAsync(db, ct);
+        EnsureHoboSchema(db);
+        return Task.CompletedTask;
     }
 
-    private static async Task EnsureHoboSchemaAsync(AppDbContext db, CancellationToken ct)
+    /// <summary>
+    /// Brings the Hobo tables up to the shape the entity model expects.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Called from App startup as well as from the import, for the reason the SDE schema is:
+    /// a database that predates a column has EF querying a column the table lacks from the
+    /// moment the app opens. This used to run only inside an import and at the top of the SDE
+    /// settings view model — which the desktop happens to build at startup and the headless
+    /// worker deliberately does not — so the guarantee was "nothing reads these tables before
+    /// that", which is exactly the state the SDE tables were in before 0.9.13. Synchronous
+    /// because the startup path is inside a Task.Run; every statement is idempotent.
+    /// </remarks>
+    internal static void EnsureHoboSchema(AppDbContext db)
     {
         var ddl = new[]
         {
@@ -240,7 +253,7 @@ public class HoboImportService
             """CREATE TABLE IF NOT EXISTS "HoboCompressibleTypes" ("SourceTypeId" INTEGER NOT NULL PRIMARY KEY, "CompressedTypeId" INTEGER NOT NULL)""",
         };
         foreach (var sql in ddl)
-            await db.Database.ExecuteSqlRawAsync(sql, ct);
+            db.Database.ExecuteSqlRaw(sql);
 
         // ALTER TABLE ADD COLUMN for databases that predate the column.
         // SQLite ALTER TABLE does not support IF NOT EXISTS, so the duplicate-column error is
@@ -251,7 +264,7 @@ public class HoboImportService
         };
         foreach (var sql in alters)
         {
-            try { await db.Database.ExecuteSqlRawAsync(sql, ct); }
+            try { db.Database.ExecuteSqlRaw(sql); }
             catch { /* column already exists - idempotent */ }
         }
     }
