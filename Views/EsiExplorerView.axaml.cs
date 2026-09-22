@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -7,6 +6,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using EveConsole.ViewModels;
 using ReactiveUI;
@@ -18,7 +18,6 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
     private record FilterRowUi(ComboBox ColPicker, ComboBox OpPicker, TextBox ValBox, StackPanel Row);
     private readonly List<FilterRowUi> _filterControls = [];
 
-    private readonly HashSet<GridRow> _selectedSet = [];
 
     private ScrollViewer? _gridScroll;
     private bool          _scrollHooked;
@@ -41,7 +40,6 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
         if (!_handlersAdded)
         {
             TableList.SelectionChanged += OnTableSelected;
-            EsiGrid.SelectionChanged   += OnGridSelectionChanged;
             _handlersAdded = true;
         }
 
@@ -56,17 +54,8 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
         }
     }
 
-    private void OnGridSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        foreach (var item in e.RemovedItems.OfType<GridRow>())
-            _selectedSet.Remove(item);
-        foreach (var item in e.AddedItems.OfType<GridRow>())
-            _selectedSet.Add(item);
-    }
-
     private void RegenerateColumns(IReadOnlyList<string> columns)
     {
-        _selectedSet.Clear();
         EsiGrid.ItemsSource = null;
         EsiGrid.Columns.Clear();
 
@@ -249,28 +238,45 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
             OnApplyFilterClick(sender, e);
     }
 
-    private void OnGridKeyDown(object? sender, KeyEventArgs e)
+    /// <summary>
+    /// The whole table to a CSV file the user names. A file half written — the export cancelled
+    /// or failed — is not left behind.
+    /// </summary>
+    private async void OnExportCsvClick(object? sender, RoutedEventArgs e)
     {
-        if (e.Key != Key.C || (e.KeyModifiers & KeyModifiers.Control) == 0) return;
-        if (ViewModel is null) return;
+        try
+        {
+            if (ViewModel is null) return;
+            if (ViewModel.IsExporting) { ViewModel.CancelExport(); return; }
+            var top = TopLevel.GetTopLevel(this);
+            if (top is null) return;
 
-        var columns = EsiGrid.Columns
-            .Select(c => c.Header as string ?? "")
-            .Where(h => h.Length > 0)
-            .ToList();
-        if (columns.Count == 0) return;
+            var name = ViewModel.SelectedTable?.DisplayName ?? "table";
+            foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
+            var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title             = "Export CSV",
+                SuggestedFileName = $"{name}.csv",
+                DefaultExtension  = "csv",
+                FileTypeChoices   = [new FilePickerFileType("CSV") { Patterns = ["*.csv"] }],
+            });
+            if (file is null) return;
 
-        var rowsToCopy = ViewModel.Rows.Where(r => _selectedSet.Contains(r)).ToList();
-        if (rowsToCopy.Count == 0) return;
-
-        var sb = new StringBuilder();
-        sb.AppendLine(string.Join("\t", columns));
-        foreach (var row in rowsToCopy)
-            sb.AppendLine(string.Join("\t", columns.Select(c => row[c])));
-
-        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        _ = clipboard?.SetTextAsync(sb.ToString());
-        e.Handled = true;
+            var whole = false;
+            try
+            {
+                await using (var stream = await file.OpenWriteAsync())
+                    whole = await ViewModel.ExportCsvAsync(stream, file.Name);
+            }
+            finally
+            {
+                if (!whole) { try { await file.DeleteAsync(); } catch { /* the status line already says what happened */ } }
+            }
+        }
+        catch (Exception ex)
+        {
+            ViewModel?.ShowStatus($"Export failed: {ex.Message}");
+        }
     }
 
     private void OnLoadMoreClick(object? sender, RoutedEventArgs e)
