@@ -994,7 +994,7 @@ public class MainWindowViewModel : ReactiveObject
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
-        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
+        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger, contractsService);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);

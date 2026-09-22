@@ -182,9 +182,33 @@ public class ContractItemRowVm : ReactiveObject
     }
 }
 
-public class ContractDetailVm
+public class ContractDetailVm : ReactiveObject
 {
     public int    ContractId { get; }
+
+    // ── Pulling the items on request ──────────────────────────────────────────
+    //
+    // A contract with no items stored may be one the sweep defers — a corporation's contract
+    // another corporation issued — or one not swept yet. The button tries every endpoint the
+    // contract has, once, and says what each answered; the owner reloads when something landed.
+    private readonly Func<int, Task<string>>? _pull;
+    public bool CanPull => _pull is not null && !HasItems && !IsPulling;
+
+    private bool _isPulling;
+    public bool IsPulling { get => _isPulling; private set { this.RaiseAndSetIfChanged(ref _isPulling, value); this.RaisePropertyChanged(nameof(CanPull)); } }
+
+    private string _pullMessage = "";
+    public string PullMessage { get => _pullMessage; private set => this.RaiseAndSetIfChanged(ref _pullMessage, value); }
+
+    public async Task PullItemsAsync()
+    {
+        if (_pull is null || IsPulling) return;
+        IsPulling   = true;
+        PullMessage = "Asking ESI…";
+        try { PullMessage = await _pull(ContractId); }
+        catch (Exception ex) { PullMessage = AppErrorLogger.Line("Pull failed", ex); }
+        finally { IsPulling = false; }
+    }
     public string Title      { get; }
     public string TypeLabel  { get; }
     public string Status     { get; }
@@ -252,9 +276,11 @@ public class ContractDetailVm
         IReadOnlyDictionary<int, string> typeNames,
         IReadOnlyDictionary<long, string> names,
         IReadOnlyDictionary<long, string> locations,
-        ContractItemValues? values = null)
+        ContractItemValues? values = null,
+        Func<int, Task<string>>? pull = null)
     {
         values    ??= ContractItemValues.None;
+        _pull       = pull;
         ContractId  = c.ContractId;
         Title       = string.IsNullOrWhiteSpace(c.Title) ? "(no title)" : c.Title!;
         TypeLabel   = ContractFmt.TypeLabel(c.Type);
@@ -336,6 +362,9 @@ public class ContractRowVm
     public string Contents      { get; }
     public string DateIssued    { get; }
     public DateTimeOffset DateIssuedRaw { get; }
+    public string DateExpires   { get; }
+    /// <summary>Sorts a contract with no expiry last, after every one that has one.</summary>
+    public DateTimeOffset DateExpiresRaw { get; }
     public string Price         { get; }
     public decimal PriceRaw     { get; }
     public string Reward        { get; }
@@ -422,6 +451,8 @@ public class ContractRowVm
 
         DateIssuedRaw = c.DateIssued;
         DateIssued    = c.DateIssued.ToLocalTime().ToString("MMM d, HH:mm");
+        DateExpiresRaw = c.DateExpired ?? DateTimeOffset.MaxValue;
+        DateExpires    = c.DateExpired is { } exp ? exp.ToLocalTime().ToString("MMM d, HH:mm") : "—";
         PriceRaw      = c.Price;
         Price         = c.Price  > 0 ? ContractFmt.Isk(c.Price)  : "—";
         RewardRaw     = c.Reward;
@@ -751,11 +782,19 @@ public class ContractsViewModel : ReactiveObject
     }
 
     public ContractsViewModel(
-        IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
+        IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger, ContractsService? contracts = null)
     {
         var names = new ContractNameResolver(dbFactory, esi, errorLogger);
-        Owned  = new OwnedContractsViewModel(dbFactory, errorLogger, names);
-        Public = new PublicContractsViewModel(dbFactory, errorLogger, names);
+        Owned  = new OwnedContractsViewModel(dbFactory, errorLogger, names, contracts);
+        Public = new PublicContractsViewModel(dbFactory, errorLogger, names, contracts);
+    }
+
+    /// <summary>What an alert opens: the corporation and personal tab, on every character and
+    /// personal corporation, active contracts only, soonest to expire first.</summary>
+    public void ShowActivePersonal()
+    {
+        TabIndex = 0;
+        Owned.ShowActivePersonal();
     }
 }
 
@@ -804,7 +843,9 @@ public class OwnedContractsViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedStatus, value); ApplyFilter(); }
     }
 
-    private const string AllStatuses = "All statuses";
+    private const string AllStatuses  = "All statuses";
+    /// <summary>Outstanding and not past its expiry — the default, as on the public tab.</summary>
+    private const string ActiveStatus = "Active";
 
     private int _pendingSelect;
     private int _reloadedFor;
@@ -880,9 +921,40 @@ public class OwnedContractsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
-    public OwnedContractsViewModel(
-        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names)
+    /// <summary>Set by the view: sorts the grid by a column, ascending.</summary>
+    public Action<string>? SortBy { get; set; }
+
+    /// <summary>The scope on every character and personal corporation, active contracts only,
+    /// soonest to expire first — what an alert about outstanding contracts opens on.</summary>
+    public void ShowActivePersonal()
     {
+        if (!_initialized) { _showActivePersonalPending = true; return; }
+        _selectedScope    = Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedScope));
+        _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
+        _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
+        _selectedStatus   = ActiveStatus;               this.RaisePropertyChanged(nameof(SelectedStatus));
+        ApplyFilter();
+        SortBy?.Invoke(nameof(ContractRowVm.DateExpiresRaw));
+    }
+    private bool _showActivePersonalPending;
+
+    private readonly ContractsService? _contracts;
+
+    /// <summary>The detail pane's pull: one call per endpoint, and a reload when items landed,
+    /// so the row's contents and the pane both show them.</summary>
+    private async Task<string> PullItemsAsync(int contractId)
+    {
+        if (_contracts is null) return "Not available.";
+        var r = await _contracts.PullItemsNowAsync(contractId);
+        if (r.Stored) { _reloadedFor = 0; _pendingSelect = contractId; await LoadAsync(); }
+        return r.Message;
+    }
+
+    public OwnedContractsViewModel(
+        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names,
+        ContractsService? contracts = null)
+    {
+        _contracts   = contracts;
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
@@ -965,6 +1037,7 @@ public class OwnedContractsViewModel : ReactiveObject
             BuildPartyCombo(Acceptors, _all.Select(r => r.AcceptorId), "All acceptors");
 
             Statuses.Clear();
+            Statuses.Add(ActiveStatus);
             Statuses.Add(AllStatuses);
             foreach (var s in _all.Select(r => r.Status).Distinct().OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
                 Statuses.Add(s);
@@ -972,7 +1045,7 @@ public class OwnedContractsViewModel : ReactiveObject
             _selectedScope    = Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedScope));
             _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
             _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
-            _selectedStatus   = AllStatuses;                this.RaisePropertyChanged(nameof(SelectedStatus));
+            _selectedStatus   = ActiveStatus;               this.RaisePropertyChanged(nameof(SelectedStatus));
 
             _initialized = true;
             ApplyFilter();
@@ -980,6 +1053,7 @@ public class OwnedContractsViewModel : ReactiveObject
 
             // A click that arrived while this was loading.
             if (_pendingSelect > 0) { var id = _pendingSelect; _pendingSelect = 0; IsLoading = false; SelectById(id); }
+            if (_showActivePersonalPending) { _showActivePersonalPending = false; ShowActivePersonal(); }
         }
         catch (Exception ex)
         {
@@ -1015,7 +1089,8 @@ public class OwnedContractsViewModel : ReactiveObject
 
         if (SelectedAssignee?.Id is { } aid) q = q.Where(r => r.AssigneeId == aid);
         if (SelectedAcceptor?.Id is { } cid) q = q.Where(r => r.AcceptorId == cid);
-        if (SelectedStatus is { } status && status != AllStatuses) q = q.Where(r => r.Status == status);
+        if (SelectedStatus == ActiveStatus) q = q.Where(r => r.IsActive);
+        else if (SelectedStatus is { } status && status != AllStatuses) q = q.Where(r => r.Status == status);
 
         var rows = q.OrderByDescending(r => r.DateIssuedRaw).ToList();
 
@@ -1030,7 +1105,7 @@ public class OwnedContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
     }
 }
 
@@ -1192,9 +1267,22 @@ public class PublicContractsViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> NextPageCommand     { get; }
     public ReactiveCommand<Unit, Unit> LastPageCommand     { get; }
 
-    public PublicContractsViewModel(
-        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names)
+    private readonly ContractsService? _contracts;
+
+    /// <summary>The detail pane's pull, and a reload of the page when items landed.</summary>
+    private async Task<string> PullItemsAsync(int contractId)
     {
+        if (_contracts is null) return "Not available.";
+        var r = await _contracts.PullItemsNowAsync(contractId);
+        if (r.Stored) await ReloadPageAsync();
+        return r.Message;
+    }
+
+    public PublicContractsViewModel(
+        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names,
+        ContractsService? contracts = null)
+    {
+        _contracts   = contracts;
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
@@ -1454,7 +1542,7 @@ public class PublicContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
     }
 }
 

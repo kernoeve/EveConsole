@@ -385,6 +385,50 @@ public class ContractsService : ReactiveObject
 
     // Fetches a contract's items via the right endpoint and stores them (dedup by RecordId).
     // Returns false only on a hard call failure so the contract is retried next sweep.
+    /// <summary>What one attempt to pull a contract's items came to.</summary>
+    public sealed record ItemPullOutcome(bool Stored, int Count, string Message);
+
+    /// <summary>
+    /// Pulls one contract's items now, on request, from every owner row that holds it in the
+    /// order the sweep prefers — public listing, a character, the corporation — and, unlike the
+    /// sweep, from the corporation endpoint for a contract another corporation issued. Those
+    /// have answered 404 to the corporation in bulk, which is why the sweep defers them; one
+    /// call for one contract costs nothing worth counting and says exactly what ESI answers.
+    /// </summary>
+    public async Task<ItemPullOutcome> PullItemsNowAsync(int contractId, CancellationToken ct = default)
+    {
+        if (_esi.IsErrorLimitBlocked) return new(false, 0, "ESI is paused right now; try again shortly.");
+
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+        var rows = await db.EsiContracts.AsNoTracking().Where(c => c.ContractId == contractId).ToListAsync(ct);
+        if (rows.Count == 0) return new(false, 0, "The contract is not stored.");
+        var held = await db.EsiContractItems.CountAsync(i => i.ContractId == contractId, ct);
+        if (held > 0) return new(true, held, $"{held:N0} item(s) already held.");
+
+        var sources = rows.Where(c => c.OwnerType == "public" && c.Type != "courier")
+            .Concat(rows.Where(c => c.OwnerType == "character"))
+            .Concat(rows.Where(c => c.OwnerType == "corporation"))
+            .ToList();
+        if (sources.Count == 0) return new(false, 0, "No endpoint can serve this contract's items: a public courier's cargo is not listed.");
+
+        var answers = new List<string>();
+        foreach (var src in sources)
+        {
+            var r = await FetchAndStoreItemsCoreAsync(db, contractId, src.OwnerId, src.OwnerType, ct);
+            if (r.Stored is int n)
+            {
+                await db.EsiContracts.Where(x => x.ContractId == contractId && !x.ItemsPulled)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
+                return new(true, n, n == 0 ? $"ESI lists no items for it (via the {src.OwnerType} endpoint)."
+                                           : $"{n:N0} item(s) pulled via the {src.OwnerType} endpoint.");
+            }
+            answers.Add($"{src.OwnerType} endpoint: HTTP {r.Status}{(string.IsNullOrEmpty(r.Error) ? "" : $" — {r.Error}")}");
+        }
+        return new(false, 0, "Not served: " + string.Join("; ", answers));
+    }
+
     private async Task<bool> FetchAndStoreItemsAsync(
         AppDbContext db, int contractId, long ownerId, string ownerType, CancellationToken ct)
     {
@@ -392,6 +436,24 @@ public class ContractsService : ReactiveObject
         if (await db.EsiContractItems.AnyAsync(i => i.ContractId == contractId, ct))
             return true;
 
+        var r = await FetchAndStoreItemsCoreAsync(db, contractId, ownerId, ownerType, ct);
+        if (r.Stored is not null) return true;
+
+        // 400 (wrong contract type for this endpoint), 403/404 (gone / no access) are terminal:
+        // mark handled so we stop retrying and don't keep feeding ESI's global error limit.
+        // Anything else is transient — log and retry next sweep.
+        if (r.Status is not (400 or 403 or 404))
+            _errorLogger.Log("ContractsService",
+                $"items contract={contractId} owner={ownerType}", $"HTTP {r.Status}: {r.Error}");
+        return r.Status is 400 or 403 or 404;
+    }
+
+    /// <summary>One call to one endpoint and the store that follows: how many were stored, or
+    /// the status and words ESI answered with. A save that failed reads as status 0 and is
+    /// retried by the next sweep.</summary>
+    private async Task<(int? Stored, int Status, string? Error)> FetchAndStoreItemsCoreAsync(
+        AppDbContext db, int contractId, long ownerId, string ownerType, CancellationToken ct)
+    {
         // NOTE: individual item calls are intentionally NOT logged to the API activity log —
         // there can be thousands, which would flood it. Genuine failures go to the error log.
         List<ContractItem>? items = null;
@@ -430,16 +492,7 @@ public class ContractsService : ReactiveObject
                 }).ToList();
         }
 
-        if (items is null)
-        {
-            // 400 (wrong contract type for this endpoint), 403/404 (gone / no access) are terminal:
-            // mark handled so we stop retrying and don't keep feeding ESI's global error limit.
-            // Anything else is transient — log and retry next sweep.
-            if (status is not (400 or 403 or 404))
-                _errorLogger.Log("ContractsService",
-                    $"items contract={contractId} owner={ownerType}", $"HTTP {status}: {error}");
-            return status is 400 or 403 or 404;
-        }
+        if (items is null) return (null, status, error);
 
         // Dedupe by RecordId. ESI has been observed returning the same record twice inside
         // one contract's paged item list, and EF rejects the pair on the (ContractId,
@@ -453,7 +506,7 @@ public class ContractsService : ReactiveObject
         {
             if (deduped.Count > 0) db.EsiContractItems.AddRange(deduped);
             await db.SaveChangesAsync(ct);
-            return true;
+            return (deduped.Count, status, null);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -461,7 +514,7 @@ public class ContractsService : ReactiveObject
             // Retried next sweep rather than marked pulled — but not at the cost of the
             // rest of this one.
             _errorLogger.Log("ContractsService", $"items contract={contractId} owner={ownerType}", ex);
-            return false;
+            return (null, 0, ex.Message);
         }
         finally
         {

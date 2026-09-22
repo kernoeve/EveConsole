@@ -77,7 +77,7 @@
 
         <!-- Grid + detail -->
         <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
-          <DataGrid Grid.Column="0"
+          <DataGrid Grid.Column="0" x:Name="OwnedGrid"
                     ItemsSource="{Binding Rows}"
                     SelectedItem="{Binding SelectedRow}"
                     AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
@@ -143,7 +143,8 @@
               <DataGridTextColumn Header="Acceptor" Binding="{Binding Acceptor}" Width="140" />
               <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
               <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
-              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}" SortMemberPath="DateIssuedRaw" Width="130" />
+              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
+              <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -265,7 +266,8 @@
               <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
               <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
               <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" />
-              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}" SortMemberPath="DateIssuedRaw" Width="130" />
+              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
+              <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
           </DataGrid>
 

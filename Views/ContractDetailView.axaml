@@ -168,6 +168,17 @@
         <TextBlock Grid.Row="3" Grid.Column="1" Classes="val" Text="{Binding DateCompleted}" />
       </Grid>
 
+      <!-- No items stored: a pull on request, and what ESI answered. -->
+      <StackPanel Spacing="4" IsVisible="{Binding !HasItems}" Margin="0 4 0 0">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Content="Pull items from ESI" Command="{Binding PullItemsAsync}" IsEnabled="{Binding CanPull}"
+                  FontSize="11" Padding="10 3"
+                  ToolTip.Tip="Ask every endpoint this contract has for its items, once, and say what each answered. A corporation's contract issued by another corporation is one the sweep leaves alone." />
+          <TextBlock Text="{Binding PullMessage}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
+        </StackPanel>
+      </StackPanel>
+
       <!-- Items, in two lists: what the issuer offers and what they ask for. Each row carries
            the item's picture and what the line is worth at market and to build, and each list
            ends in a totals row — the same columns summed, set apart by the row style. -->
