@@ -353,13 +353,23 @@ public class ContractPartyOption
     public override string ToString() => Label;
 }
 
-public class ContractOwnerOption
+/// <summary>
+/// What the Scope filter narrows to: everything stored, or the contracts a party is on the
+/// receiving end of — assigned to it, or accepted by it. A character's own contracts are those
+/// made out to the character; a corporation's are those made out to the corporation, which is
+/// also where a contract lands when a member accepts it for the corporation rather than as
+/// themselves.
+///
+/// <para>⚠️ Not the polling owner. The filter used to be "Owner", meaning which token's view of
+/// the contract this was — every party that can see a contract stores its own copy — which is not
+/// a question anyone at the screen is asking.</para>
+/// </summary>
+public class ContractScopeOption
 {
-    public string  Label     { get; }
-    public long?   OwnerId   { get; }
-    public string? OwnerType { get; }
-    public ContractOwnerOption(string label, long? ownerId, string? ownerType)
-    { Label = label; OwnerId = ownerId; OwnerType = ownerType; }
+    public string Label { get; }
+    /// <summary>The parties in scope, or null for everything stored.</summary>
+    public IReadOnlySet<long>? Ids { get; }
+    public ContractScopeOption(string label, IReadOnlySet<long>? ids) { Label = label; Ids = ids; }
     public override string ToString() => Label;
 }
 
@@ -652,16 +662,27 @@ public class OwnedContractsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _rows, value);
     }
 
-    public ObservableCollection<ContractOwnerOption> Owners     { get; } = new();
+    public ObservableCollection<ContractScopeOption> Scopes     { get; } = new();
     public ObservableCollection<ContractPartyOption> Assignees  { get; } = new();
     public ObservableCollection<ContractPartyOption> Acceptors  { get; } = new();
+    /// <summary>The statuses the stored contracts are in, "All statuses" first.</summary>
+    public ObservableCollection<string>              Statuses   { get; } = new();
 
-    private ContractOwnerOption? _selectedOwner;
-    public ContractOwnerOption? SelectedOwner
+    private ContractScopeOption? _selectedScope;
+    public ContractScopeOption? SelectedScope
     {
-        get => _selectedOwner;
-        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value); ApplyFilter(); }
+        get => _selectedScope;
+        set { this.RaiseAndSetIfChanged(ref _selectedScope, value); ApplyFilter(); }
     }
+
+    private string? _selectedStatus;
+    public string? SelectedStatus
+    {
+        get => _selectedStatus;
+        set { this.RaiseAndSetIfChanged(ref _selectedStatus, value); ApplyFilter(); }
+    }
+
+    private const string AllStatuses = "All statuses";
 
     private ContractPartyOption? _selectedAssignee;
     public ContractPartyOption? SelectedAssignee
@@ -733,11 +754,10 @@ public class OwnedContractsViewModel : ReactiveObject
             _typeNames = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
-            // Owner options from the distinct polled owners.
-            var charIds = contracts.Where(c => c.OwnerType == "character").Select(c => c.OwnerId).Distinct().ToList();
-            var corpIds = contracts.Where(c => c.OwnerType == "corporation").Select(c => (int)c.OwnerId).Distinct().ToList();
-            var charNames = await db.Characters.Where(c => charIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name);
-            var corpNames = await db.Corporations.Where(c => corpIds.Contains(c.Id)).ToDictionaryAsync(c => (long)c.Id, c => $"{c.Name} [{c.Ticker}]");
+            // The parties the scope filter offers: every character and corporation the app
+            // knows, and which corporations are the user's own.
+            var chars = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync();
+            var corps = await db.Corporations.AsNoTracking().Select(c => new { c.Id, c.Name, c.Ticker, c.IsPersonal }).ToListAsync();
 
             // Resolve party names (issuer / assignee / acceptor / issuer corp).
             var partyIds = contracts.SelectMany(c => new[]
@@ -756,20 +776,31 @@ public class OwnedContractsViewModel : ReactiveObject
                     _typeNames, _partyNames, "", []))
                 .ToList();
 
-            // Build combos.
-            Owners.Clear();
-            Owners.Add(new ContractOwnerOption("All owners", null, null));
-            foreach (var kv in charNames.OrderBy(k => k.Value))
-                Owners.Add(new ContractOwnerOption(kv.Value, kv.Key, "character"));
-            foreach (var kv in corpNames.OrderBy(k => k.Value))
-                Owners.Add(new ContractOwnerOption(kv.Value, kv.Key, "corporation"));
+            // Build combos. The scope opens on the user's own side of the table: every
+            // character, and the corporations marked personal.
+            var mine = chars.Select(c => c.Id)
+                .Concat(corps.Where(c => c.IsPersonal).Select(c => (long)c.Id))
+                .ToHashSet();
+            Scopes.Clear();
+            Scopes.Add(new ContractScopeOption("All owners", null));
+            Scopes.Add(new ContractScopeOption("All characters and personal corps", mine));
+            foreach (var c in chars.OrderBy(c => c.Name))
+                Scopes.Add(new ContractScopeOption(c.Name, new HashSet<long> { c.Id }));
+            foreach (var c in corps.OrderBy(c => c.Name))
+                Scopes.Add(new ContractScopeOption($"{c.Name} [{c.Ticker}]", new HashSet<long> { c.Id }));
 
             BuildPartyCombo(Assignees, _all.Select(r => r.AssigneeId), "All assignees");
             BuildPartyCombo(Acceptors, _all.Select(r => r.AcceptorId), "All acceptors");
 
-            _selectedOwner    = Owners.FirstOrDefault();    this.RaisePropertyChanged(nameof(SelectedOwner));
+            Statuses.Clear();
+            Statuses.Add(AllStatuses);
+            foreach (var s in _all.Select(r => r.Status).Distinct().OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
+                Statuses.Add(s);
+
+            _selectedScope    = Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedScope));
             _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
             _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
+            _selectedStatus   = AllStatuses;                this.RaisePropertyChanged(nameof(SelectedStatus));
 
             _initialized = true;
             ApplyFilter();
@@ -800,15 +831,16 @@ public class OwnedContractsViewModel : ReactiveObject
     {
         if (!_initialized) return;
 
-        IEnumerable<ContractRowVm> q = _all;
+        // One row per contract: every party that can see one stores its own copy.
+        IEnumerable<ContractRowVm> q = _all.GroupBy(r => r.ContractId).Select(g => g.First());
 
-        if (SelectedOwner?.OwnerId is { } oid && SelectedOwner.OwnerType is { } ot)
-            q = q.Where(r => r.Record.OwnerId == oid && r.Record.OwnerType == ot);
-        else
-            q = q.GroupBy(r => r.ContractId).Select(g => g.First());   // de-dupe across owners
+        // The scope: contracts made out to, or accepted by, a party in it.
+        if (SelectedScope?.Ids is { } scope)
+            q = q.Where(r => (r.AssigneeId is { } a && scope.Contains(a)) || (r.AcceptorId is { } c && scope.Contains(c)));
 
         if (SelectedAssignee?.Id is { } aid) q = q.Where(r => r.AssigneeId == aid);
         if (SelectedAcceptor?.Id is { } cid) q = q.Where(r => r.AcceptorId == cid);
+        if (SelectedStatus is { } status && status != AllStatuses) q = q.Where(r => r.Status == status);
 
         var rows = q.OrderByDescending(r => r.DateIssuedRaw).ToList();
 
