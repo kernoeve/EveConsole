@@ -150,7 +150,7 @@
       <DataGrid.Columns>
 
         <!-- POSTING / SECTION / ITEM -->
-        <DataGridTemplateColumn Header="POSTING / SECTION / ITEM" Width="*" MinWidth="340" IsReadOnly="True">
+        <DataGridTemplateColumn Header="POSTING / SECTION / ITEM" Width="*" MinWidth="340" IsReadOnly="True" ClipboardContentBinding="{Binding PostingName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Canvas x:CompileBindings="False" ClipToBounds="False" Height="25">
@@ -243,7 +243,7 @@
         </DataGridTemplateColumn>
 
         <!-- NAME OVERRIDE -->
-        <DataGridTemplateColumn Header="NAME OVERRIDE" Width="150" MinWidth="120">
+        <DataGridTemplateColumn Header="NAME OVERRIDE" Width="150" MinWidth="120" ClipboardContentBinding="{Binding NameOverride}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell"
@@ -255,7 +255,7 @@
         </DataGridTemplateColumn>
 
         <!-- PREFIX -->
-        <DataGridTemplateColumn Header="PREFIX" Width="110" MinWidth="80">
+        <DataGridTemplateColumn Header="PREFIX" Width="110" MinWidth="80" ClipboardContentBinding="{Binding NamePrefix}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell"
@@ -268,7 +268,7 @@
 
         <!-- COLOUR — six-digit hex, EVE mail only. Blank falls back to the section's colour, or
              to whatever the by-state rule says if the posting has one. -->
-        <DataGridTemplateColumn Header="COLOUR" Width="90" MinWidth="70">
+        <DataGridTemplateColumn Header="COLOUR" Width="90" MinWidth="70" ClipboardContentBinding="{Binding ColorHex}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell"
@@ -280,7 +280,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN STOCK -->
-        <DataGridTemplateColumn Header="IN STOCK" Width="80" MinWidth="70" IsReadOnly="True">
+        <DataGridTemplateColumn Header="IN STOCK" Width="80" MinWidth="70" IsReadOnly="True" ClipboardContentBinding="{Binding InStockText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InStockText}"
@@ -290,7 +290,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN STOCK OVERRIDE -->
-        <DataGridTemplateColumn Header="STOCK OVR" Width="80" MinWidth="70">
+        <DataGridTemplateColumn Header="STOCK OVR" Width="80" MinWidth="70" ClipboardContentBinding="{Binding InStockOverrideText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
@@ -301,7 +301,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN BUILD -->
-        <DataGridTemplateColumn Header="IN BUILD" Width="80" MinWidth="70" IsReadOnly="True">
+        <DataGridTemplateColumn Header="IN BUILD" Width="80" MinWidth="70" IsReadOnly="True" ClipboardContentBinding="{Binding InBuildText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InBuildText}"
@@ -311,7 +311,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN BUILD OVERRIDE -->
-        <DataGridTemplateColumn Header="BUILD OVR" Width="80" MinWidth="70">
+        <DataGridTemplateColumn Header="BUILD OVR" Width="80" MinWidth="70" ClipboardContentBinding="{Binding InBuildOverrideText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
@@ -322,7 +322,7 @@
         </DataGridTemplateColumn>
 
         <!-- RESERVED -->
-        <DataGridTemplateColumn Header="RESERVED" Width="80" MinWidth="70" IsReadOnly="True">
+        <DataGridTemplateColumn Header="RESERVED" Width="80" MinWidth="70" IsReadOnly="True" ClipboardContentBinding="{Binding ReservedText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding ReservedText}"
@@ -332,7 +332,7 @@
         </DataGridTemplateColumn>
 
         <!-- RESERVED OVERRIDE -->
-        <DataGridTemplateColumn Header="RSRV OVR" Width="80" MinWidth="70">
+        <DataGridTemplateColumn Header="RSRV OVR" Width="80" MinWidth="70" ClipboardContentBinding="{Binding ReservedOverrideText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
@@ -343,7 +343,7 @@
         </DataGridTemplateColumn>
 
         <!-- BUILD COST -->
-        <DataGridTemplateColumn Header="BUILD COST" Width="95" MinWidth="85" IsReadOnly="True">
+        <DataGridTemplateColumn Header="BUILD COST" Width="95" MinWidth="85" IsReadOnly="True" ClipboardContentBinding="{Binding BuildCostText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding BuildCostText}"
@@ -353,7 +353,7 @@
         </DataGridTemplateColumn>
 
         <!-- MARKET VALUE -->
-        <DataGridTemplateColumn Header="MKT VALUE" Width="95" MinWidth="85" IsReadOnly="True">
+        <DataGridTemplateColumn Header="MKT VALUE" Width="95" MinWidth="85" IsReadOnly="True" ClipboardContentBinding="{Binding MarketValueText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding MarketValueText}"
@@ -363,7 +363,7 @@
         </DataGridTemplateColumn>
 
         <!-- CONTRACT VALUE -->
-        <DataGridTemplateColumn Header="CONTRACT" Width="95" MinWidth="85" IsReadOnly="True">
+        <DataGridTemplateColumn Header="CONTRACT" Width="95" MinWidth="85" IsReadOnly="True" ClipboardContentBinding="{Binding ContractValueText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding ContractValueText}"
@@ -373,7 +373,7 @@
         </DataGridTemplateColumn>
 
         <!-- SALE PRICE (+ posting total) -->
-        <DataGridTemplateColumn Header="SALE PRICE" Width="105" MinWidth="95" IsReadOnly="True">
+        <DataGridTemplateColumn Header="SALE PRICE" Width="105" MinWidth="95" IsReadOnly="True" ClipboardContentBinding="{Binding SalePriceText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:CompileBindings="False">
@@ -392,7 +392,7 @@
         </DataGridTemplateColumn>
 
         <!-- PROFIT (+ posting total) -->
-        <DataGridTemplateColumn Header="PROFIT" Width="100" MinWidth="90" IsReadOnly="True">
+        <DataGridTemplateColumn Header="PROFIT" Width="100" MinWidth="90" IsReadOnly="True" ClipboardContentBinding="{Binding ProfitText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:CompileBindings="False">
@@ -411,7 +411,7 @@
         </DataGridTemplateColumn>
 
         <!-- PROFIT % (+ posting total) -->
-        <DataGridTemplateColumn Header="PROFIT %" Width="85" MinWidth="75" IsReadOnly="True">
+        <DataGridTemplateColumn Header="PROFIT %" Width="85" MinWidth="75" IsReadOnly="True" ClipboardContentBinding="{Binding ProfitPctText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel x:CompileBindings="False">
@@ -430,7 +430,7 @@
         </DataGridTemplateColumn>
 
         <!-- READY (earliest job completion — only when out of stock but building, if enabled) -->
-        <DataGridTemplateColumn Header="READY (EST.)" Width="130" MinWidth="110" IsReadOnly="True">
+        <DataGridTemplateColumn Header="READY (EST.)" Width="130" MinWidth="110" IsReadOnly="True" ClipboardContentBinding="{Binding CompletionDateText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding CompletionDateText}"

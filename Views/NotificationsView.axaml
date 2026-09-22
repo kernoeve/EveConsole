@@ -85,7 +85,7 @@
       <DataGrid.Columns>
         <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"   Width="130" />
         <DataGridTextColumn Header="Type"        Binding="{Binding TypeLabel}"  Width="220" />
-        <DataGridTemplateColumn Header="Character" Width="150" SortMemberPath="Character">
+        <DataGridTemplateColumn Header="Character" Width="150" SortMemberPath="Character" ClipboardContentBinding="{Binding Character}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:NotificationRowVm">
               <Panel>
@@ -100,7 +100,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Sender" Width="160" SortMemberPath="Sender">
+        <DataGridTemplateColumn Header="Sender" Width="160" SortMemberPath="Sender" ClipboardContentBinding="{Binding Sender}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:NotificationRowVm">
               <Panel>

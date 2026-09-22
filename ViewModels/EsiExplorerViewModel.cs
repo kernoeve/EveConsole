@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 using System.Globalization;
 using System.Collections.ObjectModel;
+using System.Text;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
@@ -178,6 +179,24 @@ public class EsiExplorerViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _hasMore, value);
     }
 
+    private bool _hasTable;
+    /// <summary>A table is chosen, so there is something to export.</summary>
+    public bool HasTable
+    {
+        get => _hasTable;
+        private set => this.RaiseAndSetIfChanged(ref _hasTable, value);
+    }
+
+    private bool _isExporting;
+    /// <summary>An export is running: the button reads Cancel, and a second cannot start.</summary>
+    public bool IsExporting
+    {
+        get => _isExporting;
+        private set { this.RaiseAndSetIfChanged(ref _isExporting, value); this.RaisePropertyChanged(nameof(ExportButtonText)); }
+    }
+
+    public string ExportButtonText => IsExporting ? "Cancel export" : "Export CSV";
+
     // ── Constructor ──────────────────────────────────────────────────────────
 
     public EsiExplorerViewModel(string connectionString)
@@ -240,6 +259,7 @@ public class EsiExplorerViewModel : ReactiveObject
         Rows.Clear();
         Columns    = [];
         HasMore    = false;
+        HasTable   = true;
         StatusText = "Loading…";
 
         try
@@ -291,13 +311,8 @@ public class EsiExplorerViewModel : ReactiveObject
 
     private async Task AppendPageAsync(DbConnection conn, TableEntry entry, int total, CancellationToken ct)
     {
-        var where = BuildWhere();
-        var order = _sortColumn is not null
-            ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
-            : entry.OrderBy is not null ? $"ORDER BY {entry.OrderBy}" : "";
-
         using var cmd = conn.Command($"""
-            SELECT * FROM "{entry.SqlTable}" {where} {order}
+            SELECT * FROM "{entry.SqlTable}" {BuildWhere()} {BuildOrder(entry)}
             LIMIT {PageSize} OFFSET {_offset}
             """);
         AddFilterParams(cmd);
@@ -335,7 +350,104 @@ public class EsiExplorerViewModel : ReactiveObject
         });
     }
 
+    // ── Export ────────────────────────────────────────────────────────────────
+
+    private CancellationTokenSource? _exportCts;
+
+    public void CancelExport() => _exportCts?.Cancel();
+
+    /// <summary>A word from the view for the status line.</summary>
+    public void ShowStatus(string text) => StatusText = text;
+
+    /// <summary>
+    /// Writes every row of the table that matches the filters, in the grid's order, as CSV — all
+    /// of them, not the page the grid holds — one row at a time off the reader on a worker, so a
+    /// table of a million rows never sits in memory and the window stays live. Numbers are written
+    /// invariant and dates as UTC "yyyy-MM-dd HH:mm:ss", for the tools that will read the file.
+    /// The filters are read once, as the export starts. True when the whole table was written.
+    /// </summary>
+    public async Task<bool> ExportCsvAsync(Stream stream, string fileName)
+    {
+        if (_currentEntry is null || IsExporting) return false;
+        var entry = _currentEntry;
+        var sql   = $"""SELECT * FROM "{entry.SqlTable}" {BuildWhere()} {BuildOrder(entry)}""";
+        var args  = _activeFilters.Select(f => SqlFilter.Value(f.Op, f.Value)).ToList();
+        var cts   = new CancellationTokenSource();
+        _exportCts  = cts;
+        IsExporting = true;
+        StatusText  = "Exporting…";
+        var written = 0;
+        try
+        {
+            await Task.Run(async () =>
+            {
+                var ct = cts.Token;
+                await using var conn = AppDb.Connect();
+                await conn.OpenAsync(ct);
+                using var cmd = conn.Command(sql);
+                for (var i = 0; i < args.Count; i++) cmd.AddWithValue($"@fv{i}", args[i]);
+                using var reader = await cmd.ExecuteReaderAsync(ct);
+
+                await using var writer = new StreamWriter(stream, new UTF8Encoding(false), 1 << 16) { NewLine = "\r\n" };
+                var fields = new string[reader.FieldCount];
+                for (var i = 0; i < fields.Length; i++) fields[i] = CsvField(reader.GetName(i));
+                await writer.WriteLineAsync(string.Join(",", fields));
+                while (await reader.ReadAsync(ct))
+                {
+                    ct.ThrowIfCancellationRequested();   // the SQLite reader does not look at the token itself
+                    for (var i = 0; i < fields.Length; i++)
+                        fields[i] = reader.IsDBNull(i) ? "" : CsvField(CsvValue(reader.GetValue(i)));
+                    await writer.WriteLineAsync(string.Join(",", fields));
+                    if (++written % 5000 == 0)
+                    {
+                        var soFar = written;
+                        await Dispatcher.UIThread.InvokeAsync(() => StatusText = $"Exporting… {soFar:N0} rows");
+                    }
+                }
+                await writer.FlushAsync(ct);
+            });
+            StatusText = $"Exported {written:N0} rows to {fileName}";
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText = $"Export cancelled after {written:N0} rows; the file was not kept.";
+            return false;
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Export failed: {ex.Message}";
+            return false;
+        }
+        finally
+        {
+            IsExporting = false;
+            _exportCts  = null;
+        }
+    }
+
+    private static readonly char[] CsvSpecial = ['"', ',', '\r', '\n'];
+
+    /// <summary>A field as RFC 4180 has it: quoted when it holds a comma, a quote or a line break,
+    /// a quote inside doubled.</summary>
+    private static string CsvField(string s) =>
+        s.IndexOfAny(CsvSpecial) < 0 ? s : "\"" + s.Replace("\"", "\"\"") + "\"";
+
+    /// <summary>A value as a tool reads it: invariant numbers, UTC dates, whatever the engine gave otherwise.</summary>
+    private static string CsvValue(object v) => v switch
+    {
+        DateTime d       => d.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+        DateTimeOffset d => d.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+        IFormattable f   => f.ToString(null, CultureInfo.InvariantCulture),
+        _                => v.ToString() ?? "",
+    };
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>The grid's order: the column clicked, else the table's own.</summary>
+    private string BuildOrder(TableEntry entry) =>
+        _sortColumn is not null ? $"ORDER BY \"{_sortColumn}\" {(_sortDescending ? "DESC" : "ASC")}"
+        : entry.OrderBy is not null ? $"ORDER BY {entry.OrderBy}" : "";
 
     private string BuildWhere()
     {

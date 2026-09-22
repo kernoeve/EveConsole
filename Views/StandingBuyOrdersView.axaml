@@ -70,7 +70,7 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
-        <DataGridTemplateColumn Header="Status" Width="80" SortMemberPath="Status">
+        <DataGridTemplateColumn Header="Status" Width="80" SortMemberPath="Status" ClipboardContentBinding="{Binding Status}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"
@@ -78,7 +78,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="220">
+        <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="220" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <Panel>
@@ -92,7 +92,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*">
+        <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <Panel>
@@ -106,7 +106,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Held by" Width="180" SortMemberPath="Owner">
+        <DataGridTemplateColumn Header="Held by" Width="180" SortMemberPath="Owner" ClipboardContentBinding="{Binding Owner}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <!-- Linked only where a single owner holds the order; an aggregated "3 owners" cell
@@ -125,7 +125,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Our bid" Width="150" SortMemberPath="Price">
+        <DataGridTemplateColumn Header="Our bid" Width="150" SortMemberPath="Price" ClipboardContentBinding="{Binding Price}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding Price}" FontSize="11" Foreground="{Binding PriceColor}"
@@ -133,7 +133,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Station best bid" Width="150" SortMemberPath="StationBid">
+        <DataGridTemplateColumn Header="Station best bid" Width="150" SortMemberPath="StationBid" ClipboardContentBinding="{Binding StationBid}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding StationBid}" FontSize="11" Foreground="{Binding StationBidColor}"
@@ -143,7 +143,7 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="Remaining"  Binding="{Binding Remaining}"    Width="150" />
         <DataGridTextColumn Header="%"          Binding="{Binding RemainingPct}" Width="70"  />
-        <DataGridTemplateColumn Header="Expires" Width="180" SortMemberPath="Expiry">
+        <DataGridTemplateColumn Header="Expires" Width="180" SortMemberPath="Expiry" ClipboardContentBinding="{Binding Expiry}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding Expiry}" FontSize="11"

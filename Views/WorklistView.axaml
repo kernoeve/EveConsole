@@ -260,7 +260,7 @@
              one of 147 rows, which is a column that says nothing in the position that costs most.
              As a bar it is read peripherally: you notice the amber and red, and the rest recedes.
              The text is still available on hover, and the filter dropdown above still names it. -->
-        <DataGridTemplateColumn Header="" Width="4" CanUserSort="False" CanUserResize="False">
+        <DataGridTemplateColumn Header="" Width="4" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding ReadinessText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Border Background="{Binding ReadinessBarColor}" Width="3"
@@ -275,7 +275,7 @@
              read faster than a word when scanning. Stroked rather than filled so it stays legible
              at row height and takes its weight from the theme. -->
         <DataGridTemplateColumn Header="" Width="22" CanUserResize="False"
-                                SortMemberPath="KindSort">
+                                SortMemberPath="KindSort" ClipboardContentBinding="{Binding KindGlyphTip}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Path Data="{Binding KindGlyph, Converter={x:Static views:PathGeometryConverter.Instance}}"
@@ -463,7 +463,7 @@
              so sorting on the title ordered those rows by text nobody can see — which reads as no
              ordering at all. The Overview's sections were fixed this way already; the tool's own
              grid kept the old path. -->
-        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+        <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:WorklistRowVm">
               <Panel VerticalAlignment="Center">
@@ -732,7 +732,7 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False">
+            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -806,7 +806,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
+            <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station" ClipboardContentBinding="{Binding Station}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -823,7 +823,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item">
+            <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -843,7 +843,7 @@
             <DataGridTextColumn Header="Total"   Binding="{Binding Total}"  SortMemberPath="TotalRaw"  Width="110"/>
             <DataGridTextColumn Header="On hand" Binding="{Binding OnHand}" SortMemberPath="OnHandRaw" Width="110"/>
 
-            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortRaw">
+            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortRaw" ClipboardContentBinding="{Binding Short}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <TextBlock Text="{Binding Short}" Foreground="{Binding ShortColor}"
@@ -932,7 +932,7 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False">
+            <DataGridTemplateColumn Header="Why" Width="34" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -1006,7 +1006,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station">
+            <DataGridTemplateColumn Header="Station" Width="230" SortMemberPath="Station" ClipboardContentBinding="{Binding Station}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -1023,7 +1023,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item">
+            <DataGridTemplateColumn Header="Item" Width="230" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -1048,7 +1048,7 @@
                  job three days from delivering does not fill a hangar today. -->
             <DataGridTextColumn Header="In build" Binding="{Binding InBuild}"
                                 SortMemberPath="InBuildRaw" Width="110"/>
-            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortAfterBuildRaw">
+            <DataGridTemplateColumn Header="Short" Width="110" SortMemberPath="ShortAfterBuildRaw" ClipboardContentBinding="{Binding ShortAfterBuild}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <TextBlock Text="{Binding ShortAfterBuild}" Foreground="{Binding ShortColor}"
@@ -1287,7 +1287,7 @@
                 <DataGrid.Columns>
                   <!-- Expander. Only drawn where there are tasks to show, so an empty cell reads
                        as "nothing to open" rather than as a control that does nothing. -->
-                  <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False">
+                  <DataGridTemplateColumn Header="" Width="24" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Glyph}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ItemShortageRowVm">
                         <Panel>
@@ -1353,7 +1353,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="230">
+                  <DataGridTemplateColumn Width="230" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Material" Background="Transparent" ToolTip.Tip="The item that ran short. Click it to open the Item Browser."/>
                     </DataGridTemplateColumn.Header>
@@ -1384,7 +1384,7 @@
                       <TextBlock Text="Made" Background="Transparent" ToolTip.Tip="Produced per day over the same window. A dash means nothing here makes it at all, so the only way to refill it is to buy it."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="75">
+                  <DataGridTemplateColumn Width="75" ClipboardContentBinding="{Binding Balance}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Balance" Background="Transparent" ToolTip.Tip="Made per unit consumed. Under 1.00 the shelf is draining however full it looks, and no size of buffer survives that. Amber rather than red during a demand spike, since absorbing exactly that is what a buffer is for."/>
                     </DataGridTemplateColumn.Header>
@@ -1405,7 +1405,7 @@
                       <TextBlock Text="On hand" Background="Transparent" ToolTip.Tip="Units the industry scope can actually reach. Stock outside the scope is not counted, because the plan cannot spend it."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="80">
+                  <DataGridTemplateColumn Width="80" ClipboardContentBinding="{Binding Need}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Need" Background="Transparent" ToolTip.Tip="What the work on the list wants: what is here plus what it fell short by. Red once that exceeds what exists, which can happen with the level fully met."/>
                     </DataGridTemplateColumn.Header>
@@ -1446,7 +1446,7 @@
                       <TextBlock Text="Waiting" Background="Transparent" ToolTip.Tip="Tasks to make this item held up only by a busy slot."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="60">
+                  <DataGridTemplateColumn Width="60" ClipboardContentBinding="{Binding MakeBlocked}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Stuck" Background="Transparent" ToolTip.Tip="Tasks to make this item that are blocked in their own right. Red when nothing is running or ready either, which is the shape that does not resolve on its own."/>
                     </DataGridTemplateColumn.Header>
@@ -1457,7 +1457,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="110">
+                  <DataGridTemplateColumn Width="110" ClipboardContentBinding="{Binding Verdict}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Verdict" Background="Transparent" ToolTip.Tip="What the row amounts to, in a couple of words."/>
                     </DataGridTemplateColumn.Header>
@@ -1472,7 +1472,7 @@
                        sentence sat on one clipped line and the half worth reading - what to do
                        about the shortage - was the half off the right edge. -->
                   <DataGridTemplateColumn Width="*" MinWidth="260"
-                                          CanUserSort="False">
+                                          CanUserSort="False" ClipboardContentBinding="{Binding Advice}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Suggestion" Background="Transparent" ToolTip.Tip="What is happening and what would change it, using the figures on this row rather than telling you where to look."/>
                     </DataGridTemplateColumn.Header>
@@ -1505,7 +1505,7 @@
                 <!-- The tasks the counts are made of, same shape as Item Contention. -->
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Header="" Width="24" MinWidth="24"
-                                          CanUserSort="False" CanUserResize="False">
+                                          CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Glyph}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:PrintPressureRowVm">
                         <Panel>
@@ -1571,7 +1571,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Width="220">
+                  <DataGridTemplateColumn Width="220" ClipboardContentBinding="{Binding Product}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Product" Background="Transparent" ToolTip.Tip="What this blueprint or formula makes. Click it to open the Item Browser."/>
                     </DataGridTemplateColumn.Header>
@@ -1622,7 +1622,7 @@
                       <TextBlock Text="Used" Background="Transparent" ToolTip.Tip="Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="75">
+                  <DataGridTemplateColumn Width="75" ClipboardContentBinding="{Binding Cover}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="All busy" Background="Transparent" ToolTip.Tip="Share of the last 90 days when EVERY original was occupied at once, counting research and copying as well as building. This is the figure that says whether wanting another job meant waiting."/>
                     </DataGridTemplateColumn.Header>
@@ -1643,7 +1643,7 @@
                       <TextBlock Text="30d" Background="Transparent" ToolTip.Tip="The same all-busy figure over the last 30 days, so a busy month is not hidden inside a quiet quarter."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="70">
+                  <DataGridTemplateColumn Width="70" ClipboardContentBinding="{Binding Trend}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Trend" Background="Transparent" ToolTip.Tip="Whether the recent squeeze is rising, easing or steady against the full window."/>
                     </DataGridTemplateColumn.Header>
@@ -1674,7 +1674,7 @@
                       <TextBlock Text="Blocking" Background="Transparent" ToolTip.Tip="Tasks waiting on what this makes: directly, and behind those up the chain. A blueprint can be entirely uncontended and still have a queue piled up behind its output."/>
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
-                  <DataGridTemplateColumn Width="80">
+                  <DataGridTemplateColumn Width="80" ClipboardContentBinding="{Binding Verdict}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Verdict" Background="Transparent" ToolTip.Tip="What the row amounts to, in a word."/>
                     </DataGridTemplateColumn.Header>
@@ -1687,7 +1687,7 @@
                   </DataGridTemplateColumn>
                   <!-- Wraps, and the row grows to fit; see the Item Contention grid. -->
                   <DataGridTemplateColumn Width="*" MinWidth="260"
-                                          CanUserSort="False">
+                                          CanUserSort="False" ClipboardContentBinding="{Binding Advice}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Suggestion" Background="Transparent" ToolTip.Tip="What is happening and what would change it."/>
                     </DataGridTemplateColumn.Header>
@@ -1739,7 +1739,7 @@
 
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Width="24" MinWidth="24"
-                                          CanUserSort="False" CanUserResize="False">
+                                          CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Glyph}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:HaulPressureRowVm">
                         <Panel>
@@ -1806,7 +1806,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="250">
+                  <DataGridTemplateColumn Width="250" ClipboardContentBinding="{Binding Task}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Job" Background="Transparent"
                                  ToolTip.Tip="The stopped job. It is short of nothing but material already owned, so it runs as soon as that material reaches it."/>
@@ -1829,7 +1829,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="230">
+                  <DataGridTemplateColumn Width="230" ClipboardContentBinding="{Binding Station}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Waiting at" Background="Transparent"
                                  ToolTip.Tip="Where the job would run, and so where the material has to arrive."/>
@@ -1883,7 +1883,7 @@
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
-                  <DataGridTemplateColumn Width="120">
+                  <DataGridTemplateColumn Width="120" ClipboardContentBinding="{Binding Verdict}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Verdict" Background="Transparent"
                                  ToolTip.Tip="What the row amounts to, in a word."/>
@@ -1896,7 +1896,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
 
-                  <DataGridTemplateColumn Width="*" MinWidth="260" CanUserSort="False">
+                  <DataGridTemplateColumn Width="*" MinWidth="260" CanUserSort="False" ClipboardContentBinding="{Binding Advice}">
                     <DataGridTemplateColumn.Header>
                       <TextBlock Text="Suggestion" Background="Transparent"
                                  ToolTip.Tip="What is happening and what would change it."/>
@@ -1989,7 +1989,7 @@
             <DataGridTextColumn Header="Market Value" Binding="{Binding MarketText}"
                                 SortMemberPath="MarketValue" Width="120" CellStyleClasses="num" />
             <DataGridTemplateColumn Header="Potential Profit" Width="130"
-                                    SortMemberPath="PotentialProfit" CellStyleClasses="num">
+                                    SortMemberPath="PotentialProfit" CellStyleClasses="num" ClipboardContentBinding="{Binding ProfitText}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:FinalProductJobVm">
                   <TextBlock Text="{Binding ProfitText}" Foreground="{Binding ProfitColor}"
@@ -2145,7 +2145,7 @@
 
             <!-- Character and note edit in place and save on change. The station does not: it is
                  the row's identity, and repointing it is what the form above is for. -->
-            <DataGridTemplateColumn Header="Character" Width="200" SortMemberPath="CharacterName" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Character" Width="200" SortMemberPath="CharacterName" IsReadOnly="True" ClipboardContentBinding="{Binding CharacterName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketAltRow">
                   <ComboBox ItemsSource="{Binding CharacterOptions}"
@@ -2156,7 +2156,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Note" Width="220" SortMemberPath="Note" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Note" Width="220" SortMemberPath="Note" IsReadOnly="True" ClipboardContentBinding="{Binding Note}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketAltRow">
                   <TextBox Text="{Binding Note, Mode=TwoWay}" Watermark="optional"
@@ -2246,7 +2246,7 @@
           <!-- Editable in place. Each cell is a live control rather than a click-to-edit one, so a
                rule can be corrected where it is read, and every change saves immediately. -->
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Group" Width="200" SortMemberPath="GroupName" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Group" Width="200" SortMemberPath="GroupName" IsReadOnly="True" ClipboardContentBinding="{Binding GroupName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <ComboBox ItemsSource="{Binding GroupOptions}"
@@ -2257,7 +2257,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Action" Width="80" SortMemberPath="Action" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Action" Width="80" SortMemberPath="Action" IsReadOnly="True" ClipboardContentBinding="{Binding Action}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <ComboBox ItemsSource="{Binding ActionOptions}"
@@ -2269,7 +2269,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Trigger below (%)" Width="110" SortMemberPath="Threshold" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Trigger below (%)" Width="110" SortMemberPath="Threshold" IsReadOnly="True" ClipboardContentBinding="{Binding Threshold, Converter={StaticResource PctConv}}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <NumericUpDown Value="{Binding Threshold, Mode=TwoWay, Converter={StaticResource PctConv}}"
@@ -2282,7 +2282,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Fill to (%)" Width="100" SortMemberPath="Fill" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Fill to (%)" Width="100" SortMemberPath="Fill" IsReadOnly="True" ClipboardContentBinding="{Binding Fill, Converter={StaticResource PctConv}}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <NumericUpDown Value="{Binding Fill, Mode=TwoWay, Converter={StaticResource PctConv}}"
@@ -2300,7 +2300,7 @@
                  only refills a buffer, and nothing in the data can tell them apart: the answer
                  is per operation, hulls here and rigs or modules elsewhere. -->
             <DataGridTemplateColumn Header="Final" Width="60" SortMemberPath="IsFinal"
-                                    IsReadOnly="False">
+                                    IsReadOnly="False" ClipboardContentBinding="{Binding IsFinal}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <CheckBox IsChecked="{Binding IsFinal, Mode=TwoWay}"
@@ -2317,7 +2317,7 @@
                  reads the change as typing, runs its populator and opens its dropdown — which
                  is what covered whole rows in floating boxes, Build rows included. Existing only
                  while the cell is actually being edited removes the problem at the source. -->
-            <DataGridTemplateColumn Header="Location" Width="*" SortMemberPath="LocationName" IsReadOnly="False">
+            <DataGridTemplateColumn Header="Location" Width="*" SortMemberPath="LocationName" IsReadOnly="False" ClipboardContentBinding="{Binding LocationName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:InvRuleRow">
                   <Panel>
@@ -2419,7 +2419,7 @@
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
           <!-- Editable in place, saving on change, as on the Inventory Rules tab. -->
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Inventory group" Width="240" SortMemberPath="GroupName" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Inventory group" Width="240" SortMemberPath="GroupName" IsReadOnly="True" ClipboardContentBinding="{Binding GroupName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationLevelRow">
                   <ComboBox ItemsSource="{Binding GroupOptions}"
@@ -2431,7 +2431,7 @@
             </DataGridTemplateColumn>
 
             <!-- Click-to-edit, as on the Inventory Rules tab and for the same reason. -->
-            <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="LocationName" IsReadOnly="False">
+            <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="LocationName" IsReadOnly="False" ClipboardContentBinding="{Binding LocationName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationLevelRow">
                   <TextBlock Text="{Binding LocationName}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -2453,7 +2453,7 @@
               </DataGridTemplateColumn.CellEditingTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Accepts surplus" Width="120" SortMemberPath="AcceptsSurplus" IsReadOnly="True">
+            <DataGridTemplateColumn Header="Accepts surplus" Width="120" SortMemberPath="AcceptsSurplus" IsReadOnly="True" ClipboardContentBinding="{Binding AcceptsSurplus}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationLevelRow">
                   <CheckBox IsChecked="{Binding AcceptsSurplus, Mode=TwoWay}"
@@ -2614,7 +2614,7 @@
                                   IsReadOnly="True"/>
 
               <!-- Character and note edit in place and save on change, as on Market. -->
-              <DataGridTemplateColumn Header="Character" Width="200" SortMemberPath="CharacterName" IsReadOnly="True">
+              <DataGridTemplateColumn Header="Character" Width="200" SortMemberPath="CharacterName" IsReadOnly="True" ClipboardContentBinding="{Binding CharacterName}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:CorpAltRow">
                     <ComboBox ItemsSource="{Binding CharacterOptions}"
@@ -2625,7 +2625,7 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
 
-              <DataGridTemplateColumn Header="Note" Width="220" SortMemberPath="Note" IsReadOnly="True">
+              <DataGridTemplateColumn Header="Note" Width="220" SortMemberPath="Note" IsReadOnly="True" ClipboardContentBinding="{Binding Note}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:CorpAltRow">
                     <TextBox Text="{Binding Note, Mode=TwoWay}" Watermark="optional"

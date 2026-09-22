@@ -845,7 +845,7 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <Panel>
@@ -862,7 +862,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Status" Width="80">
+                  <DataGridTemplateColumn Header="Status" Width="80" ClipboardContentBinding="{Binding Status}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -870,7 +870,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Our bid" Width="120">
+                  <DataGridTemplateColumn Header="Our bid" Width="120" ClipboardContentBinding="{Binding Price}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Price}" Foreground="{Binding PriceColor}"
@@ -880,7 +880,7 @@
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Rem." Binding="{Binding RemainingPct}" Width="70" />
-                  <DataGridTemplateColumn Header="Expires" Width="140">
+                  <DataGridTemplateColumn Header="Expires" Width="140" ClipboardContentBinding="{Binding Expiry}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
                         <TextBlock Text="{Binding Expiry}" Foreground="{Binding ExpiryColor}"
@@ -919,7 +919,7 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1008,7 +1008,7 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1086,7 +1086,7 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1164,7 +1164,7 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
-                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText">
+                  <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
                         <Panel VerticalAlignment="Center">
@@ -1241,7 +1241,7 @@
                         CanUserReorderColumns="False" CanUserResizeColumns="True"
                         CanUserSortColumns="True" Background="Transparent">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StationNeedRowVm">
                         <Panel>
@@ -1312,7 +1312,7 @@
                   <!-- One line for the whole project, since the panel has one column: the type,
                        then whatever identifies that type. Still opens the Item Browser where the
                        project names an item; the rest stay plain text. -->
-                  <DataGridTemplateColumn Header="Project" SortMemberPath="SummaryText" Width="*">
+                  <DataGridTemplateColumn Header="Project" SortMemberPath="SummaryText" Width="*" ClipboardContentBinding="{Binding SummaryText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <Panel>
@@ -1330,7 +1330,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Project Status" Width="170">
+                  <DataGridTemplateColumn Header="Project Status" Width="170" ClipboardContentBinding="{Binding ProjectStatusText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <TextBlock Text="{Binding ProjectStatusText}" Foreground="{Binding ProjectStatusColor}"
@@ -1338,7 +1338,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Remaining" Width="90">
+                  <DataGridTemplateColumn Header="Remaining" Width="90" ClipboardContentBinding="{Binding RemainingText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell
@@ -1350,7 +1350,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="Rem. %" Width="70">
+                  <DataGridTemplateColumn Header="Rem. %" Width="70" ClipboardContentBinding="{Binding RemainingPercentText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StandingProjectRowVm">
                         <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"

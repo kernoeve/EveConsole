@@ -97,7 +97,7 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopBuyers}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Buyer" SortMemberPath="Name" Width="*">
+              <DataGridTemplateColumn Header="Buyer" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:GroupRowVm">
                     <Panel>
@@ -139,7 +139,7 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopItems}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Item" SortMemberPath="Name" Width="*">
+              <DataGridTemplateColumn Header="Item" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ProfitGroupRowVm">
                     <Panel>
@@ -231,7 +231,7 @@
         <!-- Owner, Location, Buyer and Item(s) are links: each one names something with a page of
              its own, and a sale is mostly a set of pointers at those four things. A row whose id
              is missing renders the same text without the button rather than a dead link. -->
-        <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="150">
+        <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="150" ClipboardContentBinding="{Binding Owner}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
@@ -246,7 +246,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Location" SortMemberPath="Location" Width="220">
+        <DataGridTemplateColumn Header="Location" SortMemberPath="Location" Width="220" ClipboardContentBinding="{Binding Location}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
@@ -261,7 +261,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150">
+        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
@@ -276,7 +276,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Item(s)" SortMemberPath="Items" Width="220">
+        <DataGridTemplateColumn Header="Item(s)" SortMemberPath="Items" Width="220" ClipboardContentBinding="{Binding Items}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>
@@ -294,7 +294,7 @@
         <DataGridTextColumn Header="Total Sale"   Binding="{Binding Total}"    SortMemberPath="TotalRaw"     Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Build Price"  Binding="{Binding Build}"    SortMemberPath="BuildRaw"     Width="110" CellStyleClasses="num" />
         <DataGridTextColumn Header="Market Price" Binding="{Binding Market}"   SortMemberPath="MarketRaw"    Width="110" CellStyleClasses="num" />
-        <DataGridTemplateColumn Header="Profit" SortMemberPath="ProfitRaw" Width="110">
+        <DataGridTemplateColumn Header="Profit" SortMemberPath="ProfitRaw" Width="110" ClipboardContentBinding="{Binding Profit}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <TextBlock Text="{Binding Profit}" Foreground="{Binding ProfitBrush}" FontSize="11"
@@ -302,7 +302,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="90">
+        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="90" ClipboardContentBinding="{Binding ProfitPct}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"
@@ -313,7 +313,7 @@
 
         <!-- Read-only chips, same colours as the Order Tracker: one tag looks the same wherever
              it appears. Added and removed by right-click. -->
-        <DataGridTemplateColumn Header="Labels" Width="180">
+        <DataGridTemplateColumn Header="Labels" Width="180" ClipboardContentBinding="{Binding Labels}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
@@ -336,7 +336,7 @@
 
         <!-- The contract behind the sale, carrying its description where it has one. Blank on
              market rows. Opens in the Contracts tool, the same jump the Order Tracker offers. -->
-        <DataGridTemplateColumn Header="Contract" SortMemberPath="Contract" Width="220">
+        <DataGridTemplateColumn Header="Contract" SortMemberPath="Contract" Width="220" ClipboardContentBinding="{Binding Contract}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleRowVm">
               <Panel>

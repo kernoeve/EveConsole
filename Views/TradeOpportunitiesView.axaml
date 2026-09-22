@@ -232,7 +232,7 @@
 
       <DataGrid.Columns>
 
-        <DataGridTemplateColumn Header="Item" Width="*" MinWidth="150" SortMemberPath="TypeName">
+        <DataGridTemplateColumn Header="Item" Width="*" MinWidth="150" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel>
@@ -248,7 +248,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="BestSell">
+        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="BestSell" ClipboardContentBinding="{Binding BestSellDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BestSellDisplay}"
@@ -258,7 +258,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Dest Price" Width="110" SortMemberPath="DestPrice">
+        <DataGridTemplateColumn Header="Dest Price" Width="110" SortMemberPath="DestPrice" ClipboardContentBinding="{Binding DestPriceDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding DestPriceDisplay}"
@@ -268,7 +268,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit">
+        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitUnitDisplay}"
@@ -279,7 +279,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / m³" Width="100" SortMemberPath="ProfitPerM3">
+        <DataGridTemplateColumn Header="Profit / m³" Width="100" SortMemberPath="ProfitPerM3" ClipboardContentBinding="{Binding ProfitM3Display}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitM3Display}"
@@ -290,7 +290,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Qty" Width="80" SortMemberPath="Quantity">
+        <DataGridTemplateColumn Header="Qty" Width="80" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding QuantityDisplay}"
@@ -300,7 +300,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Volume (m³)" Width="100" SortMemberPath="TotalVolume">
+        <DataGridTemplateColumn Header="Volume (m³)" Width="100" SortMemberPath="TotalVolume" ClipboardContentBinding="{Binding TotalVolumeDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalVolumeDisplay}"
@@ -310,7 +310,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost">
+        <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCostDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalCostDisplay}"
@@ -321,7 +321,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Total Profit" Width="110" SortMemberPath="TotalProfit">
+        <DataGridTemplateColumn Header="Total Profit" Width="110" SortMemberPath="TotalProfit" ClipboardContentBinding="{Binding TotalProfitDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalProfitDisplay}"

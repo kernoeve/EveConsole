@@ -116,7 +116,7 @@
       </DataGrid.Styles>
 
       <DataGrid.Columns>
-        <DataGridTemplateColumn Header="Type" SortMemberPath="TypeName" IsReadOnly="True" Width="2*">
+        <DataGridTemplateColumn Header="Type" SortMemberPath="TypeName" IsReadOnly="True" Width="2*" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:PriceOverrideRow">
               <Panel>

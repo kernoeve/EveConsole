@@ -159,7 +159,7 @@
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                     DoubleTapped="OnMemberDoubleTapped">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Name" Width="320" SortMemberPath="Name">
+              <DataGridTemplateColumn Header="Name" Width="320" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityMemberRow">
                     <Button Content="{Binding Name}"
@@ -178,7 +178,7 @@
               <DataGridTextColumn Header="Division" Binding="{Binding Division}" FontSize="10" Width="140"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
               <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Station"
-                                      IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentStation}">
+                                      IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentStation}" ClipboardContentBinding="{Binding Station}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityMemberRow">
                     <Button Content="{Binding Station}"
@@ -207,7 +207,7 @@
                     DoubleTapped="OnHistoryDoubleTapped">
             <DataGrid.Columns>
               <DataGridTemplateColumn Width="*" SortMemberPath="Alliance"
-                  Header="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).HistoryEntityHeader}">
+                  Header="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).HistoryEntityHeader}" ClipboardContentBinding="{Binding Alliance}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityHistoryRow">
                     <Button Content="{Binding Alliance}"
@@ -235,7 +235,7 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Name">
+              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityStationRow">
                     <Button Content="{Binding Name}"
@@ -250,7 +250,7 @@
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
-              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security" CellStyleClasses="num">
+              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security" CellStyleClasses="num" ClipboardContentBinding="{Binding SecurityText}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityStationRow">
                     <TextBlock Text="{Binding SecurityText}" Foreground="{Binding SecurityColor}"
@@ -278,7 +278,7 @@
                         IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="svc:NpcOrderItemRow">
                         <Button Content="{Binding Item}"
@@ -304,7 +304,7 @@
                         IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="svc:NpcOrderItemRow">
                         <Button Content="{Binding Item}"
@@ -333,7 +333,7 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item">
+              <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:LpOfferRow">
                     <Button Content="{Binding Item}"
@@ -367,7 +367,7 @@
               <DataGridTextColumn Header="Role"      Binding="{Binding Role}" FontSize="10"      Width="80"/>
               <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}" FontSize="10"     Width="150"/>
               <!-- Red when it differs from the owner: the system has been taken and not reset. -->
-              <DataGridTemplateColumn Header="Held By" SortMemberPath="Occupier" Width="150">
+              <DataGridTemplateColumn Header="Held By" SortMemberPath="Occupier" Width="150" ClipboardContentBinding="{Binding Occupier}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:FactionWarfareRow">
                     <TextBlock Text="{Binding Occupier}" Foreground="{Binding OccupierColor}"
