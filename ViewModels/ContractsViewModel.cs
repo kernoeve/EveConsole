@@ -8,6 +8,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace EveConsole.ViewModels;
 
@@ -72,25 +73,101 @@ internal static class ContractFmt
 
 // ── Row / detail view-models ────────────────────────────────────────────────────
 
-public class ContractItemRowVm
+/// <summary>
+/// The unit prices the contract items are valued at: the asset-value market source on its
+/// price type, and the app's build cost. Loaded once per contract load for every type on any
+/// item, so building a detail pane stays a lookup.
+/// </summary>
+public sealed record ContractItemValues(IReadOnlyDictionary<int, double> MarketUnit, IReadOnlyDictionary<int, double> BuildUnit)
+{
+    public static readonly ContractItemValues None = new(new Dictionary<int, double>(), new Dictionary<int, double>());
+
+    public static async Task<ContractItemValues> LoadAsync(AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct = default)
+    {
+        if (typeIds.Count == 0) return None;
+        var market = new Dictionary<int, double>();
+        var settings = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == 1, ct);
+        if (settings?.AssetValueConfigId is int configId)
+        {
+            var priceType = settings.AssetValuePriceType;
+            market = await db.MarketItemPrices.AsNoTracking()
+                .Where(p => p.ConfigId == configId && typeIds.Contains(p.TypeId))
+                .ToDictionaryAsync(p => p.TypeId, p => priceType switch
+                {
+                    "Buy"  => p.BuyPrice,
+                    "Sell" => p.SellPrice,
+                    _      => p.Midpoint,
+                }, ct);
+        }
+        var build = await db.BuildCosts.AsNoTracking()
+            .Where(b => typeIds.Contains(b.TypeId) && b.TotalCost > 0)
+            .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
+        return new ContractItemValues(market, build);
+    }
+}
+
+public class ContractItemRowVm : ReactiveObject
 {
     public string Kind      { get; }     // "Offered" / "Requested"
     public IBrush KindColor { get; }
     public string TypeName  { get; }
     public string Quantity  { get; }
+    public long   QuantityRaw { get; }
     public string Details   { get; }     // blueprint / singleton notes
     public int    TypeId    { get; }
 
-    public bool HasItemLink => TypeId > 0;
+    /// <summary>What the line is worth at market and to build: unit price times quantity, or
+    /// "—" where the app has no price. The unit prices are in the tooltips.</summary>
+    public double? MarketValueRaw { get; }
+    public double? BuildValueRaw  { get; }
+    public string  MarketValue    => MarketValueRaw is double m ? MarketFmt.Isk(m) : "—";
+    public string  BuildValue     => BuildValueRaw  is double b ? MarketFmt.Isk(b) : "—";
+    public string  MarketTip      { get; }
+    public string  BuildTip       { get; }
+
+    /// <summary>The last row of a list: the three columns summed, no item, no picture.</summary>
+    public bool IsTotal { get; }
+
+    private Bitmap? _icon;
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public Task LoadIconAsync() => IsTotal ? Task.CompletedTask : ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp, _isBlueprint);
+    private readonly bool _isBlueprint;
+
+    public bool HasItemLink => TypeId > 0 && !IsTotal;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 
-    public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames)
+    /// <summary>The totals row for a list of the rows above it.</summary>
+    public ContractItemRowVm(IReadOnlyList<ContractItemRowVm> rows)
+    {
+        IsTotal   = true;
+        Kind      = rows.Count > 0 ? rows[0].Kind : "";
+        KindColor = Palette.TextMuted;
+        TypeName  = "Total";
+        QuantityRaw = rows.Sum(r => r.QuantityRaw);
+        Quantity  = QuantityRaw.ToString("N0");
+        MarketValueRaw = rows.Any(r => r.MarketValueRaw is not null) ? rows.Sum(r => r.MarketValueRaw ?? 0) : null;
+        BuildValueRaw  = rows.Any(r => r.BuildValueRaw  is not null) ? rows.Sum(r => r.BuildValueRaw  ?? 0) : null;
+        var unpricedM = rows.Count(r => r.MarketValueRaw is null);
+        var unpricedB = rows.Count(r => r.BuildValueRaw  is null);
+        MarketTip = unpricedM > 0 ? $"{unpricedM:N0} line(s) have no market price and are not counted" : "Every line priced";
+        BuildTip  = unpricedB > 0 ? $"{unpricedB:N0} line(s) have no build cost and are not counted"   : "Every line costed";
+        Details   = "";
+    }
+
+    public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames, ContractItemValues values)
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
         KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
         TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
+        QuantityRaw = it.Quantity;
         Quantity  = it.Quantity.ToString("N0");
+        _isBlueprint = it.IsBlueprintCopy == true || it.RawQuantity is < 0;
+
+        MarketValueRaw = values.MarketUnit.TryGetValue(it.TypeId, out var mu) && mu > 0 ? mu * it.Quantity : null;
+        BuildValueRaw  = values.BuildUnit.TryGetValue(it.TypeId,  out var bu) && bu > 0 ? bu * it.Quantity : null;
+        MarketTip = MarketValueRaw is null ? "No market price held for this item" : $"{MarketFmt.Isk(mu)} ISK a unit at the asset-value market source";
+        BuildTip  = BuildValueRaw  is null ? "No build cost held for this item"   : $"{MarketFmt.Isk(bu)} ISK a unit to build";
 
         var notes = new List<string>();
         if (it.IsBlueprintCopy == true || (it.RawQuantity is < -1))
@@ -140,6 +217,13 @@ public class ContractDetailVm
     public ObservableCollection<ContractItemRowVm> Items { get; } = new();
     public bool HasItems => Items.Count > 0;
 
+    /// <summary>The items in two lists, what the issuer offers and what they ask for, each ending
+    /// in a totals row.</summary>
+    public ObservableCollection<ContractItemRowVm> Offered   { get; } = new();
+    public ObservableCollection<ContractItemRowVm> Requested { get; } = new();
+    public bool HasOffered   => Offered.Count   > 0;
+    public bool HasRequested => Requested.Count > 0;
+
     // ── Party links ───────────────────────────────────────────────────────────
     //
     // The issuer falls back to the issuing corporation exactly as the name does, so the link
@@ -167,8 +251,10 @@ public class ContractDetailVm
         IReadOnlyList<ContractItem> items,
         IReadOnlyDictionary<int, string> typeNames,
         IReadOnlyDictionary<long, string> names,
-        IReadOnlyDictionary<long, string> locations)
+        IReadOnlyDictionary<long, string> locations,
+        ContractItemValues? values = null)
     {
+        values    ??= ContractItemValues.None;
         ContractId  = c.ContractId;
         Title       = string.IsNullOrWhiteSpace(c.Title) ? "(no title)" : c.Title!;
         TypeLabel   = ContractFmt.TypeLabel(c.Type);
@@ -210,7 +296,16 @@ public class ContractDetailVm
 
         foreach (var it in items.OrderByDescending(i => i.IsIncluded)
                                  .ThenBy(i => typeNames.TryGetValue(i.TypeId, out var n) ? n : ""))
-            Items.Add(new ContractItemRowVm(it, typeNames));
+            Items.Add(new ContractItemRowVm(it, typeNames, values));
+
+        var offered   = Items.Where(r => r.Kind == "Offered").ToList();
+        var requested = Items.Where(r => r.Kind == "Requested").ToList();
+        foreach (var r in offered)   Offered.Add(r);
+        if (offered.Count > 0)       Offered.Add(new ContractItemRowVm(offered));
+        foreach (var r in requested) Requested.Add(r);
+        if (requested.Count > 0)     Requested.Add(new ContractItemRowVm(requested));
+
+        _ = Task.WhenAll(Items.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
     }
 
     private static string Party(IReadOnlyDictionary<long, string> names, long id, int corpId)
@@ -676,6 +771,7 @@ public class OwnedContractsViewModel : ReactiveObject
     private List<ContractRowVm> _all = [];
     private IReadOnlyDictionary<int, List<ContractItem>> _itemsByContract = new Dictionary<int, List<ContractItem>>();
     private IReadOnlyDictionary<int, string> _typeNames = new Dictionary<int, string>();
+    private ContractItemValues _values = ContractItemValues.None;
     private IReadOnlyDictionary<long, string> _partyNames = new Dictionary<long, string>();
     private IReadOnlyDictionary<long, string> _locations = new Dictionary<long, string>();
 
@@ -817,6 +913,7 @@ public class OwnedContractsViewModel : ReactiveObject
             var typeIds = items.Select(i => i.TypeId).Distinct().ToList();
             _typeNames = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+            _values = await ContractItemValues.LoadAsync(db, typeIds);
 
             // The parties the scope filter offers: every character and corporation the app
             // knows, and which corporations are the user's own.
@@ -933,7 +1030,7 @@ public class OwnedContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values);
     }
 }
 
@@ -952,6 +1049,7 @@ public class PublicContractsViewModel : ReactiveObject
 
     private IReadOnlyDictionary<int, List<ContractItem>> _itemsByContract = new Dictionary<int, List<ContractItem>>();
     private IReadOnlyDictionary<int, string> _typeNames = new Dictionary<int, string>();
+    private ContractItemValues _values = ContractItemValues.None;
     private IReadOnlyDictionary<long, string> _partyNames = new Dictionary<long, string>();
     private IReadOnlyDictionary<long, string> _locations = new Dictionary<long, string>();
 
@@ -1307,6 +1405,7 @@ public class PublicContractsViewModel : ReactiveObject
             var types = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
                 .Select(t => new { t.TypeId, t.Name, t.MarketGroupId }).ToListAsync();
             _typeNames = types.ToDictionary(t => t.TypeId, t => t.Name);
+            _values    = await ContractItemValues.LoadAsync(db, typeIds);
             var typeCategory = types.ToDictionary(t => t.TypeId, t => RootCategory(t.MarketGroupId));
 
             var regionIds = contracts.Select(c => c.RegionId).Distinct().ToList();
@@ -1355,7 +1454,7 @@ public class PublicContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values);
     }
 }
 

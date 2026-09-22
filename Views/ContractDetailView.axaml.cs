@@ -22,4 +22,8 @@ public partial class ContractDetailView : UserControl
 
     private void OnOpenItem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ((sender as Control)?.DataContext as ContractItemRowVm)?.OpenItem();
+
+    /// <summary>The totals row wears the class the styles set apart; a recycled row loses it again.</summary>
+    private void OnLoadingRow(object? sender, DataGridRowEventArgs e)
+        => e.Row.Classes.Set("total", e.Row.DataContext is ContractItemRowVm { IsTotal: true });
 }
