@@ -75,6 +75,10 @@ public sealed record MonthlyActivityRow(
     decimal IndustryTax,
     decimal ProjectPayouts,
     long    UnitsMined,
+    /// <summary>What the month's ore would yield reprocessed, at the app's reprocessing values —
+    /// the mining figure the Monthly Activity tab and its chart show, since a unit of Veldspar
+    /// and a unit of Mercoxit are not the same amount of mining.</summary>
+    decimal MinedValue,
     int     Kills,
     int     Losses,
     int     PlayersActive,
@@ -623,8 +627,20 @@ public class CorpActivityService
             GROUP BY "Month"
             """).ToListAsync(ct);
 
-        var miningByMonth = miningRows.ToDictionary(r => r.Month, r => r.Count);
-        var killsByMonth  = killMonths.ToDictionary(r => r.Month);
+        // The same ore valued: each row's quantity at its type's reprocessing value, the figure
+        // the Item Browser calls "Reprocessing value". A type the values table lacks counts nothing.
+        var miningValueRows = await db.Database.SqlQuery<MonthMoneyRaw>($"""
+            SELECT substr(CAST(m."LastUpdated" AS TEXT), 1, 7) AS "Month",
+                   COALESCE(SUM(m."Quantity" * COALESCE(v."Value", 0.0)), 0) AS "Value"
+            FROM "EsiCorpMiningLedger" m
+            LEFT JOIN "ReprocessingValues" v ON v."TypeId" = m."TypeId"
+            WHERE m."CorporationId" = {corpId} AND m."LastUpdated" >= {cutoff}
+            GROUP BY "Month"
+            """).ToListAsync(ct);
+
+        var miningByMonth      = miningRows.ToDictionary(r => r.Month, r => r.Count);
+        var miningValueByMonth = miningValueRows.ToDictionary(r => r.Month, r => (decimal)r.Value);
+        var killsByMonth       = killMonths.ToDictionary(r => r.Month);
 
         // ISK destroyed and lost per month.
         //
@@ -759,6 +775,7 @@ public class CorpActivityService
         return allMonths.Select(m =>
         {
             var mine    = miningByMonth.GetValueOrDefault(m);
+            var mined   = miningValueByMonth.GetValueOrDefault(m);
             var kills   = killsByMonth.TryGetValue(m, out var kb) ? kb.Kills  : 0;
             var loss    = killsByMonth.TryGetValue(m, out var lb) ? lb.Losses : 0;
             var players = playersByMonth.GetValueOrDefault(m);
@@ -766,9 +783,9 @@ public class CorpActivityService
             var isk  = iskByMonth.GetValueOrDefault(m);
             return w is not null
                 ? new MonthlyActivityRow(m, w.TotalIncome, w.TotalExpense,
-                    w.RattingTax, w.IndustryTax, w.ProjectPayouts, mine, kills, loss, players,
+                    w.RattingTax, w.IndustryTax, w.ProjectPayouts, mine, mined, kills, loss, players,
                     isk.Destroyed, isk.Lost)
-                : new MonthlyActivityRow(m, 0, 0, 0, 0, 0, mine, kills, loss, players,
+                : new MonthlyActivityRow(m, 0, 0, 0, 0, 0, mine, mined, kills, loss, players,
                     isk.Destroyed, isk.Lost);
         }).ToList();
     }
@@ -1196,12 +1213,8 @@ public class CorpActivityService
         var activity     = await GetMonthlyActivityAsync(corpId, lookback, ct);
         var projects     = await GetMonthProjectStatsAsync(corpId, ct);
 
-        var from     = new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero);
-        var prevFrom = from.AddMonths(-1);
-
-        async Task<MonthFigures> Build(string monthKey, DateTimeOffset monthStart)
+        MonthFigures Build(string monthKey)
         {
-            var miningValue       = await GetMonthMiningValueAsync(corpId, monthStart, ct);
             var kills             = killMonths.FirstOrDefault(k => k.Month == monthKey);
             var act               = activity.FirstOrDefault(a => a.Month == monthKey);
             var proj              = projects.GetValueOrDefault(monthKey);
@@ -1215,12 +1228,13 @@ public class CorpActivityService
                 // numbers for the same thing the first time either query changed. Those rows are
                 // priced in one pass over the whole lookback, so this is also the cheaper answer.
                 act?.IskDestroyed ?? 0m, act?.IskLost ?? 0m,
-                act?.UnitsMined    ?? 0, miningValue,
+                // The mining value too: the same rows value the month's ore once, for the tab and for here.
+                act?.UnitsMined    ?? 0, act?.MinedValue ?? 0m,
                 act?.PlayersActive ?? 0,
                 proj.Created, proj.CreatedValue, proj.Completed, proj.CompletedValue);
         }
 
-        return new MonthSummary(year, month, await Build(key, from), await Build(prevKey, prevFrom));
+        return new MonthSummary(year, month, Build(key), Build(prevKey));
     }
 
     /// <summary>
@@ -1274,29 +1288,6 @@ public class CorpActivityService
         public double Value { get; set; }
     }
 
-    /// <summary>Reprocessed value of everything mined that month, priced from the same
-    /// reprocessing values the Mining Ledger uses.
-    ///
-    /// The table is "ReprocessingValues" — the DbSet is named ReprocessingItemValues, which
-    /// is not the same thing and does not exist in SQL.</summary>
-    private async Task<decimal> GetMonthMiningValueAsync(
-        long corpId, DateTimeOffset from, CancellationToken ct)
-    {
-        using var db = _dbFactory.CreateDbContext();
-        var fromStr  = SqlCutoff(from);
-        var toStr    = SqlCutoff(from.AddMonths(1));
-
-        var rows = await db.Database.SqlQuery<MonthValueRaw>($"""
-            SELECT COALESCE(SUM(m."Quantity" * COALESCE(v."Value", 0.0)), 0) AS "Value"
-            FROM "EsiCorpMiningLedger" m
-            LEFT JOIN "ReprocessingValues" v ON v."TypeId" = m."TypeId"
-            WHERE m."CorporationId" = {corpId}
-              AND m."LastUpdated" >= {fromStr} AND m."LastUpdated" < {toStr}
-            """).ToListAsync(ct);
-
-        return (decimal)(rows.FirstOrDefault()?.Value ?? 0.0);
-    }
-
     private sealed class MonthKillIskRaw
     {
         public string Month            { get; set; } = "";
@@ -1305,8 +1296,9 @@ public class CorpActivityService
         public int    IsLoss           { get; set; }
     }
 
-    private sealed class MonthValueRaw
+    private sealed class MonthMoneyRaw
     {
+        public string Month { get; set; } = "";
         public double Value { get; set; }
     }
 

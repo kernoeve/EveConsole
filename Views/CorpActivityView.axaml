@@ -455,7 +455,7 @@
               <DataGridTextColumn Header="RATTING TAX"   Binding="{Binding RattingTaxText}"   SortMemberPath="RattingTaxRaw"    Width="105" />
               <DataGridTextColumn Header="INDUSTRY TAX"  Binding="{Binding IndustryTaxText}"  SortMemberPath="IndustryTaxRaw"   Width="105" />
               <DataGridTextColumn Header="PROJ PAYOUTS"  Binding="{Binding ProjPayoutsText}"  SortMemberPath="ProjPayoutsRaw"   Width="110" />
-              <DataGridTextColumn Header="UNITS MINED"   Binding="{Binding UnitsMinedText}"   SortMemberPath="UnitsMinedRaw"    Width="100" />
+              <DataGridTextColumn Header="MINED VALUE"   Binding="{Binding MinedValueText}"   SortMemberPath="MinedValueRaw"    Width="110" />
               <DataGridTextColumn Header="KILLS"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
               <DataGridTextColumn Header="LOSSES"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
               <DataGridTextColumn Header="ISK EFF"        Binding="{Binding IskEffText}"        SortMemberPath="IskEffRaw"        Width="75"  />
@@ -463,12 +463,13 @@
             </DataGrid.Columns>
           </DataGrid>
 
-          <!-- Three charts across, one band. Each keeps its own header so a column can be read
-               without counting across to work out which one it is. -->
-          <Grid Grid.Row="1" ColumnDefinitions="*,*,*">
+          <!-- Four charts, two by two: ISK trends and kills above, players active and mining
+               below. Each keeps its own header so a chart can be read without working out from
+               its place which one it is. -->
+          <Grid Grid.Row="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
 
             <!-- ISK trends -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,360">
+            <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
                 <TextBlock Text="ISK TRENDS (billions)" TextTrimming="CharacterEllipsis"
@@ -486,7 +487,7 @@
             </Grid>
 
             <!-- Kills and losses. YAxes[0] = counts, YAxes[1] = ISK efficiency pinned to 0-100% -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,360">
+            <Grid Grid.Row="0" Grid.Column="1" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
                 <TextBlock Text="KILLS / LOSSES (ISK efficiency right)" TextTrimming="CharacterEllipsis"
@@ -503,11 +504,29 @@
                                   Margin="4 0 4 4" />
             </Grid>
 
-            <!-- Mining -->
-            <Grid Grid.Column="2" RowDefinitions="Auto,360">
+            <!-- Players active -->
+            <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                <TextBlock Text="MINING (units)" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="PLAYERS ACTIVE" TextTrimming="CharacterEllipsis"
+                           FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+              </Border>
+              <lvc:CartesianChart Grid.Row="1"
+                                  Series="{Binding MonthlyPlayerSeries}"
+                                  XAxes="{Binding MonthlyPlayerXAxes}"
+                                  YAxes="{Binding MonthlyPlayerYAxes}"
+                                  LegendPosition="Top" LegendTextSize="10"
+                                  TooltipPosition="Top"
+                                  EasingFunction="{x:Null}"
+                                  Background="Transparent"
+                                  Margin="4 0 4 4" />
+            </Grid>
+
+            <!-- Mining, as reprocessed value -->
+            <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,288">
+              <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                <TextBlock Text="MINING (reprocessed value)" TextTrimming="CharacterEllipsis"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
               </Border>
               <lvc:CartesianChart Grid.Row="1"

@@ -207,7 +207,8 @@ public static class CorpTrendChartReport
                          "Kills and Losses (ISK efficiency on the right)");
     }
 
-    /// <summary>Units mined, on its own scale.</summary>
+    /// <summary>The month's ore as reprocessed value, on its own scale. Value rather than units:
+    /// a unit of Veldspar and a unit of Mercoxit are not the same amount of mining.</summary>
     public static Chart? MiningTrends(IReadOnlyList<MonthlyActivityRow> rows)
     {
         if (rows.Count == 0) return null;
@@ -215,7 +216,7 @@ public static class CorpTrendChartReport
         var ordered = rows.OrderBy(r => r.Month).ToList();
         var labels  = ordered.Select(r => r.Month).ToArray();
 
-        ISeries[] series = [Line("Units Mined", ordered.Select(r => (double)r.UnitsMined), Gold)];
+        ISeries[] series = [Line("Mined Value", ordered.Select(r => (double)r.MinedValue), Gold)];
 
         Axis[] yAxes =
         [
@@ -224,13 +225,39 @@ public static class CorpTrendChartReport
                 TextSize = 9, MinLimit = 0,
                 LabelsPaint     = new SolidColorPaint(Label),
                 SeparatorsPaint = new SolidColorPaint(Grid),
-                // ⚠️ One decimal on the millions. F0 rounded 1.2M and 1.4M to the same string,
-                // so two gridlines carried the identical label.
-                Labeler         = v => v >= 1_000_000 ? $"{v / 1_000_000:F1}M" : $"{v:N0}",
+                // ⚠️ One decimal on the unit. F0 rounded 1.2B and 1.4B to the same string, so
+                // two gridlines carried the identical label.
+                Labeler         = v => v >= 1_000_000_000 ? $"{v / 1_000_000_000:F1}B"
+                                     : v >= 1_000_000     ? $"{v / 1_000_000:F1}M"
+                                     : $"{v:N0}",
             },
         ];
 
-        return new Chart(series, [XAxis(labels)], yAxes, "Units Mined");
+        return new Chart(series, [XAxis(labels)], yAxes, "Mining (reprocessed value)");
+    }
+
+    /// <summary>Distinct members seen doing something the corporation can see, month by month.</summary>
+    public static Chart? PlayerTrends(IReadOnlyList<MonthlyActivityRow> rows)
+    {
+        if (rows.Count == 0) return null;
+
+        var ordered = rows.OrderBy(r => r.Month).ToList();
+        var labels  = ordered.Select(r => r.Month).ToArray();
+
+        ISeries[] series = [Line("Players Active", ordered.Select(r => (double)r.PlayersActive), Blue)];
+
+        Axis[] yAxes =
+        [
+            new Axis
+            {
+                TextSize = 9, MinLimit = 0,
+                LabelsPaint     = new SolidColorPaint(Label),
+                SeparatorsPaint = new SolidColorPaint(Grid),
+                Labeler         = v => $"{v:N0}",
+            },
+        ];
+
+        return new Chart(series, [XAxis(labels)], yAxes, "Players Active");
     }
 
     /// <summary>
