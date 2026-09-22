@@ -619,12 +619,6 @@ public class MainWindowViewModel : ReactiveObject
         Apply();
     }
 
-    private string _pollingStatusText = "Polling: Not started";
-    public string PollingStatusText
-    {
-        get => _pollingStatusText;
-        private set => this.RaiseAndSetIfChanged(ref _pollingStatusText, value);
-    }
 
     private string _buildCostStatusText = "Build costs: not yet calculated";
     public string BuildCostStatusText
@@ -707,6 +701,7 @@ public class MainWindowViewModel : ReactiveObject
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
             "notifications"  => ("Notifications",  NotificationsVm,   true),
+            "background"     => ("Background Processes", ActivityVm,  true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             "error_log"      => ("Error Log",      ErrorLogVm,        true),
             "ai_usage"       => ("AI Usage",       AgentUsageVm,      true),
@@ -737,6 +732,15 @@ public class MainWindowViewModel : ReactiveObject
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
+    }
+
+    /// <summary>Opens the Background Processes tool at the tab named — what a status-bar label does.
+    /// The ask goes to the view model first, so a view already showing acts on it at once and one
+    /// built by the open finds it waiting.</summary>
+    public void OpenBackgroundProcesses(string tab)
+    {
+        ActivityVm.RequestedTab = tab;
+        OpenTool("background");
     }
 
     /// <summary>
@@ -1191,23 +1195,13 @@ public class MainWindowViewModel : ReactiveObject
         StartOnlineCharactersWatch(dbFactory);
         BindAlarmLight(alarmService, workerActivity);
 
-        // ⚠️ Two sources, because only one of them is ever right. On the client holding the lease
-        // this process really is polling and its own status is the truth; on any other the poller
-        // is stopped, so its local text would read "Polling: Not started" about a client that is
-        // polling away perfectly well on another machine.
-        _pollingService
-            .WhenAnyValue(p => p.StatusText)
-            .Subscribe(t => { if (_workerLease.IsHolder) PollingStatusText = t; });
-
-        workerActivity.Changed += () => Dispatcher.UIThread.Post(() =>
-        {
-            if (_workerLease.IsHolder) return;
-
-            PollingStatusText = workerActivity.Get(WorkerActivityService.Polling)?.Status
-                                is { Length: > 0 } status
-                ? status
-                : "Polling: on another client";
-        });
+        // The status bar's lines on the background processes, once a second whatever tab is
+        // open — cheap, since each is an in-memory read here or the board a worker elsewhere
+        // publishes — and at once whenever that worker signals a change (the view model listens).
+        Observable.Interval(TimeSpan.FromSeconds(1))
+            .ObserveOnUi("MainWindow.BackgroundStatus")
+            .Subscribe(_ => ActivityVm.SyncStatusBar());
+        ActivityVm.SyncStatusBar();
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.
         Observable.Interval(TimeSpan.FromSeconds(3))
@@ -1280,6 +1274,7 @@ public class MainWindowViewModel : ReactiveObject
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
+                new NavItem("background", "Background Processes"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
                 new NavItem("ai_usage",  "AI Usage"),

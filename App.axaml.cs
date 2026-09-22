@@ -4017,6 +4017,7 @@ public class App : Application
         //
         // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
         // every client runs its own and the local status is the true one.
+        services.AddSingleton<BackgroundStatusSampler>();
         services.AddSingleton(sp => new WorkerActivityService(
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
             sp.GetRequiredService<AppErrorLogger>(),
@@ -4030,6 +4031,9 @@ public class App : Application
                 var alarms  = sp.GetRequiredService<AlarmService>();
                 return
                 [
+                    // The status bar's five lines, so a client that is not the worker shows them live.
+                    .. sp.GetRequiredService<BackgroundStatusSampler>().All()
+                         .Select(b => new WorkerActivity { Key = b.Key, Status = b.Line.Text, Running = b.Line.Running }),
                     new WorkerActivity { Key    = WorkerActivityService.Polling,
                                          Status = polling.StatusText },
                     new WorkerActivity { Key        = WorkerActivityService.Structures,

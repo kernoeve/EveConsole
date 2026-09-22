@@ -21,7 +21,6 @@ namespace EveConsole.Views;
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     // Detached window handles
-    private ApiActivityWindow?       _activityWindow;
     private CharacterViewerWindow?   _characterViewerWindow;
     private AssetBrowserWindow?      _assetBrowserWindow;
     private IndustryBrowserWindow?   _industryBrowserWindow;
@@ -738,17 +737,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }
 
-    private void OnPollingStatusClick(object? sender, RoutedEventArgs e)
+    /// <summary>A status-bar label opens the Background Processes tool at the tab that says more.</summary>
+    private void OnBackgroundLabelClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm) return;
-
-        if (_activityWindow is null || !_activityWindow.IsVisible)
-        {
-            _activityWindow = new ApiActivityWindow { DataContext = vm.ActivityVm };
-            _activityWindow.Closed += (_, _) => _activityWindow = null;
-            _activityWindow.Show();
-        }
-        else _activityWindow.Activate();
+        if (DataContext is MainWindowViewModel vm && (sender as Control)?.DataContext is StatusBarItem item)
+            vm.OpenBackgroundProcesses(item.Tab);
     }
 
     // ── Tab detach (right-click → Open in New Window) ─────────────────────────
@@ -888,12 +881,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (_industryBrowserWindow?.IsVisible == true) detached.Add("Industry");
         if (_itemBrowserWindow?.IsVisible     == true) detached.Add("Items");
         if (_explorerWindow?.IsVisible        == true) detached.Add("ESI Explorer");
-        if (_activityWindow?.IsVisible        == true) detached.Add("Background Processes");
         if (detached.Count > 0)
             sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
 
         sb.AppendLine("You know what each tool does (see your Tool Reference) — explain and guide from that knowledge; only use capture_tab to read specific on-screen values you cannot get from the data tools.");
-        sb.AppendLine("Available tool IDs for open_window: overview, characters, assets, items, industry, indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, wallet, corp_activity, killmails, eve_mail, data");
+        sb.AppendLine("Available tool IDs for open_window: overview, characters, assets, items, industry, indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, wallet, corp_activity, killmails, eve_mail, data, background");
 
         if (vm.CharacterViewerVm.SelectedCharacter is { } ch)
             sb.AppendLine($"Selected character: {ch.Name} (ID: {ch.Id})");

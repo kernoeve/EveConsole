@@ -135,8 +135,14 @@ public class LpStoreService : ReactiveObject
     {
         _running = true;
         try { await SweepCoreAsync(ct); }
-        finally { _running = false; }
+        finally { _running = false; _corpsDone = 0; _corpsTotal = 0; }
     }
+
+    // How far the running sweep has got, for the status bar. Both zero between sweeps.
+    private volatile int _corpsDone, _corpsTotal;
+    public bool IsSweeping => _running;
+    public int  CorpsDone  => _corpsDone;
+    public int  CorpsTotal => _corpsTotal;
 
     private async Task SweepCoreAsync(CancellationToken ct)
     {
@@ -174,6 +180,8 @@ public class LpStoreService : ReactiveObject
             .ToList();
 
         int stores = 0, offers = 0, empty = 0, failed = 0, checkedCount = 0;
+        _corpsTotal = targets.Count;
+        _corpsDone  = 0;
 
         foreach (var corpId in targets)
         {
@@ -219,6 +227,7 @@ public class LpStoreService : ReactiveObject
             }
 
             checkedCount++;
+            _corpsDone = checkedCount;
             if ((checkedCount & 15) == 0)
                 StatusText = $"LP store: {checkedCount:N0}/{targets.Count:N0} corps, {offers:N0} offers…";
 

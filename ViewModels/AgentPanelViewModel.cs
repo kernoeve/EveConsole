@@ -385,6 +385,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         (["items tab", "item tab", "items window", "item browser"],  "items"),
         (["characters tab", "character tab", "characters window"],   "characters"),
         (["data tab", "data window"],                                "data"),
+        (["background processes", "background tab"],                 "background"),
     ];
     private static readonly string[] _navVerbs =
         ["open", "show", "pull up", "switch to", "go to", "navigate to", "take me to", "bring up"];

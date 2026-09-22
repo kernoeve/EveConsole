@@ -53,6 +53,12 @@ public class ContractsService : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _itemsSweeping, value);
     }
 
+    // How far the running item pass has got, for the status bar: contracts handled so far, and
+    // how many the pass set out with. Both zero between passes.
+    private volatile int _itemsDone, _itemsTotal;
+    public int ItemsDone  => _itemsDone;
+    public int ItemsTotal => _itemsTotal;
+
     // Snapshot for the API-log Contracts monitor.
     public record ContractItemsStatus(
         int PublicTotal, int PublicPulled,
@@ -277,7 +283,7 @@ public class ContractsService : ReactiveObject
     {
         IsSweepingItems = true;
         try { await SweepContractItemsCoreAsync(ct); }
-        finally { IsSweepingItems = false; }
+        finally { IsSweepingItems = false; _itemsDone = 0; _itemsTotal = 0; }
     }
 
     private async Task SweepContractItemsCoreAsync(CancellationToken ct)
@@ -314,9 +320,12 @@ public class ContractsService : ReactiveObject
             .ToList();
 
         int done = 0, deferred = 0, skipped = 0;
+        _itemsTotal = pending.Count;
+        _itemsDone  = 0;
         foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
+            _itemsDone = done + deferred + skipped;
 
             // Prefer the public endpoint (no token bucket, items always visible), then a
             // character token, then a corp contract the corp ISSUED.

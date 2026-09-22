@@ -15,6 +15,31 @@ namespace EveConsole.ViewModels;
 
 public record TokenOption(long Id, string OwnerType, string DisplayName);
 
+/// <summary>
+/// One of the status bar's labels: a background process's name, what it is doing in a few words,
+/// and the tab of the Background Processes tool that says more. "ESI Calls: 3 active, 12 queued".
+/// </summary>
+public sealed class StatusBarItem(string name, string tab) : ReactiveObject
+{
+    public string Name { get; } = name;
+    public string Tab  { get; } = tab;
+
+    private string _text = BackgroundStatus.Idle.Text;
+    public string Text
+    {
+        get => _text;
+        private set { this.RaiseAndSetIfChanged(ref _text, value); this.RaisePropertyChanged(nameof(Label)); }
+    }
+
+    private bool _running;
+    /// <summary>Busy right now: what colours the label.</summary>
+    public bool Running { get => _running; private set => this.RaiseAndSetIfChanged(ref _running, value); }
+
+    public string Label => $"{Name}: {Text}";
+
+    public void Set(BackgroundStatus.Line line) { Text = line.Text; Running = line.Running; }
+}
+
 // Live per-region row for the price-history sweep monitor.
 public class HistoryRegionRowVm : ReactiveObject
 {
@@ -92,6 +117,7 @@ public class ScheduleRowVm
 public class ApiActivityViewModel : ReactiveObject
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly BackgroundStatusSampler _sampler;
     private readonly EsiPollingService    _polling;
     private readonly TimerSettingsService _timerSettings;
     private readonly MarketHistoryService _history;
@@ -306,6 +332,7 @@ public class ApiActivityViewModel : ReactiveObject
     public ApiActivityViewModel(
         ApiActivityLog        log,
         IServiceScopeFactory  scopeFactory,
+        BackgroundStatusSampler sampler,
         EsiPollingService     polling,
         TimerSettingsService  timerSettings,
         MarketHistoryService  history,
@@ -332,7 +359,9 @@ public class ApiActivityViewModel : ReactiveObject
         ClearLogFiltersCommand = ReactiveCommand.Create(() => { CharacterFilter = AllOption; EndpointFilter = AllOption; });
         UpdateCountText();
         _scopeFactory  = scopeFactory;
+        _sampler       = sampler;
         _polling       = polling;
+        StatusBarItems = [BarEsiCalls, BarPriceHistory, BarContractItems, BarLpStore, BarKillmails];
         _timerSettings = timerSettings;
         _history       = history;
         _contracts     = contracts;
@@ -355,6 +384,7 @@ public class ApiActivityViewModel : ReactiveObject
         // millisecond behind rather than however long a poll interval happened to be.
         activity.Changed += () => Dispatcher.UIThread.Post(() =>
         {
+            SyncStatusBar();
             SyncBackgroundProcesses();
             SyncHistorySweep();
         });
@@ -374,6 +404,62 @@ public class ApiActivityViewModel : ReactiveObject
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
     }
+
+    // ── The status bar's lines ────────────────────────────────────────────────
+
+    public StatusBarItem BarEsiCalls      { get; } = new("ESI Calls",      "ESI Activity Log");
+    public StatusBarItem BarPriceHistory  { get; } = new("Price History",  "Price History");
+    public StatusBarItem BarContractItems { get; } = new("Contract Items", "Contract Items");
+    public StatusBarItem BarLpStore       { get; } = new("LP Store",       "LP Store");
+    public StatusBarItem BarKillmails     { get; } = new("Killmails",      "Killmails");
+
+    /// <summary>The five, in the order the bar shows them.</summary>
+    public IReadOnlyList<StatusBarItem> StatusBarItems { get; }
+
+    private string? _requestedTab;
+    /// <summary>The tab a status-bar label asked for. The view selects it when it next shows and
+    /// clears it, so the tool otherwise opens where it was left. Raised even when unchanged: a
+    /// second click on the same label must select the tab again.</summary>
+    public string? RequestedTab
+    {
+        get => _requestedTab;
+        set { _requestedTab = value; this.RaisePropertyChanged(); }
+    }
+
+    /// <summary>
+    /// Cheap, in memory: once a second from the main window whatever is open, and on every change
+    /// the worker signals. Each line is this client's own when it holds the lease, else the
+    /// worker's as it arrived. ESI calls are the one process every client runs some of — the
+    /// user's own clicks — so a client that is not the worker still shows its own calls while
+    /// the worker has none.
+    /// </summary>
+    public void SyncStatusBar()
+    {
+        var ownCalls = _sampler.EsiCalls();
+        var esi      = BarLine(WorkerActivityService.BarEsiCalls, ownCalls);
+        BarEsiCalls.Set(!_lease.IsHolder && ownCalls.Running && !esi.Running ? ownCalls : esi);
+        BarPriceHistory.Set(BarLine(WorkerActivityService.BarPriceHistory,   _sampler.PriceHistory()));
+        BarContractItems.Set(BarLine(WorkerActivityService.BarContractItems, _sampler.ContractItems()));
+        BarLpStore.Set(BarLine(WorkerActivityService.BarLpStore,             _sampler.LpStore()));
+        BarKillmails.Set(BarLine(WorkerActivityService.BarKillmails,         _sampler.Killmails()));
+        KillMailFetchDetail = BarKillmails.Running ? BarKillmails.Text : "Idle — every kill mail the app knows has its details, or the next poll will fetch them";
+    }
+
+    /// <summary>This client's own line when it is the worker; else the worker's as published, or
+    /// a dash while nothing has been heard — an older worker, or none — rather than an "Idle" that
+    /// would read the same as a process genuinely at rest.</summary>
+    private BackgroundStatus.Line BarLine(string key, BackgroundStatus.Line local)
+    {
+        if (_lease.IsHolder) return local;
+        var row = _activity.Get(key);
+        return row is null ? Unheard : new BackgroundStatus.Line(row.Status, row.Running);
+    }
+
+    private static readonly BackgroundStatus.Line Unheard = new("—", false);
+
+    private string _killMailFetchDetail = "";
+    /// <summary>The Killmails tab's line for the ESI detail fetch and the daily backfill.</summary>
+    public string KillMailFetchDetail { get => _killMailFetchDetail; private set => this.RaiseAndSetIfChanged(ref _killMailFetchDetail, value); }
 
     // ── Background process monitors (zKillboard, name cache) ────────────────────
     //
