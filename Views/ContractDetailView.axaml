@@ -46,6 +46,26 @@
     <Style Selector="Button.link:pointerover TextBlock.linktext">
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
+    <!-- The item lists, offered and requested: the grid as it was, twice, with the totals row
+         that ends each set apart in weight and ground. -->
+    <Style Selector="DataGrid.items">
+      <Setter Property="AutoGenerateColumns"   Value="False" />
+      <Setter Property="IsReadOnly"            Value="True" />
+      <Setter Property="HeadersVisibility"     Value="Column" />
+      <Setter Property="RowHeight"             Value="22" />
+      <Setter Property="MaxHeight"             Value="320" />
+      <Setter Property="CanUserReorderColumns" Value="False" />
+      <Setter Property="CanUserResizeColumns"  Value="True" />
+      <Setter Property="CanUserSortColumns"    Value="False" />
+      <Setter Property="Background"            Value="{DynamicResource SurfaceBaseBrush}" />
+      <Setter Property="GridLinesVisibility"   Value="Horizontal" />
+    </Style>
+    <Style Selector="DataGrid.items DataGridRow.total TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="DataGrid.items DataGridRow.total /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource SurfacePanelBrush}" />
+    </Style>
   </UserControl.Styles>
 
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -148,26 +168,28 @@
         <TextBlock Grid.Row="3" Grid.Column="1" Classes="val" Text="{Binding DateCompleted}" />
       </Grid>
 
-      <!-- Items -->
-      <StackPanel Spacing="4" IsVisible="{Binding HasItems}">
-        <TextBlock Text="Items" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" Margin="0 4 0 0" />
-        <DataGrid ItemsSource="{Binding Items}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  HeadersVisibility="Column"
-                  RowHeight="22"
-                  MaxHeight="320"
-                  CanUserReorderColumns="False"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="False"
-                  Background="{DynamicResource SurfaceBaseBrush}"
-                  GridLinesVisibility="Horizontal">
+      <!-- No items stored: a pull on request, and what ESI answered. -->
+      <StackPanel Spacing="4" IsVisible="{Binding !HasItems}" Margin="0 4 0 0">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Content="Pull items from ESI" Command="{Binding PullItemsAsync}" IsEnabled="{Binding CanPull}"
+                  FontSize="11" Padding="10 3"
+                  ToolTip.Tip="Ask every endpoint this contract has for its items, once more, and say what each answered." />
+          <TextBlock Text="{Binding PullMessage}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Items, in two lists: what the issuer offers and what they ask for. Each row carries
+           the item's picture and what the line is worth at market and to build, and each list
+           ends in a totals row — the same columns summed, set apart by the row style. -->
+      <StackPanel Spacing="4" IsVisible="{Binding HasOffered}">
+        <TextBlock Text="Offered" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}" Margin="0 4 0 0" />
+        <DataGrid ItemsSource="{Binding Offered}" Classes="items" LoadingRow="OnLoadingRow">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="" Width="70" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding Kind}">
+            <DataGridTemplateColumn Header="" Width="26" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:ContractItemRowVm">
-                  <TextBlock Text="{Binding Kind}" Foreground="{Binding KindColor}"
-                             FontSize="10" Margin="6 0" VerticalAlignment="Center" />
+                  <Image Source="{Binding Icon}" Width="18" Height="18" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
@@ -187,8 +209,69 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Qty"     Binding="{Binding Quantity}" Width="Auto" />
-            <DataGridTextColumn Header="Details" Binding="{Binding Details}"  Width="Auto" />
+            <DataGridTextColumn Header="Qty"          Binding="{Binding Quantity}"    Width="Auto" CellStyleClasses="num" />
+            <DataGridTemplateColumn Header="Market value" Width="110" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding MarketValue}" CellStyleClasses="num">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <TextBlock Text="{Binding MarketValue}" ToolTip.Tip="{Binding MarketTip}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Build value" Width="110" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding BuildValue}" CellStyleClasses="num">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <TextBlock Text="{Binding BuildValue}" ToolTip.Tip="{Binding BuildTip}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="Auto" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </StackPanel>
+
+      <StackPanel Spacing="4" IsVisible="{Binding HasRequested}">
+        <TextBlock Text="Requested" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BadBrush}" Margin="0 4 0 0" />
+        <DataGrid ItemsSource="{Binding Requested}" Classes="items" LoadingRow="OnLoadingRow">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="" Width="26" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <Image Source="{Binding Icon}" Width="18" Height="18" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Item" Width="*" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding TypeName}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasItemLink}"
+                            ToolTip.Tip="Open in the Item Browser">
+                      <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="11"
+                                 TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                               FontSize="11" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Qty"          Binding="{Binding Quantity}"    Width="Auto" CellStyleClasses="num" />
+            <DataGridTemplateColumn Header="Market value" Width="110" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding MarketValue}" CellStyleClasses="num">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <TextBlock Text="{Binding MarketValue}" ToolTip.Tip="{Binding MarketTip}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="Build value" Width="110" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding BuildValue}" CellStyleClasses="num">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:ContractItemRowVm">
+                  <TextBlock Text="{Binding BuildValue}" ToolTip.Tip="{Binding BuildTip}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="Auto" />
           </DataGrid.Columns>
         </DataGrid>
       </StackPanel>

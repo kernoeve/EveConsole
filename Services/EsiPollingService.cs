@@ -21,7 +21,9 @@ public record PollingResult(
     /// <summary>When the server says its copy goes stale. Drives when this is next polled.</summary>
     DateTimeOffset? Expires    = null,
     /// <summary>The server's ETag, sent back as If-None-Match on the next call.</summary>
-    string? ETag               = null);
+    string? ETag               = null,
+    /// <summary>No request was made: the client was standing down. Not logged, not recorded, still owed.</summary>
+    bool    NotSent            = false);
 
 public record EndpointInfo(string Key, string DisplayName, int MinSeconds, int DefaultSeconds);
 
@@ -587,7 +589,9 @@ public class EsiPollingService : ReactiveObject
         if (_endpointBlocks.TryGetValue(ep.Key, out var until) && now < until)
             return null;
 
-        if (ErrorLimited()) return null;
+        // Standing down — Tranquility offline, or the error budget spent. The cycle carries on
+        // through its list at no cost, and every call it would have made is still due afterwards.
+        if (ErrorLimited() || _esi.ServerOffline) return null;
 
         using var scope  = _scopeFactory.CreateScope();
         var callDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -606,6 +610,11 @@ public class EsiPollingService : ReactiveObject
             result = new PollingResult(false, 0, ex.InnerException?.Message ?? ex.Message);
             _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}", ex);
         }
+
+        // Never sent — the client is standing down — so nothing happened worth recording: not an
+        // error, not the endpoint's last call, not a schedule advanced. It is still owed, and the
+        // handle's disposal takes it off the in-progress list without an entry in the log.
+        if (result.NotSent) return result;
 
         var callTime = DateTimeOffset.UtcNow;
         _lastCallTimes[callKey] = callTime;
@@ -863,7 +872,7 @@ public class EsiPollingService : ReactiveObject
         new(r.IsSuccess, r.StatusCode,
             r.IsSuccess ? null : r.Error,
             r.RateLimitGroup, r.RateLimitRemaining, r.RetryAfterSeconds,
-            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires, r.ETag);
+            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires, r.ETag, r.NotSent);
 
     // Walks the parent-chain for every asset and returns {ItemId → (RootLocationId, RootLocationType)}.
     // A terminal is reached when LocationType is not 'item', or when the LocationId is not found
@@ -2297,6 +2306,7 @@ public class EsiPollingService : ReactiveObject
         foreach (var ep in _corpEndpoints)
         {
             ct.ThrowIfCancellationRequested();
+            if (_esi.ServerOffline) break;   // standing down; the rest of the cycle is still due afterwards
 
             if (denied.Contains(ep.Key))
                 continue;
@@ -2331,6 +2341,8 @@ public class EsiPollingService : ReactiveObject
                 result = new PollingResult(false, 0, ex.InnerException?.Message ?? ex.Message);
                 _errorLogger.Log("EsiPollingService", $"{ep.Key}:{corp.Id}", ex);
             }
+
+            if (result.NotSent) continue;   // standing down: nothing happened, and the call is still owed
 
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
@@ -3943,6 +3955,16 @@ public class EsiPollingService : ReactiveObject
             .Where(c => c.CorporationId == corpId)
             .ToDictionaryAsync(c => (c.ProjectId, c.CharacterId), ct);
 
+        // Whether this corporation's token may read contributors at all. The list and the
+        // details answer without any role; the contributors endpoint has answered 403 for a
+        // corporation whose character reads everything else about its projects. ⚠️ That 403
+        // used to be the poll's result, which the self-heal read as "corp.projects is denied"
+        // and stopped polling the projects themselves. It is its own key in the denied list
+        // now, recomputed with the rest whenever the character's roles change.
+        var contributorsDenied = ParseDenied(await db.Corporations
+                .Where(c => c.Id == corpId).Select(c => c.DeniedEndpoints).FirstOrDefaultAsync(ct))
+            .Contains(ContributorsDeniedKey);
+
         // Track the most recent result so the outer UpdateRateLimitState gets fresh group info.
         PollingResult latestResult = FromResult(lastListResult!);
 
@@ -4077,7 +4099,7 @@ public class EsiPollingService : ReactiveObject
 
             do
             {
-                if (rateLimitRemaining.HasValue && rateLimitRemaining.Value < 30)
+                if (contributorsDenied || (rateLimitRemaining.HasValue && rateLimitRemaining.Value < 30))
                 {
                     allContribsFetched = false;
                     break;
@@ -4092,6 +4114,19 @@ public class EsiPollingService : ReactiveObject
 
                 if (cr.RateLimitRemaining.HasValue)
                     rateLimitRemaining = cr.RateLimitRemaining;
+
+                if (cr.StatusCode == 403)
+                {
+                    // Not this poll's verdict — the list and details were served — but the
+                    // token's answer for as long as it is this token: remembered, said once,
+                    // and no contributor is asked for again until the character's roles change.
+                    contributorsDenied = true;
+                    await RecordDeniedAsync(db, corpId, ContributorsDeniedKey, ct);
+                    _errorLogger.Log("EsiPollingService", $"corp.projects.contributors:{corpId}",
+                        "HTTP 403 — project contributors are not visible to this corporation's token; skipped until its roles change");
+                    allContribsFetched = false;
+                    break;
+                }
                 latestResult = FromResult(cr);
 
                 if (!cr.IsSuccess)
@@ -4219,7 +4254,31 @@ public class EsiPollingService : ReactiveObject
             ? new HashSet<string>()
             : new HashSet<string>(csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
+    /// <summary>The denied-list key for a corporation's project contributors: a part of the
+    /// corp.projects poll, denied on its own so the projects keep polling without it.</summary>
+    private const string ContributorsDeniedKey = "corp.projects.contributors";
+
+    /// <summary>Adds one key to a corporation's denied list, as the poll loop does for a whole
+    /// endpoint, reading the row afresh so a key another cycle just wrote is kept.</summary>
+    private static async Task RecordDeniedAsync(AppDbContext db, long corpId, string key, CancellationToken ct)
+    {
+        var current = await db.Corporations.Where(c => c.Id == corpId)
+            .Select(c => c.DeniedEndpoints).FirstOrDefaultAsync(ct);
+        var denied = ParseDenied(current);
+        if (!denied.Add(key)) return;
+        var csv = string.Join(',', denied.OrderBy(k => k, StringComparer.Ordinal));
+        await db.Corporations.Where(c => c.Id == corpId)
+            .ExecuteUpdateAsync(s => s.SetProperty(c => c.DeniedEndpoints, csv), ct);
+    }
+
     // A 403 that names a missing role — the endpoint is out of reach for this corp's auth char.
-    private static bool IsRoleDenied(int statusCode, string? error) =>
-        statusCode == 403 && error is not null && error.Contains("role", StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// A 403 is this token's answer for as long as it is this token: a role the character lacks,
+    /// a scope the grant predates, a corporation the character has left. ⚠️ It used to have to
+    /// SAY "role" — and the newer endpoints answer a bare "Forbidden", so the corp projects call
+    /// for one corporation tripped the same 403 every cycle for a week, twice an hour, and never
+    /// once got itself skipped. The denial is recomputed whenever the character's roles change,
+    /// so a fix on the other side is picked up.
+    /// </summary>
+    private static bool IsRoleDenied(int statusCode, string? error) => statusCode == 403;
 }

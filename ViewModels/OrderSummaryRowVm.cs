@@ -1,5 +1,7 @@
+using Avalonia.Media.Imaging;
 using EveConsole.Models;
 using EveConsole.Services;
+using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
@@ -10,8 +12,13 @@ namespace EveConsole.ViewModels;
 /// described two different ways on two screens. An order is edited in the Order Tracker and
 /// nowhere else; both callers of this are views onto it.</para>
 /// </summary>
-public class OrderSummaryRowVm(TrackedOrder o, string itemName)
+public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
 {
+    private Bitmap? _icon;
+    /// <summary>The ordered item's picture, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public Task LoadIconAsync() => ItemIcons.LoadAsync(o.TypeId, bmp => Icon = bmp);
+
     /// <summary>⚠️ The Order Tracker's format, off the same field, deliberately. Two screens
     /// showing the same order under different dates is a bug report waiting to happen, and the
     /// tracker is the one people check against.</summary>

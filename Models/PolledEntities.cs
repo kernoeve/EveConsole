@@ -247,6 +247,11 @@ public class ContractRecord
     // True once the contract's item list has been fetched (item_exchange/auction/courier
     // contracts have items; we pull them once per contract and never call again).
     public bool   ItemsPulled         { get; set; }
+    // The HTTP status ESI answered that fetch with; 0 until a call has been made, or when the
+    // items were already held from another owner row. Recorded so a contract without items can
+    // say why — a 404 — and so a row an older build marked pulled without ever calling can be
+    // told from one ESI actually answered.
+    public int    ItemsStatus         { get; set; }
 }
 
 // One line item on a contract (offered or requested). Shared across owner rows by ContractId.

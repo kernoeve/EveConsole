@@ -55,6 +55,13 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
+        <DataGridTemplateColumn Header="" Width="26" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleListingRowVm">
+              <Image Source="{Binding Icon}" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Date / Time" Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <!-- Buyer and Item are links. The item cell links only the named type: on a contract it
              reads "Revelation +3 more items", and that tail stands for items this row carries no

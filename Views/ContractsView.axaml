@@ -55,9 +55,14 @@
         <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                 Padding="12 8">
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Classes="flabel" Text="Owner:" />
-            <ComboBox ItemsSource="{Binding Owners}" SelectedItem="{Binding SelectedOwner}"
-                      MinWidth="200" FontSize="11" VerticalAlignment="Center" />
+            <!-- Scope: the contracts from, to, or accepted by the party chosen — every
+                 character and personal corporation together by default. -->
+            <TextBlock Classes="flabel" Text="Scope:" />
+            <ComboBox ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}"
+                      MinWidth="230" FontSize="11" VerticalAlignment="Center" />
+            <TextBlock Classes="flabel" Text="Status:" />
+            <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding SelectedStatus}"
+                      MinWidth="120" FontSize="11" VerticalAlignment="Center" />
             <TextBlock Classes="flabel" Text="Assignee:" />
             <ComboBox ItemsSource="{Binding Assignees}" SelectedItem="{Binding SelectedAssignee}"
                       MinWidth="170" FontSize="11" VerticalAlignment="Center" />
@@ -71,8 +76,8 @@
         </Border>
 
         <!-- Grid + detail -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
-          <DataGrid Grid.Column="0"
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,600">
+          <DataGrid Grid.Column="0" x:Name="OwnedGrid"
                     ItemsSource="{Binding Rows}"
                     SelectedItem="{Binding SelectedRow}"
                     AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
@@ -104,16 +109,17 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer" ClipboardContentBinding="{Binding Issuer}">
+              <!-- From: whose contract it is — the corporation when issued on its behalf, else the character; the character who clicked is in the tooltip. -->
+              <DataGridTemplateColumn Header="From" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
-                      <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
-                              ToolTip.Tip="Open in the entity browser">
-                        <TextBlock Text="{Binding Issuer}" Classes="linktext"
+                      <Button Classes="link" Click="OnOpenFrom" IsVisible="{Binding HasFromLink}"
+                              ToolTip.Tip="{Binding FromTip}">
+                        <TextBlock Text="{Binding From}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
-                      <TextBlock Text="{Binding Issuer}" IsVisible="{Binding !HasIssuerLink}"
+                      <TextBlock Text="{Binding From}" IsVisible="{Binding !HasFromLink}"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Panel>
                   </DataTemplate>
@@ -135,9 +141,10 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Acceptor" Binding="{Binding Acceptor}" Width="140" />
-              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
-              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
-              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}" SortMemberPath="DateIssuedRaw" Width="130" />
+              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
+              <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -206,7 +213,7 @@
         </Border>
 
         <!-- Grid + detail -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,4,400">
+        <Grid Grid.Row="1" ColumnDefinitions="*,4,600">
           <DataGrid Grid.Column="0"
                     ItemsSource="{Binding Rows}"
                     SelectedItem="{Binding SelectedRow}"
@@ -240,25 +247,27 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
-              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer" ClipboardContentBinding="{Binding Issuer}">
+              <!-- From: whose contract it is — the corporation when issued on its behalf, else the character; the character who clicked is in the tooltip. -->
+              <DataGridTemplateColumn Header="From" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
-                      <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
-                              ToolTip.Tip="Open in the entity browser">
-                        <TextBlock Text="{Binding Issuer}" Classes="linktext"
+                      <Button Classes="link" Click="OnOpenFrom" IsVisible="{Binding HasFromLink}"
+                              ToolTip.Tip="{Binding FromTip}">
+                        <TextBlock Text="{Binding From}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
-                      <TextBlock Text="{Binding Issuer}" IsVisible="{Binding !HasIssuerLink}"
+                      <TextBlock Text="{Binding From}" IsVisible="{Binding !HasFromLink}"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Panel>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" />
-              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" />
-              <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" />
-              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}" SortMemberPath="DateIssuedRaw" Width="130" />
+              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" CellStyleClasses="num" />
+              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
+              <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
           </DataGrid>
 

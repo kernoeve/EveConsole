@@ -2606,6 +2606,20 @@
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        Text="Counts jobs past their end date, or marked ready, that nobody has delivered yet — the output is waiting and the slot is held until someone collects it. Covers every character and corporation the app polls jobs for; jobs are polled every 15 minutes by default (Timers), so a job that just finished may take that long to show." />
+
+            <CheckBox Content="Alert about outstanding contracts issued to you"
+                      IsChecked="{Binding AlertsVm.OutstandingContracts}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 6 0 0" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="Counts active contracts assigned to one of your characters or personal corporations — the ones waiting on you. The alert opens the Contracts tool on them, soonest to expire first." />
+
+            <CheckBox Content="Alert about contracts about to expire"
+                      IsChecked="{Binding AlertsVm.ExpiringContracts}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 6 0 0" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="Counts active contracts you issued, or that are assigned to you, that are in the last 15% of their life: a two-week contract from its twelfth day. Personal corporations count as you." />
           </StackPanel>
         </Border>
 

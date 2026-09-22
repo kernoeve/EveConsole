@@ -8,6 +8,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace EveConsole.ViewModels;
 
@@ -72,25 +73,101 @@ internal static class ContractFmt
 
 // ── Row / detail view-models ────────────────────────────────────────────────────
 
-public class ContractItemRowVm
+/// <summary>
+/// The unit prices the contract items are valued at: the asset-value market source on its
+/// price type, and the app's build cost. Loaded once per contract load for every type on any
+/// item, so building a detail pane stays a lookup.
+/// </summary>
+public sealed record ContractItemValues(IReadOnlyDictionary<int, double> MarketUnit, IReadOnlyDictionary<int, double> BuildUnit)
+{
+    public static readonly ContractItemValues None = new(new Dictionary<int, double>(), new Dictionary<int, double>());
+
+    public static async Task<ContractItemValues> LoadAsync(AppDbContext db, IReadOnlyCollection<int> typeIds, CancellationToken ct = default)
+    {
+        if (typeIds.Count == 0) return None;
+        var market = new Dictionary<int, double>();
+        var settings = await db.MarketDefaultSettings.AsNoTracking().FirstOrDefaultAsync(s => s.Id == 1, ct);
+        if (settings?.AssetValueConfigId is int configId)
+        {
+            var priceType = settings.AssetValuePriceType;
+            market = await db.MarketItemPrices.AsNoTracking()
+                .Where(p => p.ConfigId == configId && typeIds.Contains(p.TypeId))
+                .ToDictionaryAsync(p => p.TypeId, p => priceType switch
+                {
+                    "Buy"  => p.BuyPrice,
+                    "Sell" => p.SellPrice,
+                    _      => p.Midpoint,
+                }, ct);
+        }
+        var build = await db.BuildCosts.AsNoTracking()
+            .Where(b => typeIds.Contains(b.TypeId) && b.TotalCost > 0)
+            .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost, ct);
+        return new ContractItemValues(market, build);
+    }
+}
+
+public class ContractItemRowVm : ReactiveObject
 {
     public string Kind      { get; }     // "Offered" / "Requested"
     public IBrush KindColor { get; }
     public string TypeName  { get; }
     public string Quantity  { get; }
+    public long   QuantityRaw { get; }
     public string Details   { get; }     // blueprint / singleton notes
     public int    TypeId    { get; }
 
-    public bool HasItemLink => TypeId > 0;
+    /// <summary>What the line is worth at market and to build: unit price times quantity, or
+    /// "—" where the app has no price. The unit prices are in the tooltips.</summary>
+    public double? MarketValueRaw { get; }
+    public double? BuildValueRaw  { get; }
+    public string  MarketValue    => MarketValueRaw is double m ? MarketFmt.Isk(m) : "—";
+    public string  BuildValue     => BuildValueRaw  is double b ? MarketFmt.Isk(b) : "—";
+    public string  MarketTip      { get; }
+    public string  BuildTip       { get; }
+
+    /// <summary>The last row of a list: the three columns summed, no item, no picture.</summary>
+    public bool IsTotal { get; }
+
+    private Bitmap? _icon;
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public Task LoadIconAsync() => IsTotal ? Task.CompletedTask : ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp, _isBlueprint);
+    private readonly bool _isBlueprint;
+
+    public bool HasItemLink => TypeId > 0 && !IsTotal;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 
-    public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames)
+    /// <summary>The totals row for a list of the rows above it.</summary>
+    public ContractItemRowVm(IReadOnlyList<ContractItemRowVm> rows)
+    {
+        IsTotal   = true;
+        Kind      = rows.Count > 0 ? rows[0].Kind : "";
+        KindColor = Palette.TextMuted;
+        TypeName  = "Total";
+        QuantityRaw = rows.Sum(r => r.QuantityRaw);
+        Quantity  = QuantityRaw.ToString("N0");
+        MarketValueRaw = rows.Any(r => r.MarketValueRaw is not null) ? rows.Sum(r => r.MarketValueRaw ?? 0) : null;
+        BuildValueRaw  = rows.Any(r => r.BuildValueRaw  is not null) ? rows.Sum(r => r.BuildValueRaw  ?? 0) : null;
+        var unpricedM = rows.Count(r => r.MarketValueRaw is null);
+        var unpricedB = rows.Count(r => r.BuildValueRaw  is null);
+        MarketTip = unpricedM > 0 ? $"{unpricedM:N0} line(s) have no market price and are not counted" : "Every line priced";
+        BuildTip  = unpricedB > 0 ? $"{unpricedB:N0} line(s) have no build cost and are not counted"   : "Every line costed";
+        Details   = "";
+    }
+
+    public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames, ContractItemValues values)
     {
         Kind      = it.IsIncluded ? "Offered" : "Requested";
         KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
         TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
+        QuantityRaw = it.Quantity;
         Quantity  = it.Quantity.ToString("N0");
+        _isBlueprint = it.IsBlueprintCopy == true || it.RawQuantity is < 0;
+
+        MarketValueRaw = values.MarketUnit.TryGetValue(it.TypeId, out var mu) && mu > 0 ? mu * it.Quantity : null;
+        BuildValueRaw  = values.BuildUnit.TryGetValue(it.TypeId,  out var bu) && bu > 0 ? bu * it.Quantity : null;
+        MarketTip = MarketValueRaw is null ? "No market price held for this item" : $"{MarketFmt.Isk(mu)} ISK a unit at the asset-value market source";
+        BuildTip  = BuildValueRaw  is null ? "No build cost held for this item"   : $"{MarketFmt.Isk(bu)} ISK a unit to build";
 
         var notes = new List<string>();
         if (it.IsBlueprintCopy == true || (it.RawQuantity is < -1))
@@ -105,9 +182,33 @@ public class ContractItemRowVm
     }
 }
 
-public class ContractDetailVm
+public class ContractDetailVm : ReactiveObject
 {
     public int    ContractId { get; }
+
+    // ── Pulling the items on request ──────────────────────────────────────────
+    //
+    // A contract with no items stored may be one the sweep defers — a corporation's contract
+    // another corporation issued — or one not swept yet. The button tries every endpoint the
+    // contract has, once, and says what each answered; the owner reloads when something landed.
+    private readonly Func<int, Task<string>>? _pull;
+    public bool CanPull => _pull is not null && !HasItems && !IsPulling;
+
+    private bool _isPulling;
+    public bool IsPulling { get => _isPulling; private set { this.RaiseAndSetIfChanged(ref _isPulling, value); this.RaisePropertyChanged(nameof(CanPull)); } }
+
+    private string _pullMessage = "";
+    public string PullMessage { get => _pullMessage; private set => this.RaiseAndSetIfChanged(ref _pullMessage, value); }
+
+    public async Task PullItemsAsync()
+    {
+        if (_pull is null || IsPulling) return;
+        IsPulling   = true;
+        PullMessage = "Asking ESI…";
+        try { PullMessage = await _pull(ContractId); }
+        catch (Exception ex) { PullMessage = AppErrorLogger.Line("Pull failed", ex); }
+        finally { IsPulling = false; }
+    }
     public string Title      { get; }
     public string TypeLabel  { get; }
     public string Status     { get; }
@@ -140,6 +241,13 @@ public class ContractDetailVm
     public ObservableCollection<ContractItemRowVm> Items { get; } = new();
     public bool HasItems => Items.Count > 0;
 
+    /// <summary>The items in two lists, what the issuer offers and what they ask for, each ending
+    /// in a totals row.</summary>
+    public ObservableCollection<ContractItemRowVm> Offered   { get; } = new();
+    public ObservableCollection<ContractItemRowVm> Requested { get; } = new();
+    public bool HasOffered   => Offered.Count   > 0;
+    public bool HasRequested => Requested.Count > 0;
+
     // ── Party links ───────────────────────────────────────────────────────────
     //
     // The issuer falls back to the issuing corporation exactly as the name does, so the link
@@ -167,9 +275,18 @@ public class ContractDetailVm
         IReadOnlyList<ContractItem> items,
         IReadOnlyDictionary<int, string> typeNames,
         IReadOnlyDictionary<long, string> names,
-        IReadOnlyDictionary<long, string> locations)
+        IReadOnlyDictionary<long, string> locations,
+        ContractItemValues? values = null,
+        Func<int, Task<string>>? pull = null)
     {
+        values    ??= ContractItemValues.None;
+        _pull       = pull;
         ContractId  = c.ContractId;
+        // Why there are no items, when there are none: asked and refused, or not asked yet.
+        if (items.Count == 0)
+            _pullMessage = c.ItemsStatus >= 400 ? $"ESI answered HTTP {c.ItemsStatus} when the items were asked for."
+                         : c.ItemsPulled        ? "ESI listed no items for it."
+                         :                        "Not asked for yet — the background sweep will get to it.";
         Title       = string.IsNullOrWhiteSpace(c.Title) ? "(no title)" : c.Title!;
         TypeLabel   = ContractFmt.TypeLabel(c.Type);
         Status      = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
@@ -210,7 +327,16 @@ public class ContractDetailVm
 
         foreach (var it in items.OrderByDescending(i => i.IsIncluded)
                                  .ThenBy(i => typeNames.TryGetValue(i.TypeId, out var n) ? n : ""))
-            Items.Add(new ContractItemRowVm(it, typeNames));
+            Items.Add(new ContractItemRowVm(it, typeNames, values));
+
+        var offered   = Items.Where(r => r.Kind == "Offered").ToList();
+        var requested = Items.Where(r => r.Kind == "Requested").ToList();
+        foreach (var r in offered)   Offered.Add(r);
+        if (offered.Count > 0)       Offered.Add(new ContractItemRowVm(offered));
+        foreach (var r in requested) Requested.Add(r);
+        if (requested.Count > 0)     Requested.Add(new ContractItemRowVm(requested));
+
+        _ = Task.WhenAll(Items.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
     }
 
     private static string Party(IReadOnlyDictionary<long, string> names, long id, int corpId)
@@ -241,6 +367,9 @@ public class ContractRowVm
     public string Contents      { get; }
     public string DateIssued    { get; }
     public DateTimeOffset DateIssuedRaw { get; }
+    public string DateExpires   { get; }
+    /// <summary>Sorts a contract with no expiry last, after every one that has one.</summary>
+    public DateTimeOffset DateExpiresRaw { get; }
     public string Price         { get; }
     public decimal PriceRaw     { get; }
     public string Reward        { get; }
@@ -269,6 +398,15 @@ public class ContractRowVm
     public bool HasIssuerLink => _issuerLinkId > 0;
     public void OpenIssuer() => EntityNavigator.Instance.Entity(
         EntityLinks.KindOf(_issuerLinkId), _issuerLinkId);
+
+    /// <summary>Whose contract it is: the corporation when the character issued it on the
+    /// corporation's behalf, else the character. What the From column shows — the character who
+    /// clicked is in the tooltip, and in <see cref="Issuer"/>.</summary>
+    public string From        { get; }
+    public string FromTip     { get; }
+    public bool   HasFromLink => _fromId > 0;
+    public void   OpenFrom()  => EntityNavigator.Instance.Entity(EntityLinks.KindOf(_fromId), _fromId);
+    private readonly long _fromId;
 
     public bool HasAssigneeLink => AssigneeId is > 0;
     public void OpenAssignee()
@@ -301,6 +439,12 @@ public class ContractRowVm
             : (names.TryGetValue(c.IssuerCorporationId, out var icN) && icN.Length > 0 ? icN : $"ID {c.IssuerId}");
         // Matches the name above: the character when one is named, otherwise the corporation.
         _issuerLinkId = c.IssuerId != 0 ? c.IssuerId : c.IssuerCorporationId;
+
+        _fromId = c.ForCorporation && c.IssuerCorporationId != 0 ? c.IssuerCorporationId : c.IssuerId;
+        From    = names.TryGetValue(_fromId, out var fromName) && fromName.Length > 0 ? fromName : $"ID {_fromId}";
+        FromTip = c.ForCorporation && c.IssuerId != 0
+            ? $"Issued for the corporation by {Issuer}. Open in the entity browser."
+            : "Open in the entity browser";
         AssigneeId = c.AssigneeId;
         AcceptorId = c.AcceptorId;
         Assignee = c.AssigneeId is > 0
@@ -312,6 +456,8 @@ public class ContractRowVm
 
         DateIssuedRaw = c.DateIssued;
         DateIssued    = c.DateIssued.ToLocalTime().ToString("MMM d, HH:mm");
+        DateExpiresRaw = c.DateExpired ?? DateTimeOffset.MaxValue;
+        DateExpires    = c.DateExpired is { } exp ? exp.ToLocalTime().ToString("MMM d, HH:mm") : "—";
         PriceRaw      = c.Price;
         Price         = c.Price  > 0 ? ContractFmt.Isk(c.Price)  : "—";
         RewardRaw     = c.Reward;
@@ -353,14 +499,36 @@ public class ContractPartyOption
     public override string ToString() => Label;
 }
 
-public class ContractOwnerOption
+/// <summary>
+/// What the Scope filter narrows to: everything stored, or the contracts a party is on either
+/// end of — from it, to it, or accepted by it. "From" is the issuing character, or the
+/// corporation when the character issued it on the corporation's behalf: a contract made out
+/// for a corporation is the corporation's, not the member's who clicked. "To" is the assignee;
+/// and a contract accepted for a corporation lands on the corporation as acceptor, which is
+/// where it shows.
+///
+/// <para>⚠️ Not the polling owner. The filter used to be "Owner", meaning which token's view of
+/// the contract this was — every party that can see a contract stores its own copy — which is not
+/// a question anyone at the screen is asking.</para>
+/// </summary>
+public class ContractScopeOption
 {
-    public string  Label     { get; }
-    public long?   OwnerId   { get; }
-    public string? OwnerType { get; }
-    public ContractOwnerOption(string label, long? ownerId, string? ownerType)
-    { Label = label; OwnerId = ownerId; OwnerType = ownerType; }
+    public string Label { get; }
+    /// <summary>The parties in scope, or null for everything stored.</summary>
+    public IReadOnlySet<long>? Ids { get; }
+    public ContractScopeOption(string label, IReadOnlySet<long>? ids) { Label = label; Ids = ids; }
     public override string ToString() => Label;
+
+    /// <summary>Whether the contract is from, to, or accepted by a party in scope.</summary>
+    public bool Covers(ContractRowVm r)
+    {
+        if (Ids is null) return true;
+        var c    = r.Record;
+        var from = c.ForCorporation ? c.IssuerCorporationId : c.IssuerId;
+        return Ids.Contains(from)
+            || (r.AssigneeId is { } a && Ids.Contains(a))
+            || (r.AcceptorId is { } x && Ids.Contains(x));
+    }
 }
 
 // ── Name / location resolver (shared by both tabs) ──────────────────────────────
@@ -615,16 +783,23 @@ public class ContractsViewModel : ReactiveObject
     public void SelectById(int contractId)
     {
         TabIndex = 0;
-        if (Owned.Rows.FirstOrDefault(r => r.ContractId == contractId) is { } row)
-            Owned.SelectedRow = row;
+        Owned.SelectById(contractId);
     }
 
     public ContractsViewModel(
-        IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger)
+        IDbContextFactory<AppDbContext> dbFactory, EsiClient esi, AppErrorLogger errorLogger, ContractsService? contracts = null)
     {
         var names = new ContractNameResolver(dbFactory, esi, errorLogger);
-        Owned  = new OwnedContractsViewModel(dbFactory, errorLogger, names);
-        Public = new PublicContractsViewModel(dbFactory, errorLogger, names);
+        Owned  = new OwnedContractsViewModel(dbFactory, errorLogger, names, contracts);
+        Public = new PublicContractsViewModel(dbFactory, errorLogger, names, contracts);
+    }
+
+    /// <summary>What an alert opens: the corporation and personal tab, on every character and
+    /// personal corporation, active contracts only, soonest to expire first.</summary>
+    public void ShowActivePersonal()
+    {
+        TabIndex = 0;
+        Owned.ShowActivePersonal();
     }
 }
 
@@ -640,6 +815,7 @@ public class OwnedContractsViewModel : ReactiveObject
     private List<ContractRowVm> _all = [];
     private IReadOnlyDictionary<int, List<ContractItem>> _itemsByContract = new Dictionary<int, List<ContractItem>>();
     private IReadOnlyDictionary<int, string> _typeNames = new Dictionary<int, string>();
+    private ContractItemValues _values = ContractItemValues.None;
     private IReadOnlyDictionary<long, string> _partyNames = new Dictionary<long, string>();
     private IReadOnlyDictionary<long, string> _locations = new Dictionary<long, string>();
 
@@ -652,15 +828,66 @@ public class OwnedContractsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _rows, value);
     }
 
-    public ObservableCollection<ContractOwnerOption> Owners     { get; } = new();
+    public ObservableCollection<ContractScopeOption> Scopes     { get; } = new();
     public ObservableCollection<ContractPartyOption> Assignees  { get; } = new();
     public ObservableCollection<ContractPartyOption> Acceptors  { get; } = new();
+    /// <summary>The statuses the stored contracts are in, "All statuses" first.</summary>
+    public ObservableCollection<string>              Statuses   { get; } = new();
 
-    private ContractOwnerOption? _selectedOwner;
-    public ContractOwnerOption? SelectedOwner
+    private ContractScopeOption? _selectedScope;
+    public ContractScopeOption? SelectedScope
     {
-        get => _selectedOwner;
-        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value); ApplyFilter(); }
+        get => _selectedScope;
+        set { this.RaiseAndSetIfChanged(ref _selectedScope, value); ApplyFilter(); }
+    }
+
+    private string? _selectedStatus;
+    public string? SelectedStatus
+    {
+        get => _selectedStatus;
+        set { this.RaiseAndSetIfChanged(ref _selectedStatus, value); ApplyFilter(); }
+    }
+
+    private const string AllStatuses  = "All statuses";
+    /// <summary>Outstanding and not past its expiry — the default, as on the public tab.</summary>
+    private const string ActiveStatus = "Active";
+
+    private int _pendingSelect;
+    private int _reloadedFor;
+
+    /// <summary>
+    /// Selects a contract by id, from wherever it was clicked. ⚠️ The row has to be on screen
+    /// to be selected, and three things could keep it off: the filters, which are widened to
+    /// everything when they hide it; a load still running, which is waited for; and a contract
+    /// stored since the last load, which gets one reload. A click that did all of that and
+    /// still found nothing says so, rather than opening the tool on whatever was selected before.
+    /// </summary>
+    public void SelectById(int contractId)
+    {
+        if (contractId <= 0) return;
+        if (!_initialized || IsLoading) { _pendingSelect = contractId; return; }
+
+        if (_all.All(r => r.ContractId != contractId))
+        {
+            if (_reloadedFor != contractId)
+            {
+                _reloadedFor   = contractId;
+                _pendingSelect = contractId;
+                _ = LoadAsync();
+            }
+            else StatusText = $"Contract {contractId} is not stored on this side — it may be a public listing, or not yet polled.";
+            return;
+        }
+
+        if (Rows.All(r => r.ContractId != contractId))
+        {
+            _selectedScope    = Scopes.FirstOrDefault();    this.RaisePropertyChanged(nameof(SelectedScope));
+            _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
+            _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
+            _selectedStatus   = AllStatuses;                this.RaisePropertyChanged(nameof(SelectedStatus));
+            ApplyFilter();
+        }
+        SelectedRow = Rows.FirstOrDefault(r => r.ContractId == contractId);
     }
 
     private ContractPartyOption? _selectedAssignee;
@@ -699,9 +926,40 @@ public class OwnedContractsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
 
-    public OwnedContractsViewModel(
-        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names)
+    /// <summary>Set by the view: sorts the grid by a column, ascending.</summary>
+    public Action<string>? SortBy { get; set; }
+
+    /// <summary>The scope on every character and personal corporation, active contracts only,
+    /// soonest to expire first — what an alert about outstanding contracts opens on.</summary>
+    public void ShowActivePersonal()
     {
+        if (!_initialized) { _showActivePersonalPending = true; return; }
+        _selectedScope    = Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedScope));
+        _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
+        _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
+        _selectedStatus   = ActiveStatus;               this.RaisePropertyChanged(nameof(SelectedStatus));
+        ApplyFilter();
+        SortBy?.Invoke(nameof(ContractRowVm.DateExpiresRaw));
+    }
+    private bool _showActivePersonalPending;
+
+    private readonly ContractsService? _contracts;
+
+    /// <summary>The detail pane's pull: one call per endpoint, and a reload when items landed,
+    /// so the row's contents and the pane both show them.</summary>
+    private async Task<string> PullItemsAsync(int contractId)
+    {
+        if (_contracts is null) return "Not available.";
+        var r = await _contracts.PullItemsNowAsync(contractId);
+        if (r.Stored) { _reloadedFor = 0; _pendingSelect = contractId; await LoadAsync(); }
+        return r.Message;
+    }
+
+    public OwnedContractsViewModel(
+        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names,
+        ContractsService? contracts = null)
+    {
+        _contracts   = contracts;
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
@@ -732,12 +990,12 @@ public class OwnedContractsViewModel : ReactiveObject
             var typeIds = items.Select(i => i.TypeId).Distinct().ToList();
             _typeNames = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
+            _values = await ContractItemValues.LoadAsync(db, typeIds);
 
-            // Owner options from the distinct polled owners.
-            var charIds = contracts.Where(c => c.OwnerType == "character").Select(c => c.OwnerId).Distinct().ToList();
-            var corpIds = contracts.Where(c => c.OwnerType == "corporation").Select(c => (int)c.OwnerId).Distinct().ToList();
-            var charNames = await db.Characters.Where(c => charIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name);
-            var corpNames = await db.Corporations.Where(c => corpIds.Contains(c.Id)).ToDictionaryAsync(c => (long)c.Id, c => $"{c.Name} [{c.Ticker}]");
+            // The parties the scope filter offers: every character and corporation the app
+            // knows, and which corporations are the user's own.
+            var chars = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync();
+            var corps = await db.Corporations.AsNoTracking().Select(c => new { c.Id, c.Name, c.Ticker, c.IsPersonal }).ToListAsync();
 
             // Resolve party names (issuer / assignee / acceptor / issuer corp).
             var partyIds = contracts.SelectMany(c => new[]
@@ -756,24 +1014,51 @@ public class OwnedContractsViewModel : ReactiveObject
                     _typeNames, _partyNames, "", []))
                 .ToList();
 
-            // Build combos.
-            Owners.Clear();
-            Owners.Add(new ContractOwnerOption("All owners", null, null));
-            foreach (var kv in charNames.OrderBy(k => k.Value))
-                Owners.Add(new ContractOwnerOption(kv.Value, kv.Key, "character"));
-            foreach (var kv in corpNames.OrderBy(k => k.Value))
-                Owners.Add(new ContractOwnerOption(kv.Value, kv.Key, "corporation"));
+            // Build combos. The scope opens on the user's own side of the table: every
+            // character, and the corporations marked personal.
+            var mine = chars.Select(c => c.Id)
+                .Concat(corps.Where(c => c.IsPersonal).Select(c => (long)c.Id))
+                .ToHashSet();
+            Scopes.Clear();
+            Scopes.Add(new ContractScopeOption("All owners", null));
+            Scopes.Add(new ContractScopeOption("All characters and personal corps", mine));
+            foreach (var c in chars.OrderBy(c => c.Name))
+                Scopes.Add(new ContractScopeOption(c.Name, new HashSet<long> { c.Id }));
+            foreach (var c in corps.OrderBy(c => c.Name))
+                Scopes.Add(new ContractScopeOption($"{c.Name} [{c.Ticker}]", new HashSet<long> { c.Id }));
+
+            // Then every alliance a stored contract is made out to: most outstanding contracts
+            // are put up to an alliance, for anyone in it to accept, rather than to a person.
+            var alliances = _all
+                .SelectMany(r => new[] { r.AssigneeId ?? 0, r.AcceptorId ?? 0 })
+                .Where(id => id > 0 && EntityLinks.KindOf(id) == EntityKind.Alliance)
+                .Distinct()
+                .Select(id => (Id: id, Name: _partyNames.TryGetValue(id, out var n) && n.Length > 0 ? n : $"Alliance {id}"))
+                .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase);
+            foreach (var a in alliances)
+                Scopes.Add(new ContractScopeOption(a.Name, new HashSet<long> { a.Id }));
 
             BuildPartyCombo(Assignees, _all.Select(r => r.AssigneeId), "All assignees");
             BuildPartyCombo(Acceptors, _all.Select(r => r.AcceptorId), "All acceptors");
 
-            _selectedOwner    = Owners.FirstOrDefault();    this.RaisePropertyChanged(nameof(SelectedOwner));
+            Statuses.Clear();
+            Statuses.Add(ActiveStatus);
+            Statuses.Add(AllStatuses);
+            foreach (var s in _all.Select(r => r.Status).Distinct().OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
+                Statuses.Add(s);
+
+            _selectedScope    = Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedScope));
             _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
             _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
+            _selectedStatus   = ActiveStatus;               this.RaisePropertyChanged(nameof(SelectedStatus));
 
             _initialized = true;
             ApplyFilter();
             StatusText = _all.Count == 0 ? "No corporation or personal contracts stored yet." : "";
+
+            // A click that arrived while this was loading.
+            if (_pendingSelect > 0) { var id = _pendingSelect; _pendingSelect = 0; IsLoading = false; SelectById(id); }
+            if (_showActivePersonalPending) { _showActivePersonalPending = false; ShowActivePersonal(); }
         }
         catch (Exception ex)
         {
@@ -800,15 +1085,17 @@ public class OwnedContractsViewModel : ReactiveObject
     {
         if (!_initialized) return;
 
-        IEnumerable<ContractRowVm> q = _all;
+        // One row per contract: every party that can see one stores its own copy.
+        IEnumerable<ContractRowVm> q = _all.GroupBy(r => r.ContractId).Select(g => g.First());
 
-        if (SelectedOwner?.OwnerId is { } oid && SelectedOwner.OwnerType is { } ot)
-            q = q.Where(r => r.Record.OwnerId == oid && r.Record.OwnerType == ot);
-        else
-            q = q.GroupBy(r => r.ContractId).Select(g => g.First());   // de-dupe across owners
+        // The scope: contracts from, to, or accepted by a party in it.
+        if (SelectedScope is { Ids: not null } scope)
+            q = q.Where(scope.Covers);
 
         if (SelectedAssignee?.Id is { } aid) q = q.Where(r => r.AssigneeId == aid);
         if (SelectedAcceptor?.Id is { } cid) q = q.Where(r => r.AcceptorId == cid);
+        if (SelectedStatus == ActiveStatus) q = q.Where(r => r.IsActive);
+        else if (SelectedStatus is { } status && status != AllStatuses) q = q.Where(r => r.Status == status);
 
         var rows = q.OrderByDescending(r => r.DateIssuedRaw).ToList();
 
@@ -823,7 +1110,7 @@ public class OwnedContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
     }
 }
 
@@ -842,6 +1129,7 @@ public class PublicContractsViewModel : ReactiveObject
 
     private IReadOnlyDictionary<int, List<ContractItem>> _itemsByContract = new Dictionary<int, List<ContractItem>>();
     private IReadOnlyDictionary<int, string> _typeNames = new Dictionary<int, string>();
+    private ContractItemValues _values = ContractItemValues.None;
     private IReadOnlyDictionary<long, string> _partyNames = new Dictionary<long, string>();
     private IReadOnlyDictionary<long, string> _locations = new Dictionary<long, string>();
 
@@ -984,9 +1272,22 @@ public class PublicContractsViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> NextPageCommand     { get; }
     public ReactiveCommand<Unit, Unit> LastPageCommand     { get; }
 
-    public PublicContractsViewModel(
-        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names)
+    private readonly ContractsService? _contracts;
+
+    /// <summary>The detail pane's pull, and a reload of the page when items landed.</summary>
+    private async Task<string> PullItemsAsync(int contractId)
     {
+        if (_contracts is null) return "Not available.";
+        var r = await _contracts.PullItemsNowAsync(contractId);
+        if (r.Stored) await ReloadPageAsync();
+        return r.Message;
+    }
+
+    public PublicContractsViewModel(
+        IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger, ContractNameResolver names,
+        ContractsService? contracts = null)
+    {
+        _contracts   = contracts;
         _dbFactory   = dbFactory;
         _errorLogger = errorLogger;
         _names       = names;
@@ -1197,6 +1498,7 @@ public class PublicContractsViewModel : ReactiveObject
             var types = await db.SdeTypes.Where(t => typeIds.Contains(t.TypeId))
                 .Select(t => new { t.TypeId, t.Name, t.MarketGroupId }).ToListAsync();
             _typeNames = types.ToDictionary(t => t.TypeId, t => t.Name);
+            _values    = await ContractItemValues.LoadAsync(db, typeIds);
             var typeCategory = types.ToDictionary(t => t.TypeId, t => RootCategory(t.MarketGroupId));
 
             var regionIds = contracts.Select(c => c.RegionId).Distinct().ToList();
@@ -1245,7 +1547,7 @@ public class PublicContractsViewModel : ReactiveObject
         if (SelectedRow is null) { Detail = null; return; }
         var c = SelectedRow.Record;
         var items = _itemsByContract.TryGetValue(c.ContractId, out var its) ? its : new List<ContractItem>();
-        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations);
+        Detail = new ContractDetailVm(c, items, _typeNames, _partyNames, _locations, _values, PullItemsAsync);
     }
 }
 

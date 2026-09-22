@@ -131,6 +131,7 @@ public sealed class MonthlyActivityRowVm
     public string IndustryTaxText  { get; }
     public string ProjPayoutsText  { get; }
     public string UnitsMinedText   { get; }
+    public string MinedValueText   { get; }
     public string KillsText          { get; }
     public string LossesText         { get; }
     public string PlayersActiveText  { get; }
@@ -141,6 +142,7 @@ public sealed class MonthlyActivityRowVm
     public decimal IndustryTaxRaw  { get; }
     public decimal ProjPayoutsRaw  { get; }
     public long   UnitsMinedRaw    { get; }
+    public decimal MinedValueRaw   { get; }
     public int    KillsRaw         { get; }
     public int    LossesRaw        { get; }
     public int    PlayersActiveRaw { get; }
@@ -161,6 +163,7 @@ public sealed class MonthlyActivityRowVm
         IndustryTaxRaw    = r.IndustryTax;
         ProjPayoutsRaw    = r.ProjectPayouts;
         UnitsMinedRaw     = r.UnitsMined;
+        MinedValueRaw     = r.MinedValue;
         KillsRaw          = r.Kills;
         LossesRaw         = r.Losses;
         PlayersActiveRaw  = r.PlayersActive;
@@ -170,6 +173,7 @@ public sealed class MonthlyActivityRowVm
         IndustryTaxText   = FmtIsk(r.IndustryTax);
         ProjPayoutsText   = FmtIsk(r.ProjectPayouts);
         UnitsMinedText    = r.UnitsMined.ToString("N0");
+        MinedValueText    = FmtIsk(r.MinedValue);
         KillsText         = r.Kills.ToString("N0");
         LossesText        = r.Losses.ToString("N0");
         PlayersActiveText = r.PlayersActive > 0 ? r.PlayersActive.ToString("N0") : "—";
@@ -955,6 +959,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public IEnumerable<ISeries> MonthlyKillSeries { get => _monthlyKillSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyKillSeries, value); }
     private IEnumerable<ISeries> _monthlyMineSeries = [];
     public IEnumerable<ISeries> MonthlyMineSeries { get => _monthlyMineSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyMineSeries, value); }
+    private IEnumerable<ISeries> _monthlyPlayerSeries = [];
+    public IEnumerable<ISeries> MonthlyPlayerSeries { get => _monthlyPlayerSeries; private set => this.RaiseAndSetIfChanged(ref _monthlyPlayerSeries, value); }
 
     // ⚠️ One X axis EACH, though all three plot the same twelve months. An axis owns its paints,
     // and a Paint carries drawing state tied to the canvas it is used on — see ChartPaint.
@@ -971,6 +977,10 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public Axis[] MonthlyKillYAxes  { get => _monthlyKillYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyKillYAxes, value); }
     private Axis[] _monthlyMineYAxes = [];
     public Axis[] MonthlyMineYAxes  { get => _monthlyMineYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyMineYAxes, value); }
+    private Axis[] _monthlyPlayerXAxes = [];
+    public Axis[] MonthlyPlayerXAxes { get => _monthlyPlayerXAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyPlayerXAxes, value); }
+    private Axis[] _monthlyPlayerYAxes = [];
+    public Axis[] MonthlyPlayerYAxes { get => _monthlyPlayerYAxes; private set => this.RaiseAndSetIfChanged(ref _monthlyPlayerYAxes, value); }
 
     private bool _hasMonthlyData;
     public bool HasMonthlyData
@@ -2474,20 +2484,21 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     /// <summary>
-    /// Binds the three monthly trend charts.
+    /// Binds the four monthly trend charts.
     ///
     /// <para>⚠️ What they PLOT lives in CorpTrendChartReport, not here. A scheduled post draws
     /// the same series to a PNG, and a chart that disagreed with the screen it is named after
     /// would be worse than no chart at all.</para>
     ///
-    /// <para>All three share one X axis: they are the same twelve months, and three axis objects
-    /// would be three things to keep saying the same thing.</para>
+    /// <para>Each has an X axis of its own though all plot the same twelve months: an axis owns
+    /// its paints, and a paint carries state tied to the canvas it draws on.</para>
     /// </summary>
     private void BuildMonthlyCharts(List<MonthlyActivityRow> rows)
     {
-        var isk   = CorpTrendChartReport.IskTrends(rows);
-        var kills = CorpTrendChartReport.KillTrends(rows);
-        var mined = CorpTrendChartReport.MiningTrends(rows);
+        var isk     = CorpTrendChartReport.IskTrends(rows);
+        var kills   = CorpTrendChartReport.KillTrends(rows);
+        var mined   = CorpTrendChartReport.MiningTrends(rows);
+        var players = CorpTrendChartReport.PlayerTrends(rows);
 
         MonthlyIskSeries = isk?.Series ?? [];
         MonthlyIskXAxes  = Chrome(isk?.XAxes);
@@ -2500,6 +2511,10 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         MonthlyMineSeries = mined?.Series ?? [];
         MonthlyMineXAxes  = Chrome(mined?.XAxes);
         MonthlyMineYAxes  = Chrome(mined?.YAxes);
+
+        MonthlyPlayerSeries = players?.Series ?? [];
+        MonthlyPlayerXAxes  = Chrome(players?.XAxes);
+        MonthlyPlayerYAxes  = Chrome(players?.YAxes);
     }
 
     /// <summary>

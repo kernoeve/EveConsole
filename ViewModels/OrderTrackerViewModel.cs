@@ -9,6 +9,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace EveConsole.ViewModels;
 
@@ -35,9 +36,14 @@ public record BuyerResultVm(long Id, string Name, string Subtitle, string Entity
 }
 
 // One row on the Order Tracker grid.
-public class TrackedOrderRowVm
+public class TrackedOrderRowVm : ReactiveObject
 {
     public int Id { get; }
+
+    private Bitmap? _icon;
+    /// <summary>The ordered item's picture, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public Task LoadIconAsync() => ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp);
     public DateTimeOffset Created { get; } public long CreatedSort { get; } public string CreatedText { get; }
     public int    TypeId  { get; } public string Type   { get; }
     public int    Units   { get; } public string UnitsText { get; }
@@ -457,6 +463,8 @@ public class OrderTrackerViewModel : ReactiveObject
             // become the same thing; this is where they find out about each other's labels. Same
             // call the Sales Tracker makes, and idempotent, so whichever is opened first does it.
             await _labels.SyncByContractAsync();
+
+            _ = Task.WhenAll(_all.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
 
             // One query for every row's labels rather than one per row.
             var labels = await _labels.ForOrdersAsync(_all.Select(r => r.Id).ToList());

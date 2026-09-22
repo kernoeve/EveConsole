@@ -103,9 +103,6 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
     private void OnOpenGroup(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as GroupRowVm)?.Open?.Invoke();
 
-    private void OnOpenProfitGroup(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as ProfitGroupRowVm)?.Open?.Invoke();
-
     private void OnMarkNotForProfit(object? sender, RoutedEventArgs e) => SetNotForProfit(true);
     private void OnRestoreToProfit(object? sender, RoutedEventArgs e)  => SetNotForProfit(false);
 

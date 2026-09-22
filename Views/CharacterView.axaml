@@ -793,6 +793,13 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="" Width="24" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:OrderSummaryRowVm">
+                        <Image Source="{Binding Icon}" Width="18" Height="18" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Created on" Binding="{Binding Created}"
                                       SortMemberPath="CreatedSort" Width="90" />
                   <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
@@ -806,11 +813,10 @@
                        what is due soonest. -->
                   <DataGridTextColumn Header="Est date"   Binding="{Binding EstDate}"
                                       SortMemberPath="EstSortKey" Width="85" />
-                  <!-- The column that moves while an order is open. Status is beside it because
-                       it was asked for and stays correct if this ever shows more than active
-                       orders, but here it reads "Pending" on every row by construction. -->
+                  <!-- The column that moves while an order is open. No Status beside it: this
+                       section shows active orders only, so it read "Pending" on every row by
+                       construction, and the room is better spent on the item name. -->
                   <DataGridTextColumn Header="Source"     Binding="{Binding Source}"  Width="95" />
-                  <DataGridTextColumn Header="Status"     Binding="{Binding Status}"  Width="80" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -919,6 +925,15 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
+                  <!-- The item the row is about, as the Worklist draws it: what a buy buys, what a job
+                       makes, what a project wants. A row with no one type leaves the cell empty. -->
+                  <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
@@ -1008,6 +1023,15 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
+                  <!-- The item the row is about, as the Worklist draws it: what a buy buys, what a job
+                       makes, what a project wants. A row with no one type leaves the cell empty. -->
+                  <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
@@ -1086,6 +1110,15 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
+                  <!-- The item the row is about, as the Worklist draws it: what a buy buys, what a job
+                       makes, what a project wants. A row with no one type leaves the cell empty. -->
+                  <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">
@@ -1164,6 +1197,15 @@
                        has two stations and no character, a job has a character and one station, a
                        buy has neither in the same sense. Value and Volume stay as their own columns
                        because every kind has them and they are read down the list. -->
+                  <!-- The item the row is about, as the Worklist draws it: what a buy buys, what a job
+                       makes, what a project wants. A row with no one type leaves the cell empty. -->
+                  <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:WorklistRowVm">
+                        <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTemplateColumn Header="Task" Width="*" SortMemberPath="TaskSortText" ClipboardContentBinding="{Binding RouteText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WorklistRowVm">

@@ -1491,12 +1491,14 @@ public class App : Application
                         "Volume"              TEXT    NOT NULL DEFAULT '0',
                         "RegionId"            INTEGER NOT NULL DEFAULT 0,
                         "ItemsPulled"         INTEGER NOT NULL DEFAULT 0,
+                        "ItemsStatus"         INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ContractId")
                     )
                     """);
                 // Columns added for the contracts feature — backfill on existing DBs.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "RegionId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsPulled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsStatus" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiContractItems" (
@@ -1514,6 +1516,23 @@ public class App : Application
                         PRIMARY KEY ("ContractId", "RecordId")
                     )
                     """);
+                // Corporation contracts issued by another corporation were, in July 2026, marked
+                // pulled without a call on the belief that ESI would not serve their items — a
+                // belief the data contradicted, so the sweep now asks. The rows that belief marked
+                // — pulled, no items, no answer recorded — go back to it here. Once ESI has
+                // answered, the status is on the row and it is left alone, so this is safe to run
+                // on every start. Mirrored for PostgreSQL in PostgresSchema.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""
+                        UPDATE "EsiContracts" SET "ItemsPulled" = 0
+                        WHERE "OwnerType" = 'corporation' AND "IssuerCorporationId" <> "OwnerId"
+                          AND "ItemsPulled" = 1 AND "ItemsStatus" = 0
+                          AND "Type" IN ('item_exchange', 'auction', 'courier')
+                          AND NOT EXISTS (SELECT 1 FROM "EsiContractItems" i WHERE i."ContractId" = "EsiContracts"."ContractId")
+                        """);
+                }
+                catch { }
 
                 // Persistent id→name cache, shared with the Industry Browser (which also creates it
                 // on demand). Names are immutable so rows are kept across sessions.
@@ -2663,13 +2682,17 @@ public class App : Application
                         "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
                         "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1,
                         "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
-                        "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1
+                        "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1,
+                        "OutstandingContracts"       INTEGER NOT NULL DEFAULT 1,
+                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "OutstandingContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "ExpiringContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -2678,8 +2701,9 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1)
+                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
+                         "OutstandingContracts", "ExpiringContracts")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -3204,6 +3228,12 @@ public class App : Application
                     // this is safe to run on every start.
                     """UPDATE "Alarms" SET "Primed" = FALSE WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:%' AND k."MatchKey" NOT LIKE '%|%')""",
                     """DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:%' AND "MatchKey" NOT LIKE '%|%'""",
+
+                    // A corporation whose token could not read project contributors had the whole
+                    // corp.projects poll written into its denied list by an earlier build, which
+                    // stopped its projects updating. Contributors are denied under their own key
+                    // now; the projects key comes back out. No-op once no list holds it.
+                    """UPDATE "Corporations" SET "DeniedEndpoints" = trim(replace(',' || "DeniedEndpoints" || ',', ',corp.projects,', ','), ',') WHERE ',' || "DeniedEndpoints" || ',' LIKE '%,corp.projects,%'""",
                 }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
                 // Repairs stations imported before ConstellationId/RegionId/Security were populated
                 // from the solar system. The importer now fills them, but an existing install only

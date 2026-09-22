@@ -472,6 +472,37 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "IndustryJobsReady" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "OutstandingContracts" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "ExpiringContracts" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+
+        // The HTTP status ESI answered a contract's item pull with, and the repair it makes
+        // possible: corporation contracts issued by another corporation were once marked pulled
+        // without a call, on a belief the data contradicted. Marked, no items, no answer
+        // recorded — those go back to the sweep. No-ops once every such row has an answer.
+        // Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "EsiContracts" ADD COLUMN IF NOT EXISTS "ItemsStatus" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        UPDATE "EsiContracts" SET "ItemsPulled" = FALSE
+        WHERE "OwnerType" = 'corporation' AND "IssuerCorporationId" <> "OwnerId"
+          AND "ItemsPulled" AND "ItemsStatus" = 0
+          AND "Type" IN ('item_exchange', 'auction', 'courier')
+          AND NOT EXISTS (SELECT 1 FROM "EsiContractItems" i WHERE i."ContractId" = "EsiContracts"."ContractId")
+        """,
+
+        // A corporation whose token could not read project contributors had the whole
+        // corp.projects poll written into its denied list by an earlier build, which stopped its
+        // projects updating. Contributors are denied under their own key now; the projects key
+        // comes back out. No-op once no list holds it. Mirrored for SQLite in App.axaml.cs.
+        """
+        UPDATE "Corporations" SET "DeniedEndpoints" = btrim(replace(',' || "DeniedEndpoints" || ',', ',corp.projects,', ','), ',')
+        WHERE ',' || "DeniedEndpoints" || ',' LIKE '%,corp.projects,%'
+        """,
 
         // The hours an alarm is on; null means always. Older builds neither read nor write them.
         """
@@ -795,8 +826,9 @@ public static class PostgresSchema
         """
         INSERT INTO "AlertSettings"
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
-        VALUES (1, true, true, true, 30, true, true, true, true, true)
+             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
+             "OutstandingContracts", "ExpiringContracts")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

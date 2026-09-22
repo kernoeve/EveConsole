@@ -75,6 +75,20 @@ public class AlertSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _industryJobsReady, value);
     }
 
+    private bool _outstandingContracts = true;
+    public bool OutstandingContracts
+    {
+        get => _outstandingContracts;
+        set => this.RaiseAndSetIfChanged(ref _outstandingContracts, value);
+    }
+
+    private bool _expiringContracts = true;
+    public bool ExpiringContracts
+    {
+        get => _expiringContracts;
+        set => this.RaiseAndSetIfChanged(ref _expiringContracts, value);
+    }
+
     public string Status
     {
         get => _status;
@@ -103,6 +117,8 @@ public class AlertSettingsViewModel : ReactiveObject
         StandingBuyOrdersAttention = s.StandingBuyOrdersAttention;
         UnriggedIndustryJobs       = s.UnriggedIndustryJobs;
         IndustryJobsReady          = s.IndustryJobsReady;
+        OutstandingContracts       = s.OutstandingContracts;
+        ExpiringContracts          = s.ExpiringContracts;
     }
 
     private async Task SaveAsync()
@@ -116,11 +132,13 @@ public class AlertSettingsViewModel : ReactiveObject
         int buyOrders = StandingBuyOrdersAttention  ? 1 : 0;
         int unrigged  = UnriggedIndustryJobs        ? 1 : 0;
         int ready     = IndustryJobsReady           ? 1 : 0;
+        int outstanding = OutstandingContracts      ? 1 : 0;
+        int expiring  = ExpiringContracts           ? 1 : 0;
 
         await _db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "AlertSettings"
-                ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady")
-            VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready})
+                ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts")
+            VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring})
             ON CONFLICT("Id") DO UPDATE SET
                 "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                 "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -130,7 +148,9 @@ public class AlertSettingsViewModel : ReactiveObject
                 "InactiveStandingProjects"    = excluded."InactiveStandingProjects",
                 "StandingBuyOrdersAttention"  = excluded."StandingBuyOrdersAttention",
                 "UnriggedIndustryJobs"        = excluded."UnriggedIndustryJobs",
-                "IndustryJobsReady"           = excluded."IndustryJobsReady"
+                "IndustryJobsReady"           = excluded."IndustryJobsReady",
+                "OutstandingContracts"        = excluded."OutstandingContracts",
+                "ExpiringContracts"           = excluded."ExpiringContracts"
             """);
 
         Status = "Saved.";

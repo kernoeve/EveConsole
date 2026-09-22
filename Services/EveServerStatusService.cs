@@ -32,6 +32,24 @@ public sealed class EveServerStatusService(
     // flapping the whole app's polling off on a single unlucky response.
     private const int FailuresBeforeOffline = 2;
 
+    // ⚠️ The calls know before the status endpoint does. ESI caches /status/ for thirty seconds,
+    // so for that long after the server goes down it can still answer "online", while every
+    // data call is already coming back 502, 503 or 504 — two and a half minutes of them a night,
+    // logged as errors, before the old thirty-second check plus two strikes caught up. So a
+    // gateway failure on any call is downtime's first strike and asks for a check at once, and a
+    // burst of them stands the client down on its own, cached status or not. Once down, the
+    // client stays down until the status endpoint says online and the failures have stopped for
+    // long enough that its answer cannot be the cache talking.
+    private const int      BurstCount        = 3;
+    private static readonly TimeSpan BurstWindow      = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan PromptGap        = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan HoldAfterFailure = TimeSpan.FromSeconds(45);
+
+    private readonly System.Collections.Concurrent.ConcurrentQueue<DateTimeOffset> _gatewayFailures = new();
+    private readonly SemaphoreSlim _checking = new(1, 1);
+    private DateTimeOffset _lastGatewayFailure = DateTimeOffset.MinValue;
+    private DateTimeOffset _lastPromptedCheck  = DateTimeOffset.MinValue;
+
     private readonly HttpClient _http = httpClientFactory.CreateClient("esi-public");
 
     private CancellationTokenSource? _cts;
@@ -88,13 +106,41 @@ public sealed class EveServerStatusService(
     {
         if (_cts is not null) return;
         _cts     = new CancellationTokenSource();
+        esi.GatewayFailure += OnGatewayFailure;
         _runTask = Task.Run(() => RunAsync(_cts.Token));
+    }
+
+    /// <summary>A 5xx from a data call: the first strike, a check at once, and a stand-down
+    /// outright when they come in a burst.</summary>
+    private void OnGatewayFailure(int statusCode)
+    {
+        var now = DateTimeOffset.UtcNow;
+        _lastGatewayFailure = now;
+        _gatewayFailures.Enqueue(now);
+        while (_gatewayFailures.TryPeek(out var oldest) && now - oldest > BurstWindow)
+            _gatewayFailures.TryDequeue(out _);
+
+        if (!IsOnline) return;
+
+        if (_gatewayFailures.Count >= BurstCount)
+        {
+            _consecutiveFailures = FailuresBeforeOffline;
+            Players  = 0;
+            IsOnline = false;
+            return;
+        }
+
+        _consecutiveFailures = Math.Max(_consecutiveFailures, 1);
+        if (now - _lastPromptedCheck < PromptGap) return;
+        _lastPromptedCheck = now;
+        _ = Task.Run(() => CheckOnceAsync(_cts?.Token ?? CancellationToken.None));
     }
 
     public async Task StopAsync()
     {
         if (_cts is null) return;
 
+        esi.GatewayFailure -= OnGatewayFailure;
         await _cts.CancelAsync();
         if (_runTask is not null)
             try { await _runTask; } catch (OperationCanceledException) { }
@@ -114,6 +160,8 @@ public sealed class EveServerStatusService(
 
     public async Task CheckOnceAsync(CancellationToken ct = default)
     {
+        // One at a time: the loop's check and a prompted one can land together.
+        if (!await _checking.WaitAsync(0, ct)) return;
         try
         {
             using var response = await _http.GetAsync("status/", ct);
@@ -121,6 +169,13 @@ public sealed class EveServerStatusService(
             if (response.IsSuccessStatusCode)
             {
                 var status = await response.Content.ReadFromJsonAsync<EsiStatus>(cancellationToken: ct);
+
+                // ⚠️ "Online" from the status endpoint is not taken at its word while the calls
+                // were failing moments ago: it caches for thirty seconds, and that is exactly the
+                // window in which it says online about a server that has just gone down.
+                if (!IsOnline && DateTimeOffset.UtcNow - _lastGatewayFailure < HoldAfterFailure)
+                    return;
+
                 _consecutiveFailures = 0;
                 Players  = status?.Players ?? 0;
                 IsOnline = true;
@@ -139,8 +194,11 @@ public sealed class EveServerStatusService(
             // Local connectivity problem: explicitly NOT downtime. See class remarks.
             errorLogger.Log(nameof(EveServerStatusService), nameof(CheckOnceAsync), ex);
         }
-
-        LastChecked = DateTimeOffset.UtcNow;
+        finally
+        {
+            LastChecked = DateTimeOffset.UtcNow;
+            _checking.Release();
+        }
     }
 
     private void RegisterFailure()

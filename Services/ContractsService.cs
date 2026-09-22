@@ -36,6 +36,11 @@ public class ContractsService : ReactiveObject
     // bucket). 1700 ms ≈ 35/min ≈ 529 per 15 min — comfortably under the cap.
     private const int AuthedItemDelayMs = 1700;
 
+    // After ESI refuses one (400/403/404). A refusal also spends from the error budget every
+    // endpoint in the app shares — 100 a minute — so a run of them is walked at a fifth of the
+    // pace, 12 a minute at worst, and the other pollers keep their room.
+    private const int RefusedItemDelayMs = 5000;
+
     // Contract types that carry an item list. "loan" has none.
     private static readonly HashSet<string> ItemBearingTypes = ["item_exchange", "auction", "courier"];
 
@@ -59,11 +64,12 @@ public class ContractsService : ReactiveObject
     public int ItemsDone  => _itemsDone;
     public int ItemsTotal => _itemsTotal;
 
-    // Snapshot for the API-log Contracts monitor.
+    // Snapshot for the API-log Contracts monitor. Refused = contracts ESI answered 4xx for and
+    // holds no items of; they count among the owned as pulled, since they were asked.
     public record ContractItemsStatus(
         int PublicTotal, int PublicPulled,
         int OwnedTotal,  int OwnedPulled,
-        int Deferred,    bool Running);
+        int Refused,     bool Running);
 
     // Item-bearing type predicate reused by the count queries (must be inlined for EF).
     // item_exchange / auction / courier carry items; loan does not.
@@ -76,26 +82,23 @@ public class ContractsService : ReactiveObject
         var pubPulled = await db.EsiContracts.CountAsync(c => c.OwnerType == "public" && c.ItemsPulled
             && (c.Type == "item_exchange" || c.Type == "auction" || c.Type == "courier"), ct);
 
-        // "Owned" = character contracts, or corp contracts the corp issued — the ones we pull.
+        // "Owned" = every character and corporation contract — all of them are asked for.
         var ownedTotal = await db.EsiContracts
             .Where(c => (c.Type == "item_exchange" || c.Type == "auction" || c.Type == "courier")
-                && (c.OwnerType == "character"
-                    || (c.OwnerType == "corporation" && (long)c.IssuerCorporationId == c.OwnerId)))
+                && c.OwnerType != "public")
             .Select(c => c.ContractId).Distinct().CountAsync(ct);
         var ownedPulled = await db.EsiContracts
             .Where(c => c.ItemsPulled && (c.Type == "item_exchange" || c.Type == "auction" || c.Type == "courier")
-                && (c.OwnerType == "character"
-                    || (c.OwnerType == "corporation" && (long)c.IssuerCorporationId == c.OwnerId)))
+                && c.OwnerType != "public")
             .Select(c => c.ContractId).Distinct().CountAsync(ct);
 
-        // Deferred = corp contracts issued by another corp (alliance-assigned / direct) that we
-        // are intentionally not pulling items for right now.
-        var deferred = await db.EsiContracts
-            .Where(c => c.OwnerType == "corporation" && (long)c.IssuerCorporationId != c.OwnerId
+        // Refused = asked, and answered 400/403/404 by every endpoint that had it.
+        var refused = await db.EsiContracts
+            .Where(c => c.ItemsPulled && c.ItemsStatus >= 400 && c.OwnerType != "public"
                 && (c.Type == "item_exchange" || c.Type == "auction" || c.Type == "courier"))
             .Select(c => c.ContractId).Distinct().CountAsync(ct);
 
-        return new ContractItemsStatus(pubTotal, pubPulled, ownedTotal, ownedPulled, deferred, IsSweepingItems);
+        return new ContractItemsStatus(pubTotal, pubPulled, ownedTotal, ownedPulled, refused, IsSweepingItems);
     }
 
     public ContractsService(
@@ -301,11 +304,13 @@ public class ContractsService : ReactiveObject
         // contract seen by several owners is fetched once.
         var pending = (await db.EsiContracts.AsNoTracking()
                 .Where(c => !c.ItemsPulled)
-                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.IssuerCorporationId })
+                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.IssuerCorporationId, c.AssigneeId, c.AcceptorId })
                 .ToListAsync(ct))
             .Where(c => ItemBearingTypes.Contains(c.Type))
             .GroupBy(c => c.ContractId)
-            // The player's own contracts first, then everyone else's.
+            // The player's own contracts first — issued, assigned or accepted by a character or
+            // corporation of theirs — then the ones merely available to a corporation, which are
+            // what other people put up to the alliance, then everyone else's.
             //
             // This list had no order at all, which in practice meant insertion order — and with
             // forty thousand public listings against a few hundred owned ones, a player's own
@@ -313,32 +318,47 @@ public class ContractsService : ReactiveObject
             // skipped, merely always last, so they read as permanently empty while the public
             // backfill ground on. Public contracts are browsing; a contract you issued or were
             // assigned is one you are waiting on.
-            .OrderByDescending(g => g.Any(c => c.OwnerType == "character"
-                                            || (c.OwnerType == "corporation"
-                                                && (long)c.IssuerCorporationId == c.OwnerId)))
+            .OrderByDescending(g => g.Max(c => c.OwnerType switch
+            {
+                "character"   => 2,
+                "corporation" => (long)c.IssuerCorporationId == c.OwnerId
+                                 || c.AssigneeId == c.OwnerId || c.AcceptorId == c.OwnerId ? 2 : 1,
+                _             => 0,
+            }))
             .ThenBy(g => g.Key)
             .ToList();
 
-        int done = 0, deferred = 0, skipped = 0;
+        // Which corporation row to ask through when a contract sits under several: the corporation
+        // that issued it, else the one it was assigned to or accepted by, else whichever holds it.
+        //
+        // ⚠️ Every corporation row is asked, whoever issued the contract. From July to September
+        // 2026 the sweep deferred — never called for — any corporation contract issued by another
+        // corporation, on the belief that the corporation endpoint answered 404 for those. The
+        // database said otherwise: 78 such contracts, from corporations no token here belongs to
+        // and listed nowhere public, had their items, which only that endpoint could have served,
+        // while some 460 sat unasked for two months and read as empty. What distinguishes the
+        // ones it does refuse is not established; a refusal is recorded on the row and costs one
+        // call, so asking is the cheaper mistake.
+        static int CorpRank(long ownerId, int issuerCorp, long? assignee, long? acceptor)
+            => issuerCorp == ownerId ? 2 : assignee == ownerId || acceptor == ownerId ? 1 : 0;
+
+        int done = 0, refused = 0, skipped = 0;
         _itemsTotal = pending.Count;
         _itemsDone  = 0;
         foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
-            _itemsDone = done + deferred + skipped;
+            _itemsDone = done + refused + skipped;
 
             // Prefer the public endpoint (no token bucket, items always visible), then a
-            // character token, then a corp contract the corp ISSUED.
-            // Corp contracts issued by ANOTHER corp (alliance-assigned, or direct from another
-            // corp) are observed to 404 on the corp items endpoint. Per user direction we DEFER
-            // those — no call — to avoid inflating the error count. Why they 404 is not yet
-            // established; revisit later. See memory: contract-items-alliance-corp-404.
+            // character token, then a corporation's.
+            var corp = group.Where(c => c.OwnerType == "corporation")
+                .OrderByDescending(c => CorpRank(c.OwnerId, c.IssuerCorporationId, c.AssigneeId, c.AcceptorId))
+                .FirstOrDefault();
             var src = group.FirstOrDefault(c => c.OwnerType == "public")
                    ?? group.FirstOrDefault(c => c.OwnerType == "character")
-                   ?? group.FirstOrDefault(c => c.OwnerType == "corporation" &&
-                        (long)c.IssuerCorporationId == c.OwnerId);
-
-            if (src is null) { deferred++; continue; }
+                   ?? corp;
+            if (src is null) { skipped++; continue; }   // cannot happen: every group has a row
 
             // The PUBLIC items endpoint serves item_exchange / auction only — couriers return
             // HTTP 400. There's no way to read a public courier's cargo, and left unmarked they
@@ -347,9 +367,7 @@ public class ContractsService : ReactiveObject
             // cargo); if the only source is public, mark done without calling.
             if (src.OwnerType == "public" && src.Type == "courier")
             {
-                var owned = group.FirstOrDefault(c => c.OwnerType == "character")
-                         ?? group.FirstOrDefault(c => c.OwnerType == "corporation" &&
-                              (long)c.IssuerCorporationId == c.OwnerId);
+                var owned = group.FirstOrDefault(c => c.OwnerType == "character") ?? corp;
                 if (owned is null)
                 {
                     await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
@@ -365,33 +383,102 @@ public class ContractsService : ReactiveObject
             if (ct.IsCancellationRequested) break;
 
             bool isPublic = src.OwnerType == "public";
-            if (await FetchAndStoreItemsAsync(db, group.Key, src.OwnerId, src.OwnerType, ct))
+            var (handled, status) = await FetchAndStoreItemsAsync(db, group.Key, src.OwnerId, src.OwnerType, ct);
+            if (handled)
             {
+                // The answer goes on every owner row: the items are the contract's, not the row's.
                 await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
-                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true), ct);
-                done++;
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true)
+                                              .SetProperty(x => x.ItemsStatus, status), ct);
+                if (status >= 400) refused++; else done++;
             }
 
-            if ((done & 63) == 0)
-                StatusText = $"Contracts: {done:N0} pulled, {deferred:N0} deferred…";
+            if (((done + refused) & 63) == 0)
+                StatusText = $"Contracts: {done:N0} pulled, {refused:N0} refused…";
 
-            // Authed items share a 600/15min token bucket; public items don't.
-            try { await Task.Delay(isPublic ? PublicItemDelayMs : AuthedItemDelayMs, ct); }
+            // Authed items share a 600/15min token bucket; public items don't. A refusal spends
+            // from the error budget as well, so it is followed by the longer pause.
+            var pause = status >= 400 ? RefusedItemDelayMs : isPublic ? PublicItemDelayMs : AuthedItemDelayMs;
+            try { await Task.Delay(pause, ct); }
             catch (OperationCanceledException) { break; }
         }
-        StatusText = $"Contracts: item pass done ({done:N0} pulled, {deferred:N0} deferred, "
+        StatusText = $"Contracts: item pass done ({done:N0} pulled, {refused:N0} refused, "
                    + $"{skipped:N0} skipped) — {DateTimeOffset.Now:t}";
     }
 
     // Fetches a contract's items via the right endpoint and stores them (dedup by RecordId).
     // Returns false only on a hard call failure so the contract is retried next sweep.
-    private async Task<bool> FetchAndStoreItemsAsync(
+    /// <summary>What one attempt to pull a contract's items came to.</summary>
+    public sealed record ItemPullOutcome(bool Stored, int Count, string Message);
+
+    /// <summary>
+    /// Pulls one contract's items now, on request, from every owner row that holds it in the
+    /// order the sweep prefers — public listing, a character, the corporations — and says
+    /// exactly what each endpoint answered. The sweep asks once and records the answer; this is
+    /// for asking again, when the answer was a refusal or the sweep has not reached it yet.
+    /// </summary>
+    public async Task<ItemPullOutcome> PullItemsNowAsync(int contractId, CancellationToken ct = default)
+    {
+        if (_esi.IsErrorLimitBlocked) return new(false, 0, "ESI is paused right now; try again shortly.");
+
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        db.ChangeTracker.AutoDetectChangesEnabled = false;
+
+        var rows = await db.EsiContracts.AsNoTracking().Where(c => c.ContractId == contractId).ToListAsync(ct);
+        if (rows.Count == 0) return new(false, 0, "The contract is not stored.");
+        var held = await db.EsiContractItems.CountAsync(i => i.ContractId == contractId, ct);
+        if (held > 0) return new(true, held, $"{held:N0} item(s) already held.");
+
+        var sources = rows.Where(c => c.OwnerType == "public" && c.Type != "courier")
+            .Concat(rows.Where(c => c.OwnerType == "character"))
+            .Concat(rows.Where(c => c.OwnerType == "corporation"))
+            .ToList();
+        if (sources.Count == 0) return new(false, 0, "No endpoint can serve this contract's items: a public courier's cargo is not listed.");
+
+        var answers = new List<string>();
+        foreach (var src in sources)
+        {
+            var r = await FetchAndStoreItemsCoreAsync(db, contractId, src.OwnerId, src.OwnerType, ct);
+            if (r.Stored is int n)
+            {
+                await db.EsiContracts.Where(x => x.ContractId == contractId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true)
+                                              .SetProperty(x => x.ItemsStatus, r.Status), ct);
+                return new(true, n, n == 0 ? $"ESI lists no items for it (via the {src.OwnerType} endpoint)."
+                                           : $"{n:N0} item(s) pulled via the {src.OwnerType} endpoint.");
+            }
+            answers.Add($"{src.OwnerType} endpoint: HTTP {r.Status}{(string.IsNullOrEmpty(r.Error) ? "" : $" — {r.Error}")}");
+        }
+        return new(false, 0, "Not served: " + string.Join("; ", answers));
+    }
+
+    /// <summary>Whether the contract is settled — items stored, or a refusal worth recording —
+    /// and the status that settled it, 0 when no call was needed.</summary>
+    private async Task<(bool Handled, int Status)> FetchAndStoreItemsAsync(
         AppDbContext db, int contractId, long ownerId, string ownerType, CancellationToken ct)
     {
-        // Already have items from another owner row — nothing to fetch.
+        // Already have items from another owner row — nothing to fetch, no answer to record.
         if (await db.EsiContractItems.AnyAsync(i => i.ContractId == contractId, ct))
-            return true;
+            return (true, 0);
 
+        var r = await FetchAndStoreItemsCoreAsync(db, contractId, ownerId, ownerType, ct);
+        if (r.Stored is not null) return (true, r.Status);
+
+        // 400 (wrong contract type for this endpoint), 403/404 (gone / no access) are terminal:
+        // mark handled so we stop retrying and don't keep feeding ESI's global error limit.
+        // Anything else is transient — log and retry next sweep.
+        if (r.Status is 400 or 403 or 404) return (true, r.Status);
+        _errorLogger.Log("ContractsService",
+            $"items contract={contractId} owner={ownerType}", $"HTTP {r.Status}: {r.Error}");
+        return (false, r.Status);
+    }
+
+    /// <summary>One call to one endpoint and the store that follows: how many were stored, or
+    /// the status and words ESI answered with. A save that failed reads as status 0 and is
+    /// retried by the next sweep.</summary>
+    private async Task<(int? Stored, int Status, string? Error)> FetchAndStoreItemsCoreAsync(
+        AppDbContext db, int contractId, long ownerId, string ownerType, CancellationToken ct)
+    {
         // NOTE: individual item calls are intentionally NOT logged to the API activity log —
         // there can be thousands, which would flood it. Genuine failures go to the error log.
         List<ContractItem>? items = null;
@@ -430,16 +517,7 @@ public class ContractsService : ReactiveObject
                 }).ToList();
         }
 
-        if (items is null)
-        {
-            // 400 (wrong contract type for this endpoint), 403/404 (gone / no access) are terminal:
-            // mark handled so we stop retrying and don't keep feeding ESI's global error limit.
-            // Anything else is transient — log and retry next sweep.
-            if (status is not (400 or 403 or 404))
-                _errorLogger.Log("ContractsService",
-                    $"items contract={contractId} owner={ownerType}", $"HTTP {status}: {error}");
-            return status is 400 or 403 or 404;
-        }
+        if (items is null) return (null, status, error);
 
         // Dedupe by RecordId. ESI has been observed returning the same record twice inside
         // one contract's paged item list, and EF rejects the pair on the (ContractId,
@@ -453,7 +531,7 @@ public class ContractsService : ReactiveObject
         {
             if (deduped.Count > 0) db.EsiContractItems.AddRange(deduped);
             await db.SaveChangesAsync(ct);
-            return true;
+            return (deduped.Count, status, null);
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -461,7 +539,7 @@ public class ContractsService : ReactiveObject
             // Retried next sweep rather than marked pulled — but not at the cost of the
             // rest of this one.
             _errorLogger.Log("ContractsService", $"items contract={contractId} owner={ownerType}", ex);
-            return false;
+            return (null, 0, ex.Message);
         }
         finally
         {

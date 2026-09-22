@@ -976,6 +976,8 @@ public class MainWindowViewModel : ReactiveObject
         };
         OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
         OverviewVm.NavigateToIndustryJobs      = () => OpenTool("industry");
+        // ContractsVm is built further down; the lambda runs long after, so the flow analysis is the only thing objecting.
+        OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
@@ -994,7 +996,7 @@ public class MainWindowViewModel : ReactiveObject
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
-        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
+        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger, contractsService);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
