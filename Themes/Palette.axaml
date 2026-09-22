@@ -48,6 +48,11 @@
       <Color x:Key="SurfaceInput">#191922</Color>     <!-- text boxes, combo boxes  -->
       <Color x:Key="SurfaceHover">#2a2a38</Color>
       <Color x:Key="SurfaceSelected">#26304a</Color>
+      <!-- Washes that tell one run of columns from the next in a grid: a hue each, faint
+           enough for the row banding, hover and selection beneath to show through. -->
+      <Color x:Key="ColumnGroupA">#1f5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#1fed7d31</Color>
+      <Color x:Key="ColumnGroupC">#1f1abc9c</Color>
 
       <!-- ── Lines ───────────────────────────────────────────────────────── -->
       <Color x:Key="BorderSubtle">#2a2a36</Color>     <!-- dividers, grid rules     -->
@@ -128,6 +133,11 @@
       <Color x:Key="SurfaceInput">#f8f7fa</Color>
       <Color x:Key="SurfaceHover">#dcd9e6</Color>
       <Color x:Key="SurfaceSelected">#d8dcf0</Color>
+      <!-- Washes that tell one run of columns from the next in a grid: a hue each, faint
+           enough for the row banding, hover and selection beneath to show through. -->
+      <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#2ced7d31</Color>
+      <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
       <!-- ── Lines ───────────────────────────────────────────────────────── -->
       <Color x:Key="BorderSubtle">#dedce6</Color>
@@ -191,6 +201,9 @@
       <Color x:Key="SurfaceInput">#161f2c</Color>
       <Color x:Key="SurfaceHover">#2b3c52</Color>
       <Color x:Key="SurfaceSelected">#24405f</Color>
+      <Color x:Key="ColumnGroupA">#1f5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#1fed7d31</Color>
+      <Color x:Key="ColumnGroupC">#1f1abc9c</Color>
 
       <Color x:Key="BorderSubtle">#2a3a4e</Color>
       <Color x:Key="BorderDefault">#364c66</Color>
@@ -216,7 +229,7 @@
       <Color x:Key="SystemAccentColorLight1">#7cc4e6</Color>
       <Color x:Key="SystemAccentColorLight2">#a8d8ee</Color>
       <Color x:Key="SystemAccentColorLight3">#a8d8ee</Color>
-      <Color x:Key="SurfaceOverlay">#192434cc</Color>
+      <Color x:Key="SurfaceOverlay">#cc192434</Color>
     </ResourceDictionary>
 
     <!-- ═══ BLUELIGHT — pale sky, a deep marine accent.
@@ -231,6 +244,9 @@
       <Color x:Key="SurfaceInput">#ffffff</Color>
       <Color x:Key="SurfaceHover">#d6e2ef</Color>
       <Color x:Key="SurfaceSelected">#c6d8ee</Color>
+      <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#2ced7d31</Color>
+      <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
       <Color x:Key="BorderSubtle">#d2dce6</Color>
       <Color x:Key="BorderDefault">#b8c8d8</Color>
@@ -256,7 +272,7 @@
       <Color x:Key="SystemAccentColorLight1">#2b7aad</Color>
       <Color x:Key="SystemAccentColorLight2">#9cc6e0</Color>
       <Color x:Key="SystemAccentColorLight3">#9cc6e0</Color>
-      <Color x:Key="SurfaceOverlay">#f0f4f9cc</Color>
+      <Color x:Key="SurfaceOverlay">#ccf0f4f9</Color>
     </ResourceDictionary>
 
     <!-- ═══ PINKDARK — plum and rose.
@@ -271,6 +287,9 @@
       <Color x:Key="SurfaceInput">#221826</Color>
       <Color x:Key="SurfaceHover">#3d2c46</Color>
       <Color x:Key="SurfaceSelected">#472a4a</Color>
+      <Color x:Key="ColumnGroupA">#1f5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#1fed7d31</Color>
+      <Color x:Key="ColumnGroupC">#1f1abc9c</Color>
 
       <Color x:Key="BorderSubtle">#3a2c42</Color>
       <Color x:Key="BorderDefault">#4b3a55</Color>
@@ -296,7 +315,7 @@
       <Color x:Key="SystemAccentColorLight1">#eca0bc</Color>
       <Color x:Key="SystemAccentColorLight2">#f4c0d2</Color>
       <Color x:Key="SystemAccentColorLight3">#f4c0d2</Color>
-      <Color x:Key="SurfaceOverlay">#271c2ccc</Color>
+      <Color x:Key="SurfaceOverlay">#cc271c2c</Color>
     </ResourceDictionary>
 
     <!-- ═══ PINKLIGHT — blush, a deep rose accent.
@@ -311,6 +330,9 @@
       <Color x:Key="SurfaceInput">#ffffff</Color>
       <Color x:Key="SurfaceHover">#ecdde5</Color>
       <Color x:Key="SurfaceSelected">#edd6e2</Color>
+      <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#2ced7d31</Color>
+      <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
       <Color x:Key="BorderSubtle">#e6d8e0</Color>
       <Color x:Key="BorderDefault">#d0bcc8</Color>
@@ -336,7 +358,7 @@
       <Color x:Key="SystemAccentColorLight1">#bc5077</Color>
       <Color x:Key="SystemAccentColorLight2">#d894ac</Color>
       <Color x:Key="SystemAccentColorLight3">#d894ac</Color>
-      <Color x:Key="SurfaceOverlay">#faf5f8cc</Color>
+      <Color x:Key="SurfaceOverlay">#ccfaf5f8</Color>
     </ResourceDictionary>
 
     <!-- ═══ BEIGEDARK — warm stone, a tan highlight.
@@ -351,6 +373,9 @@
       <Color x:Key="SurfaceInput">#231f1a</Color>
       <Color x:Key="SurfaceHover">#3b342b</Color>
       <Color x:Key="SurfaceSelected">#4a3f2c</Color>
+      <Color x:Key="ColumnGroupA">#1f5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#1fed7d31</Color>
+      <Color x:Key="ColumnGroupC">#1f1abc9c</Color>
 
       <Color x:Key="BorderSubtle">#3a332a</Color>
       <Color x:Key="BorderDefault">#4b4235</Color>
@@ -376,7 +401,7 @@
       <Color x:Key="SystemAccentColorLight1">#e0be8e</Color>
       <Color x:Key="SystemAccentColorLight2">#ecd8b4</Color>
       <Color x:Key="SystemAccentColorLight3">#ecd8b4</Color>
-      <Color x:Key="SurfaceOverlay">#29241ecc</Color>
+      <Color x:Key="SurfaceOverlay">#cc29241e</Color>
     </ResourceDictionary>
 
     <!-- ═══ BEIGELIGHT — cream and ink.
@@ -391,6 +416,9 @@
       <Color x:Key="SurfaceInput">#ffffff</Color>
       <Color x:Key="SurfaceHover">#e6ded0</Color>
       <Color x:Key="SurfaceSelected">#e2dcc8</Color>
+      <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
+      <Color x:Key="ColumnGroupB">#2ced7d31</Color>
+      <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
       <Color x:Key="BorderSubtle">#e0d8c9</Color>
       <Color x:Key="BorderDefault">#c8bda9</Color>
@@ -416,7 +444,7 @@
       <Color x:Key="SystemAccentColorLight1">#a8834c</Color>
       <Color x:Key="SystemAccentColorLight2">#cfae7c</Color>
       <Color x:Key="SystemAccentColorLight3">#cfae7c</Color>
-      <Color x:Key="SurfaceOverlay">#f7f3eccc</Color>
+      <Color x:Key="SurfaceOverlay">#ccf7f3ec</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>
@@ -436,6 +464,9 @@
   <SolidColorBrush x:Key="SurfaceInputBrush"     Color="{DynamicResource SurfaceInput}" />
   <SolidColorBrush x:Key="SurfaceHoverBrush"     Color="{DynamicResource SurfaceHover}" />
   <SolidColorBrush x:Key="SurfaceSelectedBrush"  Color="{DynamicResource SurfaceSelected}" />
+  <SolidColorBrush x:Key="ColumnGroupABrush"     Color="{DynamicResource ColumnGroupA}" />
+  <SolidColorBrush x:Key="ColumnGroupBBrush"     Color="{DynamicResource ColumnGroupB}" />
+  <SolidColorBrush x:Key="ColumnGroupCBrush"     Color="{DynamicResource ColumnGroupC}" />
 
   <SolidColorBrush x:Key="BorderSubtleBrush"     Color="{DynamicResource BorderSubtle}" />
   <SolidColorBrush x:Key="BorderDefaultBrush"    Color="{DynamicResource BorderDefault}" />

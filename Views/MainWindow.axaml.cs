@@ -21,7 +21,6 @@ namespace EveConsole.Views;
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     // Detached window handles
-    private ApiActivityWindow?       _activityWindow;
     private CharacterViewerWindow?   _characterViewerWindow;
     private AssetBrowserWindow?      _assetBrowserWindow;
     private IndustryBrowserWindow?   _industryBrowserWindow;
@@ -230,22 +229,107 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (IsVisible) TryStartup();
     }
 
+    // ── Agent panel width ────────────────────────────────────────────────────
+    //
+    // The panel sits on the right, so dragging its left edge LEFT makes it wider. The floor is
+    // the width it was designed at; the ceiling leaves the content area a usable minimum.
+    private const double AgentPanelMinWidth   = 360;
+    private const double ContentMinWidth      = 480;
+    private double? _agentDragStartX;
+    private double  _agentDragStartWidth;
+
+    private void OnAgentResizePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        _agentDragStartX     = e.GetPosition(this).X;
+        _agentDragStartWidth = AgentDock.Bounds.Width;
+        e.Pointer.Capture(AgentResizeHandle);
+        e.Handled = true;
+    }
+
+    private void OnAgentResizeMoved(object? sender, PointerEventArgs e)
+    {
+        if (_agentDragStartX is not { } startX) return;
+        var proposed = _agentDragStartWidth - (e.GetPosition(this).X - startX);
+        var ceiling  = Math.Max(AgentPanelMinWidth, Bounds.Width - ContentMinWidth);
+        AgentDock.Width = Math.Clamp(proposed, AgentPanelMinWidth, ceiling);
+        e.Handled = true;
+    }
+
+    private void OnAgentResizeReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_agentDragStartX is null) return;
+        _agentDragStartX = null;
+        e.Pointer.Capture(null);
+        // Remembered per installation, like the window itself.
+        Services.AppConfig.SetAgentPanelWidth((int)AgentDock.Width);
+        e.Handled = true;
+    }
+
     private void TryStartup()
     {
         if (_started || DataContext is not MainWindowViewModel vm) return;
         _started = true;
+
+        // The width the capsuleer last dragged the agent panel to, if they ever did.
+        if (Services.AppConfig.GetAgentPanelWidth() is { } savedWidth && savedWidth >= AgentPanelMinWidth)
+            AgentDock.Width = savedWidth;
 
         var agentService = vm.AgentVm.Service;
         agentService.WindowOpenRequested  += name => Dispatcher.UIThread.Post(() => OpenToolByName(vm, name));
         agentService.DataRefreshRequested += ()   => Dispatcher.UIThread.Post(() => vm.ForceResolveNamesAsync());
         agentService.ContextProvider       = () => BuildAgentContext(vm);
 
+        // ⚠️ Invoke, not Post. The tool has to return a status message to the model in the same
+        // call, so it needs the tab name back — and the agent runs on a background thread, while
+        // the tab strip is bound to the UI thread.
+        agentService.ShowTableCallback = (title, caption, columns, rows) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                var grid = new EveConsole.ViewModels.AgentGridViewModel(title, caption, columns, rows);
+                vm.OpenAgentTab(title, grid);
+                return $"Opened a tab named \"{title}\" with {rows.Count:N0} row(s).";
+            });
+
+        agentService.ShowDocumentCallback = (title, markdown) =>
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                var doc = new EveConsole.ViewModels.AgentDocumentViewModel(title, markdown);
+                vm.OpenAgentTab(title, doc);
+                return $"Opened a document tab named \"{title}\".";
+            });
+
         // Alarm actions that need the UI. The dialog is deliberately owner-less and top-most —
         // an alarm is usually wanted precisely when EVE Console is behind the game client.
-        vm.AlarmActions.ShowDialogCallback = (title, message) =>
-            new Views.AlarmDialogWindow(title, message).Show();
+        vm.AlarmActions.ShowDialogCallback = (title, message, button, onAcknowledge) =>
+            new Views.AlarmDialogWindow(title, message, button, onAcknowledge).Show();
 
         vm.AlarmActions.NotifyAgentCallback = message => vm.AgentVm.NotifyAsync(message);
+        vm.AlarmActions.AnnounceCallback    = text    => vm.AgentVm.AnnounceAsync(text);
+
+        // A wake-up call is acknowledged by answering the agent — anything at all — and the
+        // acknowledgement goes back through the runner, which is what quiets every client.
+        vm.AlarmActions.AwaitReplyCallback  = (ack, said) => vm.AgentVm.ExpectReply(ack, said);
+        vm.AgentVm.AcknowledgeCallback      = ack     => vm.AlarmActions.AcknowledgeAsync(ack);
+
+        // A repeating sound brings its own window with the one button that stops it, whether or
+        // not a Dialog action was chosen; the runner closes it when the sound ends of itself.
+        var soundWindows = new Dictionary<(long, string), Views.AlarmSoundWindow>();
+        vm.AlarmActions.SoundStartedCallback = (ack, name, summary, acknowledge) =>
+        {
+            var key = (ack.AlarmId, ack.ScopeKey);
+            if (soundWindows.TryGetValue(key, out var open)) { open.Activate(); return; }
+
+            var w = new Views.AlarmSoundWindow(name, summary, acknowledge);
+            w.Closed += (_, _) => soundWindows.Remove(key);
+            soundWindows[key] = w;
+            w.Show();
+        };
+        vm.AlarmActions.SoundStoppedCallback = ack =>
+        {
+            if (soundWindows.Remove((ack.AlarmId, ack.ScopeKey), out var w))
+                try { w.Close(); } catch { /* already gone */ }
+        };
         vm.AlarmActions.AgentAvailable      =
             () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
 
@@ -397,15 +481,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else
         {
-            vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
-                .Where(available => available)
-                .Take(1)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(async _ =>
-                {
-                    var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
-                    await dialog.ShowDialog(this);
-                });
+            // This build added SDE or Hobo columns that the startup pass created empty. Refill
+            // them the way a first launch fills everything: in the background, no dialog.
+            if (App.SdeSchemaGrew || App.HoboSchemaGrew)
+                _ = vm.SdeVm.RunSchemaRefreshAsync(App.SdeSchemaGrew, App.HoboSchemaGrew);
+
+            // The "newer build available" prompt — unless the SDE import is already running in
+            // the background, in which case what the dialog would offer is what is happening,
+            // and the import fetches the newest build regardless. A Hobo-only refresh does not
+            // touch the SDE, so the prompt still stands for that.
+            if (!App.SdeSchemaGrew)
+                vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
+                    .Where(available => available)
+                    .Take(1)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(async _ =>
+                    {
+                        var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
+                        await dialog.ShowDialog(this);
+                    });
         }
 
         // App update prompt (Velopack) — only when a new version is found and not already declined.
@@ -504,6 +598,30 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// theme can be changed from the Settings window too, and a menu assembled once would go on
     /// ticking whatever was on when it was made.</para>
     /// </summary>
+    /// <summary>The UI scale menu, built on click for the same reason as the theme's: the tick
+    /// has to show what is on now, and Settings can change it too.</summary>
+    private void OnUiScaleClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control anchor) return;
+
+        var menu = new MenuFlyout { Placement = PlacementMode.TopEdgeAlignedRight };
+
+        foreach (var choice in UiScaleChoice.All)
+        {
+            var item = new MenuItem
+            {
+                Header     = choice.Name,
+                ToggleType = MenuItemToggleType.Radio,
+                IsChecked  = Math.Abs(choice.Scale - UiScaleService.Scale) < 0.001,
+            };
+            var scale = choice.Scale;
+            item.Click += (_, _) => UiScaleService.Apply(scale);
+            menu.Items.Add(item);
+        }
+
+        menu.ShowAt(anchor);
+    }
+
     private void OnThemeClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Control anchor) return;
@@ -548,6 +666,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (vm.MarketVm.RegionOptions.Count == 0)
             await vm.MarketVm.ReloadAsync();
 
+        await vm.CharacterVm.RefreshTokenStateAsync();
         await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
         vm.CorpTop10SettingsVm.Load();
         var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
@@ -629,17 +748,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
     }
 
-    private void OnPollingStatusClick(object? sender, RoutedEventArgs e)
+    /// <summary>A status-bar label opens the Background Processes tool at the tab that says more.</summary>
+    private void OnBackgroundLabelClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm) return;
+        if (DataContext is MainWindowViewModel vm && (sender as Control)?.DataContext is StatusBarItem item)
+            vm.OpenBackgroundProcesses(item.Tab);
+    }
 
-        if (_activityWindow is null || !_activityWindow.IsVisible)
-        {
-            _activityWindow = new ApiActivityWindow { DataContext = vm.ActivityVm };
-            _activityWindow.Closed += (_, _) => _activityWindow = null;
-            _activityWindow.Show();
-        }
-        else _activityWindow.Activate();
+    // The red "N bad tokens" beside ESI Calls: the fix is a re-authorisation, which lives on the
+    // ESI Tokens page, so that is where it goes.
+    private void OnStatusWarningClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "ESI Tokens");
     }
 
     // ── Tab detach (right-click → Open in New Window) ─────────────────────────
@@ -758,6 +878,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var sb = new StringBuilder();
 
+        // The clock, first. Every message in the history carries the time it was sent, and this
+        // is what those are measured against — without it the stamps are dates with no "ago".
+        var now = DateTimeOffset.UtcNow;
+        sb.AppendLine($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd}).");
+
         var activeTitle = vm.SelectedTab?.Title ?? "None";
         sb.AppendLine($"Active tab: {activeTitle}");
         var activeIntent = EveConsole.Agent.AppKnowledge.TabIntent(activeTitle);
@@ -774,12 +899,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (_industryBrowserWindow?.IsVisible == true) detached.Add("Industry");
         if (_itemBrowserWindow?.IsVisible     == true) detached.Add("Items");
         if (_explorerWindow?.IsVisible        == true) detached.Add("ESI Explorer");
-        if (_activityWindow?.IsVisible        == true) detached.Add("Background Processes");
         if (detached.Count > 0)
             sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
 
         sb.AppendLine("You know what each tool does (see your Tool Reference) — explain and guide from that knowledge; only use capture_tab to read specific on-screen values you cannot get from the data tools.");
-        sb.AppendLine("Available tool IDs for open_window: overview, characters, assets, items, industry, indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, wallet, corp_activity, killmails, eve_mail, data");
+        sb.AppendLine("Available tool IDs for open_window: overview, characters, assets, items, industry, indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, wallet, corp_activity, killmails, eve_mail, data, background");
 
         if (vm.CharacterViewerVm.SelectedCharacter is { } ch)
             sb.AppendLine($"Selected character: {ch.Name} (ID: {ch.Id})");

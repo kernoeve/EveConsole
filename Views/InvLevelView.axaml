@@ -147,7 +147,7 @@
 
         <!-- GROUP / ITEM / COLLECTION -->
         <DataGridTemplateColumn Header="GROUP / ITEM" Width="*" MinWidth="360" Tag="TypeName"
-                                IsReadOnly="True">
+                                IsReadOnly="True" ClipboardContentBinding="{Binding CollectionName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Canvas x:CompileBindings="False" ClipToBounds="False" Height="25">
@@ -279,7 +279,7 @@
         </DataGridTemplateColumn>
 
         <!-- TARGET -->
-        <DataGridTemplateColumn Header="TARGET" Width="90" MinWidth="90" Tag="TargetQty" IsReadOnly="False">
+        <DataGridTemplateColumn Header="TARGET" Width="90" MinWidth="90" Tag="TargetQty" IsReadOnly="False" ClipboardContentBinding="{Binding TargetQty, Converter={StaticResource IntConv}}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <NumericUpDown x:CompileBindings="False"
@@ -296,7 +296,7 @@
         </DataGridTemplateColumn>
 
         <!-- TGT TOTAL (target × multiplier) -->
-        <DataGridTemplateColumn Header="TGT TOTAL" Width="95" MinWidth="95" Tag="TargetTotal" IsReadOnly="True">
+        <DataGridTemplateColumn Header="TGT TOTAL" Width="95" MinWidth="95" Tag="TargetTotal" IsReadOnly="True" ClipboardContentBinding="{Binding TargetTotalText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -310,7 +310,7 @@
         </DataGridTemplateColumn>
 
         <!-- AVAIL -->
-        <DataGridTemplateColumn Header="AVAIL" Width="85" MinWidth="85" Tag="Available" IsReadOnly="True">
+        <DataGridTemplateColumn Header="AVAIL" Width="85" MinWidth="85" Tag="Available" IsReadOnly="True" ClipboardContentBinding="{Binding AvailableText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -324,7 +324,7 @@
         </DataGridTemplateColumn>
 
         <!-- DIFF -->
-        <DataGridTemplateColumn Header="DIFF" Width="80" MinWidth="80" Tag="Diff" IsReadOnly="True">
+        <DataGridTemplateColumn Header="DIFF" Width="80" MinWidth="80" Tag="Diff" IsReadOnly="True" ClipboardContentBinding="{Binding DiffText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -339,7 +339,7 @@
         </DataGridTemplateColumn>
 
         <!-- % -->
-        <DataGridTemplateColumn Header="%" Width="82" MinWidth="82" Tag="DiffPct" IsReadOnly="True">
+        <DataGridTemplateColumn Header="%" Width="82" MinWidth="82" Tag="DiffPct" IsReadOnly="True" ClipboardContentBinding="{Binding DiffPctText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -353,7 +353,7 @@
         </DataGridTemplateColumn>
 
         <!-- ASSETS -->
-        <DataGridTemplateColumn Header="ASSETS" Width="85" MinWidth="85" Tag="AssetsQty" IsReadOnly="True">
+        <DataGridTemplateColumn Header="ASSETS" Width="85" MinWidth="85" Tag="AssetsQty" IsReadOnly="True" ClipboardContentBinding="{Binding AssetsText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -367,7 +367,7 @@
         </DataGridTemplateColumn>
 
         <!-- IND JOBS -->
-        <DataGridTemplateColumn Header="IND JOBS" Width="85" MinWidth="85" Tag="IndustryJobs" IsReadOnly="True">
+        <DataGridTemplateColumn Header="IND JOBS" Width="85" MinWidth="85" Tag="IndustryJobs" IsReadOnly="True" ClipboardContentBinding="{Binding IndustryJobsText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -381,7 +381,7 @@
         </DataGridTemplateColumn>
 
         <!-- BUY ORDERS -->
-        <DataGridTemplateColumn Header="BUY ORDERS" Width="90" MinWidth="90" Tag="BuyOrders" IsReadOnly="True">
+        <DataGridTemplateColumn Header="BUY ORDERS" Width="90" MinWidth="90" Tag="BuyOrders" IsReadOnly="True" ClipboardContentBinding="{Binding BuyOrdersText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -395,7 +395,7 @@
         </DataGridTemplateColumn>
 
         <!-- CONTRACTS -->
-        <DataGridTemplateColumn Header="CONTRACTS" Width="90" MinWidth="90" Tag="Contracts" IsReadOnly="True">
+        <DataGridTemplateColumn Header="CONTRACTS" Width="90" MinWidth="90" Tag="Contracts" IsReadOnly="True" ClipboardContentBinding="{Binding ContractsText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -409,7 +409,7 @@
         </DataGridTemplateColumn>
 
         <!-- MARKET PRICE -->
-        <DataGridTemplateColumn Header="MKT PRICE" Width="119" MinWidth="119" Tag="MarketPrice" IsReadOnly="True">
+        <DataGridTemplateColumn Header="MKT PRICE" Width="119" MinWidth="119" Tag="MarketPrice" IsReadOnly="True" ClipboardContentBinding="{Binding MarketPriceText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -423,7 +423,7 @@
         </DataGridTemplateColumn>
 
         <!-- BUILD PRICE -->
-        <DataGridTemplateColumn Header="BUILD PRICE" Width="119" MinWidth="119" Tag="BuildPrice" IsReadOnly="True">
+        <DataGridTemplateColumn Header="BUILD PRICE" Width="119" MinWidth="119" Tag="BuildPrice" IsReadOnly="True" ClipboardContentBinding="{Binding BuildPriceText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -437,7 +437,7 @@
         </DataGridTemplateColumn>
 
         <!-- VOLUME -->
-        <DataGridTemplateColumn Header="VOLUME (m³)" Width="113" MinWidth="113" Tag="Volume" IsReadOnly="True">
+        <DataGridTemplateColumn Header="VOLUME (m³)" Width="113" MinWidth="113" Tag="Volume" IsReadOnly="True" ClipboardContentBinding="{Binding VolumeText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"

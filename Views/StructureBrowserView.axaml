@@ -150,7 +150,7 @@
         </DataGrid.Styles>
         <DataGrid.Columns>
           <DataGridTextColumn Header="Structure" Binding="{Binding Name}" Width="2*" />
-          <DataGridTemplateColumn Header="Type" SortMemberPath="TypeName" Width="*">
+          <DataGridTemplateColumn Header="Type" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
@@ -164,7 +164,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="System" SortMemberPath="SystemName" Width="*">
+          <DataGridTemplateColumn Header="System" SortMemberPath="SystemName" Width="*" ClipboardContentBinding="{Binding SystemName}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
@@ -178,7 +178,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Constellation" SortMemberPath="Constellation" Width="*">
+          <DataGridTemplateColumn Header="Constellation" SortMemberPath="Constellation" Width="*" ClipboardContentBinding="{Binding Constellation}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
@@ -192,7 +192,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Region" SortMemberPath="Region" Width="*">
+          <DataGridTemplateColumn Header="Region" SortMemberPath="Region" Width="*" ClipboardContentBinding="{Binding Region}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
@@ -206,7 +206,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Corp" SortMemberPath="CorpName" Width="1.4*">
+          <DataGridTemplateColumn Header="Corp" SortMemberPath="CorpName" Width="1.4*" ClipboardContentBinding="{Binding CorpName}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
@@ -220,7 +220,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Alliance" SortMemberPath="AllianceName" Width="1.4*">
+          <DataGridTemplateColumn Header="Alliance" SortMemberPath="AllianceName" Width="1.4*" ClipboardContentBinding="{Binding AllianceName}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
@@ -459,7 +459,7 @@
                           GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="Slot"   Binding="{Binding Slot}"     Width="100" />
-                    <DataGridTemplateColumn Header="Module" SortMemberPath="TypeName" Width="*">
+                    <DataGridTemplateColumn Header="Module" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:FittingRow">
                           <Panel>
@@ -486,7 +486,7 @@
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
@@ -504,7 +504,7 @@
                   <DataGridTextColumn Header="Where"     Binding="{Binding Location}"  Width="170" />
                   <DataGridTextColumn Header="Qty"       Binding="{Binding QuantityText}" SortMemberPath="Quantity"
                                       Width="90" CellStyleClasses="num" />
-                  <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="130">
+                  <DataGridTemplateColumn Header="Owner" SortMemberPath="Owner" Width="130" ClipboardContentBinding="{Binding Owner}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
@@ -530,7 +530,7 @@
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <!-- No owner column: it is always the corp that owns the structure. -->
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
@@ -558,7 +558,7 @@
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
@@ -585,7 +585,7 @@
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Fighter" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="Fighter" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
@@ -642,7 +642,7 @@
                           GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="Activity" Binding="{Binding Activity}" Width="130" />
-                    <DataGridTemplateColumn Header="Product" SortMemberPath="Product" Width="*">
+                    <DataGridTemplateColumn Header="Product" SortMemberPath="Product" Width="*" ClipboardContentBinding="{Binding Product}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StructureJobRow">
                           <Panel>

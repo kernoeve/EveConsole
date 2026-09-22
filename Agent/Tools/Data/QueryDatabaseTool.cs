@@ -21,7 +21,15 @@ public sealed class QueryDatabaseTool : IAgentTool
         Returns up to 200 rows as a JSON array. Use this to answer any question about
         character data, skills, assets, industry jobs, market orders, wallet history, etc.
 
-        DATABASE SCHEMA (key tables):
+        ⚠️ WHAT FOLLOWS IS NOT THE SCHEMA. It is notes on about a quarter of the tables — the ones
+        worth explaining, because their column names do not say what the values mean. The database
+        has far more tables than are listed here, and the full list is in the table index in your
+        instructions. If what you need is not below, that does NOT mean the data does not exist:
+        find the table in the index and call describe_tables for its columns. Several real
+        questions have been answered badly because the answer lived in a table this block never
+        mentioned.
+
+        NOTES ON KEY TABLES (partial — describe_tables is authoritative for columns):
 
         Characters: Id(long PK), Name, CorporationId, TotalSp, UnallocatedSp, SecurityStatus
         Corporations: Id(long PK), Name, Ticker, AuthCharacterId
@@ -72,16 +80,26 @@ public sealed class QueryDatabaseTool : IAgentTool
         SdeBlueprintProducts: TypeId, Activity, ProductTypeId, Quantity, Probability
         SdeBlueprintSkills: TypeId, Activity, SkillTypeId, Level
 
-        MarketPricingConfigs: Id, Name, RegionId, UpdatedAt
-        MarketItemPrices: ConfigId, TypeId, BuyMax, SellMin, UpdatedAt
-        MarketRawOrders: ConfigId, OrderId, TypeId, Price, VolumeRemain, IsBuyOrder, LocationId
+        PRICES — see "Valuing things" in your instructions before writing any of these.
+        MarketItemPrices: the stored daily price per item PER CONFIG. Always filter ConfigId, or
+            every SUM is multiplied by the number of configured sources. Call describe_tables for
+            its columns — an earlier version of these notes named two that do not exist and cost
+            two failed queries before describe_tables gave the real ones.
+        MarketPricingConfigs: the configured price sources.
+        MarketRawOrders: the raw order book. Do NOT price from this; MarketItemPrices is the app's
+            own answer and is far cheaper to read.
+        ContractPrices: fallback price where an item has no market price at all.
 
         LIVE CHARACTER STATE (polled from ESI while a character is online)
         CharacterStatuses: CharacterId(PK), Online(0/1), LastLogin, LastLogout, LoginCount,
             SolarSystemId, StationId, StructureId, ShipTypeId, ShipItemId,
             ShipName(the player's name for the ship, NOT the hull),
-            OnlineCheckedAt, LocationCheckedAt, ShipCheckedAt
-            - Current state only, one row per character — there is no history here.
+            OnlineCheckedAt, LocationCheckedAt, ShipCheckedAt,
+            UndockedAt, UndockedFromId(station or structure id), UndockedSystemId,
+            SystemChangedAt, PreviousSystemId
+            - Current state only, one row per character — there is no history here. The
+              Undocked* columns are the LAST undock the location poll saw, and SystemChangedAt /
+              PreviousSystemId the LAST change of system, nothing earlier.
             - Hull name: JOIN SdeTypes ON SdeTypes.TypeId = CharacterStatuses.ShipTypeId
             - In space (undocked) = StationId IS NULL AND StructureId IS NULL.
             - ShipItemId changes when the character boards a different ship.
@@ -152,7 +170,13 @@ public sealed class QueryDatabaseTool : IAgentTool
         required = new[] { "sql" },
     };
 
-    public QueryDatabaseTool(string connString) => _connString = connString;
+    private readonly AgentSchema? _schema;
+
+    public QueryDatabaseTool(string connString, AgentSchema? schema = null)
+    {
+        _connString = connString;
+        _schema     = schema;
+    }
 
     public async Task<string> ExecuteAsync(JsonElement input, CancellationToken ct = default)
     {
@@ -163,14 +187,10 @@ public sealed class QueryDatabaseTool : IAgentTool
         if (string.IsNullOrWhiteSpace(sql))
             return """{"error":"SQL query is empty."}""";
 
-        // Security: only SELECT statements
-        var firstWord = sql.Split([' ', '\n', '\r', '\t'], StringSplitOptions.RemoveEmptyEntries)
-                           .FirstOrDefault() ?? "";
-        if (!firstWord.Equals("SELECT", StringComparison.OrdinalIgnoreCase)
-            && !firstWord.Equals("WITH", StringComparison.OrdinalIgnoreCase))
-        {
-            return """{"error":"Only SELECT (or CTEs starting with WITH...SELECT) are permitted."}""";
-        }
+        // Read-only, and naming only tables that exist — the same rules show_query applies, from
+        // one place, so the two tools cannot drift apart on what they refuse.
+        if (ReadOnlySql.Reject(sql, _schema) is { } complaint)
+            return JsonSerializer.Serialize(new { error = complaint });
 
         try
         {

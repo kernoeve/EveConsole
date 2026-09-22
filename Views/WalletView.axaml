@@ -201,7 +201,7 @@
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"    Width="130" />
                 <DataGridTextColumn Header="Type"        Binding="{Binding RefTypeText}" Width="180" />
-                <DataGridTemplateColumn Header="Amount"  Width="110" SortMemberPath="AmountRaw">
+                <DataGridTemplateColumn Header="Amount"  Width="110" SortMemberPath="AmountRaw" ClipboardContentBinding="{Binding AmountText}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletJournalRowVm">
                       <TextBlock Text="{Binding AmountText}"
@@ -214,7 +214,7 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Balance"     Binding="{Binding BalanceText}" SortMemberPath="BalanceRaw" Width="110" />
-                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText">
+                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText" ClipboardContentBinding="{Binding OwnerText}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletJournalRowVm">
                       <Panel>
@@ -293,7 +293,7 @@
                       CanUserSortColumns="False">
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Date"       Binding="{Binding DateText}"  Width="130" />
-                <DataGridTemplateColumn Header="Item" Width="220" SortMemberPath="TypeName">
+                <DataGridTemplateColumn Header="Item" Width="220" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <Panel>
@@ -310,7 +310,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Qty"        Binding="{Binding Quantity}"  SortMemberPath="QuantityRaw"  Width="80" />
                 <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice}" SortMemberPath="UnitPriceRaw" Width="110" />
-                <DataGridTemplateColumn Header="Total"  Width="120" SortMemberPath="TotalRaw">
+                <DataGridTemplateColumn Header="Total"  Width="120" SortMemberPath="TotalRaw" ClipboardContentBinding="{Binding Total}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <TextBlock Text="{Binding Total}"
@@ -323,7 +323,7 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="B/S"        Binding="{Binding Direction}"    Width="50" />
-                <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="LocationName">
+                <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="LocationName" ClipboardContentBinding="{Binding LocationName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <Panel>
@@ -338,7 +338,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText">
+                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText" ClipboardContentBinding="{Binding OwnerText}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <Panel>

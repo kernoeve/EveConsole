@@ -20,7 +20,24 @@ public class KillMailService(
     /// </summary>
     private const int FetchSpacingMs = 150;
 
+    // What the fetch is doing, for the status bar: whether a batch is running, how far through
+    // it is, and how many ids are still without details in all — the batch is at most 200 of
+    // them, so the backlog is what says how long the whole job has to go.
+    private volatile bool _fetching;
+    private volatile int  _fetchDone, _fetchTotal, _backlog;
+    public bool IsFetching => _fetching;
+    public int  FetchDone  => _fetchDone;
+    public int  FetchTotal => _fetchTotal;
+    public int  Backlog    => _backlog;
+
     public async Task FetchMissingAsync(IProgress<string>? progress = null, CancellationToken ct = default)
+    {
+        _fetching = true;
+        try { await FetchMissingCoreAsync(progress, ct); }
+        finally { _fetching = false; _fetchDone = 0; _fetchTotal = 0; }
+    }
+
+    private async Task FetchMissingCoreAsync(IProgress<string>? progress, CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -33,17 +50,20 @@ public class KillMailService(
             .Select(r => new { r.KillMailId, r.KillMailHash })
             .ToListAsync(ct);
 
-        var unfetched = allRefs
+        var missing = allRefs
             .DistinctBy(r => r.KillMailId)
             .Where(r => !existingIds.Contains(r.KillMailId))
-            .Take(FetchBatchSize)
             .ToList();
+        _backlog = missing.Count;
+        var unfetched = missing.Take(FetchBatchSize).ToList();
 
         if (unfetched.Count == 0) return;
+        _fetchTotal = unfetched.Count;
 
         for (int i = 0; i < unfetched.Count; i++)
         {
             var item = unfetched[i];
+            _fetchDone = i;
             progress?.Report($"Fetching kill mail details ({i + 1} / {unfetched.Count})...");
             if (ct.IsCancellationRequested) break;
 

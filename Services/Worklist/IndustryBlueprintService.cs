@@ -90,7 +90,6 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct))
             .Where(b => !wrapped.Contains(b.ItemId) && !wrapped.Contains(b.LocationId))
             .ToList();
-        if (rows.Count == 0) return [];
 
         // Container item id → the station or structure it is ultimately in. Only the locations
         // actually referenced are looked up, which is a handful of rows rather than the assets
@@ -110,7 +109,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct))
             .ToHashSet();
 
-        return rows
+        var prints = rows
             .Select(r => new BlueprintStock
             {
                 ItemId      = r.ItemId,
@@ -125,6 +124,30 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
                 LockedInJob = locked.Contains(r.ItemId),
             })
             .Where(b => b.Runs > 0)   // a spent copy is a row that has not caught up yet
+            .ToList();
+
+        // Copies delivered since the owner's blueprint poll: in a hangar at the facility the job
+        // ran in, and in no blueprint row yet. Without them a copy job's output is invisible for
+        // up to an hour, the copies read as still wanted, and the copying is planned again. Given
+        // ids no real print can carry, one per copy, so a split hands them out a job each like
+        // any other copy. See DeliveryLag.
+        foreach (var p in await DeliveryLag.PrintsAsync(db, ct, blueprintTypeIds))
+            for (var i = 0; i < p.Copies; i++)
+                prints.Add(new BlueprintStock
+                {
+                    ItemId      = -((long)p.JobId * 100_000 + i),
+                    TypeId      = p.TypeId,
+                    IsOriginal  = false,
+                    Runs        = p.RunsEach,
+                    Me          = p.Me,
+                    Te          = p.Te,
+                    LocationId  = p.Site,
+                    OwnerType   = p.OwnerType,
+                    OwnerId     = p.OwnerId,
+                    LockedInJob = false,
+                });
+
+        return prints
             .GroupBy(b => b.TypeId)
             .ToDictionary(g => g.Key, g => g.ToList());
     }
@@ -141,10 +164,16 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     /// Every print in reach, whatever its type, for building an efficiency map across a whole
     /// production tree.
     /// </summary>
-    public async Task<List<BlueprintStock>> LoadAllAsync(CancellationToken ct = default)
+    // Once per build; read-only for every caller.
+    public Task<List<BlueprintStock>> LoadAllAsync(CancellationToken ct = default)
+        => BuildCache.GetOrAddAsync("IndustryBlueprints.All", () => LoadAllUncachedAsync(ct));
+
+    private async Task<List<BlueprintStock>> LoadAllUncachedAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var ids = await db.EsiBlueprints.AsNoTracking().Select(b => b.TypeId).Distinct().ToListAsync(ct);
+        // A type whose only copies were delivered since the blueprint poll has no row yet.
+        ids = ids.Concat((await DeliveryLag.PrintsAsync(db, ct)).Select(p => p.TypeId)).Distinct().ToList();
         return (await LoadAsync(ids, ct)).SelectMany(kv => kv.Value).ToList();
     }
 
@@ -193,7 +222,7 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
     /// be bought when one is sitting in a hangar.</para>
     ///
     /// <para>Needed because the two tables disagree. Measured here: EsiBlueprints holds 5,518 rows
-    /// for this corporation and not one of them at UALX-3, while EsiAssets lists Avatar, Zirnitra,
+    /// for this corporation and not one of them at the staging structure, while EsiAssets lists Avatar, Zirnitra,
     /// Moros Navy Issue and more at that very structure. Reading only the blueprints table turned
     /// that silence into "you own none", and produced a standing instruction to re-buy two Avatar
     /// copies already owned.</para>
@@ -287,7 +316,7 @@ public readonly record struct WorklistIndyCharReach(
 /// <para>Distinct from <see cref="WorklistIndyCharReach"/>, which is about who can <i>run a job</i>
 /// from a print. Ownership is a broader question and has to be, or a copy bought by the trading
 /// alt reads as no copy at all and the tool tells you to buy another. Two ME8 Avatar copies sat
-/// in Kerno Adler's Jita hangar did exactly that.</para>
+/// in one character's Jita hangar did exactly that.</para>
 /// </summary>
 /// <param name="CharacterIds">Every character authorised in the app, not only the ones set up to
 /// run industry. A print in an unconfigured alt's hangar is still the player's.</param>

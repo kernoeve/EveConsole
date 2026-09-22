@@ -2,7 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:services="clr-namespace:EveConsole.Services"
         x:Class="EveConsole.Views.MainWindow"
+        services:UiScaleService.ScalesSize="False"
         x:DataType="vm:MainWindowViewModel"
         Title="EVE Console"
         Icon="avares://EveConsole/Assets/ec.ico"
@@ -156,10 +158,52 @@
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
 
-          <!-- My characters online. Hover lists who, where, and in what. -->
+          <!-- My characters online. Hover lists who, where, and in what — three columns that
+               line up without a grid's chrome, green when docked, orange when in space. -->
           <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center"
                       Margin="0 0 12 0" Background="Transparent"
-                      ToolTip.Tip="{Binding OnlineCharactersTip}">
+                      ToolTip.Placement="Bottom" ToolTip.ShowDelay="300">
+            <StackPanel.Styles>
+              <Style Selector="TextBlock.docked">
+                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+              </Style>
+              <Style Selector="TextBlock.space">
+                <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+              </Style>
+            </StackPanel.Styles>
+            <ToolTip.Tip>
+              <!-- An explicit ToolTip, for its MaxWidth: the theme caps a tooltip at 320px, which
+                   clipped the ship column clean off. -->
+              <ToolTip MaxWidth="1400">
+              <StackPanel Spacing="2" Margin="2">
+                <TextBlock Text="None of your characters are online." FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           IsVisible="{Binding !HasOnlineCharacters}" />
+                <ItemsControl ItemsSource="{Binding OnlineCharacters}" Grid.IsSharedSizeScope="True"
+                              IsVisible="{Binding HasOnlineCharacters}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:OnlineCharacterVm">
+                      <Grid Margin="0 1">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="who" />
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="where" />
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="ship" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Location}" FontSize="11"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                        <TextBlock Grid.Column="4" Text="{Binding Ship}" FontSize="11"
+                                   Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              </ToolTip>
+            </ToolTip.Tip>
             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                      Fill="{Binding OnlineCharactersColor}" />
             <TextBlock Text="{Binding OnlineCharactersText}"
@@ -326,20 +370,75 @@
 
     <!-- ── Status bar ──────────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 4">
-      <Grid ColumnDefinitions="*,Auto,Auto">
+      <!-- The background-process labels lead from the left, the status message follows them,
+           and the UI scale stands alone on the right. -->
+      <Grid ColumnDefinitions="Auto,*,Auto">
 
-        <TextBlock Grid.Column="0"
+        <!-- What each background process is doing, one label apiece, side by side. Each opens
+             the Background Processes tool at its own tab. Live on every client: the one holding
+             the worker lease reads its own services, the rest read what it publishes. A busy
+             process is lit; an idle one sits quiet. No tooltip: it got in the way of reading and
+             clicking them. -->
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding ActivityVm.StatusBarItems}" VerticalAlignment="Center">
+          <ItemsControl.Styles>
+            <Style Selector="Button.bglabel">
+              <Setter Property="Background"      Value="Transparent" />
+              <Setter Property="BorderThickness" Value="0" />
+              <Setter Property="Padding"         Value="6 2" />
+              <Setter Property="FontSize"        Value="11" />
+              <Setter Property="Cursor"          Value="Hand" />
+              <Setter Property="Foreground"      Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="Button.bglabel.running">
+              <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+            </Style>
+            <!-- Something the user has to act on, next to the line it belongs to: "2 bad tokens"
+                 beside ESI Calls. Red whatever the line is doing, and it opens Settings at the
+                 page where it is put right rather than the Background Processes tool. -->
+            <Style Selector="Button.bglabel.warning">
+              <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:StatusBarItem">
+              <StackPanel Orientation="Horizontal" Spacing="0">
+                <Button Classes="bglabel" Classes.running="{Binding Running}"
+                        Content="{Binding Label}" Click="OnBackgroundLabelClick"
+                        VerticalAlignment="Center" />
+                <Button Classes="bglabel warning" IsVisible="{Binding HasWarning}"
+                        Content="{Binding Warning}" Click="OnStatusWarningClick"
+                        VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Grid.Column="1"
                    Text="{Binding CharacterVm.StatusMessage}"
-                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                   Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
 
+        <!-- UI scale, shown and pickable, in the same quiet form as the theme label up top:
+             the current scale and a caret, a menu of the others on click. -->
         <Button Grid.Column="2"
-                x:Name="PollingStatusButton"
-                Content="{Binding PollingStatusText}"
+                x:Name="UiScaleButton"
                 Background="Transparent" BorderThickness="0"
-                Foreground="{DynamicResource InfoBrush}" FontSize="11" Padding="10 2"
-                VerticalAlignment="Center"
-                ToolTip.Tip="Click to open the API activity log"
-                Click="OnPollingStatusClick" />
+                Padding="8 2" VerticalAlignment="Center" Cursor="Hand"
+                ToolTip.Tip="{Binding UiScaleTip}"
+                Click="OnUiScaleClick">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="{Binding UiScaleName}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Text="▼" FontSize="7" VerticalAlignment="Center" Margin="0 1 0 0"
+                       Foreground="{DynamicResource TextFaintBrush}" />
+          </StackPanel>
+        </Button>
 
       </Grid>
     </Border>
@@ -606,6 +705,15 @@
               <DataTemplate DataType="vm:ErrorLogViewModel">
                 <views:ErrorLogView />
               </DataTemplate>
+              <DataTemplate DataType="vm:AgentUsageViewModel">
+                <views:AgentUsageView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AgentGridViewModel">
+                <views:AgentGridView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:AgentDocumentViewModel">
+                <views:AgentDocumentView />
+              </DataTemplate>
               <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
                 <views:StandingBuyOrdersView />
               </DataTemplate>
@@ -614,6 +722,12 @@
               </DataTemplate>
               <DataTemplate DataType="vm:LpMarketValuesViewModel">
                 <views:LpMarketValuesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ApiActivityViewModel">
+                <views:BackgroundProcessesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ItemValuationViewModel">
+                <views:ItemValuationView />
               </DataTemplate>
               <DataTemplate DataType="vm:PlayerEntitiesViewModel">
                 <views:PlayerEntitiesView />
@@ -632,12 +746,27 @@
 
         </Grid>
 
-        <!-- Agent panel -->
-        <Border Grid.Column="1"
-                IsVisible="{Binding AgentVm.IsPanelVisible}"
-                BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1 0 0 0">
-          <views:AgentPanel DataContext="{Binding AgentVm}" />
-        </Border>
+        <!-- Agent panel, in a dock the capsuleer can widen by dragging its left edge. The dock
+             owns the width (the panel itself has none), so hiding it collapses the column to
+             nothing and showing it again brings the width back. The drag itself is in code-behind
+             rather than a GridSplitter: a splitter trades width between two columns of ITS grid,
+             and here the thing to resize is the dock as a whole inside an Auto column. -->
+        <Grid Grid.Column="1" x:Name="AgentDock"
+              IsVisible="{Binding AgentVm.IsPanelVisible}"
+              ColumnDefinitions="Auto,*" Width="360" MinWidth="360">
+          <Border Grid.Column="0" x:Name="AgentResizeHandle" Width="5" Cursor="SizeWestEast"
+                  Background="{DynamicResource SurfaceRaisedBrush}"
+                  PointerPressed="OnAgentResizePressed"
+                  PointerMoved="OnAgentResizeMoved"
+                  PointerReleased="OnAgentResizeReleased">
+            <Border.Styles>
+              <Style Selector="Border:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+              </Style>
+            </Border.Styles>
+          </Border>
+          <views:AgentPanel Grid.Column="1" DataContext="{Binding AgentVm}" />
+        </Grid>
 
       </Grid>
 

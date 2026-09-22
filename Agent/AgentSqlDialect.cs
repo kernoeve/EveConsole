@@ -63,6 +63,9 @@ public static class AgentSqlDialect
           Table and column names are case-sensitive and MUST be double-quoted, because they are
           mixed case: FROM "EsiAssets" a JOIN "SdeTypes" t ON t."TypeId" = a."TypeId".
           Unquoted names are folded to lower case and will not be found.
+          ⚠️ That includes aliases YOU define. SUM(x) AS ItemValue becomes itemvalue, so a later
+          hv."ItemValue" fails with "column does not exist". Quote the alias where you define
+          it: AS "ItemValue". This has cost several retries in a single turn.
           Booleans are real: WHERE "IsHistory" = FALSE, not = 0.
           """
         : """

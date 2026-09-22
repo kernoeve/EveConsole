@@ -216,15 +216,9 @@ public class EntityTabViewModel : ReactiveObject
     }
 
     /// <summary>Corporation URLs open in the system browser, not in the app.</summary>
-    public static void OpenUrl(string url)
-    {
-        try
-        {
-            if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) url = "https://" + url;
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
-        }
-        catch { /* a bad URL in a corp description is not worth surfacing */ }
-    }
+    /// <summary>A URL out of a corporation or alliance description — somebody else's text — so
+    /// it goes through the confirmation every content link gets.</summary>
+    public static void OpenUrl(string url) => ExternalLinks.Open(url);
 
     private string _stationsStatus = "";
     public string StationsStatus { get => _stationsStatus; private set => this.RaiseAndSetIfChanged(ref _stationsStatus, value); }

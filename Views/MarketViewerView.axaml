@@ -173,7 +173,7 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="260">
+            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="260" ClipboardContentBinding="{Binding Type}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketTypeSummaryVm">
                   <Panel>
@@ -204,7 +204,7 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280">
+            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280" ClipboardContentBinding="{Binding Type}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketOrderByTypeVm">
                   <Panel>
@@ -231,7 +231,7 @@
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280">
+            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280" ClipboardContentBinding="{Binding Type}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketOrderByTypeVm">
                   <Panel>

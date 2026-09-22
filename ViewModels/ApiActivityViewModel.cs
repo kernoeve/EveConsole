@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Reactive;
 using Avalonia.Threading;
 using EveConsole.Data;
@@ -9,10 +10,46 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Alarms;
+using EveConsole.Api;
 
 namespace EveConsole.ViewModels;
 
 public record TokenOption(long Id, string OwnerType, string DisplayName);
+
+/// <summary>
+/// One of the status bar's labels: a background process's name, what it is doing in a few words,
+/// and the tab of the Background Processes tool that says more. "ESI Calls: 3 active, 12 queued".
+/// </summary>
+public sealed class StatusBarItem(string name, string tab) : ReactiveObject
+{
+    public string Name { get; } = name;
+    public string Tab  { get; } = tab;
+
+    private string _text = BackgroundStatus.Idle.Text;
+    public string Text
+    {
+        get => _text;
+        private set { this.RaiseAndSetIfChanged(ref _text, value); this.RaisePropertyChanged(nameof(Label)); }
+    }
+
+    private bool _running;
+    /// <summary>Busy right now: what colours the label.</summary>
+    public bool Running { get => _running; private set => this.RaiseAndSetIfChanged(ref _running, value); }
+
+    public string Label => $"{Name}: {Text}";
+
+    public void Set(BackgroundStatus.Line line) { Text = line.Text; Running = line.Running; }
+
+    private string _warning = "";
+    /// <summary>Something beside the line the user has to act on, in red — "2 bad tokens" — or "" for nothing.</summary>
+    public string Warning
+    {
+        get => _warning;
+        set { this.RaiseAndSetIfChanged(ref _warning, value); this.RaisePropertyChanged(nameof(HasWarning)); }
+    }
+    public bool HasWarning => _warning.Length > 0;
+}
 
 // Live per-region row for the price-history sweep monitor.
 public class HistoryRegionRowVm : ReactiveObject
@@ -91,7 +128,10 @@ public class ScheduleRowVm
 public class ApiActivityViewModel : ReactiveObject
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly BackgroundStatusSampler _sampler;
+    private readonly AlarmConditionRegistry  _conditions;
     private readonly EsiPollingService    _polling;
+    private readonly EsiClient            _esi;
     private readonly TimerSettingsService _timerSettings;
     private readonly MarketHistoryService _history;
     private readonly ContractsService     _contracts;
@@ -110,6 +150,117 @@ public class ApiActivityViewModel : ReactiveObject
 
     public ObservableCollection<ActivityEntry>       Entries        { get; }
     public ObservableCollection<InFlightCall>        InFlight       { get; }
+
+    // ── Filters over the log ───────────────────────────────────────────────────
+    //
+    // A character and an endpoint, each a dropdown of every value the log currently holds,
+    // "All" first. The list shows the entries that pass both. Unfiltered, the window binds the
+    // log's own collection; filtered, a copy kept in step entry by entry, because the log inserts
+    // at the front in bursts and trims from the back.
+
+    public const string AllOption = "All";
+
+    public ObservableCollection<string> CharacterOptions { get; } = [AllOption];
+    public ObservableCollection<string> EndpointOptions  { get; } = [AllOption];
+
+    private string _characterFilter = AllOption;
+    public string CharacterFilter
+    {
+        get => _characterFilter;
+        set
+        {
+            if (value is null || value == _characterFilter) return;
+            this.RaiseAndSetIfChanged(ref _characterFilter, value);
+            Refilter();
+        }
+    }
+
+    private string _endpointFilter = AllOption;
+    public string EndpointFilter
+    {
+        get => _endpointFilter;
+        set
+        {
+            if (value is null || value == _endpointFilter) return;
+            this.RaiseAndSetIfChanged(ref _endpointFilter, value);
+            Refilter();
+        }
+    }
+
+    private ObservableCollection<ActivityEntry> _visible = null!;
+    /// <summary>What the list shows: the log itself, or the entries that pass the filters.</summary>
+    public ObservableCollection<ActivityEntry> VisibleEntries
+    {
+        get => _visible;
+        private set => this.RaiseAndSetIfChanged(ref _visible, value);
+    }
+
+    public bool LogFiltered => _characterFilter != AllOption || _endpointFilter != AllOption;
+
+    private string _countText = "";
+    public string CountText { get => _countText; private set => this.RaiseAndSetIfChanged(ref _countText, value); }
+
+    public ReactiveCommand<Unit, Unit> ClearLogFiltersCommand { get; }
+
+    private bool Passes(ActivityEntry e)
+        => (_characterFilter == AllOption || e.OwnerName == _characterFilter)
+        && (_endpointFilter  == AllOption || e.Endpoint  == _endpointFilter);
+
+    private void Refilter()
+    {
+        VisibleEntries = LogFiltered ? new ObservableCollection<ActivityEntry>(Entries.Where(Passes)) : Entries;
+        this.RaisePropertyChanged(nameof(LogFiltered));
+        UpdateCountText();
+    }
+
+    private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems is not null)
+            foreach (ActivityEntry entry in e.NewItems) Offer(entry);
+
+        if (LogFiltered)
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add when e.NewStartingIndex == 0 && e.NewItems is { Count: 1 }:
+                {
+                    var added = (ActivityEntry)e.NewItems[0]!;
+                    if (Passes(added)) _visible.Insert(0, added);
+                    break;
+                }
+                case NotifyCollectionChangedAction.Remove when e.OldItems is { Count: 1 }:
+                {
+                    // Trimming takes the oldest, which is the filtered list's last when it is there at all.
+                    var gone = (ActivityEntry)e.OldItems[0]!;
+                    if (_visible.Count > 0 && ReferenceEquals(_visible[^1], gone)) _visible.RemoveAt(_visible.Count - 1);
+                    else _visible.Remove(gone);
+                    break;
+                }
+                default:
+                    Refilter();
+                    return;
+            }
+        UpdateCountText();
+    }
+
+    /// <summary>A name or endpoint seen for the first time joins its dropdown, in order after "All".</summary>
+    private void Offer(ActivityEntry entry)
+    {
+        Offer(CharacterOptions, entry.OwnerName);
+        Offer(EndpointOptions,  entry.Endpoint);
+    }
+
+    private static void Offer(ObservableCollection<string> options, string value)
+    {
+        if (string.IsNullOrEmpty(value) || options.Contains(value)) return;
+        var at = 1;
+        while (at < options.Count && string.Compare(options[at], value, StringComparison.OrdinalIgnoreCase) < 0) at++;
+        options.Insert(at, value);
+    }
+
+    private void UpdateCountText()
+        => CountText = LogFiltered
+            ? $"{_visible.Count:N0} of {Entries.Count:N0} entries shown · the last 1,000 calls are kept"
+            : $"{Entries.Count:N0} entr{(Entries.Count == 1 ? "y" : "ies")} · the last 1,000 calls are kept";
     public ObservableCollection<TokenOption>         TokenOptions   { get; } = [];
     public ObservableCollection<ScheduleRowVm>       Schedule       { get; } = [];
     public ObservableCollection<ScheduleRowVm>       MarketSchedule { get; } = [];
@@ -194,7 +345,10 @@ public class ApiActivityViewModel : ReactiveObject
     public ApiActivityViewModel(
         ApiActivityLog        log,
         IServiceScopeFactory  scopeFactory,
+        BackgroundStatusSampler sampler,
+        AlarmConditionRegistry  conditions,
         EsiPollingService     polling,
+        EsiClient             esi,
         TimerSettingsService  timerSettings,
         MarketHistoryService  history,
         ContractsService      contracts,
@@ -214,8 +368,20 @@ public class ApiActivityViewModel : ReactiveObject
     {
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
+        _visible       = Entries;
+        foreach (var entry in Entries) Offer(entry);
+        Entries.CollectionChanged += OnEntriesChanged;
+        ClearLogFiltersCommand = ReactiveCommand.Create(() => { CharacterFilter = AllOption; EndpointFilter = AllOption; });
+        UpdateCountText();
         _scopeFactory  = scopeFactory;
+        _sampler       = sampler;
+        _conditions    = conditions;
         _polling       = polling;
+        _esi           = esi;
+        StatusBarItems  = [BarLpStore, BarKillmails, BarContractItems, BarPriceHistory, BarEsiCalls];
+        KillmailStages  = [KillmailFetchRow, KillmailLiveRow, KillmailBackfillRow, KillmailPostRow];
+        StructureSweeps = [StructureSweepRow, StructurePublicRow];
+        ContractSources = [ContractPublicRow, ContractOwnedRow, ContractDeferredRow];
         _timerSettings = timerSettings;
         _history       = history;
         _contracts     = contracts;
@@ -238,6 +404,7 @@ public class ApiActivityViewModel : ReactiveObject
         // millisecond behind rather than however long a poll interval happened to be.
         activity.Changed += () => Dispatcher.UIThread.Post(() =>
         {
+            SyncStatusBar();
             SyncBackgroundProcesses();
             SyncHistorySweep();
         });
@@ -256,6 +423,190 @@ public class ApiActivityViewModel : ReactiveObject
         RunStructureSweep.ThrownExceptions.Subscribe(_ => { });
 
         InFlight.CollectionChanged += (_, _) => HasNoInFlight = InFlight.Count == 0;
+    }
+
+    // ── The status bar's lines ────────────────────────────────────────────────
+
+    public StatusBarItem BarEsiCalls      { get; } = new("ESI Calls",      "ESI Activity Log");
+    public StatusBarItem BarPriceHistory  { get; } = new("Price History",  "Price History");
+    public StatusBarItem BarContractItems { get; } = new("Contract Items", "Contract Items");
+    public StatusBarItem BarLpStore       { get; } = new("LP Store",       "LP Store");
+    public StatusBarItem BarKillmails     { get; } = new("Killmails",      "Killmails");
+
+    /// <summary>The five, in the order the bar shows them.</summary>
+    public IReadOnlyList<StatusBarItem> StatusBarItems { get; }
+
+    private string? _requestedTab;
+    /// <summary>The tab a status-bar label asked for. The view selects it when it next shows and
+    /// clears it, so the tool otherwise opens where it was left. Raised even when unchanged: a
+    /// second click on the same label must select the tab again.</summary>
+    public string? RequestedTab
+    {
+        get => _requestedTab;
+        set { _requestedTab = value; this.RaisePropertyChanged(); }
+    }
+
+    /// <summary>
+    /// Cheap, in memory: once a second from the main window whatever is open, and on every change
+    /// the worker signals. Each line is this client's own when it holds the lease, else the
+    /// worker's as it arrived. ESI calls are the one process every client runs some of — the
+    /// user's own clicks — so a client that is not the worker still shows its own calls while
+    /// the worker has none.
+    /// </summary>
+    public void SyncStatusBar()
+    {
+        var ownCalls = _sampler.EsiCalls();
+        var esi      = BarLine(WorkerActivityService.BarEsiCalls, ownCalls);
+        BarEsiCalls.Set(!_lease.IsHolder && ownCalls.Running && !esi.Running ? ownCalls : esi);
+        BarPriceHistory.Set(BarLine(WorkerActivityService.BarPriceHistory,   _sampler.PriceHistory()));
+        BarContractItems.Set(BarLine(WorkerActivityService.BarContractItems, _sampler.ContractItems()));
+        BarLpStore.Set(BarLine(WorkerActivityService.BarLpStore,             _sampler.LpStore()));
+        BarKillmails.Set(BarLine(WorkerActivityService.BarKillmails,         _sampler.Killmails()));
+        MaybeCountBadTokens();
+    }
+
+    // ── Bad tokens ────────────────────────────────────────────────────────────
+
+    private static readonly TimeSpan BadTokenCheckEvery = TimeSpan.FromSeconds(30);
+    private DateTimeOffset _badTokensCheckedAt = DateTimeOffset.MinValue;
+    private int            _revokedSeen;
+    private bool           _badTokensCounting;
+
+    /// <summary>
+    /// Owners whose refresh token the SSO refused, counted from the database rather than this
+    /// client's memory, because the refusal may have been seen by the worker on another machine
+    /// and the re-authorisation that clears it may happen on a third. Half a minute apart, since
+    /// this runs off the once-a-second bar tick; at once when this client itself has just been
+    /// refused, so the label appears with the refusal rather than up to thirty seconds after.
+    /// </summary>
+    private void MaybeCountBadTokens()
+    {
+        var revoked = _esi.RevokedThisSession;
+        var now     = DateTimeOffset.UtcNow;
+        if (_badTokensCounting) return;
+        if (revoked == _revokedSeen && now - _badTokensCheckedAt < BadTokenCheckEvery) return;
+        var justRefused     = revoked != _revokedSeen;
+        _revokedSeen        = revoked;
+        _badTokensCheckedAt = now;
+        _badTokensCounting  = true;
+
+        _ = Task.Run(async () =>
+        {
+            int count;
+            try
+            {
+                // The refusal's own database write is fire-and-forget; give it a moment to land.
+                if (justRefused) await Task.Delay(1500);
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                count = await db.Characters.CountAsync(c => c.TokenError != "")
+                      + await db.Corporations.CountAsync(c => c.TokenError != "");
+            }
+            catch { count = -1; }
+            Dispatcher.UIThread.Post(() =>
+            {
+                _badTokensCounting = false;
+                if (count < 0) return;
+                BarEsiCalls.Warning = count == 0 ? "" : count == 1 ? "1 bad token" : $"{count} bad tokens";
+            });
+        });
+    }
+
+    /// <summary>This client's own line when it is the worker; else the worker's as published, or
+    /// a dash while nothing has been heard — an older worker, or none — rather than an "Idle" that
+    /// would read the same as a process genuinely at rest.</summary>
+    private BackgroundStatus.Line BarLine(string key, BackgroundStatus.Line local)
+    {
+        if (_lease.IsHolder) return local;
+        var row = _activity.Get(key);
+        return row is null ? Unheard : new BackgroundStatus.Line(row.Status, row.Running);
+    }
+
+    private static readonly BackgroundStatus.Line Unheard = new("—", false);
+
+    // ── The tables ────────────────────────────────────────────────────────────
+    //
+    // Fixed rows are made once and updated in place; the two that grow — corporations swept,
+    // alarms defined — are keyed, so a refresh changes what changed and a grid keeps its sort
+    // and scroll. ⚠️ A first fill goes in as one collection rather than row by row: a bound
+    // collection filled item by item is how a grid of a few hundred rows freezes the window.
+
+    public StageRowVm KillmailFetchRow    { get; } = new("ESI kill mail details");
+    public StageRowVm KillmailLiveRow     { get; } = new("Live capture");
+    public StageRowVm KillmailBackfillRow { get; } = new("Daily dump backfill");
+    public StageRowVm KillmailPostRow     { get; } = new("Posting to zKillboard");
+    public IReadOnlyList<StageRowVm> KillmailStages { get; }
+
+    public StageRowVm StructureSweepRow  { get; } = new("Hourly sweep");
+    public StageRowVm StructurePublicRow { get; } = new("Public list, daily");
+    public IReadOnlyList<StageRowVm> StructureSweeps { get; }
+
+    public ContractSourceRowVm ContractPublicRow   { get; } = new("Public listings");
+    public ContractSourceRowVm ContractOwnedRow    { get; } = new("Character and corporation");
+    public ContractSourceRowVm ContractDeferredRow { get; } = new("Refused");
+    public IReadOnlyList<ContractSourceRowVm> ContractSources { get; }
+
+    private ObservableCollection<LpStoreCorpRowVm> _lpStoreCorps = [];
+    /// <summary>Every NPC corporation the LP store sweep has checked, with what it found.</summary>
+    public ObservableCollection<LpStoreCorpRowVm> LpStoreCorps { get => _lpStoreCorps; private set => this.RaiseAndSetIfChanged(ref _lpStoreCorps, value); }
+
+    private ObservableCollection<AlarmMonitorRowVm> _alarmRows = [];
+    /// <summary>Every alarm defined, with its schedule and what it last did.</summary>
+    public ObservableCollection<AlarmMonitorRowVm> AlarmRows { get => _alarmRows; private set => this.RaiseAndSetIfChanged(ref _alarmRows, value); }
+
+    /// <summary>The Killmails and Structures rows: in memory, so on every tick.</summary>
+    private void SyncStageTables()
+    {
+        var fetch = BarLine(WorkerActivityService.KillMailFetch, _sampler.KillmailFetch());
+        KillmailFetchRow.Set(fetch.Running ? "Fetching" : "Idle", fetch.Running, fetch.Text);
+
+        var enabled  = _zkbSettings.Enabled;
+        var allScope = _zkbSettings.Scope == ZkbScope.All;
+        KillmailLiveRow.Set(!enabled ? "Off" : allScope ? "Firehose" : "Interval poll", enabled, ZkbLiveDetail);
+
+        var backfilling = RelayRunning(WorkerActivityService.ZkbBackfill, () => _zkbBackfill.IsImporting);
+        KillmailBackfillRow.Set(!enabled ? "Off" : backfilling ? "Importing" : "Idle", backfilling, ZkbBackfillDetail);
+
+        var posting = enabled && _zkbSettings.PostEnabled;
+        KillmailPostRow.Set(posting ? "On" : "Off", posting, ZkbPostDetail);
+
+        StructureSweepRow.Set(StructureSweepRunning ? "Sweeping" : "Watching", StructureSweepRunning,
+                              StructureCountsText, StructureSweepText, StructureNextText);
+        StructurePublicRow.Set("Watching", false, PublicStructureText, "", "once a day");
+    }
+
+    /// <summary>The alarms as the loop sees them, from the table: on the slower tick.</summary>
+    public async Task RefreshAlarmsAsync()
+    {
+        List<Alarm> alarms;
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            alarms = await db.Alarms.AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+        }
+        catch { return; /* best-effort monitor */ }
+
+        var rows = AlarmRows;
+        if (rows.Count == 0 && alarms.Count > 0)
+        {
+            AlarmRows = new ObservableCollection<AlarmMonitorRowVm>(alarms.Select(a => Filled(new AlarmMonitorRowVm(a.Id, a.Name), a)));
+            return;
+        }
+        foreach (var a in alarms)
+        {
+            var row = rows.FirstOrDefault(r => r.Id == a.Id);
+            if (row is null || row.Name != a.Name) { if (row is not null) rows.Remove(row); rows.Add(Filled(new AlarmMonitorRowVm(a.Id, a.Name), a)); }
+            else Filled(row, a);
+        }
+        foreach (var gone in rows.Where(r => alarms.All(a => a.Id != r.Id)).ToList()) rows.Remove(gone);
+
+        AlarmMonitorRowVm Filled(AlarmMonitorRowVm row, Alarm a)
+        {
+            row.Set(_conditions.Find(a.ConditionType)?.DisplayName ?? a.ConditionType, a.Enabled, a.PollSeconds,
+                    a.LastCheckedAt, a.LastFiredAt, a.FireCount, a.LastError);
+            return row;
+        }
     }
 
     // ── Background process monitors (zKillboard, name cache) ────────────────────
@@ -434,6 +785,8 @@ public class ApiActivityViewModel : ReactiveObject
         AlarmLastFireText = RelayTime(WorkerActivityService.Alarms, () => _alarms.LastFireAt, next: false) is { } fired
             ? fired.ToLocalTime().ToString("d MMM HH:mm:ss")
             : "Nothing has fired this session";
+
+        SyncStageTables();
     }
 
     /// <summary>Hits the DB for the cached-name total, so it runs on the slower tick.</summary>
@@ -462,12 +815,16 @@ public class ApiActivityViewModel : ReactiveObject
 
         ContractsPublicText   = $"{s.PublicPulled:N0} / {s.PublicTotal:N0} pulled · {pubQueue:N0} queued";
         ContractsOwnedText    = $"{s.OwnedPulled:N0} / {s.OwnedTotal:N0} pulled · {ownedQueue:N0} queued";
-        ContractsDeferredText = $"{s.Deferred:N0} deferred (corp contracts issued by another corp — not pulled)";
+        ContractsDeferredText = $"{s.Refused:N0} refused (ESI answered 400/403/404 and holds no items of them)";
         ContractsState = s.Running
             ? $"● Running — {pubQueue + ownedQueue:N0} contracts queued for items"
             : (pubQueue + ownedQueue) > 0
                 ? $"○ Idle — {pubQueue + ownedQueue:N0} contracts queued for items"
                 : "○ Idle — all item pulls complete";
+
+        ContractPublicRow.Set($"{s.PublicTotal:N0}", $"{s.PublicPulled:N0}", $"{pubQueue:N0}", "the regions' public listings, browsed");
+        ContractOwnedRow.Set($"{s.OwnedTotal:N0}", $"{s.OwnedPulled:N0}", $"{ownedQueue:N0}", "held by your characters and corporations — yours first, then the ones open to a corporation");
+        ContractDeferredRow.Set($"{s.Refused:N0}", "—", "—", "asked for and refused — ESI answered 400, 403 or 404 through every endpoint that had them; counted among the pulled");
     }
 
     // ── LP store monitor ────────────────────────────────────────────────────────
@@ -511,6 +868,42 @@ public class ApiActivityViewModel : ReactiveObject
                 : remaining > 0
                     ? $"○ Idle — {remaining:N0} corporation(s) not yet checked, catalogue incomplete"
                     : "○ Idle — every corporation checked";
+
+        await RefreshLpStoreCorpsAsync();
+    }
+
+    /// <summary>One row per corporation the sweep has checked, named from the SDE.</summary>
+    private async Task RefreshLpStoreCorpsAsync()
+    {
+        List<(int Id, string Name, bool HasStore, int Offers, DateTime? At)> corps;
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            corps = (await db.EsiLpStoreCorps.AsNoTracking()
+                    .Join(db.SdeNpcCorporations.AsNoTracking(), c => c.CorporationId, n => n.CorporationId,
+                          (c, n) => new { c.CorporationId, n.Name, c.HasStore, c.OfferCount, c.LastCheckedAt })
+                    .ToListAsync())
+                .Select(x => (x.CorporationId, x.Name, x.HasStore, x.OfferCount, x.LastCheckedAt))
+                .OrderByDescending(x => x.HasStore).ThenBy(x => x.Name)
+                .ToList();
+        }
+        catch { return; /* best-effort monitor */ }
+
+        var rows = LpStoreCorps;
+        if (rows.Count == 0 && corps.Count > 0)
+        {
+            LpStoreCorps = new ObservableCollection<LpStoreCorpRowVm>(corps.Select(c => { var r = new LpStoreCorpRowVm(c.Id, c.Name); r.Set(c.HasStore, c.Offers, c.At); return r; }));
+            return;
+        }
+        var byId = rows.ToDictionary(r => r.CorporationId);
+        foreach (var c in corps)
+        {
+            if (byId.TryGetValue(c.Id, out var row)) row.Set(c.HasStore, c.Offers, c.At);
+            else { var r = new LpStoreCorpRowVm(c.Id, c.Name); r.Set(c.HasStore, c.Offers, c.At); rows.Add(r); }
+        }
+        var keep = corps.Select(c => c.Id).ToHashSet();
+        foreach (var gone in rows.Where(r => !keep.Contains(r.CorporationId)).ToList()) rows.Remove(gone);
     }
 
     // ── Price-history sweep monitor ─────────────────────────────────────────────
@@ -631,7 +1024,7 @@ public class ApiActivityViewModel : ReactiveObject
             // was shown as an hour away, and a manual poll looked like it had pushed the next
             // call back when it had not.
             DateTimeOffset? nextCall =
-                _polling.NextDueAt(ep.Key, ep.DefaultSeconds, lastCalled, rec?.ExpiresAt);
+                _polling.NextDueAt(ep.Key, ep.MinSeconds, ep.DefaultSeconds, lastCalled, rec?.ExpiresAt);
             return new ScheduleRowVm
             {
                 DisplayName  = ep.DisplayName,

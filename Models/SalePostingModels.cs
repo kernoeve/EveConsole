@@ -25,7 +25,7 @@ public class SalePosting
     // using the chosen price type.
     public long?   MarketStationId   { get; set; }
     public string  MarketStationName { get; set; } = "";
-    public string  MarketPriceType   { get; set; } = "Sell";   // "Buy" | "Midpoint" | "Sell"
+    public string  MarketPriceType   { get; set; } = "Sell";   // "Buy" | "Midpoint" (shown as Split) | "Sell"
 
     // Which quantities to surface in the generated posting text.
     public bool ShowInStock  { get; set; } = true;

@@ -37,6 +37,11 @@ public class WorklistService(
 
     public async Task<WorklistRun> BuildAsync(CancellationToken ct = default)
     {
+        // Every load the generators share — the production context, the delivery-lag snapshot,
+        // the industry characters — is fetched once for the whole build rather than once per
+        // generator. See BuildCache; it flows into the fan-out below and closes with it.
+        using var _ = BuildCache.Begin();
+
         // Newly authorised characters join the industry list here, once, before the fan-out below.
         // Inside a generator it would run once per generator in parallel, and they would race to
         // insert the same rows.
@@ -425,7 +430,11 @@ public class WorklistService(
     {
         var dupes = sections
             .SelectMany(s => s.Items.Select(i => (Section: s, Item: i)))
-            .Where(x => x.Item.Priority == WorklistPriority.Outbid && x.Item.TypeId > 0)
+            // ⚠️ Kind as well as priority. Outbid is a plain int that no job band can reach
+            // today — orders floor at 120, stock caps at 79 — but that is an accident of the
+            // bands, not a rule, and this pass REMOVES rows: a job that ever landed on 100 would
+            // be deleted as a duplicate of a buy at the same station.
+            .Where(x => x.Item.Kind == WorklistKind.Buy && x.Item.Priority == WorklistPriority.Outbid && x.Item.TypeId > 0)
             .GroupBy(x => (x.Item.TypeId, x.Item.LocationId))
             .Where(g => g.Count() > 1);
 

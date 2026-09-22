@@ -46,6 +46,55 @@ if (!File.Exists(appFile))
 
 SQLitePCL.Batteries_V2.Init();
 
+// ── The first open, as the app makes it ─────────────────────────────────────
+//
+// ⚠️ With the app's own connection interceptor and the app's own order of operations, on a
+// path with no file behind it. The statements check below cannot see this: it builds its
+// database with a bare EnsureCreated(). 0.9.14 read the schema fingerprint BEFORE
+// EnsureCreated(), which opened — and so created, empty — the file; EF then found a zero-byte
+// database, set WAL on it, and every write answered "attempt to write a readonly database".
+// A fresh install could not start, and every schema tool said everything was fine.
+foreach (var (name, prepare) in new (string, Action<string>)[]
+{
+    ("no file",          _ => { }),
+    ("zero-byte file",   p => File.WriteAllBytes(p, [])),   // an earlier start that died at once
+})
+{
+    var firstPath = Path.Combine(Path.GetTempPath(), $"eveconsole-firstopen-{Guid.NewGuid():N}.db");
+    try
+    {
+        prepare(firstPath);
+        var firstOpts = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite($"Data Source={firstPath}")
+            .AddInterceptors(new DisableForeignKeysInterceptor())
+            .Options;
+        using var first = new AppDbContext(firstOpts);
+        SqliteFile.DiscardIfEmpty(firstPath);
+        var before = SchemaFingerprint.ColumnsUnder(first, "Sde");
+        first.Database.EnsureCreated();
+        first.Database.ExecuteSqlRaw("""CREATE TABLE IF NOT EXISTS "FirstOpenProbe" ("Id" INTEGER PRIMARY KEY)""");
+        var after = SchemaFingerprint.ColumnsUnder(first, "Sde");
+        if (before != 0 || after == 0)
+        {
+            Console.Error.WriteLine($"First open ({name}): fingerprint {before} before, {after} after — expected 0 and > 0.");
+            return 1;
+        }
+        Console.WriteLine($"First open ({name}): ok — {after} SDE columns built.");
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"First open ({name}) FAILED: {ex.GetType().Name}: {ex.Message}");
+        Console.Error.WriteLine("A fresh install would not start.");
+        return 1;
+    }
+    finally
+    {
+        SqliteConnection.ClearAllPools();
+        foreach (var f in new[] { firstPath, firstPath + "-wal", firstPath + "-shm" })
+            try { File.Delete(f); } catch { }
+    }
+}
+
 var dbPath = Path.Combine(Path.GetTempPath(), $"eveconsole-freshcheck-{Guid.NewGuid():N}.db");
 try
 {

@@ -5,13 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-// Records a daily point-in-time snapshot of each type's market value, build cost and contract
-// price. Like NetWorthService, the current UTC day's rows are recomputed/overwritten each time
+// Records a daily point-in-time snapshot of each type's market value, build cost, contract price
+// and reprocessing value. Like NetWorthService, the current UTC day's rows are recomputed/overwritten each time
 // prices refresh; once the day rolls over, prior days are left untouched (a frozen history).
 //
 // Market value uses the configured asset-value market config (Settings → Market) and its price
-// type. Build cost and contract price are config-independent per-type values. A row is written
-// for every type that has any of the three on the day (union of the three source tables).
+// type. Build cost and contract price are config-independent per-type values; the reprocessing
+// value is what ReprocessingValueService last worked out, which runs just before this. A row is
+// written for every type that has any of the four on the day (union of the four source tables).
 public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
 {
     public async Task RecalculateAsync(CancellationToken ct = default)
@@ -53,7 +54,7 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
             // best price unless it is >50% above the 30-day average, in which case the average.
             var sql = $"""
                 INSERT INTO "TypePriceSnapshots"
-                    ("TypeId", "Date", "MarketValue", "BuildCost", "ContractPrice", "ComputedAt")
+                    ("TypeId", "Date", "MarketValue", "BuildCost", "ContractPrice", "ReprocessValue", "ComputedAt")
                 SELECT ids."TypeId", @today,
                        NULLIF({marketCol}, 0),
                        NULLIF(CAST(bc."TotalCost" AS DOUBLE PRECISION), 0),
@@ -65,20 +66,24 @@ public class TypePriceHistoryService(IDbContextFactory<AppDbContext> dbFactory, 
                                 THEN CAST(cp."Avg30Best" AS DOUBLE PRECISION)
                            ELSE CAST(cp."BestPrice" AS DOUBLE PRECISION)
                        END,
+                       NULLIF(CAST(rv."Value" AS DOUBLE PRECISION), 0),
                        @now
                 FROM (
                     SELECT "TypeId" FROM "MarketItemPrices" WHERE "ConfigId" = @cfg
                     UNION SELECT "TypeId" FROM "BuildCosts"
                     UNION SELECT "TypeId" FROM "ContractPrices"
+                    UNION SELECT "TypeId" FROM "ReprocessingValues"
                 ) ids
-                LEFT JOIN "MarketItemPrices" mp ON mp."ConfigId" = @cfg AND mp."TypeId" = ids."TypeId"
-                LEFT JOIN "BuildCosts"       bc ON bc."TypeId"   = ids."TypeId"
-                LEFT JOIN "ContractPrices"   cp ON cp."TypeId"   = ids."TypeId"
+                LEFT JOIN "MarketItemPrices"       mp ON mp."ConfigId" = @cfg AND mp."TypeId" = ids."TypeId"
+                LEFT JOIN "BuildCosts"             bc ON bc."TypeId"   = ids."TypeId"
+                LEFT JOIN "ContractPrices"         cp ON cp."TypeId"   = ids."TypeId"
+                LEFT JOIN "ReprocessingValues" rv ON rv."TypeId"   = ids."TypeId"
                 ON CONFLICT ("TypeId", "Date") DO UPDATE SET
-                    "MarketValue"   = excluded."MarketValue",
-                    "BuildCost"     = excluded."BuildCost",
-                    "ContractPrice" = excluded."ContractPrice",
-                    "ComputedAt"    = excluded."ComputedAt"
+                    "MarketValue"    = excluded."MarketValue",
+                    "BuildCost"      = excluded."BuildCost",
+                    "ContractPrice"  = excluded."ContractPrice",
+                    "ReprocessValue" = excluded."ReprocessValue",
+                    "ComputedAt"     = excluded."ComputedAt"
                 """;
 
             await db.Database.ExecuteSqlRawAsync(sql,

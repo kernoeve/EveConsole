@@ -16,6 +16,9 @@ using Avalonia.Media;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>One line of the online-characters hover in the header.</summary>
+public sealed record OnlineCharacterVm(string Name, string Location, string Ship, bool IsDocked);
+
 public class MainWindowViewModel : ReactiveObject
 {
     public OverviewViewModel              OverviewVm             { get; }
@@ -223,6 +226,7 @@ public class MainWindowViewModel : ReactiveObject
     public ApiActivityViewModel           ActivityVm             { get; }
     public EsiExplorerViewModel           ExplorerVm             { get; }
     public ErrorLogViewModel              ErrorLogVm             { get; }
+    public AgentUsageViewModel            AgentUsageVm           { get; }
     public GameLogViewerViewModel         GameLogViewerVm        { get; }
     public ChatLogViewerViewModel         ChatLogViewerVm        { get; }
     public AssetBrowserViewModel          AssetBrowserVm         { get; }
@@ -253,6 +257,7 @@ public class MainWindowViewModel : ReactiveObject
     public StandingBuyOrdersViewModel     StandingBuyOrdersVm    { get; }
     public WorklistViewModel              WorklistVm             { get; }
     public LpMarketValuesViewModel        LpMarketValuesVm       { get; }
+    public ItemValuationViewModel         ItemValuationVm        { get; }
     public PlayerEntitiesViewModel        PlayerEntitiesVm       { get; }
     public NpcEntitiesViewModel           NpcEntitiesVm          { get; }
     public MarketSettingsViewModel        MarketVm               { get; }
@@ -419,12 +424,23 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _onlineCharactersText, value);
     }
 
-    private string _onlineCharactersTip = "";
-    public string OnlineCharactersTip
+    /// <summary>
+    /// Who is online, for the hover: one row each, replaced wholesale on every refresh so the
+    /// tooltip's columns re-measure together. Docked rows read green and in-space rows orange
+    /// in the view, because that is the one thing worth seeing at a glance.
+    /// </summary>
+    private IReadOnlyList<OnlineCharacterVm> _onlineCharacters = [];
+    public IReadOnlyList<OnlineCharacterVm> OnlineCharacters
     {
-        get => _onlineCharactersTip;
-        private set => this.RaiseAndSetIfChanged(ref _onlineCharactersTip, value);
+        get => _onlineCharacters;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _onlineCharacters, value);
+            this.RaisePropertyChanged(nameof(HasOnlineCharacters));
+        }
     }
+
+    public bool HasOnlineCharacters => OnlineCharacters.Count > 0;
 
     /// <summary>Green while anyone is online, grey otherwise — same convention as the TQ dot.</summary>
     private IBrush _onlineCharactersColor = Palette.BorderStrong;
@@ -457,7 +473,10 @@ public class MainWindowViewModel : ReactiveObject
                 await using var db = await dbFactory.CreateDbContextAsync();
 
                 // Left joins throughout: a character who has just logged in may not have had a
-                // location or ship poll yet, and should still be counted as online.
+                // location or ship poll yet, and should still be counted as online. The docked
+                // place is looked up in every table that names one — the SDE for NPC stations,
+                // three for player structures — so a pilot in a Keepstar reads as being in it
+                // rather than merely in its system.
                 return await (
                     from s in db.CharacterStatuses.AsNoTracking()
                     join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
@@ -465,11 +484,24 @@ public class MainWindowViewModel : ReactiveObject
                         .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
                     from ship in db.SdeTypes.AsNoTracking()
                         .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
+                    from sta in db.SdeStations.AsNoTracking()
+                        .Where(x => (long)x.StationId == s.StationId).DefaultIfEmpty()
+                    from str in db.Structures.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
+                    from strn in db.EsiStructureNames.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
+                    from cstr in db.EsiCorpStructures.AsNoTracking()
+                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
                     select new
                     {
                         c.Name,
                         s.Online,
+                        Docked   = s.StationId != null || s.StructureId != null,
                         System   = sys != null ? sys.Name : null,
+                        Place    = sta  != null ? sta.Name
+                                 : str  != null ? str.Name
+                                 : strn != null ? strn.Name
+                                 : cstr != null ? cstr.Name : null,
                         Hull     = ship != null ? ship.Name : null,
                         s.ShipName,
                     }).ToListAsync();
@@ -479,26 +511,30 @@ public class MainWindowViewModel : ReactiveObject
 
             var text = $"{online.Count} of {rows.Count} Online";
 
-            var tip = online.Count == 0
-                ? "None of your characters are online."
-                : string.Join("\n", online.Select(r =>
-                {
-                    var where = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+            var list = online.Select(r =>
+            {
+                var system = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
 
-                    // The hull is what the ship IS; ShipName is what the pilot called it. Show
-                    // both only when the pilot bothered to rename it.
-                    var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
-                    if (!string.IsNullOrWhiteSpace(r.ShipName)
-                        && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
-                        ship = $"{r.Hull} \"{r.ShipName}\"";
+                // Docked: the station or structure, which says more than its system does. In
+                // space: the system, which is all there is to say.
+                var where = !r.Docked                              ? system
+                          : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
+                          :                                          $"a structure in {system}";
 
-                    return $"{r.Name} — {where} — {ship}";
-                }));
+                // The hull is what the ship IS; ShipName is what the pilot called it. Show
+                // both only when the pilot bothered to rename it.
+                var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                if (!string.IsNullOrWhiteSpace(r.ShipName)
+                    && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
+                    ship = $"{r.Hull} \"{r.ShipName}\"";
+
+                return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
+            }).ToList();
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 OnlineCharactersText  = text;
-                OnlineCharactersTip   = tip;
+                OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
         }
@@ -539,6 +575,18 @@ public class MainWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(ThemeTip));
     }
 
+    /// <summary>The UI scale as the status bar shows it, "100%", read from the service like the
+    /// theme so the bar and the Settings window can never disagree.</summary>
+    public string UiScaleName => UiScaleService.Label;
+
+    public string UiScaleTip => $"UI scale: {UiScaleName} — click to change";
+
+    private void OnUiScaleChanged()
+    {
+        this.RaisePropertyChanged(nameof(UiScaleName));
+        this.RaisePropertyChanged(nameof(UiScaleTip));
+    }
+
     // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
 
     private string _serverStatusText = "Online";
@@ -571,12 +619,6 @@ public class MainWindowViewModel : ReactiveObject
         Apply();
     }
 
-    private string _pollingStatusText = "Polling: Not started";
-    public string PollingStatusText
-    {
-        get => _pollingStatusText;
-        private set => this.RaiseAndSetIfChanged(ref _pollingStatusText, value);
-    }
 
     private string _buildCostStatusText = "Build costs: not yet calculated";
     public string BuildCostStatusText
@@ -652,14 +694,17 @@ public class MainWindowViewModel : ReactiveObject
             "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
             "worklist"       => ("Worklist",       WorklistVm,        true),
             "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
+            "item_valuation"   => ("Item Valuation",   ItemValuationVm,  true),
             "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
             "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
             "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
             "killmails"      => ("Killmails",      KillmailBrowserVm, true),
             "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
             "notifications"  => ("Notifications",  NotificationsVm,   true),
+            "background"     => ("Background Processes", ActivityVm,  true),
             "data"           => ("ESI Explorer",   ExplorerVm,        true),
             "error_log"      => ("Error Log",      ErrorLogVm,        true),
+            "ai_usage"       => ("AI Usage",       AgentUsageVm,      true),
             "game_log"       => ("Game Log",       GameLogViewerVm,   true),
             "chat_log"       => ("Chat Log",       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
@@ -683,9 +728,49 @@ public class MainWindowViewModel : ReactiveObject
         // current and is not. Reading on open means closing the tab and opening it again reads
         // afresh, which is what somebody doing that is asking for.
         if (toolId == "error_log") ErrorLogVm.Reload();
+        if (toolId == "ai_usage")  AgentUsageVm.Reload();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
+    }
+
+    /// <summary>Opens the Background Processes tool at the tab named — what a status-bar label does.
+    /// The ask goes to the view model first, so a view already showing acts on it at once and one
+    /// built by the open finds it waiting.</summary>
+    public void OpenBackgroundProcesses(string tab)
+    {
+        ActivityVm.RequestedTab = tab;
+        OpenTool("background");
+    }
+
+    /// <summary>
+    /// Distinguishes agent-opened tabs, which are many, from tools, which are one each.
+    /// </summary>
+    public const string AgentTabPrefix = "agent_output:";
+
+    private int _agentTabCounter;
+
+    /// <summary>
+    /// Opens a tab holding something the agent produced, and selects it.
+    ///
+    /// <para>⚠️ Separate from OpenTool, and deliberately so. OpenTool maps a fixed id to a
+    /// singleton view model — asking for the Worklist twice returns to the one Worklist. These
+    /// are answers to particular questions, so every call gets an id of its own and a tab of its
+    /// own; the previous answer stays open beside it.</para>
+    ///
+    /// <para>They are reachable ONLY this way. There is no nav entry, because there is nothing to
+    /// open — an empty one of these would have no content and no reason to exist.</para>
+    ///
+    /// <para>⚠️ Marshalled to the UI thread by the caller's Dispatcher.Invoke. Agent tools run on
+    /// a background thread and OpenTabs is bound to the tab strip.</para>
+    /// </summary>
+    public string OpenAgentTab(string title, object viewModel)
+    {
+        var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
+        var tab = new ToolTab(id, title, viewModel, canClose: true);
+        OpenTabs.Add(tab);
+        SelectedTab = tab;
+        return id;
     }
 
     public void CloseTab(ToolTab tab)
@@ -743,6 +828,9 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
         StoreMailService                storeMailService,
+        EveConsole.Services.WebStore.WebStoreSyncService webStoreSync,
+        EveConsole.Services.WebStore.CloudflareDeployService cloudflareDeploy,
+
         OrderLabelService               orderLabels,
         BatchAddService                 batchAddService,
         CorpActivityService             corpActivityService,
@@ -812,7 +900,8 @@ public class MainWindowViewModel : ReactiveObject
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
         DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
-        ThemeService.Changed += OnThemeChanged;
+        ThemeService.Changed   += OnThemeChanged;
+        UiScaleService.Changed += OnUiScaleChanged;
 
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
@@ -822,7 +911,7 @@ public class MainWindowViewModel : ReactiveObject
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
-        CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext());
+        CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
@@ -863,7 +952,8 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
-        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
+
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
@@ -886,6 +976,8 @@ public class MainWindowViewModel : ReactiveObject
         };
         OverviewVm.NavigateToStandingBuyOrders = () => OpenTool("standing_buy_orders");
         OverviewVm.NavigateToIndustryJobs      = () => OpenTool("industry");
+        // ContractsVm is built further down; the lambda runs long after, so the flow analysis is the only thing objecting.
+        OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
@@ -904,7 +996,7 @@ public class MainWindowViewModel : ReactiveObject
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
-        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger);
+        ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger, contractsService);
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
@@ -920,7 +1012,7 @@ public class MainWindowViewModel : ReactiveObject
         // typed into.
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
 
-        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger);
+        OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment);
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
@@ -950,6 +1042,7 @@ public class MainWindowViewModel : ReactiveObject
         };
 
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        ItemValuationVm        = new ItemValuationViewModel(dbFactory);
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService);
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
@@ -1037,6 +1130,11 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
+        ItemValuationVm.NavigateToItemAction = typeId =>
+        {
+            OpenTool("items");
+            _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+        };
         KillmailBrowserVm.NavigateToItemAction = typeId =>
         {
             OpenTool("items");
@@ -1061,6 +1159,7 @@ public class MainWindowViewModel : ReactiveObject
         var connString       = tmpDb.Database.GetConnectionString()!;
         ExplorerVm           = new EsiExplorerViewModel(connString);
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
+        AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
@@ -1074,6 +1173,11 @@ public class MainWindowViewModel : ReactiveObject
         // Set before Initialize — that is where the tool list is built.
         agentService.EntityBrowser = entityBrowser;
         agentService.MapService    = universeMapService;
+        agentService.Esi           = esi;
+        // The preferences were loaded during startup, before this view model exists; the
+        // capsuleer's shared settings are laid over the local file here, before the first prompt
+        // is built from them.
+        agentService.ApplyShared();
         agentService.Initialize(connString);
         TtsService         = ttsService;
         SpeechInputService = speechInputService;
@@ -1085,7 +1189,7 @@ public class MainWindowViewModel : ReactiveObject
         var s = agentService.Settings;
         ttsService.Configure(s);
         speechInputService.Configure(s.SpeechInputProvider, s.OpenAiApiKey,
-                                     s.WhisperLocalModel, s.MicrophoneDeviceName);
+                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage);
 
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
@@ -1093,23 +1197,13 @@ public class MainWindowViewModel : ReactiveObject
         StartOnlineCharactersWatch(dbFactory);
         BindAlarmLight(alarmService, workerActivity);
 
-        // ⚠️ Two sources, because only one of them is ever right. On the client holding the lease
-        // this process really is polling and its own status is the truth; on any other the poller
-        // is stopped, so its local text would read "Polling: Not started" about a client that is
-        // polling away perfectly well on another machine.
-        _pollingService
-            .WhenAnyValue(p => p.StatusText)
-            .Subscribe(t => { if (_workerLease.IsHolder) PollingStatusText = t; });
-
-        workerActivity.Changed += () => Dispatcher.UIThread.Post(() =>
-        {
-            if (_workerLease.IsHolder) return;
-
-            PollingStatusText = workerActivity.Get(WorkerActivityService.Polling)?.Status
-                                is { Length: > 0 } status
-                ? status
-                : "Polling: on another client";
-        });
+        // The status bar's lines on the background processes, once a second whatever tab is
+        // open — cheap, since each is an in-memory read here or the board a worker elsewhere
+        // publishes — and at once whenever that worker signals a change (the view model listens).
+        Observable.Interval(TimeSpan.FromSeconds(1))
+            .ObserveOnUi("MainWindow.BackgroundStatus")
+            .Subscribe(_ => ActivityVm.SyncStatusBar());
+        ActivityVm.SyncStatusBar();
 
         // BuildCostService.StatusText is set from a background thread — poll it via a timer.
         Observable.Interval(TimeSpan.FromSeconds(3))
@@ -1149,6 +1243,7 @@ public class MainWindowViewModel : ReactiveObject
             new("Market / Trade",
             [
                 new NavItem("market_viewer", "Market Overview"),
+                new NavItem("item_valuation", "Item Valuation"),
                 new NavItem("lp_market_values", "LP Market Values"),
                 new NavItem("market_levels", "Market Levels"),
                 new NavItem("contracts",     "Contracts"),
@@ -1181,8 +1276,10 @@ public class MainWindowViewModel : ReactiveObject
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
+                new NavItem("background", "Background Processes"),
                 new NavItem("data", "ESI Explorer"),
                 new NavItem("error_log", "Error Log"),
+                new NavItem("ai_usage",  "AI Usage"),
                 new NavItem("game_log", "Game Log"),
                 new NavItem("chat_log", "Chat Log"),
             ]),

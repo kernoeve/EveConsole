@@ -709,7 +709,7 @@
                           Background="Transparent" GridLinesVisibility="None"
                           RowBackground="Transparent">
                   <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Corporation" Width="220" SortMemberPath="CorporationName">
+                    <DataGridTemplateColumn Header="Corporation" Width="220" SortMemberPath="CorporationName" ClipboardContentBinding="{Binding CorporationName}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <Button Classes="link" Click="OnOpenLpCorp" Padding="0"
@@ -721,7 +721,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity">
+                    <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -729,7 +729,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="LP Cost" Width="110" SortMemberPath="LpCost">
+                    <DataGridTemplateColumn Header="LP Cost" Width="110" SortMemberPath="LpCost" ClipboardContentBinding="{Binding LpText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding LpText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
@@ -737,7 +737,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="ISK Cost" Width="140" SortMemberPath="IskCost">
+                    <DataGridTemplateColumn Header="ISK Cost" Width="140" SortMemberPath="IskCost" ClipboardContentBinding="{Binding IskText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding IskText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -745,7 +745,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+                    <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld" ClipboardContentBinding="{Binding HeldText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding HeldText}" FontSize="11"
@@ -754,7 +754,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="LP Est. Value" Width="130" SortMemberPath="IskPerLp">
+                    <DataGridTemplateColumn Header="LP Est. Value" Width="130" SortMemberPath="IskPerLp" ClipboardContentBinding="{Binding IskPerLpText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding IskPerLpText}" FontSize="11"
@@ -820,7 +820,7 @@
                                           Binding="{ReflectionBinding PriceText}"
                                           SortMemberPath="Price"
                                           Width="130" />
-                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*">
+                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate x:DataType="vm:OrderRowVm">
                             <Panel>
@@ -836,7 +836,7 @@
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                       </DataGridTemplateColumn>
-                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55">
+                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55" ClipboardContentBinding="{ReflectionBinding SecurityText}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate>
                             <TextBlock Text="{ReflectionBinding SecurityText}"
@@ -889,7 +889,7 @@
                                           Binding="{ReflectionBinding MinVolumeText}"
                                           SortMemberPath="MinVolume"
                                           Width="75" />
-                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*">
+                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate x:DataType="vm:OrderRowVm">
                             <Panel>
@@ -905,7 +905,7 @@
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                       </DataGridTemplateColumn>
-                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55">
+                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55" ClipboardContentBinding="{ReflectionBinding SecurityText}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate>
                             <TextBlock Text="{ReflectionBinding SecurityText}"
@@ -1046,7 +1046,7 @@
                 <!-- Empty state -->
                 <TextBlock Grid.Row="2"
                            IsVisible="{Binding DerivedIsEmpty}"
-                           Text="No derived price history recorded for this item yet. A daily snapshot of market, build, and contract value is captured automatically as prices refresh."
+                           Text="No derived price history recorded for this item yet. A daily snapshot of market, build, contract and reprocessed value is captured automatically as prices refresh."
                            FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />

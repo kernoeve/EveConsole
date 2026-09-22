@@ -131,6 +131,7 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
             JobsGrid.Columns.Add(new DataGridTemplateColumn
             {
                 Header = c, Tag = c, IsReadOnly = true, CanUserSort = true,
+                ClipboardContentBinding = GridRowCopy.Binding(c),
                 CellTemplate = new FuncDataTemplate<GridRow>(
                     (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc, onClick,
                                                  IndustryBrowserViewModel.NumericColumns.Contains(c))),

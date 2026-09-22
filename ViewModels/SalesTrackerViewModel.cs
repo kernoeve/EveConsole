@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Services;
@@ -33,6 +34,11 @@ internal static class ProfitBrushes
 // ReactiveObject so the main grid's Profit columns refresh live when the cost basis changes.
 public class SaleRowVm : ReactiveObject
 {
+    private Bitmap? _icon;
+    /// <summary>The named item's picture, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public Task LoadIconAsync() => ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp);
+
     public DateTimeOffset When { get; }
     public long   WhenSort { get; }
     public string WhenText { get; }
@@ -70,6 +76,9 @@ public class SaleRowVm : ReactiveObject
 
     /// <summary>The same labels as coloured chips, drawn exactly as the Order Tracker draws them.</summary>
     public List<LabelChip> LabelChips { get; private set; } = [];
+
+    /// <summary>The column's text — the tags, comma-separated — which is what a copied row carries.</summary>
+    public string Labels => string.Join(", ", LabelList);
 
     public void SetLabels(IReadOnlyList<string> labels)
     {
@@ -246,47 +255,63 @@ public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0,
 public record SalesTypeOption(string Label, string? Kind)
 { public override string ToString() => Label; }
 
-// One row on a Sales Tracker rollup grid (sales grouped by buyer / market group / item).
-public class GroupRowVm
+/// <summary>The pictures the rollup rows carry: a buyer's portrait or logo, an item's icon.</summary>
+public static class SaleImages
 {
-    public string Name      { get; }
-    public string Amount    { get; }
-    public double AmountRaw { get; }
-
-    /// <summary>Where the group's name goes when clicked, or null when it names nothing with a
-    /// page of its own. Taken from the first sale in the group — every sale in it shares the
-    /// name, so they share the id behind it.</summary>
-    public Action? Open    { get; }
-    public bool    HasLink => Open is not null;
-
-    public GroupRowVm(string name, double amount, Action? open = null)
+    public static string? Entity(EntityKind kind, long id) => id <= 0 ? null : kind switch
     {
-        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount); Open = open;
-    }
+        EntityKind.Pilot                          => $"https://images.evetech.net/characters/{id}/portrait?size=32",
+        EntityKind.PlayerCorp or EntityKind.NpcCorp => $"https://images.evetech.net/corporations/{id}/logo?size=32",
+        EntityKind.Alliance                       => $"https://images.evetech.net/alliances/{id}/logo?size=32",
+        _                                         => null,
+    };
+
+    public static string? Type(int typeId) => typeId <= 0 ? null : $"https://images.evetech.net/types/{typeId}/icon?size=32";
 }
 
-// One row on a profit rollup grid — summed build-based profit plus the average profit % of the
-// sales in the group. Sorted by the profit amount (ProfitRaw). "—" when no sale in the group had
-// a cost basis to profit against.
-public class ProfitGroupRowVm
+// One row on a Sales Tracker rollup — by buyer, by market group, by item: what was sold to or
+// under it, what was made on that, and the profit's share of the period's whole. Every list is
+// ranked by the profit. "—" when no sale in the group had a cost basis to profit against, or
+// when the period made no profit for a share to be of.
+//
+// ⚠️ A share of the total, not the average margin the column used to show: the margins did not
+// line up with the profit beside them, and what the list is for is seeing where the profit came
+// from.
+public class GroupRowVm : ReactiveObject
 {
     public string Name      { get; }
+    public string Sales     { get; }
+    public double SalesRaw  { get; }
     public string Profit    { get; }
     public double ProfitRaw { get; }
-    public string ProfitPct { get; }
+    public string Share     { get; }
+    public double ShareRaw  { get; }
 
-    /// <summary>As <see cref="GroupRowVm.Open"/>. Null on the market-group rollup, whose rows
-    /// name a category rather than a thing with a page.</summary>
+    private readonly string? _iconUrl;
+    private Bitmap? _icon;
+    /// <summary>The buyer's portrait or logo, or the item's icon — for a market group, the icon
+    /// of the first item sold in it, alphabetically — once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public async Task LoadIconAsync()
+    {
+        if (_iconUrl is null) return;
+        var bmp = await EveImageCache.GetAsync(_iconUrl);
+        if (bmp is not null) Avalonia.Threading.Dispatcher.UIThread.Post(() => Icon = bmp);
+    }
+
+    /// <summary>Where the group's name goes when clicked, or null when it names nothing with a
+    /// page of its own — a market group is a category, not a thing with a page. Taken from the
+    /// first sale in the group: every sale in it shares the name, so they share the id behind it.</summary>
     public Action? Open    { get; }
     public bool    HasLink => Open is not null;
 
-    public ProfitGroupRowVm(string name, double? profit, double? pctAvg, Action? open = null)
+    public GroupRowVm(string name, double sales, double? profit, double? share, Action? open = null, string? iconUrl = null)
     {
-        Name      = name;
-        Open      = open;
+        Name = name; SalesRaw = sales; Sales = MarketFmt.Isk(sales); Open = open; _iconUrl = iconUrl;
         ProfitRaw = profit ?? double.MinValue;
-        Profit    = profit is double p  ? MarketFmt.Isk(p) : "—";
-        ProfitPct = pctAvg is double pp ? $"{pp:N1}%"      : "—";
+        Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
+        ShareRaw  = share  ?? double.MinValue;
+        Share     = share  is double s ? $"{s:N1}%" : "—";
     }
 }
 
@@ -381,9 +406,18 @@ public class SalesTrackerViewModel : ReactiveObject
       : Math.Abs(v) >= 1_000             ? $"{v / 1_000:N1}K"
       :                                    v.ToString("N0");
 
-    public ObservableCollection<GroupRowVm>       TopBuyers    { get; } = new();
-    public ObservableCollection<ProfitGroupRowVm> MarketGroups { get; } = new();
-    public ObservableCollection<ProfitGroupRowVm> TopItems     { get; } = new();
+    public ObservableCollection<GroupRowVm> TopBuyers    { get; } = new();
+    public ObservableCollection<GroupRowVm> MarketGroups { get; } = new();
+    public ObservableCollection<GroupRowVm> TopItems     { get; } = new();
+
+    // Each list's profit as a pie: the ten largest slices and the rest as one.
+    private ISeries[] _buyerPie = [], _groupPie = [], _itemPie = [];
+    public ISeries[] BuyerPie { get => _buyerPie; private set => this.RaiseAndSetIfChanged(ref _buyerPie, value); }
+    public ISeries[] GroupPie { get => _groupPie; private set => this.RaiseAndSetIfChanged(ref _groupPie, value); }
+    public ISeries[] ItemPie  { get => _itemPie;  private set => this.RaiseAndSetIfChanged(ref _itemPie,  value); }
+    public bool HasBuyerPie => BuyerPie.Length > 0;
+    public bool HasGroupPie => GroupPie.Length > 0;
+    public bool HasItemPie  => ItemPie.Length  > 0;
 
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
@@ -567,6 +601,7 @@ public class SalesTrackerViewModel : ReactiveObject
 
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
+        _ = Task.WhenAll(list.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
 
         StatusText = list.Count == 0
             ? "No sales match the filters."
@@ -579,11 +614,32 @@ public class SalesTrackerViewModel : ReactiveObject
 
         // Buyers and items link the same way their columns in the grid below do. Market group is
         // deliberately plain: "Standard Dreadnoughts" is a category, not a thing with a page.
-        FillGroup(TopBuyers,          list, r => r.Buyer,
-                  r => r.HasBuyerLink ? r.OpenBuyer : null);
-        FillProfitGroup(MarketGroups, list, r => r.MarketGroup);
-        FillProfitGroup(TopItems,     list, r => r.Items,
-                  r => r.HasItemLink ? r.OpenItem : null);
+        // Each row carries a picture: the buyer's portrait or logo; the item's icon; and for a
+        // market group, the icon of the first item sold in it, alphabetically, since a category
+        // has no picture of its own.
+        //
+        // Every % is a share of the period's whole profit — the sum over every sale with a cost
+        // basis — so a list's shares add up to a hundred and each reads as "where the profit came
+        // from". A period that made no profit has no shares to give.
+        var costedProfit = list.Where(r => r.ProfitRaw != double.MinValue).Sum(r => r.ProfitRaw);
+        double? totalProfit = costedProfit > 0 ? costedProfit : null;
+
+        FillGroup(TopBuyers,    list, totalProfit, r => r.Buyer,
+                  r => r.HasBuyerLink ? r.OpenBuyer : null,
+                  g => SaleImages.Entity(g.First().BuyerKind, g.First().BuyerId));
+        FillGroup(MarketGroups, list, totalProfit, r => r.MarketGroup,
+                  icon: g => SaleImages.Type(g.Where(r => r.TypeId > 0).OrderBy(r => r.Items, StringComparer.OrdinalIgnoreCase).FirstOrDefault()?.TypeId ?? 0));
+        FillGroup(TopItems,     list, totalProfit, r => r.Items,
+                  r => r.HasItemLink ? r.OpenItem : null,
+                  g => SaleImages.Type(g.First().TypeId));
+
+        // The same three, as pies of profit.
+        BuyerPie = BuildPie(TopBuyers.Select(r => (r.Name, r.ProfitRaw)));
+        GroupPie = BuildPie(MarketGroups.Select(r => (r.Name, r.ProfitRaw)));
+        ItemPie  = BuildPie(TopItems.Select(r => (r.Name, r.ProfitRaw)));
+        this.RaisePropertyChanged(nameof(HasBuyerPie));
+        this.RaisePropertyChanged(nameof(HasGroupPie));
+        this.RaisePropertyChanged(nameof(HasItemPie));
 
         BuildCharts(list);
     }
@@ -695,22 +751,22 @@ public class SalesTrackerViewModel : ReactiveObject
             LineSmoothness = 0.2,
         };
 
-    private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows,
-                                  Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)
+    /// <summary>A group's summed profit, over the sales in it with a cost basis, and that
+    /// profit's share of the period's; null for either when there is nothing to sum or to share.</summary>
+    private static (double? Profit, double? Share) ProfitOf(IEnumerable<SaleRowVm> group, double? totalProfit)
     {
-        target.Clear();
-        var groups = rows
-            .Where(r => !string.IsNullOrEmpty(key(r)))
-            .GroupBy(key)
-            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw), link?.Invoke(g.First())))
-            .OrderByDescending(g => g.AmountRaw);
-        foreach (var g in groups) target.Add(g);
+        var profits = group.Where(r => r.ProfitRaw != double.MinValue).Select(r => r.ProfitRaw).ToList();
+        double? profit = profits.Count > 0 ? profits.Sum() : null;
+        double? share  = profit is double p && totalProfit is double t ? p / t * 100 : null;
+        return (profit, share);
     }
 
-    // Group sales and sum build-based profit, plus the average profit % over the sales that had a
-    // cost basis. Ordered by profit amount (still by amount, not by percent).
-    private static void FillProfitGroup(ObservableCollection<ProfitGroupRowVm> target, List<SaleRowVm> rows,
-                                        Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)
+    /// <summary>Groups the sales by <paramref name="key"/> and sums each group's sales and its
+    /// build-based profit, ranked by the profit — the sales only break a tie. Groups with no
+    /// costed sale sort last, their profit unknown rather than nil.</summary>
+    private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows, double? totalProfit,
+                                  Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null,
+                                  Func<IGrouping<string, SaleRowVm>, string?>? icon = null)
     {
         target.Clear();
         var groups = rows
@@ -718,15 +774,44 @@ public class SalesTrackerViewModel : ReactiveObject
             .GroupBy(key)
             .Select(g =>
             {
-                var profits = g.Where(r => r.ProfitRaw    != double.MinValue).Select(r => r.ProfitRaw).ToList();
-                var pcts    = g.Where(r => r.ProfitPctRaw != double.MinValue).Select(r => r.ProfitPctRaw).ToList();
-                double? profit = profits.Count > 0 ? profits.Sum()     : (double?)null;
-                double? pctAvg = pcts.Count    > 0 ? pcts.Average()    : (double?)null;
-                return new ProfitGroupRowVm(g.Key, profit, pctAvg, link?.Invoke(g.First()));
+                var (profit, share) = ProfitOf(g, totalProfit);
+                return new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw), profit, share, link?.Invoke(g.First()), icon?.Invoke(g));
             })
-            .OrderByDescending(g => g.ProfitRaw);
+            .OrderByDescending(g => g.ProfitRaw)
+            .ThenByDescending(g => g.SalesRaw)
+            .ToList();
         foreach (var g in groups) target.Add(g);
+        _ = Task.WhenAll(groups.Select(g => g.LoadIconAsync()));   // one batch, off the cache after the first time
     }
+
+    /// <summary>The ten largest as slices and the rest as one, of whatever is positive: a loss
+    /// has no slice to take.</summary>
+    private static ISeries[] BuildPie(IEnumerable<(string Label, double Value)> items)
+    {
+        var ordered = items.Where(i => i.Value > 0 && i.Value != double.MinValue).OrderByDescending(i => i.Value).ToList();
+        var slices  = ordered.Take(10).ToList();
+        var rest    = ordered.Skip(10).Sum(i => i.Value);
+        if (rest > 0) slices.Add(("Other", rest));
+
+        var series = new List<ISeries>(slices.Count);
+        for (var i = 0; i < slices.Count; i++)
+        {
+            var (label, value) = slices[i];
+            series.Add(new PieSeries<double>
+            {
+                Name                  = label,
+                Values                = [value],
+                Fill                  = new SolidColorPaint(label == "Other" ? ChartPalette.Other : ChartPalette.Pie[i % ChartPalette.Pie.Length]),
+                Stroke                = null,
+                DataLabelsPaint       = null,
+                AnimationsSpeed       = TimeSpan.Zero,
+                EasingFunction        = null,
+                ToolTipLabelFormatter = cp => $"{label}: {MarketFmt.Isk(cp.Coordinate.PrimaryValue)}",
+            });
+        }
+        return [.. series];
+    }
+
 
     private static bool TryDate(string s, out DateTime date)
     {

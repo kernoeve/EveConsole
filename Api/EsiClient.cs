@@ -20,9 +20,97 @@ public class EsiClient
     private readonly ConcurrentDictionary<long, TokenSet> _tokens     = new();
     private readonly ConcurrentDictionary<long, TokenSet> _corpTokens = new();
 
-    // Limits simultaneous ESI HTTP calls app-wide; prevents request bursts from exhausting
-    // ESI's per-client error limit when many characters/corps poll in parallel.
-    private readonly SemaphoreSlim _httpGate = new(2, 2);
+    // Owners whose refresh token the SSO has refused (invalid_grant). Kept so the next call for
+    // that owner fails at once and in words, without another round trip to the SSO — a refused
+    // token stays refused. Cleared by RegisterCharacter/RegisterCorporation: a re-authorisation
+    // is the only thing that mends it.
+    private readonly ConcurrentDictionary<long, Refused> _revokedCharacters = new();
+    private readonly ConcurrentDictionary<long, Refused> _revokedCorps      = new();
+
+    /// <summary>The token the SSO refused, and its words for why.</summary>
+    private sealed record Refused(string Token, string Why);
+
+    // ── The HTTP gate, in two lanes ─────────────────────────────────────────
+    //
+    // Limits simultaneous ESI HTTP calls app-wide, so a burst from many characters and corps
+    // polling at once cannot exhaust ESI's per-client error limit.
+    //
+    // ⚠️ A person clicking on a mail must not wait behind the poller. This used to be one
+    // semaphore of two, first come first served, and on a slow link with a deep poll cycle a
+    // body fetch queued behind every asset page ahead of it: "Loading…" for a minute, which
+    // the user cannot tell from a failure, and by the time it answered they had clicked
+    // something else. Background work now takes a slot from its own smaller gate FIRST, so
+    // polling can hold at most two of the three HTTP slots, and an interactive call always
+    // finds the third free or about to be. Total concurrency rises from two to three, which
+    // the error limit has ample room for.
+    //
+    // Which lane a call is on is carried by an AsyncLocal rather than an argument. The ESI
+    // surface is wide and every method would otherwise need the flag threaded through. The
+    // polling loop marks itself once at the top and the mark flows down every await from
+    // there; a UI-driven call into the same service runs on the UI's own async chain and
+    // never sees it. Interactive is the default, so nothing is demoted by accident — only
+    // the loops that declare themselves background are.
+    private readonly SemaphoreSlim _httpGate       = new(3, 3);
+    private readonly SemaphoreSlim _backgroundGate = new(2, 2);
+    private static readonly AsyncLocal<bool> _isBackground = new();
+
+    // What the gate is doing right now, for the status bar: how many calls hold a slot, and
+    // how many are waiting for one. Both lanes together.
+    private int _activeCalls, _queuedCalls;
+    public int ActiveCalls => Volatile.Read(ref _activeCalls);
+    public int QueuedCalls => Volatile.Read(ref _queuedCalls);
+
+    /// <summary>
+    /// Marks everything awaited from here until disposal as background for the ESI gate:
+    /// it will never hold more than two of the three HTTP slots, leaving one for whatever
+    /// the user is doing. Use at the top of a polling loop, not around individual calls.
+    /// </summary>
+    public static IDisposable Background()
+    {
+        var previous = _isBackground.Value;
+        _isBackground.Value = true;
+        return new LaneRestore(previous);
+    }
+
+    private sealed class LaneRestore(bool previous) : IDisposable
+    {
+        public void Dispose() => _isBackground.Value = previous;
+    }
+
+    /// <summary>
+    /// Takes an HTTP slot for the current lane. Dispose to give it back. The background lane
+    /// holds its own gate for as long as it holds the HTTP one, which is what caps it at two.
+    /// </summary>
+    private async Task<IDisposable> AcquireSlotAsync(CancellationToken ct)
+    {
+        Interlocked.Increment(ref _queuedCalls);
+        try
+        {
+            if (!_isBackground.Value)
+            {
+                await _httpGate.WaitAsync(ct);
+                Interlocked.Increment(ref _activeCalls);
+                return new SlotRelease(this, _httpGate, null);
+            }
+
+            await _backgroundGate.WaitAsync(ct);
+            try { await _httpGate.WaitAsync(ct); }
+            catch { _backgroundGate.Release(); throw; }
+            Interlocked.Increment(ref _activeCalls);
+            return new SlotRelease(this, _httpGate, _backgroundGate);
+        }
+        finally { Interlocked.Decrement(ref _queuedCalls); }
+    }
+
+    private sealed class SlotRelease(EsiClient owner, SemaphoreSlim http, SemaphoreSlim? background) : IDisposable
+    {
+        public void Dispose()
+        {
+            Interlocked.Decrement(ref owner._activeCalls);
+            http.Release();
+            background?.Release();
+        }
+    }
 
     // ESI global error limit block — set on HTTP 420 or when error budget is nearly exhausted.
     // Written by authenticated-endpoint responses; checked by all callers including market refresh.
@@ -52,8 +140,102 @@ public class EsiClient
     /// spent, or Tranquility is down. Both mean "do not spend a request right now".</summary>
     internal bool IsErrorLimitBlocked => _serverOffline || IsErrorLimited;
 
+    /// <summary>Whole seconds until the error-limit block lifts; 0 when not blocked.</summary>
+    private int ErrorLimitSecondsRemaining
+    {
+        get
+        {
+            var ticks = Interlocked.Read(ref _errorLimitBlockedTicks);
+            if (ticks == 0) return 0;
+            var left = new DateTimeOffset(ticks, TimeSpan.Zero) - DateTimeOffset.UtcNow;
+            return Math.Max(0, (int)Math.Ceiling(left.TotalSeconds));
+        }
+    }
+
+    // ── Per-route rate limits, shared by every caller ─────────────────────────
+    //
+    // ESI limits some routes per group of routes, and says so with X-Ratelimit-Group and a 429
+    // carrying Retry-After. The budget is the application's, not the caller's: a poll and an
+    // agent call on the same route draw on the same allowance. The polling service kept the
+    // only record of refusals, keyed by its own endpoint names, so an agent call had no way to
+    // know a route was blocked and no way to say it had been refused — the poller and the agent
+    // could take turns exhausting one route and each blame the other. The record lives here now,
+    // keyed by the route's shape, and every request path checks it before sending and writes to
+    // it after. A blocked route answers with a 429 of its own, Retry-After and all, without a
+    // request leaving the machine; callers already know what a 429 means.
+    //
+    // ⚠️ By route template and by group. The group is what ESI actually limits, but a refusal
+    // does not always name one, and a route that was refused is a route to leave alone either way.
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _routeBlocks = new();
+    private readonly ConcurrentDictionary<string, string>         _routeGroups = new();
+    private const string GroupPrefix = "group:";
+
+    /// <summary>
+    /// The shape of a route: numeric segments and killmail hashes replaced, query and any
+    /// version prefix dropped, so characters/123/assets/?page=2 and characters/456/assets/ are
+    /// one route — as they are to ESI.
+    /// </summary>
+    internal static string RouteTemplate(string path)
+    {
+        var p = path;
+        var scheme = p.IndexOf("://", StringComparison.Ordinal);
+        if (scheme >= 0)
+        {
+            var slash = p.IndexOf('/', scheme + 3);
+            p = slash >= 0 ? p[(slash + 1)..] : "";
+        }
+        var q = p.IndexOf('?');
+        if (q >= 0) p = p[..q];
+
+        var segments = p.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
+        if (segments.Count > 0 && (segments[0] == "latest" || segments[0] == "dev" || System.Text.RegularExpressions.Regex.IsMatch(segments[0], "^v[0-9]+$")))
+            segments.RemoveAt(0);
+        for (var i = 0; i < segments.Count; i++)
+            if (segments[i].All(char.IsDigit) || (segments[i].Length == 40 && segments[i].All(Uri.IsHexDigit)))
+                segments[i] = "{}";
+        return string.Join('/', segments).ToLowerInvariant();
+    }
+
+    /// <summary>Seconds a route must still wait after a refusal, or null when it may be called.</summary>
+    internal int? RouteBlockedFor(string path)
+    {
+        var template = RouteTemplate(path);
+        var until    = DateTimeOffset.MinValue;
+        if (_routeBlocks.TryGetValue(template, out var byRoute)) until = byRoute;
+        if (_routeGroups.TryGetValue(template, out var group)
+            && _routeBlocks.TryGetValue(GroupPrefix + group, out var byGroup) && byGroup > until)
+            until = byGroup;
+
+        var wait = until - DateTimeOffset.UtcNow;
+        return wait > TimeSpan.Zero ? (int)Math.Ceiling(wait.TotalSeconds) : null;
+    }
+
+    /// <summary>What a response said about its route's limit, whoever asked.</summary>
+    private void RecordRouteLimit(string path, int statusCode, string? group, int? retryAfter, int? errorLimitReset)
+    {
+        var template = RouteTemplate(path);
+        if (group is not null) _routeGroups[template] = group;
+        if (statusCode != 429) return;
+
+        var until = DateTimeOffset.UtcNow.AddSeconds((retryAfter ?? errorLimitReset ?? 60) + 1);
+        _routeBlocks[template] = until;
+        if (group is not null) _routeBlocks[GroupPrefix + group] = until;
+    }
+
+    private static string RouteBlockedMessage(int wait)
+        => $"This route was rate-limited by ESI a moment ago; not called. Retry after {wait} s.";
+
+    /// <summary>
+    /// Raised on a 502, 503 or 504 from any call — the shape of Tranquility's daily downtime,
+    /// which arrives at the calls a good half minute before the status endpoint admits it. The
+    /// status service listens, checks at once, and stands the client down.
+    /// </summary>
+    public event Action<int>? GatewayFailure;
+
     private void UpdateErrorLimitState(int statusCode, int? errorLimitRemain, int? errorLimitReset)
     {
+        if (statusCode is 502 or 503 or 504) GatewayFailure?.Invoke(statusCode);
+
         if (statusCode == 420)
             Interlocked.Exchange(ref _errorLimitBlockedTicks,
                 DateTimeOffset.UtcNow.AddSeconds((errorLimitReset ?? 30) + 1).UtcTicks);
@@ -85,22 +267,34 @@ public class EsiClient
     /// Use this on startup to restore characters from DB without hitting the network.
     /// </summary>
     public void RegisterCharacter(long characterId, string refreshToken)
-        => _tokens[characterId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    {
+        if (StillRefused(_revokedCharacters, characterId, refreshToken)) return;
+        _tokens[characterId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    }
 
     /// <summary>Register a freshly-obtained token set (e.g. after a live login).</summary>
     public void SetTokens(long characterId, TokenSet tokens)
-        => _tokens[characterId] = tokens;
+    {
+        _revokedCharacters.TryRemove(characterId, out _);
+        _tokens[characterId] = tokens;
+    }
 
     /// <summary>
     /// Register a corporation whose token will be lazy-refreshed on first API call.
     /// The refresh token must belong to a character with the director/accountant role.
     /// </summary>
     public void RegisterCorporation(long corpId, string refreshToken)
-        => _corpTokens[corpId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    {
+        if (StillRefused(_revokedCorps, corpId, refreshToken)) return;
+        _corpTokens[corpId] = new TokenSet("", refreshToken, DateTimeOffset.UnixEpoch);
+    }
 
     /// <summary>Register a freshly-obtained corp token set.</summary>
     public void SetCorpTokens(long corpId, TokenSet tokens)
-        => _corpTokens[corpId] = tokens;
+    {
+        _revokedCorps.TryRemove(corpId, out _);
+        _corpTokens[corpId] = tokens;
+    }
 
     // -----------------------------------------------------------------------
     // Character endpoints
@@ -387,11 +581,12 @@ public class EsiClient
         int regionId, int typeId, CancellationToken ct = default)
     {
         if (IsErrorLimitBlocked) return (null, 0);
+        var historyPath = $"markets/{regionId}/history/?type_id={typeId}";
+        if (RouteBlockedFor(historyPath) is not null) return (null, 429);
 
-        await _httpGate.WaitAsync(ct);
         HttpResponseMessage response;
-        try { response = await _http.GetAsync($"markets/{regionId}/history/?type_id={typeId}", ct); }
-        finally { _httpGate.Release(); }
+        using (await AcquireSlotAsync(ct))
+            response = await _http.GetAsync(historyPath, ct);
 
         // Feed the shared error-limit tracker so the background history sweep self-throttles
         // and can never push us over ESI's error limit — even when it runs on its own.
@@ -401,6 +596,10 @@ public class EsiClient
         int? reset  = headers.TryGetValues("X-Esi-Error-Limit-Reset", out var sv)
                       && int.TryParse(sv.FirstOrDefault(), out var s) ? s : null;
         UpdateErrorLimitState((int)response.StatusCode, remain, reset);
+        RecordRouteLimit(historyPath, (int)response.StatusCode,
+            headers.TryGetValues("X-Ratelimit-Group", out var gv) ? gv.FirstOrDefault() : null,
+            headers.TryGetValues("Retry-After", out var ra) && int.TryParse(ra.FirstOrDefault(), out var raSecs) ? raSecs : null,
+            reset);
 
         if (!response.IsSuccessStatusCode) return (null, (int)response.StatusCode);
         var data = await response.Content.ReadFromJsonAsync<List<EsiMarketHistoryEntry>>(JsonOptions, ct) ?? [];
@@ -479,6 +678,23 @@ public class EsiClient
     internal async Task<EsiCallResult<T>> ExecuteAuthAsync<T>(
         long characterId, string path, CancellationToken ct, int page = 0)
     {
+        // ⚠️ The same stand-down the public and raw paths already make. This one did not, so
+        // while the app was sitting out a 420 every authenticated call still went to the wire —
+        // each one another error against a budget that was exhausted, which is what keeps it
+        // exhausted. The caller gets the reason in words, the way a route block is reported,
+        // instead of a bare failure it cannot tell from a dropped connection.
+        if (IsErrorLimitBlocked)
+            return new EsiCallResult<T>
+            {
+                StatusCode        = _serverOffline ? 503 : 420,
+                RetryAfterSeconds = ErrorLimitSecondsRemaining,
+                NotSent           = true,
+                Error             = _serverOffline
+                    ? "Tranquility is offline; ESI is paused."
+                    : $"ESI error limit reached; calls are paused for {ErrorLimitSecondsRemaining}s.",
+            };
+        if (RouteBlockedFor(path) is { } wait)
+            return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
         {
             var token = await EnsureValidTokenAsync(characterId, ct);
@@ -488,10 +704,9 @@ public class EsiClient
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
             var headers  = response.Headers;
 
             int? TryGetInt(string name) =>
@@ -514,6 +729,7 @@ public class EsiClient
             var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
             var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
             UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+            RecordRouteLimit(path, statusCode, TryGetStr("X-Ratelimit-Group"), TryGetInt("Retry-After"), errorLimitReset);
 
             return new EsiCallResult<T>
             {
@@ -534,6 +750,18 @@ public class EsiClient
             };
         }
         catch (OperationCanceledException) { throw; }
+        catch (EsiTokenRevokedException ex)
+        {
+            // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
+            // way an error-limit pause is, so the pollers neither record it nor advance on it.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -557,6 +785,7 @@ public class EsiClient
                 TotalPages = firstPage.TotalPages,
                 Expires    = firstPage.Expires,
                 Error      = firstPage.Error,
+                NotSent    = firstPage.NotSent,
             };
         }
 
@@ -607,6 +836,13 @@ public class EsiClient
     private async Task<EsiCallResult<T>> ExecutePublicAsync<T>(
         string path, CancellationToken ct, int page = 0)
     {
+        // ⚠️ Public calls stand down with the rest while Tranquility is offline. They went to the
+        // wire before — a market refresh due in the downtime window failed page by page and
+        // logged every one — and the error budget they spend is the same budget.
+        if (_serverOffline)
+            return new EsiCallResult<T> { StatusCode = 503, NotSent = true, Error = "Tranquility is offline; ESI is paused." };
+        if (RouteBlockedFor(path) is { } wait)
+            return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
         {
             var url      = page > 0 ? $"{path}?page={page}" : path;
@@ -643,6 +879,9 @@ public class EsiClient
             var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
             var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
             UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+            string? TryGetStr(string name) =>
+                response.Headers.TryGetValues(name, out var vals) ? vals.FirstOrDefault() : null;
+            RecordRouteLimit(path, statusCode, TryGetStr("X-Ratelimit-Group"), TryGetInt("Retry-After"), errorLimitReset);
 
             return new EsiCallResult<T>
             {
@@ -656,9 +895,92 @@ public class EsiClient
             };
         }
         catch (OperationCanceledException) { throw; }
+        catch (EsiTokenRevokedException ex)
+        {
+            // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
+            // way an error-limit pause is, so the pollers neither record it nor advance on it.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
+        }
+    }
+
+    /// <summary>What a request the agent composed came back with, as text.</summary>
+    public sealed record RawResult(int StatusCode, string Body, int? ErrorLimitRemain, DateTimeOffset? Expires, string? Error,
+                                   int TotalPages = 1, int? RetryAfterSeconds = null)
+    {
+        public bool IsSuccess => StatusCode is >= 200 and < 300;
+    }
+
+    /// <summary>
+    /// A request the agent composed — path, optional JSON body, optional character to sign it as —
+    /// returned as the raw response text rather than deserialised into a type.
+    ///
+    /// <para>⚠️ Through this client and not an HttpClient of its own, and that is the point. The
+    /// error budget, the concurrency gate, the compatibility date and the token refresh all live
+    /// here; an agent that reached ESI directly would spend the same 100-errors-a-minute budget
+    /// as the polling without the polling knowing, which is exactly how the killmail backfill
+    /// once took 607 rejections while the rest of the app believed the budget untouched.</para>
+    ///
+    /// <para>Refused outright while the client is error-limited or the server is offline, with a
+    /// status of 0 and a reason — a call that cannot succeed should not cost an error.</para>
+    /// </summary>
+    public async Task<RawResult> RequestRawAsync(
+        HttpMethod method, string path, string? jsonBody, long? characterId, CancellationToken ct = default)
+    {
+        if (IsErrorLimitBlocked)
+            return new RawResult(0, "", null, null,
+                _serverOffline ? "Tranquility is offline; ESI is paused."
+                               : "ESI error limit reached; calls are paused until it resets.");
+        if (RouteBlockedFor(path) is { } wait)
+            return new RawResult(429, "", null, null, RouteBlockedMessage(wait), RetryAfterSeconds: wait);
+        try
+        {
+            using var request = new HttpRequestMessage(method, path);
+            if (jsonBody is not null)
+                request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            if (characterId is { } charId)
+            {
+                var token = await EnsureValidTokenAsync(charId, ct);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+            }
+
+            HttpResponseMessage response;
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
+            using (response)
+            {
+                int? TryGetInt(string name) =>
+                    response.Headers.TryGetValues(name, out var vals)
+                    && int.TryParse(vals.FirstOrDefault(), out var v) ? v : null;
+
+                var statusCode       = (int)response.StatusCode;
+                var body             = await response.Content.ReadAsStringAsync(ct);
+                var errorLimitRemain = TryGetInt("X-Esi-Error-Limit-Remain");
+                var errorLimitReset  = TryGetInt("X-Esi-Error-Limit-Reset");
+                UpdateErrorLimitState(statusCode, errorLimitRemain, errorLimitReset);
+                RecordRouteLimit(path, statusCode,
+                    response.Headers.TryGetValues("X-Ratelimit-Group", out var g) ? g.FirstOrDefault() : null,
+                    TryGetInt("Retry-After"), errorLimitReset);
+
+                return new RawResult(statusCode, body, errorLimitRemain, response.Content.Headers.Expires,
+                                     response.IsSuccessStatusCode ? null : body,
+                                     TryGetInt("X-Pages") ?? 1,
+                                     TryGetInt("Retry-After"));
+            }
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            return new RawResult(0, "", null, null, ex.Message);
         }
     }
 
@@ -677,6 +999,7 @@ public class EsiClient
             {
                 Data               = firstPage.Data ?? [],
                 StatusCode         = firstPage.StatusCode,
+                NotSent            = firstPage.NotSent,
                 TotalPages         = firstPage.TotalPages,
                 RateLimitGroup     = firstPage.RateLimitGroup,
                 RateLimitRemaining = firstPage.RateLimitRemaining,
@@ -743,6 +1066,20 @@ public class EsiClient
         long corpId, string path, CancellationToken ct, int page = 0,
         IReadOnlyDictionary<string, string>? extraHeaders = null)
     {
+        // The same stand-down the character path makes above, for the same reason: the error
+        // budget a corporation call spends while paused is the one everything else is waiting on.
+        if (IsErrorLimitBlocked)
+            return new EsiCallResult<T>
+            {
+                StatusCode        = _serverOffline ? 503 : 420,
+                RetryAfterSeconds = ErrorLimitSecondsRemaining,
+                NotSent           = true,
+                Error             = _serverOffline
+                    ? "Tranquility is offline; ESI is paused."
+                    : $"ESI error limit reached; calls are paused for {ErrorLimitSecondsRemaining}s.",
+            };
+        if (RouteBlockedFor(path) is { } wait)
+            return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try
         {
             var token = await EnsureValidCorpTokenAsync(corpId, ct);
@@ -755,10 +1092,9 @@ public class EsiClient
                 foreach (var (k, v) in extraHeaders)
                     request.Headers.TryAddWithoutValidation(k, v);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
             var headers  = response.Headers;
 
             int? TryGetInt(string name) =>
@@ -781,6 +1117,7 @@ public class EsiClient
             var esiErrorRemain = TryGetInt("X-Esi-Error-Limit-Remain");
             var esiErrorReset  = TryGetInt("X-Esi-Error-Limit-Reset");
             UpdateErrorLimitState(statusCode, esiErrorRemain, esiErrorReset);
+            RecordRouteLimit(path, statusCode, TryGetStr("X-Ratelimit-Group"), TryGetInt("Retry-After"), esiErrorReset);
 
             return new EsiCallResult<T>
             {
@@ -802,6 +1139,18 @@ public class EsiClient
             };
         }
         catch (OperationCanceledException) { throw; }
+        catch (EsiTokenRevokedException ex)
+        {
+            // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
+            // way an error-limit pause is, so the pollers neither record it nor advance on it.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -832,6 +1181,7 @@ public class EsiClient
             {
                 Data               = firstPage.Data ?? [],
                 StatusCode         = firstPage.StatusCode,
+                NotSent            = firstPage.NotSent,
                 TotalPages         = firstPage.TotalPages,
                 RateLimitGroup     = firstPage.RateLimitGroup,
                 RateLimitRemaining = firstPage.RateLimitRemaining,
@@ -914,10 +1264,9 @@ public class EsiClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Content = JsonBody(body);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
 
             var statusCode = (int)response.StatusCode;
             T? data = default;
@@ -968,10 +1317,9 @@ public class EsiClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Content = JsonBody(body);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
 
             var statusCode = (int)response.StatusCode;
 
@@ -1006,10 +1354,9 @@ public class EsiClient
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Content = JsonBody(body);
 
-            await _httpGate.WaitAsync(ct);
             HttpResponseMessage response;
-            try { response = await _http.SendAsync(request, ct); }
-            finally { _httpGate.Release(); }
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
 
             return response.IsSuccessStatusCode;
         }
@@ -1019,13 +1366,20 @@ public class EsiClient
 
     private async Task<TokenSet> EnsureValidCorpTokenAsync(long corpId, CancellationToken ct)
     {
+        if (_revokedCorps.TryGetValue(corpId, out var refused))
+            throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_corpTokens.TryGetValue(corpId, out var tokens))
-            throw new InvalidOperationException(
+            throw new EsiOwnerNotRegisteredException(
                 $"No token registered for corporation {corpId}. Call RegisterCorporation() first.");
 
         if (tokens.IsExpired)
         {
-            tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
+            try { tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct); }
+            catch (EsiTokenRevokedException ex)
+            {
+                Revoke(_revokedCorps, _corpTokens, corpId, "corporation", ex);
+                throw;
+            }
             _corpTokens[corpId] = tokens;
             NotifyScopes(corpId, "corporation", tokens);
         }
@@ -1034,13 +1388,20 @@ public class EsiClient
 
     private async Task<TokenSet> EnsureValidTokenAsync(long characterId, CancellationToken ct)
     {
+        if (_revokedCharacters.TryGetValue(characterId, out var refused))
+            throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_tokens.TryGetValue(characterId, out var tokens))
-            throw new InvalidOperationException(
+            throw new EsiOwnerNotRegisteredException(
                 $"No token registered for character {characterId}. Call RegisterCharacter() or SetTokens() first.");
 
         if (tokens.IsExpired)
         {
-            tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct);
+            try { tokens = await _auth.RefreshAsync(tokens.RefreshToken, ct); }
+            catch (EsiTokenRevokedException ex)
+            {
+                Revoke(_revokedCharacters, _tokens, characterId, "character", ex);
+                throw;
+            }
             _tokens[characterId] = tokens;
             NotifyScopes(characterId, "character", tokens);
         }
@@ -1058,12 +1419,16 @@ public class EsiClient
     /// Tokens are refreshed lazily, on the first call after the roughly twenty-minute expiry, so
     /// every character in regular use is put right within the hour without anyone re-authorising
     /// anything.</para>
+    ///
+    /// <para>The refresh token the SSO handed back rides along. It has been the same one every
+    /// time so far, but the OAuth contract allows a new one, and a rotated token this class held
+    /// only in memory would be gone at the next start — the character silently unauthorised.</para>
     /// </summary>
-    public Func<long, string, string[], Task>? AfterTokenRefreshed { get; set; }
+    public Func<long, string, string[], string, Task>? AfterTokenRefreshed { get; set; }
 
     private void NotifyScopes(long ownerId, string ownerType, TokenSet tokens)
     {
-        if (AfterTokenRefreshed is null) return;
+        if (AfterTokenRefreshed is not { } hook) return;
 
         var scopes = JwtHelper.GetScopes(tokens.AccessToken);
         if (scopes.Length == 0) return;   // unreadable claim: leave the stored list alone
@@ -1072,7 +1437,58 @@ public class EsiClient
         // never delay or fail it. Errors are swallowed here for the same reason.
         _ = Task.Run(async () =>
         {
-            try { await AfterTokenRefreshed(ownerId, ownerType, scopes); } catch { }
+            try { await hook(ownerId, ownerType, scopes, tokens.RefreshToken); } catch { }
+        });
+    }
+
+    /// <summary>
+    /// Raised once when the SSO refuses an owner's refresh token, with the SSO's reason. Wired
+    /// in <c>App.axaml.cs</c> to retire the token in the database — cleared, so every roster
+    /// query that selects on it drops the owner — and to record why, so Settings and the status
+    /// bar can say so. Like <see cref="AfterTokenRefreshed"/>, a delegate: this class does not
+    /// know about persistence.
+    /// </summary>
+    public Func<long, string, string, Task>? TokenRevoked { get; set; }
+
+    /// <summary>
+    /// The same news for this process's own views, synchronously and before the database is
+    /// touched: a Settings window that is open should change the moment the refusal lands, not
+    /// after a reload. (ownerId, ownerType, reason.)
+    /// </summary>
+    public event Action<long, string, string>? OwnerRevoked;
+
+    /// <summary>Owners this client has seen refused since it started. The status bar's cue to
+    /// read the database again, which is where the count every client agrees on lives.</summary>
+    public int RevokedThisSession => _revokedCharacters.Count + _revokedCorps.Count;
+
+    /// <summary>
+    /// Whether a registration should leave the stand-down in place. Only a DIFFERENT token
+    /// lifts it: a re-authorisation always mints a new one. The same token again is a view
+    /// model that loaded before the retire was written re-registering what it read — and an
+    /// empty one is the retired row itself — and either would have sent the client back to
+    /// the SSO with a token already refused, for another refusal and another log entry.
+    /// </summary>
+    private static bool StillRefused(ConcurrentDictionary<long, Refused> revoked, long ownerId, string refreshToken)
+    {
+        if (!revoked.TryGetValue(ownerId, out var r)) return false;
+        if (refreshToken.Length == 0 || refreshToken == r.Token) return true;
+        revoked.TryRemove(ownerId, out _);
+        return false;
+    }
+
+    private void Revoke(ConcurrentDictionary<long, Refused> revoked, ConcurrentDictionary<long, TokenSet> tokens,
+                        long ownerId, string ownerType, EsiTokenRevokedException ex)
+    {
+        // First refusal only: with several pollers sharing an owner, the second and later arrive
+        // while the first is still being written up, and one entry per owner is the point.
+        tokens.TryRemove(ownerId, out var dead);
+        if (!revoked.TryAdd(ownerId, new Refused(dead?.RefreshToken ?? "", ex.Description))) return;
+
+        OwnerRevoked?.Invoke(ownerId, ownerType, ex.Message);
+        if (TokenRevoked is not { } hook) return;
+        _ = Task.Run(async () =>
+        {
+            try { await hook(ownerId, ownerType, ex.Message); } catch { }
         });
     }
 }

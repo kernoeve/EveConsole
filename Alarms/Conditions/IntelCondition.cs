@@ -135,7 +135,8 @@ public sealed class IntelCondition : IAlarmCondition
         await using var conn = AppDb.Connect();
         await conn.OpenAsync(ct);
 
-        var watched = new HashSet<int>();
+        var watched   = new HashSet<int>();
+        var distances = new Dictionary<int, int>();   // from the origin, when there is one
 
         foreach (var id in await ResolveSystemsAsync(conn, names, ct)) watched.Add(id);
 
@@ -143,8 +144,12 @@ public sealed class IntelCondition : IAlarmCondition
         {
             var originIds = await ResolveSystemsAsync(conn, [origin], ct);
             foreach (var oid in originIds)
-                foreach (var id in await _graph.WithinJumpsAsync(oid, jumps, ct))
+                foreach (var (id, hops) in await _graph.DistancesWithinAsync(oid, jumps, ct))
+                {
                     watched.Add(id);
+                    // The nearer figure when two origins resolve — a name given twice.
+                    if (!distances.TryGetValue(id, out var known) || hops < known) distances[id] = hops;
+                }
         }
 
         // No resolvable system means nothing to watch. Returning empty rather than everything
@@ -163,15 +168,15 @@ public sealed class IntelCondition : IAlarmCondition
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
                 SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
                 FROM "IntelReports"
-                WHERE "ReportedAt" >= $cutoff
+                WHERE "ReportedAt" >= @cutoff
                   AND "SystemId" IN ({idList})
-                  AND "PlayerCount" >= $minimum
+                  AND "PlayerCount" >= @minimum
                   {(skipNv ? """AND "NoVisual" = FALSE""" : "")}
                 ORDER BY "Id" DESC
                 LIMIT {MaxReports}
                 """);
-            cmd.AddWithValue("$cutoff", cutoff);
-            cmd.AddWithValue("$minimum", minimum);
+            cmd.AddWithValue("@cutoff", cutoff);
+            cmd.AddWithValue("@minimum", minimum);
 
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
@@ -181,14 +186,20 @@ public sealed class IntelCondition : IAlarmCondition
                     r.IsDBNull(2) ? 0 : r.GetInt32(2),
                     r.IsDBNull(3) ? "" : r.GetString(3),
                     r.IsDBNull(4) ? null : r.GetString(4),
-                    r.IsDBNull(5) ? default : r.GetDateTime(5),
+                    // ⚠️ ReportedAt is TEXT on both engines — "2026-09-11T23:19:09Z" — and Npgsql
+                    // refuses GetDateTime on a text column, where SQLite quietly parsed it. Read
+                    // as the string it is and parse it as the UTC instant it is; the seen-key is
+                    // built from this, so it must not depend on the machine's clock setting.
+                    r.IsDBNull(5) ? default : ParseUtc(r.GetString(5)),
                     r.IsDBNull(6) ? 0 : r.GetInt32(6)));
         }
 
         if (reports.Count == 0) return [];
 
-        // Named pilots, so the alert can say who rather than just how many.
+        // Named pilots and their hulls, kept apart: the announcement says the hulls first, the
+        // names after, and a name with the hull in brackets could do neither.
         var pilots = new Dictionary<long, List<string>>();
+        var hulls  = new Dictionary<long, List<string>>();
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
@@ -205,42 +216,132 @@ public sealed class IntelCondition : IAlarmCondition
                 if (string.IsNullOrWhiteSpace(name)) continue;
 
                 if (!pilots.TryGetValue(reportId, out var list)) pilots[reportId] = list = [];
-                list.Add(string.IsNullOrWhiteSpace(ship) ? name : $"{name} ({ship})");
+                list.Add(name);
+                if (!string.IsNullOrWhiteSpace(ship))
+                {
+                    if (!hulls.TryGetValue(reportId, out var hl)) hulls[reportId] = hl = [];
+                    hl.Add(ship);
+                }
             }
         }
 
         var matches = new List<AlarmMatch>(reports.Count);
         foreach (var rep in reports)
         {
-            var who = pilots.TryGetValue(rep.Id, out var list) && list.Count > 0
-                ? " — " + string.Join(", ", list.Take(5)) + (list.Count > 5 ? $", +{list.Count - 5}" : "")
+            var names_ = pilots.TryGetValue(rep.Id, out var list) ? list : [];
+            var ships  = hulls.TryGetValue(rep.Id, out var hl) ? hl : [];
+            var who    = names_.Count > 0
+                ? " — " + string.Join(", ", names_.Take(5)) + (names_.Count > 5 ? $", +{names_.Count - 5}" : "")
                 : "";
 
             var headline = rep.Count == 1 ? "1 pilot" : $"{rep.Count} pilots";
+            var jumpsOut = distances.TryGetValue(rep.SystemId, out var d) ? d : (int?)null;
 
-            // Keyed on what identifies the sighting — when, who said it, where — and NOT on the
-            // report's row id. A chat log re-read (routine on a synced share, where the file
-            // length appears to go backwards) deletes and re-inserts every report with a fresh
-            // id, and an id-based key would make hours-old sightings look new every time that
-            // happened. That is what produced the same nine alerts three times over.
+            // Keyed on WHERE, WHO was seen and a five-minute slice of WHEN — and not on the
+            // report's row id, nor on who said it. A row id changes whenever a chat log is
+            // re-read (routine on a synced share), which is what once produced the same nine
+            // alerts three times over. The reporter is left out and the time is coarse on
+            // purpose: the same pilots called out in the same system by three people inside a
+            // minute are one sighting, and were being announced three times. Five minutes on,
+            // the same call is a new sighting — pilots circle back, and a sighting that is not
+            // repeated reads as a sighting that ended.
             matches.Add(new AlarmMatch(
-                $"intel:{rep.At:yyyy-MM-ddTHH:mm:ss}|{rep.Reporter}|{rep.SystemId}",
-                $"{headline} in {rep.System}{who} (reported by {rep.Reporter})")
+                MatchKey(rep.SystemId, rep.At, names_, rep.Count),
+                $"{headline} in {rep.System}{who}")
             {
                 Detail = new Dictionary<string, object?>
                 {
                     ["report_id"] = rep.Id,
                     ["system"]    = rep.System,
+                    ["system_id"] = rep.SystemId,
                     ["count"]     = rep.Count,
-                    ["reporter"]  = rep.Reporter,
-                    ["pilots"]    = list,
+                    ["pilots"]    = names_,
+                    ["hulls"]     = ships,
                     ["note"]      = rep.Note,
+                    ["jumps"]     = jumpsOut,
+                    ["at"]        = rep.At,
                 },
             });
         }
 
         return matches;
     }
+
+    /// <summary>
+    /// The sentence to be spoken, exactly. Count and system first, because that is what decides
+    /// whether to warp now; then the hulls; then the names; then whatever else the report said.
+    /// Never who reported it. One sighting per system: three people calling the same pilot in
+    /// the same system inside a minute is one fact, said once, with everything any of them added.
+    /// Newest system first when there are several.
+    /// </summary>
+    public string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches)
+        => ComposeAnnouncement(matches);
+
+    internal static string? ComposeAnnouncement(IReadOnlyList<AlarmMatch> matches)
+    {
+        if (matches.Count == 0) return null;
+
+        var perSystem = matches
+            .Where(m => m.Detail is not null)
+            .GroupBy(m => m.Detail!.TryGetValue("system_id", out var s) && s is int id ? id : 0)
+            .Select(g => new
+            {
+                System = g.Select(m => Str(m.Detail!, "system")).FirstOrDefault(s => s.Length > 0) ?? "an unknown system",
+                Newest = g.Max(m => m.Detail!.TryGetValue("at", out var a) && a is DateTime at ? at : DateTime.MinValue),
+                Count  = g.Max(m => m.Detail!.TryGetValue("count", out var c) && c is int n ? n : 0),
+                Pilots = g.SelectMany(m => Names(m.Detail!, "pilots")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                Hulls  = g.SelectMany(m => Names(m.Detail!, "hulls")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                Notes  = g.Select(m => Str(m.Detail!, "note").Trim().TrimEnd('.')).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                Jumps  = g.Select(m => m.Detail!.TryGetValue("jumps", out var j) && j is int hops ? hops : (int?)null).Where(j => j is not null).Min(),
+            })
+            .OrderByDescending(s => s.Newest)
+            .ToList();
+
+        var sb = new System.Text.StringBuilder();
+        foreach (var s in perSystem)
+        {
+            var count = Math.Max(s.Count, s.Pilots.Count);
+            if (sb.Length > 0) sb.Append(' ');
+            sb.Append(count == 1 ? "1 hostile" : $"{count} hostiles").Append(" reported in ").Append(s.System);
+            if (s.Jumps is { } jumps)
+                sb.Append(jumps switch { 0 => ", here", 1 => ", 1 jump out", _ => $", {jumps} jumps out" });
+            sb.Append('.');
+
+            if (s.Hulls.Count > 0)
+                sb.Append(" Flying ").Append(s.Hulls.Count == 1 ? Article(s.Hulls[0]) : Join(s.Hulls)).Append('.');
+            if (s.Pilots.Count > 0)
+                sb.Append(' ').Append(string.Join(", ", s.Pilots.Take(5)))
+                  .Append(s.Pilots.Count > 5 ? $" and {s.Pilots.Count - 5} more." : ".");
+            foreach (var note in s.Notes.Take(3))
+                sb.Append(' ').Append(note).Append('.');
+        }
+        return sb.ToString();
+
+        static string Str(IReadOnlyDictionary<string, object?> d, string key)
+            => d.TryGetValue(key, out var v) && v is string s ? s : "";
+        static IEnumerable<string> Names(IReadOnlyDictionary<string, object?> d, string key)
+            => d.TryGetValue(key, out var v) && v is IEnumerable<string> list ? list.Where(n => !string.IsNullOrWhiteSpace(n)) : [];
+        static string Article(string hull)
+            => ("aeiou".Contains(char.ToLowerInvariant(hull[0])) ? "an " : "a ") + hull;
+        static string Join(List<string> items)
+            => items.Count <= 3
+                ? string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1]
+                : string.Join(", ", items.Take(3)) + " and more";
+    }
+
+    internal static string MatchKey(int systemId, DateTime at, IReadOnlyList<string> names, int count)
+    {
+        var bucket    = new DateTime(at.Ticks - at.Ticks % TimeSpan.FromMinutes(5).Ticks, DateTimeKind.Utc);
+        var signature = names.Count > 0
+            ? string.Join(",", names.Select(n => n.ToLowerInvariant()).Distinct().Order())
+            : $"n{count}";
+        return $"intel:{systemId}|{bucket:yyyy-MM-ddTHH:mm}|{signature}";
+    }
+
+    private static DateTime ParseUtc(string text)
+        => DateTime.TryParse(text, CultureInfo.InvariantCulture,
+                             DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var at)
+           ? at : default;
 
     private static async Task<List<int>> ResolveSystemsAsync(
         DbConnection conn, IReadOnlyList<string> names, CancellationToken ct)
@@ -250,8 +351,8 @@ public sealed class IntelCondition : IAlarmCondition
         {
             if (string.IsNullOrWhiteSpace(name)) continue;
 
-            await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper($n) LIMIT 1""");
-            cmd.AddWithValue("$n", name.Trim());
+            await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper(@n) LIMIT 1""");
+            cmd.AddWithValue("@n", name.Trim());
 
             var result = await cmd.ExecuteScalarAsync(ct);
             if (result is not null and not DBNull) ids.Add(Convert.ToInt32(result));

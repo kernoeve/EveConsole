@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using EveConsole.Agent;
+using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.ViewModels;
 
@@ -29,6 +30,15 @@ public class IsSummaryBorderConverter : IValueConverter
     public object ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
 }
 
+/// <summary>A price-type key as a person sees it: "Midpoint" shows as "Split". The key itself
+/// is what a ComboBox selects and saves, so nothing stored changes.</summary>
+public class PriceTypeLabelConverter : IValueConverter
+{
+    public static readonly PriceTypeLabelConverter Instance = new();
+    public object? Convert(object? v, Type t, object? p, CultureInfo c) => v is string s ? MarketPriceType.Label(s) : v;
+    public object? ConvertBack(object? v, Type t, object? p, CultureInfo c) => throw new NotSupportedException();
+}
+
 public class IsSummaryForegroundConverter : IValueConverter
 {
     public static readonly IsSummaryForegroundConverter Instance = new();
@@ -44,6 +54,23 @@ public class MessageRoleAlignmentConverter : IValueConverter
         => value is MessageRole r && r == MessageRole.User
             ? HorizontalAlignment.Right
             : HorizontalAlignment.Left;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>
+/// A width less a fixed margin, for a chat bubble whose ceiling should follow its panel. The
+/// agent panel is resizable; a bubble capped at a number stays narrow in a panel made wide.
+/// </summary>
+public class WidthLessConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var width = value is Rect r ? r.Width : value is double d ? d : 0;
+        var less  = parameter is string s && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var p) ? p : 0;
+        return Math.Max(120, width - less);
+    }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -113,18 +140,6 @@ public class NullableDecimalToPositiveDoubleConverter : IValueConverter
         if (value is not decimal v || v <= 0) return AvaloniaProperty.UnsetValue;
         return (double)v;
     }
-}
-
-// Display name for the LLM provider dropdown — flags Local as untested.
-public class AgentProviderDisplayConverter : IValueConverter
-{
-    public static readonly AgentProviderDisplayConverter Instance = new();
-
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is AgentProviderType.Local ? "Local (Untested)" : value?.ToString();
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
 }
 
 public class ProfitColorConverter : IValueConverter
@@ -213,6 +228,26 @@ public class DbEngineLogoConverter : IValueConverter
 /// grey rather than amber — the first read has not come back yet, and alarming about a worker
 /// that is very probably fine is how an indicator teaches people to ignore it.</para>
 /// </summary>
+/// <summary>What an alarm action's kind is called in the editor's picker.</summary>
+public class AlarmActionKindNameConverter : IValueConverter
+{
+    public static readonly AlarmActionKindNameConverter Instance = new();
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value switch
+        {
+            Models.AlarmActionKind.Sound       => "Sound",
+            Models.AlarmActionKind.TtsDirect   => "TTS direct (agent bypass)",
+            Models.AlarmActionKind.AgentNotify => "Agent notify",
+            Models.AlarmActionKind.Alert       => "Alert",
+            Models.AlarmActionKind.Dialog      => "Dialog",
+            _                                  => value?.ToString() ?? "",
+        };
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class WorkerStateBrushConverter : IValueConverter
 {
     public static readonly WorkerStateBrushConverter Instance = new();

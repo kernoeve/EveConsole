@@ -305,7 +305,7 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Material" SortMemberPath="TypeName" Width="*">
+                <DataGridTemplateColumn Header="Material" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <Panel>
@@ -320,7 +320,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Quantity" Width="90" SortMemberPath="Quantity">
+                <DataGridTemplateColumn Header="Quantity" Width="90" SortMemberPath="Quantity" ClipboardContentBinding="{Binding Quantity, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
@@ -328,7 +328,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Missing" Width="90" SortMemberPath="Missing">
+                <DataGridTemplateColumn Header="Missing" Width="90" SortMemberPath="Missing" ClipboardContentBinding="{Binding MissingDisplay}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding MissingDisplay}" FontSize="10"
@@ -337,7 +337,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Unit Price" Width="100" SortMemberPath="UnitPrice">
+                <DataGridTemplateColumn Header="Unit Price" Width="100" SortMemberPath="UnitPrice" ClipboardContentBinding="{Binding UnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
@@ -345,7 +345,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost">
+                <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding TotalCost, StringFormat=N0}" FontSize="10"
@@ -368,7 +368,7 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <Panel>
@@ -383,7 +383,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Needed" Width="80" SortMemberPath="QuantityNeeded">
+                <DataGridTemplateColumn Header="Needed" Width="80" SortMemberPath="QuantityNeeded" ClipboardContentBinding="{Binding QuantityNeeded, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding QuantityNeeded, StringFormat=N0}" FontSize="10"
@@ -391,7 +391,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Produced" Width="80" SortMemberPath="QuantityProduced">
+                <DataGridTemplateColumn Header="Produced" Width="80" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
@@ -399,7 +399,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Leftover" Width="80" SortMemberPath="Leftover">
+                <DataGridTemplateColumn Header="Leftover" Width="80" SortMemberPath="Leftover" ClipboardContentBinding="{Binding Leftover, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding Leftover, StringFormat=N0}" FontSize="10"
@@ -407,7 +407,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Build Value" Width="90" SortMemberPath="MarketUnitPrice">
+                <DataGridTemplateColumn Header="Build Value" Width="90" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
@@ -415,7 +415,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Leftover Value" Width="110" SortMemberPath="LeftoverValue">
+                <DataGridTemplateColumn Header="Leftover Value" Width="110" SortMemberPath="LeftoverValue" ClipboardContentBinding="{Binding LeftoverValue, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding LeftoverValue, StringFormat=N0}" FontSize="10"
@@ -439,7 +439,7 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <Panel>
@@ -455,7 +455,7 @@
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Source" Binding="{Binding Source}"   Width="110"/>
-                <DataGridTemplateColumn Header="Quantity" Width="80" SortMemberPath="Quantity">
+                <DataGridTemplateColumn Header="Quantity" Width="80" SortMemberPath="Quantity" ClipboardContentBinding="{Binding Quantity, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
@@ -463,7 +463,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Build Value" Width="100" SortMemberPath="UnitPrice">
+                <DataGridTemplateColumn Header="Build Value" Width="100" SortMemberPath="UnitPrice" ClipboardContentBinding="{Binding UnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
@@ -471,7 +471,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Value" Width="100" SortMemberPath="TotalValue">
+                <DataGridTemplateColumn Header="Total Value" Width="100" SortMemberPath="TotalValue" ClipboardContentBinding="{Binding TotalValue, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <TextBlock Text="{Binding TotalValue, StringFormat=N0}" FontSize="10"
@@ -496,7 +496,7 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <Panel>
@@ -511,7 +511,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Req" Width="70" SortMemberPath="QuantityRequested">
+                <DataGridTemplateColumn Header="Req" Width="70" SortMemberPath="QuantityRequested" ClipboardContentBinding="{Binding QuantityRequested, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding QuantityRequested, StringFormat=N0}" FontSize="10"
@@ -519,7 +519,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Produced" Width="70" SortMemberPath="QuantityProduced">
+                <DataGridTemplateColumn Header="Produced" Width="70" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
@@ -527,7 +527,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="ME" Width="36" SortMemberPath="MeLevel">
+                <DataGridTemplateColumn Header="ME" Width="36" SortMemberPath="MeLevel" ClipboardContentBinding="{Binding MeLevel}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding MeLevel}" FontSize="10"
@@ -535,7 +535,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Mat Cost" Width="100" SortMemberPath="TotalMaterialCost">
+                <DataGridTemplateColumn Header="Mat Cost" Width="100" SortMemberPath="TotalMaterialCost" ClipboardContentBinding="{Binding TotalMaterialCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding TotalMaterialCost, StringFormat=N0}" FontSize="10"
@@ -543,7 +543,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Job Cost" Width="90" SortMemberPath="TotalJobCost">
+                <DataGridTemplateColumn Header="Job Cost" Width="90" SortMemberPath="TotalJobCost" ClipboardContentBinding="{Binding TotalJobCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding TotalJobCost, StringFormat=N0}" FontSize="10"
@@ -551,7 +551,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Unit Cost" Width="100" SortMemberPath="UnitCost">
+                <DataGridTemplateColumn Header="Unit Cost" Width="100" SortMemberPath="UnitCost" ClipboardContentBinding="{Binding UnitCost, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding UnitCost, StringFormat=N2}" FontSize="10"
@@ -559,7 +559,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Cost" Width="100" SortMemberPath="TotalCost">
+                <DataGridTemplateColumn Header="Total Cost" Width="100" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding TotalCost, StringFormat=N0}" FontSize="10"
@@ -567,7 +567,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Market/Unit" Width="100" SortMemberPath="MarketUnitPrice">
+                <DataGridTemplateColumn Header="Market/Unit" Width="100" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
@@ -575,7 +575,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Profit" Width="90" SortMemberPath="Profit">
+                <DataGridTemplateColumn Header="Profit" Width="90" SortMemberPath="Profit" ClipboardContentBinding="{Binding Profit, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding Profit, StringFormat=N0}" FontSize="10"
@@ -583,7 +583,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Margin" Width="70" SortMemberPath="ProfitMargin">
+                <DataGridTemplateColumn Header="Margin" Width="70" SortMemberPath="ProfitMargin" ClipboardContentBinding="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}" FontSize="10"

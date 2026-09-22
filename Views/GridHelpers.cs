@@ -1,5 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -109,6 +111,21 @@ internal sealed class CellSelectionService
 /// Orange matches the standing-projects and standing-buy-order panels — the row is
 /// telling you something is worth fixing, not that it has failed.
 /// </summary>
+/// <summary>
+/// What Ctrl+C copies from a column built over a <see cref="GridRow"/>: the text its cell shows.
+/// ⚠️ A template column copies nothing unless told what — every such column came across as ""
+/// (issue #106). The binding is to the row itself, read through a converter, since a binding path
+/// through the indexer would have to survive column names like "ISK/m³".
+/// </summary>
+internal static class GridRowCopy
+{
+    public static IBinding Binding(string column) => new Binding
+    {
+        Converter = new FuncValueConverter<GridRow?, string>(row =>
+            row is null ? "" : column == "Time Remaining" ? TimeRemainingHelper.Compute(row) : row[column]),
+    };
+}
+
 internal static class GridWarning
 {
     /// <summary>Hidden column; not listed in DisplayColumns, so it never renders.</summary>

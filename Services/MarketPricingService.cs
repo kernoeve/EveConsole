@@ -107,6 +107,14 @@ public class MarketPricingService
         {
             if (ct.IsCancellationRequested) break;
 
+            // Tranquility offline: nothing would answer, and each try would be logged as a
+            // failure. The sources left unrefreshed are due again on the next pass.
+            if (_esiClient.ServerOffline)
+            {
+                StatusText = "Market: paused — Tranquility is offline";
+                break;
+            }
+
             if (onlyDue && config.LastRefreshed.HasValue &&
                 (DateTimeOffset.UtcNow - config.LastRefreshed.Value).TotalSeconds < intervalSeconds)
                 continue;

@@ -1,0 +1,15 @@
+# Keeps the two forms above as the only issue types, and routes everything else somewhere better.
+blank_issues_enabled: false
+
+contact_links:
+  - name: Questions, help and general chat
+    url: https://discord.gg/H6NaAjJMar
+    about: The Discord is the fastest way to get an answer about using the app.
+
+  - name: Documentation
+    url: https://docs.eveconsole.com/
+    about: Install, setup and how the tools work. Worth a look before filing a bug.
+
+  - name: Report a security vulnerability
+    url: https://github.com/kernoeve/EveConsole/security/advisories/new
+    about: Private reporting. Please do not open a public issue for a security problem.

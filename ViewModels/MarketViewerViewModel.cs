@@ -167,13 +167,8 @@ public class MarketViewerViewModel : ReactiveObject
         "JOIN mg_top t ON g.\"ParentGroupId\" = t.\"MarketGroupId\") ";
 
     // Palette for pie slices (last entry — grey — is reserved for the "Other" bucket).
-    private static readonly SKColor[] PiePalette =
-    [
-        new(0xc8, 0xa8, 0x4b), new(0x5b, 0x9b, 0xd5), new(0x70, 0xad, 0x47), new(0xed, 0x7d, 0x31),
-        new(0xa8, 0x79, 0xd8), new(0x17, 0xbe, 0xcf), new(0xe7, 0x4c, 0x3c), new(0xf1, 0xc4, 0x0f),
-        new(0x2e, 0xcc, 0x71), new(0xe8, 0x4d, 0x8a),
-    ];
-    private static readonly SKColor OtherColor = new(0x55, 0x55, 0x66);
+    private static SKColor[] PiePalette => ChartPalette.Pie;
+    private static SKColor   OtherColor => ChartPalette.Other;
 
     public ObservableCollection<MarketGroupSummaryVm> GroupRows { get; } = new();
     public ObservableCollection<MarketTypeSummaryVm>  TypeRows  { get; } = new();

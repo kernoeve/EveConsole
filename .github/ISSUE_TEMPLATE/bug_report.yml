@@ -1,0 +1,86 @@
+name: Bug report
+description: Something in the app does not work, or works wrongly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The fields below are the ones that usually decide whether a bug can
+        be reproduced — the version and the database backend especially, because a good deal of
+        behaviour differs between SQLite and PostgreSQL.
+
+        ⚠️ If this is a **security** problem, please close this and use
+        [private reporting](https://github.com/kernoeve/EveConsole/security/advisories/new)
+        instead — a public issue discloses it to everyone at once.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      description: |
+        The path through the app that gets there. "Worklist → Bottlenecks → Item Contention, then
+        sort by Blocking" is more useful than "the worklist is broken".
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The build shown in the title bar, or Settings → About.
+      placeholder: "0.9.13"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux (AppImage)
+        - Linux (tarball)
+        - Linux (built from source)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database
+      description: Settings → Database says which one you are on.
+      options:
+        - SQLite (the default)
+        - PostgreSQL
+    validations:
+      required: true
+
+  - type: textarea
+    id: errors
+    attributes:
+      label: Anything in the Error Log
+      description: |
+        Settings → Error Log collects failures the app caught. Paste anything from around the time
+        this happened — it is often the whole answer.
+
+        ⚠️ Check it for anything you would rather not publish: character and corporation names,
+        station names, ISK figures, and file paths that include your Windows username.
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots are welcome. Redact what you would rather not show.

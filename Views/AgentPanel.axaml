@@ -5,14 +5,15 @@
              xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.AgentPanel"
              x:DataType="vm:AgentPanelViewModel"
-             Width="360"
              Background="{DynamicResource SurfaceBaseBrush}">
+  <!-- No fixed width: the dock in MainWindow sizes this, and the capsuleer drags its edge. -->
 
   <UserControl.Resources>
     <views:MessageRoleAlignmentConverter  x:Key="RoleAlignment"/>
     <views:MessageRoleBackgroundConverter x:Key="RoleBg"/>
     <views:IsSummaryBorderConverter       x:Key="SummaryBorder"/>
     <views:IsSummaryForegroundConverter   x:Key="SummaryFg"/>
+    <views:WidthLessConverter             x:Key="LessBy"/>
   </UserControl.Resources>
 
   <Grid RowDefinitions="Auto,*,Auto,Auto">
@@ -103,19 +104,30 @@
                            HorizontalAlignment="Center"
                            Margin="0 6 0 2"/>
 
+                <!-- When it was said, on the same side as the bubble — and for the agent's replies,
+                     how many tools the turn called and which. The zero is the point: an answer
+                     full of figures that called nothing did not read the database. -->
+                <TextBlock Text="{Binding MetaText}"
+                           IsVisible="{Binding !IsSummary}"
+                           FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+                           HorizontalAlignment="{Binding Role, Converter={StaticResource RoleAlignment}}"
+                           Margin="16 5 16 0"/>
+
                 <Border Margin="10 3"
                         Padding="10 7"
                         CornerRadius="8"
-                        MaxWidth="290"
+                        MaxWidth="{Binding $parent[views:AgentPanel].Bounds, Converter={StaticResource LessBy}, ConverterParameter=70}"
                         HorizontalAlignment="{Binding Role, Converter={StaticResource RoleAlignment}}"
                         Background="{Binding Role, Converter={StaticResource RoleBg}}"
                         BorderBrush="{Binding IsSummary, Converter={StaticResource SummaryBorder}}"
                         BorderThickness="1">
-                  <TextBlock Text="{Binding Content}"
-                             TextWrapping="Wrap"
-                             Foreground="{Binding IsSummary, Converter={StaticResource SummaryFg}}"
-                             FontSize="11"
-                             LineHeight="17"/>
+                  <!-- Selectable, so a figure or a name the agent produced can be copied out
+                       rather than retyped. -->
+                  <SelectableTextBlock Text="{Binding Content}"
+                                       TextWrapping="Wrap"
+                                       Foreground="{Binding IsSummary, Converter={StaticResource SummaryFg}}"
+                                       FontSize="11"
+                                       LineHeight="17"/>
                 </Border>
 
               </StackPanel>
@@ -128,14 +140,14 @@
                 Margin="10 3"
                 Padding="10 7"
                 CornerRadius="8"
-                MaxWidth="290"
+                MaxWidth="{Binding $parent[views:AgentPanel].Bounds, Converter={StaticResource LessBy}, ConverterParameter=70}"
                 HorizontalAlignment="Left"
                 Background="{DynamicResource SurfaceInputBrush}">
-          <TextBlock Text="{Binding StreamingText}"
-                     TextWrapping="Wrap"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     FontSize="11"
-                     LineHeight="17"/>
+          <SelectableTextBlock Text="{Binding StreamingText}"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="11"
+                               LineHeight="17"/>
         </Border>
 
       </StackPanel>
@@ -203,8 +215,7 @@
                 Padding="8 5"
                 IsEnabled="{Binding !IsBusy}"
                 IsVisible="{Binding HasSpeechInput}"
-                Click="OnMicClick"
-                ToolTip.Tip="Click to start recording; click again to transcribe. Or hold the global hotkey.">
+                ToolTip.Tip="Hold to talk, release to send. Or hold the global hotkey.">
           <Panel>
             <TextBlock Text="🎙" IsVisible="{Binding !IsRecording}" />
             <TextBlock Text="⏹" Foreground="{DynamicResource BadBrush}" IsVisible="{Binding IsRecording}" />

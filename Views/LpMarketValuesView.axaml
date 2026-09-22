@@ -51,7 +51,7 @@
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                   DoubleTapped="OnCorpDoubleTapped">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Corporation" Width="240" SortMemberPath="CorporationName">
+            <DataGridTemplateColumn Header="Corporation" Width="240" SortMemberPath="CorporationName" ClipboardContentBinding="{Binding CorporationName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <Panel>
@@ -67,7 +67,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="ISK / LP" Width="130" SortMemberPath="IskPerLp">
+            <DataGridTemplateColumn Header="ISK / LP" Width="130" SortMemberPath="IskPerLp" ClipboardContentBinding="{Binding IskPerLpText}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <TextBlock Text="{Binding IskPerLpText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
@@ -77,7 +77,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Median" Width="120" SortMemberPath="MedianIskPerLp">
+            <DataGridTemplateColumn Header="Median" Width="120" SortMemberPath="MedianIskPerLp" ClipboardContentBinding="{Binding MedianText}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <TextBlock Text="{Binding MedianText}" FontSize="11"
@@ -88,7 +88,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Best Offer" Width="110" SortMemberPath="BestIskPerLp">
+            <DataGridTemplateColumn Header="Best Offer" Width="110" SortMemberPath="BestIskPerLp" ClipboardContentBinding="{Binding BestText}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <TextBlock Text="{Binding BestText}" FontSize="11" Foreground="{DynamicResource GoodBrush}"
@@ -97,7 +97,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Best Item" Width="*" SortMemberPath="BestOfferName">
+            <DataGridTemplateColumn Header="Best Item" Width="*" SortMemberPath="BestOfferName" ClipboardContentBinding="{Binding BestOfferName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <Button Content="{Binding BestOfferName}"
@@ -111,7 +111,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Counted" Width="90" SortMemberPath="ValuedOffers">
+            <DataGridTemplateColumn Header="Counted" Width="90" SortMemberPath="ValuedOffers" ClipboardContentBinding="{Binding CoverageText}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <TextBlock Text="{Binding CoverageText}" FontSize="11"
@@ -122,7 +122,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
 
-            <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld">
+            <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld" ClipboardContentBinding="{Binding HeldText}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:LpCorpValueVm">
                   <TextBlock Text="{Binding HeldText}" FontSize="11" Foreground="{Binding HeldColor}"

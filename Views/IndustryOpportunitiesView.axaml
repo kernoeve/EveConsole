@@ -176,7 +176,7 @@
 
       <DataGrid.Columns>
 
-        <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*">
+        <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:IndustryRow">
               <Panel>
@@ -192,7 +192,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Build Cost" Width="110" SortMemberPath="BuildCost">
+        <DataGridTemplateColumn Header="Build Cost" Width="110" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BuildCostDisplay}"
@@ -203,7 +203,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="SellPrice">
+        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="SellPrice" ClipboardContentBinding="{Binding SellPriceDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding SellPriceDisplay}"
@@ -213,7 +213,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit">
+        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitUnitDisplay}"
@@ -224,7 +224,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Margin" Width="80" SortMemberPath="Margin">
+        <DataGridTemplateColumn Header="Margin" Width="80" SortMemberPath="Margin" ClipboardContentBinding="{Binding MarginDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding MarginDisplay}"
@@ -235,7 +235,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Build Time" Width="100" SortMemberPath="BuildSeconds">
+        <DataGridTemplateColumn Header="Build Time" Width="100" SortMemberPath="BuildSeconds" ClipboardContentBinding="{Binding BuildTimeDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BuildTimeDisplay}"
@@ -245,7 +245,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Slot Days" Width="90" SortMemberPath="SlotDays">
+        <DataGridTemplateColumn Header="Slot Days" Width="90" SortMemberPath="SlotDays" ClipboardContentBinding="{Binding SlotDaysDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding SlotDaysDisplay}"
@@ -255,7 +255,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Slot Day" Width="130" SortMemberPath="ProfitPerSlotDay">
+        <DataGridTemplateColumn Header="Profit / Slot Day" Width="130" SortMemberPath="ProfitPerSlotDay" ClipboardContentBinding="{Binding ProfitPerSlotDayDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitPerSlotDayDisplay}"
@@ -266,7 +266,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Units Sold 30d" Width="105" SortMemberPath="UnitVol30d">
+        <DataGridTemplateColumn Header="Units Sold 30d" Width="105" SortMemberPath="UnitVol30d" ClipboardContentBinding="{Binding UnitVol30dDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding UnitVol30dDisplay}"
@@ -277,7 +277,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="ISK Sold 30d" Width="110" SortMemberPath="IskVol30d">
+        <DataGridTemplateColumn Header="ISK Sold 30d" Width="110" SortMemberPath="IskVol30d" ClipboardContentBinding="{Binding IskVol30dDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding IskVol30dDisplay}"

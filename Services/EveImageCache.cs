@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.IO;
+using System.Text.RegularExpressions;
 using Avalonia.Media.Imaging;
 
 namespace EveConsole.Services;
@@ -30,12 +31,40 @@ internal static class EveImageCache
     public static Task<Bitmap?> GetAsync(string url)
         => _cache.GetOrAdd(url, static u => FetchAsync(u));
 
+    /// <summary>
+    /// The copy on disk, under the app's data folder. A type icon never changes, and a portrait
+    /// or a logo changes so rarely that a stale one costs nothing — while a worklist or an
+    /// appraisal of a thousand items asks for a thousand pictures every session. From here they
+    /// come back in a moment, and off a slow link not at all.
+    /// </summary>
+    private static readonly string Dir    = Path.Combine(AppConfig.AppDataDir, "images");
+    private static readonly Regex  Unsafe = new("[^A-Za-z0-9]+", RegexOptions.Compiled);
+
+    private static string PathOf(string url) =>
+        Path.Combine(Dir, Unsafe.Replace(url.Replace("https://images.evetech.net/", ""), "_").Trim('_') + ".png");
+
     private static async Task<Bitmap?> FetchAsync(string url)
     {
+        var path = PathOf(url);
+        try
+        {
+            if (File.Exists(path)) return await Task.Run(() => new Bitmap(path)).ConfigureAwait(false);
+        }
+        catch
+        {
+            try { File.Delete(path); } catch { }   // half written or damaged: fetched again below
+        }
+
         await _gate.WaitAsync().ConfigureAwait(false);
         try
         {
             var bytes = await _http.GetByteArrayAsync(url).ConfigureAwait(false);
+            try
+            {
+                Directory.CreateDirectory(Dir);
+                await File.WriteAllBytesAsync(path, bytes).ConfigureAwait(false);
+            }
+            catch { /* the picture still shows; only the next session pays for it again */ }
             await using var ms = new MemoryStream(bytes);
             return new Bitmap(ms);
         }

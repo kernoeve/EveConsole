@@ -4,6 +4,7 @@ using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Services;
 
 namespace EveConsole.ViewModels;
 
@@ -18,6 +19,47 @@ public class AssetBrowserViewModel : ReactiveObject
 
     private record ActiveFilter(string Column, FilterOp Op, string Value);
     private readonly List<ActiveFilter> _activeFilters = [];
+
+    // ── Scope: whose assets at all, before any filter ─────────────────────────
+    //
+    // Every filter row sits inside it: WHERE <scope> AND (<filters>). "Personal" is the user's
+    // own characters and the corporations marked personal; "Everything" adds no clause at all.
+
+    public sealed record ScopeOption(string Key, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    public static readonly IReadOnlyList<ScopeOption> AllScopes =
+    [
+        new("all",      "Everything"),
+        new("personal", "Characters and personal corps"),
+    ];
+
+    public IReadOnlyList<ScopeOption> ScopeOptions => AllScopes;
+
+    private ScopeOption _scope = AllScopes[1];
+
+    /// <summary>The chosen scope, remembered on this machine; a change reloads every tab.</summary>
+    public ScopeOption Scope
+    {
+        get => _scope;
+        set
+        {
+            if (value is null || ReferenceEquals(value, _scope)) return;
+            this.RaiseAndSetIfChanged(ref _scope, value);
+            UiState.Set(UiState.AssetScope, value.Key);
+            _cts.Cancel();
+            _cts = new CancellationTokenSource();
+            _ = LoadAsync(_cts.Token);
+        }
+    }
+
+    /// <summary>The scope as SQL over the Base columns, or "" for everything. ⚠️ IsPersonal stands
+    /// on its own: INTEGER on SQLite, BOOLEAN on PostgreSQL, and "= 1" fails on the latter.</summary>
+    private string ScopeClause() => _scope.Key == "personal"
+        ? """("Owner Type" = 'character' OR ("Owner Type" = 'corporation' AND "Owner Id" IN (SELECT "Id" FROM "Corporations" WHERE "IsPersonal")))"""
+        : "";
 
     public static readonly List<string> FilterableColumns =
     [
@@ -116,6 +158,8 @@ public class AssetBrowserViewModel : ReactiveObject
     public AssetBrowserViewModel(string connectionString)
     {
         _connectionString = connectionString;
+        var remembered = UiState.Get(UiState.AssetScope);
+        _scope = AllScopes.FirstOrDefault(s => s.Key == remembered) ?? AllScopes[1];
         _ = LoadAsync();
     }
 
@@ -445,7 +489,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 a."LocationId"      AS "Location Id",
                 CASE a."RootLocationType"
                     WHEN 'station'      THEN COALESCE(st."Name",            '<Unknown Station>')
-                    WHEN 'solar_system' THEN COALESCE(ss."Name",            '<Unknown System>')
+                    WHEN 'solar_system' THEN COALESCE(sys."Name",           '<Unknown System>')
                     WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '<Unknown Structure>')
                     ELSE                     '<Unresolved - Please Refresh>'
                 END AS "Location Name",
@@ -466,18 +510,18 @@ public class AssetBrowserViewModel : ReactiveObject
                     ELSE NULL
                 END AS "Container",
                 a."LocationFlag"    AS "Flag",
-                CASE a."RootLocationType"
-                    WHEN 'station'      THEN ss_sta."Name"
-                    WHEN 'solar_system' THEN ss."Name"
-                    WHEN 'other'        THEN ss_s."Name"
-                    ELSE NULL
-                END AS "Solar System",
-                COALESCE(r_st."Name", r_ss."Name", r_s."Name")             AS "Region Name",
-                ROUND(CAST(COALESCE(ss_sta."Security", ss."Security", ss_s."Security") AS NUMERIC), 1) AS "Security",
+                -- Where the asset IS. Resolved by the app when the rows were written
+                -- (AssetLocations), so it is one join per name whatever kind of place the root
+                -- is — and a structure known only to the Structure Browser or the corporation's
+                -- own structure list now has a system too, which the old three-way walk through
+                -- EsiStructureNames alone never gave it.
+                sys."Name"                                                  AS "Solar System",
+                reg."Name"                                                  AS "Region Name",
+                ROUND(CAST(sys."Security" AS NUMERIC), 1)                   AS "Security",
                 -- Hidden: what the names above open. Carried in Base so the three aggregate views
                 -- inherit them rather than each re-deriving the joins.
-                COALESCE(ss_sta."SolarSystemId", ss."SolarSystemId", ss_s."SolarSystemId", 0) AS "Solar System Id",
-                COALESCE(r_st."RegionId", r_ss."RegionId", r_s."RegionId", 0)                 AS "Region Id",
+                COALESCE(a."SolarSystemId", 0)                              AS "Solar System Id",
+                COALESCE(a."RegionId", 0)                                   AS "Region Id",
                 -- NPC station to the entity browser, player structure to its own tool.
                 -- RootLocationType already tells the two apart.
                 CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
@@ -559,14 +603,10 @@ public class AssetBrowserViewModel : ReactiveObject
             LEFT JOIN "SdeTypes"        t      ON a."TypeId"          = t."TypeId"
             LEFT JOIN "SdeGroups"       g      ON g."GroupId"         = t."GroupId"
             LEFT JOIN "SdeCategories"   cat    ON cat."CategoryId"    = g."CategoryId"
-            LEFT JOIN "SdeStations"     st     ON a."RootLocationId"  = st."StationId"     AND a."RootLocationType"  = 'station'
-            LEFT JOIN "SdeSolarSystems" ss_sta ON ss_sta."SolarSystemId" = st."SolarSystemId"
-            LEFT JOIN "SdeSolarSystems" ss     ON a."RootLocationId"  = ss."SolarSystemId" AND a."RootLocationType"  = 'solar_system'
-            LEFT JOIN "EsiStructureNames" sn   ON sn."StructureId"    = a."RootLocationId" AND a."RootLocationType"  = 'other'
-            LEFT JOIN "SdeSolarSystems" ss_s   ON ss_s."SolarSystemId" = sn."SolarSystemId"
-            LEFT JOIN "SdeRegions"      r_st   ON r_st."RegionId"     = st."RegionId"
-            LEFT JOIN "SdeRegions"      r_ss   ON r_ss."RegionId"     = ss."RegionId"
-            LEFT JOIN "SdeRegions"      r_s    ON r_s."RegionId"      = ss_s."RegionId"
+            LEFT JOIN "SdeStations"       st  ON a."RootLocationId" = st."StationId"   AND a."RootLocationType" = 'station'
+            LEFT JOIN "EsiStructureNames" sn  ON sn."StructureId"   = a."RootLocationId" AND a."RootLocationType" = 'other'
+            LEFT JOIN "SdeSolarSystems"   sys ON sys."SolarSystemId" = a."SolarSystemId"
+            LEFT JOIN "SdeRegions"        reg ON reg."RegionId"      = a."RegionId"
             LEFT JOIN "SdeTypes"        ct1    ON ct1."TypeId"        = cj.CP1TypeId
             LEFT JOIN "SdeTypes"        ct2    ON ct2."TypeId"        = cj.CP2TypeId
             LEFT JOIN "SdeTypes"        ct3    ON ct3."TypeId"        = cj.CP3TypeId
@@ -753,11 +793,15 @@ public class AssetBrowserViewModel : ReactiveObject
         ORDER BY SUM("Value") DESC NULLS LAST
         """;
 
+    /// <summary>WHERE scope AND (filter AND filter …): the filters only ever narrow within the scope.</summary>
     private string BuildWhere()
     {
-        if (_activeFilters.Count == 0) return "";
-        var clauses = _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i));
-        return $"WHERE {string.Join(" AND ", clauses)}";
+        var scope   = ScopeClause();
+        var filters = _activeFilters.Count == 0
+            ? ""
+            : $"({string.Join(" AND ", _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i)))})";
+        var parts = new[] { scope, filters }.Where(p => p.Length > 0).ToList();
+        return parts.Count == 0 ? "" : $"WHERE {string.Join(" AND ", parts)}";
     }
 
     private void AddFilterParams(DbCommand cmd)

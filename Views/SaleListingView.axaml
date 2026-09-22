@@ -55,11 +55,18 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
+        <DataGridTemplateColumn Header="" Width="26" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleListingRowVm">
+              <Image Source="{Binding Icon}" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="Date / Time" Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <!-- Buyer and Item are links. The item cell links only the named type: on a contract it
              reads "Revelation +3 more items", and that tail stands for items this row carries no
              ids for, so linking the whole string would promise a page it cannot open. -->
-        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="144">
+        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="144" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <Panel>
@@ -74,7 +81,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Item" SortMemberPath="Item" Width="*">
+        <DataGridTemplateColumn Header="Item" SortMemberPath="Item" Width="*" ClipboardContentBinding="{Binding ItemName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -93,7 +100,7 @@
         <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell does not stretch
              its content the way a text column's does, so HorizontalAlignment="Right" had nothing
              to align against and these two read as left-aligned beside the Amount column. -->
-        <DataGridTemplateColumn Header="Profit"   SortMemberPath="ProfitRaw"    Width="60">
+        <DataGridTemplateColumn Header="Profit"   SortMemberPath="ProfitRaw"    Width="60" ClipboardContentBinding="{Binding Profit}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding Profit}" Foreground="{Binding ProfitBrush}" FontSize="11"
@@ -102,7 +109,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="64">
+        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="64" ClipboardContentBinding="{Binding ProfitPct}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"

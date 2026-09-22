@@ -256,6 +256,17 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     public static async Task<HashSet<long>?> ResolveScopeFilterAsync(
         AppDbContext db, string scope, long? locationId, CancellationToken ct)
     {
+        // A region resolves through five queries, and inside a worklist build the same scope is
+        // resolved by five or six generators. Once per build, per (scope, location) — and handed
+        // out as a COPY, because callers union their own extra stations onto the set they get.
+        var resolved = await Worklist.BuildCache.GetOrAddAsync(
+            $"ScopeFilter:{scope}:{locationId}", () => ResolveScopeFilterUncachedAsync(db, scope, locationId, ct));
+        return resolved is null ? null : new HashSet<long>(resolved);
+    }
+
+    private static async Task<HashSet<long>?> ResolveScopeFilterUncachedAsync(
+        AppDbContext db, string scope, long? locationId, CancellationToken ct)
+    {
         if (scope == "Station" && locationId.HasValue)
             return [locationId.Value];
 
@@ -265,6 +276,11 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             var ids = new HashSet<long> { sysId };
             ids.UnionWith(await db.SdeStations
                 .Where(s => s.SolarSystemId == sysId).Select(s => (long)s.StationId).ToListAsync(ct));
+            // ⚠️ The same three structure sources AssetLocations resolves an asset's system from,
+            // or a scope and the assets in it disagree about where a structure is: one the
+            // Structure Browser described by hand was in no scope at all.
+            ids.UnionWith(await db.Structures
+                .Where(s => s.SolarSystemId == sysId).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiStructureNames
                 .Where(s => s.SolarSystemId == sysId).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiCorpStructures
@@ -280,6 +296,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             var ids = new HashSet<long>(sysIds.Select(s => (long)s));
             ids.UnionWith(await db.SdeStations
                 .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => (long)s.StationId).ToListAsync(ct));
+            ids.UnionWith(await db.Structures
+                .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiStructureNames
                 .Where(s => sysIds.Contains(s.SolarSystemId)).Select(s => s.StructureId).ToListAsync(ct));
             ids.UnionWith(await db.EsiCorpStructures
@@ -329,7 +347,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>Same rule the Order Tracker's fulfilment matching and the Worklist's industry
     /// assignment already use, so the tools agree about what "we have" means.</para>
     /// </summary>
-    private static async Task<HashSet<long>> OwnedIdsAsync(AppDbContext db, CancellationToken ct)
+    private static Task<HashSet<long>> OwnedIdsAsync(AppDbContext db, CancellationToken ct)
+        => Worklist.BuildCache.GetOrAddAsync("InvLevel.OwnedIds", () => OwnedIdsUncachedAsync(db, ct));
+
+    private static async Task<HashSet<long>> OwnedIdsUncachedAsync(AppDbContext db, CancellationToken ct)
     {
         var ids = await db.Characters.AsNoTracking()
             .Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync(ct);
@@ -360,38 +381,86 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         bool packagedOnly = false)
     {
         if (typeIds.Count == 0) return [];
+        var all = await LoadAvailableAsync([(group, typeIds)], ct, packagedOnly);
+        return all.GetValueOrDefault(group.Id) ?? [];
+    }
+
+    /// <summary>
+    /// Availability for several groups at once, keyed by group id.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ This is the shape the worklist must call. The single-group form above was called once
+    /// per inventory rule from inside the demand gatherer, and each call is ten or so queries —
+    /// owner ids, scope, assets, runs, delivery lag, jobs, orders, contracts — of which only the
+    /// scope depends on the group. With twenty-eight rules that was close to three hundred round
+    /// trips per generator, and three generators gather demand: measured at 180 ms a round trip
+    /// over a remote link, minutes of the worklist's load were this method being asked the same
+    /// questions twenty-eight times.
+    ///
+    /// <para>Every row is now loaded once for the union of every group's types, and each group's
+    /// filters — its types, its scope, its Include flags, its packaging — are applied in memory,
+    /// exactly as the per-group queries applied them. The single-group form is this with one
+    /// request, so there is one implementation and the two cannot drift.</para>
+    ///
+    /// <para>The scope is resolved once per distinct (scope, location) rather than per group,
+    /// since rules routinely share one.</para>
+    /// </remarks>
+    public Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableAsync(
+        IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
+        CancellationToken ct = default, bool packagedOnly = false)
+    {
+        // Three generators gather the same demand from the same rules, so they ask this with
+        // the same groups and the same types. Keyed by exactly that, so a different request —
+        // the inventory tool asking for one group — is its own load. Results are records the
+        // callers only read.
+        var key = "InvLevel.Available:" + (packagedOnly ? "P:" : "A:")
+                + string.Join("|", requests.OrderBy(r => r.Group.Id)
+                      .Select(r => $"{r.Group.Id}=" + string.Join(",", r.TypeIds.Distinct().OrderBy(t => t))));
+        return Worklist.BuildCache.GetOrAddAsync(key, () => LoadAvailableUncachedAsync(requests, ct, packagedOnly));
+    }
+
+    private async Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableUncachedAsync(
+        IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
+        CancellationToken ct, bool packagedOnly)
+    {
+        var result = new Dictionary<int, Dictionary<int, InvAvailability>>();
+        requests = requests.Where(r => r.TypeIds.Count > 0).ToList();
+        if (requests.Count == 0) return result;
+
         await using var db = dbFactory.CreateDbContext();
 
-        var stationFilter = await ResolveScopeFilterAsync(db, group, ct);
-        var ownerFilter   = await OwnedIdsAsync(db, ct);
+        var allTypes    = requests.SelectMany(r => r.TypeIds).Distinct().ToList();
+        var ownerFilter = await OwnedIdsAsync(db, ct);
 
-        var assets  = new Dictionary<int, long>();
-        var jobs    = new Dictionary<int, long>();
-        var orders  = new Dictionary<int, long>();
-        var contracts = new Dictionary<int, long>();
+        var anyAssets    = requests.Any(r => r.Group.IncludeAssets);
+        var anyJobs      = requests.Any(r => r.Group.IncludeIndustryJobs);
+        var anyOrders    = requests.Any(r => r.Group.IncludeMarketBuyOrders);
+        var anyContracts = requests.Any(r => r.Group.IncludeContractsBuying);
 
-        // Assets
-        if (group.IncludeAssets)
+        // ── Scope, once per distinct scope rather than per group ────────────
+        var scopeFilters = new Dictionary<(string, long?), HashSet<long>?>();
+        foreach (var (group, _) in requests)
         {
-            var bpTypeIds = await BlueprintTypeIdsAsync(db, typeIds, ct);
+            var key = (group.Scope, group.LocationId);
+            if (!scopeFilters.ContainsKey(key))
+                scopeFilters[key] = await ResolveScopeFilterAsync(db, group, ct);
+        }
 
-            var q = db.EsiAssets.Where(a => typeIds.Contains(a.TypeId)
-                                         && ownerFilter.Contains(a.OwnerId));
-            if (stationFilter != null)
-                q = q.Where(a => stationFilter.Contains(a.RootLocationId));
+        // ── Assets: every row for the union, filtered per group below ───────
+        var bpTypeIds = anyAssets ? await BlueprintTypeIdsAsync(db, allTypes, ct) : [];
 
-            // Packaged only: skip assembled and fitted hulls. The group setting is the usual
-            // source; the parameter is how the sale posting tool overrides it per posting.
-            //
-            // ⚠️ Blueprints are exempt, and that is not a nicety. Singleton on a blueprint does
-            // not mean "assembled" — it means the item does not stack, which is true of every copy
-            // and every researched original. Filtering on it would empty a blueprint group
-            // outright, and a group of T2 copies is exactly where somebody would think to tick a
-            // box about packaging.
-            if (packagedOnly || group.PackagedOnly)
-                q = q.Where(a => !a.IsSingleton || bpTypeIds.Contains(a.TypeId));
-
-            var rows = await q.Select(a => new { a.ItemId, a.TypeId, a.Quantity }).ToListAsync(ct);
+        List<(long ItemId, int TypeId, int Quantity, long RootLocationId, bool IsSingleton)> assetRows = [];
+        Dictionary<long, long> runsByItem = [];
+        List<DeliveredOutput> deliveredItems  = [];
+        List<DeliveredPrint>  deliveredPrints = [];
+        if (anyAssets)
+        {
+            assetRows = (await db.EsiAssets
+                .Where(a => allTypes.Contains(a.TypeId) && ownerFilter.Contains(a.OwnerId))
+                .Select(a => new { a.ItemId, a.TypeId, a.Quantity, a.RootLocationId, a.IsSingleton })
+                .ToListAsync(ct))
+                .Select(a => (a.ItemId, a.TypeId, a.Quantity, a.RootLocationId, a.IsSingleton))
+                .ToList();
 
             // ⚠️ A blueprint level is written in RUNS, not copies, and the assets table cannot
             // answer in runs: a copy is one row of quantity 1 whether it carries two runs or
@@ -403,106 +472,71 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             // copy and cannot touch the original, however many runs the original is good for. A
             // group holding a BPO and no copies is genuinely empty, and cutting copies is the
             // answer — the same reason the purchase pass counts only copies against a shelf.
-            var runsByItem = bpTypeIds.Count == 0
+            runsByItem = bpTypeIds.Count == 0
                 ? []
                 : await db.EsiBlueprints.AsNoTracking()
                     .Where(b => bpTypeIds.Contains(b.TypeId) && b.Runs > 0)
                     .ToDictionaryAsync(b => b.ItemId, b => (long)b.Runs, ct);
 
-            foreach (var g in rows.GroupBy(r => r.TypeId))
-            {
-                if (!bpTypeIds.Contains(g.Key))
-                {
-                    assets[g.Key] = g.Sum(r => (long)r.Quantity);
-                    continue;
-                }
-
-                // ⚠️ A row the blueprints endpoint never returned counts for nothing rather than
-                // for one. Runs are the unit here, that row's run count is unknown, and guessing
-                // at it would report stock the group may not have — where a plain count at least
-                // could not be wrong about what it was counting.
-                assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
-            }
+            // ⚠️ Plus what delivered jobs have put in hangars that the asset and blueprint polls
+            // have not seen yet. A delivered job stops counting under Industry Jobs within
+            // minutes, and for up to an hour its output is in no asset row either — so a level
+            // that was comfortably covered by a running job read as short the moment the job was
+            // collected, and the worklist raised the same job again. Items in units; blueprint
+            // types in runs, as the level is written. See DeliveryLag.
+            deliveredItems = await DeliveryLag.ItemsAsync(db, ct, allTypes);
+            if (bpTypeIds.Count > 0)
+                deliveredPrints = await DeliveryLag.PrintsAsync(db, ct, bpTypeIds.ToList());
         }
 
-        // Industry Jobs — active manufacturing (1) and reactions (9, plus legacy 11).
+        // ── Industry jobs: active manufacturing (1) and reactions (9, plus legacy 11) ──
         // Count the UNITS that will be produced = Runs × output-per-run, so the total is
         // consistent with asset quantities. Reactions and multi-output blueprints (e.g.
         // capital components, ammo) produce many units per run, so counting runs alone
         // undercounts — and reactions were previously excluded entirely.
-        if (group.IncludeIndustryJobs)
+        List<(int BlueprintTypeId, int ProductTypeId, int Runs, long FacilityId)> jobRows = [];
+        Dictionary<(int, int), int> qtyMap = [];
+        if (anyJobs)
         {
-            var q = db.EsiIndustryJobs
+            jobRows = (await db.EsiIndustryJobs
                 .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
-                         && typeIds.Contains(j.ProductTypeId!.Value)
-                         && ownerFilter.Contains(j.OwnerId));
-            // Scope by FacilityId (the structure the job runs in), NOT OutputLocationId —
-            // the latter is the delivery hangar/container sub-location, which does not
-            // resolve to a structure and would drop every job from location-scoped groups.
-            if (stationFilter != null)
-                q = q.Where(j => stationFilter.Contains(j.FacilityId));
+                         && allTypes.Contains(j.ProductTypeId!.Value)
+                         && ownerFilter.Contains(j.OwnerId))
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId })
+                .ToListAsync(ct))
+                .Select(j => (j.BlueprintTypeId, j.ProductTypeId, j.Runs, j.FacilityId))
+                .ToList();
 
-            var activeJobs = await q
-                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs })
-                .ToListAsync(ct);
-
-            if (activeJobs.Count > 0)
+            if (jobRows.Count > 0)
             {
                 // Output units per run, keyed by (blueprint, product). Use the job's own
                 // blueprint so the count matches exactly what that job will deliver.
-                var bpIds = activeJobs.Select(j => j.BlueprintTypeId).Distinct().ToList();
-                var qtyMap = (await db.SdeBlueprintProducts.AsNoTracking()
+                var bpIds = jobRows.Select(j => j.BlueprintTypeId).Distinct().ToList();
+                qtyMap = (await db.SdeBlueprintProducts.AsNoTracking()
                         .Where(p => bpIds.Contains(p.TypeId)
                                  && (p.Activity == "manufacturing" || p.Activity == "reaction"))
                         .Select(p => new { p.TypeId, p.ProductTypeId, p.Quantity })
                         .ToListAsync(ct))
                     .GroupBy(p => (p.TypeId, p.ProductTypeId))
                     .ToDictionary(g => g.Key, g => g.First().Quantity);
-
-                foreach (var j in activeJobs)
-                {
-                    long perRun = qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
-                        ? Math.Max(1, qy) : 1;
-                    long units = (long)j.Runs * perRun;
-                    jobs[j.ProductTypeId] = jobs.TryGetValue(j.ProductTypeId, out var cur) ? cur + units : units;
-                }
             }
         }
 
-        // Market Buy Orders — active, not historical
-        if (group.IncludeMarketBuyOrders)
-        {
-            var q = db.EsiMarketOrders
-                .Where(o => o.IsBuyOrder && !o.IsHistory && typeIds.Contains(o.TypeId)
-                         && ownerFilter.Contains(o.OwnerId));
-            if (stationFilter != null)
-                q = q.Where(o => stationFilter.Contains(o.LocationId));
+        // ── Market buy orders — active, not historical ───────────────────────
+        List<(long OrderId, string OwnerType, int TypeId, int VolumeRemain, long LocationId)> orderRows = [];
+        if (anyOrders)
+            orderRows = (await db.EsiMarketOrders
+                .Where(o => o.IsBuyOrder && !o.IsHistory && allTypes.Contains(o.TypeId)
+                         && ownerFilter.Contains(o.OwnerId))
+                .Select(o => new { o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain, o.LocationId })
+                .ToListAsync(ct))
+                .Select(o => (o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain, o.LocationId))
+                .ToList();
 
-            // ⚠️ One order, two rows. A corporation order placed by a character comes back from
-            // both the character endpoint and the corporation one, and both are stored — 25 open
-            // buy orders here are duplicated that way. Summing VolumeRemain straight off the table
-            // therefore counts the same order twice: 12,886 units of Fullerite-C32 on order read
-            // as 25,772, and a rule saw stock arriving that does not exist.
-            //
-            // Deduplicated by OrderId, preferring the corporation's row — the same rule
-            // MaterialPurchaseGenerator and InventoryLevelGenerator already apply. This method was
-            // the one place that did not, so the tool and the worklist disagreed about the same
-            // order.
-            var rows = await q
-                .Select(o => new { o.OrderId, o.OwnerType, o.TypeId, o.VolumeRemain })
-                .ToListAsync(ct);
-
-            foreach (var g in rows
-                         .GroupBy(o => o.OrderId)
-                         .Select(g => g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First())
-                         .GroupBy(o => o.TypeId))
-                orders[g.Key] = g.Sum(o => (long)o.VolumeRemain);
-        }
-
-        // Contracts we are buying through — outstanding item exchanges of ours that ASK for the
-        // item, so accepting them brings it in.
+        // ── Contracts we are buying through ──────────────────────────────────
+        // Outstanding item exchanges of ours that ASK for the item, so accepting them brings it in.
         //
         // ⚠️ Requested, not offered. IsIncluded true means the issuer is handing the item over;
         // false means they want it delivered to them. This counts the false rows on contracts our
@@ -515,7 +549,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         // ⚠️ Not scoped by station. A contract's end location is where it is collected, and the
         // item lands wherever the acceptor is told to put it; a location-scoped group would
         // otherwise silently drop every contract whose pickup happens to sit elsewhere.
-        if (group.IncludeContractsBuying)
+        List<(int TypeId, long Quantity)> contractLines = [];
+        if (anyContracts)
         {
             var mine = await db.EsiContracts.AsNoTracking()
                 .Where(c => c.Status == "outstanding"
@@ -527,27 +562,130 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToListAsync(ct);
 
             if (mine.Count > 0)
-            {
-                var lines = await db.EsiContractItems.AsNoTracking()
+                contractLines = (await db.EsiContractItems.AsNoTracking()
                     .Where(i => mine.Contains(i.ContractId)
                              && !i.IsIncluded
-                             && typeIds.Contains(i.TypeId))
+                             && allTypes.Contains(i.TypeId))
                     .Select(i => new { i.TypeId, i.Quantity })
-                    .ToListAsync(ct);
-
-                foreach (var g in lines.GroupBy(i => i.TypeId))
-                    contracts[g.Key] = g.Sum(i => i.Quantity);
-            }
+                    .ToListAsync(ct))
+                    .Select(i => (i.TypeId, i.Quantity))
+                    .ToList();
         }
 
-        return typeIds.Distinct().ToDictionary(
-            id => id,
-            id => new InvAvailability(
-                assets.GetValueOrDefault(id),
-                jobs.GetValueOrDefault(id),
-                orders.GetValueOrDefault(id),
-                contracts.GetValueOrDefault(id)));
+        // ── Per group: the same filters the per-group queries applied, in memory ──
+        foreach (var (group, typeIds) in requests)
+        {
+            var wanted        = typeIds.ToHashSet();
+            var stationFilter = scopeFilters[(group.Scope, group.LocationId)];
+
+            var assets    = new Dictionary<int, long>();
+            var jobs      = new Dictionary<int, long>();
+            var orders    = new Dictionary<int, long>();
+            var contracts = new Dictionary<int, long>();
+
+            if (group.IncludeAssets)
+            {
+                var rows = assetRows.Where(a => wanted.Contains(a.TypeId));
+                if (stationFilter != null)
+                    rows = rows.Where(a => stationFilter.Contains(a.RootLocationId));
+
+                // Packaged only: skip assembled and fitted hulls. The group setting is the usual
+                // source; the parameter is how the sale posting tool overrides it per posting.
+                //
+                // ⚠️ Blueprints are exempt, and that is not a nicety. Singleton on a blueprint does
+                // not mean "assembled" — it means the item does not stack, which is true of every copy
+                // and every researched original. Filtering on it would empty a blueprint group
+                // outright, and a group of T2 copies is exactly where somebody would think to tick a
+                // box about packaging.
+                if (packagedOnly || group.PackagedOnly)
+                    rows = rows.Where(a => !a.IsSingleton || bpTypeIds.Contains(a.TypeId));
+
+                foreach (var g in rows.GroupBy(r => r.TypeId))
+                {
+                    if (!bpTypeIds.Contains(g.Key))
+                    {
+                        assets[g.Key] = g.Sum(r => (long)r.Quantity);
+                        continue;
+                    }
+
+                    // ⚠️ A row the blueprints endpoint never returned counts for nothing rather
+                    // than for one. Runs are the unit here, that row's run count is unknown, and
+                    // guessing at it would report stock the group may not have — where a plain
+                    // count at least could not be wrong about what it was counting.
+                    assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
+                }
+
+                foreach (var d in deliveredItems)
+                {
+                    if (!wanted.Contains(d.TypeId)) continue;
+                    if (!ownerFilter.Contains(d.OwnerId)) continue;
+                    if (stationFilter != null && !stationFilter.Contains(d.Site)) continue;
+                    assets[d.TypeId] = assets.GetValueOrDefault(d.TypeId) + d.Units;
+                }
+                foreach (var p in deliveredPrints)
+                {
+                    if (!wanted.Contains(p.TypeId)) continue;
+                    if (!ownerFilter.Contains(p.OwnerId)) continue;
+                    if (stationFilter != null && !stationFilter.Contains(p.Site)) continue;
+                    assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
+                }
+            }
+
+            if (group.IncludeIndustryJobs)
+            {
+                // Scope by FacilityId (the structure the job runs in), NOT OutputLocationId —
+                // the latter is the delivery hangar/container sub-location, which does not
+                // resolve to a structure and would drop every job from location-scoped groups.
+                foreach (var j in jobRows)
+                {
+                    if (!wanted.Contains(j.ProductTypeId)) continue;
+                    if (stationFilter != null && !stationFilter.Contains(j.FacilityId)) continue;
+
+                    long perRun = qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
+                        ? Math.Max(1, qy) : 1;
+                    long units = (long)j.Runs * perRun;
+                    jobs[j.ProductTypeId] = jobs.TryGetValue(j.ProductTypeId, out var cur) ? cur + units : units;
+                }
+            }
+
+            if (group.IncludeMarketBuyOrders)
+            {
+                var rows = orderRows.Where(o => wanted.Contains(o.TypeId));
+                if (stationFilter != null)
+                    rows = rows.Where(o => stationFilter.Contains(o.LocationId));
+
+                // ⚠️ One order, two rows. A corporation order placed by a character comes back
+                // from both the character endpoint and the corporation one, and both are stored —
+                // 25 open buy orders here are duplicated that way. Summing VolumeRemain straight
+                // off the table therefore counts the same order twice: 12,886 units of
+                // Fullerite-C32 on order read as 25,772, and a rule saw stock arriving that does
+                // not exist.
+                //
+                // Deduplicated by OrderId, preferring the corporation's row — the same rule
+                // MaterialPurchaseGenerator and InventoryLevelGenerator already apply.
+                foreach (var g in rows
+                             .GroupBy(o => o.OrderId)
+                             .Select(g => g.Any(o => o.OwnerType == "corporation") ? g.First(o => o.OwnerType == "corporation") : g.First())
+                             .GroupBy(o => o.TypeId))
+                    orders[g.Key] = g.Sum(o => (long)o.VolumeRemain);
+            }
+
+            if (group.IncludeContractsBuying)
+                foreach (var g in contractLines.Where(i => wanted.Contains(i.TypeId)).GroupBy(i => i.TypeId))
+                    contracts[g.Key] = g.Sum(i => i.Quantity);
+
+            result[group.Id] = typeIds.Distinct().ToDictionary(
+                id => id,
+                id => new InvAvailability(
+                    assets.GetValueOrDefault(id),
+                    jobs.GetValueOrDefault(id),
+                    orders.GetValueOrDefault(id),
+                    contracts.GetValueOrDefault(id)));
+        }
+
+        return result;
     }
+
 
     // ── Type metadata lookup ──────────────────────────────────────────────────
 

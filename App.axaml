@@ -1,6 +1,7 @@
 ﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="EveConsole.App"
+             xmlns:services="clr-namespace:EveConsole.Services"
              RequestedThemeVariant="Dark">
 
   <Application.Resources>
@@ -43,6 +44,17 @@
       <!-- ── Window ──────────────────────────────────────────────────────── -->
       <Style Selector="Window">
         <Setter Property="Background" Value="{DynamicResource SurfaceBaseBrush}" />
+        <Setter Property="services:UiScaleService.IsEnabled" Value="True" />
+      </Style>
+
+      <!-- Popups are top-levels of their own — tooltips, flyouts, menus, dropdown lists, the
+           worklist's floating detail — outside the content the Window style scales. With this
+           on, a popup measures the transform between its placement target and the window and
+           applies the same to itself, so it opens at the scale of the control it belongs to.
+           ⚠️ Not by wrapping the popup's content: that content already has the popup as its
+           parent, and taking it throws, which left every popup blank. -->
+      <Style Selector="Popup">
+        <Setter Property="InheritsTransform" Value="True" />
       </Style>
 
       <!-- ── Button: outlined dark, amber border on hover ────────────────── -->

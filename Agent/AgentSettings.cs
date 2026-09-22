@@ -17,11 +17,36 @@ public sealed class AgentSettings
     public string            AgentName     { get; set; } = DefaultAgentName;
     public VerbositySetting  Verbosity     { get; set; } = VerbositySetting.Balanced;
 
+    /// <summary>What the agent calls the person it is talking to. The instructions say "the
+    /// capsuleer" throughout; a name here is substituted for that in the prompt's own framing.</summary>
+    public const string DefaultUserName = "capsuleer";
+    public string UserName { get; set; } = DefaultUserName;
+
+    /// <summary>
+    /// The capsuleer's own standing instructions, given to the agent with every message and
+    /// declared to override the built-in guidance. "When I say home, I mean Jita 4-4."
+    /// Edited in Settings, or by the agent itself through update_guidance when told
+    /// "from now on…".
+    /// </summary>
+    public string UserGuidance { get; set; } = "";
+
+    /// <summary>A copy, so a change can be published as a NEW Settings value. WhenAnyValue on
+    /// the service ignores a notification whose value is the same reference.</summary>
+    public AgentSettings Clone() => (AgentSettings)MemberwiseClone();
+
     public string ClaudeApiKey  { get; set; } = "";
     public string ClaudeModel   { get; set; } = "claude-sonnet-4-6";
 
+    /// <summary>
+    /// How long Anthropic keeps the cached prompt prefix warm between requests: "5m" (the
+    /// default) or "1h". A read refreshes the timer on either; the hour costs 2× to write
+    /// against 1.25×, and only pays when turns are typically 5–60 minutes apart. Claude only —
+    /// the other providers cache automatically with no lifetime to choose.
+    /// </summary>
+    public string ClaudeCacheTtl { get; set; } = "5m";
+
     public string OpenAiApiKey  { get; set; } = "";
-    public string OpenAiModel   { get; set; } = "gpt-4o";
+    public string OpenAiModel   { get; set; } = "gpt-5";
 
     public string LocalEndpoint { get; set; } = "http://localhost:11434";
     public string LocalModel    { get; set; } = "llama3.1";
@@ -59,6 +84,9 @@ public sealed class AgentSettings
     public SpeechInputProvider SpeechInputProvider { get; set; } = SpeechInputProvider.None;
     // OpenAI Whisper reuses OpenAiApiKey above
     public string WhisperLocalModel     { get; set; } = "tiny";
+    /// <summary>The language spoken, as a two-letter code, or "auto" for the model's own guess —
+    /// which on a two-second clip is often wrong and always costs an extra pass.</summary>
+    public string WhisperLanguage       { get; set; } = "en";
     public string MicrophoneDeviceName  { get; set; } = "";   // empty = use system default
     public int    PushToTalkKey         { get; set; } = 0;    // 0 = disabled; Win32 VK code otherwise
 }

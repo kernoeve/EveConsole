@@ -5,10 +5,23 @@
              x:DataType="vm:AssetBrowserViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
 
-  <Grid RowDefinitions="Auto,*,Auto">
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+    <!-- ── Scope ───────────────────────────────────────────────────────────
+         Whose assets at all, before any filter: the filter rows apply within it. -->
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6 8 2">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Scope" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+        <ComboBox ItemsSource="{Binding ScopeOptions}" SelectedItem="{Binding Scope}" FontSize="11" MinWidth="230"
+                  Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                  BorderBrush="{DynamicResource BorderDefaultBrush}" />
+        <TextBlock Text="The filters below search within this scope." FontSize="10"
+                   Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
 
     <!-- ── Filter bar ──────────────────────────────────────────────────── -->
-    <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6"
+    <Border Grid.Row="1" Background="{DynamicResource SurfaceBaseBrush}" Padding="8 6"
             BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <Grid ColumnDefinitions="*,Auto">
 
@@ -50,7 +63,7 @@
     </Border>
 
     <!-- ── Tab control ───────────────────────────────────────────────────── -->
-    <TabControl Grid.Row="1"
+    <TabControl Grid.Row="2"
                 x:Name="ContentTabs"
                 SelectionChanged="OnTabChanged"
                 Background="{DynamicResource SurfaceBaseBrush}"
@@ -112,7 +125,7 @@
     </TabControl>
 
     <!-- ── Status bar ─────────────────────────────────────────────────── -->
-    <Border Grid.Row="2" Background="{DynamicResource SurfaceInputBrush}" Padding="12 6">
+    <Border Grid.Row="3" Background="{DynamicResource SurfaceInputBrush}" Padding="12 6">
       <DockPanel>
         <Button DockPanel.Dock="Right"
                 Content="Load More"

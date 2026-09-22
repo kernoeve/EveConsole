@@ -30,6 +30,13 @@ public class EsiCallResult<T>
     // partial set. Always true for single-page / non-paged calls.
     public bool   Complete            { get; init; } = true;
 
+    /// <summary>
+    /// No request was made: the client is standing down — Tranquility offline, or the error
+    /// budget spent — and answered from home. Not a failure of the call, so a poller neither logs
+    /// it nor records it as the endpoint's last word; the call is simply still owed.
+    /// </summary>
+    public bool   NotSent             { get; init; }
+
     public bool IsSuccess     => StatusCode is >= 200 and < 300;
     public bool IsRateLimited => StatusCode == 429;
     public bool IsNotModified => StatusCode == 304;

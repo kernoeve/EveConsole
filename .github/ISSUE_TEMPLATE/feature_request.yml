@@ -1,0 +1,52 @@
+name: Feature request
+description: Something the app should do and does not
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Worth knowing before you write: this is a side project with one maintainer, so the honest
+        answer to a lot of requests is "not soon". Saying what you are actually trying to get done
+        helps more than describing a specific control — quite often the app can already do it
+        another way, or the underlying need suggests something better than the original idea.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: |
+        The task, not the feature. "I want to know which of my reactions are about to run out of
+        input" rather than "add a column to the worklist".
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you had in mind
+      description: If you have a specific idea for how it should work, describe it here.
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How you handle it today
+      description: |
+        Spreadsheet, another tool, doing it by hand, not at all. This says a lot about how much the
+        gap actually costs.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app
+      options:
+        - Worklist / industry planning
+        - Market, orders and wallet
+        - Assets and inventory levels
+        - Universe map and navigation
+        - Intel, logs and killmails
+        - Corporation tools
+        - Overview / dashboard
+        - Settings, database or updates
+        - Something else
+    validations:
+      required: true

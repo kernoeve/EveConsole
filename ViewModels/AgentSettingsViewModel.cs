@@ -37,6 +37,32 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     private string DisplayAgentName =>
         string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim();
 
+    // ── The person ─────────────────────────────────────────────────────────────
+    private string _userName = AgentSettings.DefaultUserName;
+    public string UserName
+    {
+        get => _userName;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _userName, value);
+            this.RaisePropertyChanged(nameof(UserGuidanceHelpText));
+        }
+    }
+
+    private string _userGuidance = "";
+    public string UserGuidance
+    {
+        get => _userGuidance;
+        set => this.RaiseAndSetIfChanged(ref _userGuidance, value);
+    }
+
+    public string UserNameHelpText =>
+        $"What {DisplayAgentName} calls you. Default: {AgentSettings.DefaultUserName}. Set it to your main and they will use it.";
+
+    public string UserGuidanceHelpText =>
+        $"Given to {DisplayAgentName} with every message, and declared to override their standard guidance — what your words mean, who people are, how you want them to behave. One instruction per line. " +
+        $"You can also just tell them: \"when I say home, I mean Jita 4-4\" — they record it here themselves.";
+
     public string DefaultAgentNameHelpText =>
         $"The name shown in the panel header and used when the agent refers to itself. Default: {AgentSettings.DefaultAgentName}.";
 
@@ -47,7 +73,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string HistoryHelpText     =>
         $"History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {DisplayAgentName} panel.";
     public string SummarizationHelpText =>
-        $"When the estimated conversation length crosses this value, {DisplayAgentName} will silently compact older messages into a summary in the background — typically while you are reading her last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).";
+        $"When the estimated conversation length crosses this value, {DisplayAgentName} will silently compact older messages into a summary in the background — typically while you are reading their last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).";
     public string TtsVolumeHelpText   => $"Volume and mute are available directly in the {DisplayAgentName} panel while it is open.";
     public string MicHelpText         => $"When configured, a mic button appears in the {DisplayAgentName} panel. Hold it to record, release to transcribe.";
     public string PttHelpText         =>
@@ -98,6 +124,22 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     {
         get => _claudeApiKey;
         set => this.RaiseAndSetIfChanged(ref _claudeApiKey, value);
+    }
+
+    // ── Claude prompt-cache lifetime ────────────────────────────────────────────
+    public IReadOnlyList<string> ClaudeCacheTtlOptions { get; } = ["5 minutes (default)", "1 hour"];
+
+    private string _claudeCacheTtl = "5m";
+    public string ClaudeCacheTtlOption
+    {
+        get => _claudeCacheTtl == "1h" ? ClaudeCacheTtlOptions[1] : ClaudeCacheTtlOptions[0];
+        set
+        {
+            var ttl = value == ClaudeCacheTtlOptions[1] ? "1h" : "5m";
+            if (ttl == _claudeCacheTtl) return;
+            _claudeCacheTtl = ttl;
+            this.RaisePropertyChanged();
+        }
     }
 
     private string _claudeModel = "";
@@ -329,6 +371,13 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public bool ShowMicrophoneSettings   => _speechInputProvider != SpeechInputProvider.None;
 
     // ── Microphone device selection ────────────────────────────────────────────
+    //
+    // The first entry is not a device: it is "follow whatever the operating system has as its
+    // default input", which the recorder has always supported as an empty name and which the
+    // list never offered. Without it the tab pinned the capsuleer to whichever device happened
+    // to be first the day they opened it, and a headset plugged in later was never heard.
+    public const string SystemDefaultMicrophone = "System default";
+
     private IReadOnlyList<string> _microphoneDevices = [];
     public IReadOnlyList<string> MicrophoneDevices
     {
@@ -345,13 +394,17 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     private void RefreshMicrophoneDevices()
     {
-        var devices = _speech?.GetInputDeviceNames() ?? (IReadOnlyList<string>)[];
+        var found   = _speech?.GetInputDeviceNames() ?? (IReadOnlyList<string>)[];
+        var devices = new List<string>(found.Count + 1) { SystemDefaultMicrophone };
+        devices.AddRange(found);
         MicrophoneDevices = devices;
 
         if (_selectedMicrophoneDevice is not null && devices.Contains(_selectedMicrophoneDevice))
             return; // keep saved selection
 
-        SelectedMicrophoneDevice = devices.Count > 0 ? devices[0] : null;
+        // A saved device that is no longer present, or nothing saved at all: the system default,
+        // which is what the recorder falls back to anyway.
+        SelectedMicrophoneDevice = SystemDefaultMicrophone;
     }
 
     // ── Push-to-talk global key ────────────────────────────────────────────────
@@ -378,6 +431,16 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     public IReadOnlyList<(string Id, string Label)> LocalWhisperModels =>
         LocalWhisperService.Models;
+
+    private string _whisperLanguage = "en";
+    public string WhisperLanguage
+    {
+        get => _whisperLanguage;
+        set => this.RaiseAndSetIfChanged(ref _whisperLanguage, value ?? "");
+    }
+
+    /// <summary>Where the local model runs, once it has loaded.</summary>
+    public string LocalWhisperRuntime => _speech?.LocalWhisper.LoadedRuntime ?? "";
 
     public IReadOnlyList<string> LocalWhisperModelLabels =>
         LocalWhisperService.Models.Select(m => m.Label).ToList();
@@ -445,6 +508,22 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
         LoadFromService();
         SaveCommand               = ReactiveCommand.Create(Save);
+
+        // ⚠️ The agent writes the standing instructions too, through update_guidance. This tab
+        // rebuilds its whole settings object on Save, so without following the service's copy a
+        // Save pressed after the agent recorded something would write the old text back over it.
+        _service.WhenAnyValue(x => x.Settings)
+                .Subscribe(s =>
+                {
+                    AgentName    = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
+                    Verbosity    = s.Verbosity;
+                    UserGuidance = s.UserGuidance ?? "";
+                    UserName     = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
+                });
+
+        // What another client has written since this one started. The subscription above puts
+        // it on the tab when it lands.
+        _ = _service.RefreshSharedAsync();
     }
 
     private void LoadFromService()
@@ -452,10 +531,13 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         var s = _service.Settings;
         _agentName              = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
         _verbosity              = s.Verbosity;
+        _userName               = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
+        _userGuidance           = s.UserGuidance ?? "";
         _isEnabled              = s.Enabled;
         _selectedProvider       = s.Provider;
         _claudeApiKey           = s.ClaudeApiKey;
         _claudeModel            = s.ClaudeModel;
+        _claudeCacheTtl         = s.ClaudeCacheTtl == "1h" ? "1h" : "5m";
         _openAiApiKey           = s.OpenAiApiKey;
         _openAiModel            = s.OpenAiModel;
         _localEndpoint          = s.LocalEndpoint;
@@ -477,7 +559,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
         _speechInputProvider      = s.SpeechInputProvider;
         _whisperLocalModel        = s.WhisperLocalModel;
-        _selectedMicrophoneDevice = s.MicrophoneDeviceName;
+        _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
+        _selectedMicrophoneDevice = string.IsNullOrEmpty(s.MicrophoneDeviceName) ? SystemDefaultMicrophone : s.MicrophoneDeviceName;
         _selectedPushToTalkKeyName = GlobalHotkeyService.VkName(s.PushToTalkKey) ?? GlobalHotkeyService.KeyOptions[0].Name;
 
         if (s.SpeechInputProvider != SpeechInputProvider.None)
@@ -490,12 +573,15 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             AgentName  = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim(),
             Verbosity  = _verbosity,
+            UserName     = string.IsNullOrWhiteSpace(_userName) ? AgentSettings.DefaultUserName : _userName.Trim(),
+            UserGuidance = (_userGuidance ?? "").Trim(),
             Enabled       = _isEnabled,
             Provider      = _selectedProvider,
             ClaudeApiKey  = _claudeApiKey.Trim(),
             ClaudeModel   = string.IsNullOrWhiteSpace(_claudeModel)    ? "claude-sonnet-4-6"          : _claudeModel.Trim(),
+            ClaudeCacheTtl = _claudeCacheTtl,
             OpenAiApiKey  = _openAiApiKey.Trim(),
-            OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-4o"                     : _openAiModel.Trim(),
+            OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-5"                      : _openAiModel.Trim(),
             LocalEndpoint = string.IsNullOrWhiteSpace(_localEndpoint)  ? "http://localhost:11434"      : _localEndpoint.Trim(),
             LocalModel    = string.IsNullOrWhiteSpace(_localModel)     ? "llama3.1"                   : _localModel.Trim(),
             PersistHistory         = _persistHistory,
@@ -515,7 +601,9 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
             SpeechInputProvider   = _speechInputProvider,
             WhisperLocalModel     = _whisperLocalModel,
-            MicrophoneDeviceName  = _selectedMicrophoneDevice ?? "",
+            WhisperLanguage       = string.IsNullOrWhiteSpace(_whisperLanguage) ? "en" : _whisperLanguage.Trim(),
+            // The empty name is what the recorder reads as "the system default".
+            MicrophoneDeviceName  = _selectedMicrophoneDevice is null or SystemDefaultMicrophone ? "" : _selectedMicrophoneDevice,
             PushToTalkKey         = GlobalHotkeyService.KeyOptions
                 .FirstOrDefault(k => k.Name == _selectedPushToTalkKeyName).WinVk,
         };
@@ -524,7 +612,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         // when _service.Configure raises the Settings property-changed (which re-evaluates
         // HasSpeechInput and HasTts on AgentPanelViewModel).
         _speech?.Configure(settings.SpeechInputProvider, settings.OpenAiApiKey,
-                           settings.WhisperLocalModel, settings.MicrophoneDeviceName);
+                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage);
         _tts?.Configure(settings);
         _service.Configure(settings);
 

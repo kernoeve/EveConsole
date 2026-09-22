@@ -241,8 +241,12 @@ See the [documentation](https://docs.eveconsole.com/getting-started/) for full i
 This project uses a `develop` → `main` branching model:
 
 - `main` is the protected release branch — every merge into it triggers an automated build and gets tagged with an auto-incrementing patch version (`vMAJOR.MINOR.PATCH`).
-- `develop` is the integration branch — branch your work off `develop` (`feature/your-thing`, `fix/your-thing`) and open a pull request back into it.
+- `develop` is the integration branch — fork the repository, branch your work off `develop` (`feature/your-thing`, `fix/your-thing`) and open a pull request back into it.
 - Periodic `develop → main` PRs cut a new release.
+
+⚠️ A fresh clone puts you on `main`, and GitHub preselects `main` as the pull request base. Both need changing to `develop`.
+
+**[CONTRIBUTING.md](CONTRIBUTING.md)** has the full walkthrough, what CI does and does not check, and two project rules that are easy to break. Please read it before your first pull request. See also the [Code of Conduct](CODE_OF_CONDUCT.md) and the [security policy](SECURITY.md).
 
 ---
 

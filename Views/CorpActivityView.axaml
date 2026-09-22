@@ -147,7 +147,7 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
                         <Panel>
@@ -190,7 +190,7 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
                         <Panel>
@@ -233,7 +233,7 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:Activity24hPlayerRowVm">
                         <Panel>
@@ -455,7 +455,7 @@
               <DataGridTextColumn Header="RATTING TAX"   Binding="{Binding RattingTaxText}"   SortMemberPath="RattingTaxRaw"    Width="105" />
               <DataGridTextColumn Header="INDUSTRY TAX"  Binding="{Binding IndustryTaxText}"  SortMemberPath="IndustryTaxRaw"   Width="105" />
               <DataGridTextColumn Header="PROJ PAYOUTS"  Binding="{Binding ProjPayoutsText}"  SortMemberPath="ProjPayoutsRaw"   Width="110" />
-              <DataGridTextColumn Header="UNITS MINED"   Binding="{Binding UnitsMinedText}"   SortMemberPath="UnitsMinedRaw"    Width="100" />
+              <DataGridTextColumn Header="MINED VALUE"   Binding="{Binding MinedValueText}"   SortMemberPath="MinedValueRaw"    Width="110" />
               <DataGridTextColumn Header="KILLS"          Binding="{Binding KillsText}"         SortMemberPath="KillsRaw"         Width="65"  />
               <DataGridTextColumn Header="LOSSES"         Binding="{Binding LossesText}"        SortMemberPath="LossesRaw"        Width="65"  />
               <DataGridTextColumn Header="ISK EFF"        Binding="{Binding IskEffText}"        SortMemberPath="IskEffRaw"        Width="75"  />
@@ -463,12 +463,13 @@
             </DataGrid.Columns>
           </DataGrid>
 
-          <!-- Three charts across, one band. Each keeps its own header so a column can be read
-               without counting across to work out which one it is. -->
-          <Grid Grid.Row="1" ColumnDefinitions="*,*,*">
+          <!-- Four charts, two by two: ISK trends and kills above, players active and mining
+               below. Each keeps its own header so a chart can be read without working out from
+               its place which one it is. -->
+          <Grid Grid.Row="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
 
             <!-- ISK trends -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,360">
+            <Grid Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
                 <TextBlock Text="ISK TRENDS (billions)" TextTrimming="CharacterEllipsis"
@@ -486,7 +487,7 @@
             </Grid>
 
             <!-- Kills and losses. YAxes[0] = counts, YAxes[1] = ISK efficiency pinned to 0-100% -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,360">
+            <Grid Grid.Row="0" Grid.Column="1" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
                 <TextBlock Text="KILLS / LOSSES (ISK efficiency right)" TextTrimming="CharacterEllipsis"
@@ -503,11 +504,29 @@
                                   Margin="4 0 4 4" />
             </Grid>
 
-            <!-- Mining -->
-            <Grid Grid.Column="2" RowDefinitions="Auto,360">
+            <!-- Players active -->
+            <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,288">
               <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
-                <TextBlock Text="MINING (units)" TextTrimming="CharacterEllipsis"
+                <TextBlock Text="PLAYERS ACTIVE" TextTrimming="CharacterEllipsis"
+                           FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+              </Border>
+              <lvc:CartesianChart Grid.Row="1"
+                                  Series="{Binding MonthlyPlayerSeries}"
+                                  XAxes="{Binding MonthlyPlayerXAxes}"
+                                  YAxes="{Binding MonthlyPlayerYAxes}"
+                                  LegendPosition="Top" LegendTextSize="10"
+                                  TooltipPosition="Top"
+                                  EasingFunction="{x:Null}"
+                                  Background="Transparent"
+                                  Margin="4 0 4 4" />
+            </Grid>
+
+            <!-- Mining, as reprocessed value -->
+            <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,288">
+              <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
+                <TextBlock Text="MINING (reprocessed value)" TextTrimming="CharacterEllipsis"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
               </Border>
               <lvc:CartesianChart Grid.Row="1"
@@ -631,7 +650,7 @@
                   <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
@@ -762,7 +781,7 @@
                   <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
@@ -840,7 +859,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:TaxPayerRowVm">
                         <Panel>
@@ -889,7 +908,7 @@
                   <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
@@ -966,7 +985,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"      Binding="{Binding Rank}"   Width="40"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:TaxPayerRowVm">
                         <Panel>
@@ -1015,7 +1034,7 @@
                   <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"   Binding="{Binding TypeName}"   Width="160" />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
@@ -1092,7 +1111,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"       Binding="{Binding Rank}"   Width="40"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:TaxPayerRowVm">
                         <Panel>
@@ -1141,7 +1160,7 @@
                   <DataGridTextColumn Header="DATE / TIME" Binding="{Binding WhenText}"
                                       SortMemberPath="When" Width="150" />
                   <DataGridTextColumn Header="TYPE"    Binding="{Binding TypeName}"   Width="120" />
-                  <DataGridTemplateColumn Header="DONOR" SortMemberPath="Name" Width="160">
+                  <DataGridTemplateColumn Header="DONOR" SortMemberPath="Name" Width="160" ClipboardContentBinding="{Binding Name}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:WalletDetailRowVm">
                         <Panel>
@@ -1222,7 +1241,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140">
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
@@ -1237,7 +1256,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
@@ -1275,7 +1294,7 @@
                 </DataGrid.Styles>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="DATE"               Binding="{Binding Date}"                  Width="90"  />
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140">
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="140" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
@@ -1290,7 +1309,7 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*">
+                  <DataGridTemplateColumn Header="ORE TYPE" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:MiningLedgerRowVm">
                         <Panel>
@@ -1367,7 +1386,7 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="*">
+                  <DataGridTemplateColumn Header="CHARACTER" SortMemberPath="CharacterName" Width="*" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:CorpKillCharRowVm">
                         <Panel>
@@ -1595,7 +1614,7 @@
                     <DataGridTextColumn Header="CAREER"   Binding="{Binding Career}"       Width="100" />
                     <DataGridTextColumn Header="PROGRESS" Binding="{Binding ProgressText}" Width="170" />
                     <DataGridTextColumn Header="REM. REWARD" Binding="{Binding RemainingRewardText}" Width="95" />
-                  <DataGridTemplateColumn Header="CREATOR" SortMemberPath="CreatorText" Width="120">
+                  <DataGridTemplateColumn Header="CREATOR" SortMemberPath="CreatorText" Width="120" ClipboardContentBinding="{Binding CreatorText}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:CorpProjectRowVm">
                         <Panel>
@@ -1715,7 +1734,7 @@
                     <!-- The description is the item on a delivery project, so this is the cell
                          that opens the Item Browser; the location beside it is the station the
                          delivery goes to. Projects that name no item stay plain text. -->
-                    <DataGridTemplateColumn Header="DESCRIPTION" SortMemberPath="DescriptionText" Width="*">
+                    <DataGridTemplateColumn Header="DESCRIPTION" SortMemberPath="DescriptionText" Width="*" ClipboardContentBinding="{Binding DescriptionText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <Panel>
@@ -1735,7 +1754,7 @@
                     </DataGridTemplateColumn>
                     <!-- Only a delivery has a destination you can dock at. A destroy-NPC project's
                          location names a region or constellation, so it stays plain text. -->
-                    <DataGridTemplateColumn Header="LOCATION" SortMemberPath="LocationText" Width="130">
+                    <DataGridTemplateColumn Header="LOCATION" SortMemberPath="LocationText" Width="130" ClipboardContentBinding="{Binding LocationText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <Panel>
@@ -1753,7 +1772,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="PROJECT STATUS" Width="200">
+                    <DataGridTemplateColumn Header="PROJECT STATUS" Width="200" ClipboardContentBinding="{Binding ProjectStatusText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <TextBlock Text="{Binding ProjectStatusText}"
@@ -1763,7 +1782,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="REMAINING" Width="90">
+                    <DataGridTemplateColumn Header="REMAINING" Width="90" ClipboardContentBinding="{Binding RemainingText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell
@@ -1775,7 +1794,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="REM. %" Width="70">
+                    <DataGridTemplateColumn Header="REM. %" Width="70" ClipboardContentBinding="{Binding RemainingPercentText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:StandingProjectRowVm">
                           <TextBlock Text="{Binding RemainingPercentText}" Foreground="{Binding RemainingColor}"
@@ -1923,7 +1942,7 @@
                   </DataGrid.Styles>
                   <DataGrid.Columns>
                     <DataGridTextColumn Header="#"           Binding="{Binding Rank}"          Width="36"  />
-                  <DataGridTemplateColumn Header="NAME" SortMemberPath="CharacterName" Width="*">
+                  <DataGridTemplateColumn Header="NAME" SortMemberPath="CharacterName" Width="*" ClipboardContentBinding="{Binding CharacterName}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:ProjectContributorVm">
                         <Panel>

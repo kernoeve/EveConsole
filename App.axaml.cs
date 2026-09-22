@@ -22,6 +22,14 @@ public class App : Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
+    /// <summary>
+    /// Whether the startup schema pass added SDE or Hobo columns or tables to an existing
+    /// database. A column added by the pass is empty until the matching import refills it,
+    /// so MainWindow starts that import in the background when either is true.
+    /// </summary>
+    public static bool SdeSchemaGrew  { get; private set; }
+    public static bool HoboSchemaGrew { get; private set; }
+
     public override void Initialize()
     {
         LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers());
@@ -68,6 +76,10 @@ public class App : Application
         // the user to launch a second copy — which is the one thing that must not happen while
         // the file is being replaced.
         SplashWindow? splash = null;
+
+        // The UI scale is this machine's own and lives in config.json, so it can be known before
+        // the first window — the splash included — rather than applied to windows already open.
+        UiScaleService.Load();
 
         // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
         // process shows an icon and waits; a progress window flashing up at logon for something the
@@ -335,6 +347,34 @@ public class App : Application
                 if (written > 0)
                     await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
             };
+            // An undock, likewise: the location poll is what knows, and it says so the moment
+            // the character's pass is done, so the undock alarms are evaluated then — seconds
+            // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
+            // its stages are minutes out.
+            polling.CharacterUndocked += characterId =>
+                _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
+
+            // And a store order's state is worked out by the fulfilment pass — which the store
+            // mail runs the moment it books an order — so the store-order alarms follow the pass.
+            // The web sites do NOT follow the pass: it runs every half minute and after every
+            // poll of jobs, contracts and assets, and nudging the site sync from here had every
+            // site called every few seconds whatever interval its store was set to. What the
+            // pass works out goes out with the store's next call, within its interval; only an
+            // owner's own action (a setting, an approval, Sync now, a deploy) calls at once.
+            Services.GetRequiredService<OrderFulfilmentService>().AfterPass = async ct =>
+                await Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
+
+            // And the pass is worth running the moment ESI has brought in what it reads, rather
+            // than at its own next interval: a contract or a job shows against its order seconds
+            // after the poll that saw it.
+            polling.EndpointPolled += key =>
+            {
+                if (key is "char.industry.jobs" or "corp.industry.jobs"
+                        or "char.contracts"     or "corp.contracts"
+                        or "char.assets"        or "corp.assets")
+                    Services.GetRequiredService<OrderFulfilmentService>().Nudge();
+            };
+
             zkbFirehose   = Services.GetRequiredService<ZkillboardFirehoseService>();
             zkbBackfill   = Services.GetRequiredService<ZkillboardBackfillService>();
             zkbPost       = Services.GetRequiredService<ZkillboardPostService>();
@@ -345,7 +385,11 @@ public class App : Application
             // still show every scope as held while ESI answered 401. Writing it on refresh rather
             // than only at login means characters authorised before this correct themselves, since
             // tokens renew lazily about every twenty minutes of use — no re-authorising needed.
-            Services.GetRequiredService<EsiClient>().AfterTokenRefreshed = async (ownerId, ownerType, scopes) =>
+            //
+            // The refresh token comes along for the same reason: if the SSO ever hands back a new
+            // one, the copy in the database is the only one that survives a restart.
+            var esiClient = Services.GetRequiredService<EsiClient>();
+            esiClient.AfterTokenRefreshed = async (ownerId, ownerType, scopes, refreshToken) =>
             {
                 var joined = string.Join(' ', scopes);
                 await using var db = await Services
@@ -357,19 +401,64 @@ public class App : Application
                 else
                     await db.Characters.Where(c => c.Id == ownerId && c.GrantedScopes != joined)
                             .ExecuteUpdateAsync(s => s.SetProperty(c => c.GrantedScopes, joined));
+
+                // ⚠️ Only a token that is present AND different: a reply without one must not
+                // blank the stored token, and an owner already retired (RefreshToken "") must
+                // not be quietly revived by a refresh that was in flight when it was.
+                if (refreshToken.Length == 0) return;
+                if (ownerType == "corporation")
+                    await db.Corporations.Where(c => c.Id == (int)ownerId && c.RefreshToken != "" && c.RefreshToken != refreshToken)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, refreshToken));
+                else
+                    await db.Characters.Where(c => c.Id == ownerId && c.RefreshToken != "" && c.RefreshToken != refreshToken)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, refreshToken));
+            };
+
+            // A refresh token the SSO refuses (invalid_grant) is dead: expired, revoked on the
+            // account's third-party page, or superseded. Retire it — clear it, so every roster
+            // query drops the owner and nothing asks the SSO again — and keep the reason, which
+            // is what Settings → ESI Tokens and the status bar show. One error-log entry says so
+            // in words, in place of the 400 every poll used to write.
+            esiClient.TokenRevoked = async (ownerId, ownerType, reason) =>
+            {
+                await using var db = await Services
+                    .GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContextAsync();
+
+                string name;
+                if (ownerType == "corporation")
+                {
+                    name = await db.Corporations.Where(c => c.Id == (int)ownerId).Select(c => c.Name).FirstOrDefaultAsync() ?? ownerId.ToString();
+                    await db.Corporations.Where(c => c.Id == (int)ownerId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, "")
+                                                      .SetProperty(c => c.TokenError, reason));
+                }
+                else
+                {
+                    name = await db.Characters.Where(c => c.Id == ownerId).Select(c => c.Name).FirstOrDefaultAsync() ?? ownerId.ToString();
+                    await db.Characters.Where(c => c.Id == ownerId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, "")
+                                                      .SetProperty(c => c.TokenError, reason));
+                }
+
+                Services.GetRequiredService<AppErrorLogger>().Log("EsiAuth", $"{ownerType} {name}",
+                    $"The SSO refused this {ownerType}'s refresh token; polling for it has stopped. Re-authorise it in Settings → ESI Tokens.",
+                    reason);
             };
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
             var typePriceHistory = Services.GetRequiredService<TypePriceHistoryService>();
             marketPricing.AfterRefresh        = ct => buildCostService.RunAfterMarketRefreshAsync(ct);
-            // Fill price gaps first, then snapshot today's per-type prices (market + build now final).
+            // Fill price gaps first, work out what everything reprocesses to at those prices, then
+            // snapshot today's per-type prices (market, build and reprocessing now final). One
+            // handler, in that order: the event is a multicast delegate, and separate handlers
+            // would run side by side with only the last one awaited.
             buildCostService.AfterRecalculate += async ct =>
             {
                 await marketPricing.FillAllGapsAsync(ct);
+                await reprService.RecalculateAllAsync(ct);
                 await typePriceHistory.RecalculateAsync(ct);
             };
-            buildCostService.AfterRecalculate += ct => reprService.RecalculateAllAsync(ct);
 
             // LP values are priced off the market, so they follow the same trigger as build
             // costs — and run after the gap fill above, so they see final prices rather than
@@ -604,6 +693,21 @@ public class App : Application
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // ⚠️ A zero-byte database file is worse than none. EF's EnsureCreated() opens it
+            // read-only to learn that it exists, the WAL pragma is then set on an empty file,
+            // and every write from there on answers "attempt to write a readonly database" —
+            // on this start and on every start after it, since nothing ever gets written. The
+            // file holds nothing, so it goes, and EnsureCreated() builds a real one. A process
+            // that died between creating the file and writing its first page leaves exactly this.
+            if (!DbEngine.IsPostgres) SqliteFile.DiscardIfEmpty(AppConfig.GetDbPath());
+
+            // What the SDE and Hobo tables hold BEFORE anything below touches them. Compared
+            // again at the end: growth means a column or table this pass added and left empty,
+            // and the import that fills it is kicked off once the window is up. See
+            // SchemaFingerprint for why this is measured rather than reported.
+            var sdeBefore  = SchemaFingerprint.ColumnsUnder(db, "Sde");
+            var hoboBefore = SchemaFingerprint.ColumnsUnder(db, "Hobo");
+
             // skipSchema can only be true on PostgreSQL — it takes a second live client to set it
             // — so the SQLite patch below needs no guard of its own.
             if (!skipSchema) db.Database.EnsureCreated();
@@ -704,10 +808,13 @@ public class App : Application
                         "MarketValue"   REAL,
                         "BuildCost"     REAL,
                         "ContractPrice" REAL,
+                        "ReprocessValue" REAL,
                         "ComputedAt"    TEXT    NOT NULL DEFAULT '',
                         PRIMARY KEY ("TypeId", "Date")
                     )
                     """);
+                // The reprocessing value came later; a database from before gets the column here.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TypePriceSnapshots" ADD COLUMN "ReprocessValue" REAL"""); } catch { }
 
                 // Order Tracker — user-entered outgoing orders.
                 db.Database.ExecuteSqlRaw("""
@@ -768,6 +875,10 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsInBuild" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContractId" INTEGER NULL"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "CompletedOn" TEXT NULL"""); } catch { }
+                // The web site's id for an order placed there.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "WebOrderId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "MailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)
                 db.Database.ExecuteSqlRaw("""
@@ -818,6 +929,33 @@ public class App : Application
                         "MessageFooterColor" TEXT NOT NULL DEFAULT '',
                         "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1,
                         "AutoEstimateDays"    INTEGER NOT NULL DEFAULT 1,
+                        "LimitEnabled"        INTEGER NOT NULL DEFAULT 0,
+                        "LimitUnits"          INTEGER NOT NULL DEFAULT 1,
+                        "LimitScope"          TEXT    NOT NULL DEFAULT 'type',
+                        "LimitPeriod"         TEXT    NOT NULL DEFAULT 'all',
+                        "LimitPeriodCount"    INTEGER NOT NULL DEFAULT 1,
+
+                        "WebEnabled"          INTEGER NOT NULL DEFAULT 0,
+                        "WebUrl"              TEXT    NOT NULL DEFAULT '',
+                        "WebSecret"           TEXT    NOT NULL DEFAULT '',
+                        "WebTheme"            TEXT    NOT NULL DEFAULT 'dark',
+                        "WebBuyerMaySwitch"   INTEGER NOT NULL DEFAULT 1,
+                        "WebThemes"           TEXT    NOT NULL DEFAULT '',
+                        "WebMailUpdates"      INTEGER NOT NULL DEFAULT 1,
+                        "WebPollMinutes"      INTEGER NOT NULL DEFAULT 5,
+                        "WebBlurb"            TEXT    NOT NULL DEFAULT '',
+                        "WebCursor"           INTEGER NOT NULL DEFAULT 0,
+                        "WebGeneration"       TEXT    NOT NULL DEFAULT '',
+                        "WebSiteVersion"      TEXT    NOT NULL DEFAULT '',
+                        "WebLastSyncAt"       TEXT    NULL,
+                        "WebLastError"        TEXT    NOT NULL DEFAULT '',
+                        "WebCloudflareAccountId" TEXT NOT NULL DEFAULT '',
+                        "WebWorkerName"       TEXT    NOT NULL DEFAULT '',
+                        "WebCustomHostname"   TEXT    NOT NULL DEFAULT '',
+                        "WebEveClientId"      TEXT    NOT NULL DEFAULT '',
+                        "WebEveClientSecret"  TEXT    NOT NULL DEFAULT '',
+
+
                         "CreatedAt"     TEXT    NOT NULL DEFAULT ''
                     )
                     """);
@@ -833,6 +971,12 @@ public class App : Application
                 // An expected date for orders filled from stock, which have no job to take one from.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateInStock" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "AutoEstimateDays" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitEnabled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitUnits" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitScope" TEXT NOT NULL DEFAULT 'type'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitPeriod" TEXT NOT NULL DEFAULT 'all'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "LimitPeriodCount" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
                 // Text the shop puts on every mail it sends, with a colour each.
                 // Labels put on every order this store takes.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "OrderLabels" TEXT NOT NULL DEFAULT ''"""); } catch { }
@@ -843,6 +987,29 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageHeaderColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooter" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "MessageFooterColor" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // The web channel. Every column has a default, so an older build that never
+                // reads them keeps working against an upgraded database.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEnabled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebUrl" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebTheme" TEXT NOT NULL DEFAULT 'dark'"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBuyerMaySwitch" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebThemes" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebMailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebPollMinutes" INTEGER NOT NULL DEFAULT 5"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBlurb" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCursor" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebGeneration" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebSiteVersion" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebLastSyncAt" TEXT NULL"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebLastError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCloudflareAccountId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebWorkerName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCustomHostname" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ScheduledTasks" (
                         "Id"               INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -1393,12 +1560,14 @@ public class App : Application
                         "Volume"              TEXT    NOT NULL DEFAULT '0',
                         "RegionId"            INTEGER NOT NULL DEFAULT 0,
                         "ItemsPulled"         INTEGER NOT NULL DEFAULT 0,
+                        "ItemsStatus"         INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ContractId")
                     )
                     """);
                 // Columns added for the contracts feature — backfill on existing DBs.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "RegionId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsPulled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsStatus" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiContractItems" (
@@ -1416,6 +1585,23 @@ public class App : Application
                         PRIMARY KEY ("ContractId", "RecordId")
                     )
                     """);
+                // Corporation contracts issued by another corporation were, in July 2026, marked
+                // pulled without a call on the belief that ESI would not serve their items — a
+                // belief the data contradicted, so the sweep now asks. The rows that belief marked
+                // — pulled, no items, no answer recorded — go back to it here. Once ESI has
+                // answered, the status is on the row and it is left alone, so this is safe to run
+                // on every start. Mirrored for PostgreSQL in PostgresSchema.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""
+                        UPDATE "EsiContracts" SET "ItemsPulled" = 0
+                        WHERE "OwnerType" = 'corporation' AND "IssuerCorporationId" <> "OwnerId"
+                          AND "ItemsPulled" = 1 AND "ItemsStatus" = 0
+                          AND "Type" IN ('item_exchange', 'auction', 'courier')
+                          AND NOT EXISTS (SELECT 1 FROM "EsiContractItems" i WHERE i."ContractId" = "EsiContracts"."ContractId")
+                        """);
+                }
+                catch { }
 
                 // Persistent id→name cache, shared with the Industry Browser (which also creates it
                 // on demand). Names are immutable so rows are kept across sessions.
@@ -1498,6 +1684,8 @@ public class App : Application
                         "IsBlueprintCopy" INTEGER,
                         "RootLocationId"   INTEGER NOT NULL DEFAULT 0,
                         "RootLocationType" TEXT    NOT NULL DEFAULT '',
+                        "SolarSystemId"    INTEGER NULL,
+                        "RegionId"         INTEGER NULL,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
                     )
                     """);
@@ -2000,6 +2188,9 @@ public class App : Application
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "DetailUnavailable" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "DeniedEndpoints" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (
                         "EntityId"   INTEGER NOT NULL,
@@ -2436,7 +2627,15 @@ public class App : Application
                         "ShipName"          TEXT,
                         "OnlineCheckedAt"   TEXT,
                         "LocationCheckedAt" TEXT,
-                        "ShipCheckedAt"     TEXT
+                        "ShipCheckedAt"     TEXT,
+                        "UndockedAt"        TEXT,
+                        "UndockedFromId"    INTEGER,
+                        "UndockedSystemId"  INTEGER,
+                        "SystemChangedAt"   TEXT,
+                        "PreviousSystemId"  INTEGER,
+                        "UndockedShipTypeId" INTEGER,
+                        "UndockedShipItemId" INTEGER,
+                        "UndockedShipName"  TEXT
                     )
                     """);
 
@@ -2554,12 +2753,18 @@ public class App : Application
                         "AssetSafety"                INTEGER NOT NULL DEFAULT 1,
                         "InactiveStandingProjects"   INTEGER NOT NULL DEFAULT 1,
                         "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1,
-                        "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1
+                        "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
+                        "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1,
+                        "OutstandingContracts"       INTEGER NOT NULL DEFAULT 1,
+                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "StandingBuyOrdersAttention" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "UnriggedIndustryJobs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "OutstandingContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "ExpiringContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -2568,8 +2773,9 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1)
+                         "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
+                         "OutstandingContracts", "ExpiringContracts")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -2733,7 +2939,7 @@ public class App : Application
                 // ⚠️ These two are what make the Corporations and Alliances pages of the entity
                 // browser usable. Their header runs COUNT(DISTINCT CharacterId) and COUNT(*) over
                 // KillMailAttackers filtered on CorporationId / AllianceId — neither of which was
-                // indexed, so both were full scans. Measured on Brave Newbies against 8.4M attacker
+                // indexed, so both were full scans. Measured on a 10,000-member corporation against 8.4M attacker
                 // rows: 22 seconds warm for one corp header, against 139 ms for the same figures on
                 // a pilot, which filters on the already-indexed CharacterId. That asymmetry was the
                 // whole bug — pilots opened instantly while corps looked hung.
@@ -2983,6 +3189,31 @@ public class App : Application
                     // existed such an item aborted the whole calculation.
                     """ALTER TABLE "IndyParks" ADD COLUMN "DefaultStructureId" INTEGER NULL""",
 
+                    // ── Assets: where the root location IS ──────────────────────────────
+                    // Filled by AssetLocations on every asset poll; null until the first poll
+                    // after this upgrade, and for the few roots nothing can resolve. Nullable
+                    // rather than defaulted so that null keeps meaning "unknown".
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
+
+                    // ── Alarms: the hours an alarm is on ────────────────────────────────
+                    """ALTER TABLE "Alarms" ADD COLUMN "ActiveFrom" TEXT NULL""",
+                    """ALTER TABLE "Alarms" ADD COLUMN "ActiveThru" TEXT NULL""",
+
+                    // ── Character status: the last undock ───────────────────────────────
+                    // Stamped by the location poll on a docked→space transition; what the
+                    // Ship Undocks alarm keys on. Null until a character next undocks.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedAt" TEXT NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedFromId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedSystemId" INTEGER NULL""",
+                    // The ship as it was at the undock, so a later change of ship cannot re-judge it.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipTypeId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipItemId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipName" TEXT NULL""",
+                    // And the last change of system, for the wake-up alarm's arrival mode.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "SystemChangedAt" TEXT NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "PreviousSystemId" INTEGER NULL""",
+
                     // ── SDE columns ─────────────────────────────────────────────────────
                     // Deliberately NOT here any more. Twenty of them were mirrored into this
                     // list from SdeImportService with an instruction to keep the two in step,
@@ -3035,7 +3266,7 @@ public class App : Application
                     // NB: braces are doubled. ExecuteSqlRaw runs the statement through string.Format,
                     // so a literal '{}' default is read as a format placeholder and throws — and
                     // since this loop swallows exceptions, the table would simply never be created.
-                    """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL)""",
+                    """CREATE TABLE IF NOT EXISTS "Alarms" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Name" TEXT NOT NULL DEFAULT '', "Enabled" INTEGER NOT NULL DEFAULT 1, "ConditionType" TEXT NOT NULL DEFAULT '', "ConditionJson" TEXT NOT NULL DEFAULT '{{}}', "Repeat" INTEGER NOT NULL DEFAULT 1, "PollSeconds" INTEGER NOT NULL DEFAULT 60, "CooldownSeconds" INTEGER NOT NULL DEFAULT 0, "Primed" INTEGER NOT NULL DEFAULT 0, "CreatedBy" TEXT NOT NULL DEFAULT 'user', "CreatedAt" TEXT NOT NULL DEFAULT '', "LastCheckedAt" TEXT NULL, "LastFiredAt" TEXT NULL, "FireCount" INTEGER NOT NULL DEFAULT 0, "LastError" TEXT NULL, "ActiveFrom" TEXT NULL, "ActiveThru" TEXT NULL)""",
                     """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
 
                     """CREATE TABLE IF NOT EXISTS "AlarmActions" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "Kind" INTEGER NOT NULL DEFAULT 0, "ConfigJson" TEXT NOT NULL DEFAULT '{{}}', "Ordinal" INTEGER NOT NULL DEFAULT 0)""",
@@ -3043,6 +3274,8 @@ public class App : Application
 
                     // The ledger that stops an alarm re-announcing what it has already announced.
                     """CREATE TABLE IF NOT EXISTS "AlarmSeenKeys" ("AlarmId" INTEGER NOT NULL, "MatchKey" TEXT NOT NULL, "FirstSeenAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "MatchKey"))""",
+                    // A staged alarm's acknowledgements: this character's episode is quiet until then.
+                    """CREATE TABLE IF NOT EXISTS "AlarmSnoozes" ("AlarmId" INTEGER NOT NULL, "ScopeKey" TEXT NOT NULL, "Episode" TEXT NOT NULL DEFAULT '', "Until" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("AlarmId", "ScopeKey"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
 
                     """CREATE TABLE IF NOT EXISTS "AlarmEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "FiredAt" TEXT NOT NULL DEFAULT '', "Summary" TEXT NOT NULL DEFAULT '', "DetailJson" TEXT NULL, "MatchCount" INTEGER NOT NULL DEFAULT 0)""",
@@ -3050,6 +3283,14 @@ public class App : Application
 
                     """CREATE TABLE IF NOT EXISTS "AlarmAlerts" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "AlarmId" INTEGER NOT NULL DEFAULT 0, "AlarmEventId" INTEGER NOT NULL DEFAULT 0, "CreatedAt" TEXT NOT NULL DEFAULT '', "Title" TEXT NOT NULL DEFAULT '', "Body" TEXT NULL, "Dismissed" INTEGER NOT NULL DEFAULT 0, "DismissedAt" TEXT NULL)""",
                     """CREATE INDEX IF NOT EXISTS "IX_AlarmAlerts_Dismissed_Created" ON "AlarmAlerts" ("Dismissed", "CreatedAt")""",
+
+                    // The web store channel: what the app has told a site about each order, and
+                    // everything a site has sent back.
+                    """CREATE TABLE IF NOT EXISTS "StoreWebPushes" ("StoreId" INTEGER NOT NULL, "OrderId" INTEGER NOT NULL, "Hash" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("StoreId", "OrderId"))""",
+                    """CREATE TABLE IF NOT EXISTS "StoreWebEvents" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "StoreId" INTEGER NOT NULL DEFAULT 0, "Seq" INTEGER NOT NULL DEFAULT 0, "Kind" TEXT NOT NULL DEFAULT '', "WebOrderId" TEXT NOT NULL DEFAULT '', "BuyerId" INTEGER NOT NULL DEFAULT 0, "BuyerName" TEXT NOT NULL DEFAULT '', "Payload" TEXT NOT NULL DEFAULT '', "ReceivedAt" TEXT NOT NULL DEFAULT '', "Outcome" TEXT NOT NULL DEFAULT '', "Detail" TEXT NOT NULL DEFAULT '', "OrderRef" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")""",
+                    // Pictures the site shows for a store: the banner, bytes and all.
+                    """CREATE TABLE IF NOT EXISTS "StoreWebAssets" ("StoreId" INTEGER NOT NULL, "Kind" TEXT NOT NULL DEFAULT 'banner', "ContentType" TEXT NOT NULL DEFAULT '', "Sha256" TEXT NOT NULL DEFAULT '', "FileName" TEXT NOT NULL DEFAULT '', "Width" INTEGER NOT NULL DEFAULT 0, "Height" INTEGER NOT NULL DEFAULT 0, "Bytes" BLOB NOT NULL, "UpdatedAt" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("StoreId", "Kind"))""",
 
                     // Intel alarm keys used to be the report's row id, which changes whenever a chat
                     // log is re-read — so old sightings kept looking new. They are now content-based
@@ -3059,6 +3300,12 @@ public class App : Application
                     // this is safe to run on every start.
                     """UPDATE "Alarms" SET "Primed" = FALSE WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:%' AND k."MatchKey" NOT LIKE '%|%')""",
                     """DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:%' AND "MatchKey" NOT LIKE '%|%'""",
+
+                    // A corporation whose token could not read project contributors had the whole
+                    // corp.projects poll written into its denied list by an earlier build, which
+                    // stopped its projects updating. Contributors are denied under their own key
+                    // now; the projects key comes back out. No-op once no list holds it.
+                    """UPDATE "Corporations" SET "DeniedEndpoints" = trim(replace(',' || "DeniedEndpoints" || ',', ',corp.projects,', ','), ',') WHERE ',' || "DeniedEndpoints" || ',' LIKE '%,corp.projects,%'""",
                 }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
                 // Repairs stations imported before ConstellationId/RegionId/Security were populated
                 // from the solar system. The importer now fills them, but an existing install only
@@ -3096,13 +3343,86 @@ public class App : Application
                 // PostgreSQL never had this split — PostgresSchema.Apply covers SDE and non-SDE
                 // together, above — and this is SQLite catching up to that shape.
                 SdeImportService.EnsureSdeSchema(db);
+
+                // And the Hobo tables, for the same reason. These reached startup only because the
+                // desktop builds the SDE settings view model on the way up and that runs the pass
+                // first — the headless worker builds no view models, and a reader added anywhere
+                // else would have found the column missing until Settings was opened.
+                HoboImportService.EnsureHoboSchema(db);
+
+                // ── Agent telemetry ─────────────────────────────────────────────────
+                //
+                // Same reason as the SDE block above: these tables arrived after most databases
+                // did, and EnsureCreated only ever builds a new one.
+                //
+                // ⚠️ Unconditional, not gated on the agent being configured. The retention sweep
+                // and the usage views read these tables whether or not anyone has set up a
+                // provider, and a missing table there breaks a screen that has nothing to do with
+                // the agent.
+                AgentTelemetrySchema.Ensure(db);
             }
+
+            // ⚠️ Outside the engine branch, because the rate list is DATA rather than schema and
+            // both engines need it. PostgresSchema.Apply creates the table and seeds nothing, so
+            // leaving this inside the SQLite arm — where it started — would have left every
+            // PostgreSQL install with an empty price list and every cost reading zero.
+            //
+            // Insert-if-absent, so a capsuleer's corrections are never overwritten, and the unique
+            // index settles any race between two clients starting together.
+            if (!skipSchema) AgentTelemetrySchema.SeedRates(db);
+
+            // Where each asset is, for rows written before the columns existed. Both engines,
+            // outside the engine branch for the same reason as the rates above; nothing to do
+            // once the columns are filled, which after the first start they are.
+            if (!skipSchema)
+            {
+                // Ship Undocks alarms saved on the check's first shape (unfit / fuel_below /
+                // ammo_below) are rewritten to its choices, once, so they go on meaning what they
+                // meant rather than quietly widening to "any undock".
+                try
+                {
+                    foreach (var alarm in db.Alarms.Where(a => a.ConditionType == "ship_undock").ToList())
+                        if (EveConsole.Alarms.Conditions.ShipUndockCondition.UpgradeConfig(alarm.ConditionJson) is { } upgraded)
+                            alarm.ConditionJson = upgraded;
+                    db.SaveChanges();
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading ship_undock alarms", ex); }
+
+                try { AssetLocations.FillMissing(db); }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
+
+                // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
+                // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling
+                // the same pilot are one sighting and nobody is named for reporting. An alarm
+                // still holding keys of the old shape is re-primed, so the first evaluation banks
+                // what is in its two-hour window instead of announcing all of it, and the old
+                // keys go. Both engines — the previous key migration lived in the SQLite list
+                // alone and a server install never had it. No-ops once no old keys remain.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""UPDATE "Alarms" SET "Primed" = FALSE WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:____-__-__T%')""");
+                    db.Database.ExecuteSqlRaw("""DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:____-__-__T%'""");
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel key migration", ex); }
+            }
+
+            // Did the pass grow the SDE or Hobo tables? Then the new columns are empty until the
+            // matching import runs, and MainWindow starts it in the background once the window
+            // is up — the same silent import a first launch gets.
+            SdeSchemaGrew  = SchemaFingerprint.ColumnsUnder(db, "Sde")  > sdeBefore;
+            HoboSchemaGrew = SchemaFingerprint.ColumnsUnder(db, "Hobo") > hoboBefore;
         }
         }); // end Task.Run — schema migration complete
 
         p.Report((80, "Loading settings…"));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
+        try
+        {
+            var endpoints = Services.GetRequiredService<EsiPollingService>();
+            await timerSettings.ForgetMinuteRoundingAsync(endpoints.CharacterEndpointInfos.Concat(endpoints.CorpEndpointInfos));
+        }
+        catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Timers", "minute rounding", ex); }
         var appPrefs = Services.GetRequiredService<AppPreferencesService>();
         await appPrefs.LoadAsync();
 
@@ -3328,6 +3648,10 @@ public class App : Application
             // and has been switched on, and never replies to mail older than that moment.
             Start("store mail",         () => Services.GetRequiredService<StoreMailService>().Start());
 
+            // Pushes each store's posting and order book to its web site and pulls what buyers
+            // did there. Does nothing until a store has the web channel switched on.
+            Start("web stores",         () => Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>().Start());
+
             // Cheap when idle: the loop only touches the database for alarms whose interval is up.
             //
             // ⚠️ Leader-only even though alarms are user-facing. Both readers show alerts from
@@ -3388,6 +3712,7 @@ public class App : Application
                 Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
                 Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
+                Halt("web stores",          Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>(), s => s.StopAsync()),
                 Halt("alarms",              Services.GetRequiredService<AlarmService>(),              s => s.StopAsync()),
                 Halt("retention sweep",     Services.GetRequiredService<DataRetentionService>(),      s => s.StopAsync()),
 
@@ -3469,7 +3794,6 @@ public class App : Application
             catch (Exception ex) { return $"could not be read: {AppErrorLogger.Line("", ex)}"; }
         }
     }
-
 
     /// <summary>m:ss since a start time. Hand-formatted because ":" is a reserved character in
     /// TimeSpan custom format strings and an unescaped one throws at runtime, not at compile
@@ -3597,6 +3921,12 @@ public class App : Application
         services.AddSingleton<HoboImportService>();
         services.AddSingleton<ApiActivityLog>();
         services.AddSingleton<AppErrorLogger>();
+
+        // A store's web site: the catalogue it is pushed and the loop that pushes it.
+        services.AddSingleton<EveConsole.Services.WebStore.StoreCatalogueBuilder>();
+        services.AddSingleton<EveConsole.Services.WebStore.WebStoreSyncService>();
+        services.AddSingleton<EveConsole.Services.WebStore.CloudflareDeployService>();
+
         services.AddSingleton<UiStallMonitor>();
         services.AddSingleton<StructureSyncService>();
         services.AddSingleton<IndyStructureLinkService>();
@@ -3625,9 +3955,48 @@ public class App : Application
         services.AddSingleton<BuildCostService>();
         services.AddSingleton<ReprocessingValueService>();
         services.AddSingleton<ProductionCalculatorService>();
-        services.AddSingleton<AgentService>();
-        services.AddSingleton<TtsService>();
-        services.AddSingleton<SpeechInputService>();
+        // ⚠️ Telemetry is set here rather than after startup because AgentService.Initialize is
+        // what builds the tool list, and the decorator can only wrap tools that do not exist yet.
+        // A telemetry service attached later would measure token usage and no tool calls at all.
+        services.AddSingleton<AgentTelemetryService>();
+
+        // ⚠️ Built once from the entity model, not per question: reflecting over 200 entity types
+        // is not free, and the model cannot change while the app is running.
+        services.AddSingleton<AgentSchema>(sp => AgentSchema.Build(sp));
+
+        services.AddSingleton<AgentService>(sp =>
+        {
+            // ⚠️ The schema is optional and its failure must not be fatal. It is built by
+            // reflecting over the model during container construction, and this runs on the
+            // startup path — an exception here would stop the whole application from opening over
+            // a feature that only makes the assistant better at finding tables. Without it the
+            // agent keeps every tool it had before; it simply cannot discover new ones.
+            AgentSchema? schema = null;
+            try   { schema = sp.GetRequiredService<AgentSchema>(); }
+            catch (Exception ex)
+            {
+                sp.GetRequiredService<AppErrorLogger>()
+                  .Log("AgentSchema", "Build", ex);
+            }
+
+            return new AgentService
+            {
+                Telemetry   = sp.GetRequiredService<AgentTelemetryService>(),
+                Schema      = schema,
+                Preferences = sp.GetRequiredService<AppPreferencesService>(),
+            };
+        });
+        // Speech in and out are billable too, and on their own units — characters for a voice,
+        // audio seconds for a transcriber — so they record into the same ledger as the LLM.
+        services.AddSingleton<TtsService>(sp => new TtsService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+        });
+        services.AddSingleton<SpeechInputService>(sp => new SpeechInputService
+        {
+            Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+            Errors    = sp.GetRequiredService<AppErrorLogger>(),
+        });
         services.AddSingleton<GlobalHotkeyService>();
         services.AddSingleton<KillMailService>();
         services.AddSingleton<EveMailService>();
@@ -3713,6 +4082,31 @@ public class App : Application
             c.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (+https://github.com/kernoeve/EveConsole)");
             c.Timeout = TimeSpan.FromSeconds(60);
         });
+        // The store web sites the owner hosts. Not ESI: its own client, so an ESI gate or a
+        // slow poll cannot hold up a buyer's confirmation.
+        services.AddHttpClient("webstore", c =>
+        {
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(60);
+        });
+        // Cloudflare's API and the site's releases on GitHub, for the store's Deploy and Check
+        // buttons. The token rides in each Cloudflare request's own header, never on the client.
+        services.AddHttpClient("cloudflare", c =>
+        {
+            c.BaseAddress = new Uri("https://api.cloudflare.com/client/v4/");
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(120);
+        });
+        services.AddHttpClient("github", c =>
+        {
+            c.BaseAddress = new Uri("https://api.github.com/");
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            c.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+            c.Timeout = TimeSpan.FromSeconds(120);
+        });
+
+
         services.AddSingleton<MapStatsSettings>();
         services.AddSingleton<EveRefArchiveClient>();
         services.AddSingleton<MapStatsService>();
@@ -3744,6 +4138,7 @@ public class App : Application
         //
         // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
         // every client runs its own and the local status is the true one.
+        services.AddSingleton<BackgroundStatusSampler>();
         services.AddSingleton(sp => new WorkerActivityService(
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
             sp.GetRequiredService<AppErrorLogger>(),
@@ -3757,6 +4152,9 @@ public class App : Application
                 var alarms  = sp.GetRequiredService<AlarmService>();
                 return
                 [
+                    // The status bar's five lines, so a client that is not the worker shows them live.
+                    .. sp.GetRequiredService<BackgroundStatusSampler>().All()
+                         .Select(b => new WorkerActivity { Key = b.Key, Status = b.Line.Text, Running = b.Line.Running }),
                     new WorkerActivity { Key    = WorkerActivityService.Polling,
                                          Status = polling.StatusText },
                     new WorkerActivity { Key        = WorkerActivityService.Structures,
@@ -3772,8 +4170,9 @@ public class App : Application
                                          Status = sp.GetRequiredService<ZkillboardPollingService>().StatusText },
                     new WorkerActivity { Key    = WorkerActivityService.ZkbFirehose,
                                          Status = sp.GetRequiredService<ZkillboardFirehoseService>().StatusText },
-                    new WorkerActivity { Key    = WorkerActivityService.ZkbBackfill,
-                                         Status = sp.GetRequiredService<ZkillboardBackfillService>().StatusText },
+                    new WorkerActivity { Key     = WorkerActivityService.ZkbBackfill,
+                                         Status  = sp.GetRequiredService<ZkillboardBackfillService>().StatusText,
+                                         Running = sp.GetRequiredService<ZkillboardBackfillService>().IsImporting },
                     new WorkerActivity { Key    = WorkerActivityService.ZkbPost,
                                          Status = sp.GetRequiredService<ZkillboardPostService>().StatusText },
                     new WorkerActivity { Key    = WorkerActivityService.NameCache,

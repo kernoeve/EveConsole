@@ -10,7 +10,7 @@ public class TimerRowVm : ReactiveObject
     private readonly TimerSettingsService  _svc;
     private readonly EsiPollingService     _polling;
     private readonly TimerForceService?    _force;
-    private int _intervalMinutes;
+    private int _interval;
 
     private string _forceStatus = "";
     /// <summary>Shown beside the button. Resetting a timer looks exactly like doing nothing, which
@@ -23,12 +23,23 @@ public class TimerRowVm : ReactiveObject
 
     public string Key         { get; }
     public string DisplayName { get; }
-    public int    MinMinutes  { get; }
 
-    public int IntervalMinutes
+    /// <summary>
+    /// "s" for an endpoint polled on the scale of seconds, "min" otherwise. The location and
+    /// ship polls run every ten seconds against a five-second cache; shown in minutes they read
+    /// "1 min (min: 1 min)", and saving that quietly made them a minute.
+    /// </summary>
+    public string Unit    { get; }
+    public int    Min     { get; }
+    public string MinText => $"(min: {Min} {Unit})";
+
+    private int UnitSeconds => Unit == "s" ? 1 : 60;
+
+    /// <summary>The interval in <see cref="Unit"/>s.</summary>
+    public int Interval
     {
-        get => _intervalMinutes;
-        set => this.RaiseAndSetIfChanged(ref _intervalMinutes, Math.Max(MinMinutes, value));
+        get => _interval;
+        set => this.RaiseAndSetIfChanged(ref _interval, Math.Max(Min, value));
     }
 
     public ReactiveCommand<Unit, Unit> ForceNowCommand { get; }
@@ -41,9 +52,10 @@ public class TimerRowVm : ReactiveObject
         _force           = force;
         Key              = info.Key;
         DisplayName      = info.DisplayName;
-        MinMinutes       = (int)Math.Ceiling(info.MinSeconds / 60.0);
-        _intervalMinutes = (int)Math.Round(svc.GetInterval(info.Key, info.DefaultSeconds) / 60.0);
-        if (_intervalMinutes < MinMinutes) _intervalMinutes = MinMinutes;
+        Unit             = info.MinSeconds < 60 || info.DefaultSeconds < 60 ? "s" : "min";
+        Min              = (int)Math.Ceiling(info.MinSeconds / (double)UnitSeconds);
+        _interval        = (int)Math.Round(svc.GetInterval(info.Key, info.DefaultSeconds) / (double)UnitSeconds);
+        if (_interval < Min) _interval = Min;
 
         ForceNowCommand  = ReactiveCommand.Create(ForceNow);
     }
@@ -68,7 +80,7 @@ public class TimerRowVm : ReactiveObject
     }
 
     public async Task SaveAsync() =>
-        await _svc.SetIntervalAsync(Key, IntervalMinutes * 60);
+        await _svc.SetIntervalAsync(Key, Interval * UnitSeconds);
 }
 
 public class TimerSettingsViewModel : ReactiveObject

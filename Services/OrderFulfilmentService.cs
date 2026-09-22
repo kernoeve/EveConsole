@@ -27,7 +27,11 @@ public class OrderFulfilmentService(
     public const string SourceJob      = "job";
     public const string SourceContract = "contract";
 
-    private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
+
+    /// <summary>Released by <see cref="Nudge"/> to run the next pass at once. One slot, so a burst
+    /// of nudges is one early pass, not a queue of them.</summary>
+    private readonly SemaphoreSlim _wake = new(0, 1);
 
     // ── What the background-process view shows ────────────────────────────────
     //
@@ -50,9 +54,17 @@ public class OrderFulfilmentService(
     private CancellationTokenSource? _cts;
 
     /// <summary>
-    /// Starts the poll. Five minutes rather than on demand: the inputs are polled ESI data —
-    /// assets, industry jobs and contracts — so checking more often than they change would only
-    /// re-read the same rows.
+    /// Run after every pass, on the same client: what lets a store-order alarm be evaluated the
+    /// moment an order's state has been worked out rather than at its own next interval. Set
+    /// at startup.
+    /// </summary>
+    public Func<CancellationToken, Task>? AfterPass { get; set; }
+
+    /// <summary>
+    /// Starts the poll. Every thirty seconds, and at once when a poll has just brought in what a
+    /// pass reads — assets, industry jobs, contracts — see <see cref="Nudge"/>. A pass that finds
+    /// nothing changed is a few small queries, which is a fair price for a status that follows
+    /// the action by seconds rather than minutes.
     /// </summary>
     public void Start(CancellationToken outerCt = default)
     {
@@ -79,10 +91,22 @@ public class OrderFulfilmentService(
                 LastRunAt = DateTimeOffset.UtcNow;
                 NextRunAt = LastRunAt + Interval;
 
-                try { await Task.Delay(Interval, ct); }
+                // The interval, or sooner when nudged.
+                try { await _wake.WaitAsync(Interval, ct); }
                 catch (OperationCanceledException) { return; }
             }
         }, ct);
+    }
+
+    /// <summary>
+    /// Runs the next pass now rather than at the interval. Called when a poll has just brought in
+    /// what a pass reads, so a contract or a job shows against its order seconds after ESI
+    /// reported it. Harmless when the loop is not running.
+    /// </summary>
+    public void Nudge()
+    {
+        if (_wake.CurrentCount > 0) return;
+        try { _wake.Release(); } catch (SemaphoreFullException) { }
     }
 
     /// <summary>
@@ -107,12 +131,38 @@ public class OrderFulfilmentService(
     /// <summary>One pass over the pending orders. Public so the tool can force it after an edit.</summary>
     public async Task RunOnceAsync(CancellationToken ct = default)
     {
+        var changed = false;
+        try { changed = await PassAsync(ct); }
+        finally
+        {
+            if (AfterPass is { } after)
+            {
+                try { await after(ct); }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { errorLogger.Log(nameof(OrderFulfilmentService), "after pass", ex); }
+            }
+            if (changed && PassChanged is { } listeners)
+            {
+                try { listeners(); }
+                catch (Exception ex) { errorLogger.Log(nameof(OrderFulfilmentService), "pass changed", ex); }
+            }
+        }
+    }
+
+    /// <summary>Raised after a pass that wrote something — a source linked, a date set, an order
+    /// completed — and not after the many that find nothing new. What the Order Tracker reloads
+    /// on, so a change shows the moment it is made rather than at the grid's next refresh.</summary>
+    public event Action? PassChanged;
+
+    /// <summary>True when the pass changed an order.</summary>
+    private async Task<bool> PassAsync(CancellationToken ct)
+    {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var orders = await db.TrackedOrders
             .Where(o => o.Status == "pending")
             .ToListAsync(ct);
-        if (orders.Count == 0) return;
+        if (orders.Count == 0) return false;
 
         // Ranked the way the tool ranks them, because that is the order stock should be claimed
         // in: a priority order takes from the shelf before an older ordinary one.
@@ -125,11 +175,16 @@ public class OrderFulfilmentService(
 
         var ours = await OurIdsAsync(db, ct);
 
-        // Stock, counted once for every type in play. Assets are a snapshot of what is sitting in
-        // hangars; nothing here reserves anything in game, so the reservation below is purely this
-        // app's own bookkeeping across its own orders.
+        // ⚠️ Only what is OURS counts as supply: an authenticated character's own hangar, or a
+        // corporation marked personal. A corporation token lets the app SEE an alliance corp's
+        // assets and jobs — that is what it is for — and both of these queries used to count
+        // them. An order for a Phoenix read "in stock" off five of Brave Newbies' capitals in a
+        // hangar the user could not sell from, while the two actually being built for it sat
+        // unattached. The same test the contract match already applies, for the same reason.
         var stock = await db.EsiAssets
             .Where(a => typeIds.Contains(a.TypeId))
+            .Where(a => (a.OwnerType == "character"   && ours.Characters.Contains(a.OwnerId))
+                     || (a.OwnerType == "corporation" && ours.Corporations.Contains(a.OwnerId)))
             .GroupBy(a => a.TypeId)
             .Select(g => new { TypeId = g.Key, Units = g.Sum(a => (long)a.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => x.Units, ct);
@@ -140,6 +195,8 @@ public class OrderFulfilmentService(
             .Where(j => j.ProductTypeId != null
                      && typeIds.Contains(j.ProductTypeId!.Value)
                      && j.Status != "delivered" && j.Status != "cancelled")
+            .Where(j => (j.OwnerType == "character"   && ours.Characters.Contains(j.OwnerId))
+                     || (j.OwnerType == "corporation" && ours.Corporations.Contains(j.OwnerId)))
             .ToListAsync(ct);
 
         // A contract already spoken for cannot deliver a second order.
@@ -163,7 +220,14 @@ public class OrderFulfilmentService(
             .Select(g => new { TypeId = g.Key, Qty = g.Max(x => x.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => Math.Max(1, x.Qty), ct);
 
-        var claimedJobs = new HashSet<int>();
+        // ⚠️ Units left on each job, not a set of jobs claimed. A job was claimed whole by the
+        // first order to reach it, so a two-run Phoenix job covered one order for one hull and
+        // the second order for one hull found nothing — while the job was making both. An
+        // order now takes only the units it is short from a job and leaves the rest for the
+        // next; the job is spent when its output is, which is what "claimed" was meant to say.
+        var jobUnitsLeft = openJobs.ToDictionary(
+            j => j.JobId,
+            j => (long)j.Runs * perRun.GetValueOrDefault(j.ProductTypeId!.Value, 1));
         var changed = false;
 
         foreach (var order in orders)
@@ -264,29 +328,30 @@ public class OrderFulfilmentService(
             }
 
             // ── Being made? ────────────────────────────────────────────────────
-            // Unclaimed jobs producing it, soonest first, taken until the shortfall is covered.
-            // A job is claimed by at most one order for the same reason a contract is: two orders
-            // pointing at one job would both promise its output.
+            // Jobs producing it with output still unspoken for, soonest first, each drawn on for
+            // what this order is short and no more — a job with output left over serves the next
+            // order too. What cannot happen is two orders being promised the same unit, which is
+            // what the per-job units above guarantee.
             //
             // ⚠️ As many as it takes, not one. An order for fifty took the soonest job and stopped,
             // so a run of five looked exactly like a run of fifty and the other jobs really
             // building the order were left unattached and free for another order to claim.
             var shortfall = order.Units - take;
-            var yield     = perRun.GetValueOrDefault(order.TypeId, 1);
 
             var picked  = new List<int>();
             var made    = 0;
             DateTimeOffset? lastEnd = null;
 
             foreach (var j in openJobs
-                         .Where(j => j.ProductTypeId == order.TypeId && !claimedJobs.Contains(j.JobId))
+                         .Where(j => j.ProductTypeId == order.TypeId && jobUnitsLeft[j.JobId] > 0)
                          .OrderBy(j => j.EndDate))
             {
                 if (made >= shortfall) break;
 
-                claimedJobs.Add(j.JobId);
+                var taken = (int)Math.Min(jobUnitsLeft[j.JobId], shortfall - made);
+                jobUnitsLeft[j.JobId] -= taken;
                 picked.Add(j.JobId);
-                made   += j.Runs * yield;
+                made   += taken;
                 lastEnd = j.EndDate;
             }
 
@@ -328,6 +393,7 @@ public class OrderFulfilmentService(
         StatusText   = PendingCount == 0
             ? "No pending orders"
             : $"{LinkedCount:N0} of {PendingCount:N0} pending order(s) have a source";
+        return changed;
     }
 
     /// <summary>Sets the derived fields, reporting whether anything actually moved.</summary>
@@ -363,9 +429,11 @@ public class OrderFulfilmentService(
     /// <para>Deliberately strict, because the consequence is marking an order complete:</para>
     /// <list type="bullet">
     /// <item>issued by one of our characters or personal corporations — not just any contract;</item>
-    /// <item>assigned to this order's buyer, by id. ⚠️ An order whose buyer predates the id column
-    /// carries a typed name only, and is skipped rather than matched by name: the wrong contract
-    /// would silently close somebody else's order;</item>
+    /// <item>assigned, by id, to this order's buyer — or to whoever the order says the contract
+    /// is to be made out to, when it names someone (an alt that will fly the thing, their
+    /// corporation). ⚠️ An order whose buyer predates the id column carries a typed name only,
+    /// and is skipped rather than matched by name: the wrong contract would silently close
+    /// somebody else's order;</item>
     /// <item>issued AFTER the order was placed, so a delivery from three months ago cannot be read
     /// as fulfilling something ordered today;</item>
     /// <item>carrying at least the ordered units of the ordered type;</item>
@@ -397,7 +465,14 @@ public class OrderFulfilmentService(
     private static async Task<ContractHit?> FindContractAsync(
         AppDbContext db, TrackedOrder order, OurIds ours, HashSet<int> claimed, CancellationToken ct)
     {
-        if (order.BuyerId <= 0) return null;
+        // The order said who the contract goes to, or it goes to the buyer; a contract to either
+        // is this order's. The recipient can be a corporation — ESI puts a corporation's id in
+        // assignee_id just the same. ⚠️ This field was on the order for a release before anything
+        // here read it, and a titan contracted to the buyer's alt sat unmatched beside its order.
+        var recipients = new List<long>();
+        if (order.BuyerId      > 0) recipients.Add(order.BuyerId);
+        if (order.ContractToId > 0 && !recipients.Contains(order.ContractToId)) recipients.Add(order.ContractToId);
+        if (recipients.Count == 0) return null;
         if (ours.Characters.Count == 0 && ours.Corporations.Count == 0) return null;
 
         // ⚠️ Raw SQL, not a LINQ Where. ContractRecord.DateIssued is a DateTimeOffset and EF Core's
@@ -431,7 +506,7 @@ public class OrderFulfilmentService(
             FROM "EsiContracts" c
             JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
             WHERE c."Status" IN ('finished', 'outstanding', 'in_progress', 'rejected')
-              AND c."AssigneeId" = {0}
+              AND c."AssigneeId" IN ({{string.Join(",", recipients)}})
               AND c."DateIssued" > {1}
               AND ({{string.Join(" OR ", tests)}})
               AND i."TypeId" = {2} AND i."IsIncluded" = TRUE AND i."Quantity" >= {3}
@@ -442,6 +517,8 @@ public class OrderFulfilmentService(
         // ⚠️ Scalar ids only. SqlQueryRaw with an unmapped result type is not something to rely on
         // here — the details are read back through EF below, where there is no DateTimeOffset
         // comparison left to translate and the columns arrive properly typed.
+        // {0} is no longer used by the text — the recipients are embedded, being our own ids —
+        // but the placeholders are positional, so it keeps its slot.
         var ids = await db.Database
             .SqlQueryRaw<int>(sql, order.BuyerId, placed, order.TypeId, order.Units)
             .ToListAsync(ct);

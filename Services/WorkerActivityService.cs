@@ -41,6 +41,17 @@ public sealed class WorkerActivityService
     public const string LpStore         = "lpstore";
     public const string Alarms          = "alarms";
 
+    // The status bar's five lines, one row each: the text as BackgroundStatus prints it and
+    // whether the process is busy. Separate from the loops' own rows above, whose status is
+    // whatever the loop says about itself at length; these are the short form.
+    public const string BarEsiCalls      = "bar.esi";
+    public const string BarPriceHistory  = "bar.history";
+    public const string BarContractItems = "bar.contracts";
+    public const string BarLpStore       = "bar.lpstore";
+    public const string BarKillmails     = "bar.killmails";
+    /// <summary>The ESI kill mail detail fetch on its own, for its row in the Killmails tab.</summary>
+    public const string KillMailFetch    = "killmails.fetch";
+
     /// <summary>Discriminator on the wire, so a client can tell these from an alarm.</summary>
     private const string SignalKind = "activity";
 
@@ -177,6 +188,12 @@ public sealed class WorkerActivityService
         // needed by a window opened later.
         await _signals.PublishAsync(
             JsonSerializer.Serialize(new SignalPayload { Kind = SignalKind, Rows = rows }), ct);
+
+        // ⚠️ On SQLite there is one client, and it is the worker: every reader here takes its
+        // lines straight off the services, and nothing ever reads the table. The status bar's ESI
+        // line changes with every sample while polling runs, so this would otherwise be a write a
+        // second to a row nobody opens.
+        if (!DbEngine.IsPostgres) return;
 
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         foreach (var r in changed)

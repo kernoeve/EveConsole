@@ -47,6 +47,45 @@ jobs:
       - name: Upgrade check
         run: dotnet run --project tools/UpgradeCheck/UpgradeCheck.csproj -c Release
 
+      # ⚠️ The agent's instructions are prose, and prose is code no compiler reads. The schema
+      # notes documented MarketItemPrices as BuyMax/SellMin long after the real columns became
+      # BuyPrice/SellPrice/Midpoint, and that cost two failed queries in a single conversation
+      # before the agent worked around it. This checks every table and column NAMED in those
+      # instructions against the entity model.
+      #
+      # ⚠️ Names only. It cannot tell whether a sentence about them is TRUE — the notes once
+      # said CharacterAffiliations gives a character's current corporation, every identifier in
+      # that claim was real, and the claim was wrong.
+      - name: Agent context check
+        run: dotnet run --project tools/AgentContextCheck/AgentContextCheck.csproj -c Release
+
+      # ⚠️ Does a streamed agent turn stay off the UI thread? This has failed twice the same way:
+      # one await in the streaming path without ConfigureAwait(false). The second time it was
+      # the outer enumeration in StreamAsync, which captured the UI context and undid every
+      # other one — a tool call the model took forty seconds to write froze the window for forty
+      # seconds, and the capsuleer heard speech for text that had not appeared yet. A review
+      # cannot see it. This runs the real provider against a fake streaming server from a thread
+      # with a synchronization context installed, and fails on the first continuation posted
+      # back to it.
+      - name: Agent stream check
+        run: dotnet run --project tools/AgentStreamCheck/AgentStreamCheck.csproj -c Release
+
+      # ⚠️ Does the web store's copy of the palette still match Themes/Palette.axaml? A store's
+      # site is themed from WebThemes, a table of the XAML's colours — a copy, because the site
+      # wears the STORE's theme resolved by key, never the desktop's, and the client pushing it
+      # may be headless with no resource dictionary loaded. A colour adjusted in one and not the
+      # other would ship silently; this reads the XAML as XML and fails on the first difference.
+      - name: Web themes check
+        run: dotnet run --project tools/WebThemesCheck/WebThemesCheck.csproj -c Release
+
+      # ⚠️ Does a detail popup stay with the row that is showing its item? The DataGrid keeps
+      # rows in the tree after they leave the screen — recycled in place, or parked when they
+      # hold focus — and a popup anchored to one hangs at the old position while the item's new
+      # row opens another. The worklist drew the same manifest twice whenever the clicked row
+      # moved. This drives the real DataGrid, headless, through each way a row can go stale.
+      - name: Row detail check
+        run: dotnet run --project tools/RowDetailCheck/RowDetailCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

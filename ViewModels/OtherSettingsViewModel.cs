@@ -16,6 +16,31 @@ public class OtherSettingsViewModel : ReactiveObject
     private readonly UiLinkSettings _settings;
     private bool _loading = true;
 
+    // ── UI scale ──────────────────────────────────────────────────────────────
+
+    /// <summary>The scales on offer, 50% to 200%.</summary>
+    public IReadOnlyList<UiScaleChoice> UiScales { get; } = UiScaleChoice.All;
+
+    private UiScaleChoice? _selectedUiScale = UiScaleChoice.Current();
+
+    /// <summary>
+    /// The scale in force. Picking one applies it to every open window at once and remembers it
+    /// for this machine; like the theme, its effect is its own preview.
+    /// </summary>
+    public UiScaleChoice? SelectedUiScale
+    {
+        get => _selectedUiScale;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedUiScale, value);
+            if (value is not null) UiScaleService.Apply(value.Scale);
+        }
+    }
+
+    /// <summary>Follows the scale when the status bar changes it: the guard in Apply makes
+    /// arriving at the scale already on a no-op, so the setter re-applying is harmless.</summary>
+    private void OnUiScaleChanged() => SelectedUiScale = UiScaleChoice.Current();
+
     // ── Appearance ────────────────────────────────────────────────────────────
 
     public IReadOnlyList<ThemeChoice> Themes { get; } = ThemeService.All;
@@ -62,7 +87,8 @@ public class OtherSettingsViewModel : ReactiveObject
     {
         _settings = settings;
 
-        ThemeService.Changed += OnThemeChanged;
+        ThemeService.Changed   += OnThemeChanged;
+        UiScaleService.Changed += OnUiScaleChanged;
 
         var stored = settings.EveTimeUrl;
         var isPreset = stored == UiLinkSettings.EveOnlineTimeUrl

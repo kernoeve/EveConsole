@@ -1,18 +1,73 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Services.WebStore;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
+
+/// <summary>What the address dialog is asked with: the worker's name for the preview, the
+/// account's workers.dev name when it has one, a suggestion for when it has none, and the
+/// hostname chosen so far.</summary>
+public sealed record DeployAddressPrompt(string WorkerName, string? AccountSubdomain, string SuggestedSubdomain, string CurrentHostname);
+
+/// <summary>The answer: a hostname of the owner's own, or "" for workers.dev together with the
+/// name the account should get when it has none yet ("" when it has one).</summary>
+public sealed record DeployAddressChoice(string Hostname, string Subdomain);
+
+/// <summary>
+/// One of the app's themes, with whether a store offers it on its site. The store's own theme
+/// is always offered and its tick is disabled; the rest are the owner's to tick.
+/// </summary>
+public sealed class ThemeChoiceVm : ReactiveObject
+{
+    private readonly Action _changed;
+    private bool _isOffered, _isOwn;
+
+    public ThemeChoiceVm(string key, string name, bool offered, bool own, Action changed)
+    {
+        Key = key; Name = name; _isOwn = own; _isOffered = offered || own; _changed = changed;
+    }
+
+    public string Key  { get; }
+    public string Name { get; }
+
+    public bool IsOffered
+    {
+        get => _isOffered;
+        set
+        {
+            if (_isOwn) value = true;
+            if (value == _isOffered) return;
+            this.RaiseAndSetIfChanged(ref _isOffered, value);
+            _changed();
+        }
+    }
+
+    public bool IsOwn     => _isOwn;
+    public bool CanChange => !_isOwn;
+
+    public void SetOwn(bool own)
+    {
+        if (own == _isOwn) return;
+        _isOwn = own;
+        this.RaisePropertyChanged(nameof(IsOwn));
+        this.RaisePropertyChanged(nameof(CanChange));
+        if (own && !_isOffered) { _isOffered = true; this.RaisePropertyChanged(nameof(IsOffered)); }
+    }
+}
 
 /// <summary>
 /// One store in the list on the left.
@@ -33,10 +88,17 @@ public class StoreRowVm : ReactiveObject
     public string Name          => _model.Name.Length > 0 ? _model.Name : "(unnamed)";
     public string CharacterName => _model.CharacterName;
     public bool   Enabled       => _model.Enabled;
+    public bool   WebEnabled    => _model.WebEnabled;
 
-    /// <summary>Open or closed, said plainly — the list is the first place someone looks to
-    /// find out why a buyer got no answer.</summary>
-    public string StateText => _model.Enabled ? "Open" : "Closed";
+    /// <summary>Which channels are open, said plainly — the list is the first place someone
+    /// looks to find out why a buyer got no answer.</summary>
+    public string StateText => (_model.Enabled, _model.WebEnabled) switch
+    {
+        (true,  true)  => "Mail and web open",
+        (true,  false) => "Mail open",
+        (false, true)  => "Web open",
+        _              => "Closed",
+    };
 
     public void Refresh(Store model)
     {
@@ -44,6 +106,7 @@ public class StoreRowVm : ReactiveObject
         this.RaisePropertyChanged(nameof(Name));
         this.RaisePropertyChanged(nameof(CharacterName));
         this.RaisePropertyChanged(nameof(Enabled));
+        this.RaisePropertyChanged(nameof(WebEnabled));
         this.RaisePropertyChanged(nameof(StateText));
     }
 }
@@ -64,6 +127,31 @@ public class StoreMailRowVm(StoreMail m)
     /// <summary>Rejections and failures are the rows worth finding, so they say so rather than
     /// relying on the reader to notice a word in a column.</summary>
     public bool IsProblem => m.Outcome is "rejected" or "error" or "failed";
+}
+
+/// <summary>One thing the web site sent, and what the app did with it.</summary>
+public class StoreWebEventRowVm(StoreWebEvent e)
+{
+    public int    Id       => e.Id;
+    public string When     => e.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+    public string Kind     => e.Kind switch { "order" => "Order", "cancel" => "Cancel", "visit" => "Visit", _ => e.Kind };
+    public string Buyer    => e.BuyerName.Length > 0 ? e.BuyerName : e.BuyerId.ToString();
+    public string Outcome  => e.Outcome switch
+    {
+        "booked"   => "Booked",
+        "applied"  => "Applied",
+        "review"   => "Needs a decision",
+        "rejected" => "Declined",
+        "error"    => "Failed",
+        "noted"    => "Noted",
+        _          => e.Outcome,
+    };
+    public string Detail   => e.Detail;
+    public string OrderRef => e.OrderRef;
+
+    /// <summary>Waiting on the owner: an order the checks would not book on their own.</summary>
+    public bool IsHeld     => e.Kind == "order" && e.Outcome is "review" or "error";
+    public bool IsProblem  => e.Outcome is "review" or "rejected" or "error";
 }
 
 /// <summary>One allow-list entry.</summary>
@@ -93,17 +181,59 @@ public class StoresViewModel : ReactiveObject
     private readonly StoreMailService                _storeMail;
     private readonly OrderLabelService               _labels;
     private readonly AppErrorLogger                  _errorLogger;
+    private readonly WebStoreSyncService             _webSync;
+    private readonly WorkerLease                     _lease;
+    private readonly CloudflareDeployService         _deploy;
 
-    public ObservableCollection<StoreRowVm>       Stores  { get; } = [];
-    public ObservableCollection<StoreMailRowVm>   Mails   { get; } = [];
-    public ObservableCollection<OrderSummaryRowVm> Orders { get; } = [];
-    public ObservableCollection<StoreSenderRowVm> Senders { get; } = [];
+    public ObservableCollection<StoreRowVm>          Stores    { get; } = [];
+    public ObservableCollection<StoreMailRowVm>      Mails     { get; } = [];
+    public ObservableCollection<OrderSummaryRowVm>   Orders    { get; } = [];
+    public ObservableCollection<StoreSenderRowVm>    Senders   { get; } = [];
+    public ObservableCollection<StoreWebEventRowVm>  WebEvents { get; } = [];
+
+    private bool _showWebVisits = true;
+    private List<StoreWebEvent> _webEventRows = [];
+
+    /// <summary>Whether visits (a buyer signing in, or back after a while away) sit among the web
+    /// site events. They are logged either way; unticked, the list is orders and cancellations.</summary>
+    public bool ShowWebVisits
+    {
+        get => _showWebVisits;
+        set { this.RaiseAndSetIfChanged(ref _showWebVisits, value); FillWebEvents(); }
+    }
+
+    private void FillWebEvents()
+    {
+        WebEvents.Clear();
+        foreach (var e in _webEventRows)
+        {
+            if (_showWebVisits || e.Kind != "visit") WebEvents.Add(new StoreWebEventRowVm(e));
+        }
+    }
+
+    /// <summary>The app's themes, for the web site — the store's own choice, nothing to do
+    /// with the theme this desktop wears.</summary>
+    public IReadOnlyList<ThemeOption> ThemeOptions { get; } =
+        WebThemes.All.Select(t => new ThemeOption(t.Key, t.Name)).ToList();
+
+    public sealed record ThemeOption(string Key, string Name)
+    {
+        public override string ToString() => Name;
+    }
 
     /// <summary>Characters we hold a token for — the only ones that can be a shop's address.</summary>
     public ObservableCollection<CharacterOption> CharacterOptions { get; } = [];
     public ObservableCollection<PostingOption>   PostingOptions   { get; } = [];
 
     public IReadOnlyList<string> PolicyOptions { get; } = ["List", "Anyone"];
+
+    public sealed record LimitOption(string Key, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    public IReadOnlyList<LimitOption> LimitScopeOptions  { get; } = [new("type", "item type"), new("group", "item group"), new("store", "the whole store")];
+    public IReadOnlyList<LimitOption> LimitPeriodOptions { get; } = [new("days", "day(s)"), new("months", "month(s)"), new("years", "year(s)"), new("all", "all time")];
 
     public sealed record CharacterOption(long Id, string Name)
     {
@@ -120,22 +250,41 @@ public class StoresViewModel : ReactiveObject
         SalePostingService              postings,
         StoreMailService                storeMail,
         OrderLabelService               labels,
-        AppErrorLogger                  errorLogger)
+        AppErrorLogger                  errorLogger,
+        WebStoreSyncService             webSync,
+        WorkerLease                     lease,
+        CloudflareDeployService         deploy)
+
     {
         _dbFactory   = dbFactory;
         _postings    = postings;
         _storeMail   = storeMail;
         _labels      = labels;
         _errorLogger = errorLogger;
+        _webSync     = webSync;
+        _lease       = lease;
+        _deploy      = deploy;
 
         AddStoreCommand    = ReactiveCommand.CreateFromTask(AddStoreAsync);
         DeleteStoreCommand = ReactiveCommand.CreateFromTask(DeleteStoreAsync);
         RefreshCommand     = ReactiveCommand.CreateFromTask(LoadAsync);
         CheckMailCommand   = ReactiveCommand.CreateFromTask(CheckMailNowAsync);
         AddSenderCommand   = ReactiveCommand.CreateFromTask(AddSenderAsync);
+        SyncWebNowCommand  = ReactiveCommand.CreateFromTask(SyncWebNowAsync);
+        NewSecretCommand   = ReactiveCommand.CreateFromTask(NewSecretAsync);
+        SaveCloudflareTokenCommand   = ReactiveCommand.CreateFromTask(SaveCloudflareTokenAsync);
+        ForgetCloudflareTokenCommand = ReactiveCommand.Create(ForgetCloudflareToken);
+        DeploySiteCommand            = ReactiveCommand.CreateFromTask(DeploySiteAsync);
+        CheckSiteCommand             = ReactiveCommand.CreateFromTask(CheckSiteAsync);
+        RenameSubdomainCommand       = ReactiveCommand.CreateFromTask(RenameSubdomainAsync);
+        RemoveWebBannerCommand       = ReactiveCommand.CreateFromTask(RemoveWebBannerAsync);
+        RefreshTokenText();
 
         foreach (var c in new[] { AddStoreCommand, DeleteStoreCommand, RefreshCommand,
-                                  CheckMailCommand, AddSenderCommand })
+                                  CheckMailCommand, AddSenderCommand, SyncWebNowCommand, NewSecretCommand,
+                                  SaveCloudflareTokenCommand, ForgetCloudflareTokenCommand, DeploySiteCommand, CheckSiteCommand,
+                                  RemoveWebBannerCommand, RenameSubdomainCommand })
+
             c.ThrownExceptions.Subscribe(ex => errorLogger.Log(nameof(StoresViewModel), "command", ex));
 
         this.WhenAnyValue(x => x.SelectedStore)
@@ -146,7 +295,7 @@ public class StoresViewModel : ReactiveObject
         // touching this screen.
         Observable.Interval(TimeSpan.FromSeconds(30))
             .ObserveOnUi("Stores.AutoRefresh")
-            .SubscribeAsyncSafe(_ => LoadSelectedAsync(), errorLogger, "Stores.AutoRefresh");
+            .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh");
 
         _ = LoadAsync();
     }
@@ -156,6 +305,15 @@ public class StoresViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RefreshCommand     { get; }
     public ReactiveCommand<Unit, Unit> CheckMailCommand   { get; }
     public ReactiveCommand<Unit, Unit> AddSenderCommand   { get; }
+    public ReactiveCommand<Unit, Unit> SyncWebNowCommand  { get; }
+    public ReactiveCommand<Unit, Unit> RemoveWebBannerCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveCloudflareTokenCommand   { get; }
+    public ReactiveCommand<Unit, Unit> ForgetCloudflareTokenCommand { get; }
+    public ReactiveCommand<Unit, Unit> DeploySiteCommand            { get; }
+    public ReactiveCommand<Unit, Unit> CheckSiteCommand             { get; }
+    public ReactiveCommand<Unit, Unit> RenameSubdomainCommand       { get; }
+
+    public ReactiveCommand<Unit, Unit> NewSecretCommand   { get; }
 
     private StoreRowVm? _selectedStore;
     public StoreRowVm? SelectedStore
@@ -434,6 +592,93 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    // ── Purchase limit ────────────────────────────────────────────────────────
+    //
+    // Saved with a nudge, so the site hears of a change within the minute: what a buyer may
+    // order is decided there first, from what the app last pushed.
+
+    private bool _limitEnabled;
+    public bool LimitEnabled
+    {
+        get => _limitEnabled;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitEnabled, value);
+            _ = SaveAsync(s => s.LimitEnabled = value, nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private int _limitUnits = 1;
+    public int LimitUnits
+    {
+        get => _limitUnits;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitUnits, Math.Max(1, value));
+            _ = SaveAsync(s => s.LimitUnits = Math.Max(1, value), nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private LimitOption? _limitScope;
+    public LimitOption? LimitScope
+    {
+        get => _limitScope;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitScope, value);
+            if (value is null) return;
+            _ = SaveAsync(s => s.LimitScope = value.Key, nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private LimitOption? _limitPeriod;
+    public LimitOption? LimitPeriod
+    {
+        get => _limitPeriod;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitPeriod, value);
+            if (value is null) return;
+            _ = SaveAsync(s => s.LimitPeriod = value.Key, nudge: true);
+            this.RaisePropertyChanged(nameof(LimitPeriodHasCount));
+            RefreshLimitSummary();
+        }
+    }
+
+    /// <summary>"All time" takes no number.</summary>
+    public bool LimitPeriodHasCount => _limitPeriod is { Key: not "all" };
+
+    private int _limitPeriodCount = 1;
+    public int LimitPeriodCount
+    {
+        get => _limitPeriodCount;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _limitPeriodCount, Math.Max(1, value));
+            _ = SaveAsync(s => s.LimitPeriodCount = Math.Max(1, value), nudge: true);
+            RefreshLimitSummary();
+        }
+    }
+
+    private string _limitSummary = "";
+    public string LimitSummary
+    {
+        get => _limitSummary;
+        private set => this.RaiseAndSetIfChanged(ref _limitSummary, value);
+    }
+
+    private void RefreshLimitSummary() =>
+        LimitSummary = PurchaseLimit.Describe(new Store
+        {
+            LimitUnits       = _limitUnits,
+            LimitScope       = _limitScope?.Key ?? "type",
+            LimitPeriod      = _limitPeriod?.Key ?? "all",
+            LimitPeriodCount = _limitPeriodCount,
+        });
+
     private int _autoEstimateDays = 1;
     public int AutoEstimateDays
     {
@@ -443,6 +688,670 @@ public class StoresViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _autoEstimateDays, value);
             _ = SaveAsync(s => s.AutoEstimateDays = Math.Max(0, value));
         }
+    }
+
+    // ── The web channel ───────────────────────────────────────────────────────
+    //
+    // Written through like everything else here, and each save nudges the sync loop so the
+    // site shows the change on its next call rather than at the next interval.
+
+    private bool _webEnabled;
+    public bool WebEnabled
+    {
+        get => _webEnabled;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webEnabled, value);
+            _ = SaveAsync(s => s.WebEnabled = value, nudge: true);
+            RefreshSsoWarning();
+
+        }
+    }
+
+    private string _webUrl = "";
+    public string WebUrl
+    {
+        get => _webUrl;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webUrl, value ?? "");
+            _ = SaveAsync(s => s.WebUrl = (value ?? "").Trim().TrimEnd('/'), nudge: true);
+            RefreshCallbackText();
+
+        }
+    }
+
+    private string _webSecret = "";
+
+    /// <summary>Shown so it can be copied into the site's secrets by hand; generated here.</summary>
+    public string WebSecret
+    {
+        get => _webSecret;
+        private set => this.RaiseAndSetIfChanged(ref _webSecret, value);
+    }
+
+    private ThemeOption? _webTheme;
+    public ThemeOption? WebTheme
+    {
+        get => _webTheme;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webTheme, value);
+            if (value is null) return;
+            foreach (var c in WebThemeChoices) c.SetOwn(c.Key == value.Key);
+            _ = SaveAsync(s => s.WebTheme = value.Key, nudge: true);
+        }
+    }
+
+    /// <summary>Every theme, with whether buyers may pick it in the site's header. The store's
+    /// own is always among them; more than one and the site shows a dropdown like the app's.</summary>
+    public ObservableCollection<ThemeChoiceVm> WebThemeChoices { get; } = [];
+
+    private void LoadWebThemeChoices(Store store)
+    {
+        var offered = WebThemes.Offered(store);
+        WebThemeChoices.Clear();
+        foreach (var t in WebThemes.All)
+            WebThemeChoices.Add(new ThemeChoiceVm(t.Key, t.Name, offered.Contains(t.Key), t.Key == store.WebTheme, SaveWebThemes));
+    }
+
+    private void SaveWebThemes()
+    {
+        var keys = WebThemeChoices.Where(c => c.IsOffered).Select(c => c.Key).ToList();
+        _ = SaveAsync(s =>
+        {
+            s.WebThemes        = string.Join(",", keys);
+            s.WebBuyerMaySwitch = keys.Count > 1;   // what a site older than the list goes by
+        }, nudge: true);
+    }
+
+    private bool _webMailUpdates = true;
+    public bool WebMailUpdates
+    {
+        get => _webMailUpdates;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webMailUpdates, value);
+            _ = SaveAsync(s => s.WebMailUpdates = value, nudge: true);
+        }
+    }
+
+    private int _webPollMinutes = WebStoreSyncService.DefaultPollMinutes;
+
+    /// <summary>Minutes between the app's calls to the site, within the sync service's bounds.</summary>
+    public int WebPollMinutes
+    {
+        get => _webPollMinutes;
+        set
+        {
+            var minutes = Math.Clamp(value, WebStoreSyncService.MinPollMinutes, WebStoreSyncService.MaxPollMinutes);
+            this.RaiseAndSetIfChanged(ref _webPollMinutes, minutes);
+            _ = SaveAsync(s => s.WebPollMinutes = minutes, nudge: true);
+        }
+    }
+
+    private string _webBlurb = "";
+    public string WebBlurb
+    {
+        get => _webBlurb;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webBlurb, value ?? "");
+            _ = SaveAsync(s => s.WebBlurb = (value ?? "").Trim(), nudge: true);
+        }
+    }
+
+    // ── The banner across the top of the site's price list ────────────────────
+
+    private string _webBannerText = "None.";
+    /// <summary>What the banner is — file, size, how it goes to the site — or that there is none.</summary>
+    public string WebBannerText
+    {
+        get => _webBannerText;
+        private set => this.RaiseAndSetIfChanged(ref _webBannerText, value);
+    }
+
+    private Bitmap? _webBannerPreview;
+    public Bitmap? WebBannerPreview
+    {
+        get => _webBannerPreview;
+        private set => this.RaiseAndSetIfChanged(ref _webBannerPreview, value);
+    }
+
+    private bool _hasWebBanner;
+    public bool HasWebBanner
+    {
+        get => _hasWebBanner;
+        private set => this.RaiseAndSetIfChanged(ref _hasWebBanner, value);
+    }
+
+    /// <summary>The banner's facts and preview for the selected store; on a quick switch of
+    /// stores, the load that finishes for the store still selected is the one that shows.</summary>
+    private async Task LoadWebBannerAsync(int storeId)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var asset = await db.StoreWebAssets.AsNoTracking()
+                .FirstOrDefaultAsync(a => a.StoreId == storeId && a.Kind == StoreWebAsset.Banner);
+            Bitmap? preview = null;
+            if (asset is not null)
+            {
+                try { preview = new Bitmap(new MemoryStream(asset.Bytes)); }
+                catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), "banner preview", ex); }
+            }
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (SelectedStore?.Id != storeId) return;
+                HasWebBanner     = asset is not null;
+                WebBannerPreview = preview;
+                WebBannerText    = asset is null ? "None." : DescribeBanner(asset);
+            });
+        }
+        catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), nameof(LoadWebBannerAsync), ex); }
+    }
+
+    private static string DescribeBanner(StoreWebAsset a)
+    {
+        var size = a.Bytes.Length >= 1024 * 1024 ? $"{a.Bytes.Length / (1024.0 * 1024):0.0} MB" : $"{a.Bytes.Length / 1024.0:0} KB";
+        var name = a.FileName.Length > 0 ? a.FileName + " · " : "";
+        return $"{name}{a.Width} × {a.Height} · {size} · {a.ContentType.Replace("image/", "").ToUpperInvariant()}";
+    }
+
+    /// <summary>Takes a picture the owner chose: kept as it is when it fits the site, else scaled
+    /// and re-encoded; saved with the store and sent on the next sync.</summary>
+    public async Task SetWebBannerAsync(byte[] source, string fileName)
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        try
+        {
+            var prepared = await Task.Run(() => BannerImage.Prepare(source));
+            var sha = Convert.ToHexString(SHA256.HashData(prepared.Bytes)).ToLowerInvariant();
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var asset = await db.StoreWebAssets.FirstOrDefaultAsync(a => a.StoreId == row.Id && a.Kind == StoreWebAsset.Banner);
+            if (asset is null) db.StoreWebAssets.Add(asset = new StoreWebAsset { StoreId = row.Id, Kind = StoreWebAsset.Banner });
+            asset.ContentType = prepared.ContentType;
+            asset.Sha256      = sha;
+            asset.FileName    = fileName;
+            asset.Width       = prepared.Width;
+            asset.Height      = prepared.Height;
+            asset.Bytes       = prepared.Bytes;
+            asset.UpdatedAt   = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+            _webSync.Nudge();
+            Status = ReferenceEquals(prepared.Bytes, source)
+                ? "Banner saved; it goes to the site on the next sync."
+                : $"Banner saved, scaled to {prepared.Width} × {prepared.Height} and sent as WebP; it goes to the site on the next sync.";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(SetWebBannerAsync), ex);
+            Status = "The banner could not be used: " + ex.Message;
+        }
+        await LoadWebBannerAsync(row.Id);
+    }
+
+    private async Task RemoveWebBannerAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            await db.StoreWebAssets.Where(a => a.StoreId == row.Id && a.Kind == StoreWebAsset.Banner).ExecuteDeleteAsync();
+            _webSync.Nudge();
+            Status = "Banner removed; the site drops it on the next sync.";
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(RemoveWebBannerAsync), ex);
+            Status = "The banner could not be removed: " + ex.Message;
+        }
+        await LoadWebBannerAsync(row.Id);
+    }
+
+    private string _webStatusText = "";
+
+    /// <summary>When the site was last reached, what it runs, and why not if not.</summary>
+    public string WebStatusText
+    {
+        get => _webStatusText;
+        private set => this.RaiseAndSetIfChanged(ref _webStatusText, value);
+    }
+
+    private bool _webHasError;
+    public bool WebHasError
+    {
+        get => _webHasError;
+        private set => this.RaiseAndSetIfChanged(ref _webHasError, value);
+    }
+
+    private static string DescribeWeb(Store s)
+    {
+        if (!s.WebEnabled) return "The web channel is closed.";
+        if (s.WebUrl.Length == 0 || s.WebSecret.Length == 0) return "Needs a site address and a secret before it can sync.";
+        var last = s.WebLastSyncAt is { } t ? $"Last synced {t.ToLocalTime():yyyy-MM-dd HH:mm}" : "Not synced yet";
+        var ver  = s.WebSiteVersion.Length > 0 ? $", site version {s.WebSiteVersion}" : "";
+        return s.WebLastError.Length > 0 ? $"{last}{ver}. ⚠ {s.WebLastError}" : $"{last}{ver}.";
+    }
+
+    /// <summary>
+    /// Pushes and pulls this store now, on this client.
+    ///
+    /// <para>⚠️ Only from the client holding the worker lease. The loop there keeps the cursor
+    /// and the ledger; a second client syncing the same store would race it over both.</para>
+    /// </summary>
+    private async Task SyncWebNowAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        await _lastSave;   // an edit that just lost focus has its save on the way
+        if (!_lease.IsHolder)
+        {
+            Status = "Another client is running the background work and syncs the web site; it will pick the change up on its next cycle.";
+            _webSync.Nudge();
+            return;
+        }
+
+        Status = "Syncing the web site…";
+        var line = await _webSync.SyncStoreNowAsync(row.Id);
+        await LoadSelectedAsync();
+        Status = line;
+    }
+
+    /// <summary>A fresh secret. The site keeps working only once the new one is set there too.</summary>
+    private async Task NewSecretAsync()
+    {
+        var secret = WebStoreSigner.NewSecret();
+        await SaveAsync(s => s.WebSecret = secret);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            WebSecret = secret;
+            Status    = "New secret generated. Set the same value on the site, or the next sync is refused.";
+        });
+    }
+
+    public async Task ApproveWebEventAsync(StoreWebEventRowVm row)
+    {
+        Status = await _webSync.ApproveAsync(row.Id);
+        await LoadSelectedAsync();
+    }
+
+    public async Task DeclineWebEventAsync(StoreWebEventRowVm row)
+    {
+        Status = await _webSync.RejectAsync(row.Id, "Declined by the store.");
+        await LoadSelectedAsync();
+    }
+
+    // ── Hosting on Cloudflare ─────────────────────────────────────────────────
+    //
+    // The token is this machine's (AppConfig); the account, worker name and EVE application id
+    // are the store's; the EVE application's secret key passes through once, to the site.
+
+    public sealed record AccountOption(string Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    public ObservableCollection<AccountOption> CloudflareAccounts { get; } = [];
+
+    private IReadOnlyDictionary<string, string> _subdomains = new Dictionary<string, string>();
+
+    private string _cloudflareToken = "";
+
+    /// <summary>Typed here and saved by the button; never read back out of the machine's store.</summary>
+    public string CloudflareToken
+    {
+        get => _cloudflareToken;
+        set => this.RaiseAndSetIfChanged(ref _cloudflareToken, value ?? "");
+    }
+
+    private string _cloudflareTokenText = "";
+    public string CloudflareTokenText
+    {
+        get => _cloudflareTokenText;
+        private set => this.RaiseAndSetIfChanged(ref _cloudflareTokenText, value);
+    }
+
+    private AccountOption? _cloudflareAccount;
+    public AccountOption? CloudflareAccount
+    {
+        get => _cloudflareAccount;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _cloudflareAccount, value);
+            if (value is not null) _ = SaveAsync(s => s.WebCloudflareAccountId = value.Id);
+            RefreshCallbackText();
+        }
+    }
+
+    private string _webWorkerName = "";
+    public string WebWorkerName
+    {
+        get => _webWorkerName;
+        set
+        {
+            var name = (value ?? "").Trim().ToLowerInvariant();
+            this.RaiseAndSetIfChanged(ref _webWorkerName, name);
+            _ = SaveAsync(s => s.WebWorkerName = name);
+            RefreshCallbackText();
+        }
+    }
+
+    // ── Where the site lives ──────────────────────────────────────────────────
+
+    private string _webCustomHostname = "";
+    /// <summary>The store's own domain for the site, or empty for the free workers.dev address.</summary>
+    public string WebCustomHostname
+    {
+        get => _webCustomHostname;
+        set
+        {
+            var host = (value ?? "").Trim();
+            if (host == _webCustomHostname) return;
+            _webCustomHostname = host;
+            RaiseAddressChanged();
+            _ = SaveAsync(s => s.WebCustomHostname = host);
+        }
+    }
+
+    private bool _webUsesOwnDomain;
+    /// <summary>The address choice as the two radio buttons show it. Picking the free address
+    /// clears the hostname; picking the domain merely opens the box for one.</summary>
+    public bool WebUsesOwnDomain
+    {
+        get => _webUsesOwnDomain || _webCustomHostname.Length > 0;
+        set
+        {
+            _webUsesOwnDomain = value;
+            if (!value && _webCustomHostname.Length > 0) { _webCustomHostname = ""; _ = SaveAsync(s => s.WebCustomHostname = ""); }
+            RaiseAddressChanged();
+        }
+    }
+
+    public bool WebUsesFreeAddress
+    {
+        get => !WebUsesOwnDomain;
+        set { if (value == WebUsesOwnDomain) WebUsesOwnDomain = !value; }
+    }
+
+    private void RaiseAddressChanged()
+    {
+        this.RaisePropertyChanged(nameof(WebCustomHostname));
+        this.RaisePropertyChanged(nameof(WebUsesOwnDomain));
+        this.RaisePropertyChanged(nameof(WebUsesFreeAddress));
+    }
+
+    private string _webEveClientId = "";
+    public string WebEveClientId
+    {
+        get => _webEveClientId;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webEveClientId, value ?? "");
+            _ = SaveEveKeyAsync(s => s.WebEveClientId = (value ?? "").Trim());
+            RefreshSsoWarning();
+
+        }
+    }
+
+    private string _webEveClientSecret = "";
+
+    /// <summary>Kept with the store, like the sync secret: the Deploy button places it on the site each time.</summary>
+    public string WebEveClientSecret
+    {
+        get => _webEveClientSecret;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _webEveClientSecret, value ?? "");
+            _ = SaveEveKeyAsync(s => s.WebEveClientSecret = (value ?? "").Trim());
+            RefreshSsoWarning();
+
+        }
+    }
+
+    private string _webCallbackUrl = "";
+
+    /// <summary>The callback the EVE application must be registered with, once the address is known.</summary>
+    public string WebCallbackUrl
+    {
+        get => _webCallbackUrl;
+        private set => this.RaiseAndSetIfChanged(ref _webCallbackUrl, value);
+    }
+
+    private bool _webSsoMissing;
+
+    /// <summary>Red on the screen: the web channel is open and the site has no way to sign anyone in.</summary>
+    public bool WebSsoMissing
+    {
+        get => _webSsoMissing;
+        private set => this.RaiseAndSetIfChanged(ref _webSsoMissing, value);
+    }
+
+    public string WebSsoWarningText =>
+        "Buyers cannot sign in until the site has the EVE application's Client ID and Secret Key. Enter them here: "
+        + "the Deploy button places them on the site, and a site set up by hand needs the same values as its "
+        + "EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
+
+    private string _deployStatusText = "";
+    public string DeployStatusText
+    {
+        get => _deployStatusText;
+        private set => this.RaiseAndSetIfChanged(ref _deployStatusText, value);
+    }
+
+    private void RefreshTokenText()
+    {
+        CloudflareTokenText = AppConfig.HasCloudflareToken
+            ? AppConfig.CloudflareTokenProtection switch
+            {
+                SecretProtection.Dpapi     => "A token is saved on this machine, encrypted by Windows for your account.",
+                SecretProtection.LibSecret => "A token is saved in this machine's keyring.",
+                _                          => "A token is saved on this machine in config.json as typed; no keyring was available.",
+            }
+            : "No token is saved on this machine. Deploying and updating need one; syncing does not.";
+    }
+
+    /// <summary>The callback address, from the site's address or from where a deploy would put it.</summary>
+    private void RefreshCallbackText()
+    {
+        var url = _webUrl.Length > 0 ? _webUrl.TrimEnd('/')
+            : CloudflareAccount is { } a && _subdomains.TryGetValue(a.Id, out var sub) && _webWorkerName.Length > 0
+                ? $"https://{_webWorkerName}.{sub}.workers.dev"
+                : "";
+        WebCallbackUrl = url.Length > 0 ? url + "/auth/callback" : "";
+    }
+
+    private void RefreshSsoWarning() =>
+        WebSsoMissing = _webEnabled && (_webEveClientId.Trim().Length == 0 || _webEveClientSecret.Trim().Length == 0);
+
+    /// <summary>The option for a saved account id — the listed one, or a stand-in until the token is checked again.</summary>
+    private AccountOption? AccountFor(string id)
+    {
+        if (id.Length == 0) return null;
+        var known = CloudflareAccounts.FirstOrDefault(a => a.Id == id);
+        if (known is not null) return known;
+        var placeholder = new AccountOption(id, $"Account {id[..Math.Min(8, id.Length)]}…");
+        CloudflareAccounts.Add(placeholder);
+        return placeholder;
+    }
+
+    private async Task SaveCloudflareTokenAsync()
+    {
+        var token = CloudflareToken.Trim();
+        if (token.Length == 0) { DeployStatusText = "Paste the token first."; return; }
+
+        DeployStatusText = "Checking the token…";
+        var check = await _deploy.CheckTokenAsync(token);
+        if (!check.Ok) { DeployStatusText = check.Text; return; }
+
+        AppConfig.SetCloudflareToken(token);
+        CloudflareToken = "";
+        _subdomains     = check.Subdomains;
+
+        var wanted = CloudflareAccount?.Id ?? "";
+        CloudflareAccounts.Clear();
+        foreach (var a in check.Accounts) CloudflareAccounts.Add(new AccountOption(a.Id, a.Name));
+        CloudflareAccount = CloudflareAccounts.FirstOrDefault(a => a.Id == wanted)
+                         ?? (CloudflareAccounts.Count == 1 ? CloudflareAccounts[0] : null);
+
+        RefreshTokenText();
+        RefreshCallbackText();
+        DeployStatusText = check.Text;
+    }
+
+    private void ForgetCloudflareToken()
+    {
+        AppConfig.SetCloudflareToken(null);
+        _subdomains = new Dictionary<string, string>();
+        RefreshTokenText();
+        DeployStatusText = "The token is gone from this machine. The site keeps running; only deploying and updating from here need one.";
+    }
+
+    /// <summary>
+    /// Saves a key and, once both are present on a site deployed from here, puts them on the site
+    /// at once — sign-in then works without another deploy. Left alone while a store is loading.
+    /// </summary>
+    private async Task SaveEveKeyAsync(Action<Store> apply)
+    {
+        if (_suppressSave || SelectedStore is not StoreRowVm row) return;
+        await SaveAsync(apply);
+        if (_webEveClientId.Trim().Length == 0 || _webEveClientSecret.Trim().Length == 0) return;
+        if (!AppConfig.HasCloudflareToken || CloudflareAccount is null) return;
+        var r = await _deploy.PutEveKeysAsync(row.Id);
+        await Dispatcher.UIThread.InvokeAsync(() => DeployStatusText = r.Text);
+        await ProbeSiteSsoAsync(row.Id, force: true);
+    }
+
+    // ── What the site itself says about sign-in ──────────────────────────────
+
+    private string _webSiteSsoText = "";
+    public string WebSiteSsoText
+    {
+        get => _webSiteSsoText;
+        private set => this.RaiseAndSetIfChanged(ref _webSiteSsoText, value);
+    }
+
+    private bool _webSiteSsoGood;
+
+    /// <summary>The site confirms it holds the keys.</summary>
+    public bool WebSiteSsoGood
+    {
+        get => _webSiteSsoGood;
+        private set => this.RaiseAndSetIfChanged(ref _webSiteSsoGood, value);
+    }
+
+    private bool _webSiteSsoBad;
+
+    /// <summary>The site says it has no keys: whatever is typed here has not reached it.</summary>
+    public bool WebSiteSsoBad
+    {
+        get => _webSiteSsoBad;
+        private set => this.RaiseAndSetIfChanged(ref _webSiteSsoBad, value);
+    }
+
+    private (int StoreId, DateTime At) _lastSiteProbe;
+
+    /// <summary>
+    /// Asks the site whether it holds the EVE application keys and says so in a line of its own —
+    /// the one place that tells the owner the site still needs updating after they typed the keys.
+    /// Quiet when the site cannot be reached or is too old to say. A few minutes apart per store
+    /// unless a save or a deploy forces it.
+    /// </summary>
+    private async Task ProbeSiteSsoAsync(int storeId, bool force)
+    {
+        if (!force && _lastSiteProbe.StoreId == storeId && DateTime.UtcNow - _lastSiteProbe.At < TimeSpan.FromMinutes(5)) return;
+        _lastSiteProbe = (storeId, DateTime.UtcNow);
+
+        var url = _webUrl;
+        if (url.Length == 0) { SetSiteSso("", null); return; }
+
+        var probe = await _deploy.ProbeSiteAsync(url);
+        if (SelectedStore is not StoreRowVm row || row.Id != storeId) return;   // the selection moved on
+        if (probe?.SsoConfigured is not { } sso) { SetSiteSso("", null); return; }
+
+        var haveKeys = _webEveClientId.Trim().Length > 0 && _webEveClientSecret.Trim().Length > 0;
+        const string sendThem = "Press Deploy or update site to send them; a site set up by hand needs them as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
+        if (!sso)
+        {
+            SetSiteSso(haveKeys
+                ? "The keys are saved here, but the site does not have them yet. " + sendThem
+                : "The site has no EVE application keys yet: register the application and enter its keys above.", false);
+            return;
+        }
+        // Sites from 0.1.2 say which keys they hold, so a key changed here and not there shows up too.
+        if (probe!.SsoClientId is null || probe.SsoFingerprint is null)
+            SetSiteSso("The site has EVE application keys; sign-in is set up.", true);
+        else if (!haveKeys)
+            SetSiteSso("The site has EVE application keys, but none are saved here: enter the same ones above so an update keeps them.", false);
+        else if (probe.SsoClientId == _webEveClientId.Trim() && probe.SsoFingerprint == CloudflareDeployService.KeyFingerprint(_webEveClientSecret))
+            SetSiteSso("The site has these EVE application keys; sign-in is set up.", true);
+        else
+            SetSiteSso("The site has different EVE application keys from the ones saved here. " + sendThem, false);
+
+    }
+
+    private void SetSiteSso(string text, bool? good) => Dispatcher.UIThread.Post(() =>
+    {
+        WebSiteSsoText = text;
+        WebSiteSsoGood = good == true;
+        WebSiteSsoBad  = good == false;
+    });
+
+    /// <summary>Deploys, or updates, the site; the same button for both.</summary>
+    private async Task DeploySiteAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        await _lastSave;   // a box that lost focus to this button has its save on the way
+
+        // Whether the account has a workers.dev name is known from the token check; an account
+        // not checked in this session is checked now, so the question below is only asked when
+        // there is something to ask.
+        var accountId = CloudflareAccount?.Id ?? "";
+        if (accountId.Length > 0 && !_subdomains.ContainsKey(accountId) && AppConfig.GetCloudflareToken() is { Length: > 0 } tokenNow)
+        {
+            DeployStatusText = "Checking the account…";
+            var check = await _deploy.CheckTokenAsync(tokenNow);
+            if (check.Ok) _subdomains = check.Subdomains;
+        }
+        var needsName = WebCustomHostname.Length == 0 && accountId.Length > 0 && !_subdomains.ContainsKey(accountId);
+
+        // A store's first deploy asks where the site should live, and an account without a
+        // workers.dev name is asked to name it; afterwards the address row above the button
+        // holds the choice. Saved before the deploy reads the store, not after.
+        string? subdomain = null;
+        if ((WebUrl.Length == 0 && WebCustomHostname.Length == 0 || needsName) && ChooseAddress is { } ask)
+        {
+            var prompt = new DeployAddressPrompt(WebWorkerName, _subdomains.GetValueOrDefault(accountId),
+                CloudflareDeployService.Slug(CloudflareAccount?.Name ?? "", 40, ""), WebCustomHostname);
+            var choice = await ask(prompt);
+            if (choice is null) { DeployStatusText = "Deploy cancelled."; return; }
+            if (choice.Hostname.Length > 0)
+            {
+                _webCustomHostname = choice.Hostname;
+                _webUsesOwnDomain  = true;
+                RaiseAddressChanged();
+                await SaveAsync(s => s.WebCustomHostname = choice.Hostname);
+            }
+            else subdomain = choice.Subdomain;
+        }
+
+        var progress = new Progress<string>(s => DeployStatusText = s);
+        var r = await _deploy.DeployAsync(row.Id, progress, subdomain: subdomain);
+        if (r.Ok && subdomain is { Length: > 0 } && accountId.Length > 0)
+            _subdomains = new Dictionary<string, string>(_subdomains) { [accountId] = CloudflareDeployService.Slug(subdomain, 63, "") };
+        await LoadSelectedAsync();
+        DeployStatusText = r.Text;
+        RefreshCallbackText();
+        _ = ProbeSiteSsoAsync(row.Id, force: true);
+
+    }
+
+    private async Task CheckSiteAsync()
+    {
+        if (SelectedStore is not StoreRowVm row) return;
+        await _lastSave;   // an edit that just lost focus has its save on the way
+        DeployStatusText = "Asking the site…";
+        var r = await _deploy.CheckSiteAsync(row.Id);
+        DeployStatusText = r.Text;
     }
 
     /// <summary>Typed name for the allow list, resolved when added.</summary>
@@ -601,7 +1510,11 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
-    private async Task LoadSelectedAsync()
+    /// <param name="fields">Whether to fill the editable fields from the database as well as the
+    /// log, the orders and the status. ⚠️ The half-minute refresh passes false: those fields hold
+    /// what the user has typed, saved or on its way, and re-reading them mid-edit took a choice
+    /// away — the address flipped back to workers.dev before Deploy could be pressed.</param>
+    private async Task LoadSelectedAsync(bool fields = true)
     {
         if (SelectedStore is not StoreRowVm row)
         {
@@ -624,6 +1537,20 @@ public class StoresViewModel : ReactiveObject
 
             var senders = await db.StoreSenders.AsNoTracking()
                 .Where(s => s.StoreId == row.Id).OrderBy(s => s.Name).ToListAsync();
+
+            // Visits come by the dozen and would push every order off a list of the latest
+            // hundred, so they have an allowance of their own and are merged in by arrival.
+            var webEvents = await db.StoreWebEvents.AsNoTracking()
+                .Where(e => e.StoreId == row.Id && e.Kind != "visit")
+                .OrderByDescending(e => e.Id)
+                .Take(100)
+                .ToListAsync();
+            var webVisits = await db.StoreWebEvents.AsNoTracking()
+                .Where(e => e.StoreId == row.Id && e.Kind == "visit")
+                .OrderByDescending(e => e.Id)
+                .Take(50)
+                .ToListAsync();
+            webEvents = webEvents.Concat(webVisits).OrderByDescending(e => e.Id).ToList();
 
             // ⚠️ Counted off orders, not off the mail log. A mail says what was asked for; only
             // the order says what became of it, and an order cancelled in the Order Tracker by
@@ -671,6 +1598,29 @@ public class StoresViewModel : ReactiveObject
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                Mails.Clear();
+                foreach (var m in mails) Mails.Add(new StoreMailRowVm(m));
+
+                Orders.Clear();
+                foreach (var o in orderRows) Orders.Add(o);
+
+                Senders.Clear();
+                foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
+
+                _webEventRows = webEvents;
+                FillWebEvents();
+
+                StatInquiries = inquiries.ToString("N0");
+                StatActive    = active.ToString("N0");
+                StatCompleted = completed.ToString("N0");
+                StatCancelled = cancelled.ToString("N0");
+
+                WebStatusText = DescribeWeb(store);
+                WebHasError   = store.WebEnabled && store.WebLastError.Length > 0;
+                this.RaisePropertyChanged(nameof(HasSelection));
+
+                if (!fields) return;
+
                 _suppressSave = true;
                 try
                 {
@@ -681,6 +1631,12 @@ public class StoresViewModel : ReactiveObject
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
+                    LimitEnabled     = store.LimitEnabled;
+                    LimitUnits       = Math.Max(1, store.LimitUnits);
+                    LimitScope       = LimitScopeOptions.FirstOrDefault(o => o.Key == store.LimitScope)   ?? LimitScopeOptions[0];
+                    LimitPeriod      = LimitPeriodOptions.FirstOrDefault(o => o.Key == store.LimitPeriod) ?? LimitPeriodOptions[^1];
+                    LimitPeriodCount = Math.Max(1, store.LimitPeriodCount);
+
                     StoreOrderLabels   = store.OrderLabels;
                     UseCustomUsage     = store.UseCustomUsage;
                     StoreInfo          = store.Info;
@@ -696,24 +1652,31 @@ public class StoresViewModel : ReactiveObject
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;
                     MessageFooterColor = store.MessageFooterColor;
+
+                    WebEnabled        = store.WebEnabled;
+                    WebUrl            = store.WebUrl;
+                    WebSecret         = store.WebSecret;
+                    WebTheme          = ThemeOptions.FirstOrDefault(t => t.Key == store.WebTheme) ?? ThemeOptions[0];
+                    LoadWebThemeChoices(store);
+                    WebMailUpdates    = store.WebMailUpdates;
+                    WebPollMinutes    = store.WebPollMinutes;
+                    WebBlurb          = store.WebBlurb;
+                    WebStatusText     = DescribeWeb(store);
+                    WebHasError       = store.WebEnabled && store.WebLastError.Length > 0;
+                    WebWorkerName     = store.WebWorkerName.Length > 0 ? store.WebWorkerName : CloudflareDeployService.DefaultWorkerName(store.Name);
+                    _webCustomHostname = store.WebCustomHostname.Trim();
+                    _webUsesOwnDomain  = _webCustomHostname.Length > 0;
+                    RaiseAddressChanged();
+                    WebEveClientId    = store.WebEveClientId;
+                    WebEveClientSecret = store.WebEveClientSecret;
+                    _ = LoadWebBannerAsync(store.Id);
+                    CloudflareAccount = AccountFor(store.WebCloudflareAccountId);
+                    RefreshCallbackText();
+                    RefreshSsoWarning();
+                    _ = ProbeSiteSsoAsync(store.Id, force: false);
+
                 }
                 finally { _suppressSave = false; }
-
-                Mails.Clear();
-                foreach (var m in mails) Mails.Add(new StoreMailRowVm(m));
-
-                Orders.Clear();
-                foreach (var o in orderRows) Orders.Add(o);
-
-                Senders.Clear();
-                foreach (var s in senders) Senders.Add(new StoreSenderRowVm(s));
-
-                StatInquiries = inquiries.ToString("N0");
-                StatActive    = active.ToString("N0");
-                StatCompleted = completed.ToString("N0");
-                StatCancelled = cancelled.ToString("N0");
-
-                this.RaisePropertyChanged(nameof(HasSelection));
             });
         }
         catch (Exception ex)
@@ -730,7 +1693,25 @@ public class StoresViewModel : ReactiveObject
     /// store's values onto it in the instant before the rest arrive.</summary>
     private bool _suppressSave;
 
-    private async Task SaveAsync(Action<Store> apply)
+    /// <summary>The save most recently begun. An action that reads the store back from the
+    /// database — a deploy, a sync — awaits it first, since a box that has just lost focus has
+    /// its save on the way rather than done.</summary>
+    private Task _lastSave = Task.CompletedTask;
+
+    /// <summary>Saves one change after any save still in flight, so writes land in order.</summary>
+    private Task SaveAsync(Action<Store> apply, bool nudge = false)
+    {
+        var previous = _lastSave;
+        return _lastSave = SaveAfterAsync(previous, apply, nudge);
+    }
+
+    private async Task SaveAfterAsync(Task previous, Action<Store> apply, bool nudge)
+    {
+        try { await previous; } catch { /* reported where it happened */ }
+        await SaveCoreAsync(apply, nudge);
+    }
+
+    private async Task SaveCoreAsync(Action<Store> apply, bool nudge)
     {
         if (_suppressSave || SelectedStore is not StoreRowVm row) return;
 
@@ -746,6 +1727,10 @@ public class StoresViewModel : ReactiveObject
             // The list shows the name and whether it is open, so it has to follow — in place, so
             // the row the user is editing stays the row that is selected.
             await Dispatcher.UIThread.InvokeAsync(() => row.Refresh(store));
+
+            // A web setting changed: the site should show it on the next call, not the next
+            // interval. Only the lease holder's loop is listening, which is the point.
+            if (nudge) _webSync.Nudge();
         }
         catch (Exception ex)
         {
@@ -783,6 +1768,37 @@ public class StoresViewModel : ReactiveObject
     /// this guards against — but every view that shows the button should set it.</para>
     /// </summary>
     public Func<string, Task<bool>>? ConfirmDelete { get; set; }
+
+    /// <summary>Asks where a store's site should live before its first deploy, and for the
+    /// account's workers.dev name when it has none; set by the view. Null when cancelled.</summary>
+    public Func<DeployAddressPrompt, Task<DeployAddressChoice?>>? ChooseAddress { get; set; }
+
+    /// <summary>Asks for one line of text — title, label, watermark, what to start from; set by
+    /// the view. Null when cancelled.</summary>
+    public Func<string, string, string, string, Task<string?>>? AskText { get; set; }
+
+    /// <summary>Renames the account's workers.dev name from here, without the dashboard: asks
+    /// for the new one with the current one to edit, and the stores' addresses move with it.</summary>
+    private async Task RenameSubdomainAsync()
+    {
+        var accountId = CloudflareAccount?.Id ?? "";
+        if (accountId.Length == 0) { DeployStatusText = "Pick the Cloudflare account first."; return; }
+        if (AskText is not { } ask) return;
+
+        var typed = await ask("Rename the account's workers.dev name", "New name",
+            "lower-case letters, digits and hyphens", _subdomains.GetValueOrDefault(accountId) ?? "");
+        if (typed is null || typed.Trim().Length == 0) return;
+
+        DeployStatusText = "Renaming…";
+        var r = await _deploy.RenameSubdomainAsync(accountId, typed.Trim());
+        if (r.Ok)
+        {
+            _subdomains = new Dictionary<string, string>(_subdomains) { [accountId] = CloudflareDeployService.Slug(typed, 63, "") };
+            await LoadSelectedAsync();
+        }
+        DeployStatusText = r.Text;
+        RefreshCallbackText();
+    }
 
     private async Task DeleteStoreAsync()
     {

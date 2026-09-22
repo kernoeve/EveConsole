@@ -102,12 +102,21 @@
                 CanUserReorderColumns="False"
                 CanUserResizeColumns="True"
                 CanUserSortColumns="True"
-                Sorting="OnGridSorting"
-                KeyDown="OnGridKeyDown" />
+                ClipboardCopyMode="IncludeHeader"
+                Sorting="OnGridSorting" />
 
       <!-- Status bar -->
       <Border Grid.Row="2" Background="{DynamicResource SurfaceInputBrush}" Padding="12 6">
         <DockPanel>
+          <!-- The whole table as the filters and order leave it, not the rows loaded here. -->
+          <Button DockPanel.Dock="Right"
+                  Content="{Binding ExportButtonText}"
+                  IsEnabled="{Binding HasTable}"
+                  Click="OnExportCsvClick"
+                  Padding="14 4"
+                  Margin="8 0 0 0"
+                  FontSize="11"
+                  ToolTip.Tip="Write every row that matches the filters, in this order, to a CSV file — all of them, not only the rows loaded here. Ctrl+C on selected rows copies them with a header row." />
           <Button DockPanel.Dock="Right"
                   Content="Load More"
                   IsVisible="{Binding HasMore}"

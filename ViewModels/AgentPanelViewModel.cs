@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Threading;
 using EveConsole.Agent;
+using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
 
@@ -25,6 +26,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
     private readonly SpeechInputService? _speech;
     private readonly GlobalHotkeyService? _hotkey;
     private CancellationTokenSource _cts = new();
+
+    /// <summary>
+    /// Groups this panel's turns in the telemetry so a thread can be read back in order.
+    ///
+    /// <para>Per panel instance rather than persisted: the point is to tell one sitting's turns
+    /// from another's when reading back why an answer was poor, and a conversation that survives a
+    /// restart is a different conversation for that purpose.</para>
+    /// </summary>
+    private string _conversationId = Guid.NewGuid().ToString("N");
 
     // Parallel lists — Messages drives the UI, _history drives the API context.
     public  ObservableCollection<AgentMessage> Messages { get; } = [];
@@ -117,12 +127,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     public void StartRecording()
     {
         if (_speech is null || IsRecording) return;
-        ErrorText  = "";
-        StatusText = "Recording…";
-        if (_speech.StartRecording())
-        {
-            IsRecording = true;
-        }
+        if (_speech.BeginCapture()) OnCaptureBegan();
         else
         {
             StatusText = "";
@@ -130,15 +135,46 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
     }
 
+    private CancellationTokenSource? _captureGuard;
+    private static readonly TimeSpan LongestHold = TimeSpan.FromSeconds(45);
+
+    /// <summary>The capture has begun, by key or by button: the panel says so, and a guard is set
+    /// for a release the hook never sees, which would otherwise leave the microphone recording
+    /// until the next one. Nobody dictates for longer than this in one breath.</summary>
+    private void OnCaptureBegan()
+    {
+        IsRecording = true;
+        ErrorText   = "";
+        StatusText  = "Recording…";
+
+        _captureGuard?.Cancel();
+        var guard = _captureGuard = new CancellationTokenSource();
+        _ = Task.Delay(LongestHold, guard.Token).ContinueWith(t =>
+        {
+            if (t.IsCanceled || _speech?.EndCapture() != true) return;
+            Dispatcher.UIThread.Post(() => _ = FinishCaptureAsync());
+        }, TaskScheduler.Default);
+    }
+
     public async Task StopAndTranscribeAsync()
     {
         if (_speech is null || !IsRecording) return;
+        if (_speech.EndCapture()) await FinishCaptureAsync();
+        else IsRecording = false;
+    }
+
+    /// <summary>After the key came up: waits out the tail, transcribes, and sends what was said.</summary>
+    private async Task FinishCaptureAsync()
+    {
+        if (_speech is null) return;
+        _captureGuard?.Cancel();
         IsRecording = false;
         StatusText  = "Transcribing…";
         ErrorText   = "";
         try
         {
-            var text = await _speech.StopAndTranscribeAsync();
+            var pcm  = await _speech.CollectAsync();
+            var text = pcm is null ? null : await _speech.TranscribeAsync(pcm);
             StatusText = "";
             if (!string.IsNullOrWhiteSpace(text) && !IsBlankAudioResult(text))
             {
@@ -147,7 +183,9 @@ public sealed class AgentPanelViewModel : ReactiveObject
             }
             else
             {
-                StatusText = "No speech detected — try speaking a bit longer.";
+                StatusText = pcm is null
+                    ? "No speech captured — hold the key while you speak."
+                    : "No speech detected — try speaking a bit longer.";
             }
         }
         catch (Exception ex)
@@ -229,8 +267,10 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // Wire global hotkey callbacks — hook fires on hook thread, must marshal to UI thread.
         if (_hotkey is not null)
         {
-            _hotkey.OnPress   = () => Dispatcher.UIThread.Post(StartRecording);
-            _hotkey.OnRelease = () => Dispatcher.UIThread.Post(() => _ = StopAndTranscribeAsync());
+            // ⚠️ The flag flips happen HERE, on the hook's own thread, not after a hop to the UI
+            // thread: the capture window is the key hold itself, however busy the window is.
+            _hotkey.OnPress   = () => { if (_speech?.BeginCapture() == true) Dispatcher.UIThread.Post(OnCaptureBegan); };
+            _hotkey.OnRelease = () => { if (_speech?.EndCapture()   == true) Dispatcher.UIThread.Post(() => _ = FinishCaptureAsync()); };
             ConfigureHotkey(service.Settings.PushToTalkKey);
         }
 
@@ -266,6 +306,58 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// alarm action, so a fired alarm is phrased by the agent and spoken aloud when TTS is on.
     /// Waits briefly for an in-flight reply rather than dropping the notification.
     /// </summary>
+    /// <summary>
+    /// Says a text exactly as given and keeps it in the chat as the agent's own line — no model
+    /// round trip. What an alarm uses when its condition composed the words itself.
+    ///
+    /// <para>⚠️ Interrupts whatever is being said. An intel call is worth more than the tail of
+    /// an answer about last month's wallet, and the capsuleer may have seconds.</para>
+    /// </summary>
+    public async Task AnnounceAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        // Kept and shown whether or not the agent is on: the line is the application's, and
+        // the panel only opens when there is an agent to open. The voice does not need one.
+        var line = new AgentMessage(MessageRole.Assistant, text) { ToolsUsed = "alarm" };
+        _history.Add(line);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (_isAgentEnabled) IsOpen = true;
+            Messages.Add(line);
+        });
+        SaveHistory();
+
+        if (_tts is not null && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None)
+        {
+            _tts.Stop();
+            _tts.SpeakAsync(text);
+        }
+    }
+
+    /// <summary>
+    /// A staged alarm has asked the capsuleer something; whatever they say next acknowledges it.
+    /// Deliberately not "if they say all is well": a person answering at all is awake, which is
+    /// the fact the alarm exists to establish, and no model has to remember to call anything.
+    /// </summary>
+    private AlarmAck? _pendingAck;
+    private string?   _pendingAckText;
+
+    /// <param name="spokenText">
+    /// What the app said aloud, when it was the app and not the model that said it. Handed to
+    /// the model with the reply, so it knows what the reply is to: a line the app put in its
+    /// mouth reads, to it, like an announcement it happened to make, and "I'm awake" after it
+    /// was being answered as a morning greeting.
+    /// </param>
+    public void ExpectReply(AlarmAck ack, string? spokenText = null)
+    {
+        _pendingAck     = ack;
+        _pendingAckText = spokenText;
+    }
+
+    /// <summary>Set by MainWindow: takes the acknowledgement back to the alarm runner.</summary>
+    public Func<AlarmAck, Task>? AcknowledgeCallback { get; set; }
+
     public async Task NotifyAsync(string message)
     {
         if (!_isAgentEnabled || string.IsNullOrWhiteSpace(message)) return;
@@ -293,6 +385,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         (["items tab", "item tab", "items window", "item browser"],  "items"),
         (["characters tab", "character tab", "characters window"],   "characters"),
         (["data tab", "data window"],                                "data"),
+        (["background processes", "background tab"],                 "background"),
     ];
     private static readonly string[] _navVerbs =
         ["open", "show", "pull up", "switch to", "go to", "navigate to", "take me to", "bring up"];
@@ -325,6 +418,17 @@ public sealed class AgentPanelViewModel : ReactiveObject
         var text = Input.Trim();
         if (string.IsNullOrEmpty(text) || IsBusy) return;
 
+        // Only a message the capsuleer wrote counts; an alarm's own prompt arrives this way too.
+        string? replyingTo = null;
+        if (showUserMessage && _pendingAck is { } ack)
+        {
+            _pendingAck     = null;
+            replyingTo      = _pendingAckText;
+            _pendingAckText = null;
+            if (AcknowledgeCallback is { } acknowledge)
+                _ = acknowledge(ack);
+        }
+
         ApplyNavigationIntent(text);
 
         if (_service.Provider is null || !_service.Provider.IsConfigured)
@@ -349,6 +453,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
         _summarizationTask = null;
 
+        // A reply to something the app said aloud goes to the model with a note of what that
+        // was — hidden, like an alarm's own prompt, because the capsuleer already heard it.
+        if (replyingTo is not null)
+            _history.Add(new AgentMessage(MessageRole.User,
+                $"[The capsuleer is answering the alarm the app just spoke aloud: \"{replyingTo}\" " +
+                "Their answer has already reset that alarm — nothing to do about it. Reply to " +
+                "them in that light: the ship it names is still undocked unless they say otherwise.]")
+            { ShowInChat = false });
+
         var userMsg = new AgentMessage(MessageRole.User, text) { ShowInChat = showUserMessage };
         _history.Add(userMsg);
         if (userMsg.ShowInChat) Messages.Add(userMsg);
@@ -358,22 +471,105 @@ public sealed class AgentPanelViewModel : ReactiveObject
         _tts?.Stop();
         var ct = _cts.Token;
 
+        // The standing instructions and names may have been changed on another client since
+        // this one started; the prompt is built from what the database says now.
+        await _service.RefreshSharedAsync();
+
         var systemPrompt = BuildSystemPrompt();
         var sb = new StringBuilder();
+
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin(_conversationId, _service.Provider.ProviderName, "", text.Length);
+        var failure = "";
+
+        // Says what is happening while nothing is on screen. A question needing discovery can run
+        // six round trips over twenty seconds, and an empty panel through all of it is
+        // indistinguishable from a hang — which is exactly how it was read.
+        SetStatus("Thinking…");
+
+        // Every tool the turn calls, in the order first called, for the line under the reply.
+        var toolCounts = new Dictionary<string, int>();
+        _service.ToolActivity = tool =>
+        {
+            SetStatus(ToolStatus(tool));
+            lock (toolCounts) toolCounts[tool] = toolCounts.GetValueOrDefault(tool) + 1;
+        };
+
         try
         {
-            await foreach (var chunk in _service.Provider.StreamAsync(
-                systemPrompt, _history, _service.Tools, ct))
+            // ⚠️ ConfigureAwait(false) on the enumeration, so the streaming loop and everything
+            // the provider does inside it stay off the UI thread. Without it each yielded chunk
+            // hops back to the UI thread — hundreds of hops for one answer — and the window stops
+            // responding while the agent is working. Everything below that touches UI state is
+            // already marshalled explicitly, which is what makes this safe.
+            // ⚠️ At most one streaming-text update is ever queued, and it reads the CURRENT text
+            // when it runs rather than a snapshot taken when it was posted. The previous throttle
+            // — post at most every 50 ms, skip the rest — lost whichever chunks arrived inside a
+            // window and never posted them: a sentence the model wrote in one burst and then
+            // followed with a twenty-second tool call sat on screen as its first word, while the
+            // voice had already read the whole thing. The cost the throttle existed to avoid, one
+            // ToString per token and a dispatcher job for each, is avoided here by the coalescing:
+            // ToString runs once per UI update, and the UI paces those itself.
+            var postQueued = 0;
+            void PostStreamingText()
             {
-                sb.Append(chunk);
-                var snapshot = sb.ToString();
-                Dispatcher.UIThread.Post(() => StreamingText = snapshot);
+                if (Interlocked.Exchange(ref postQueued, 1) == 1) return;   // one already waiting
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Interlocked.Exchange(ref postQueued, 0);
+                    string current;
+                    lock (sb) current = sb.ToString();
+                    StreamingText = current;
+                });
             }
+
+            // Speech runs alongside the stream rather than after it. The agent often writes a
+            // sentence, calls a tool, thinks, and writes more — so waiting for the end meant
+            // silence through all of that and then a wall of text read at once.
+            var speaking = _tts is not null
+                        && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None;
+            var pending  = new StringBuilder();
+
+            // What the turn's largest prompt came to, and the window it went into when the server
+            // says — see the threshold check after the turn.
+            long promptTokens = 0; int? window = null;
+
+            await foreach (var chunk in _service.Provider.StreamAsync(
+                systemPrompt, _history, _service.Tools,
+                onUsage: u =>
+                {
+                    telemetry?.Usage(u);
+                    promptTokens = Math.Max(promptTokens, u.InputTokens + u.CacheReadTokens);
+                    window       = u.ContextLength ?? window;
+                },
+                volatileContext: CurrentAppState(),
+                ct: ct).ConfigureAwait(false))
+            {
+                lock (sb) sb.Append(chunk);
+                PostStreamingText();
+
+                if (speaking)
+                {
+                    pending.Append(chunk);
+                    SpeakCompleteSentences(pending, flush: false);
+                }
+            }
+
+            // Once more at the end, so the finished text is on screen before the message is moved
+            // into the history — the queued update above may not have run yet.
+            string finalText;
+            lock (sb) finalText = sb.ToString();
+            Dispatcher.UIThread.Post(() => StreamingText = finalText);
+
+            // Whatever is left has no closing punctuation and never will.
+            if (speaking) SpeakCompleteSentences(pending, flush: true);
 
             if (!ct.IsCancellationRequested && sb.Length > 0)
             {
                 var responseText = sb.ToString();
-                var assistantMsg = new AgentMessage(MessageRole.Assistant, responseText);
+                string toolsUsed;
+                lock (toolCounts) toolsUsed = ToolUseSummary.Describe(toolCounts);
+                var assistantMsg = new AgentMessage(MessageRole.Assistant, responseText) { ToolsUsed = toolsUsed };
                 _history.Add(assistantMsg);
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
@@ -381,19 +577,29 @@ public sealed class AgentPanelViewModel : ReactiveObject
                     StreamingText = "";
                 });
 
-                if (_tts is not null && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None)
-                    _tts.SpeakAsync(responseText);
+                // ⚠️ Not spoken here any more. The sentences went to TTS as they were produced,
+                // and speaking the finished text again would say the whole answer twice.
 
                 SaveHistory();
 
-                // Fire background summarization if threshold is crossed.
-                if (EstimateTokens() >= _service.Settings.SummarizationThreshold)
+                // Fire background summarization if threshold is crossed — or if the prompt is
+                // closing on the model's window, when the server has said what that is.
+                //
+                // ⚠️ The threshold is set blind to the window, and a local server does not refuse
+                // a prompt that outgrows it. Ollama drops the OLDEST messages to make room, and
+                // the oldest message in this layout is the system prompt: measured on a 2k window,
+                // the instructions went first, whole, while the chat stayed, and the model went on
+                // answering with none. Eighty percent leaves room for the next question and the
+                // reply; the summary then shrinks the history well below it.
+                if (EstimateTokens() >= _service.Settings.SummarizationThreshold
+                    || (window is > 0 && promptTokens > window.Value * 0.8))
                     _summarizationTask = SummarizeAsync();
             }
         }
-        catch (OperationCanceledException) { /* new message sent or panel closed */ }
+        catch (OperationCanceledException) { failure = "cancelled"; }
         catch (Exception ex)
         {
+            failure = ex.Message;
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 StreamingText = "";
@@ -402,18 +608,82 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
         finally
         {
-            await Dispatcher.UIThread.InvokeAsync(() => IsBusy = false);
+            // ⚠️ Always leave something in the conversation. A turn that produced no text at all —
+            // it failed, or the model stopped mid-tool — otherwise looks identical to the app
+            // having hung, and the capsuleer is left watching a panel that will never change.
+            if (sb.Length == 0 && !ct.IsCancellationRequested)
+            {
+                var note = failure.Length > 0
+                    ? $"That did not complete: {failure}"
+                    : "That finished without producing an answer. Worth asking again — the "
+                      + "detail of what happened is in Settings → Error Log.";
+
+                var noteMsg = new AgentMessage(MessageRole.Assistant, note);
+                _history.Add(noteMsg);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    Messages.Add(noteMsg);
+                    StreamingText = "";
+                });
+                SaveHistory();
+            }
+
+            // ⚠️ In the finally, so a cancelled or failed turn is still recorded. Those are the
+            // ones worth having: a turn that burned four round trips and then threw is exactly
+            // the spend that would otherwise never appear in the total.
+            telemetry?.Complete(sb.Length, failure);
+
+            _service.ToolActivity = null;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = "";
+                IsBusy     = false;
+            });
         }
     }
 
+    /// <summary>
+    /// The STABLE half of the system prompt — identical on every call.
+    ///
+    /// <para>⚠️ Live app state is deliberately NOT appended here any more. It is passed to the
+    /// provider separately so it lands after the prompt-cache breakpoint: the cache is keyed on a
+    /// byte-identical prefix, and a tail that changes each turn would invalidate roughly 33k
+    /// tokens of tool schemas and app reference every single time.</para>
+    /// </summary>
     private string BuildSystemPrompt()
+        => AgentService.BuildSystemPrompt(_service.Settings, _service.Schema?.Prompt);
+
+    /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
+    /// part of the cached prefix.</summary>
+    private string? CurrentAppState() => _service.ContextProvider?.Invoke();
+
+    /// <summary>Speaks whatever sentences are finished, keeping the unfinished tail back.</summary>
+    private void SpeakCompleteSentences(StringBuilder pending, bool flush)
     {
-        var prompt  = AgentService.BuildSystemPrompt(_service.Settings);
-        var context = _service.ContextProvider?.Invoke();
-        if (string.IsNullOrEmpty(context))
-            return prompt;
-        return prompt + "\n\n## Current App State\n" + context;
+        if (_tts is null) return;
+        if (SpeechSegmenter.Take(pending, flush) is { } ready) _tts.SpeakAsync(ready);
     }
+
+    /// <summary>Status is bound to the UI, and tool callbacks arrive on a pool thread.</summary>
+    private void SetStatus(string text) => Dispatcher.UIThread.Post(() => StatusText = text);
+
+    /// <summary>
+    /// What a tool is doing, in the capsuleer's terms rather than the tool's name. "query_database"
+    /// tells them nothing; "Reading the database…" tells them it is still working.
+    /// </summary>
+    private static string ToolStatus(string tool) => tool switch
+    {
+        "query_database"        => "Reading the database…",
+        "describe_tables"       => "Checking the schema…",
+        "get_assets"            => "Looking up assets…",
+        "get_industry_jobs"     => "Looking up industry jobs…",
+        "get_character_info"    => "Looking up the character…",
+        "get_market_prices"     => "Checking market prices…",
+        "search_items"          => "Searching items…",
+        "capture_tab"           => "Looking at the screen…",
+        "manage_alarms"         => "Setting up the alarm…",
+        _                       => "Working…",
+    };
 
     public void ClearHistory()
     {
@@ -441,19 +711,36 @@ public sealed class AgentPanelViewModel : ReactiveObject
         historySnapshot.Add(new AgentMessage(MessageRole.User,
             "Summarize our conversation so far in under 400 words. Cover: key topics discussed, " +
             "any EVE data retrieved (assets, jobs, prices), decisions or recommendations made, " +
-            "and any unresolved questions. Be concise — this will replace the older messages as a context anchor."));
+            "and any unresolved questions. Be concise — this will replace the older messages as a context anchor. " +
+            // ⚠️ The messages carry when they were sent, and the summary is all that survives of
+            // them. Without the dates, a question from a month ago reads afterwards as though it
+            // were asked just now.
+            "Open with the dates this covers, and keep the date beside anything that was asked or " +
+            "found at a particular time — the messages are timestamped, and later turns need to " +
+            "know how long ago each thing was."));
 
         var sb = new StringBuilder();
+
+        // ⚠️ Measured like any other turn. This one is spend the capsuleer never asked for and
+        // never sees — it fires on a threshold, sends the whole history, and would otherwise be
+        // missing from the total with nothing to hint that a chunk of the bill was unaccounted.
+        // Its own conversation id, so it does not read as a turn in the thread it summarises.
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin($"{_conversationId}:summarize", _service.Provider.ProviderName, "", 0);
+        var failure = "";
+
         try
         {
             await foreach (var chunk in _service.Provider.StreamAsync(
                 AgentService.BuildSystemPrompt(_service.Settings), historySnapshot, tools: null,
+                onUsage: u => telemetry?.Usage(u),
                 ct: CancellationToken.None))
             {
                 sb.Append(chunk);
             }
         }
-        catch { return; /* summarization failure is silent */ }
+        catch (Exception ex) { failure = ex.Message; return; /* summarization failure is silent */ }
+        finally { telemetry?.Complete(sb.Length, failure); }
 
         if (sb.Length == 0) return;
 

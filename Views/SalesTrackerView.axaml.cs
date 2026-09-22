@@ -91,7 +91,7 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
 
         var rows  = SelectedRows();
         var typed = await new TextPromptDialog(
-            "New label", "Label", "e.g. BNI First Capital Program").ShowDialog<string?>(owner);
+            "New label", "Label", "e.g. Capital Program").ShowDialog<string?>(owner);
 
         if (!string.IsNullOrWhiteSpace(typed)) await vm.AddLabelToAsync(rows, typed);
     }
@@ -102,9 +102,6 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
     // row is a name and a total — it borrows the link from the first sale that made it.
     private void OnOpenGroup(object? sender, RoutedEventArgs e)
         => ((sender as Control)?.DataContext as GroupRowVm)?.Open?.Invoke();
-
-    private void OnOpenProfitGroup(object? sender, RoutedEventArgs e)
-        => ((sender as Control)?.DataContext as ProfitGroupRowVm)?.Open?.Invoke();
 
     private void OnMarkNotForProfit(object? sender, RoutedEventArgs e) => SetNotForProfit(true);
     private void OnRestoreToProfit(object? sender, RoutedEventArgs e)  => SetNotForProfit(false);

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +14,13 @@ public enum SaleCostBasis { BuildCost, MarketValue }
 
 // One row on a Sale Listing tool: Date, Buyer, Item, Amount, Profit, Profit %. Profit is measured
 // against build cost or market value depending on the tool; positive is green, negative red.
-public class SaleListingRowVm
+public class SaleListingRowVm : ReactiveObject
 {
+    private Bitmap? _icon;
+    /// <summary>The named item's picture, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public Task LoadIconAsync() => ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp);
+
     public DateTimeOffset When { get; }
     public long   WhenSort { get; }
     public string WhenText { get; }
@@ -238,6 +244,7 @@ public class SaleListingViewModel : ReactiveObject
         var list = q.Select(r => new SaleListingRowVm(r, _basis)).ToList();
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
+        _ = Task.WhenAll(list.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
         StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
     }
 
