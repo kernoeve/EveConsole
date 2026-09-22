@@ -68,6 +68,7 @@
                                  Foreground="{DynamicResource TextPrimaryBrush}" Padding="4 2" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="1" Text="{Binding StatusLabel}"
                                  Foreground="{Binding StatusBrush}"
+                                 ToolTip.Tip="{Binding StatusTip}"
                                  FontSize="11" VerticalAlignment="Center" Margin="8 0 4 0" />
                     </Grid>
                   </DataTemplate>
@@ -162,6 +163,7 @@
                                  Foreground="{DynamicResource TextPrimaryBrush}" Padding="4 2" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="3" Text="{Binding StatusLabel}"
                                  Foreground="{Binding StatusBrush}"
+                                 ToolTip.Tip="{Binding StatusTip}"
                                  FontSize="11" VerticalAlignment="Center" Margin="8 0 4 0" />
                     </Grid>
                   </DataTemplate>

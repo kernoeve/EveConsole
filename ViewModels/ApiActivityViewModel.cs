@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Avalonia.Media;
 using EveConsole.Alarms;
+using EveConsole.Api;
 
 namespace EveConsole.ViewModels;
 
@@ -39,6 +40,15 @@ public sealed class StatusBarItem(string name, string tab) : ReactiveObject
     public string Label => $"{Name}: {Text}";
 
     public void Set(BackgroundStatus.Line line) { Text = line.Text; Running = line.Running; }
+
+    private string _warning = "";
+    /// <summary>Something beside the line the user has to act on, in red — "2 bad tokens" — or "" for nothing.</summary>
+    public string Warning
+    {
+        get => _warning;
+        set { this.RaiseAndSetIfChanged(ref _warning, value); this.RaisePropertyChanged(nameof(HasWarning)); }
+    }
+    public bool HasWarning => _warning.Length > 0;
 }
 
 // Live per-region row for the price-history sweep monitor.
@@ -121,6 +131,7 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly BackgroundStatusSampler _sampler;
     private readonly AlarmConditionRegistry  _conditions;
     private readonly EsiPollingService    _polling;
+    private readonly EsiClient            _esi;
     private readonly TimerSettingsService _timerSettings;
     private readonly MarketHistoryService _history;
     private readonly ContractsService     _contracts;
@@ -337,6 +348,7 @@ public class ApiActivityViewModel : ReactiveObject
         BackgroundStatusSampler sampler,
         AlarmConditionRegistry  conditions,
         EsiPollingService     polling,
+        EsiClient             esi,
         TimerSettingsService  timerSettings,
         MarketHistoryService  history,
         ContractsService      contracts,
@@ -365,6 +377,7 @@ public class ApiActivityViewModel : ReactiveObject
         _sampler       = sampler;
         _conditions    = conditions;
         _polling       = polling;
+        _esi           = esi;
         StatusBarItems  = [BarLpStore, BarKillmails, BarContractItems, BarPriceHistory, BarEsiCalls];
         KillmailStages  = [KillmailFetchRow, KillmailLiveRow, KillmailBackfillRow, KillmailPostRow];
         StructureSweeps = [StructureSweepRow, StructurePublicRow];
@@ -449,6 +462,54 @@ public class ApiActivityViewModel : ReactiveObject
         BarContractItems.Set(BarLine(WorkerActivityService.BarContractItems, _sampler.ContractItems()));
         BarLpStore.Set(BarLine(WorkerActivityService.BarLpStore,             _sampler.LpStore()));
         BarKillmails.Set(BarLine(WorkerActivityService.BarKillmails,         _sampler.Killmails()));
+        MaybeCountBadTokens();
+    }
+
+    // ── Bad tokens ────────────────────────────────────────────────────────────
+
+    private static readonly TimeSpan BadTokenCheckEvery = TimeSpan.FromSeconds(30);
+    private DateTimeOffset _badTokensCheckedAt = DateTimeOffset.MinValue;
+    private int            _revokedSeen;
+    private bool           _badTokensCounting;
+
+    /// <summary>
+    /// Owners whose refresh token the SSO refused, counted from the database rather than this
+    /// client's memory, because the refusal may have been seen by the worker on another machine
+    /// and the re-authorisation that clears it may happen on a third. Half a minute apart, since
+    /// this runs off the once-a-second bar tick; at once when this client itself has just been
+    /// refused, so the label appears with the refusal rather than up to thirty seconds after.
+    /// </summary>
+    private void MaybeCountBadTokens()
+    {
+        var revoked = _esi.RevokedThisSession;
+        var now     = DateTimeOffset.UtcNow;
+        if (_badTokensCounting) return;
+        if (revoked == _revokedSeen && now - _badTokensCheckedAt < BadTokenCheckEvery) return;
+        var justRefused     = revoked != _revokedSeen;
+        _revokedSeen        = revoked;
+        _badTokensCheckedAt = now;
+        _badTokensCounting  = true;
+
+        _ = Task.Run(async () =>
+        {
+            int count;
+            try
+            {
+                // The refusal's own database write is fire-and-forget; give it a moment to land.
+                if (justRefused) await Task.Delay(1500);
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                count = await db.Characters.CountAsync(c => c.TokenError != "")
+                      + await db.Corporations.CountAsync(c => c.TokenError != "");
+            }
+            catch { count = -1; }
+            Dispatcher.UIThread.Post(() =>
+            {
+                _badTokensCounting = false;
+                if (count < 0) return;
+                BarEsiCalls.Warning = count == 0 ? "" : count == 1 ? "1 bad token" : $"{count} bad tokens";
+            });
+        });
     }
 
     /// <summary>This client's own line when it is the worker; else the worker's as published, or

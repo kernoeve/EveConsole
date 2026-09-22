@@ -385,7 +385,11 @@ public class App : Application
             // still show every scope as held while ESI answered 401. Writing it on refresh rather
             // than only at login means characters authorised before this correct themselves, since
             // tokens renew lazily about every twenty minutes of use — no re-authorising needed.
-            Services.GetRequiredService<EsiClient>().AfterTokenRefreshed = async (ownerId, ownerType, scopes) =>
+            //
+            // The refresh token comes along for the same reason: if the SSO ever hands back a new
+            // one, the copy in the database is the only one that survives a restart.
+            var esiClient = Services.GetRequiredService<EsiClient>();
+            esiClient.AfterTokenRefreshed = async (ownerId, ownerType, scopes, refreshToken) =>
             {
                 var joined = string.Join(' ', scopes);
                 await using var db = await Services
@@ -397,6 +401,48 @@ public class App : Application
                 else
                     await db.Characters.Where(c => c.Id == ownerId && c.GrantedScopes != joined)
                             .ExecuteUpdateAsync(s => s.SetProperty(c => c.GrantedScopes, joined));
+
+                // ⚠️ Only a token that is present AND different: a reply without one must not
+                // blank the stored token, and an owner already retired (RefreshToken "") must
+                // not be quietly revived by a refresh that was in flight when it was.
+                if (refreshToken.Length == 0) return;
+                if (ownerType == "corporation")
+                    await db.Corporations.Where(c => c.Id == (int)ownerId && c.RefreshToken != "" && c.RefreshToken != refreshToken)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, refreshToken));
+                else
+                    await db.Characters.Where(c => c.Id == ownerId && c.RefreshToken != "" && c.RefreshToken != refreshToken)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, refreshToken));
+            };
+
+            // A refresh token the SSO refuses (invalid_grant) is dead: expired, revoked on the
+            // account's third-party page, or superseded. Retire it — clear it, so every roster
+            // query drops the owner and nothing asks the SSO again — and keep the reason, which
+            // is what Settings → ESI Tokens and the status bar show. One error-log entry says so
+            // in words, in place of the 400 every poll used to write.
+            esiClient.TokenRevoked = async (ownerId, ownerType, reason) =>
+            {
+                await using var db = await Services
+                    .GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContextAsync();
+
+                string name;
+                if (ownerType == "corporation")
+                {
+                    name = await db.Corporations.Where(c => c.Id == (int)ownerId).Select(c => c.Name).FirstOrDefaultAsync() ?? ownerId.ToString();
+                    await db.Corporations.Where(c => c.Id == (int)ownerId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, "")
+                                                      .SetProperty(c => c.TokenError, reason));
+                }
+                else
+                {
+                    name = await db.Characters.Where(c => c.Id == ownerId).Select(c => c.Name).FirstOrDefaultAsync() ?? ownerId.ToString();
+                    await db.Characters.Where(c => c.Id == ownerId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(c => c.RefreshToken, "")
+                                                      .SetProperty(c => c.TokenError, reason));
+                }
+
+                Services.GetRequiredService<AppErrorLogger>().Log("EsiAuth", $"{ownerType} {name}",
+                    $"The SSO refused this {ownerType}'s refresh token; polling for it has stopped. Re-authorise it in Settings → ESI Tokens.",
+                    reason);
             };
 
             var buildCostService = Services.GetRequiredService<BuildCostService>();
@@ -2134,6 +2180,9 @@ public class App : Application
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiCorpProjects" ADD COLUMN "DetailUnavailable" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "DeniedEndpoints" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (
                         "EntityId"   INTEGER NOT NULL,

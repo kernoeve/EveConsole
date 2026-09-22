@@ -754,6 +754,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             vm.OpenBackgroundProcesses(item.Tab);
     }
 
+    // The red "N bad tokens" beside ESI Calls: the fix is a re-authorisation, which lives on the
+    // ESI Tokens page, so that is where it goes.
+    private void OnStatusWarningClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "ESI Tokens");
+    }
+
     // ── Tab detach (right-click → Open in New Window) ─────────────────────────
 
     private void OnDetachMenuItemClick(object? sender, RoutedEventArgs e)

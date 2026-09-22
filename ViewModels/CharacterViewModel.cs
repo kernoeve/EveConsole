@@ -493,6 +493,7 @@ public class CharacterViewModel : ReactiveObject
             corpEntity.Ticker               = esiCorp.Ticker;
             corpEntity.AuthCharacterId      = characterId;
             corpEntity.RefreshToken         = tokens.RefreshToken;
+            corpEntity.TokenError           = "";
             corpEntity.GrantedScopes        = string.Join(' ', ScopesOf(tokens, scopes).Granted);
             corpEntity.AccessTokenExpiresAt = tokens.ExpiresAt;
             corpEntity.LastUpdated          = DateTimeOffset.UtcNow;
@@ -591,6 +592,10 @@ public class CharacterViewModel : ReactiveObject
         // Access tokens expire in ~20 min by design and auto-refresh — checking
         // AccessTokenExpiresAt always fires for any auth older than 20 minutes.
         // Status reflects scope coverage only; token validity is visible in the details panel.
+        // The exception is a token the SSO has refused outright, which is the one thing here the
+        // user has to act on: nothing is polled for this character until they re-authorise it.
+        if (ch.TokenError.Length > 0)
+            return new CharacterListItem(ch, "Token Expired — re-authorise", RedBrush, ch.TokenError);
         if (ch.GrantedScopes.Length == 0)
             return new CharacterListItem(ch, "Not Authenticated", OrangeBrush);
 
@@ -604,6 +609,8 @@ public class CharacterViewModel : ReactiveObject
 
     private static CorpListItem MakeCorpListItem(Corporation corp)
     {
+        if (corp.TokenError.Length > 0)
+            return new CorpListItem(corp, "Token Expired — re-authorise", RedBrush, corp.TokenError);
         if (corp.GrantedScopes.Length == 0)
             return new CorpListItem(corp, "Not Authenticated", OrangeBrush);
 
@@ -806,6 +813,7 @@ public class CharacterViewModel : ReactiveObject
         entity.SecurityStatus       = publicInfo?.SecurityStatus ?? entity.SecurityStatus;
         entity.RefreshToken         = refreshToken;
         entity.GrantedScopes        = string.Join(' ', grantedScopes);
+        entity.TokenError           = "";
         entity.AccessTokenExpiresAt = tokenExpiresAt;
         entity.LastUpdated          = DateTimeOffset.UtcNow;
 
