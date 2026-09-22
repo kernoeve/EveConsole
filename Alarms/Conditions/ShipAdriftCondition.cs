@@ -30,7 +30,9 @@ namespace EveConsole.Alarms.Conditions;
 /// <em>landed</em> — by jump drive or bridge, somewhere no stargate leads from where it was —
 /// and is still in space. The episode is then the arrival, and the stages count from it; a
 /// gate jump, which always lands next door, does not start one. Only hulls with a jump drive
-/// are watched in that mode, whatever the Flying list says.</para>
+/// are watched in that mode, whatever the Flying list says. The episode ends at the first dock
+/// after the landing, for good: a pilot who docked is awake, and the undock that follows in
+/// the same system is an ordinary undock, the other mode's business.</para>
 ///
 /// <para>Repeat and cooldown do not apply to a staged alarm; the stages are its cadence.</para>
 /// </summary>
@@ -257,7 +259,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
             .Where(s => s.Online && s.ShipTypeId != null && s.StationId == null && s.StructureId == null)
             .ToListAsync(ct);
         var adrift = arrivals
-            ? inSpace.Where(s => s.SystemChangedAt != null && s.PreviousSystemId != null && s.SolarSystemId != null).ToList()
+            ? inSpace.Where(s => s.SystemChangedAt != null && s.PreviousSystemId != null && s.SolarSystemId != null && !DockedSinceLanding(s)).ToList()
             : inSpace.Where(s => s.UndockedAt != null && s.UndockedSystemId != null && s.SolarSystemId == s.UndockedSystemId).ToList();
         if (adrift.Count == 0) return [];
 
@@ -389,13 +391,29 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         // The episode is one of the two stamps; whichever it is decides what "still going on" means.
         var undock  = s.UndockedAt is { } u && EpisodeKey(u) == episode
                    && s.UndockedSystemId is not null && s.SolarSystemId == s.UndockedSystemId;
-        var landing = s.SystemChangedAt is { } c && EpisodeKey(c) == episode;
+        var landing = s.SystemChangedAt is { } c && EpisodeKey(c) == episode && !DockedSinceLanding(s);
         if (!undock && !landing) return false;
 
         var snooze = await db.AlarmSnoozes.AsNoTracking()
             .FirstOrDefaultAsync(x => x.AlarmId == alarmId && x.ScopeKey == scopeKey, ct);
         return snooze is null || snooze.Episode != episode || snooze.Until <= DateTimeOffset.UtcNow;
     }
+
+    /// <summary>
+    /// Whether the character has docked since landing. An undock is only ever stamped on the way
+    /// from docked to in space, so one stamped after the change of system can only follow a
+    /// dock — and a pilot who docked is awake. The arrival episode ends there, or a pilot who
+    /// landed, docked, and undocked three minutes later in the same system was met by the
+    /// stages the landing had run up in the meantime, the sound among them, the moment they
+    /// left the station.
+    ///
+    /// <para>⚠️ Two seconds of slack rather than a plain comparison: a poll that finds a
+    /// character already in space in a new system stamps the undock and the landing in the same
+    /// pass, microseconds apart and in that order, and that is one episode, not a dock.</para>
+    /// </summary>
+    private static bool DockedSinceLanding(CharacterStatus s)
+        => s.SystemChangedAt is { } landed && s.UndockedAt is { } undocked
+           && undocked - landed > TimeSpan.FromSeconds(2);
 
     internal static string EpisodeKey(DateTimeOffset undockedAt)
         => undockedAt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss");
