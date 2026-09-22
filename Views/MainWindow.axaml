@@ -370,17 +370,16 @@
 
     <!-- ── Status bar ──────────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 4">
-      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-
-        <TextBlock Grid.Column="0"
-                   Text="{Binding CharacterVm.StatusMessage}"
-                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+      <!-- The background-process labels lead from the left, the status message follows them,
+           and the UI scale stands alone on the right. -->
+      <Grid ColumnDefinitions="Auto,*,Auto">
 
         <!-- What each background process is doing, one label apiece, side by side. Each opens
              the Background Processes tool at its own tab. Live on every client: the one holding
              the worker lease reads its own services, the rest read what it publishes. A busy
-             process is lit; an idle one sits quiet. -->
-        <ItemsControl Grid.Column="2" ItemsSource="{Binding ActivityVm.StatusBarItems}" VerticalAlignment="Center">
+             process is lit; an idle one sits quiet. No tooltip: it got in the way of reading and
+             clicking them. -->
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding ActivityVm.StatusBarItems}" VerticalAlignment="Center">
           <ItemsControl.Styles>
             <Style Selector="Button.bglabel">
               <Setter Property="Background"      Value="Transparent" />
@@ -403,15 +402,19 @@
             <DataTemplate x:DataType="vm:StatusBarItem">
               <Button Classes="bglabel" Classes.running="{Binding Running}"
                       Content="{Binding Label}" Click="OnBackgroundLabelClick"
-                      VerticalAlignment="Center"
-                      ToolTip.Tip="{Binding Tab, StringFormat='Open Background Processes at {0}'}" />
+                      VerticalAlignment="Center" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <TextBlock Grid.Column="1"
+                   Text="{Binding CharacterVm.StatusMessage}"
+                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                   Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
+
         <!-- UI scale, shown and pickable, in the same quiet form as the theme label up top:
              the current scale and a caret, a menu of the others on click. -->
-        <Button Grid.Column="3"
+        <Button Grid.Column="2"
                 x:Name="UiScaleButton"
                 Background="Transparent" BorderThickness="0"
                 Padding="8 2" VerticalAlignment="Center" Cursor="Hand"

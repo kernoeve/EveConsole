@@ -361,7 +361,7 @@ public class ApiActivityViewModel : ReactiveObject
         _scopeFactory  = scopeFactory;
         _sampler       = sampler;
         _polling       = polling;
-        StatusBarItems = [BarEsiCalls, BarPriceHistory, BarContractItems, BarLpStore, BarKillmails];
+        StatusBarItems = [BarLpStore, BarKillmails, BarContractItems, BarPriceHistory, BarEsiCalls];
         _timerSettings = timerSettings;
         _history       = history;
         _contracts     = contracts;
