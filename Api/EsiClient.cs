@@ -215,8 +215,17 @@ public class EsiClient
     private static string RouteBlockedMessage(int wait)
         => $"This route was rate-limited by ESI a moment ago; not called. Retry after {wait} s.";
 
+    /// <summary>
+    /// Raised on a 502, 503 or 504 from any call — the shape of Tranquility's daily downtime,
+    /// which arrives at the calls a good half minute before the status endpoint admits it. The
+    /// status service listens, checks at once, and stands the client down.
+    /// </summary>
+    public event Action<int>? GatewayFailure;
+
     private void UpdateErrorLimitState(int statusCode, int? errorLimitRemain, int? errorLimitReset)
     {
+        if (statusCode is 502 or 503 or 504) GatewayFailure?.Invoke(statusCode);
+
         if (statusCode == 420)
             Interlocked.Exchange(ref _errorLimitBlockedTicks,
                 DateTimeOffset.UtcNow.AddSeconds((errorLimitReset ?? 30) + 1).UtcTicks);
@@ -657,6 +666,7 @@ public class EsiClient
             {
                 StatusCode        = _serverOffline ? 503 : 420,
                 RetryAfterSeconds = ErrorLimitSecondsRemaining,
+                NotSent           = true,
                 Error             = _serverOffline
                     ? "Tranquility is offline; ESI is paused."
                     : $"ESI error limit reached; calls are paused for {ErrorLimitSecondsRemaining}s.",
@@ -741,6 +751,7 @@ public class EsiClient
                 TotalPages = firstPage.TotalPages,
                 Expires    = firstPage.Expires,
                 Error      = firstPage.Error,
+                NotSent    = firstPage.NotSent,
             };
         }
 
@@ -791,6 +802,11 @@ public class EsiClient
     private async Task<EsiCallResult<T>> ExecutePublicAsync<T>(
         string path, CancellationToken ct, int page = 0)
     {
+        // ⚠️ Public calls stand down with the rest while Tranquility is offline. They went to the
+        // wire before — a market refresh due in the downtime window failed page by page and
+        // logged every one — and the error budget they spend is the same budget.
+        if (_serverOffline)
+            return new EsiCallResult<T> { StatusCode = 503, NotSent = true, Error = "Tranquility is offline; ESI is paused." };
         if (RouteBlockedFor(path) is { } wait)
             return new EsiCallResult<T> { StatusCode = 429, RetryAfterSeconds = wait, Error = RouteBlockedMessage(wait) };
         try

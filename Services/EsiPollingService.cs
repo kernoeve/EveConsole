@@ -21,7 +21,9 @@ public record PollingResult(
     /// <summary>When the server says its copy goes stale. Drives when this is next polled.</summary>
     DateTimeOffset? Expires    = null,
     /// <summary>The server's ETag, sent back as If-None-Match on the next call.</summary>
-    string? ETag               = null);
+    string? ETag               = null,
+    /// <summary>No request was made: the client was standing down. Not logged, not recorded, still owed.</summary>
+    bool    NotSent            = false);
 
 public record EndpointInfo(string Key, string DisplayName, int MinSeconds, int DefaultSeconds);
 
@@ -587,7 +589,9 @@ public class EsiPollingService : ReactiveObject
         if (_endpointBlocks.TryGetValue(ep.Key, out var until) && now < until)
             return null;
 
-        if (ErrorLimited()) return null;
+        // Standing down — Tranquility offline, or the error budget spent. The cycle carries on
+        // through its list at no cost, and every call it would have made is still due afterwards.
+        if (ErrorLimited() || _esi.ServerOffline) return null;
 
         using var scope  = _scopeFactory.CreateScope();
         var callDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -606,6 +610,11 @@ public class EsiPollingService : ReactiveObject
             result = new PollingResult(false, 0, ex.InnerException?.Message ?? ex.Message);
             _errorLogger.Log("EsiPollingService", $"{ep.Key}:{character.Id}", ex);
         }
+
+        // Never sent — the client is standing down — so nothing happened worth recording: not an
+        // error, not the endpoint's last call, not a schedule advanced. It is still owed, and the
+        // handle's disposal takes it off the in-progress list without an entry in the log.
+        if (result.NotSent) return result;
 
         var callTime = DateTimeOffset.UtcNow;
         _lastCallTimes[callKey] = callTime;
@@ -863,7 +872,7 @@ public class EsiPollingService : ReactiveObject
         new(r.IsSuccess, r.StatusCode,
             r.IsSuccess ? null : r.Error,
             r.RateLimitGroup, r.RateLimitRemaining, r.RetryAfterSeconds,
-            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires, r.ETag);
+            r.ErrorLimitRemain, r.ErrorLimitReset, r.Expires, r.ETag, r.NotSent);
 
     // Walks the parent-chain for every asset and returns {ItemId → (RootLocationId, RootLocationType)}.
     // A terminal is reached when LocationType is not 'item', or when the LocationId is not found
@@ -2297,6 +2306,7 @@ public class EsiPollingService : ReactiveObject
         foreach (var ep in _corpEndpoints)
         {
             ct.ThrowIfCancellationRequested();
+            if (_esi.ServerOffline) break;   // standing down; the rest of the cycle is still due afterwards
 
             if (denied.Contains(ep.Key))
                 continue;
@@ -2331,6 +2341,8 @@ public class EsiPollingService : ReactiveObject
                 result = new PollingResult(false, 0, ex.InnerException?.Message ?? ex.Message);
                 _errorLogger.Log("EsiPollingService", $"{ep.Key}:{corp.Id}", ex);
             }
+
+            if (result.NotSent) continue;   // standing down: nothing happened, and the call is still owed
 
             var callTime = DateTimeOffset.UtcNow;
             _lastCallTimes[callKey] = callTime;
@@ -4220,6 +4232,13 @@ public class EsiPollingService : ReactiveObject
             : new HashSet<string>(csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
 
     // A 403 that names a missing role — the endpoint is out of reach for this corp's auth char.
-    private static bool IsRoleDenied(int statusCode, string? error) =>
-        statusCode == 403 && error is not null && error.Contains("role", StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// A 403 is this token's answer for as long as it is this token: a role the character lacks,
+    /// a scope the grant predates, a corporation the character has left. ⚠️ It used to have to
+    /// SAY "role" — and the newer endpoints answer a bare "Forbidden", so the corp projects call
+    /// for one corporation tripped the same 403 every cycle for a week, twice an hour, and never
+    /// once got itself skipped. The denial is recomputed whenever the character's roles change,
+    /// so a fix on the other side is picked up.
+    /// </summary>
+    private static bool IsRoleDenied(int statusCode, string? error) => statusCode == 403;
 }
