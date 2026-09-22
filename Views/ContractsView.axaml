@@ -55,7 +55,7 @@
         <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                 Padding="12 8">
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <!-- Scope: the contracts made out to, or accepted by, the party chosen — every
+            <!-- Scope: the contracts from, to, or accepted by the party chosen — every
                  character and personal corporation together by default. -->
             <TextBlock Classes="flabel" Text="Scope:" />
             <ComboBox ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}"

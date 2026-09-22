@@ -354,11 +354,12 @@ public class ContractPartyOption
 }
 
 /// <summary>
-/// What the Scope filter narrows to: everything stored, or the contracts a party is on the
-/// receiving end of — assigned to it, or accepted by it. A character's own contracts are those
-/// made out to the character; a corporation's are those made out to the corporation, which is
-/// also where a contract lands when a member accepts it for the corporation rather than as
-/// themselves.
+/// What the Scope filter narrows to: everything stored, or the contracts a party is on either
+/// end of — from it, to it, or accepted by it. "From" is the issuing character, or the
+/// corporation when the character issued it on the corporation's behalf: a contract made out
+/// for a corporation is the corporation's, not the member's who clicked. "To" is the assignee;
+/// and a contract accepted for a corporation lands on the corporation as acceptor, which is
+/// where it shows.
 ///
 /// <para>⚠️ Not the polling owner. The filter used to be "Owner", meaning which token's view of
 /// the contract this was — every party that can see a contract stores its own copy — which is not
@@ -371,6 +372,17 @@ public class ContractScopeOption
     public IReadOnlySet<long>? Ids { get; }
     public ContractScopeOption(string label, IReadOnlySet<long>? ids) { Label = label; Ids = ids; }
     public override string ToString() => Label;
+
+    /// <summary>Whether the contract is from, to, or accepted by a party in scope.</summary>
+    public bool Covers(ContractRowVm r)
+    {
+        if (Ids is null) return true;
+        var c    = r.Record;
+        var from = c.ForCorporation ? c.IssuerCorporationId : c.IssuerId;
+        return Ids.Contains(from)
+            || (r.AssigneeId is { } a && Ids.Contains(a))
+            || (r.AcceptorId is { } x && Ids.Contains(x));
+    }
 }
 
 // ── Name / location resolver (shared by both tabs) ──────────────────────────────
@@ -625,8 +637,7 @@ public class ContractsViewModel : ReactiveObject
     public void SelectById(int contractId)
     {
         TabIndex = 0;
-        if (Owned.Rows.FirstOrDefault(r => r.ContractId == contractId) is { } row)
-            Owned.SelectedRow = row;
+        Owned.SelectById(contractId);
     }
 
     public ContractsViewModel(
@@ -683,6 +694,44 @@ public class OwnedContractsViewModel : ReactiveObject
     }
 
     private const string AllStatuses = "All statuses";
+
+    private int _pendingSelect;
+    private int _reloadedFor;
+
+    /// <summary>
+    /// Selects a contract by id, from wherever it was clicked. ⚠️ The row has to be on screen
+    /// to be selected, and three things could keep it off: the filters, which are widened to
+    /// everything when they hide it; a load still running, which is waited for; and a contract
+    /// stored since the last load, which gets one reload. A click that did all of that and
+    /// still found nothing says so, rather than opening the tool on whatever was selected before.
+    /// </summary>
+    public void SelectById(int contractId)
+    {
+        if (contractId <= 0) return;
+        if (!_initialized || IsLoading) { _pendingSelect = contractId; return; }
+
+        if (_all.All(r => r.ContractId != contractId))
+        {
+            if (_reloadedFor != contractId)
+            {
+                _reloadedFor   = contractId;
+                _pendingSelect = contractId;
+                _ = LoadAsync();
+            }
+            else StatusText = $"Contract {contractId} is not stored on this side — it may be a public listing, or not yet polled.";
+            return;
+        }
+
+        if (Rows.All(r => r.ContractId != contractId))
+        {
+            _selectedScope    = Scopes.FirstOrDefault();    this.RaisePropertyChanged(nameof(SelectedScope));
+            _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
+            _selectedAcceptor = Acceptors.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAcceptor));
+            _selectedStatus   = AllStatuses;                this.RaisePropertyChanged(nameof(SelectedStatus));
+            ApplyFilter();
+        }
+        SelectedRow = Rows.FirstOrDefault(r => r.ContractId == contractId);
+    }
 
     private ContractPartyOption? _selectedAssignee;
     public ContractPartyOption? SelectedAssignee
@@ -805,6 +854,9 @@ public class OwnedContractsViewModel : ReactiveObject
             _initialized = true;
             ApplyFilter();
             StatusText = _all.Count == 0 ? "No corporation or personal contracts stored yet." : "";
+
+            // A click that arrived while this was loading.
+            if (_pendingSelect > 0) { var id = _pendingSelect; _pendingSelect = 0; IsLoading = false; SelectById(id); }
         }
         catch (Exception ex)
         {
@@ -834,9 +886,9 @@ public class OwnedContractsViewModel : ReactiveObject
         // One row per contract: every party that can see one stores its own copy.
         IEnumerable<ContractRowVm> q = _all.GroupBy(r => r.ContractId).Select(g => g.First());
 
-        // The scope: contracts made out to, or accepted by, a party in it.
-        if (SelectedScope?.Ids is { } scope)
-            q = q.Where(r => (r.AssigneeId is { } a && scope.Contains(a)) || (r.AcceptorId is { } c && scope.Contains(c)));
+        // The scope: contracts from, to, or accepted by a party in it.
+        if (SelectedScope is { Ids: not null } scope)
+            q = q.Where(scope.Covers);
 
         if (SelectedAssignee?.Id is { } aid) q = q.Where(r => r.AssigneeId == aid);
         if (SelectedAcceptor?.Id is { } cid) q = q.Where(r => r.AcceptorId == cid);
