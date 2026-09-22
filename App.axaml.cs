@@ -22,6 +22,14 @@ public class App : Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
+    /// <summary>
+    /// Whether the startup schema pass added SDE or Hobo columns or tables to an existing
+    /// database. A column added by the pass is empty until the matching import refills it,
+    /// so MainWindow starts that import in the background when either is true.
+    /// </summary>
+    public static bool SdeSchemaGrew  { get; private set; }
+    public static bool HoboSchemaGrew { get; private set; }
+
     public override void Initialize()
     {
         LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers());
@@ -638,6 +646,13 @@ public class App : Application
         using (var scope = Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            // What the SDE and Hobo tables hold BEFORE anything below touches them. Compared
+            // again at the end: growth means a column or table this pass added and left empty,
+            // and the import that fills it is kicked off once the window is up. See
+            // SchemaFingerprint for why this is measured rather than reported.
+            var sdeBefore  = SchemaFingerprint.ColumnsUnder(db, "Sde");
+            var hoboBefore = SchemaFingerprint.ColumnsUnder(db, "Hobo");
 
             // skipSchema can only be true on PostgreSQL — it takes a second live client to set it
             // — so the SQLite patch below needs no guard of its own.
@@ -3272,6 +3287,12 @@ public class App : Application
                 // together, above — and this is SQLite catching up to that shape.
                 SdeImportService.EnsureSdeSchema(db);
 
+                // And the Hobo tables, for the same reason. These reached startup only because the
+                // desktop builds the SDE settings view model on the way up and that runs the pass
+                // first — the headless worker builds no view models, and a reader added anywhere
+                // else would have found the column missing until Settings was opened.
+                HoboImportService.EnsureHoboSchema(db);
+
                 // ── Agent telemetry ─────────────────────────────────────────────────
                 //
                 // Same reason as the SDE block above: these tables arrived after most databases
@@ -3327,6 +3348,12 @@ public class App : Application
                 }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel key migration", ex); }
             }
+
+            // Did the pass grow the SDE or Hobo tables? Then the new columns are empty until the
+            // matching import runs, and MainWindow starts it in the background once the window
+            // is up — the same silent import a first launch gets.
+            SdeSchemaGrew  = SchemaFingerprint.ColumnsUnder(db, "Sde")  > sdeBefore;
+            HoboSchemaGrew = SchemaFingerprint.ColumnsUnder(db, "Hobo") > hoboBefore;
         }
         }); // end Task.Run — schema migration complete
 

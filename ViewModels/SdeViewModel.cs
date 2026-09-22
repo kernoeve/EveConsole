@@ -236,6 +236,23 @@ public class SdeViewModel : ReactiveObject
         await RunHoboImportAsync();
     }
 
+    /// <summary>
+    /// Re-imports whichever of the two the startup schema pass grew, silently, the way a first
+    /// launch imports both.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ A column the schema pass adds is empty. The pass stops the query throwing; it puts
+    /// nothing in the column. Upgrading to a build that added SDE columns used to leave every
+    /// one of them blank until the user noticed and ran the import by hand — and the tools
+    /// reading those columns did not throw, they just computed on zeros. Now the import that
+    /// fills them starts on its own, in the background, with no dialog.
+    /// </remarks>
+    public async Task RunSchemaRefreshAsync(bool sde, bool hobo)
+    {
+        if (sde  && !IsBusy)     await RunImportAsync();
+        if (hobo && !HoboIsBusy) await RunHoboImportAsync();
+    }
+
     // ── SDE import ────────────────────────────────────────────────────────
 
     private async Task RunImportAsync()

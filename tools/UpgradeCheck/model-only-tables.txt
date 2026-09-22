@@ -14,15 +14,6 @@
 
 Characters
 EveRefStructures
-HoboBlueprintActivities
-HoboBlueprintMaterials
-HoboBlueprintProducts
-HoboBlueprints
-HoboBlueprintSkills
-HoboBuildInfos
-HoboCompressibleTypes
-HoboRepackagedVolumes
-HoboTypeMaterials
 IndyStructureServices
 MapFactionWarfares
 MapIncursions

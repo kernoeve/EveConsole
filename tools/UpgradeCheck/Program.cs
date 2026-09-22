@@ -98,6 +98,7 @@ string[] files =
     "App.axaml.cs",
     "Services/SdeImportService.cs",
     "Data/AgentTelemetrySchema.cs",
+    "Services/HoboImportService.cs",
 ];
 var current = files.Select(f => File.ReadAllText(Path.Combine(repo, f))).ToList();
 

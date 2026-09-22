@@ -481,15 +481,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else
         {
-            vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
-                .Where(available => available)
-                .Take(1)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(async _ =>
-                {
-                    var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
-                    await dialog.ShowDialog(this);
-                });
+            // This build added SDE or Hobo columns that the startup pass created empty. Refill
+            // them the way a first launch fills everything: in the background, no dialog.
+            if (App.SdeSchemaGrew || App.HoboSchemaGrew)
+                _ = vm.SdeVm.RunSchemaRefreshAsync(App.SdeSchemaGrew, App.HoboSchemaGrew);
+
+            // The "newer build available" prompt — unless the SDE import is already running in
+            // the background, in which case what the dialog would offer is what is happening,
+            // and the import fetches the newest build regardless. A Hobo-only refresh does not
+            // touch the SDE, so the prompt still stands for that.
+            if (!App.SdeSchemaGrew)
+                vm.SdeVm.WhenAnyValue(x => x.UpdateAvailable)
+                    .Where(available => available)
+                    .Take(1)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(async _ =>
+                    {
+                        var dialog = new SdeUpdateDialog { DataContext = vm.SdeVm };
+                        await dialog.ShowDialog(this);
+                    });
         }
 
         // App update prompt (Velopack) — only when a new version is found and not already declined.
