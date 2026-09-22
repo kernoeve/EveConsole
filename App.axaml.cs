@@ -3228,6 +3228,12 @@ public class App : Application
                     // this is safe to run on every start.
                     """UPDATE "Alarms" SET "Primed" = FALSE WHERE "ConditionType" = 'intel' AND EXISTS (SELECT 1 FROM "AlarmSeenKeys" k WHERE k."AlarmId" = "Alarms"."Id" AND k."MatchKey" LIKE 'intel:%' AND k."MatchKey" NOT LIKE '%|%')""",
                     """DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:%' AND "MatchKey" NOT LIKE '%|%'""",
+
+                    // A corporation whose token could not read project contributors had the whole
+                    // corp.projects poll written into its denied list by an earlier build, which
+                    // stopped its projects updating. Contributors are denied under their own key
+                    // now; the projects key comes back out. No-op once no list holds it.
+                    """UPDATE "Corporations" SET "DeniedEndpoints" = trim(replace(',' || "DeniedEndpoints" || ',', ',corp.projects,', ','), ',') WHERE ',' || "DeniedEndpoints" || ',' LIKE '%,corp.projects,%'""",
                 }) { try { db.Database.ExecuteSqlRaw(sql); } catch { } }
                 // Repairs stations imported before ConstellationId/RegionId/Security were populated
                 // from the solar system. The importer now fills them, but an existing install only

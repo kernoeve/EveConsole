@@ -495,6 +495,15 @@ public static class PostgresSchema
           AND NOT EXISTS (SELECT 1 FROM "EsiContractItems" i WHERE i."ContractId" = "EsiContracts"."ContractId")
         """,
 
+        // A corporation whose token could not read project contributors had the whole
+        // corp.projects poll written into its denied list by an earlier build, which stopped its
+        // projects updating. Contributors are denied under their own key now; the projects key
+        // comes back out. No-op once no list holds it. Mirrored for SQLite in App.axaml.cs.
+        """
+        UPDATE "Corporations" SET "DeniedEndpoints" = btrim(replace(',' || "DeniedEndpoints" || ',', ',corp.projects,', ','), ',')
+        WHERE ',' || "DeniedEndpoints" || ',' LIKE '%,corp.projects,%'
+        """,
+
         // The hours an alarm is on; null means always. Older builds neither read nor write them.
         """
         ALTER TABLE "Alarms" ADD COLUMN IF NOT EXISTS "ActiveFrom" TEXT NULL
