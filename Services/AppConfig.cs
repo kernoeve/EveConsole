@@ -544,7 +544,7 @@ public static class AppConfig
 
             // Resolve where the old DB actually lived (explicit path if it was moved, else default).
             var old = File.Exists(legacyConfig)
-                ? (TryLoad(legacyConfig) ?? new ConfigData())
+                ? Read(legacyConfig).Data
                 : new ConfigData();
             var sourceDb = old.DbPath ?? legacyDefaultDb;
 
@@ -580,31 +580,151 @@ public static class AppConfig
 
     // ── Internal ──────────────────────────────────────────────────────────────
 
-    private static ConfigData Load() => TryLoad(ConfigPath) ?? new ConfigData();
+    /// <summary>
+    /// Raised when a write was refused because the file could not be read first — see
+    /// <see cref="Save"/>. A delegate because this class runs before the container exists and
+    /// knows nothing about logging; wired to the error log in <c>App.axaml.cs</c>.
+    ///
+    /// <para>⚠️ Refusing silently would be its own fault. A setting that does not stick, with
+    /// nothing said, is the kind of thing that gets diagnosed twice.</para>
+    /// </summary>
+    public static Action<string>? WriteRefused { get; set; }
 
-    private static ConfigData? TryLoad(string path)
+    /// <summary>What came of trying to read the config file.</summary>
+    private enum ReadOutcome
     {
-        try
+        /// <summary>Read and parsed.</summary>
+        Loaded,
+        /// <summary>Not there at all: a fresh install, and defaults are the right answer.</summary>
+        Missing,
+        /// <summary>There, but another process is holding it. Says nothing about the contents.</summary>
+        Locked,
+        /// <summary>There, and not JSON this app understands.</summary>
+        Corrupt,
+    }
+
+    /// <summary>The backup <see cref="Save"/> leaves behind: the contents before the last write.</summary>
+    private const string BackupSuffix = ".bak";
+
+    // A locked file is almost always locked for a few milliseconds — the other process is
+    // writing its own settings. Worth waiting for; not worth waiting long.
+    private const int ReadAttempts = 4;
+    private const int ReadRetryMs  = 60;
+
+    /// <summary>
+    /// Whether the last read ON THIS THREAD failed with the file held by somebody else.
+    ///
+    /// <para>⚠️ This is what stands between a momentary lock and a wiped config. Every setter here
+    /// is read-modify-write — <c>var c = Load(); c.X = …; Save(c);</c> — so a read that quietly
+    /// returned defaults produced an object with one field set and everything else null, and the
+    /// write that followed put THAT on disk. Which is how a config holding a server address, a
+    /// protected password and an API token became four keys and a window position, and the app
+    /// that read it next fell back to SQLite and imported the whole SDE into a database nobody
+    /// was using.</para>
+    ///
+    /// <para>Thread-static, and paired with the read rather than passed through twenty call
+    /// sites: the two calls are always back to back on one thread, and a setter added later is
+    /// covered without anybody remembering to cover it.</para>
+    /// </summary>
+    [ThreadStatic] private static bool _readWasLocked;
+
+    private static ConfigData Load()
+    {
+        var (data, outcome) = Read(ConfigPath);
+        _readWasLocked = outcome == ReadOutcome.Locked;
+
+        // ⚠️ The backup is the answer when the file itself cannot give one. Falling back to
+        // DEFAULTS here is what chose the wrong database engine: nothing was wrong with the
+        // settings, they were merely unreadable for a moment, and "no settings" is a very
+        // different statement from "could not read the settings".
+        if (outcome is ReadOutcome.Locked or ReadOutcome.Corrupt)
         {
-            if (File.Exists(path))
+            var (backup, backupOutcome) = Read(ConfigPath + BackupSuffix);
+            if (backupOutcome == ReadOutcome.Loaded) return backup;
+        }
+
+        return data;
+    }
+
+    /// <summary>Reads one config file, saying which of the four things happened.</summary>
+    private static (ConfigData Data, ReadOutcome Outcome) Read(string path)
+    {
+        if (!File.Exists(path)) return (new ConfigData(), ReadOutcome.Missing);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
             {
-                using var s = File.OpenRead(path);
-                return JsonSerializer.Deserialize<ConfigData>(s, JsonOpts);
+                // ⚠️ Sharing everything. This read must not be the reason another process cannot
+                // write, and it is a few hundred bytes taken in one go — a torn read is not
+                // possible here, because a write arrives as a whole file replaced at once.
+                using var s = new FileStream(path, FileMode.Open, FileAccess.Read,
+                                             FileShare.ReadWrite | FileShare.Delete);
+                var data = JsonSerializer.Deserialize<ConfigData>(s, JsonOpts);
+                return data is null
+                    ? (new ConfigData(), ReadOutcome.Corrupt)   // the file says "null"
+                    : (data, ReadOutcome.Loaded);
+            }
+            catch (JsonException)
+            {
+                return (new ConfigData(), ReadOutcome.Corrupt);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                if (attempt >= ReadAttempts) return (new ConfigData(), ReadOutcome.Locked);
+                Thread.Sleep(ReadRetryMs);
+            }
+            catch
+            {
+                return (new ConfigData(), ReadOutcome.Corrupt);
             }
         }
-        catch { }
-        return null;
     }
 
     private static void Save(ConfigData data)
     {
+        // ⚠️ Nothing is written when the read that produced this object failed. What is in hand
+        // is not the user's settings with one thing changed, it is one thing and a great many
+        // nulls, and writing it destroys everything the file held. The change is dropped instead
+        // — the setting does not stick, which is a small fault, and the file survives, which is
+        // the point. See _readWasLocked.
+        if (_readWasLocked)
+        {
+            _readWasLocked = false;
+            try { WriteRefused?.Invoke($"Settings were not saved: {ConfigPath} was in use by another process."); }
+            catch { }
+            return;
+        }
+
         // The directory of whichever file is in use — writing to app data while reading from
         // beside the executable would silently discard every change the user made.
         var path = ConfigPath;
         var dir  = Path.GetDirectoryName(path);
         if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
 
-        File.WriteAllText(path, JsonSerializer.Serialize(data, JsonOpts));
+        var json = JsonSerializer.Serialize(data, JsonOpts);
+
+        // ⚠️ Written beside and swapped in, never written over. A file being overwritten in
+        // place is briefly neither the old contents nor the new, and a reader that arrives in
+        // that moment sees a truncated file — which is a corrupt config on somebody else's next
+        // start. The swap also leaves the previous contents as .bak, which is what a read falls
+        // back to when the file itself cannot be read.
+        var tmp = path + ".tmp";
+        try
+        {
+            File.WriteAllText(tmp, json);
+            if (File.Exists(path)) File.Replace(tmp, path, path + BackupSuffix, ignoreMetadataErrors: true);
+            else                   File.Move(tmp, path);
+        }
+        catch (Exception ex)
+        {
+            // ⚠️ No fallback to writing over the file directly. The usual reason the swap fails
+            // is that somebody holds the target, which is the case this whole path exists to
+            // avoid making worse.
+            try { File.Delete(tmp); } catch { }
+            try { WriteRefused?.Invoke($"Settings could not be saved to {path}: {ex.Message}"); }
+            catch { }
+        }
     }
 
     private sealed class ConfigData

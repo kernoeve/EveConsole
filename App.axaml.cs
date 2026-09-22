@@ -157,7 +157,11 @@ public class App : Application
         // remedy usually sits in the same folder as the problem, and the app that would offer it
         // is the app that will not start. Small red text behind a stalled splash tells the user
         // their data is gone; this tells them where it went and what can be done about it.
-        if (!DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
+        // ⚠️ SQLite only. On a server the file at GetDbPath() is whatever this machine used
+        // before it moved — opening it proves nothing about the database in use, and the pooled
+        // handle it left behind held a stale file open for the life of the process, which is how
+        // a 958 MB leftover could not be deleted while the app was running.
+        if (DbEngine.IsSqlite && !DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
         {
             var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
 
@@ -209,11 +213,15 @@ public class App : Application
         // Dates any damage that appears while running, rather than leaving the next launch to
         // find it with no idea when it started. Fifteen minutes is frequent enough to place it
         // against whatever else the log holds, and the check itself is a single small read.
-        DatabaseIntegrityService.StartMonitoring(
-            AppConfig.GetDbPath,
-            message => errorLogger.Log(nameof(DatabaseIntegrityService), "integrity", message),
-            TimeSpan.FromMinutes(15),
-            CancellationToken.None);
+        //
+        // ⚠️ SQLite only, as with the check above: on a server this was quarter-hourly integrity
+        // reports about a file the app had stopped using, and a handle on it the whole time.
+        if (DbEngine.IsSqlite)
+            DatabaseIntegrityService.StartMonitoring(
+                AppConfig.GetDbPath,
+                message => errorLogger.Log(nameof(DatabaseIntegrityService), "integrity", message),
+                TimeSpan.FromMinutes(15),
+                CancellationToken.None);
 
         // Installed here, before any view model exists: ObserveOn captures the scheduler when a
         // subscription is created, so anything wired earlier would never be measured.
@@ -389,6 +397,16 @@ public class App : Application
             // The refresh token comes along for the same reason: if the SSO ever hands back a new
             // one, the copy in the database is the only one that survives a restart.
             var esiClient = Services.GetRequiredService<EsiClient>();
+            // A setting that did not stick, said out loud. AppConfig refuses to write when it
+            // could not read the file first — the alternative is writing one field and a great
+            // many nulls over somebody's settings — and this is where that refusal becomes
+            // visible rather than being a change that quietly did not happen.
+            AppConfig.WriteRefused = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("AppConfig", "settings not saved", reason); }
+                catch { }
+            };
+
             esiClient.AfterTokenRefreshed = async (ownerId, ownerType, scopes, refreshToken) =>
             {
                 var joined = string.Join(' ', scopes);
