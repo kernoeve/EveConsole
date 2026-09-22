@@ -267,10 +267,14 @@ public class EveMailService(
         List<int> missing;
         try
         {
+            // ⚠️ Newest by MailId, not Timestamp. A DateTimeOffset in ORDER BY translates on
+            // PostgreSQL and throws on SQLite ("does not support expressions of type
+            // 'DateTimeOffset' in ORDER BY"), which silently ended every prefetch there. Mail ids
+            // are issued in order, so the ranking is the same.
             missing = await db.EsiMailHeaders
                 .Where(h => h.CharacterId == charId && !h.BodyFetched)
                 .Where(h => !db.EsiMailBodies.Any(b => b.MailId == h.MailId))
-                .OrderByDescending(h => h.Timestamp)
+                .OrderByDescending(h => h.MailId)
                 .Select(h => h.MailId)
                 .Take(PrefetchPerPoll)
                 .ToListAsync(ct);
