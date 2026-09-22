@@ -15,3 +15,10 @@ public sealed class EsiTokenRevokedException(string error, string description)
     /// <summary>The SSO's own words, e.g. "Invalid refresh token. Token missing/expired."</summary>
     public string Description { get; } = description;
 }
+
+/// <summary>
+/// This process holds no token for the owner: it was never registered here, or it was retired
+/// after the SSO refused it. An <see cref="InvalidOperationException"/> still, for callers that
+/// catch that; its own type so the polling paths can tell it from a real fault and stand down.
+/// </summary>
+public sealed class EsiOwnerNotRegisteredException(string message) : InvalidOperationException(message);

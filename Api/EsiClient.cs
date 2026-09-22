@@ -756,6 +756,12 @@ public class EsiClient
             // way an error-limit pause is, so the pollers neither record it nor advance on it.
             return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
         }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -894,6 +900,12 @@ public class EsiClient
             // Nothing was sent and nothing will be until the owner is re-authorised. Reported the
             // way an error-limit pause is, so the pollers neither record it nor advance on it.
             return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
+        }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
         }
         catch (Exception ex)
         {
@@ -1133,6 +1145,12 @@ public class EsiClient
             // way an error-limit pause is, so the pollers neither record it nor advance on it.
             return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = $"Token refused by SSO ({ex.Description}); re-authorise this owner." };
         }
+        catch (EsiOwnerNotRegisteredException ex)
+        {
+            // Also nothing sent: this process holds no token for the owner — retired, or never
+            // authorised here — which a caller that took the id off a data row cannot know.
+            return new EsiCallResult<T> { StatusCode = 401, NotSent = true, Error = ex.Message };
+        }
         catch (Exception ex)
         {
             return new EsiCallResult<T> { StatusCode = 0, Error = ex.Message };
@@ -1351,7 +1369,7 @@ public class EsiClient
         if (_revokedCorps.TryGetValue(corpId, out var refused))
             throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_corpTokens.TryGetValue(corpId, out var tokens))
-            throw new InvalidOperationException(
+            throw new EsiOwnerNotRegisteredException(
                 $"No token registered for corporation {corpId}. Call RegisterCorporation() first.");
 
         if (tokens.IsExpired)
@@ -1373,7 +1391,7 @@ public class EsiClient
         if (_revokedCharacters.TryGetValue(characterId, out var refused))
             throw new EsiTokenRevokedException("invalid_grant", refused.Why);
         if (!_tokens.TryGetValue(characterId, out var tokens))
-            throw new InvalidOperationException(
+            throw new EsiOwnerNotRegisteredException(
                 $"No token registered for character {characterId}. Call RegisterCharacter() or SetTokens() first.");
 
         if (tokens.IsExpired)
