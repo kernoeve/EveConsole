@@ -270,6 +270,15 @@ public class ContractRowVm
     public void OpenIssuer() => EntityNavigator.Instance.Entity(
         EntityLinks.KindOf(_issuerLinkId), _issuerLinkId);
 
+    /// <summary>Whose contract it is: the corporation when the character issued it on the
+    /// corporation's behalf, else the character. What the From column shows — the character who
+    /// clicked is in the tooltip, and in <see cref="Issuer"/>.</summary>
+    public string From        { get; }
+    public string FromTip     { get; }
+    public bool   HasFromLink => _fromId > 0;
+    public void   OpenFrom()  => EntityNavigator.Instance.Entity(EntityLinks.KindOf(_fromId), _fromId);
+    private readonly long _fromId;
+
     public bool HasAssigneeLink => AssigneeId is > 0;
     public void OpenAssignee()
     {
@@ -301,6 +310,12 @@ public class ContractRowVm
             : (names.TryGetValue(c.IssuerCorporationId, out var icN) && icN.Length > 0 ? icN : $"ID {c.IssuerId}");
         // Matches the name above: the character when one is named, otherwise the corporation.
         _issuerLinkId = c.IssuerId != 0 ? c.IssuerId : c.IssuerCorporationId;
+
+        _fromId = c.ForCorporation && c.IssuerCorporationId != 0 ? c.IssuerCorporationId : c.IssuerId;
+        From    = names.TryGetValue(_fromId, out var fromName) && fromName.Length > 0 ? fromName : $"ID {_fromId}";
+        FromTip = c.ForCorporation && c.IssuerId != 0
+            ? $"Issued for the corporation by {Issuer}. Open in the entity browser."
+            : "Open in the entity browser";
         AssigneeId = c.AssigneeId;
         AcceptorId = c.AcceptorId;
         Assignee = c.AssigneeId is > 0
@@ -837,6 +852,17 @@ public class OwnedContractsViewModel : ReactiveObject
                 Scopes.Add(new ContractScopeOption(c.Name, new HashSet<long> { c.Id }));
             foreach (var c in corps.OrderBy(c => c.Name))
                 Scopes.Add(new ContractScopeOption($"{c.Name} [{c.Ticker}]", new HashSet<long> { c.Id }));
+
+            // Then every alliance a stored contract is made out to: most outstanding contracts
+            // are put up to an alliance, for anyone in it to accept, rather than to a person.
+            var alliances = _all
+                .SelectMany(r => new[] { r.AssigneeId ?? 0, r.AcceptorId ?? 0 })
+                .Where(id => id > 0 && EntityLinks.KindOf(id) == EntityKind.Alliance)
+                .Distinct()
+                .Select(id => (Id: id, Name: _partyNames.TryGetValue(id, out var n) && n.Length > 0 ? n : $"Alliance {id}"))
+                .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase);
+            foreach (var a in alliances)
+                Scopes.Add(new ContractScopeOption(a.Name, new HashSet<long> { a.Id }));
 
             BuildPartyCombo(Assignees, _all.Select(r => r.AssigneeId), "All assignees");
             BuildPartyCombo(Acceptors, _all.Select(r => r.AcceptorId), "All acceptors");

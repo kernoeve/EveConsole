@@ -20,6 +20,8 @@ public partial class ContractsView : ReactiveUserControl<ContractsViewModel>
         => Row(sender)?.OpenContents();
     private void OnOpenIssuer(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Row(sender)?.OpenIssuer();
+    private void OnOpenFrom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Row(sender)?.OpenFrom();
     private void OnOpenAssignee(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Row(sender)?.OpenAssignee();
 }

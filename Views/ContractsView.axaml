@@ -109,16 +109,17 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer" ClipboardContentBinding="{Binding Issuer}">
+              <!-- From: whose contract it is — the corporation when issued on its behalf, else the character; the character who clicked is in the tooltip. -->
+              <DataGridTemplateColumn Header="From" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
-                      <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
-                              ToolTip.Tip="Open in the entity browser">
-                        <TextBlock Text="{Binding Issuer}" Classes="linktext"
+                      <Button Classes="link" Click="OnOpenFrom" IsVisible="{Binding HasFromLink}"
+                              ToolTip.Tip="{Binding FromTip}">
+                        <TextBlock Text="{Binding From}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
-                      <TextBlock Text="{Binding Issuer}" IsVisible="{Binding !HasIssuerLink}"
+                      <TextBlock Text="{Binding From}" IsVisible="{Binding !HasFromLink}"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Panel>
                   </DataTemplate>
@@ -245,16 +246,17 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
-              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer" ClipboardContentBinding="{Binding Issuer}">
+              <!-- From: whose contract it is — the corporation when issued on its behalf, else the character; the character who clicked is in the tooltip. -->
+              <DataGridTemplateColumn Header="From" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
-                      <Button Classes="link" Click="OnOpenIssuer" IsVisible="{Binding HasIssuerLink}"
-                              ToolTip.Tip="Open in the entity browser">
-                        <TextBlock Text="{Binding Issuer}" Classes="linktext"
+                      <Button Classes="link" Click="OnOpenFrom" IsVisible="{Binding HasFromLink}"
+                              ToolTip.Tip="{Binding FromTip}">
+                        <TextBlock Text="{Binding From}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
-                      <TextBlock Text="{Binding Issuer}" IsVisible="{Binding !HasIssuerLink}"
+                      <TextBlock Text="{Binding From}" IsVisible="{Binding !HasFromLink}"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Panel>
                   </DataTemplate>
