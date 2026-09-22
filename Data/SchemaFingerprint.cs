@@ -25,6 +25,14 @@ public static class SchemaFingerprint
     public static int ColumnsUnder(DbContext db, string prefix)
     {
         var cn = db.Database.GetDbConnection();
+
+        // ⚠️ A file that is not there holds no columns, and it must not be opened to say so.
+        // Opening a SQLite connection CREATES the file, empty, and EF's EnsureCreated() then
+        // finds a zero-byte database rather than none: it opens it read-only to ask whether it
+        // exists, sets journal_mode=WAL on it, and every write after that fails with "attempt
+        // to write a readonly database". That was a fresh install of 0.9.14 failing to start.
+        if (!DbEngine.IsPostgres && !SqliteFileExists(cn.ConnectionString)) return 0;
+
         var wasClosed = cn.State != System.Data.ConnectionState.Open;
         if (wasClosed) cn.Open();
         try
@@ -59,5 +67,16 @@ public static class SchemaFingerprint
             return total;
         }
         finally { if (wasClosed) cn.Close(); }
+    }
+
+    /// <summary>Whether the SQLite file a connection string names is on disk. In-memory
+    /// databases count as present.</summary>
+    private static bool SqliteFileExists(string connectionString)
+    {
+        var source = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString).DataSource;
+        if (source.Length == 0 || source.Equals(":memory:", StringComparison.OrdinalIgnoreCase)
+            || source.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return File.Exists(source);
     }
 }

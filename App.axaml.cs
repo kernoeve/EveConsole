@@ -693,6 +693,14 @@ public class App : Application
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+            // ⚠️ A zero-byte database file is worse than none. EF's EnsureCreated() opens it
+            // read-only to learn that it exists, the WAL pragma is then set on an empty file,
+            // and every write from there on answers "attempt to write a readonly database" —
+            // on this start and on every start after it, since nothing ever gets written. The
+            // file holds nothing, so it goes, and EnsureCreated() builds a real one. A process
+            // that died between creating the file and writing its first page leaves exactly this.
+            if (!DbEngine.IsPostgres) SqliteFile.DiscardIfEmpty(AppConfig.GetDbPath());
+
             // What the SDE and Hobo tables hold BEFORE anything below touches them. Compared
             // again at the end: growth means a column or table this pass added and left empty,
             // and the import that fills it is kicked off once the window is up. See
