@@ -7,18 +7,23 @@
              Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
-    <!-- The tables of this tool: the app's grid at its usual size, read-only, no lines; a grid
-         that sorts says so itself. -->
+    <!-- The tables of this tool: the app's grid at its usual size — cell text at 10 on rows of 24,
+         as the other tools' grids are — read-only, no lines; a grid that sorts says so itself. -->
     <Style Selector="DataGrid.monitor">
       <Setter Property="IsReadOnly"            Value="True" />
       <Setter Property="AutoGenerateColumns"   Value="False" />
-      <Setter Property="FontSize"              Value="11" />
+      <Setter Property="FontSize"              Value="10" />
+      <Setter Property="RowHeight"             Value="24" />
       <Setter Property="Background"            Value="Transparent" />
       <Setter Property="GridLinesVisibility"   Value="None" />
       <Setter Property="RowBackground"         Value="Transparent" />
       <Setter Property="CanUserReorderColumns" Value="False" />
       <Setter Property="CanUserSortColumns"    Value="False" />
       <Setter Property="HeadersVisibility"     Value="Column" />
+    </Style>
+    <!-- A grid's own FontSize does not reach a templated cell, and the State columns are templated for their colour. -->
+    <Style Selector="DataGrid.monitor TextBlock">
+      <Setter Property="FontSize" Value="10" />
     </Style>
     <Style Selector="DataGrid.monitor DataGridCell.num TextBlock">
       <Setter Property="TextAlignment" Value="Right" />
