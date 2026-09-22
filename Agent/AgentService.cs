@@ -157,7 +157,7 @@ public sealed class AgentService : ReactiveObject
 
               MarketDefaultSettings (one row) names the source and the side:
                 AssetValueConfigId   -> which MarketPricingConfigs row
-                AssetValuePriceType  -> 'Sell', 'Buy' or 'Midpoint'
+                AssetValuePriceType  -> 'Sell', 'Buy' or 'Midpoint' (the screens call Midpoint "Split")
               MarketItemPrices holds the stored daily price per item:
                 columns are ConfigId, TypeId, BuyPrice, SellPrice, Midpoint, FromMarketData
 

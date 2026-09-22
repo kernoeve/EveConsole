@@ -195,8 +195,9 @@ public static class AppKnowledge
         owner hosts on Cloudflare (one Worker and one D1 database per store) where buyers sign
         in with EVE SSO, see the price list with what is in stock, in build and reserved, place
         orders and follow them. The app pushes the site the price list and the order book and
-        pulls what buyers did every few minutes (every half minute while somebody is on the
-        site); nothing on the site ever reaches the database. A web order is booked only when
+        pulls what buyers did every few minutes ("Check the site every N minutes" on the Config
+        tab, 5 by default; a buyer waits up to that long for a confirmation); nothing on the
+        site ever reaches the database. A web order is booked only when
         its item is on the posting, its quantity is within bounds, the buyer passes the store's
         Serve policy (Anyone, or the allow list) and the quoted price is close to the posting's;
         anything else waits under "Web site events" on the Overview for the owner to book or
@@ -318,6 +319,31 @@ public static class AppKnowledge
           will fire on every check.
         - Do not try to filter to "since I last looked". Write the query for current state over
           a sensible recent window; the alarm works out what is new.
+
+        ### Item Valuation (Market / Trade)
+        An appraisal tool like the web ones: paste any list the client copies — a hangar or
+        cargo hold, a contract's items, a fit, a multibuy list, a spreadsheet's rows, or typed
+        lines such as "Tritanium 22222" or "Warrior II x5". The paste is read leniently: on a
+        line with columns (tabs, commas, semicolons, pipes or runs of spaces, quoted or not)
+        the first column is the item name, the first whole number after it is the count, and
+        every other column is ignored; no number means one; a header row is skipped; the same
+        item on several lines is added up. Then pick a STATION (any station or structure with
+        orders in the app's books, whichever market source fetched them; not a market source,
+        so two stations of one region can be compared), a price basis (Sell = lowest sell
+        order, Buy = highest buy order, Split = halfway), whether to value the items or their
+        reprocessed output, and press Appraise. The Values tab shows every item three ways at
+        that station, unit and total side by side: market (from contracts where the station
+        has no orders, marked "contract"), build (the app's build cost) and reprocessed (the
+        materials at the same station's prices, at the app's yields); the highest of the three
+        is green, the others red with how far below they sit, and the panel above totals each
+        the same way plus volume and counts. "Reprocessed output" turns the list into its
+        materials batch by batch and keeps as "Left over" whatever could not be reprocessed. The
+        Market compare tab adds more stations: each item's unit, total and per cent below the
+        best across the stations, with a total per station. Price % values at a share of the
+        price (a 90% buyback). Buy orders count at the station, from its system, or
+        region-wide; NPC and jump-ranged ones do not. Names the SDE does not know stay in the
+        table flagged; item names open the Item Browser; Copy puts both tables on the clipboard
+        as tab-separated text. Nothing is stored.
 
         ## Settings (gear icon)
         Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE

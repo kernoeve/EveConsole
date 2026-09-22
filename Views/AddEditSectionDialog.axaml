@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:controls="using:EveConsole.Controls"
         x:Class="EveConsole.Views.AddEditSectionDialog"
         Title="Section"
@@ -114,7 +115,14 @@
             <TextBlock Text="PRICE TYPE" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
             <ComboBox x:Name="PriceTypeBox" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
-                      FontSize="12" HorizontalAlignment="Stretch" />
+                      FontSize="12" HorizontalAlignment="Stretch">
+              <!-- The keys are what a section stores; the midpoint of buy and sell shows as "Split". -->
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:CompileBindings="False">
+                  <TextBlock Text="{Binding Converter={x:Static views:PriceTypeLabelConverter.Instance}}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
           </StackPanel>
 
           <StackPanel Spacing="5">

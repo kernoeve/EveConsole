@@ -523,6 +523,13 @@ public static class PostgresSchema
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebMailUpdates" BOOLEAN NOT NULL DEFAULT TRUE
         """,
         """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebPollMinutes" INTEGER NOT NULL DEFAULT 5
+        """,
+        // A type's daily price snapshot gained its reprocessing value.
+        """
+        ALTER TABLE "TypePriceSnapshots" ADD COLUMN IF NOT EXISTS "ReprocessValue" DOUBLE PRECISION
+        """,
+        """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "WebBlurb" TEXT NOT NULL DEFAULT ''
         """,
         """

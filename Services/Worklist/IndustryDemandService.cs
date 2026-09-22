@@ -930,7 +930,7 @@ public class IndustryDemandService(
     /// </summary>
     /// <param name="me">The print's own efficiency when a specific print is known, applied to
     /// this item; <paramref name="meOverrides"/> wins at any depth where it names the item.</param>
-    private async Task<PlanJob?> RootJobAsync(
+    private Task<PlanJob?> RootJobAsync(
         ProductionContext ctx, int typeId, long units, int? me,
         IReadOnlyDictionary<int, int>? meOverrides, CancellationToken ct)
     {
@@ -941,7 +941,9 @@ public class IndustryDemandService(
             MeLevel  = me ?? ProductionCalculatorService.DefaultMe(ctx, typeId),
         };
 
-        return production.Calculate([entry], ctx, meOverrides: meOverrides)
-                         .AllJobs.FirstOrDefault(j => j.OutputTypeId == typeId);
+        // Synchronous under an async signature, kept so the callers' shape survives if the
+        // calculation ever needs to load anything.
+        return Task.FromResult(production.Calculate([entry], ctx, meOverrides: meOverrides)
+                                         .AllJobs.FirstOrDefault(j => j.OutputTypeId == typeId));
     }
 }

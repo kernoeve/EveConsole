@@ -470,7 +470,7 @@
                   <CheckBox IsChecked="{Binding WebEnabled}"
                             Content="Open on the web — publish to the site and take its orders" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
     
-                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Site address" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WebUrl, UpdateSourceTrigger=LostFocus}"
@@ -515,7 +515,20 @@
                       </ItemsControl>
                     </StackPanel>
     
-                    <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding WebMailUpdates}"
+                    <!-- How often the app calls the site. Each call is what a buyer's confirmation
+                         waits on, and one of the site's free daily requests. -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Check the site" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="0 0 0 6">
+                      <TextBlock Text="every" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <!-- Wide enough for the digits; see the note by the estimate-days spinner. -->
+                      <NumericUpDown Value="{Binding WebPollMinutes}" Minimum="1" Maximum="1440" Increment="1" FormatString="0" Width="130" FontSize="11"
+                                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <TextBlock Text="minutes. A buyer waits up to this long for a confirmation; every call is one of the site's free daily requests." FontSize="10"
+                                 Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="520" />
+                    </StackPanel>
+
+                    <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding WebMailUpdates}"
                               Content="Also mail web buyers as their orders move (needs the character above)"
                               FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                   </Grid>

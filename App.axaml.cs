@@ -348,13 +348,13 @@ public class App : Application
 
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
-            // Two things follow the pass: the store-order alarms, and the web sites, whose next
-            // push carries the confirmations the pass just worked out.
+            // The web sites do NOT follow the pass: it runs every half minute and after every
+            // poll of jobs, contracts and assets, and nudging the site sync from here had every
+            // site called every few seconds whatever interval its store was set to. What the
+            // pass works out goes out with the store's next call, within its interval; only an
+            // owner's own action (a setting, an approval, Sync now, a deploy) calls at once.
             Services.GetRequiredService<OrderFulfilmentService>().AfterPass = async ct =>
-            {
                 await Services.GetRequiredService<AlarmService>().TriggerAsync("store_order", ct);
-                Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>().Nudge();
-            };
 
             // And the pass is worth running the moment ESI has brought in what it reads, rather
             // than at its own next interval: a contract or a job shows against its order seconds
@@ -395,13 +395,16 @@ public class App : Application
             var reprService      = Services.GetRequiredService<ReprocessingValueService>();
             var typePriceHistory = Services.GetRequiredService<TypePriceHistoryService>();
             marketPricing.AfterRefresh        = ct => buildCostService.RunAfterMarketRefreshAsync(ct);
-            // Fill price gaps first, then snapshot today's per-type prices (market + build now final).
+            // Fill price gaps first, work out what everything reprocesses to at those prices, then
+            // snapshot today's per-type prices (market, build and reprocessing now final). One
+            // handler, in that order: the event is a multicast delegate, and separate handlers
+            // would run side by side with only the last one awaited.
             buildCostService.AfterRecalculate += async ct =>
             {
                 await marketPricing.FillAllGapsAsync(ct);
+                await reprService.RecalculateAllAsync(ct);
                 await typePriceHistory.RecalculateAsync(ct);
             };
-            buildCostService.AfterRecalculate += ct => reprService.RecalculateAllAsync(ct);
 
             // LP values are priced off the market, so they follow the same trigger as build
             // costs — and run after the gap fill above, so they see final prices rather than
@@ -736,10 +739,13 @@ public class App : Application
                         "MarketValue"   REAL,
                         "BuildCost"     REAL,
                         "ContractPrice" REAL,
+                        "ReprocessValue" REAL,
                         "ComputedAt"    TEXT    NOT NULL DEFAULT '',
                         PRIMARY KEY ("TypeId", "Date")
                     )
                     """);
+                // The reprocessing value came later; a database from before gets the column here.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TypePriceSnapshots" ADD COLUMN "ReprocessValue" REAL"""); } catch { }
 
                 // Order Tracker — user-entered outgoing orders.
                 db.Database.ExecuteSqlRaw("""
@@ -867,6 +873,7 @@ public class App : Application
                         "WebBuyerMaySwitch"   INTEGER NOT NULL DEFAULT 1,
                         "WebThemes"           TEXT    NOT NULL DEFAULT '',
                         "WebMailUpdates"      INTEGER NOT NULL DEFAULT 1,
+                        "WebPollMinutes"      INTEGER NOT NULL DEFAULT 5,
                         "WebBlurb"            TEXT    NOT NULL DEFAULT '',
                         "WebCursor"           INTEGER NOT NULL DEFAULT 0,
                         "WebGeneration"       TEXT    NOT NULL DEFAULT '',
@@ -920,6 +927,7 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBuyerMaySwitch" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebThemes" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebMailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebPollMinutes" INTEGER NOT NULL DEFAULT 5"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebBlurb" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCursor" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebGeneration" TEXT NOT NULL DEFAULT ''"""); } catch { }
