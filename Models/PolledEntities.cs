@@ -1261,6 +1261,17 @@ public class CharacterStatus
     /// <summary>Its system — taken from the docked location itself, so it needs no structure lookup.</summary>
     public int?            UndockedSystemId { get; set; }
 
+    // ⚠️ The ship as it was AT the undock, copied from the ship poll's last word at that moment.
+    // The alarm used to judge an undock by the ship on this row when it looked — the current
+    // one — and it looks at every undock of the last ten minutes on every pass, so a swap of
+    // ship re-judged the old undock under the new hull: a freighter's undock became "undocked
+    // in a pod" three minutes later when the pilot left the freighter, and a pod's undock became
+    // "undocked with no jump fuel" once they boarded a jump freighter. Null on rows stamped
+    // before these columns existed, when the current ship is the only answer there is.
+    public int?            UndockedShipTypeId { get; set; }
+    public long?           UndockedShipItemId { get; set; }
+    public string?         UndockedShipName   { get; set; }
+
     // The last change of system the location poll saw, and where from: a gate, a jump drive,
     // a bridge — the poll cannot tell which, but the stargate map can (a jump drive lands you
     // somewhere no gate leads from where you were). What the wake-up alarm's arrival mode keys

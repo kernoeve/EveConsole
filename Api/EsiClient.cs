@@ -44,6 +44,12 @@ public class EsiClient
     private readonly SemaphoreSlim _backgroundGate = new(2, 2);
     private static readonly AsyncLocal<bool> _isBackground = new();
 
+    // What the gate is doing right now, for the status bar: how many calls hold a slot, and
+    // how many are waiting for one. Both lanes together.
+    private int _activeCalls, _queuedCalls;
+    public int ActiveCalls => Volatile.Read(ref _activeCalls);
+    public int QueuedCalls => Volatile.Read(ref _queuedCalls);
+
     /// <summary>
     /// Marks everything awaited from here until disposal as background for the ESI gate:
     /// it will never hold more than two of the three HTTP slots, leaving one for whatever
@@ -67,22 +73,30 @@ public class EsiClient
     /// </summary>
     private async Task<IDisposable> AcquireSlotAsync(CancellationToken ct)
     {
-        if (!_isBackground.Value)
+        Interlocked.Increment(ref _queuedCalls);
+        try
         {
-            await _httpGate.WaitAsync(ct);
-            return new SlotRelease(_httpGate, null);
-        }
+            if (!_isBackground.Value)
+            {
+                await _httpGate.WaitAsync(ct);
+                Interlocked.Increment(ref _activeCalls);
+                return new SlotRelease(this, _httpGate, null);
+            }
 
-        await _backgroundGate.WaitAsync(ct);
-        try { await _httpGate.WaitAsync(ct); }
-        catch { _backgroundGate.Release(); throw; }
-        return new SlotRelease(_httpGate, _backgroundGate);
+            await _backgroundGate.WaitAsync(ct);
+            try { await _httpGate.WaitAsync(ct); }
+            catch { _backgroundGate.Release(); throw; }
+            Interlocked.Increment(ref _activeCalls);
+            return new SlotRelease(this, _httpGate, _backgroundGate);
+        }
+        finally { Interlocked.Decrement(ref _queuedCalls); }
     }
 
-    private sealed class SlotRelease(SemaphoreSlim http, SemaphoreSlim? background) : IDisposable
+    private sealed class SlotRelease(EsiClient owner, SemaphoreSlim http, SemaphoreSlim? background) : IDisposable
     {
         public void Dispose()
         {
+            Interlocked.Decrement(ref owner._activeCalls);
             http.Release();
             background?.Release();
         }

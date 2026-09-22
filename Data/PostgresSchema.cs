@@ -493,6 +493,15 @@ public static class PostgresSchema
         ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedSystemId" INTEGER NULL
         """,
         """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedShipTypeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedShipItemId" BIGINT NULL
+        """,
+        """
+        ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "UndockedShipName" TEXT NULL
+        """,
+        """
         ALTER TABLE "CharacterStatuses" ADD COLUMN IF NOT EXISTS "SystemChangedAt" TIMESTAMPTZ NULL
         """,
         """

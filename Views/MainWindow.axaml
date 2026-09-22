@@ -370,24 +370,51 @@
 
     <!-- ── Status bar ──────────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Bottom" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 4">
-      <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+      <!-- The background-process labels lead from the left, the status message follows them,
+           and the UI scale stands alone on the right. -->
+      <Grid ColumnDefinitions="Auto,*,Auto">
 
-        <TextBlock Grid.Column="0"
+        <!-- What each background process is doing, one label apiece, side by side. Each opens
+             the Background Processes tool at its own tab. Live on every client: the one holding
+             the worker lease reads its own services, the rest read what it publishes. A busy
+             process is lit; an idle one sits quiet. No tooltip: it got in the way of reading and
+             clicking them. -->
+        <ItemsControl Grid.Column="0" ItemsSource="{Binding ActivityVm.StatusBarItems}" VerticalAlignment="Center">
+          <ItemsControl.Styles>
+            <Style Selector="Button.bglabel">
+              <Setter Property="Background"      Value="Transparent" />
+              <Setter Property="BorderThickness" Value="0" />
+              <Setter Property="Padding"         Value="6 2" />
+              <Setter Property="FontSize"        Value="11" />
+              <Setter Property="Cursor"          Value="Hand" />
+              <Setter Property="Foreground"      Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="Button.bglabel.running">
+              <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal" Spacing="6" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:StatusBarItem">
+              <Button Classes="bglabel" Classes.running="{Binding Running}"
+                      Content="{Binding Label}" Click="OnBackgroundLabelClick"
+                      VerticalAlignment="Center" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Grid.Column="1"
                    Text="{Binding CharacterVm.StatusMessage}"
-                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
-
-        <Button Grid.Column="2"
-                x:Name="PollingStatusButton"
-                Content="{Binding PollingStatusText}"
-                Background="Transparent" BorderThickness="0"
-                Foreground="{DynamicResource InfoBrush}" FontSize="11" Padding="10 2"
-                VerticalAlignment="Center"
-                ToolTip.Tip="Click to open the API activity log"
-                Click="OnPollingStatusClick" />
+                   FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                   Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
 
         <!-- UI scale, shown and pickable, in the same quiet form as the theme label up top:
              the current scale and a caret, a menu of the others on click. -->
-        <Button Grid.Column="3"
+        <Button Grid.Column="2"
                 x:Name="UiScaleButton"
                 Background="Transparent" BorderThickness="0"
                 Padding="8 2" VerticalAlignment="Center" Cursor="Hand"
@@ -683,6 +710,9 @@
               </DataTemplate>
               <DataTemplate DataType="vm:LpMarketValuesViewModel">
                 <views:LpMarketValuesView />
+              </DataTemplate>
+              <DataTemplate DataType="vm:ApiActivityViewModel">
+                <views:BackgroundProcessesView />
               </DataTemplate>
               <DataTemplate DataType="vm:ItemValuationViewModel">
                 <views:ItemValuationView />

@@ -2541,7 +2541,10 @@ public class App : Application
                         "UndockedFromId"    INTEGER,
                         "UndockedSystemId"  INTEGER,
                         "SystemChangedAt"   TEXT,
-                        "PreviousSystemId"  INTEGER
+                        "PreviousSystemId"  INTEGER,
+                        "UndockedShipTypeId" INTEGER,
+                        "UndockedShipItemId" INTEGER,
+                        "UndockedShipName"  TEXT
                     )
                     """);
 
@@ -3107,6 +3110,10 @@ public class App : Application
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedAt" TEXT NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedFromId" INTEGER NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedSystemId" INTEGER NULL""",
+                    // The ship as it was at the undock, so a later change of ship cannot re-judge it.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipTypeId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipItemId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipName" TEXT NULL""",
                     // And the last change of system, for the wake-up alarm's arrival mode.
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "SystemChangedAt" TEXT NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "PreviousSystemId" INTEGER NULL""",
@@ -4017,6 +4024,7 @@ public class App : Application
         //
         // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
         // every client runs its own and the local status is the true one.
+        services.AddSingleton<BackgroundStatusSampler>();
         services.AddSingleton(sp => new WorkerActivityService(
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
             sp.GetRequiredService<AppErrorLogger>(),
@@ -4030,6 +4038,9 @@ public class App : Application
                 var alarms  = sp.GetRequiredService<AlarmService>();
                 return
                 [
+                    // The status bar's five lines, so a client that is not the worker shows them live.
+                    .. sp.GetRequiredService<BackgroundStatusSampler>().All()
+                         .Select(b => new WorkerActivity { Key = b.Key, Status = b.Line.Text, Running = b.Line.Running }),
                     new WorkerActivity { Key    = WorkerActivityService.Polling,
                                          Status = polling.StatusText },
                     new WorkerActivity { Key        = WorkerActivityService.Structures,
@@ -4045,8 +4056,9 @@ public class App : Application
                                          Status = sp.GetRequiredService<ZkillboardPollingService>().StatusText },
                     new WorkerActivity { Key    = WorkerActivityService.ZkbFirehose,
                                          Status = sp.GetRequiredService<ZkillboardFirehoseService>().StatusText },
-                    new WorkerActivity { Key    = WorkerActivityService.ZkbBackfill,
-                                         Status = sp.GetRequiredService<ZkillboardBackfillService>().StatusText },
+                    new WorkerActivity { Key     = WorkerActivityService.ZkbBackfill,
+                                         Status  = sp.GetRequiredService<ZkillboardBackfillService>().StatusText,
+                                         Running = sp.GetRequiredService<ZkillboardBackfillService>().IsImporting },
                     new WorkerActivity { Key    = WorkerActivityService.ZkbPost,
                                          Status = sp.GetRequiredService<ZkillboardPostService>().StatusText },
                     new WorkerActivity { Key    = WorkerActivityService.NameCache,

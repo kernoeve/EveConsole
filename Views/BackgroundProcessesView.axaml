@@ -1,0 +1,567 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.BackgroundProcessesView"
+             x:DataType="vm:ApiActivityViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <!-- The tables of this tool: the app's grid at its usual size — cell text at 10 on rows of 24,
+         as the other tools' grids are — read-only, no lines; a grid that sorts says so itself. -->
+    <Style Selector="DataGrid.monitor">
+      <Setter Property="IsReadOnly"            Value="True" />
+      <Setter Property="AutoGenerateColumns"   Value="False" />
+      <Setter Property="FontSize"              Value="10" />
+      <Setter Property="RowHeight"             Value="24" />
+      <Setter Property="Background"            Value="Transparent" />
+      <Setter Property="GridLinesVisibility"   Value="None" />
+      <Setter Property="RowBackground"         Value="Transparent" />
+      <Setter Property="CanUserReorderColumns" Value="False" />
+      <Setter Property="CanUserSortColumns"    Value="False" />
+      <Setter Property="HeadersVisibility"     Value="Column" />
+    </Style>
+    <!-- A grid's own FontSize does not reach a templated cell, and the State columns are templated for their colour. -->
+    <Style Selector="DataGrid.monitor TextBlock">
+      <Setter Property="FontSize" Value="10" />
+    </Style>
+    <Style Selector="DataGrid.monitor DataGridCell.num TextBlock">
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="Margin"        Value="0 0 6 0" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl x:Name="ProcessTabs" Margin="6">
+
+    <!-- ══ Tab 1: ESI Activity Log ═══════════════════════════════════════════ -->
+    <TabItem Header="ESI Activity Log">
+      <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- In-flight calls -->
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                BorderThickness="0 0 0 1" Padding="8 6">
+          <StackPanel>
+            <TextBlock Text="In Progress" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 4" />
+            <ItemsControl ItemsSource="{Binding InFlight}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="svc:InFlightCall">
+                  <Grid ColumnDefinitions="100,130,*" Margin="0 1">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding StartedAt, StringFormat=\{0:HH:mm:ss\}}"
+                               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                               VerticalAlignment="Center" Margin="0 0 8 0" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding OwnerName}"
+                               FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="0 0 8 0" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Endpoint}"
+                               FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <TextBlock Text="No calls in progress."
+                       FontSize="11" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic"
+                       IsVisible="{Binding HasNoInFlight}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Historical log -->
+        <Border Grid.Row="1">
+          <Grid RowDefinitions="Auto,Auto,*">
+
+            <!-- Filters: a character and an endpoint, each every value the log holds. -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8 6">
+              <TextBlock Text="Character" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+              <ComboBox ItemsSource="{Binding CharacterOptions}" SelectedItem="{Binding CharacterFilter}" FontSize="11" MinWidth="170"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}" />
+              <TextBlock Text="Endpoint" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+              <ComboBox ItemsSource="{Binding EndpointOptions}" SelectedItem="{Binding EndpointFilter}" FontSize="11" MinWidth="210"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}" />
+              <Button Content="Clear" Command="{Binding ClearLogFiltersCommand}" IsVisible="{Binding LogFiltered}"
+                      FontSize="11" Padding="10 3" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <Grid Grid.Row="1" ColumnDefinitions="165,130,200,55,*"
+                  Background="{DynamicResource SurfacePanelAltBrush}" Margin="0">
+              <TextBlock Grid.Column="0" Text="Timestamp"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Character"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Endpoint"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="HTTP"       FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" HorizontalAlignment="Center" />
+              <TextBlock Grid.Column="4" Text="Result"     FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+            </Grid>
+
+            <ListBox Grid.Row="2"
+                     ItemsSource="{Binding VisibleEntries}"
+                     Background="{DynamicResource SurfaceBaseBrush}"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:ActivityEntry">
+                  <Grid ColumnDefinitions="165,130,200,55,*" Margin="0 1">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding Timestamp, StringFormat=\{0:yyyy-MM-dd HH:mm:ss\}}"
+                               FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                               VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding OwnerName}"
+                               FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="4 2" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Endpoint}"
+                               FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="4 2" />
+                    <TextBlock Grid.Column="3"
+                               Text="{Binding StatusCodeText}"
+                               FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="4"
+                               Text="{Binding StatusDisplay}"
+                               Foreground="{Binding StatusColor}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+
+            </ListBox>
+          </Grid>
+        </Border>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 6">
+          <TextBlock Text="{Binding CountText}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+        </Border>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Tab 2: ESI Call Schedule ══════════════════════════════════════════ -->
+    <TabItem Header="ESI Call Schedule">
+      <TabControl x:Name="ScheduleTabControl" Margin="0 4 0 0"
+                  TabStripPlacement="Top">
+
+        <!-- ── Subtab A: Character / Corporation ─────────────────────────── -->
+        <TabItem Header="Character / Corporation">
+          <Grid RowDefinitions="Auto,Auto,*" Margin="0 8 0 0">
+
+            <!-- Token selector -->
+            <Border Grid.Row="0" Padding="0 0 0 8">
+              <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="Token:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding TokenOptions}"
+                          SelectedItem="{Binding SelectedToken}"
+                          MinWidth="220">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TokenOption">
+                      <TextBlock Text="{Binding DisplayName}" FontSize="12" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Text="Select a token to see its polling schedule."
+                           FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
+                           IsVisible="{Binding SelectedToken,
+                                       Converter={x:Static ObjectConverters.IsNull}}" />
+              </StackPanel>
+            </Border>
+
+            <!-- Column headers -->
+            <Grid Grid.Row="1" ColumnDefinitions="220,165,165,110"
+                  Background="{DynamicResource SurfacePanelAltBrush}">
+              <TextBlock Grid.Column="0" Text="Endpoint"    FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Last Called" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Next Call"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Time Until"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+            </Grid>
+
+            <!-- Schedule rows -->
+            <ListBox Grid.Row="2"
+                     ItemsSource="{Binding Schedule}"
+                     Background="{DynamicResource SurfaceBaseBrush}"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ScheduleRowVm">
+                  <Grid ColumnDefinitions="220,165,165,110" Margin="0 1">
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </Grid>
+        </TabItem>
+
+        <!-- ── Subtab B: Market Refresh ───────────────────────────────────── -->
+        <TabItem Header="Market Refresh">
+          <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+
+            <!-- Column headers -->
+            <Grid Grid.Row="0" ColumnDefinitions="220,165,165,110"
+                  Background="{DynamicResource SurfacePanelAltBrush}">
+              <TextBlock Grid.Column="0" Text="Market Source"  FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+              <TextBlock Grid.Column="1" Text="Last Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="2" Text="Next Refresh"   FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+              <TextBlock Grid.Column="3" Text="Time Until"     FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+            </Grid>
+
+            <!-- Market refresh rows -->
+            <ListBox Grid.Row="1"
+                     ItemsSource="{Binding MarketSchedule}"
+                     Background="{DynamicResource SurfaceBaseBrush}"
+                     BorderThickness="0"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding"         Value="0" />
+                  <Setter Property="Background"      Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ScheduleRowVm">
+                  <Grid ColumnDefinitions="220,165,165,110" Margin="0 1">
+                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8 2" />
+                    <TextBlock Grid.Column="1" Text="{Binding LastCalledText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="2" Text="{Binding NextCallText}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4 2" />
+                    <TextBlock Grid.Column="3" Text="{Binding TimeUntilText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+          </Grid>
+        </TabItem>
+
+      </TabControl>
+    </TabItem>
+
+    <!-- ══ Tab 3: Price History Sweep ════════════════════════════════════════ -->
+    <TabItem Header="Price History">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="6 8 6 0">
+
+        <!-- Running indicator -->
+        <Border Grid.Row="0" Padding="0 0 0 8">
+          <TextBlock Text="{Binding HistoryState}" FontSize="12"
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Column headers -->
+        <Grid Grid.Row="1" ColumnDefinitions="240,160,120,*" Background="{DynamicResource SurfacePanelAltBrush}">
+          <TextBlock Grid.Column="0" Text="Region"         FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="8 4" />
+          <TextBlock Grid.Column="1" Text="Refreshed / Total (24h)" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+          <TextBlock Grid.Column="2" Text="Queued"         FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+          <TextBlock Grid.Column="3" Text="Status"         FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" Margin="4 4" />
+        </Grid>
+
+        <!-- Region rows -->
+        <ListBox Grid.Row="2"
+                 ItemsSource="{Binding HistoryRegions}"
+                 Background="{DynamicResource SurfaceBaseBrush}"
+                 BorderThickness="0"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto">
+          <ListBox.ItemContainerTheme>
+            <ControlTheme TargetType="ListBoxItem">
+              <Setter Property="Padding"         Value="0" />
+              <Setter Property="Background"      Value="Transparent" />
+              <Setter Property="BorderThickness" Value="0" />
+            </ControlTheme>
+          </ListBox.ItemContainerTheme>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:HistoryRegionRowVm">
+              <Grid ColumnDefinitions="240,160,120,*" Margin="0 1">
+                <TextBlock Grid.Column="0" Text="{Binding RegionName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="8 2" />
+                <TextBlock Grid.Column="1" Text="{Binding CountsText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="4 2" />
+                <TextBlock Grid.Column="2" Text="{Binding Queue}"      FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="4 2" />
+                <TextBlock Grid.Column="3" Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontSize="11" VerticalAlignment="Center" Margin="4 2" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Tab 4: Contract Items ═════════════════════════════════════════════ -->
+    <TabItem Header="Contract Items">
+      <Grid RowDefinitions="Auto,Auto,Auto" Margin="10 12 10 0">
+
+        <TextBlock Grid.Row="0" Text="{Binding ContractsState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 10" />
+
+        <!-- One row per source of contracts whose items are pulled, and one for those that cannot be. -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding ContractSources}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Source"       Binding="{Binding Source}"     Width="210" />
+            <DataGridTextColumn Header="Contracts"    Binding="{Binding TotalText}"  Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Items pulled" Binding="{Binding PulledText}" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Queued"       Binding="{Binding QueuedText}" Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="Note"         Binding="{Binding Note}"       Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="2" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="Items are pulled one contract at a time, a call apiece: your own contracts first, then the public listings behind them. A contract is pulled once and kept." />
+      </Grid>
+    </TabItem>
+
+    <TabItem Header="LP Store">
+      <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10 12 10 0">
+
+        <TextBlock Grid.Row="0" Text="{Binding LpStoreState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 6" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="18" Margin="0 0 0 8">
+          <TextBlock Text="{Binding LpStoreProgressText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="{Binding LpStoreOffersText}"   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="{Binding LpStoreDetail}"       FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <!-- One row per NPC corporation the sweep has looked at; those with a store first. -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding LpStoreCorps}" Classes="monitor" CanUserSortColumns="True">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Corporation"  Binding="{Binding Name}"        Width="*"   SortMemberPath="Name" />
+            <DataGridTextColumn Header="Store"        Binding="{Binding StoreText}"   Width="90"  SortMemberPath="StoreText" />
+            <DataGridTextColumn Header="Offers"       Binding="{Binding OffersText}"  Width="90"  SortMemberPath="Offers" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Last checked" Binding="{Binding CheckedText}" Width="150" SortMemberPath="CheckedAt" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same." />
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Tab 5: zKillboard ═════════════════════════════════════════════════ -->
+    <TabItem Header="Killmails">
+      <Grid RowDefinitions="Auto,Auto,Auto" Margin="10 12 10 0">
+
+        <TextBlock Grid.Row="0" Text="{Binding ZkbLiveState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 6" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="18" Margin="0 0 0 8">
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+            <Run Text="Scope: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding ZkbScopeText}" />
+          </TextBlock>
+          <TextBlock FontSize="11" Foreground="{DynamicResource WarnBrush}">
+            <Run Text="Coverage: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding ZkbCoverageText}" />
+          </TextBlock>
+        </StackPanel>
+
+        <!-- One row per stage of the pipeline: ESI fills in each kill's details; zKillboard
+             supplies kills the characters were not on, live and by daily dump; and posts go back. -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding KillmailStages}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Stage" Binding="{Binding Stage}" Width="190" />
+            <DataGridTemplateColumn Header="State" Width="110" ClipboardContentBinding="{Binding State}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StageRowVm">
+                  <TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <TabItem Header="Intel">
+      <ScrollViewer Margin="10 12 10 0">
+        <StackPanel Spacing="14">
+
+          <TextBlock Text="{Binding IntelState}" FontSize="12"
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+
+          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Channels"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding IntelChannelsText}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Parsing"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding IntelDetail}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Backlog"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IntelBacklogText}"
+                       FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" />
+          </Grid>
+
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                     Text="Parsing runs straight after each chat log tail, so a sighting reaches the map on the same pass that stored the message. Channels are chosen under Settings → Chat Logs, where there is also a button to parse the history already on disk." />
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Tab 6: Alarms ═════════════════════════════════════════════════════ -->
+    <TabItem Header="Alarms">
+      <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10 12 10 0">
+
+        <TextBlock Grid.Row="0" Text="{Binding AlarmState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 6" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="18" Margin="0 0 0 8">
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+            <Run Text="Next check: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding AlarmNextText}" />
+          </TextBlock>
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+            <Run Text="Last firing: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding AlarmLastFireText}" />
+          </TextBlock>
+          <TextBlock Text="{Binding AlarmDetail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <!-- One row per alarm defined, as the loop sees it. -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding AlarmRows}" Classes="monitor" CanUserSortColumns="True">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Alarm"        Binding="{Binding Name}"            Width="*"   SortMemberPath="Name" />
+            <DataGridTextColumn Header="Condition"    Binding="{Binding Condition}"       Width="170" SortMemberPath="Condition" />
+            <DataGridTextColumn Header="Enabled"      Binding="{Binding EnabledText}"     Width="70"  SortMemberPath="EnabledText" />
+            <DataGridTextColumn Header="Every"        Binding="{Binding EveryText}"       Width="70"  SortMemberPath="EveryText" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Last checked" Binding="{Binding LastCheckedText}" Width="140" SortMemberPath="LastChecked" />
+            <DataGridTextColumn Header="Last fired"   Binding="{Binding LastFiredText}"   Width="140" SortMemberPath="LastFired" />
+            <DataGridTextColumn Header="Fired"        Binding="{Binding FireCount}"       Width="60"  SortMemberPath="FireCount" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Last error"   Binding="{Binding ErrorText}"       Width="220" SortMemberPath="ErrorText" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="Each alarm is checked on its own interval, so the loop only touches the database when one is actually due. An alarm announces only what it has not announced before — a condition that stays true does not repeat itself — which is why a check that keeps matching shows here as armed rather than as firing over and over." />
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Order Fulfilment ══════════════════════════════════════════════════ -->
+    <TabItem Header="Order Fulfilment">
+      <ScrollViewer Margin="10 12 10 0">
+        <StackPanel Spacing="14">
+
+          <!-- Order fulfilment. A loop with no visible output is indistinguishable from one that is
+               not running — this one failed silently for a whole session before the empty Source
+               column gave it away. -->
+          <TextBlock Text="Order fulfilment" FontSize="13" FontWeight="SemiBold"
+                     Foreground="{DynamicResource AccentBrush}" Margin="0 18 0 6" />
+
+          <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" Margin="0 0 0 6">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="State"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OrderFulfilState}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Last check"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding OrderFulfilLast}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Next check"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OrderFulfilNext}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+          </Grid>
+
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                     Text="Every thirty seconds, and at once after a poll brings in jobs, contracts or assets, each pending order in the Order Tracker is matched against what could fill it: a contract issued by one of your characters or personal corporations to that buyer after the order was placed completes it outright; otherwise unreserved stock on hand, or the soonest industry job producing the item, whose completion date becomes the order's estimated date. Stock and jobs are reserved as they are claimed, so two orders never count the same units, and a contract already linked to one order is never reused for another." />
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ══ Tab 7: Name Cache ═════════════════════════════════════════════════ -->
+    <TabItem Header="Structures">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto" Margin="10 12 10 0">
+
+        <TextBlock Grid.Row="0" Text="{Binding StructureState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 10" />
+
+        <!-- One row per sweep: the hourly pass over the structures our own data names, and the
+             daily walk of the public list. -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding StructureSweeps}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Sweep" Binding="{Binding Stage}" Width="150" />
+            <DataGridTemplateColumn Header="State" Width="100" ClipboardContentBinding="{Binding State}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StageRowVm">
+                  <TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Last run" Binding="{Binding LastRun}" Width="150" />
+            <DataGridTextColumn Header="Next run" Binding="{Binding NextRun}" Width="140" />
+            <DataGridTextColumn Header="Result"   Binding="{Binding Detail}"  Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Grid.Row="2" Content="Sweep now" Margin="0 10 0 0"
+                HorizontalAlignment="Left" Padding="14 5" FontSize="11"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
+                Command="{Binding RunStructureSweep}"
+                IsEnabled="{Binding !StructureSweepRunning}" />
+
+        <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="Collects player-structure IDs from assets, contracts, industry jobs, market orders and wallet entries, then resolves each one's name, type, owner and position. Sweeps hourly; the public structure list is walked once a day for structures nobody here has visited. Rows our own assets identify as ships, containers or asset-safety wraps are removed rather than kept as unknown structures. Resolving needs esi-universe.read_structures.v1 and docking access, so a private structure stays unresolved — those are the ones worth describing by hand in the Structure Browser." />
+      </Grid>
+    </TabItem>
+
+    <TabItem Header="Name Cache">
+      <ScrollViewer Margin="10 12 10 0">
+        <StackPanel Spacing="14">
+
+          <TextBlock Text="{Binding NameCacheState}" FontSize="12"
+                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+
+          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Cached names"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding NameCacheCountText}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="What this does"
+                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Top" />
+            <TextBlock Grid.Row="1" Grid.Column="1" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                       Text="Resolves character, corporation and alliance IDs found anywhere in the database to names, ahead of any screen needing them. Sweeps hourly. EVE entity names cannot be changed, so each name is fetched once and kept permanently." />
+          </Grid>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+  </TabControl>
+
+</UserControl>

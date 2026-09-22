@@ -1743,10 +1743,15 @@ public class EsiPollingService : ReactiveObject
             // "docked", so a first poll cannot manufacture one.
             if (status.IsDocked && r.Data.StationId is null && r.Data.StructureId is null)
             {
-                status.UndockedAt       = DateTimeOffset.UtcNow;
-                status.UndockedFromId   = status.StructureId ?? status.StationId;
-                status.UndockedSystemId = status.SolarSystemId;
-                _undockSeen[charId]     = true;
+                status.UndockedAt         = DateTimeOffset.UtcNow;
+                status.UndockedFromId     = status.StructureId ?? status.StationId;
+                status.UndockedSystemId   = status.SolarSystemId;
+                // The ship they left in, as of the ship poll's last word: what the Ship Undocks
+                // alarm judges, so a later change of ship cannot re-judge this undock.
+                status.UndockedShipTypeId = status.ShipTypeId;
+                status.UndockedShipItemId = status.ShipItemId;
+                status.UndockedShipName   = status.ShipName;
+                _undockSeen[charId]       = true;
             }
 
             // A change of system is travel, whatever carried them; where from is kept so the

@@ -258,6 +258,14 @@ public static class AppKnowledge
         Viewers over the EVE client's own log files, read from this PC. See "Local logs" below
         for what is actually in them.
 
+        ### Background Processes
+        A tab per background process — the ESI activity log and call schedule, price history,
+        contract items, LP store, killmails, intel, alarms, order fulfilment, structures, the name
+        cache — each saying what that process is doing right now, live, even when the work runs
+        on another client sharing the database. The main window's bottom status bar carries one
+        short label per process (ESI Calls, Price History, Contract Items, LP Store, Killmails),
+        lit while it is busy; clicking a label opens this tool at that tab.
+
         ### ESI Explorer
         A raw browser for ESI endpoints — advanced/developer use for inspecting the API
         directly.

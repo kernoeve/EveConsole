@@ -21,12 +21,12 @@ public sealed class OpenWindowTool : IAgentTool
                 description =
                     "Tool to open. One of: overview, characters, assets, items, industry, " +
                     "indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, " +
-                    "wallet, corp_activity, killmails, eve_mail, data.",
+                    "wallet, corp_activity, killmails, eve_mail, data, background (the Background Processes monitor).",
                 @enum = new[]
                 {
                     "overview", "characters", "assets", "items", "industry",
                     "indy_parks", "prod_calc", "market_levels", "inv_levels", "trade",
-                    "net_worth", "wallet", "corp_activity", "killmails", "eve_mail", "data",
+                    "net_worth", "wallet", "corp_activity", "killmails", "eve_mail", "data", "background",
                 },
             },
         },
