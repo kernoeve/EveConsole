@@ -79,7 +79,7 @@ public sealed class UpdateGuidanceTool : IAgentTool
         remove = remove.Trim();
 
         if (add.Length == 0 && remove.Length == 0)
-            return (current, "Nothing to do — give add, remove, or both.", false);
+            return (current ?? "", "Nothing to do — give add, remove, or both.", false);
 
         // Lines, kept in order, blank ones dropped.
         var lines = (current ?? "")
@@ -106,7 +106,7 @@ public sealed class UpdateGuidanceTool : IAgentTool
 
         var text = string.Join("\n", lines);
         if (text.Length > MaxChars)
-            return (current, $"Not saved: the standing instructions would be {text.Length:N0} characters, over the "
+            return (current ?? "", $"Not saved: the standing instructions would be {text.Length:N0} characters, over the "
                            + $"{MaxChars:N0} limit. Remove some first, or word this one more briefly.", false);
 
         var what = (added, removed) switch

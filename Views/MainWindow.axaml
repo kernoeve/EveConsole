@@ -684,6 +684,9 @@
               <DataTemplate DataType="vm:LpMarketValuesViewModel">
                 <views:LpMarketValuesView />
               </DataTemplate>
+              <DataTemplate DataType="vm:ItemValuationViewModel">
+                <views:ItemValuationView />
+              </DataTemplate>
               <DataTemplate DataType="vm:PlayerEntitiesViewModel">
                 <views:PlayerEntitiesView />
               </DataTemplate>

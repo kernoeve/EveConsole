@@ -776,6 +776,20 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
+    private int _webPollMinutes = WebStoreSyncService.DefaultPollMinutes;
+
+    /// <summary>Minutes between the app's calls to the site, within the sync service's bounds.</summary>
+    public int WebPollMinutes
+    {
+        get => _webPollMinutes;
+        set
+        {
+            var minutes = Math.Clamp(value, WebStoreSyncService.MinPollMinutes, WebStoreSyncService.MaxPollMinutes);
+            this.RaiseAndSetIfChanged(ref _webPollMinutes, minutes);
+            _ = SaveAsync(s => s.WebPollMinutes = minutes, nudge: true);
+        }
+    }
+
     private string _webBlurb = "";
     public string WebBlurb
     {
@@ -1645,6 +1659,7 @@ public class StoresViewModel : ReactiveObject
                     WebTheme          = ThemeOptions.FirstOrDefault(t => t.Key == store.WebTheme) ?? ThemeOptions[0];
                     LoadWebThemeChoices(store);
                     WebMailUpdates    = store.WebMailUpdates;
+                    WebPollMinutes    = store.WebPollMinutes;
                     WebBlurb          = store.WebBlurb;
                     WebStatusText     = DescribeWeb(store);
                     WebHasError       = store.WebEnabled && store.WebLastError.Length > 0;

@@ -72,5 +72,5 @@ public static class ExternalLinks
     }
 
     /// <summary>Test seam: observe what would have been launched without starting a browser.</summary>
-    internal static Action<string>? LaunchOverride;
+    internal static Action<string>? LaunchOverride { get; set; }
 }

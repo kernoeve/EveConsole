@@ -42,12 +42,13 @@ public class WebStoreSyncService(
     EsiClient                       esi,
     AppErrorLogger                  errorLogger)
 {
-    /// <summary>Between cycles when nobody is on any site.</summary>
-    private static readonly TimeSpan Idle = TimeSpan.FromMinutes(3);
+    /// <summary>Minutes between calls to a site unless the store says otherwise, and the bounds
+    /// an owner may set on the Stores screen. What a buyer waits, at most, for a confirmation;
+    /// each call is also one of the site's free daily requests.</summary>
+    public const int DefaultPollMinutes = 5, MinPollMinutes = 1, MaxPollMinutes = 1440;
 
-    /// <summary>Between cycles while a site reports signed-in sessions: what a buyer waiting on a
-    /// confirmation actually sees, plus the fulfilment pass.</summary>
-    private static readonly TimeSpan Busy = TimeSpan.FromSeconds(30);
+    /// <summary>Between looks for a store to open while none is.</summary>
+    private static readonly TimeSpan NoneOpen = TimeSpan.FromMinutes(DefaultPollMinutes);
 
     /// <summary>Order rows per call. Sized for a slow link; the rest follow at once.</summary>
     private const int OrdersPerPage = 300;
@@ -78,7 +79,12 @@ public class WebStoreSyncService(
     /// <summary>Released by <see cref="Nudge"/> to cut the wait short.</summary>
     private readonly SemaphoreSlim _wake = new(0, 1);
 
-    private bool _anySessions;
+    /// <summary>When each open store is next due, by id; one not listed is due now.</summary>
+    private readonly Dictionary<int, DateTimeOffset> _due = new();
+
+    /// <summary>Set by <see cref="Nudge"/>: the next cycle takes every store, due or not, so a
+    /// changed setting reaches its site at once.</summary>
+    private volatile bool _every;
 
     public void Start(CancellationToken outerCt = default)
     {
@@ -91,12 +97,17 @@ public class WebStoreSyncService(
         {
             while (!ct.IsCancellationRequested)
             {
-                try { await RunOnceAsync(ct); }
+                // Until the earliest store is due; a nudge cuts the wait short. A cycle that
+                // failed outright waits the default rather than spinning on a stale due time.
+                TimeSpan wait;
+                try { await RunOnceAsync(ct); wait = UntilNextDue(); }
                 catch (OperationCanceledException) { return; }
-                catch (Exception ex) { errorLogger.Log(nameof(WebStoreSyncService), "cycle", ex); }
-
-                var wait = _anySessions ? Busy : Idle;
-                NextRunAt = DateTimeOffset.UtcNow + wait;
+                catch (Exception ex)
+                {
+                    errorLogger.Log(nameof(WebStoreSyncService), "cycle", ex);
+                    wait = NoneOpen;
+                    NextRunAt = DateTimeOffset.UtcNow + wait;
+                }
                 try { await _wake.WaitAsync(wait, ct); }
                 catch (OperationCanceledException) { return; }
             }
@@ -114,54 +125,81 @@ public class WebStoreSyncService(
         NextRunAt = null;
     }
 
-    /// <summary>Run the next cycle now rather than when the interval is up.</summary>
+    /// <summary>Run a cycle now, every store in it, rather than when each is due.</summary>
     public void Nudge()
     {
+        _every = true;
         try { _wake.Release(); }
         catch (SemaphoreFullException) { /* already awake */ }
     }
 
-    /// <summary>Every open web store, one after the other.</summary>
+    /// <summary>Every open web store that is due, one after the other (all of them after a
+    /// nudge), and when the earliest is next due.</summary>
     public async Task RunOnceAsync(CancellationToken ct = default)
     {
         await _gate.WaitAsync(ct);
         try
         {
-            List<int> ids;
+            List<(int Id, int Minutes)> stores;
             await using (var db = await dbFactory.CreateDbContextAsync(ct))
-                ids = await db.Stores.AsNoTracking()
+                stores = (await db.Stores.AsNoTracking()
                     .Where(s => !s.IsDeleted && s.WebEnabled && s.WebUrl != "" && s.WebSecret != "" && s.PostingId != 0)
-                    .Select(s => s.Id)
-                    .ToListAsync(ct);
+                    .Select(s => new { s.Id, s.WebPollMinutes })
+                    .ToListAsync(ct))
+                    .Select(s => (s.Id, s.WebPollMinutes)).ToList();
 
-            if (ids.Count == 0)
+            var every = _every;
+            _every = false;
+
+            if (stores.Count == 0)
             {
                 StatusText = "No web stores open.";
-                _anySessions = false;
+                NextRunAt  = DateTimeOffset.UtcNow + NoneOpen;
+                _due.Clear();
                 return;
             }
 
-            var sessions = 0;
-            var booked   = 0;
-            var problems = 0;
-            foreach (var id in ids)
+            var now = DateTimeOffset.UtcNow;
+            var synced = 0; var sessions = 0; var booked = 0; var problems = 0;
+            foreach (var (id, minutes) in stores)
             {
                 ct.ThrowIfCancellationRequested();
+                if (!every && _due.TryGetValue(id, out var due) && due > now) continue;
+
                 var result = await SyncOneAsync(id, ct);
+                _due[id]  = DateTimeOffset.UtcNow + Interval(minutes);
+                synced++;
                 sessions += result.Sessions;
                 booked   += result.Booked;
                 if (result.Error is not null) problems++;
             }
 
-            _anySessions = sessions > 0;
-            LastRunAt    = DateTimeOffset.UtcNow;
-            StatusText   = problems > 0
-                ? $"{ids.Count} web store(s), {problems} could not be reached — see the Stores screen."
+            // A store no longer open drops off the schedule; the earliest of the rest is next.
+            foreach (var gone in _due.Keys.Where(k => stores.All(s => s.Id != k)).ToList()) _due.Remove(gone);
+            NextRunAt = stores.Min(s => _due.TryGetValue(s.Id, out var d) ? d : now);
+
+            if (synced == 0) return;
+            LastRunAt  = DateTimeOffset.UtcNow;
+            StatusText = problems > 0
+                ? $"{synced} web store(s), {problems} could not be reached — see the Stores screen."
                 : booked > 0
-                    ? $"{ids.Count} web store(s) synced, {booked} order(s) booked."
-                    : $"{ids.Count} web store(s) synced; {sessions} buyer session(s) active.";
+                    ? $"{synced} web store(s) synced, {booked} order(s) booked."
+                    : $"{synced} web store(s) synced; {sessions} buyer session(s) active.";
         }
         finally { _gate.Release(); }
+    }
+
+    /// <summary>A store's interval, within the bounds whatever its row says.</summary>
+    public static TimeSpan Interval(int minutes) =>
+        TimeSpan.FromMinutes(Math.Clamp(minutes, MinPollMinutes, MaxPollMinutes));
+
+    /// <summary>How long until the earliest store is due, a second at least, or the look-back
+    /// while nothing is open.</summary>
+    private TimeSpan UntilNextDue()
+    {
+        if (NextRunAt is not { } next) return NoneOpen;
+        var wait = next - DateTimeOffset.UtcNow;
+        return wait < TimeSpan.FromSeconds(1) ? TimeSpan.FromSeconds(1) : wait;
     }
 
     /// <summary>One store, now, for the Sync Now button. Returns a line for the screen.</summary>
@@ -869,8 +907,9 @@ public class WebStoreSyncService(
         record.OrderRef = orderRef;
         await db.SaveChangesAsync(ct);
 
-        // The order the owner just approved is matched against stock, jobs and contracts now,
-        // and the pass's own after-step pushes what it worked out to the site.
+        // The order the owner just approved is matched against stock, jobs and contracts now.
+        // The site hears of the decision at once; what the pass works out goes out with the
+        // store's next call, within its interval.
         if (outcome == "booked") fulfilment.Nudge();
         Nudge();
         return outcome == "booked" ? $"Booked as order {orderRef}." : detail;

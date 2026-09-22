@@ -1235,7 +1235,7 @@ public class IndustryJobGenerator(
     /// The root job of a plan for one item: its own inputs, and the facility the park assigns it
     /// to. Sub-components the plan would build are separate jobs with their own worklist items.
     /// </summary>
-    private async Task<PlanJob?> PlanRootJobAsync(
+    private Task<PlanJob?> PlanRootJobAsync(
         ProductionContext ctx, int productTypeId, long quantity, int? me = null,
         CancellationToken ct = default)
     {
@@ -1246,8 +1246,10 @@ public class IndustryJobGenerator(
             MeLevel  = me ?? ProductionCalculatorService.DefaultMe(ctx, productTypeId),
         };
 
-        return production.Calculate([entry], ctx)
-                         .AllJobs.FirstOrDefault(j => j.OutputTypeId == productTypeId);
+        // Synchronous under an async signature, kept so the callers' shape survives if the
+        // calculation ever needs to load anything.
+        return Task.FromResult(production.Calculate([entry], ctx)
+                                         .AllJobs.FirstOrDefault(j => j.OutputTypeId == productTypeId));
     }
 
     /// <summary>
