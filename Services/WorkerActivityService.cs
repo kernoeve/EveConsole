@@ -49,6 +49,8 @@ public sealed class WorkerActivityService
     public const string BarContractItems = "bar.contracts";
     public const string BarLpStore       = "bar.lpstore";
     public const string BarKillmails     = "bar.killmails";
+    /// <summary>The ESI kill mail detail fetch on its own, for its row in the Killmails tab.</summary>
+    public const string KillMailFetch    = "killmails.fetch";
 
     /// <summary>Discriminator on the wire, so a client can tell these from an alarm.</summary>
     private const string SignalKind = "activity";

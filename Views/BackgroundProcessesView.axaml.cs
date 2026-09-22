@@ -44,6 +44,7 @@ public partial class BackgroundProcessesView : UserControl
         _ = vm.RefreshContractsAsync();
         _ = vm.RefreshLpStoreAsync();
         _ = vm.RefreshNameCacheAsync();
+        _ = vm.RefreshAlarmsAsync();
         vm.SyncStatusBar();
         vm.SyncBackgroundProcesses();
         _tick  = 0;
@@ -85,6 +86,7 @@ public partial class BackgroundProcessesView : UserControl
                 await vm.RefreshContractsAsync();
                 await vm.RefreshLpStoreAsync();
                 await vm.RefreshNameCacheAsync();
+                await vm.RefreshAlarmsAsync();
             }
             else vm.SyncHistorySweep();
         }

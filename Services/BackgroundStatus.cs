@@ -30,6 +30,19 @@ public static class BackgroundStatus
     public static Line LpStore(bool sweeping, int done, int total) =>
         !sweeping ? Idle : new(total > 0 ? $"{done:N0} of {total:N0} corporations" : "starting", true);
 
+    /// <summary>The ESI detail fetch on its own, for its row in the Killmails tab: what it is doing,
+    /// or how much is left to do.</summary>
+    public static Line KillmailFetch(bool fetching, int done, int total, int backlog)
+    {
+        if (fetching)
+        {
+            var toGo = backlog > total ? $", {backlog - total:N0} more to go" : "";
+            return new(total > 0 ? $"fetching {done:N0} of {total:N0}{toGo}" : "fetching", true);
+        }
+        return new(backlog > 0 ? $"{backlog:N0} kill mails without details yet — the next poll fetches up to 200"
+                               : "every kill mail the app knows has its details", false);
+    }
+
     /// <summary>The ESI detail fetch first, since it is the slow one: "fetching 37 of 200, 4,812 to go";
     /// else a zKillboard daily backfill under way; else idle.</summary>
     public static Line Killmails(bool fetching, int done, int total, int backlog,
@@ -64,6 +77,7 @@ public sealed class BackgroundStatusSampler(
     public BackgroundStatus.Line LpStore()       => BackgroundStatus.LpStore(lpStore.IsSweeping, lpStore.CorpsDone, lpStore.CorpsTotal);
     public BackgroundStatus.Line Killmails()     => BackgroundStatus.Killmails(killMails.IsFetching, killMails.FetchDone, killMails.FetchTotal, killMails.Backlog,
                                                                               zkbBackfill.IsImporting, zkbBackfill.ProgressCurrent, zkbBackfill.ProgressTotal);
+    public BackgroundStatus.Line KillmailFetch() => BackgroundStatus.KillmailFetch(killMails.IsFetching, killMails.FetchDone, killMails.FetchTotal, killMails.Backlog);
 
     /// <summary>The five, keyed as the activity board carries them.</summary>
     public IEnumerable<(string Key, BackgroundStatus.Line Line)> All() =>
@@ -73,5 +87,6 @@ public sealed class BackgroundStatusSampler(
         (WorkerActivityService.BarContractItems, ContractItems()),
         (WorkerActivityService.BarLpStore,       LpStore()),
         (WorkerActivityService.BarKillmails,     Killmails()),
+        (WorkerActivityService.KillMailFetch,    KillmailFetch()),
     ];
 }

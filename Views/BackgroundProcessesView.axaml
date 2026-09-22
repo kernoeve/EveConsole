@@ -6,6 +6,26 @@
              x:DataType="vm:ApiActivityViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
 
+  <UserControl.Styles>
+    <!-- The tables of this tool: the app's grid at its usual size, read-only, no lines; a grid
+         that sorts says so itself. -->
+    <Style Selector="DataGrid.monitor">
+      <Setter Property="IsReadOnly"            Value="True" />
+      <Setter Property="AutoGenerateColumns"   Value="False" />
+      <Setter Property="FontSize"              Value="11" />
+      <Setter Property="Background"            Value="Transparent" />
+      <Setter Property="GridLinesVisibility"   Value="None" />
+      <Setter Property="RowBackground"         Value="Transparent" />
+      <Setter Property="CanUserReorderColumns" Value="False" />
+      <Setter Property="CanUserSortColumns"    Value="False" />
+      <Setter Property="HeadersVisibility"     Value="Column" />
+    </Style>
+    <Style Selector="DataGrid.monitor DataGridCell.num TextBlock">
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="Margin"        Value="0 0 6 0" />
+    </Style>
+  </UserControl.Styles>
+
   <TabControl x:Name="ProcessTabs" Margin="6">
 
     <!-- ══ Tab 1: ESI Activity Log ═══════════════════════════════════════════ -->
@@ -294,111 +314,86 @@
 
     <!-- ══ Tab 4: Contract Items ═════════════════════════════════════════════ -->
     <TabItem Header="Contract Items">
-      <Grid RowDefinitions="Auto,Auto" Margin="10 12 10 0">
+      <Grid RowDefinitions="Auto,Auto,Auto" Margin="10 12 10 0">
 
-        <!-- Running indicator -->
         <TextBlock Grid.Row="0" Text="{Binding ContractsState}" FontSize="12"
-                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 12" />
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 10" />
 
-        <!-- Progress rows -->
-        <Grid Grid.Row="1" ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Public contracts"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ContractsPublicText}"
-                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
+        <!-- One row per source of contracts whose items are pulled, and one for those that cannot be. -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding ContractSources}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Source"       Binding="{Binding Source}"     Width="210" />
+            <DataGridTextColumn Header="Contracts"    Binding="{Binding TotalText}"  Width="100" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Items pulled" Binding="{Binding PulledText}" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Queued"       Binding="{Binding QueuedText}" Width="90"  CellStyleClasses="num" />
+            <DataGridTextColumn Header="Note"         Binding="{Binding Note}"       Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
 
-          <TextBlock Grid.Row="1" Grid.Column="0" Text="Character / corp contracts"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ContractsOwnedText}"
-                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-
-          <TextBlock Grid.Row="2" Grid.Column="0" Text="Deferred"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
-          <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ContractsDeferredText}"
-                     FontSize="12" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
-        </Grid>
-
+        <TextBlock Grid.Row="2" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="Items are pulled one contract at a time, a call apiece: your own contracts first, then the public listings behind them. A contract is pulled once and kept." />
       </Grid>
     </TabItem>
 
     <TabItem Header="LP Store">
-      <Grid RowDefinitions="Auto,Auto" Margin="10 12 10 0">
+      <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10 12 10 0">
 
         <TextBlock Grid.Row="0" Text="{Binding LpStoreState}" FontSize="12"
-                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 12" />
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 6" />
 
-        <Grid Grid.Row="1" ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-          <TextBlock Grid.Row="0" Grid.Column="0" Text="Sweep progress"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-          <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LpStoreProgressText}"
-                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="18" Margin="0 0 0 8">
+          <TextBlock Text="{Binding LpStoreProgressText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="{Binding LpStoreOffersText}"   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="{Binding LpStoreDetail}"       FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+        </StackPanel>
 
-          <TextBlock Grid.Row="1" Grid.Column="0" Text="Catalogue"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-          <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LpStoreOffersText}"
-                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
+        <!-- One row per NPC corporation the sweep has looked at; those with a store first. -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding LpStoreCorps}" Classes="monitor" CanUserSortColumns="True">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Corporation"  Binding="{Binding Name}"        Width="*"   SortMemberPath="Name" />
+            <DataGridTextColumn Header="Store"        Binding="{Binding StoreText}"   Width="90"  SortMemberPath="StoreText" />
+            <DataGridTextColumn Header="Offers"       Binding="{Binding OffersText}"  Width="90"  SortMemberPath="Offers" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Last checked" Binding="{Binding CheckedText}" Width="150" SortMemberPath="CheckedAt" />
+          </DataGrid.Columns>
+        </DataGrid>
 
-          <TextBlock Grid.Row="2" Grid.Column="0" Text="Last corporation"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-          <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding LpStoreLastText}"
-                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-
-          <TextBlock Grid.Row="3" Grid.Column="0" Text="Detail"
-                     FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 8" />
-          <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LpStoreDetail}"
-                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 8" TextWrapping="Wrap" />
-
-          <TextBlock Grid.Row="4" Grid.ColumnSpan="2" FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap"
-                     Text="LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same." />
-        </Grid>
-
+        <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same." />
       </Grid>
     </TabItem>
 
     <!-- ══ Tab 5: zKillboard ═════════════════════════════════════════════════ -->
     <TabItem Header="Killmails">
-      <ScrollViewer Margin="10 12 10 0">
-        <StackPanel Spacing="14">
+      <Grid RowDefinitions="Auto,Auto,Auto" Margin="10 12 10 0">
 
-          <TextBlock Text="{Binding ZkbLiveState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+        <TextBlock Grid.Row="0" Text="{Binding ZkbLiveState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 6" />
 
-          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-            <!-- The ESI side: every kill the app has a reference to gets its details fetched, two
-                 hundred a poll; the status bar's Killmails label is this line. -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="ESI details"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding KillMailFetchDetail}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Scope"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ZkbScopeText}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Live capture"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ZkbLiveDetail}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Daily dump backfill"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ZkbBackfillDetail}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Coverage"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ZkbCoverageText}"
-                       FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Posting kills"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
-            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ZkbPostDetail}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
-          </Grid>
-
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="18" Margin="0 0 0 8">
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+            <Run Text="Scope: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding ZkbScopeText}" />
+          </TextBlock>
+          <TextBlock FontSize="11" Foreground="{DynamicResource WarnBrush}">
+            <Run Text="Coverage: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding ZkbCoverageText}" />
+          </TextBlock>
         </StackPanel>
-      </ScrollViewer>
+
+        <!-- One row per stage of the pipeline: ESI fills in each kill's details; zKillboard
+             supplies kills the characters were not on, live and by daily dump; and posts go back. -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding KillmailStages}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Stage" Binding="{Binding Stage}" Width="190" />
+            <DataGridTemplateColumn Header="State" Width="110" ClipboardContentBinding="{Binding State}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StageRowVm">
+                  <TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
     </TabItem>
 
     <TabItem Header="Intel">
@@ -434,34 +429,38 @@
 
     <!-- ══ Tab 6: Alarms ═════════════════════════════════════════════════════ -->
     <TabItem Header="Alarms">
-      <ScrollViewer Margin="10 12 10 0">
-        <StackPanel Spacing="14">
+      <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10 12 10 0">
 
-          <TextBlock Text="{Binding AlarmState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+        <TextBlock Grid.Row="0" Text="{Binding AlarmState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 6" />
 
-          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto">
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Evaluating"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AlarmDetail}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Next check"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AlarmNextText}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Last firing"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AlarmLastFireText}"
-                       FontSize="12" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" />
-          </Grid>
-
-          <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                     Text="Each alarm is checked on its own interval, so the loop only touches the database when one is actually due. An alarm announces only what it has not announced before — a condition that stays true does not repeat itself — which is why a check that keeps matching shows here as armed rather than as firing over and over." />
-
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="18" Margin="0 0 0 8">
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+            <Run Text="Next check: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding AlarmNextText}" />
+          </TextBlock>
+          <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
+            <Run Text="Last firing: " Foreground="{DynamicResource TextMutedBrush}" /><Run Text="{Binding AlarmLastFireText}" />
+          </TextBlock>
+          <TextBlock Text="{Binding AlarmDetail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
         </StackPanel>
-      </ScrollViewer>
+
+        <!-- One row per alarm defined, as the loop sees it. -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding AlarmRows}" Classes="monitor" CanUserSortColumns="True">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Alarm"        Binding="{Binding Name}"            Width="*"   SortMemberPath="Name" />
+            <DataGridTextColumn Header="Condition"    Binding="{Binding Condition}"       Width="170" SortMemberPath="Condition" />
+            <DataGridTextColumn Header="Enabled"      Binding="{Binding EnabledText}"     Width="70"  SortMemberPath="EnabledText" />
+            <DataGridTextColumn Header="Every"        Binding="{Binding EveryText}"       Width="70"  SortMemberPath="EveryText" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Last checked" Binding="{Binding LastCheckedText}" Width="140" SortMemberPath="LastChecked" />
+            <DataGridTextColumn Header="Last fired"   Binding="{Binding LastFiredText}"   Width="140" SortMemberPath="LastFired" />
+            <DataGridTextColumn Header="Fired"        Binding="{Binding FireCount}"       Width="60"  SortMemberPath="FireCount" CellStyleClasses="num" />
+            <DataGridTextColumn Header="Last error"   Binding="{Binding ErrorText}"       Width="220" SortMemberPath="ErrorText" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="Each alarm is checked on its own interval, so the loop only touches the database when one is actually due. An alarm announces only what it has not announced before — a condition that stays true does not repeat itself — which is why a check that keeps matching shows here as armed rather than as firing over and over." />
+      </Grid>
     </TabItem>
 
     <!-- ══ Order Fulfilment ══════════════════════════════════════════════════ -->
@@ -501,49 +500,38 @@
 
     <!-- ══ Tab 7: Name Cache ═════════════════════════════════════════════════ -->
     <TabItem Header="Structures">
-      <ScrollViewer Margin="10 12 10 0">
-        <StackPanel Spacing="14">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto" Margin="10 12 10 0">
 
-          <TextBlock Text="{Binding StructureState}" FontSize="12"
-                     FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+        <TextBlock Grid.Row="0" Text="{Binding StructureState}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 10" />
 
-          <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+        <!-- One row per sweep: the hourly pass over the structures our own data names, and the
+             daily walk of the public list. -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding StructureSweeps}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Sweep" Binding="{Binding Stage}" Width="150" />
+            <DataGridTemplateColumn Header="State" Width="100" ClipboardContentBinding="{Binding State}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StageRowVm">
+                  <TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Last run" Binding="{Binding LastRun}" Width="150" />
+            <DataGridTextColumn Header="Next run" Binding="{Binding NextRun}" Width="140" />
+            <DataGridTextColumn Header="Result"   Binding="{Binding Detail}"  Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Last sweep"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StructureSweepText}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
+        <Button Grid.Row="2" Content="Sweep now" Margin="0 10 0 0"
+                HorizontalAlignment="Left" Padding="14 5" FontSize="11"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
+                Command="{Binding RunStructureSweep}"
+                IsEnabled="{Binding !StructureSweepRunning}" />
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Next sweep"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StructureNextText}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Last result"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding StructureCountsText}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Public list"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PublicStructureText}"
-                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0 0 0 8" />
-
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="What this does"
-                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Top" />
-            <TextBlock Grid.Row="4" Grid.Column="1" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                       Margin="0 0 0 10"
-                       Text="Collects player-structure IDs from assets, contracts, industry jobs, market orders and wallet entries, then resolves each one's name, type, owner and position. Sweeps hourly; the public structure list is walked once a day for structures nobody here has visited. Rows our own assets identify as ships, containers or asset-safety wraps are removed rather than kept as unknown structures. Resolving needs esi-universe.read_structures.v1 and docking access, so a private structure stays unresolved — those are the ones worth describing by hand in the Structure Browser." />
-
-            <Button Grid.Row="5" Grid.Column="1" Content="Sweep now"
-                    HorizontalAlignment="Left" Padding="14 5" FontSize="11"
-                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1"
-                    Command="{Binding RunStructureSweep}"
-                    IsEnabled="{Binding !StructureSweepRunning}" />
-          </Grid>
-
-        </StackPanel>
-      </ScrollViewer>
+        <TextBlock Grid.Row="3" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 10 0 0"
+                   Text="Collects player-structure IDs from assets, contracts, industry jobs, market orders and wallet entries, then resolves each one's name, type, owner and position. Sweeps hourly; the public structure list is walked once a day for structures nobody here has visited. Rows our own assets identify as ships, containers or asset-safety wraps are removed rather than kept as unknown structures. Resolving needs esi-universe.read_structures.v1 and docking access, so a private structure stays unresolved — those are the ones worth describing by hand in the Structure Browser." />
+      </Grid>
     </TabItem>
 
     <TabItem Header="Name Cache">
