@@ -12,10 +12,13 @@ namespace EveConsole.Alarms.Conditions;
 /// missing: nothing fitted, jump fuel short, ammunition short.
 ///
 /// <para>The undock itself comes from the location poll, which stamps <c>UndockedAt</c> on a
-/// docked→space transition every ten seconds while a character is online, so the alarm sees
-/// it within one poll interval of its own. What was aboard comes from the asset snapshot,
-/// which ESI refreshes hourly: the fit, fuel and ammunition checks describe the ship as it was
-/// last listed, and every match says when that was.</para>
+/// docked→space transition while a character is online, with the ship they left in, so the
+/// alarm sees it within one poll interval of its own and judges the hull that undocked rather
+/// than whatever they fly by the time it looks — every undock of the last ten minutes is looked
+/// at on every pass, so judging the current ship re-announced old undocks after a change of
+/// ship. What was aboard comes from the asset snapshot, which ESI refreshes hourly: the fit,
+/// fuel and ammunition checks describe the ship as it was last listed, and every match says
+/// when that was.</para>
 ///
 /// <para>Everything narrows: a place AND a hull AND the fit state AND the fuel state AND the
 /// ammunition state, each left on "Any" to not care. Each of the three states can be asked for
@@ -279,7 +282,9 @@ public sealed class ShipUndockCondition : IAlarmCondition
         var names   = await db.Characters.AsNoTracking()
             .Where(c => charIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name, ct);
 
-        var typeIds = recent.Select(s => s.ShipTypeId!.Value).Distinct().ToList();
+        // The ship at the undock where the row has it; the current ship only on rows stamped
+        // before the poll kept that.
+        var typeIds = recent.Select(s => s.UndockedShipTypeId ?? s.ShipTypeId!.Value).Distinct().ToList();
         var hulls   = await (from t in db.SdeTypes.AsNoTracking()
                              join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
                              where typeIds.Contains(t.TypeId)
@@ -311,7 +316,9 @@ public sealed class ShipUndockCondition : IAlarmCondition
         var matches = new List<AlarmMatch>();
         foreach (var s in recent.OrderByDescending(s => s.UndockedAt))
         {
-            if (!hulls.TryGetValue(s.ShipTypeId!.Value, out var hull)) continue;
+            if (!hulls.TryGetValue(s.UndockedShipTypeId ?? s.ShipTypeId!.Value, out var hull)) continue;
+            var shipItemId = s.UndockedShipItemId ?? s.ShipItemId;
+            var shipName   = s.UndockedShipName   ?? s.ShipName;
 
             var system = systems.GetValueOrDefault(s.UndockedSystemId ?? s.SolarSystemId ?? 0);
             var place  = s.UndockedFromId is { } from
@@ -344,8 +351,8 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 ["hull"]         = hull.Name,
                 ["ship_class"]   = hull.Group,
                 ["is_pod"]       = isPod,
-                ["ship_name"]    = s.ShipName,
-                ["ship_item_id"] = s.ShipItemId,
+                ["ship_name"]    = shipName,
+                ["ship_item_id"] = shipItemId,
                 ["undocked_at"]  = s.UndockedAt,
             };
 
@@ -353,7 +360,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
             {
                 // A ship not in the snapshot cannot be judged, and a state that cannot be judged
                 // is not the state asked for.
-                var cargo = s.ShipItemId is { } shipItemId ? await ShipContentsAsync(db, s.CharacterId, shipItemId, ct) : null;
+                var cargo = shipItemId is { } itemId ? await ShipContentsAsync(db, s.CharacterId, itemId, ct) : null;
                 detail["assets_as_of"] = cargo?.AsOf;
                 if (cargo is null) continue;
 

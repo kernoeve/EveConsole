@@ -2541,7 +2541,10 @@ public class App : Application
                         "UndockedFromId"    INTEGER,
                         "UndockedSystemId"  INTEGER,
                         "SystemChangedAt"   TEXT,
-                        "PreviousSystemId"  INTEGER
+                        "PreviousSystemId"  INTEGER,
+                        "UndockedShipTypeId" INTEGER,
+                        "UndockedShipItemId" INTEGER,
+                        "UndockedShipName"  TEXT
                     )
                     """);
 
@@ -3107,6 +3110,10 @@ public class App : Application
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedAt" TEXT NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedFromId" INTEGER NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedSystemId" INTEGER NULL""",
+                    // The ship as it was at the undock, so a later change of ship cannot re-judge it.
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipTypeId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipItemId" INTEGER NULL""",
+                    """ALTER TABLE "CharacterStatuses" ADD COLUMN "UndockedShipName" TEXT NULL""",
                     // And the last change of system, for the wake-up alarm's arrival mode.
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "SystemChangedAt" TEXT NULL""",
                     """ALTER TABLE "CharacterStatuses" ADD COLUMN "PreviousSystemId" INTEGER NULL""",
