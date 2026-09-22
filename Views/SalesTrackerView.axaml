@@ -97,6 +97,13 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopBuyers}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
+              <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:GroupRowVm">
+                    <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTemplateColumn Header="Buyer" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:GroupRowVm">
@@ -124,6 +131,13 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding MarketGroups}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
+              <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ProfitGroupRowVm">
+                    <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTextColumn Header="Group"  Binding="{Binding Name}"      Width="*" />
               <DataGridTextColumn Header="Profit" Binding="{Binding Profit}"    SortMemberPath="ProfitRaw" Width="Auto" CellStyleClasses="num" />
               <DataGridTextColumn Header="%"      Binding="{Binding ProfitPct}" Width="Auto" CellStyleClasses="num" />
@@ -139,6 +153,13 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding TopItems}" AutoGenerateColumns="False"
                     IsReadOnly="True" RowHeight="20" CanUserSortColumns="True" Background="Transparent">
             <DataGrid.Columns>
+              <DataGridTemplateColumn Header="" Width="22" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:ProfitGroupRowVm">
+                    <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
               <DataGridTemplateColumn Header="Item" SortMemberPath="Name" Width="*" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ProfitGroupRowVm">

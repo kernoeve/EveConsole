@@ -255,12 +255,37 @@ public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0,
 public record SalesTypeOption(string Label, string? Kind)
 { public override string ToString() => Label; }
 
+/// <summary>The pictures the rollup rows carry: a buyer's portrait or logo, an item's icon.</summary>
+public static class SaleImages
+{
+    public static string? Entity(EntityKind kind, long id) => id <= 0 ? null : kind switch
+    {
+        EntityKind.Pilot                          => $"https://images.evetech.net/characters/{id}/portrait?size=32",
+        EntityKind.PlayerCorp or EntityKind.NpcCorp => $"https://images.evetech.net/corporations/{id}/logo?size=32",
+        EntityKind.Alliance                       => $"https://images.evetech.net/alliances/{id}/logo?size=32",
+        _                                         => null,
+    };
+
+    public static string? Type(int typeId) => typeId <= 0 ? null : $"https://images.evetech.net/types/{typeId}/icon?size=32";
+}
+
 // One row on a Sales Tracker rollup grid (sales grouped by buyer / market group / item).
-public class GroupRowVm
+public class GroupRowVm : ReactiveObject
 {
     public string Name      { get; }
     public string Amount    { get; }
     public double AmountRaw { get; }
+
+    private readonly string? _iconUrl;
+    private Bitmap? _icon;
+    /// <summary>The buyer's portrait or logo, once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public async Task LoadIconAsync()
+    {
+        if (_iconUrl is null) return;
+        var bmp = await EveImageCache.GetAsync(_iconUrl);
+        if (bmp is not null) Avalonia.Threading.Dispatcher.UIThread.Post(() => Icon = bmp);
+    }
 
     /// <summary>Where the group's name goes when clicked, or null when it names nothing with a
     /// page of its own. Taken from the first sale in the group — every sale in it shares the
@@ -268,31 +293,44 @@ public class GroupRowVm
     public Action? Open    { get; }
     public bool    HasLink => Open is not null;
 
-    public GroupRowVm(string name, double amount, Action? open = null)
+    public GroupRowVm(string name, double amount, Action? open = null, string? iconUrl = null)
     {
-        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount); Open = open;
+        Name = name; AmountRaw = amount; Amount = MarketFmt.Isk(amount); Open = open; _iconUrl = iconUrl;
     }
 }
 
 // One row on a profit rollup grid — summed build-based profit plus the average profit % of the
 // sales in the group. Sorted by the profit amount (ProfitRaw). "—" when no sale in the group had
 // a cost basis to profit against.
-public class ProfitGroupRowVm
+public class ProfitGroupRowVm : ReactiveObject
 {
     public string Name      { get; }
     public string Profit    { get; }
     public double ProfitRaw { get; }
     public string ProfitPct { get; }
 
+    private readonly string? _iconUrl;
+    private Bitmap? _icon;
+    /// <summary>The item's icon — for a market group, the icon of the first item sold in it,
+    /// alphabetically — once the batch that fetches them has it.</summary>
+    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    public async Task LoadIconAsync()
+    {
+        if (_iconUrl is null) return;
+        var bmp = await EveImageCache.GetAsync(_iconUrl);
+        if (bmp is not null) Avalonia.Threading.Dispatcher.UIThread.Post(() => Icon = bmp);
+    }
+
     /// <summary>As <see cref="GroupRowVm.Open"/>. Null on the market-group rollup, whose rows
     /// name a category rather than a thing with a page.</summary>
     public Action? Open    { get; }
     public bool    HasLink => Open is not null;
 
-    public ProfitGroupRowVm(string name, double? profit, double? pctAvg, Action? open = null)
+    public ProfitGroupRowVm(string name, double? profit, double? pctAvg, Action? open = null, string? iconUrl = null)
     {
         Name      = name;
         Open      = open;
+        _iconUrl  = iconUrl;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p  ? MarketFmt.Isk(p) : "—";
         ProfitPct = pctAvg is double pp ? $"{pp:N1}%"      : "—";
@@ -589,11 +627,17 @@ public class SalesTrackerViewModel : ReactiveObject
 
         // Buyers and items link the same way their columns in the grid below do. Market group is
         // deliberately plain: "Standard Dreadnoughts" is a category, not a thing with a page.
+        // Each row carries a picture: the buyer's portrait or logo; the item's icon; and for a
+        // market group, the icon of the first item sold in it, alphabetically, since a category
+        // has no picture of its own.
         FillGroup(TopBuyers,          list, r => r.Buyer,
-                  r => r.HasBuyerLink ? r.OpenBuyer : null);
-        FillProfitGroup(MarketGroups, list, r => r.MarketGroup);
+                  r => r.HasBuyerLink ? r.OpenBuyer : null,
+                  g => SaleImages.Entity(g.First().BuyerKind, g.First().BuyerId));
+        FillProfitGroup(MarketGroups, list, r => r.MarketGroup,
+                  icon: g => SaleImages.Type(g.Where(r => r.TypeId > 0).OrderBy(r => r.Items, StringComparer.OrdinalIgnoreCase).FirstOrDefault()?.TypeId ?? 0));
         FillProfitGroup(TopItems,     list, r => r.Items,
-                  r => r.HasItemLink ? r.OpenItem : null);
+                  r => r.HasItemLink ? r.OpenItem : null,
+                  g => SaleImages.Type(g.First().TypeId));
 
         BuildCharts(list);
     }
@@ -706,21 +750,25 @@ public class SalesTrackerViewModel : ReactiveObject
         };
 
     private static void FillGroup(ObservableCollection<GroupRowVm> target, List<SaleRowVm> rows,
-                                  Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)
+                                  Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null,
+                                  Func<IGrouping<string, SaleRowVm>, string?>? icon = null)
     {
         target.Clear();
         var groups = rows
             .Where(r => !string.IsNullOrEmpty(key(r)))
             .GroupBy(key)
-            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw), link?.Invoke(g.First())))
-            .OrderByDescending(g => g.AmountRaw);
+            .Select(g => new GroupRowVm(g.Key, g.Sum(r => r.TotalRaw), link?.Invoke(g.First()), icon?.Invoke(g)))
+            .OrderByDescending(g => g.AmountRaw)
+            .ToList();
         foreach (var g in groups) target.Add(g);
+        _ = Task.WhenAll(groups.Select(g => g.LoadIconAsync()));   // one batch, off the cache after the first time
     }
 
     // Group sales and sum build-based profit, plus the average profit % over the sales that had a
     // cost basis. Ordered by profit amount (still by amount, not by percent).
     private static void FillProfitGroup(ObservableCollection<ProfitGroupRowVm> target, List<SaleRowVm> rows,
-                                        Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null)
+                                        Func<SaleRowVm, string> key, Func<SaleRowVm, Action?>? link = null,
+                                        Func<IGrouping<string, SaleRowVm>, string?>? icon = null)
     {
         target.Clear();
         var groups = rows
@@ -732,10 +780,12 @@ public class SalesTrackerViewModel : ReactiveObject
                 var pcts    = g.Where(r => r.ProfitPctRaw != double.MinValue).Select(r => r.ProfitPctRaw).ToList();
                 double? profit = profits.Count > 0 ? profits.Sum()     : (double?)null;
                 double? pctAvg = pcts.Count    > 0 ? pcts.Average()    : (double?)null;
-                return new ProfitGroupRowVm(g.Key, profit, pctAvg, link?.Invoke(g.First()));
+                return new ProfitGroupRowVm(g.Key, profit, pctAvg, link?.Invoke(g.First()), icon?.Invoke(g));
             })
-            .OrderByDescending(g => g.ProfitRaw);
+            .OrderByDescending(g => g.ProfitRaw)
+            .ToList();
         foreach (var g in groups) target.Add(g);
+        _ = Task.WhenAll(groups.Select(g => g.LoadIconAsync()));   // one batch, off the cache after the first time
     }
 
     private static bool TryDate(string s, out DateTime date)
