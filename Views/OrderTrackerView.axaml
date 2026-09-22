@@ -104,7 +104,7 @@
       </DataGrid.ContextMenu>
       <DataGrid.Columns>
         <DataGridTextColumn Header="Created"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
-        <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="230">
+        <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="230" ClipboardContentBinding="{Binding Type}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
@@ -119,7 +119,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="Units"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
-        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150">
+        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
@@ -139,7 +139,7 @@
         <!-- Chips rather than a comma-separated string: colour is what makes a column of tags
              readable at a glance, which is the only reason to have the column at all. Read-only
              here — labels are added by right-click or in the edit window. -->
-        <DataGridTemplateColumn Header="Labels" Width="180">
+        <DataGridTemplateColumn Header="Labels" Width="180" ClipboardContentBinding="{Binding Labels}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
@@ -163,7 +163,7 @@
         <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
         <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
              ordered. Only orders where someone said otherwise carry a name here. -->
-        <DataGridTemplateColumn Header="Contract To" SortMemberPath="ContractTo" Width="150">
+        <DataGridTemplateColumn Header="Contract To" SortMemberPath="ContractTo" Width="150" ClipboardContentBinding="{Binding ContractTo}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
@@ -193,7 +193,7 @@
 
         <!-- What is still unaccounted for once the shelf and the jobs are counted. Red only when
              there is something to show: a column of zeroes in red trains the eye to ignore it. -->
-        <DataGridTemplateColumn Header="Short" Width="80" SortMemberPath="Shortfall">
+        <DataGridTemplateColumn Header="Short" Width="80" SortMemberPath="Shortfall" ClipboardContentBinding="{Binding ShortfallText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <TextBlock Text="{Binding ShortfallText}"
@@ -203,7 +203,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Contract" Width="220" SortMemberPath="Contract">
+        <DataGridTemplateColumn Header="Contract" Width="220" SortMemberPath="Contract" ClipboardContentBinding="{Binding Contract}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>

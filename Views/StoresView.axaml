@@ -150,7 +150,7 @@
                   <DataGridTextColumn Header="Outcome"   Binding="{Binding Outcome}"   Width="80" />
                   <!-- Wrapped, not truncated: the note is where a rejection explains itself, and
                        an ellipsis in the one column that says why is the column doing nothing. -->
-                  <DataGridTemplateColumn Header="Note" Width="320">
+                  <DataGridTemplateColumn Header="Note" Width="320" ClipboardContentBinding="{Binding Detail}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StoreMailRowVm">
                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap"
@@ -182,7 +182,7 @@
                   <DataGridTextColumn Header="Buyer"   Binding="{Binding Buyer}"    Width="150" />
                   <DataGridTextColumn Header="Outcome" Binding="{Binding Outcome}"  Width="120" />
                   <DataGridTextColumn Header="Order"   Binding="{Binding OrderRef}" Width="80" />
-                  <DataGridTemplateColumn Header="Note" Width="*">
+                  <DataGridTemplateColumn Header="Note" Width="*" ClipboardContentBinding="{Binding Detail}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StoreWebEventRowVm">
                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="4 2" />

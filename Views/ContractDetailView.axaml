@@ -163,7 +163,7 @@
                   Background="{DynamicResource SurfaceBaseBrush}"
                   GridLinesVisibility="Horizontal">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="" Width="70">
+            <DataGridTemplateColumn Header="" Width="70" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding Kind}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:ContractItemRowVm">
                   <TextBlock Text="{Binding Kind}" Foreground="{Binding KindColor}"
@@ -171,7 +171,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTemplateColumn Header="Item" Width="*">
+            <DataGridTemplateColumn Header="Item" Width="*" x:DataType="vm:ContractItemRowVm" ClipboardContentBinding="{Binding TypeName}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:ContractItemRowVm">
                   <Panel>

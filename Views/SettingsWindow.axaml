@@ -800,7 +800,7 @@
                                       IsReadOnly="True" />
 
                   <!-- Editable in place, saving on change. -->
-                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True">
+                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True" ClipboardContentBinding="{Binding Activities}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:IndyCharRow">
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
@@ -816,7 +816,7 @@
                   </DataGridTemplateColumn>
 
                   <DataGridTemplateColumn Header="Skill queue" Width="90" SortMemberPath="SkillQueue"
-                                          IsReadOnly="True">
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding SkillQueue}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:IndyCharRow">
                         <CheckBox IsChecked="{Binding SkillQueue, Mode=TwoWay}" FontSize="11" MinHeight="0"
@@ -3038,7 +3038,7 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Table" Width="*" SortMemberPath="Name">
+                    <DataGridTemplateColumn Header="Table" Width="*" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:TableSizeVm">
                           <TextBlock Text="{Binding Name}" VerticalAlignment="Center"

@@ -81,7 +81,7 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
               <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
-              <DataGridTemplateColumn Header="Status" Width="100" SortMemberPath="Status">
+              <DataGridTemplateColumn Header="Status" Width="100" SortMemberPath="Status" ClipboardContentBinding="{Binding Status}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -89,7 +89,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents">
+              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
@@ -104,7 +104,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer">
+              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer" ClipboardContentBinding="{Binding Issuer}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
@@ -119,7 +119,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Assignee" Width="140" SortMemberPath="Assignee">
+              <DataGridTemplateColumn Header="Assignee" Width="140" SortMemberPath="Assignee" ClipboardContentBinding="{Binding Assignee}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
@@ -216,7 +216,7 @@
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
               <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
-              <DataGridTemplateColumn Header="Status" Width="90">
+              <DataGridTemplateColumn Header="Status" Width="90" ClipboardContentBinding="{Binding Status}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -224,7 +224,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents">
+              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
@@ -240,7 +240,7 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
-              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer">
+              <DataGridTemplateColumn Header="Issuer" Width="150" SortMemberPath="Issuer" ClipboardContentBinding="{Binding Issuer}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>

@@ -71,6 +71,9 @@ public class SaleRowVm : ReactiveObject
     /// <summary>The same labels as coloured chips, drawn exactly as the Order Tracker draws them.</summary>
     public List<LabelChip> LabelChips { get; private set; } = [];
 
+    /// <summary>The column's text — the tags, comma-separated — which is what a copied row carries.</summary>
+    public string Labels => string.Join(", ", LabelList);
+
     public void SetLabels(IReadOnlyList<string> labels)
     {
         LabelList  = labels;

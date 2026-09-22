@@ -228,7 +228,7 @@
                 Background="{DynamicResource SurfaceBaseBrush}">
         <DataGrid.Columns>
           <DataGridTextColumn Header="#"        Binding="{Binding Number}"       Width="44" />
-          <DataGridTemplateColumn Header="From" Width="130" SortMemberPath="From">
+          <DataGridTemplateColumn Header="From" Width="130" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
@@ -243,7 +243,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Jump to" Width="130" SortMemberPath="To">
+          <DataGridTemplateColumn Header="Jump to" Width="130" SortMemberPath="To" ClipboardContentBinding="{Binding To}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
@@ -258,7 +258,7 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Region" Width="160" SortMemberPath="ToRegion">
+          <DataGridTemplateColumn Header="Region" Width="160" SortMemberPath="ToRegion" ClipboardContentBinding="{Binding ToRegion}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>

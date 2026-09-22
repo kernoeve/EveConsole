@@ -218,6 +218,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
                 Tag         = captured,
                 IsReadOnly  = true,
                 CanUserSort = true,
+                ClipboardContentBinding = GridRowCopy.Binding(captured),
                 CellTemplate = new FuncDataTemplate<GridRow>(
                     (_, _) => new SelectableCell(grid, captured, _selectionSvc, onClick,
                                                  AssetBrowserViewModel.NumericColumns.Contains(captured))),

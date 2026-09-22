@@ -83,6 +83,7 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
             {
                 Header     = captured,
                 IsReadOnly = true,
+                ClipboardContentBinding = GridRowCopy.Binding(captured),
                 CellTemplate = new FuncDataTemplate<GridRow>(
                     (row, _) => new TextBlock
                     {

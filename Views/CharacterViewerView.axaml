@@ -70,7 +70,7 @@
           <DataGridTextColumn Header="Corp"      Binding="{Binding CorpName}" Width="150"/>
           <DataGridTextColumn Header="Alliance"  Binding="{Binding Alliance}" Width="140"/>
 
-          <DataGridTemplateColumn Header="Status" Width="70" SortMemberPath="Online">
+          <DataGridTemplateColumn Header="Status" Width="70" SortMemberPath="Online" ClipboardContentBinding="{Binding OnlineText}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding OnlineText}" Foreground="{Binding OnlineColor}"
@@ -80,7 +80,7 @@
           </DataGridTemplateColumn>
 
           <!-- Tooltips on the wide text columns: a structure name rarely fits. -->
-          <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="Location">
+          <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Location}" ToolTip.Tip="{Binding Location}"
@@ -89,7 +89,7 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Ship" Width="150" SortMemberPath="Ship">
+          <DataGridTemplateColumn Header="Ship" Width="150" SortMemberPath="Ship" ClipboardContentBinding="{Binding Ship}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Ship}" ToolTip.Tip="{Binding Ship}"
@@ -101,7 +101,7 @@
           <DataGridTextColumn Header="Pod value" Binding="{Binding PodValue}"
                               SortMemberPath="PodValueRaw" Width="90"/>
 
-          <DataGridTemplateColumn Header="Home station" Width="190" SortMemberPath="HomeStation">
+          <DataGridTemplateColumn Header="Home station" Width="190" SortMemberPath="HomeStation" ClipboardContentBinding="{Binding HomeStation}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding HomeStation}" ToolTip.Tip="{Binding HomeStation}"
@@ -110,7 +110,7 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Skill queue" Width="100" SortMemberPath="QueueEndsRaw">
+          <DataGridTemplateColumn Header="Skill queue" Width="100" SortMemberPath="QueueEndsRaw" ClipboardContentBinding="{Binding QueueText}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding QueueText}" Foreground="{Binding QueueColor}"
@@ -129,7 +129,7 @@
 
           <!-- Coloured by how much room is left, as a share of that character's own capacity —
                two free is comfortable on three and nearly nothing on eleven. -->
-          <DataGridTemplateColumn Header="Mfg" Width="70" SortMemberPath="ManufacturingFreeRaw">
+          <DataGridTemplateColumn Header="Mfg" Width="70" SortMemberPath="ManufacturingFreeRaw" ClipboardContentBinding="{Binding Manufacturing}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Manufacturing}" Foreground="{Binding ManufacturingColor}"
@@ -139,7 +139,7 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Rxn" Width="70" SortMemberPath="ReactionFreeRaw">
+          <DataGridTemplateColumn Header="Rxn" Width="70" SortMemberPath="ReactionFreeRaw" ClipboardContentBinding="{Binding Reaction}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Reaction}" Foreground="{Binding ReactionColor}"
@@ -149,7 +149,7 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Sci" Width="*" SortMemberPath="ScienceFreeRaw">
+          <DataGridTemplateColumn Header="Sci" Width="*" SortMemberPath="ScienceFreeRaw" ClipboardContentBinding="{Binding Science}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Science}" Foreground="{Binding ScienceColor}"
