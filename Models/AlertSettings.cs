@@ -14,4 +14,9 @@ public class AlertSettings
 
     /// <summary>"You have N industry jobs ready to deliver" — finished, output waiting, slot held.</summary>
     public bool IndustryJobsReady          { get; set; } = true;
+
+    /// <summary>Active contracts assigned to a character or personal corporation.</summary>
+    public bool OutstandingContracts       { get; set; } = true;
+    /// <summary>Active contracts from or to them in the last 15% of their life.</summary>
+    public bool ExpiringContracts          { get; set; } = true;
 }

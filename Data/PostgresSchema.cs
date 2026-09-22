@@ -472,6 +472,12 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "IndustryJobsReady" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "OutstandingContracts" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "ExpiringContracts" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
 
         // The hours an alarm is on; null means always. Older builds neither read nor write them.
         """
@@ -795,8 +801,9 @@ public static class PostgresSchema
         """
         INSERT INTO "AlertSettings"
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
-             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady")
-        VALUES (1, true, true, true, 30, true, true, true, true, true)
+             "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
+             "OutstandingContracts", "ExpiringContracts")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

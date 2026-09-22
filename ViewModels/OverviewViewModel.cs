@@ -360,6 +360,8 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToStandingProjects              { get; set; }
     public Action?          NavigateToStandingBuyOrders             { get; set; }
     public Action?          NavigateToIndustryJobs                  { get; set; }
+    /// <summary>The Contracts tool on every character and personal corporation, active only, soonest to expire first.</summary>
+    public Action?          NavigateToActiveContracts               { get; set; }
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
@@ -1702,6 +1704,59 @@ public class OverviewViewModel : ReactiveObject
                     });
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "IndustryJobsReadyAlert", ex); }
+        }
+
+        // Contracts on the user's side of the table: the active ones assigned to a character or
+        // personal corporation, which are waiting on them; and, of those and the ones they
+        // issued, any in the last 15% of its life. Expiry is judged here rather than in SQL: a
+        // DateTimeOffset in a LINQ Where does not translate on SQLite, and the set is small.
+        if (_alertSettings.OutstandingContracts || _alertSettings.ExpiringContracts)
+        {
+            try
+            {
+                var utcNow = DateTimeOffset.UtcNow;
+                var mine   = (await Off(() => _db.Characters.AsNoTracking().Select(c => c.Id).ToListAsync()))
+                    .Concat(await Off(() => _db.Corporations.AsNoTracking().Where(c => c.IsPersonal).Select(c => (long)c.Id).ToListAsync()))
+                    .ToHashSet();
+                var active = (await Off(() => _db.EsiContracts.AsNoTracking()
+                        .Where(c => c.Status == "outstanding" && (c.OwnerType == "character" || c.OwnerType == "corporation"))
+                        .Select(c => new { c.ContractId, c.IssuerId, c.IssuerCorporationId, c.ForCorporation, c.AssigneeId, c.DateIssued, c.DateExpired })
+                        .ToListAsync()))
+                    .Where(c => c.DateExpired is null || c.DateExpired > utcNow)
+                    .GroupBy(c => c.ContractId).Select(g => g.First())   // every party that sees one stores a copy
+                    .ToList();
+
+                if (_alertSettings.OutstandingContracts)
+                {
+                    var toMe = active.Count(c => c.AssigneeId is { } a && mine.Contains(a));
+                    if (toMe > 0)
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message = toMe == 1 ? "1 outstanding contract issued to you." : $"{toMe} outstanding contracts issued to you.",
+                            NavigateCommand = NavigateToActiveContracts is not null ? ReactiveCommand.Create(NavigateToActiveContracts) : null,
+                        });
+                }
+
+                if (_alertSettings.ExpiringContracts)
+                {
+                    var expiring = active.Count(c =>
+                    {
+                        if (c.DateExpired is not { } exp) return false;
+                        var from = c.ForCorporation ? c.IssuerCorporationId : c.IssuerId;
+                        var ours = mine.Contains(from) || (c.AssigneeId is { } a && mine.Contains(a));
+                        if (!ours) return false;
+                        var life = exp - c.DateIssued;
+                        return life > TimeSpan.Zero && utcNow >= exp - TimeSpan.FromTicks((long)(life.Ticks * 0.15));
+                    });
+                    if (expiring > 0)
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message = expiring == 1 ? "1 contract is about to expire." : $"{expiring} contracts are about to expire.",
+                            NavigateCommand = NavigateToActiveContracts is not null ? ReactiveCommand.Create(NavigateToActiveContracts) : null,
+                        });
+                }
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "ContractAlerts", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the
