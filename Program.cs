@@ -25,6 +25,14 @@ class Program
     /// </summary>
     public const string TrayArgument = "--tray";
 
+    /// <summary>
+    /// <c>--profile &lt;name&gt;</c>: run against a data directory of this process's own — its own
+    /// config, database, settings and caches — instead of the ordinary one. See
+    /// <see cref="AppConfig.UseProfile"/>. The value may follow as the next argument or after an
+    /// <c>=</c>, so both spellings an IDE's argument box invites are understood.
+    /// </summary>
+    public const string ProfileArgument = "--profile";
+
     // Avalonia requires this to remain synchronous — don't add async here
     [STAThread]
     public static void Main(string[] args)
@@ -32,6 +40,11 @@ class Program
         // Must run first: handles Velopack install/update/uninstall hooks (these invoke the exe
         // with special args and exit before the UI starts).
         VelopackApp.Build().Run();
+
+        // ⚠️ Before anything asks where anything is. Every path in the app comes from
+        // AppConfig.AppDataDir, and this is what moves it; a single read beforehand would be a
+        // read against the ordinary directory, which is the one this switch exists to leave alone.
+        if (ProfileFrom(args) is { } profile) AppConfig.UseProfile(profile);
 
         // ⚠️ Before everything else, and it exits. This is the elevated copy of ourselves, asked to
         // do the one thing an ordinary token cannot: create or delete a service and write a
@@ -108,6 +121,26 @@ class Program
 
     /// <summary>
     /// Sets Avalonia up and runs the dispatcher until the token is cancelled, then releases the
+    /// <summary>
+    /// The value of <c>--profile</c>, however it was written: <c>--profile dev</c> or
+    /// <c>--profile=dev</c>. Null when the switch is absent, or present with nothing after it —
+    /// a bare switch is a mistake, and guessing a profile name would put the app somewhere
+    /// nobody asked for.
+    /// </summary>
+    private static string? ProfileFrom(string[] args)
+    {
+        for (var i = 0; i < args.Length; i++)
+        {
+            var a = args[i];
+            if (a.StartsWith(ProfileArgument + "=", StringComparison.OrdinalIgnoreCase))
+                return a[(ProfileArgument.Length + 1)..] is { Length: > 0 } v ? v : null;
+
+            if (!string.Equals(a, ProfileArgument, StringComparison.OrdinalIgnoreCase)) continue;
+            return i + 1 < args.Length && !args[i + 1].StartsWith('-') ? args[i + 1] : null;
+        }
+        return null;
+    }
+
     /// lease. The whole of the worker, shared by <c>--headless</c> and the Windows service so the
     /// two cannot come to mean different things.
     /// </summary>

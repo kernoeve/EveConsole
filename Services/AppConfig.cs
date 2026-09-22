@@ -17,9 +17,64 @@ public static class AppConfig
 
     private static string LocalAppData => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
+    // ── Profiles ─────────────────────────────────────────────────────────────
+
+    private static string? _profileDir;
+
+    /// <summary>
+    /// The named profile this process was started with, or null for the ordinary one.
+    ///
+    /// <para>A profile is a second app data directory and therefore a second everything: its own
+    /// config.json, its own database, its own remembered UI state, agent settings, sounds and
+    /// picture cache. It exists so a development build can be run against a database of its own
+    /// while the installed copy goes on using the real one — which matters more than it sounds,
+    /// because opening the real database with a newer build stamps its version and the installed
+    /// copy then refuses to start.</para>
+    ///
+    /// <para>⚠️ Nothing is shared and nothing is copied in. A new profile starts empty, the way a
+    /// fresh install does, and is set up from Settings like one.</para>
+    /// </summary>
+    public static string? ProfileName { get; private set; }
+
+    /// <summary>
+    /// Points this process at a profile. Called once from <c>Program.Main</c>, before anything
+    /// has read a path, and never afterwards.
+    ///
+    /// <para><paramref name="nameOrPath"/> is a bare name — kept under <c>Profiles\</c> in the
+    /// ordinary app data directory — or a path of its own, for a profile somewhere else entirely.</para>
+    /// </summary>
+    public static void UseProfile(string nameOrPath)
+    {
+        var value = nameOrPath.Trim().Trim('"');
+        if (value.Length == 0) return;
+
+        var looksLikePath = Path.IsPathRooted(value)
+                         || value.Contains(Path.DirectorySeparatorChar)
+                         || value.Contains(Path.AltDirectorySeparatorChar);
+
+        var dir = looksLikePath
+            ? Path.GetFullPath(value)
+            : Path.Combine(LocalAppData, AppFolder, "Profiles", Sanitise(value));
+
+        Directory.CreateDirectory(dir);
+        _profileDir = dir;
+        ProfileName = looksLikePath ? Path.GetFileName(dir.TrimEnd(Path.DirectorySeparatorChar)) : value;
+    }
+
+    /// <summary>A name that is safe as one path segment. A profile is named by whoever types the
+    /// switch, so it cannot be trusted to be one.</summary>
+    private static string Sanitise(string name)
+    {
+        var clean = new string(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+        return clean.Trim('.', ' ') is { Length: > 0 } s ? s : "profile";
+    }
+
     // Public so services that keep their own files alongside the config (agent settings, TTS
     // models, etc.) share the single app data directory rather than hard-coding the folder name.
-    public static string AppDataDir => Path.Combine(LocalAppData, AppFolder);
+    //
+    // ⚠️ The profile's directory when there is one, so everything that keeps a file beside the
+    // config follows it without knowing profiles exist.
+    public static string AppDataDir => _profileDir ?? Path.Combine(LocalAppData, AppFolder);
 
     /// <summary>
     /// A config.json sitting beside the executable, which takes precedence over the one in app
@@ -40,8 +95,15 @@ public static class AppConfig
     public static string PortableConfigPath =>
         Path.Combine(AppContext.BaseDirectory, "config.json");
 
-    /// <summary>True when settings are being read from beside the executable.</summary>
-    public static bool UsingPortableConfig => File.Exists(PortableConfigPath);
+    /// <summary>
+    /// True when settings are being read from beside the executable.
+    ///
+    /// <para>⚠️ A profile wins over it. Running a development build from an IDE means running it
+    /// out of its build directory, which is exactly where a portable config sits — so without
+    /// this the switch that asks for a database of its own would be overruled by the file it is
+    /// there to avoid.</para>
+    /// </summary>
+    public static bool UsingPortableConfig => _profileDir is null && File.Exists(PortableConfigPath);
 
     private static string ConfigPath =>
         UsingPortableConfig ? PortableConfigPath : Path.Combine(AppDataDir, "config.json");
@@ -463,6 +525,11 @@ public static class AppConfig
     {
         try
         {
+            // ⚠️ Never into a profile. A profile is empty by definition and stays that way until
+            // somebody sets it up; carrying a years-old install into a test database would be a
+            // surprise, and a slow one — the old database is copied whole.
+            if (_profileDir is not null) return;
+
             // Already set up (fresh install or a prior migration) — do nothing.
             if (File.Exists(ConfigPath)) return;
 

@@ -124,6 +124,23 @@ See [Getting started](README.md#getting-started) in the README for requirements 
 commands. In short: .NET 9 SDK, plus the system **VLC** package on Linux — it is the one dependency
 the build cannot carry itself.
 
+### Keep your development runs off your real data
+
+Run the app with `--profile <name>` — `--profile dev`, and in an IDE it goes in the run
+configuration's program arguments — and it keeps everything in
+`%LocalAppData%\EveConsole\Profiles\<name>` (`~/.local/share/EveConsole/Profiles/<name>` on Linux)
+instead of the ordinary data directory: its own config, its own database, its own remembered
+settings and caches. A path works too, for a profile somewhere else entirely. Nothing is shared
+with the installed copy and nothing is copied in — the profile starts empty, the way a fresh
+install does, and is set up from Settings like one.
+
+Worth doing before you run a build of your own at all, for two reasons. A newer build opening a
+database stamps its version into it, and the installed copy then refuses to start against it until
+it catches up — the refusal is deliberate, since a build that does not match the schema fails as
+scattered features quietly not working rather than as anything you could diagnose. And a profile
+has a single-instance lock of its own, so it runs alongside the copy you actually use rather than
+bringing that window to the front and exiting.
+
 ---
 
 ## Licence

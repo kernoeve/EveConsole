@@ -60,10 +60,13 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// </summary>
     public bool CanSaveDbChoice => EngineChanged || IsPostgres;
 
-    // ⚠️ Whether the app is reading its settings from beside the executable, shown because the
-    // alternative is a user editing the file in app data and wondering why nothing changes.
+    // ⚠️ Where the app is reading its settings from, shown because every other answer leaves a
+    // user editing a file that nothing is reading and wondering why nothing changes.
     public string ConfigSourceText =>
-        AppConfig.UsingPortableConfig
+        AppConfig.ProfileName is { } profile
+            ? $"Running under the \"{profile}\" profile: settings, database and caches are in "
+              + $"{AppConfig.AppDataDir}, and the ordinary installation's are untouched."
+        : AppConfig.UsingPortableConfig
             ? $"Settings are being read from {AppConfig.PortableConfigPath} (beside the program), "
               + "not from app data."
             : "Settings are stored in app data. Place a config.json beside the program to give "

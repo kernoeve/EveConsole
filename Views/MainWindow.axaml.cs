@@ -45,7 +45,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private bool _started;
 
-    public MainWindow() => InitializeComponent();
+    public MainWindow()
+    {
+        InitializeComponent();
+
+        // Which window is which, in the taskbar and in alt-tab, when a profile is running beside
+        // the ordinary copy. The database is named in the title bar's own hover; this is for
+        // telling two windows apart before reading either.
+        if (AppConfig.ProfileName is { } profile) Title = $"EVE Console — {profile}";
+    }
 
     protected override void OnOpened(EventArgs e)
     {
