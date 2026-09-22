@@ -224,6 +224,13 @@
         </ContextMenu>
       </DataGrid.ContextMenu>
       <DataGrid.Columns>
+        <DataGridTemplateColumn Header="" Width="26" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:SaleRowVm">
+              <Image Source="{Binding Icon}" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
         <DataGridTextColumn Header="" Binding="{Binding NotForProfitMark}" Width="24"
                             CanUserSort="False" />
         <DataGridTextColumn Header="Date / Time"  Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />

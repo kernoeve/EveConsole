@@ -793,6 +793,13 @@
                   </Style>
                 </DataGrid.Styles>
                 <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="" Width="24" IsReadOnly="True" CanUserSort="False" CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:OrderSummaryRowVm">
+                        <Image Source="{Binding Icon}" Width="18" Height="18" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="Created on" Binding="{Binding Created}"
                                       SortMemberPath="CreatedSort" Width="90" />
                   <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />

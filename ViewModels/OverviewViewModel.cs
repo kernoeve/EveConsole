@@ -1346,6 +1346,7 @@ public class OverviewViewModel : ReactiveObject
 
             Orders.Clear();
             foreach (var vm in rows) Orders.Add(vm);
+            _ = Task.WhenAll(rows.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
             HasOrders = Orders.Count > 0;
             this.RaisePropertyChanged(nameof(NoOrders));
         }
