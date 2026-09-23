@@ -1938,9 +1938,16 @@ public class ItemBrowserViewModel : ReactiveObject
                         IReadOnlyList<ReprocessSourceVm>, IReadOnlyList<ReprocessOutputVm>)>
         LoadIndustryAsync(int typeId, CancellationToken ct)
     {
-        // ── Blueprints that produce this item ─────────────────────────────────
+        // ── Blueprints and formulas that produce this item ────────────────────
+        //
+        // ⚠️ Reactions count. A reaction formula is a blueprint with its own activity, and this
+        // tab asked only about manufacturing — so every one of the 120 reaction products said
+        // nothing about what makes it, and a moon material used only in reactions said nothing
+        // about what it goes into. The rest of the app has always paired the two activities;
+        // this is the one place that did not.
         var bpIds = await _db.SdeBlueprintProducts.AsNoTracking()
-            .Where(p => p.ProductTypeId == typeId && p.Activity == "manufacturing")
+            .Where(p => p.ProductTypeId == typeId
+                     && (p.Activity == "manufacturing" || p.Activity == "reaction"))
             .Select(p => p.TypeId)
             .Distinct()
             .ToListAsync(ct);
@@ -1951,7 +1958,8 @@ public class ItemBrowserViewModel : ReactiveObject
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         var matsByBp = (await _db.SdeBlueprintMaterials.AsNoTracking()
-                .Where(m => bpIds.Contains(m.TypeId) && m.Activity == "manufacturing")
+                .Where(m => bpIds.Contains(m.TypeId)
+                         && (m.Activity == "manufacturing" || m.Activity == "reaction"))
                 .Join(_db.SdeTypes, m => m.MaterialTypeId, t => t.TypeId,
                       (m, t) => new { m.TypeId, t.Name, m.MaterialTypeId, m.Quantity })
                 .ToListAsync(ct))
@@ -1970,7 +1978,8 @@ public class ItemBrowserViewModel : ReactiveObject
 
         // ── Blueprints this item is an input to ───────────────────────────────
         var usedInIds = await _db.SdeBlueprintMaterials.AsNoTracking()
-            .Where(m => m.MaterialTypeId == typeId && m.Activity == "manufacturing")
+            .Where(m => m.MaterialTypeId == typeId
+                     && (m.Activity == "manufacturing" || m.Activity == "reaction"))
             .Select(m => m.TypeId)
             .Distinct()
             .ToListAsync(ct);
@@ -1981,7 +1990,8 @@ public class ItemBrowserViewModel : ReactiveObject
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
         var productOf = (await _db.SdeBlueprintProducts.AsNoTracking()
-                .Where(p => usedInIds.Contains(p.TypeId) && p.Activity == "manufacturing")
+                .Where(p => usedInIds.Contains(p.TypeId)
+                         && (p.Activity == "manufacturing" || p.Activity == "reaction"))
                 .Join(_db.SdeTypes, p => p.ProductTypeId, t => t.TypeId,
                       (p, t) => new { p.TypeId, t.Name })
                 .ToListAsync(ct))
