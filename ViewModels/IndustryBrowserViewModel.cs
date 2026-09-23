@@ -479,6 +479,14 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     // ── Formatting ────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Whether a column holds an identifier rather than a number to read. Decided by the name so
+    /// that a hidden id added later is covered without anybody remembering to add it here: every
+    /// one of them ends in " Id", and none of the columns the grid shows does.
+    /// </summary>
+    private static bool IsIdentifier(string col) =>
+        col.EndsWith(" Id", StringComparison.Ordinal) || col == ColFacilityIsStation;
+
     private static string FormatValue(string col, object? val)
     {
         if (val is null) return "";
@@ -490,6 +498,15 @@ public class IndustryBrowserViewModel : ReactiveObject
                 "Build Cost" or "Market Value" => d.ToString("N0"),
                 _                              => d.ToString("N2"),
             };
+
+        // ⚠️ An identifier is not a quantity, and must not be written like one. Every hidden
+        // "… Id" column came out of here with thousands separators — a type id read "20,187" —
+        // and the row links parse those ids back out of the row, where a plain long.TryParse
+        // rejects the separator and answers zero. EntityNavigator ignores zero, so every name in
+        // the grid was a link that did nothing at all. Separators are for the columns a person
+        // reads; the id columns are hidden and exist only to be parsed.
+        if (IsIdentifier(col) && val is long or int)
+            return Convert.ToInt64(val).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
         if (val is long or int)
             return Convert.ToInt64(val).ToString("N0");

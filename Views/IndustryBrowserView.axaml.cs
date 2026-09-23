@@ -144,8 +144,14 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
     // A GridRow is a string dictionary, so every id arrives as text. The hidden id columns are
     // COALESCEd to 0 rather than left null, so a missing one parses to zero and EntityNavigator
     // ignores it — no null handling needed here.
+    //
+    // ⚠️ AllowThousands, and invariant. The view model no longer puts separators on an id column,
+    // but this is the place where a formatted id reads as zero and every link in the tool
+    // silently stops working — a parse that tolerates both spellings costs nothing and cannot
+    // regress. Same helper the Asset Browser's type id uses, for the same reason.
     private static long Id(GridRow row, string col) =>
-        long.TryParse(row[col], out var v) ? v : 0;
+        long.TryParse(row[col], System.Globalization.NumberStyles.Any,
+                      System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
 
     private static void OpenProduct(GridRow row)
         => EntityNavigator.Instance.Item((int)Id(row, IndustryBrowserViewModel.ColProductTypeId));
