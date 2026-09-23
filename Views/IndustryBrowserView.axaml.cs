@@ -217,6 +217,12 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
         if (c is TextBlock tb)
         {
+            // ⚠️ A TextBlock with no Background is not hit-tested in Avalonia — the pointer goes
+            // to the panel behind it — so every name in this detail panel was a link that never
+            // fired. The pictures beside them worked, which is what made it look like the links
+            // were finding nothing rather than never being asked. Transparent paints nothing and
+            // makes the text a target.
+            tb.Background = Brushes.Transparent;
             tb.PointerEntered += (_, _) => tb.TextDecorations = TextDecorations.Underline;
             tb.PointerExited  += (_, _) => tb.TextDecorations = null;
         }
