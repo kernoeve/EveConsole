@@ -17,9 +17,64 @@ public static class AppConfig
 
     private static string LocalAppData => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
+    // ── Profiles ─────────────────────────────────────────────────────────────
+
+    private static string? _profileDir;
+
+    /// <summary>
+    /// The named profile this process was started with, or null for the ordinary one.
+    ///
+    /// <para>A profile is a second app data directory and therefore a second everything: its own
+    /// config.json, its own database, its own remembered UI state, agent settings, sounds and
+    /// picture cache. It exists so a development build can be run against a database of its own
+    /// while the installed copy goes on using the real one — which matters more than it sounds,
+    /// because opening the real database with a newer build stamps its version and the installed
+    /// copy then refuses to start.</para>
+    ///
+    /// <para>⚠️ Nothing is shared and nothing is copied in. A new profile starts empty, the way a
+    /// fresh install does, and is set up from Settings like one.</para>
+    /// </summary>
+    public static string? ProfileName { get; private set; }
+
+    /// <summary>
+    /// Points this process at a profile. Called once from <c>Program.Main</c>, before anything
+    /// has read a path, and never afterwards.
+    ///
+    /// <para><paramref name="nameOrPath"/> is a bare name — kept under <c>Profiles\</c> in the
+    /// ordinary app data directory — or a path of its own, for a profile somewhere else entirely.</para>
+    /// </summary>
+    public static void UseProfile(string nameOrPath)
+    {
+        var value = nameOrPath.Trim().Trim('"');
+        if (value.Length == 0) return;
+
+        var looksLikePath = Path.IsPathRooted(value)
+                         || value.Contains(Path.DirectorySeparatorChar)
+                         || value.Contains(Path.AltDirectorySeparatorChar);
+
+        var dir = looksLikePath
+            ? Path.GetFullPath(value)
+            : Path.Combine(LocalAppData, AppFolder, "Profiles", Sanitise(value));
+
+        Directory.CreateDirectory(dir);
+        _profileDir = dir;
+        ProfileName = looksLikePath ? Path.GetFileName(dir.TrimEnd(Path.DirectorySeparatorChar)) : value;
+    }
+
+    /// <summary>A name that is safe as one path segment. A profile is named by whoever types the
+    /// switch, so it cannot be trusted to be one.</summary>
+    private static string Sanitise(string name)
+    {
+        var clean = new string(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+        return clean.Trim('.', ' ') is { Length: > 0 } s ? s : "profile";
+    }
+
     // Public so services that keep their own files alongside the config (agent settings, TTS
     // models, etc.) share the single app data directory rather than hard-coding the folder name.
-    public static string AppDataDir => Path.Combine(LocalAppData, AppFolder);
+    //
+    // ⚠️ The profile's directory when there is one, so everything that keeps a file beside the
+    // config follows it without knowing profiles exist.
+    public static string AppDataDir => _profileDir ?? Path.Combine(LocalAppData, AppFolder);
 
     /// <summary>
     /// A config.json sitting beside the executable, which takes precedence over the one in app
@@ -40,8 +95,15 @@ public static class AppConfig
     public static string PortableConfigPath =>
         Path.Combine(AppContext.BaseDirectory, "config.json");
 
-    /// <summary>True when settings are being read from beside the executable.</summary>
-    public static bool UsingPortableConfig => File.Exists(PortableConfigPath);
+    /// <summary>
+    /// True when settings are being read from beside the executable.
+    ///
+    /// <para>⚠️ A profile wins over it. Running a development build from an IDE means running it
+    /// out of its build directory, which is exactly where a portable config sits — so without
+    /// this the switch that asks for a database of its own would be overruled by the file it is
+    /// there to avoid.</para>
+    /// </summary>
+    public static bool UsingPortableConfig => _profileDir is null && File.Exists(PortableConfigPath);
 
     private static string ConfigPath =>
         UsingPortableConfig ? PortableConfigPath : Path.Combine(AppDataDir, "config.json");
@@ -463,6 +525,11 @@ public static class AppConfig
     {
         try
         {
+            // ⚠️ Never into a profile. A profile is empty by definition and stays that way until
+            // somebody sets it up; carrying a years-old install into a test database would be a
+            // surprise, and a slow one — the old database is copied whole.
+            if (_profileDir is not null) return;
+
             // Already set up (fresh install or a prior migration) — do nothing.
             if (File.Exists(ConfigPath)) return;
 
@@ -477,7 +544,7 @@ public static class AppConfig
 
             // Resolve where the old DB actually lived (explicit path if it was moved, else default).
             var old = File.Exists(legacyConfig)
-                ? (TryLoad(legacyConfig) ?? new ConfigData())
+                ? Read(legacyConfig).Data
                 : new ConfigData();
             var sourceDb = old.DbPath ?? legacyDefaultDb;
 
@@ -513,31 +580,151 @@ public static class AppConfig
 
     // ── Internal ──────────────────────────────────────────────────────────────
 
-    private static ConfigData Load() => TryLoad(ConfigPath) ?? new ConfigData();
+    /// <summary>
+    /// Raised when a write was refused because the file could not be read first — see
+    /// <see cref="Save"/>. A delegate because this class runs before the container exists and
+    /// knows nothing about logging; wired to the error log in <c>App.axaml.cs</c>.
+    ///
+    /// <para>⚠️ Refusing silently would be its own fault. A setting that does not stick, with
+    /// nothing said, is the kind of thing that gets diagnosed twice.</para>
+    /// </summary>
+    public static Action<string>? WriteRefused { get; set; }
 
-    private static ConfigData? TryLoad(string path)
+    /// <summary>What came of trying to read the config file.</summary>
+    private enum ReadOutcome
     {
-        try
+        /// <summary>Read and parsed.</summary>
+        Loaded,
+        /// <summary>Not there at all: a fresh install, and defaults are the right answer.</summary>
+        Missing,
+        /// <summary>There, but another process is holding it. Says nothing about the contents.</summary>
+        Locked,
+        /// <summary>There, and not JSON this app understands.</summary>
+        Corrupt,
+    }
+
+    /// <summary>The backup <see cref="Save"/> leaves behind: the contents before the last write.</summary>
+    private const string BackupSuffix = ".bak";
+
+    // A locked file is almost always locked for a few milliseconds — the other process is
+    // writing its own settings. Worth waiting for; not worth waiting long.
+    private const int ReadAttempts = 4;
+    private const int ReadRetryMs  = 60;
+
+    /// <summary>
+    /// Whether the last read ON THIS THREAD failed with the file held by somebody else.
+    ///
+    /// <para>⚠️ This is what stands between a momentary lock and a wiped config. Every setter here
+    /// is read-modify-write — <c>var c = Load(); c.X = …; Save(c);</c> — so a read that quietly
+    /// returned defaults produced an object with one field set and everything else null, and the
+    /// write that followed put THAT on disk. Which is how a config holding a server address, a
+    /// protected password and an API token became four keys and a window position, and the app
+    /// that read it next fell back to SQLite and imported the whole SDE into a database nobody
+    /// was using.</para>
+    ///
+    /// <para>Thread-static, and paired with the read rather than passed through twenty call
+    /// sites: the two calls are always back to back on one thread, and a setter added later is
+    /// covered without anybody remembering to cover it.</para>
+    /// </summary>
+    [ThreadStatic] private static bool _readWasLocked;
+
+    private static ConfigData Load()
+    {
+        var (data, outcome) = Read(ConfigPath);
+        _readWasLocked = outcome == ReadOutcome.Locked;
+
+        // ⚠️ The backup is the answer when the file itself cannot give one. Falling back to
+        // DEFAULTS here is what chose the wrong database engine: nothing was wrong with the
+        // settings, they were merely unreadable for a moment, and "no settings" is a very
+        // different statement from "could not read the settings".
+        if (outcome is ReadOutcome.Locked or ReadOutcome.Corrupt)
         {
-            if (File.Exists(path))
+            var (backup, backupOutcome) = Read(ConfigPath + BackupSuffix);
+            if (backupOutcome == ReadOutcome.Loaded) return backup;
+        }
+
+        return data;
+    }
+
+    /// <summary>Reads one config file, saying which of the four things happened.</summary>
+    private static (ConfigData Data, ReadOutcome Outcome) Read(string path)
+    {
+        if (!File.Exists(path)) return (new ConfigData(), ReadOutcome.Missing);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
             {
-                using var s = File.OpenRead(path);
-                return JsonSerializer.Deserialize<ConfigData>(s, JsonOpts);
+                // ⚠️ Sharing everything. This read must not be the reason another process cannot
+                // write, and it is a few hundred bytes taken in one go — a torn read is not
+                // possible here, because a write arrives as a whole file replaced at once.
+                using var s = new FileStream(path, FileMode.Open, FileAccess.Read,
+                                             FileShare.ReadWrite | FileShare.Delete);
+                var data = JsonSerializer.Deserialize<ConfigData>(s, JsonOpts);
+                return data is null
+                    ? (new ConfigData(), ReadOutcome.Corrupt)   // the file says "null"
+                    : (data, ReadOutcome.Loaded);
+            }
+            catch (JsonException)
+            {
+                return (new ConfigData(), ReadOutcome.Corrupt);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                if (attempt >= ReadAttempts) return (new ConfigData(), ReadOutcome.Locked);
+                Thread.Sleep(ReadRetryMs);
+            }
+            catch
+            {
+                return (new ConfigData(), ReadOutcome.Corrupt);
             }
         }
-        catch { }
-        return null;
     }
 
     private static void Save(ConfigData data)
     {
+        // ⚠️ Nothing is written when the read that produced this object failed. What is in hand
+        // is not the user's settings with one thing changed, it is one thing and a great many
+        // nulls, and writing it destroys everything the file held. The change is dropped instead
+        // — the setting does not stick, which is a small fault, and the file survives, which is
+        // the point. See _readWasLocked.
+        if (_readWasLocked)
+        {
+            _readWasLocked = false;
+            try { WriteRefused?.Invoke($"Settings were not saved: {ConfigPath} was in use by another process."); }
+            catch { }
+            return;
+        }
+
         // The directory of whichever file is in use — writing to app data while reading from
         // beside the executable would silently discard every change the user made.
         var path = ConfigPath;
         var dir  = Path.GetDirectoryName(path);
         if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
 
-        File.WriteAllText(path, JsonSerializer.Serialize(data, JsonOpts));
+        var json = JsonSerializer.Serialize(data, JsonOpts);
+
+        // ⚠️ Written beside and swapped in, never written over. A file being overwritten in
+        // place is briefly neither the old contents nor the new, and a reader that arrives in
+        // that moment sees a truncated file — which is a corrupt config on somebody else's next
+        // start. The swap also leaves the previous contents as .bak, which is what a read falls
+        // back to when the file itself cannot be read.
+        var tmp = path + ".tmp";
+        try
+        {
+            File.WriteAllText(tmp, json);
+            if (File.Exists(path)) File.Replace(tmp, path, path + BackupSuffix, ignoreMetadataErrors: true);
+            else                   File.Move(tmp, path);
+        }
+        catch (Exception ex)
+        {
+            // ⚠️ No fallback to writing over the file directly. The usual reason the swap fails
+            // is that somebody holds the target, which is the case this whole path exists to
+            // avoid making worse.
+            try { File.Delete(tmp); } catch { }
+            try { WriteRefused?.Invoke($"Settings could not be saved to {path}: {ex.Message}"); }
+            catch { }
+        }
     }
 
     private sealed class ConfigData
