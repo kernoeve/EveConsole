@@ -604,7 +604,18 @@
                                  Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                                  Text="Reprocess one batch of these and this item is among what comes back. Each row is judged against its own ceiling — 90.6% for ore, ice and moon ore, 55% for everything else — so the amounts are the best case, not the SDE's 100% figures." />
-                      <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedFrom}">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Show:" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding ReprocessSourceFilters}"
+                                  SelectedItem="{Binding SelectedReprocessSourceFilter}"
+                                  MinWidth="110" FontSize="11"
+                                  ToolTip.Tip="Ore includes ice and moon ore — everything in the Asteroid category. Non Ore is the rest: modules, ships, salvage and the like."/>
+                      </StackPanel>
+                      <TextBlock IsVisible="{Binding ReprocessedFromFilteredEmpty}"
+                                 Text="None of that kind yields this item."
+                                 FontSize="11" FontStyle="Italic" Foreground="{DynamicResource TextFaintBrush}"/>
+                      <ItemsControl ItemsSource="{Binding ReprocessedFromShown}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ReprocessSourceVm">
                             <Grid ColumnDefinitions="*,Auto" Margin="4 3">

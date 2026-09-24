@@ -150,8 +150,11 @@ public static class RefineYield
 /// <param name="PortionSize">⚠️ The batch. Ore reprocesses 100 at a time and ice one at a time,
 /// and the SDE quantity is per BATCH — printed as "per unit" it overstated Veldspar by a
 /// hundredfold.</param>
+/// <param name="IsOre">Asteroid category — ore, ice and moon ore — the same test that picks the
+/// 90.6% ceiling for <paramref name="Rate"/>, carried as a fact of its own so the Ore / Non Ore
+/// filter does not have to infer it from a rate.</param>
 public record ReprocessSourceVm(
-    string SourceName, int SourceTypeId, int PortionSize, int BaseQuantity, double Rate)
+    string SourceName, int SourceTypeId, int PortionSize, int BaseQuantity, double Rate, bool IsOre)
 {
     public long   Yield     => RefineYield.Apply(BaseQuantity, Rate);
 
@@ -406,6 +409,53 @@ public class ItemBrowserViewModel : ReactiveObject
 
     public bool HasItem    => _selectedItem != null;
     public bool NoItem     => _selectedItem == null;
+
+    // ── Produced by reprocessing: which kind of source ────────────────────────
+    //
+    // A mineral comes out of dozens of ores and hundreds of modules, and the two are different
+    // questions — "what do I mine for this" against "what could I melt down". Ore is the Asteroid
+    // category, ice and moon ore included: the same test that gives a source its 90.6% ceiling.
+    // Kept on the browser rather than the item, so the choice holds as you move between items.
+
+    public IReadOnlyList<string> ReprocessSourceFilters { get; } = ["All", "Ore", "Non Ore"];
+
+    private string _reprocessSourceFilter = "All";
+    public string SelectedReprocessSourceFilter
+    {
+        get => _reprocessSourceFilter;
+        set
+        {
+            if (value is null || value == _reprocessSourceFilter) return;
+            this.RaiseAndSetIfChanged(ref _reprocessSourceFilter, value);
+            RaiseReprocessSources();
+        }
+    }
+
+    /// <summary>The Produced By Reprocessing rows the filter lets through.</summary>
+    public IReadOnlyList<ReprocessSourceVm> ReprocessedFromShown
+    {
+        get
+        {
+            var all = _selectedItem?.ReprocessedFrom ?? [];
+            return _reprocessSourceFilter switch
+            {
+                "Ore"     => [.. all.Where(s => s.IsOre)],
+                "Non Ore" => [.. all.Where(s => !s.IsOre)],
+                _         => all,
+            };
+        }
+    }
+
+    /// <summary>The section has sources, but none of the kind asked for — said, rather than an
+    /// empty list under a heading that looks like it failed to load.</summary>
+    public bool ReprocessedFromFilteredEmpty =>
+        _selectedItem?.HasReprocessedFrom == true && ReprocessedFromShown.Count == 0;
+
+    private void RaiseReprocessSources()
+    {
+        this.RaisePropertyChanged(nameof(ReprocessedFromShown));
+        this.RaisePropertyChanged(nameof(ReprocessedFromFilteredEmpty));
+    }
 
     // ── Detail tab selection ──────────────────────────────────────────────────
     // Index into the ItemDetailTabs TabControl. Conditionally-hidden tabs keep their
@@ -1110,6 +1160,9 @@ public class ItemBrowserViewModel : ReactiveObject
                                this.WhenAnyValue(x => x.CanGoForward));
 
         NavigateToItemCommand = ReactiveCommand.CreateFromTask<int>(NavigateWithHistoryAsync);
+
+        // A new item brings its own reprocessing sources for the filter to apply to.
+        this.WhenAnyValue(x => x.SelectedItem).Subscribe(_ => RaiseReprocessSources());
         SetRequiredForLevelCommand = ReactiveCommand.Create<string>(s =>
         {
             if (int.TryParse(s, out var level)) RequiredForLevel = level;
@@ -2260,7 +2313,8 @@ public class ItemBrowserViewModel : ReactiveObject
         var reprocessedFrom = sourceRows
             .Select(x => new ReprocessSourceVm(
                 x.Name, x.SourceTypeId, x.PortionSize, x.Quantity,
-                RefineYield.For(sourceCats.GetValueOrDefault(x.GroupId))))
+                RefineYield.For(sourceCats.GetValueOrDefault(x.GroupId)),
+                sourceCats.GetValueOrDefault(x.GroupId) == RefineYield.AsteroidCategoryId))
             .OrderByDescending(x => x.Yield)
             .ThenBy(x => x.SourceName)
             .ToList();
