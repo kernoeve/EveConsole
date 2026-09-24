@@ -1,5 +1,9 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data.Common;
+using System.Globalization;
 using System.Reactive.Linq;
+using Avalonia.Collections;
 using System.Text.RegularExpressions;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -608,6 +612,231 @@ public class ItemBrowserViewModel : ReactiveObject
         {
             await Dispatcher.UIThread.InvokeAsync(() => Status = $"LP store: {ex.Message}");
         }
+    }
+
+    // ── Assets tab ────────────────────────────────────────────────────────────
+    //
+    // Every stack of this one item the app knows of, grouped by where it is or by who holds it.
+    // The rows are the Asset Browser's own, filtered to the type — see ItemAssetRowVm.
+
+    public sealed record AssetScopeOption(string Key, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    private static readonly AssetScopeOption[] s_assetScopes =
+    [
+        new("all",      "All owners"),
+        new("personal", "Characters and personal corps"),
+    ];
+
+    public IReadOnlyList<AssetScopeOption> AssetScopeOptions => s_assetScopes;
+    public IReadOnlyList<string>           AssetGroupOptions { get; } = ["Location", "Owner", "None"];
+
+    private AssetScopeOption _assetScope = s_assetScopes[1];
+
+    /// <summary>Whose stacks: yours by default — your characters and the corporations marked
+    /// personal — or everything the app can see, alliance corporations included.</summary>
+    public AssetScopeOption SelectedAssetScope
+    {
+        get => _assetScope;
+        set
+        {
+            if (value is null || ReferenceEquals(value, _assetScope)) return;
+            this.RaiseAndSetIfChanged(ref _assetScope, value);
+            if (SelectedItem is { } item) _ = LoadAssetsAsync(item.TypeId);
+        }
+    }
+
+    private string _assetGroup = "Location";
+
+    /// <summary>Location, Owner or None. Changing it regroups the rows already loaded; nothing
+    /// is read again.</summary>
+    public string SelectedAssetGroup
+    {
+        get => _assetGroup;
+        set
+        {
+            if (value is null || value == _assetGroup) return;
+            this.RaiseAndSetIfChanged(ref _assetGroup, value);
+            RebuildAssetsView();
+        }
+    }
+
+    private List<ItemAssetRowVm>   _assetRows  = [];
+    private DataGridCollectionView _assetsView = new(Array.Empty<ItemAssetRowVm>());
+
+    public DataGridCollectionView AssetsView
+    {
+        get => _assetsView;
+        private set => this.RaiseAndSetIfChanged(ref _assetsView, value);
+    }
+
+    public bool HasAssets => _assetRows.Count > 0;
+
+    private string _assetsSummary = "";
+    public string AssetsSummary
+    {
+        get => _assetsSummary;
+        private set => this.RaiseAndSetIfChanged(ref _assetsSummary, value);
+    }
+
+    private CancellationTokenSource _assetsCts = new();
+
+    /// <summary>Reads this item's stacks. Always starts on the UI thread — from the item load and
+    /// from the scope picker — so the previous item's rows are cleared before anything awaits.</summary>
+    private async Task LoadAssetsAsync(int typeId)
+    {
+        _assetsCts.Cancel();
+        _assetsCts = new CancellationTokenSource();
+        var ct    = _assetsCts.Token;
+        var scope = _assetScope;
+
+        // Another item's stacks must not sit under this one's name while the read runs.
+        _assetRows = [];
+        RebuildAssetsView();
+        this.RaisePropertyChanged(nameof(HasAssets));
+        AssetsSummary = "Loading…";
+
+        try
+        {
+            var rows = await Task.Run(() => ReadAssets(typeId, scope.Key == "personal", ct), ct);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested) return;
+                _assetRows = rows;
+                RebuildAssetsView();
+                this.RaisePropertyChanged(nameof(HasAssets));
+                AssetsSummary = SummariseAssets(rows, scope);
+            });
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                AssetsSummary = AppErrorLogger.Line("Could not load the assets", ex));
+        }
+    }
+
+    /// <summary>
+    /// The Asset Browser's Base rows for one type. On a worker, synchronously: it is one type, a
+    /// few hundred stacks at the very most — Tritanium across every owner is under three hundred,
+    /// and the whole read takes tens of milliseconds on a server.
+    /// </summary>
+    private static List<ItemAssetRowVm> ReadAssets(int typeId, bool personalOnly, CancellationToken ct)
+    {
+        using var conn = AppDb.Connect();
+        conn.Open();
+        using var cmd = conn.Command($"""
+            {AssetBrowserViewModel.QueryPrefix}
+            SELECT "Location Name", "Root Location Id", "Is Station",
+                   "Owner Name", "Owner Id", "Owner Type",
+                   "Container", "Flag", "Quantity",
+                   "Solar System", "Solar System Id", "Region Name", "Security", "Value"
+            FROM Base
+            WHERE "Type Id" = @t{(personalOnly ? " AND " + AssetBrowserViewModel.PersonalScopeClause : "")}
+            """);
+        cmd.AddWithValue("@t", typeId);
+
+        var rows = new List<ItemAssetRowVm>();
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            ct.ThrowIfCancellationRequested();
+            rows.Add(new ItemAssetRowVm
+            {
+                Location           = Str(r, 0),
+                LocationId         = Long(r, 1),
+                IsStation          = Long(r, 2) == 1,
+                Owner              = Str(r, 3),
+                OwnerId            = Long(r, 4),
+                OwnerIsCorporation = Str(r, 5) == "corporation",
+                Container          = Str(r, 6),
+                Flag               = Str(r, 7),
+                Quantity           = Long(r, 8),
+                SolarSystem        = Str(r, 9),
+                SolarSystemId      = (int)Long(r, 10),
+                Region             = Str(r, 11),
+                Security           = r.IsDBNull(12) ? null : Convert.ToDouble(r.GetValue(12), CultureInfo.InvariantCulture),
+                Value              = r.IsDBNull(13) ? 0    : Convert.ToDouble(r.GetValue(13), CultureInfo.InvariantCulture),
+            });
+        }
+        return rows;
+
+        static string Str(DbDataReader r, int i)  =>
+            r.IsDBNull(i) ? "" : Convert.ToString(r.GetValue(i), CultureInfo.InvariantCulture) ?? "";
+
+        // ⚠️ Convert, not GetInt64: the same column is an integer on one engine and a boolean or
+        // a numeric on the other, and the industry-job branches of Base select literals.
+        static long Long(DbDataReader r, int i) =>
+            r.IsDBNull(i) ? 0 : Convert.ToInt64(r.GetValue(i), CultureInfo.InvariantCulture);
+    }
+
+    private static string SummariseAssets(IReadOnlyList<ItemAssetRowVm> rows, AssetScopeOption scope)
+    {
+        if (rows.Count == 0)
+            return scope.Key == "personal"
+                ? "None held by your characters or personal corporations. All owners includes every corporation the app can see."
+                : "None held anywhere the app can see.";
+
+        var units  = rows.Sum(r => r.Quantity);
+        var worth  = rows.Sum(r => r.Value);
+        var places = rows.Select(r => r.Location).Distinct().Count();
+        var inJobs = rows.Where(r => r.IsInJob).Sum(r => r.Quantity);
+
+        var text = $"{units:N0} unit{(units == 1 ? "" : "s")} in {rows.Count:N0} stack{(rows.Count == 1 ? "" : "s")} "
+                 + $"across {places:N0} location{(places == 1 ? "" : "s")}";
+        if (worth > 0)  text += $" · worth {MarketFmt.Isk(worth)}";
+        if (inJobs > 0) text += $" · {inJobs:N0} still in industry jobs";
+        return text;
+    }
+
+    private string? _assetGroupPath;
+    private bool    _pinningAssetGroup;
+
+    /// <summary>
+    /// A fresh view over the rows, grouped as chosen, largest stacks first inside each group.
+    ///
+    /// <para>⚠️ A new view per load rather than refilling one collection: a grouped view regroups
+    /// on every Add, and a common material is a few hundred stacks.</para>
+    /// </summary>
+    private void RebuildAssetsView()
+    {
+        _assetGroupPath = _assetGroup switch
+        {
+            "Location" => nameof(ItemAssetRowVm.Location),
+            "Owner"    => nameof(ItemAssetRowVm.Owner),
+            _          => null,
+        };
+
+        var view = new DataGridCollectionView(_assetRows);
+        if (_assetGroupPath is not null)
+        {
+            view.GroupDescriptions.Add(new DataGridPathGroupDescription(_assetGroupPath));
+            view.SortDescriptions.Add(DataGridSortDescription.FromPath(_assetGroupPath));
+        }
+        view.SortDescriptions.Add(DataGridSortDescription.FromPath(
+            nameof(ItemAssetRowVm.Quantity), ListSortDirection.Descending));
+        view.SortDescriptions.CollectionChanged += (_, _) => PinAssetGroupOrder(view);
+
+        AssetsView = view;
+    }
+
+    /// <summary>
+    /// Keeps the group key at the head of the sort. A header click replaces the sort wholesale,
+    /// and without the key first the groups would follow wherever their rows happened to land —
+    /// the guard the Worklist's Station Needs uses, for the same reason.
+    /// </summary>
+    private void PinAssetGroupOrder(DataGridCollectionView view)
+    {
+        if (_pinningAssetGroup || _assetGroupPath is null) return;
+        var sorts = view.SortDescriptions;
+        if (sorts.Count > 0 && sorts[0].PropertyPath == _assetGroupPath) return;
+
+        _pinningAssetGroup = true;
+        try     { sorts.Insert(0, DataGridSortDescription.FromPath(_assetGroupPath)); }
+        finally { _pinningAssetGroup = false; }
     }
 
     // ── Market Orders tab ─────────────────────────────────────────────────────
@@ -1616,6 +1845,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     _ = LoadPriceHistoryAsync();
                 _ = LoadDerivedHistoryAsync();
                 _ = LoadLpOffersAsync(typeId, ct);
+                _ = LoadAssetsAsync(typeId);
             });
 
             // Load icon asynchronously

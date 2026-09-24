@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:conv="clr-namespace:EveConsole.Views"
+             xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.ItemBrowserView"
              x:DataType="vm:ItemBrowserViewModel"
@@ -695,6 +697,141 @@
 
                 </StackPanel>
               </ScrollViewer>
+            </TabItem>
+
+            <!-- Assets tab: every stack of this one item the app knows of, grouped by where it is
+                 or by who holds it. The rows are the Asset Browser's own, filtered to the type. -->
+            <TabItem Header="Assets">
+              <Grid RowDefinitions="Auto,6,Auto,8,*" Margin="16 12">
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                  <TextBlock Text="Group by:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                             VerticalAlignment="Center"/>
+                  <ComboBox ItemsSource="{Binding AssetGroupOptions}"
+                            SelectedItem="{Binding SelectedAssetGroup}"
+                            MinWidth="110" FontSize="11"/>
+                  <TextBlock Text="Scope:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                             VerticalAlignment="Center" Margin="10 0 0 0"/>
+                  <ComboBox ItemsSource="{Binding AssetScopeOptions}"
+                            SelectedItem="{Binding SelectedAssetScope}"
+                            MinWidth="220" FontSize="11"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Text="{Binding AssetsSummary}" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+
+                <DataGrid Grid.Row="4" ItemsSource="{Binding AssetsView}" IsVisible="{Binding HasAssets}"
+                          IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                          CanUserSortColumns="True" CanUserResizeColumns="True"
+                          Background="Transparent" GridLinesVisibility="None"
+                          RowBackground="Transparent">
+                  <DataGrid.Styles>
+                    <!-- Group header: the location or the owner once, with what its stacks add up to,
+                         and the expander that folds it away — the Station Needs retemplate. ⚠️
+                         PART_ExpanderButton must keep its name: the grid finds it by that name to
+                         collapse and expand the group. The name here is plain text; the header knows
+                         only its key, so the column on each row carries the link. -->
+                    <Style Selector="DataGridRowGroupHeader">
+                      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}"/>
+                      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                      <Setter Property="MinHeight"  Value="26"/>
+                      <Setter Property="Template">
+                        <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
+                          <Border Background="{TemplateBinding Background}"
+                                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
+                                        VerticalAlignment="Center">
+                              <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
+                                            Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                                            Background="Transparent" BorderThickness="0"/>
+                              <TextBlock Text="{Binding Key}" FontSize="12" FontWeight="SemiBold"
+                                         Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                              <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                                         Text="{Binding Items, Converter={x:Static conv:ItemAssetGroupConverter.Instance}}"/>
+                            </StackPanel>
+                          </Border>
+                        </ControlTemplate>
+                      </Setter>
+                    </Style>
+                  </DataGrid.Styles>
+                  <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Location" Width="2*" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:ItemAssetRowVm">
+                          <Panel Margin="6 0">
+                            <Button Classes="link" Click="OnOpenAssetLocation" IsVisible="{Binding HasLocationLink}"
+                                    ToolTip.Tip="Open this location">
+                              <TextBlock Text="{Binding Location}" FontSize="11" TextTrimming="CharacterEllipsis"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <TextBlock Text="{Binding Location}" IsVisible="{Binding !HasLocationLink}" FontSize="11"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Owner" Width="170" SortMemberPath="Owner" ClipboardContentBinding="{Binding Owner}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:ItemAssetRowVm">
+                          <Panel Margin="6 0">
+                            <Button Classes="link" Click="OnOpenAssetOwner" IsVisible="{Binding HasOwnerLink}"
+                                    ToolTip.Tip="Open in the entity browser">
+                              <TextBlock Text="{Binding Owner}" FontSize="11" TextTrimming="CharacterEllipsis"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <TextBlock Text="{Binding Owner}" IsVisible="{Binding !HasOwnerLink}" FontSize="11"
+                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Qty" Width="90" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityText}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:ItemAssetRowVm">
+                          <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                                     TextAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="1.5*"/>
+                    <DataGridTextColumn Header="Flag"      Binding="{Binding Flag}"      Width="110"/>
+                    <DataGridTemplateColumn Header="Value" Width="90" SortMemberPath="Value" ClipboardContentBinding="{Binding ValueText}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:ItemAssetRowVm">
+                          <TextBlock Text="{Binding ValueText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                                     TextAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="System" Width="120" SortMemberPath="SolarSystem" ClipboardContentBinding="{Binding SolarSystem}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:ItemAssetRowVm">
+                          <Panel Margin="6 0">
+                            <Button Classes="link" Click="OnOpenAssetSystem" IsVisible="{Binding HasSystemLink}"
+                                    ToolTip.Tip="Open this system">
+                              <TextBlock Text="{Binding SolarSystem}" FontSize="11" TextTrimming="CharacterEllipsis"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <TextBlock Text="{Binding SolarSystem}" IsVisible="{Binding !HasSystemLink}" FontSize="11"
+                                       VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                          </Panel>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Sec" Width="46" SortMemberPath="Security" ClipboardContentBinding="{Binding SecurityText}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:ItemAssetRowVm">
+                          <TextBlock Text="{Binding SecurityText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                     TextAlignment="Right" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="120"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
             </TabItem>
 
             <!-- LP Store tab — hidden unless some NPC corporation sells this item -->

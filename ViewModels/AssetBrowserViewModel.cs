@@ -55,11 +55,19 @@ public class AssetBrowserViewModel : ReactiveObject
         }
     }
 
-    /// <summary>The scope as SQL over the Base columns, or "" for everything. ⚠️ IsPersonal stands
-    /// on its own: INTEGER on SQLite, BOOLEAN on PostgreSQL, and "= 1" fails on the latter.</summary>
-    private string ScopeClause() => _scope.Key == "personal"
-        ? """("Owner Type" = 'character' OR ("Owner Type" = 'corporation' AND "Owner Id" IN (SELECT "Id" FROM "Corporations" WHERE "IsPersonal")))"""
-        : "";
+    /// <summary>The scope as SQL over the Base columns, or "" for everything.</summary>
+    private string ScopeClause() => _scope.Key == "personal" ? PersonalScopeClause : "";
+
+    /// <summary>
+    /// "Characters and personal corps" as a condition over the Base columns — the user's own
+    /// characters, and the corporations marked personal. Shared with the Item Browser's Assets tab,
+    /// which filters the same rows to one type.
+    ///
+    /// <para>⚠️ IsPersonal stands on its own: INTEGER on SQLite, BOOLEAN on PostgreSQL, and "= 1"
+    /// fails on the latter.</para>
+    /// </summary>
+    internal const string PersonalScopeClause =
+        """("Owner Type" = 'character' OR ("Owner Type" = 'corporation' AND "Owner Id" IN (SELECT "Id" FROM "Corporations" WHERE "IsPersonal")))""";
 
     public static readonly List<string> FilterableColumns =
     [
@@ -362,7 +370,10 @@ public class AssetBrowserViewModel : ReactiveObject
     //   JobFacilities  — active/paused/ready industry jobs with pre-computed facility names
     //                    and item counts; used for the two UNION ALL branches in Base.
     //   Base — all display-ready columns. Aggregation queries wrap Base with GROUP BY.
-    private static readonly string QueryPrefix = """
+    //
+    // ⚠️ Internal because the Item Browser's Assets tab reads the same Base filtered to one type,
+    // so the two tools cannot disagree about where something is or what it is worth.
+    internal static readonly string QueryPrefix = """
         WITH
         ContainerHops AS (
             SELECT
