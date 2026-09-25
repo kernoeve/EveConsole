@@ -1059,6 +1059,14 @@ public class MainWindowViewModel : ReactiveObject
                                                         corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
 
+        // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
+        // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
+        IndyParksVm.ParksChanged += () =>
+        {
+            _ = ProductionCalcVm.LoadParksAsync();
+            _ = WorklistVm.IndustryVm.ReloadParksAsync();
+        };
+
         // One wiring for every killmail row in the app — browser, corp activity, system
         // page, entity viewers.
         EntityNavigator.Instance.OpenEntity = (kind, id) =>

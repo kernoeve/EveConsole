@@ -320,23 +320,33 @@ public class ProductionCalculatorViewModel : ReactiveObject
         _ = LoadParksAsync();
     }
 
-    private async Task LoadParksAsync()
+    /// <summary>
+    /// Fills the park dropdown: at start, and again whenever Indy Parks adds, deletes or renames a
+    /// park, so the list is never stale for the rest of the session.
+    ///
+    /// <para>The park already chosen stays chosen while it exists. Only a first load, or a chosen
+    /// park that was deleted, falls back to the default park.</para>
+    /// </summary>
+    public async Task LoadParksAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
-        var parks = await db.IndyParks.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
-        Parks.Clear();
-        foreach (var p in parks)
-            Parks.Add(new ParkOption { Id = p.Id, Name = p.Name });
+        var parks     = await db.IndyParks.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
+        var defaultId = parks.FirstOrDefault(p => p.IsDefault)?.Id;
 
-        // Select the default park
-        ParkOption? defaultPark = null;
-        foreach (var p in Parks)
+        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
-            await using var ctx = await _dbFactory.CreateDbContextAsync();
-            var pk = await ctx.IndyParks.AsNoTracking().FirstOrDefaultAsync(x => x.Id == p.Id);
-            if (pk?.IsDefault == true) { defaultPark = p; break; }
-        }
-        SelectedPark = defaultPark ?? Parks.FirstOrDefault();
+            // Read before the list is cleared: clearing it can push a null selection back
+            // through the dropdown's binding.
+            var keep = _selectedPark?.Id;
+
+            Parks.Clear();
+            foreach (var p in parks)
+                Parks.Add(new ParkOption { Id = p.Id, Name = p.Name });
+
+            SelectedPark = Parks.FirstOrDefault(p => p.Id == keep)
+                        ?? Parks.FirstOrDefault(p => p.Id == defaultId)
+                        ?? Parks.FirstOrDefault();
+        });
     }
 
     private async Task SearchAsync(string text)

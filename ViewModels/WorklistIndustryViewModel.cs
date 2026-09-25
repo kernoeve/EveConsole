@@ -182,6 +182,51 @@ public class WorklistIndustryViewModel : ReactiveObject
     }
 
     /// <summary>
+    /// Rebuilds the park dropdown alone, for when Indy Parks adds, deletes or renames a park. The
+    /// rest of the tab is left as it is.
+    ///
+    /// <para>⚠️ A chosen park that was deleted goes back to &lt;Default&gt; in the setting, not
+    /// only on screen. <see cref="WorklistSettings.ResolveParkIdAsync"/> returns any positive id
+    /// as given, so the worklist would otherwise go on planning against a park that no longer
+    /// exists while the dropdown read &lt;Default&gt;.</para>
+    /// </summary>
+    public async Task ReloadParksAsync()
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var parks = await db.IndyParks.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
+
+            var chosen = _settings.IndustryParkId;
+            var gone   = chosen > 0 && parks.All(p => p.Id != chosen);
+            if (gone) await _settings.SetIndustryParkAsync(0);
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                // Held for the rebuild, as LoadAsync does: the dropdown settling on its new items
+                // must not read as the user picking a park, which would re-plan the worklist.
+                _loading = true;
+                try
+                {
+                    Parks.Clear();
+                    Parks.Add(new ParkOption { Id = 0, Name = DefaultParkLabel });
+                    foreach (var p in parks) Parks.Add(new ParkOption { Id = p.Id, Name = p.Name });
+                    _selectedPark = Parks.FirstOrDefault(p => p.Id == _settings.IndustryParkId) ?? Parks[0];
+                    this.RaisePropertyChanged(nameof(SelectedPark));
+                }
+                finally { _loading = false; }
+            });
+
+            // The park the worklist plans against changed with the delete, so its plan has too.
+            if (gone && IndustryChanged is not null) await IndustryChanged();
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(WorklistIndustryViewModel), nameof(ReloadParksAsync), ex);
+        }
+    }
+
+    /// <summary>
     /// Structures in the chosen park with no real location behind them.
     ///
     /// Worth its own warning rather than a silent gap: an unlinked structure models rigs but

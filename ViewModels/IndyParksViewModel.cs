@@ -747,6 +747,19 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Park list ─────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Raised after a park is added, imported, deleted, renamed or made the default.
+    ///
+    /// <para>Parks are chosen elsewhere — the Production Calculator and the Worklist's Industry
+    /// tab each keep a park dropdown, filled once at start — so without this a park added here
+    /// was missing from both until the app was restarted, and a deleted one stayed listed.</para>
+    /// </summary>
+    public event Action? ParksChanged;
+
+    /// <summary>Asks before a park or a structure is deleted; set by the view, which has the
+    /// window a dialog needs. Returns true to go ahead.</summary>
+    public Func<string, Task<bool>>? ConfirmDelete { get; set; }
+
     private async Task LoadParksAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -764,7 +777,10 @@ public class IndyParksViewModel : ReactiveObject
     private async Task AddParkAsync()
     {
         await using var db = await _dbFactory.CreateDbContextAsync();
-        var park = new IndyPark { Name = "New Park" };
+
+        // The first park is the default. With one park there is nothing else it could be, and
+        // everything that plans against "the default park" would otherwise find none at all.
+        var park = new IndyPark { Name = "New Park", IsDefault = !await db.IndyParks.AnyAsync() };
         db.IndyParks.Add(park);
         await db.SaveChangesAsync();
 
@@ -772,23 +788,34 @@ public class IndyParksViewModel : ReactiveObject
             db.IndyCategoryAssignments.Add(new IndyCategoryAssignment { ParkId = park.Id, CategoryKey = key });
         await db.SaveChangesAsync();
 
-        var item = new IndyParkListItem(park.Id, park.Name);
+        var item = new IndyParkListItem(park.Id, park.Name, park.IsDefault);
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             Parks.Add(item);
             SelectedPark = item;
         });
+
+        ParksChanged?.Invoke();
     }
 
     private async Task DeleteParkAsync()
     {
         if (_selectedPark is null) return;
-        var id = _selectedPark.Id;
+        var id   = _selectedPark.Id;
+        var name = _selectedPark.Name;
 
         await using var db = await _dbFactory.CreateDbContextAsync();
 
         var structIds = await db.IndyStructures.Where(s => s.ParkId == id)
             .Select(s => s.Id).ToListAsync();
+
+        if (ConfirmDelete is not null && !await ConfirmDelete(
+                $"Delete the park \"{name}\"?\n\n"
+              + (structIds.Count > 0
+                    ? $"Its {structIds.Count} structure{(structIds.Count == 1 ? "" : "s")}, with their rigs and service modules, "
+                    : "")
+              + "its category assignments and its item exceptions are deleted with it. This cannot be undone."))
+            return;
 
         // ⚠️ One transaction, not six. Each ExecuteDelete takes the write lock on its own, so a
         // park deleted while the pollers are busy could fail partway and leave a park stripped of
@@ -813,6 +840,8 @@ public class IndyParksViewModel : ReactiveObject
             if (item is not null) Parks.Remove(item);
             SelectedPark = Parks.FirstOrDefault();
         });
+
+        ParksChanged?.Invoke();
     }
 
     private async Task SetDefaultParkAsync()
@@ -833,6 +862,8 @@ public class IndyParksViewModel : ReactiveObject
             foreach (var item in Parks)
                 item.IsDefault = item.Id == id;
         });
+
+        ParksChanged?.Invoke();
     }
 
     // ── Park detail ───────────────────────────────────────────────────────
@@ -1258,6 +1289,8 @@ public class IndyParksViewModel : ReactiveObject
             if (_selectedPark?.Id == id)
                 _selectedPark.Name = name;
         });
+
+        ParksChanged?.Invoke();
     }
 
     // ── Structure CRUD ────────────────────────────────────────────────────
@@ -1529,11 +1562,20 @@ public class IndyParksViewModel : ReactiveObject
 
     private async Task RemoveStructureAsync(StructureVm vm)
     {
+        if (ConfirmDelete is not null && !await ConfirmDelete(
+                $"Remove \"{vm.DisplayHeader}\" from this park?\n\n"
+              + "Its rigs and service modules here are deleted, and any category or item exception "
+              + "that sends work to it is left unassigned. The structure in game is not affected."))
+            return;
+
         await using var db = await _dbFactory.CreateDbContextAsync();
         var asgn = await db.IndyCategoryAssignments
             .Where(a => a.StructureId == vm.Id).ToListAsync();
         foreach (var a in asgn) a.StructureId = null;
         await db.IndyStructureRigs.Where(r => r.StructureId == vm.Id).ExecuteDeleteAsync();
+        // Service modules were never deleted here, so every structure removed since they existed
+        // left its service rows behind against an id nothing uses — as the park delete once did.
+        await db.IndyStructureServices.Where(s => s.StructureId == vm.Id).ExecuteDeleteAsync();
         await db.IndyStructures.Where(s => s.Id == vm.Id).ExecuteDeleteAsync();
         await db.SaveChangesAsync();
 
@@ -1837,7 +1879,8 @@ public class IndyParksViewModel : ReactiveObject
 
         await using var db = await _dbFactory.CreateDbContextAsync();
 
-        var park = new IndyPark { Name = dto.Name };
+        // Imported into an empty list, it is the first park, and so the default — as when added.
+        var park = new IndyPark { Name = dto.Name, IsDefault = !await db.IndyParks.AnyAsync() };
         db.IndyParks.Add(park);
         await db.SaveChangesAsync();
 
@@ -1989,12 +2032,14 @@ public class IndyParksViewModel : ReactiveObject
         }
         await db.SaveChangesAsync();
 
-        var item = new IndyParkListItem(park.Id, park.Name);
+        var item = new IndyParkListItem(park.Id, park.Name, park.IsDefault);
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             Parks.Add(item);
             SelectedPark = item;
         });
+
+        ParksChanged?.Invoke();
     }
 }
 

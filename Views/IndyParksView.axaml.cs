@@ -7,7 +7,20 @@ namespace EveConsole.Views;
 
 public partial class IndyParksView : UserControl
 {
-    public IndyParksView() => InitializeComponent();
+    public IndyParksView()
+    {
+        InitializeComponent();
+
+        // Deleting a park or a structure asks first. The dialog needs a window to sit over, which
+        // only the view has; with none to hand the answer is no, never a silent delete.
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is not IndyParksViewModel vm) return;
+            vm.ConfirmDelete = message => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                TopLevel.GetTopLevel(this) is Window owner
+                    && await new ConfirmDialog(message).ShowDialog<bool>(owner));
+        };
+    }
 
     private async void OnExportClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
