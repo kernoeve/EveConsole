@@ -387,9 +387,15 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         // has no BPO and cannot be derived from one (faction/limited-run BPCs), plus
         // "Limited Time" items (MetaGroupId 19) — event blueprints that have a market group
         // in the SDE but can no longer be bought in game.
+        //
+        // ⚠️ A market group is not proof of a BPO. Storyline (3), Officer (5) and Deadspace (6)
+        // products are skipped outright, the same loot tiers BuildCostService refuses to treat
+        // as BPO-sourced: the one officer module with a blueprint — an event reward, never sold —
+        // files it beside the ordinary T1 weapon-upgrade BPOs, and topped the list priced at
+        // officer-module prices. Faction (4) keeps its own checkbox.
         var bpoClause = BpoOnly
             ? """
-              AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" != 19)
+              AND (t."MetaGroupId" IS NULL OR t."MetaGroupId" NOT IN (3, 5, 6, 19))
               AND EXISTS (
                 SELECT 1 FROM "SdeBlueprintProducts" bp
                 JOIN "SdeTypes" bpt ON bpt."TypeId" = bp."TypeId"
