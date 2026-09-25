@@ -367,8 +367,18 @@
                         <ItemsControl ItemsSource="{Binding Services}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ServiceModuleVm">
-                              <Grid ColumnDefinitions="*,Auto" Margin="0 2">
-                                <Panel Grid.Column="0">
+                              <!-- The remove button leads the row, beside the name it removes,
+                                   rather than out at the far edge of the card. -->
+                              <Grid ColumnDefinitions="Auto,*" Margin="0 2">
+                                <Button Grid.Column="0" x:CompileBindings="False"
+                                        IsEnabled="{Binding Owner.FittingEditable}"
+                                        Command="{Binding $parent[UserControl].DataContext.RemoveServiceCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="✕" FontSize="10" Padding="6 1" Margin="0 0 8 0"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                                        BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+                                <Panel Grid.Column="1">
                                   <Button Classes="link" Click="OnOpenServiceModule"
                                           IsVisible="{Binding HasItemLink}"
                                           ToolTip.Tip="Open in the Item Browser">
@@ -380,13 +390,6 @@
                                              VerticalAlignment="Center"
                                              TextTrimming="CharacterEllipsis" />
                                 </Panel>
-                                <Button Grid.Column="1" x:CompileBindings="False"
-                                        IsEnabled="{Binding Owner.FittingEditable}"
-                                        Command="{Binding $parent[UserControl].DataContext.RemoveServiceCommand}"
-                                        CommandParameter="{Binding}"
-                                        Content="✕" FontSize="10" Padding="6 1" Margin="8 0 0 0"
-                                        Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
-                                        BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
                               </Grid>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
