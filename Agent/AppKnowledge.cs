@@ -134,11 +134,8 @@ public static class AppKnowledge
         ### Price sources & the Method dropdown (Settings > Market)
         Every market and valuation tool prices against a named "price source" defined in
         Settings > Market. The Method dropdown chooses HOW that source gets its prices,
-        and the choice has real consequences the capsuleer often asks about:
-        - Fuzzwork — pre-computed percentile prices pulled from fuzzwork.co.uk. Fast, needs
-          no auth, and stores almost nothing locally (one price row per item). It does NOT
-          store individual orders, so the Item Browser's Market Orders tab will be empty for
-          a Fuzzwork source. Good as a quick global (Jita-style) reference price.
+        and the choice has real consequences the capsuleer often asks about. It offers TWO
+        methods:
         - Region (ESI Region) — fetches every public order across an ENTIRE region from ESI.
           Use it for NPC trade hubs (e.g. The Forge for Jita). An optional Station Filter
           narrows the computed price to a single NPC station (e.g. Jita 4-4) after the first
@@ -151,14 +148,22 @@ public static class AppKnowledge
           the ONLY way to price a null-sec or low-sec staging market, or any private
           structure market.
 
+        Fuzzwork is a LEGACY method: sources created by older versions of the app with it
+        (pre-computed percentile prices from fuzzwork.co.uk) still refresh and still price
+        things, but it is no longer in the Method dropdown and cannot be chosen for a new
+        source — too much of the app (per-order views, station filters, structure markets)
+        needs the raw orders it does not provide. A Fuzzwork source stores no individual
+        orders, so the Item Browser's Market Orders tab is empty for it. Never recommend
+        creating a Fuzzwork source; to get orders, use a Region source instead.
+
         So when the capsuleer asks something like "why can't I use the Region method for my
         null-sec staging market?": it is because that market is inside a player structure,
         and ESI's region endpoint does not return orders located inside structures — it only
         sees NPC-station orders (and public regional buy orders). The fix is to define that
         source with the Player Structure method using a character that has docking access to
         the keep. The Station Filter under the Region method is only for isolating one NPC
-        station within a region; it cannot reach a player structure. (Fuzzwork likewise
-        cannot, since it is regional/hub data with no per-structure orders.)
+        station within a region; it cannot reach a player structure. (A legacy Fuzzwork
+        source cannot either — it is regional/hub data with no per-structure orders.)
 
         ### Market Levels
         Monitor a specific, definable market (region or structure) for the quantity of
