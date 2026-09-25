@@ -169,16 +169,28 @@ public class SchedulerService(
         if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
             return (true, WithSkipped("Nothing to post: no dynamic section had anything to say.", skipped));
 
-        var posted = 0;
+        var what = "Posted.";
 
         if (body.Length > 0)
         {
-            var res = viaWebhook
-                ? await PostWebhookAsync(cfg.DestinationId, body, ct)
-                : await slack.PostMessageAsync(cfg.DestinationId, body, ct: ct);
+            // ⚠️ In parts, never whole. Slack splits a long message by length alone, through the
+            // middle of a code block, so a weekly post whose lists had grown arrived as two
+            // messages with every table in both broken. The splitter ends each part cleanly.
+            var sent = await SlackMessageSplitter.PostAsync(body, (part, token) => viaWebhook
+                ? PostWebhookAsync(cfg.DestinationId, part, token)
+                : slack.PostMessageAsync(cfg.DestinationId, part, ct: token), ct);
 
-            if (!res.Ok) return (false, $"Slack refused it: {res.Error}");
-            posted = body.Length;
+            // Nothing reached the channel, so the next pass can try the whole thing again.
+            if (sent.Posted == 0) return (false, $"Slack refused it: {sent.Error}");
+
+            // ⚠️ Some of it did. Failing the run would post those parts again on every retry, so
+            // the run counts, and says what never arrived.
+            what = !sent.AllPosted
+                ? $"Posted {sent.Posted} of {sent.Total} messages ({sent.Characters:N0} characters); " +
+                  $"Slack refused the next: {sent.Error}."
+                : sent.Total > 1
+                    ? $"Posted {sent.Characters:N0} characters in {sent.Total} messages."
+                    : $"Posted {sent.Characters:N0} characters.";
         }
 
         // After the text, so the message reads in the order it was composed: the words, then the
@@ -196,7 +208,6 @@ public class SchedulerService(
             if (error is not null) failed.Add($"{title}: {error}");
         }
 
-        var what = posted > 0 ? $"Posted {posted:N0} characters." : "Posted.";
         if (drawn.Count > failed.Count) what += $" {drawn.Count - failed.Count} chart(s) uploaded.";
         if (failed.Count > 0)           what += $" {failed.Count} chart(s) failed: {string.Join("; ", failed)}.";
 

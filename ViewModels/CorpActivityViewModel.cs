@@ -1826,12 +1826,25 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         // its bold markers literally instead of rendering them.
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildTop10Export(includeIsk);
-        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpTop10, plain ? $"```\n{body}\n```" : body);
-        if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
-        SlackStatus = res.Ok
-            ? $"Posted to {SlackTop10ChannelText} — {DateTimeOffset.Now:t}"
-            : $"Slack post failed: {res.Error}";
+        var sent  = await SlackMessageSplitter.PostAsync(plain ? $"```\n{body}\n```" : body,
+            (part, ct) => _slack.PostAreaAsync(SlackService.AreaCorpTop10, part, ct: ct));
+        if (sent.Posted > 0) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
+        SlackStatus = SlackPostStatus(sent, SlackTop10ChannelText);
     }
+
+    /// <summary>
+    /// The status line for a listing posted in parts.
+    ///
+    /// <para>⚠️ Posted through <see cref="SlackMessageSplitter"/>, never whole: a listing longer
+    /// than Slack's limit is split by Slack wherever the length runs out, through the middle of a
+    /// table, and ties at the foot of a Top 10 mean no list has a fixed length.</para>
+    /// </summary>
+    private static string SlackPostStatus(SlackPartsResult sent, string where) =>
+        sent.AllPosted
+            ? $"Posted to {where}{(sent.Total > 1 ? $" in {sent.Total} messages" : "")} — {DateTimeOffset.Now:t}"
+        : sent.Posted == 0
+            ? $"Slack post failed: {sent.Error}"
+            : $"Posted {sent.Posted} of {sent.Total} messages to {where}; Slack refused the next: {sent.Error}";
 
     /// <summary>
     /// Posts the monthly summary to its own configured channel.
@@ -1860,11 +1873,10 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         SlackStatus = "Posting to Slack…";
         var plain = SelectedExportFormat == "Plain Text";
         var body  = BuildMonthlySummaryExport();
-        var res   = await _slack.PostAreaAsync(SlackService.AreaCorpMonthly, plain ? $"```\n{body}\n```" : body);
-        if (res.Ok) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
-        SlackStatus = res.Ok
-            ? $"Posted to {SlackMonthlyChannelText} — {DateTimeOffset.Now:t}"
-            : $"Slack post failed: {res.Error}";
+        var sent  = await SlackMessageSplitter.PostAsync(plain ? $"```\n{body}\n```" : body,
+            (part, ct) => _slack.PostAreaAsync(SlackService.AreaCorpMonthly, part, ct: ct));
+        if (sent.Posted > 0) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
+        SlackStatus = SlackPostStatus(sent, SlackMonthlyChannelText);
     }
 
     // ── Monthly Summary ───────────────────────────────────────────────────────
