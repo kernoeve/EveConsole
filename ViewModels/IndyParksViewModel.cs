@@ -17,6 +17,16 @@ namespace EveConsole.ViewModels;
 
 public record SdeRigOption(int TypeId, string Name)
 {
+    /// <summary>
+    /// The choice that empties a rig slot.
+    ///
+    /// <para>⚠️ A real entry in the list, not only the placeholder. The dropdown shows
+    /// "— empty —" while nothing is chosen, but a placeholder cannot be picked, so once a slot
+    /// held a rig there was no way back to empty. Saved as type 0, which is what an empty slot
+    /// has always been stored as.</para>
+    /// </summary>
+    public static readonly SdeRigOption None = new(0, "— empty —");
+
     public override string ToString() => Name;
 }
 
@@ -172,6 +182,44 @@ public class StructureVm : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// The solar system this structure is in, when that is known: the linked facility's own
+    /// system, or the system <see cref="SystemName"/> names. Not stored — a system name is unique,
+    /// so it is looked up.
+    ///
+    /// <para>While there is one, the security class is the system's and cannot be set by hand. It
+    /// decides rig strength, and a hand-picked class that disagreed with the system would plan
+    /// every job here with the wrong bonus.</para>
+    /// </summary>
+    private int? _systemId;
+    public int? SystemId
+    {
+        get => _systemId;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _systemId, value);
+            this.RaisePropertyChanged(nameof(SecurityEditable));
+            this.RaisePropertyChanged(nameof(SecurityLockTip));
+        }
+    }
+
+    /// <summary>A linked facility decides its own system, so the name cannot be typed over.</summary>
+    public bool SystemEditable => RealStructureId is null;
+
+    /// <summary>Only while no linked facility or known system decides it.</summary>
+    public bool SecurityEditable => RealStructureId is null && SystemId is null;
+
+    // Why a field is locked, as its tooltip. Null while it is editable, so no tooltip shows.
+    public string? SystemLockTip => SystemEditable
+        ? null
+        : "Set by the linked facility. Unlink it to choose another system.";
+
+    public string? SecurityLockTip => SecurityEditable
+        ? null
+        : RealStructureId is not null
+            ? "Set from the linked facility's system."
+            : "Set from the system's own security. Clear or change the system to choose it by hand.";
+
     private decimal _facilityTax = 1m;
     public decimal FacilityTax
     {
@@ -238,7 +286,16 @@ public class StructureVm : ReactiveObject
     public long? RealStructureId
     {
         get => _realStructureId;
-        set { this.RaiseAndSetIfChanged(ref _realStructureId, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _realStructureId, value);
+            this.RaisePropertyChanged(nameof(FacilityLinkText));
+            this.RaisePropertyChanged(nameof(HasFacilityLink));
+            this.RaisePropertyChanged(nameof(SystemEditable));
+            this.RaisePropertyChanged(nameof(SecurityEditable));
+            this.RaisePropertyChanged(nameof(SystemLockTip));
+            this.RaisePropertyChanged(nameof(SecurityLockTip));
+        }
     }
 
     private string _realStructureName = "";
@@ -681,8 +738,12 @@ public class IndyParksViewModel : ReactiveObject
             .ToList();
     }
 
+    /// <summary>The rigs a hull can fit, led by <see cref="SdeRigOption.None"/> so that a fitted
+    /// slot can be emptied again. A hull that fits no rigs gets no list at all.</summary>
     public IReadOnlyList<SdeRigOption> GetRigsForType(string structureTypeKey)
-        => _rigsByType.TryGetValue(structureTypeKey, out var rigs) ? rigs : [];
+        => _rigsByType.TryGetValue(structureTypeKey, out var rigs) && rigs.Count > 0
+            ? [SdeRigOption.None, .. rigs]
+            : [];
 
     // ── Park list ─────────────────────────────────────────────────────────
 
@@ -800,6 +861,12 @@ public class IndyParksViewModel : ReactiveObject
         var structures = await db.IndyStructures.AsNoTracking()
             .Where(s => s.ParkId == id).OrderBy(s => s.Id).ToListAsync();
 
+        // Which system each structure is really in, and so which security class it must carry.
+        // A stored name or class that disagrees is put right here rather than only on screen:
+        // rig strength is planned from the stored class.
+        var systems = await ResolveSystemsAsync(db, structures);
+        await CorrectSystemsAsync(structures, systems);
+
         var structIds = structures.Select(s => s.Id).ToList();
         var rigs = await db.IndyStructureRigs.AsNoTracking()
             .Where(r => structIds.Contains(r.StructureId)).ToListAsync();
@@ -837,6 +904,7 @@ public class IndyParksViewModel : ReactiveObject
             foreach (var s in structures)
             {
                 var vm = BuildStructureVm(s);
+                vm.SystemId = systems.TryGetValue(s.Id, out var system) ? system.SystemId : null;
                 var structureRigs = rigs.Where(r => r.StructureId == s.Id).ToList();
                 var availableRigs = GetRigsForType(s.StructureTypeKey);
                 for (int slot = 0; slot < 3; slot++)
@@ -880,6 +948,157 @@ public class IndyParksViewModel : ReactiveObject
     private StructureVm BuildStructureVm(IndyStructure s)
         => new(s.Id, s.ParkId, s.DisplayName, s.StructureTypeKey, s.SystemName, s.SecurityClass,
                s.FacilityTax, s.RealStructureId, s.RealStructureName);
+
+    // ── Which system a structure is in ────────────────────────────────────
+
+    /// <summary>A structure's system as the SDE has it, with the security class that follows.</summary>
+    private readonly record struct ResolvedSystem(int SystemId, string Name, string SecurityClass);
+
+    /// <summary>
+    /// The system each structure is in, where that can be known: a linked facility's own system,
+    /// otherwise the system its name names. Structures with neither are left out, which is what
+    /// leaves their security class to be chosen by hand.
+    ///
+    /// <para>⚠️ A linked facility wins over the typed name. The link says which structure this
+    /// is, and that structure is in exactly one system — so the name is corrected to it, not the
+    /// other way round.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, ResolvedSystem>> ResolveSystemsAsync(
+        AppDbContext db, IReadOnlyList<IndyStructure> structures)
+    {
+        // Linked facility → system, from whichever table knows the facility. NPC stations are in
+        // the SDE; player structures in the formal table, the name cache or the corp's own list.
+        var facilityIds = structures.Where(s => s.RealStructureId is > 0)
+                                    .Select(s => s.RealStructureId!.Value).Distinct().ToList();
+        var facilitySystem = new Dictionary<long, int>();
+
+        var stationIds = facilityIds.Where(f => f <= int.MaxValue).Select(f => (int)f).ToList();
+        if (stationIds.Count > 0)
+            foreach (var st in await db.SdeStations.AsNoTracking()
+                         .Where(s => stationIds.Contains(s.StationId))
+                         .Select(s => new { s.StationId, s.SolarSystemId }).ToListAsync())
+                facilitySystem[st.StationId] = st.SolarSystemId;
+
+        var playerIds = facilityIds.Where(f => f > int.MaxValue).ToList();
+        if (playerIds.Count > 0)
+        {
+            foreach (var r in await db.Structures.AsNoTracking()
+                         .Where(s => playerIds.Contains(s.StructureId) && s.SolarSystemId > 0)
+                         .Select(s => new { s.StructureId, s.SolarSystemId }).ToListAsync())
+                facilitySystem.TryAdd(r.StructureId, r.SolarSystemId);
+
+            foreach (var r in await db.EsiStructureNames.AsNoTracking()
+                         .Where(s => playerIds.Contains(s.StructureId) && s.SolarSystemId > 0)
+                         .Select(s => new { s.StructureId, s.SolarSystemId }).ToListAsync())
+                facilitySystem.TryAdd(r.StructureId, r.SolarSystemId);
+
+            foreach (var r in await db.EsiCorpStructures.AsNoTracking()
+                         .Where(s => playerIds.Contains(s.StructureId) && s.SystemId > 0)
+                         .Select(s => new { s.StructureId, s.SystemId }).ToListAsync())
+                facilitySystem.TryAdd(r.StructureId, r.SystemId);
+        }
+
+        // Unlinked → the system of that exact name. Names are unique; case is not trusted.
+        var typedNames = structures
+            .Where(s => s.RealStructureId is not > 0 && !string.IsNullOrWhiteSpace(s.SystemName))
+            .Select(s => s.SystemName.Trim().ToLowerInvariant()).Distinct().ToList();
+
+        var systemIds = facilitySystem.Values.Distinct().ToList();
+        var known = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => systemIds.Contains(s.SolarSystemId) || typedNames.Contains(s.Name.ToLower()))
+            .Select(s => new { s.SolarSystemId, s.Name, s.Security })
+            .ToListAsync();
+
+        var byId   = known.ToDictionary(s => s.SolarSystemId);
+        var byName = known.GroupBy(s => s.Name.ToLowerInvariant()).ToDictionary(g => g.Key, g => g.First());
+
+        var result = new Dictionary<int, ResolvedSystem>();
+        foreach (var s in structures)
+        {
+            var sys = s.RealStructureId is > 0
+                ? (facilitySystem.TryGetValue(s.RealStructureId.Value, out var sid) ? byId.GetValueOrDefault(sid) : null)
+                : byName.GetValueOrDefault((s.SystemName ?? "").Trim().ToLowerInvariant());
+
+            if (sys is not null)
+                result[s.Id] = new ResolvedSystem(
+                    sys.SolarSystemId, sys.Name, SecurityClassFor(sys.SolarSystemId, sys.Security));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Writes back the system name and security class wherever a structure's stored ones
+    /// disagree with the system it is in, and updates the loaded rows to match.
+    ///
+    /// <para>Nothing is written for a park that already agrees, which is every park after the
+    /// first load.</para>
+    /// </summary>
+    private async Task CorrectSystemsAsync(
+        List<IndyStructure> structures, Dictionary<int, ResolvedSystem> systems)
+    {
+        var wrong = structures
+            .Where(s => systems.TryGetValue(s.Id, out var r)
+                     && (s.SystemName != r.Name || s.SecurityClass != r.SecurityClass))
+            .ToList();
+        if (wrong.Count == 0) return;
+
+        var ids = wrong.Select(s => s.Id).ToList();
+        await using (var db = await _dbFactory.CreateDbContextAsync())
+        {
+            foreach (var entity in await db.IndyStructures.Where(s => ids.Contains(s.Id)).ToListAsync())
+            {
+                entity.SystemName    = systems[entity.Id].Name;
+                entity.SecurityClass = systems[entity.Id].SecurityClass;
+            }
+            await db.SaveChangesAsync();
+        }
+
+        foreach (var s in wrong)
+        {
+            s.SystemName    = systems[s.Id].Name;
+            s.SecurityClass = systems[s.Id].SecurityClass;
+        }
+    }
+
+    /// <summary>
+    /// Looks up what was typed or picked in a structure's system box. A real system brings its
+    /// own spelling and security class, and locks the class; anything else unlocks it.
+    /// </summary>
+    private async Task ResolveTypedSystemAsync(StructureVm vm, string? name)
+    {
+        // A linked facility's system comes from the facility, not from the box.
+        if (vm.RealStructureId is not null) return;
+
+        var text = name?.Trim() ?? "";
+        ResolvedSystem? hit = null;
+
+        if (text.Length > 0)
+        {
+            var lower = text.ToLowerInvariant();
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var sys = await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower() == lower)
+                .Select(s => new { s.SolarSystemId, s.Name, s.Security })
+                .FirstOrDefaultAsync();
+
+            if (sys is not null)
+                hit = new ResolvedSystem(sys.SolarSystemId, sys.Name, SecurityClassFor(sys.SolarSystemId, sys.Security));
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            // ⚠️ The box may have moved on while this was being looked up; an answer for older
+            // text must not lock the class for newer.
+            if (!string.Equals((vm.SystemName ?? "").Trim(), text, StringComparison.OrdinalIgnoreCase)) return;
+
+            vm.SystemId = hit?.SystemId;
+            if (hit is not { } found) return;
+
+            if (vm.SystemName != found.Name) vm.SystemName = found.Name;
+            vm.SecurityClass = found.SecurityClass;
+        });
+    }
 
     /// <summary>Which structure the visible search results belong to. The results list
     /// renders SdeStationResult rows, so the pick alone can't say what it links to.</summary>
@@ -957,6 +1176,13 @@ public class IndyParksViewModel : ReactiveObject
             .Skip(1)
             .Throttle(TimeSpan.FromMilliseconds(400))
             .SubscribeAsyncSafe(_ => SaveStructureDbAsync(vm), _errorLogger, "IndyParks.SaveStructure");
+
+        // A system typed or picked in the box brings its security class with it, which then
+        // saves through the subscription above.
+        vm.WhenAnyValue(x => x.SystemName)
+            .Skip(1)
+            .Throttle(TimeSpan.FromMilliseconds(250))
+            .SubscribeAsyncSafe(name => ResolveTypedSystemAsync(vm, name), _errorLogger, "IndyParks.ResolveSystem");
 
         // Radio-group behaviour from a checkbox. Only a tick does anything; unticking the
         // current catch-all puts it straight back, since a park must always have one.
@@ -1103,7 +1329,9 @@ public class IndyParksViewModel : ReactiveObject
     {
         foreach (var slot in s.RigSlots)
         {
-            var name = slot.Selected?.Name;
+            // "— empty —" is a choice in the list now, and names no rig.
+            if (slot.Selected is not { TypeId: > 0 } rig) continue;
+            var name = rig.Name;
             if (string.IsNullOrEmpty(name)) continue;
 
             var rigCategory = IndyRigMatching.RigCategoryFromName(name);
@@ -1124,6 +1352,21 @@ public class IndyParksViewModel : ReactiveObject
         {
             if (_corpActivity is null) return Array.Empty<object>();
             var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct);
+            return hits.Cast<object>().ToList();
+        };
+
+    /// <summary>
+    /// Feeds each structure's own system box.
+    ///
+    /// <para>Unlike the bulk picker it offers wormhole systems: a J-space park is a real park and
+    /// "Wormhole" is one of its security classes. Bulk add leaves them out because it can only add
+    /// structures the app has resolved names for.</para>
+    /// </summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> ParkSystemPopulator =>
+        async (text, ct) =>
+        {
+            if (_corpActivity is null) return Array.Empty<object>();
+            var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct, includeWormholes: true);
             return hits.Cast<object>().ToList();
         };
 
@@ -1230,14 +1473,24 @@ public class IndyParksViewModel : ReactiveObject
             .Select(s => (double?)s.Security)
             .FirstOrDefaultAsync();
 
+        return SecurityClassFor(systemId, sec ?? 0);
+    }
+
+    /// <summary>
+    /// A system's security class from its id and true security. One rule for bulk add, the
+    /// system box and the loader, so the three cannot disagree about a border system.
+    ///
+    /// <para>⚠️ Low sec is any true security above 0.0, not a rounded one. A few systems (thirteen
+    /// in the current SDE) sit between 0.0 and 0.05; the game shows them as 0.1 and treats them as
+    /// low sec, but rounded to one decimal they read 0.0 and were classed null sec — the wrong rig
+    /// bonus, and since the class follows the system and is locked, one nobody could correct.</para>
+    /// </summary>
+    private static string SecurityClassFor(int systemId, double security)
+    {
         // Wormhole systems sit above 30000000 in their own id range and take no rig bonus band.
         if (systemId >= 31000000) return "wormhole";
-        return SecurityColors.Rounded(sec ?? 0) switch
-        {
-            >= 0.5 => "highsec",
-            > 0.0  => "lowsec",
-            _      => "nullsec",
-        };
+        if (SecurityColors.Rounded(security) >= 0.5) return "highsec";
+        return security > 0.0 ? "lowsec" : "nullsec";
     }
 
     private async Task AddStructureAsync()

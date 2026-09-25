@@ -2287,13 +2287,15 @@ public class CorpActivityService
             .ToList();
     }
 
+    /// <summary>Systems whose name contains <paramref name="query"/>. Wormhole systems only when
+    /// asked for: most pickers mean New Eden, but an industry park can be in J-space.</summary>
     public async Task<List<SdeSystemResult>> SearchSdeSystemsAsync(
-        string query, CancellationToken ct = default)
+        string query, CancellationToken ct = default, bool includeWormholes = false)
     {
         if (query.Length < 2) return [];
         using var db = _dbFactory.CreateDbContext();
         return await db.SdeSolarSystems
-            .Where(s => EF.Functions.Like(s.Name, $"%{query}%") && !s.IsWormhole)
+            .Where(s => EF.Functions.Like(s.Name, $"%{query}%") && (includeWormholes || !s.IsWormhole))
             .OrderBy(s => s.Name)
             .Take(40)
             .Select(s => new SdeSystemResult(s.SolarSystemId, s.Name))
