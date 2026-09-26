@@ -8,6 +8,9 @@ using ReactiveUI;
 
 namespace EveConsole.Agent;
 
+/// <summary>Which prompt a model is given: all of it, or the conversation model's, without the data.</summary>
+public enum PromptScope { Full, Conversation }
+
 public sealed class AgentService : ReactiveObject
 {
     private static readonly string SettingsPath = Path.Combine(
@@ -19,9 +22,22 @@ public sealed class AgentService : ReactiveObject
 
     public AgentSettings Settings => _settings;
 
-    public IAgentProvider? Provider { get; private set; }
+    /// <summary>The models behind the agent, by role, and which one answers for each right now.</summary>
+    public ModelRoles Roles { get; } = new();
 
+    /// <summary>Every tool: what a model answering data questions — or the one model doing
+    /// everything — is given.</summary>
     public IReadOnlyList<IAgentTool>? Tools { get; private set; }
+
+    /// <summary>
+    /// The conversation model's tools while data questions go to a model of their own: every tool
+    /// but those that read the data, and <see cref="HandOffTool"/> to pass a data question over.
+    /// </summary>
+    public IReadOnlyList<IAgentTool>? ConversationTools { get; private set; }
+
+    /// <summary>Set by the panel for the turn in progress: the conversation model has handed the
+    /// message over, with its reason.</summary>
+    public Action<string>? HandOffRequested { get; set; }
 
     // ── Action events / callbacks (wired by MainWindow in TryStartup) ──────────
     public event Action<string>? WindowOpenRequested;
@@ -79,7 +95,7 @@ public sealed class AgentService : ReactiveObject
     /// treats a question whose answer lives anywhere else as a question with no data behind it.
     /// Sits inside the cached prefix, so it is paid for in full once and at a tenth after that.
     /// </param>
-    public static string BuildSystemPrompt(AgentSettings settings, string? tableIndex = null)
+    public static string BuildSystemPrompt(AgentSettings settings, string? tableIndex = null, PromptScope scope = PromptScope.Full)
     {
         var name = string.IsNullOrWhiteSpace(settings.AgentName) ? AgentSettings.DefaultAgentName : settings.AgentName.Trim();
 
@@ -120,16 +136,16 @@ public sealed class AgentService : ReactiveObject
                 $"Never pad — stop when the answer is complete.",
         };
 
-        return $"""
-            You are {name}, an AI companion integrated into EVE Console — a local capsuleer management application for EVE Online.
-            {personal}
+        // ── The parts only the model that reads the data is told ─────────────
+        //
+        // ⚠️ The conversation model, when data questions go to a model of their own, gets
+        // none of them: not the table index, not the data notes, not the valuation rules, not
+        // the query tools' guidance — about half of the standing prompt, and the half a small
+        // model used to invent figures from. It is told instead that the data is not its to
+        // read, and how to hand a question over.
+        var full = scope == PromptScope.Full;
 
-            You have comprehensive knowledge of EVE Online: industry, market dynamics, ship fittings, sovereignty warfare, PvP, exploration, missions, skills, implants, the player-driven economy, lore, and the complex political landscape of New Eden.
-
-            You are also an expert on the EVE Console application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in EVE Console, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
-
-            {AppKnowledge.Guide}
-
+        var dataPart = full ? $"""
             {tableIndex}
 
             {AgentDataNotes.Notes}
@@ -191,10 +207,9 @@ public sealed class AgentService : ReactiveObject
 
             Hull-only, dropped-only or destroyed-only are answers to questions that SAY so. If the
             capsuleer just says "value", give the total.
+            """ : ConversationDataPart;
 
-            ## Data freshness — IMPORTANT
-            EVE Console automatically polls ESI in the background. All data is kept current. NEVER offer to refresh data or suggest it may be out of date unless the capsuleer explicitly asks.
-
+        var toolUsage = full ? """
             ## Tool usage — IMPORTANT
             You have direct access to local data through built-in tools. Use them proactively. When asked about assets, jobs, characters, or market prices — call the relevant tool.
 
@@ -215,7 +230,9 @@ public sealed class AgentService : ReactiveObject
             - esi_call: For what the database does not hold — anything CURRENT about people outside the capsuleer's own corporations. "Are they still in the corp", "where did they go", public details of a stranger: get the ids from the database, then ask ESI. Never for data the database already has.
             - set_destination: ALWAYS call this when the capsuleer asks to set a destination, route, or autopilot to a system — "set destination Jita", "take me to Amarr". Never just say it is done. If it tells you several characters are online, ask which one; do not pick.
             - update_guidance: When the capsuleer tells you what a word means, who someone is, or how to behave FROM NOW ON — "when I say home I mean…", "remember that…", "my main is…" — record it with this so it holds in every conversation, then confirm briefly. Never for one-off requests or things you found out yourself.
+            """ : ConversationToolUsage;
 
+        var longAnswers = full ? """
             ## Where a long answer goes — IMPORTANT
             You are in a narrow side panel whose contents are carried in the history of every later
             turn and, when speech is on, read out loud. A listing belongs in a tab, not in the chat.
@@ -242,6 +259,26 @@ public sealed class AgentService : ReactiveObject
 
             Answer in the chat when the answer is short and conversational: one figure, a yes or
             no, a name, a sentence of explanation. A single value is not a table.
+            """ : ConversationLongAnswers;
+
+        return $"""
+            You are {name}, an AI companion integrated into EVE Console — a local capsuleer management application for EVE Online.
+            {personal}
+
+            You have comprehensive knowledge of EVE Online: industry, market dynamics, ship fittings, sovereignty warfare, PvP, exploration, missions, skills, implants, the player-driven economy, lore, and the complex political landscape of New Eden.
+
+            You are also an expert on the EVE Console application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in EVE Console, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
+
+            {AppKnowledge.Guide}
+
+            {dataPart}
+
+            ## Data freshness — IMPORTANT
+            EVE Console automatically polls ESI in the background. All data is kept current. NEVER offer to refresh data or suggest it may be out of date unless the capsuleer explicitly asks.
+
+            {toolUsage}
+
+            {longAnswers}
 
             ## When an alarm fires
             You will sometimes receive a message beginning "ALARM FIRED". That is an alarm the capsuleer set up reaching you — it is the prompt itself, not a request to investigate. Report what it says in a sentence or two, using the detail supplied. Do not call tools to verify it, and do not ask what they would like you to do about it.
@@ -275,6 +312,75 @@ public sealed class AgentService : ReactiveObject
             {guidance}
             """;
     }
+
+    // ── What the conversation model is told instead ────────────────────────────
+    //
+    // ⚠️ One persona, two models. The capsuleer talks to one companion; which model wrote a reply
+    // is shown under it, but the companion never speaks of "my analyst". So the conversation model
+    // is told the data is read by another part of ITSELF, and to pass a question over without a
+    // word — never to guess, which is precisely what a small model did when it had the query tools
+    // and could not use them.
+
+    private const string ConversationDataPart = """
+        ## The capsuleer's data — not yours to read
+        You cannot see the capsuleer's database or ESI. Another part of you can — the same
+        companion, the same name, the same conversation; the capsuleer talks to one of you, not
+        two. Whenever an answer needs their own data — what they have, own, are doing or have done,
+        or anything to be looked up, counted, totalled or listed — call hand_off_to_analyst at once,
+        writing nothing first, and the answer is given from there. Never guess at that data and
+        never invent a figure, a name or a result: an answer made up is far worse than none.
+
+        Earlier answers in this conversation may have come from that part of you. What they found
+        is yours to talk about; a NEW question about the data goes back through hand_off_to_analyst.
+        """;
+
+    private const string ConversationToolUsage = """
+        ## Tool usage — IMPORTANT
+        You work the application for the capsuleer: open and arrange its tools, filter its views,
+        find items and places, set alarms and destinations, and record their standing
+        instructions. Use these tools proactively — never say you did something without calling
+        the tool that does it.
+
+        Between tool calls, write at most one short sentence about what you are doing, and often
+        nothing. Everything you write is shown in the chat and read aloud.
+
+        Tool-specific guidance:
+        - capture_tab: Only when you must see specific current on-screen values (a chart, a rendered layout) — NOT to explain what a tool is for. Pass 'current' for the active tab.
+        - set_industry_filter, set_asset_filter: Apply visual filters in the Industry or Assets tab.
+        - navigate_to_item: Open a specific item in the Item Browser.
+        - open_window: ALWAYS call this when the capsuleer asks to open, switch to, or navigate to any tool. Never just say you opened it — call the tool so the UI actually switches.
+        - manage_alarms: Whenever the capsuleer asks to be TOLD or ALERTED when something happens, set up an alarm with this rather than answering once. An alarm keeps working after this conversation ends; an intention to watch does not.
+        - set_destination: ALWAYS call this when the capsuleer asks to set a destination, route, or autopilot to a system — "set destination Jita", "take me to Amarr". Never just say it is done. If it tells you several characters are online, ask which one; do not pick.
+        - update_guidance: When the capsuleer tells you what a word means, who someone is, or how to behave FROM NOW ON — "when I say home I mean…", "remember that…", "my main is…" — record it with this so it holds in every conversation, then confirm briefly. Never for one-off requests or things you found out yourself.
+        - hand_off_to_analyst: Any question about the capsuleer's own data — see above.
+        """;
+
+    private const string ConversationLongAnswers = """
+        ## Where a long answer goes — IMPORTANT
+        You are in a narrow side panel whose contents are carried in the history of every later
+        turn and, when speech is on, read out loud. A long answer belongs in a tab, not in the chat.
+
+        - show_document: the answer is a report rather than a reply — sections, an explanation, a
+          plan, a comparison, anything worth keeping or re-reading.
+        - show_table: a small table you write out yourself — a comparison, a checklist. Keep it to
+          a few dozen rows. A listing of the capsuleer's own records is a data question: hand it off.
+
+        Each call opens a NEW tab. Having opened one, do NOT then write its contents into your reply
+        as well: say what it is in a sentence and name the tab.
+
+        Answer in the chat when the answer is short and conversational.
+        """;
+
+    /// <summary>
+    /// The tools that read the capsuleer's data, which the conversation model is not given when
+    /// data questions go to a model of their own. The withdrawn get_* tools are listed too, so
+    /// bringing one back cannot quietly hand it to the model that is not to read the data.
+    /// </summary>
+    private static readonly HashSet<string> DataToolNames = new(StringComparer.Ordinal)
+    {
+        "query_database", "show_query", "describe_tables", "esi_call",
+        "get_assets", "get_character_info", "get_industry_jobs", "get_market_prices", "search_items",
+    };
 
     public AgentService() => Load();
 
@@ -428,6 +534,14 @@ public sealed class AgentService : ReactiveObject
             Tools = [.. Tools.Select(t =>
                 (IAgentTool)new TelemetryToolDecorator(t, telemetry, name => ToolActivity?.Invoke(name)))];
 
+        // The conversation model's set: everything but what reads the data, and the one tool that
+        // passes a data question over instead — measured like the rest.
+        IAgentTool handOff = new HandOffTool(reason => HandOffRequested?.Invoke(reason));
+        if (Telemetry is { } t2) handOff = new TelemetryToolDecorator(handOff, t2, name => ToolActivity?.Invoke(name));
+        ConversationTools = [.. Tools.Where(t => !DataToolNames.Contains(t.Name)), handOff];
+
+        Roles.Telemetry = Telemetry;
+
         this.RaisePropertyChanged(nameof(Tools));
     }
 
@@ -441,10 +555,12 @@ public sealed class AgentService : ReactiveObject
         }
         catch { _settings = new(); }
 
-        // A file from before voices became a list: its one voice becomes the first.
+        // A file from before voices became a list: its one voice becomes the first. Likewise its
+        // one model, which then does both jobs until the capsuleer gives data questions their own.
         _settings.NormalizeVoices();
+        _settings.NormalizeModels();
 
-        RebuildProvider();
+        ConfigureRoles();
     }
 
     /// <summary>
@@ -568,11 +684,10 @@ public sealed class AgentService : ReactiveObject
     public void Configure(AgentSettings settings)
     {
         _settings = settings;
-        RebuildProvider();
+        ConfigureRoles();
         Save();
         SaveShared(settings);
         this.RaisePropertyChanged(nameof(Settings));
-        this.RaisePropertyChanged(nameof(Provider));
     }
 
     /// <summary>
@@ -604,8 +719,10 @@ public sealed class AgentService : ReactiveObject
         try
         {
             var forFile = Preferences is null ? _settings : WithoutShared(_settings);
-            // The first voice in the single-voice fields too, for an older build reading the file.
+            // The first voice in the single-voice fields too, for an older build reading the file;
+            // and the data model in the single-model fields.
             forFile.MirrorLegacyVoice();
+            forFile.MirrorLegacyModel();
             Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(forFile, _jsonOpts));
         }
@@ -623,20 +740,24 @@ public sealed class AgentService : ReactiveObject
         return local;
     }
 
-    private void RebuildProvider()
+    private void ConfigureRoles() => Roles.Configure(_settings, m => BuildProvider(m, _settings));
+
+    /// <summary>
+    /// What answers for one model, with the keys on <paramref name="keys"/> — null when it is not
+    /// set up: no key for its service, no address for a server of our own.
+    ///
+    /// <para>⚠️ Every service the settings tab offers has to build something here. OpenAI and
+    /// Local were selectable for months with no provider behind them, so choosing either yielded
+    /// "not configured" — and nothing said why until a message was sent.</para>
+    /// </summary>
+    public static IAgentProvider? BuildProvider(ModelProfile m, AgentSettings keys) => m.Provider switch
     {
-        // ⚠️ Every option the settings tab offers has to build something here. OpenAI and Local
-        // were selectable for months with no provider behind them, so choosing either yielded
-        // "not configured" — and nothing said why until a message was sent.
-        Provider = _settings.Provider switch
-        {
-            AgentProviderType.Claude when !string.IsNullOrWhiteSpace(_settings.ClaudeApiKey)
-                => new ClaudeProvider(_settings.ClaudeApiKey, _settings.ClaudeModel, _settings.ClaudeCacheTtl),
-            AgentProviderType.OpenAI when !string.IsNullOrWhiteSpace(_settings.OpenAiApiKey)
-                => OpenAiCompatibleProvider.OpenAi(_settings.OpenAiApiKey, _settings.OpenAiModel),
-            AgentProviderType.Local when !string.IsNullOrWhiteSpace(_settings.LocalEndpoint)
-                => OpenAiCompatibleProvider.Local(_settings.LocalEndpoint, _settings.LocalModel),
-            _ => null,
-        };
-    }
+        AgentProviderType.Claude when !string.IsNullOrWhiteSpace(keys.ClaudeApiKey)
+            => new ClaudeProvider(keys.ClaudeApiKey, m.ModelName, keys.ClaudeCacheTtl),
+        AgentProviderType.OpenAI when !string.IsNullOrWhiteSpace(keys.OpenAiApiKey)
+            => OpenAiCompatibleProvider.OpenAi(keys.OpenAiApiKey, m.ModelName),
+        AgentProviderType.Local when !string.IsNullOrWhiteSpace(m.Endpoint)
+            => OpenAiCompatibleProvider.Local(m.Endpoint, m.ModelName),
+        _ => null,
+    };
 }

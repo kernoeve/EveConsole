@@ -33,12 +33,15 @@ public sealed class AgentSettings
     public string UserGuidance { get; set; } = "";
 
     /// <summary>A copy, so a change can be published as a NEW Settings value. WhenAnyValue on
-    /// the service ignores a notification whose value is the same reference. The voice list is
-    /// copied too, so editing the copy's voices never reaches the original.</summary>
+    /// the service ignores a notification whose value is the same reference. The voice and model
+    /// lists and the roles are copied too, so editing the copy's never reaches the original.</summary>
     public AgentSettings Clone()
     {
         var copy = (AgentSettings)MemberwiseClone();
-        copy.Voices = [.. Voices.Select(v => v.Clone())];
+        copy.Voices           = [.. Voices.Select(v => v.Clone())];
+        copy.Models           = [.. Models.Select(m => m.Clone())];
+        copy.ConversationRole = ConversationRole.Clone();
+        copy.AnalystRole      = AnalystRole.Clone();
         return copy;
     }
 
@@ -58,6 +61,133 @@ public sealed class AgentSettings
 
     public string LocalEndpoint { get; set; } = "http://localhost:11434";
     public string LocalModel    { get; set; } = "llama3.1";
+
+    // ⚠️ Provider, ClaudeModel, OpenAiModel, LocalEndpoint and LocalModel above are the ONE model
+    // this file described before there was a list. They are read once, to make the list's first
+    // entries, and written back from the data model afterwards for an older build that opens the
+    // file (see MirrorLegacyModel). The keys and the cache lifetime are still live: one per service.
+
+    // ── Models and their roles ────────────────────────────────────────────────
+    //
+    // The model is the hidden brain behind the persona: two comparable models answer alike, and
+    // the capsuleer need not know which one did. So there can be several — a free local model to
+    // talk with and to work the app's screens, a stronger one for anything that needs the
+    // capsuleer's own data — and each role names a model from the list, and optionally a model to
+    // fall over to. Unlike a voice, a change of model is NOT silent when asked: free to paid is
+    // exactly the change somebody paying needs to hear about.
+
+    /// <summary>Every model the agent can think with. The keys are per service, above.</summary>
+    public List<ModelProfile> Models { get; set; } = [];
+
+    /// <summary>Talks with the capsuleer and works the application's own tools.</summary>
+    public ModelRole ConversationRole { get; set; } = new();
+
+    /// <summary>
+    /// Answers whatever needs the capsuleer's data — the database and ESI. A blank model means the
+    /// conversation's: one model then does everything, with the whole prompt and every tool, which
+    /// is how the agent always worked.
+    /// </summary>
+    public ModelRole AnalystRole { get; set; } = new();
+
+    /// <summary>Compacts the history when it grows long. Blank: the conversation's model.</summary>
+    public string SummaryModelId { get; set; } = "";
+
+    /// <summary>
+    /// When a message goes to the data model, in the capsuleer's own words. Read by the router
+    /// before each turn, finishing the sentence "Send a message to DATA when…".
+    /// </summary>
+    public string HandOffWhen { get; set; } = DefaultHandOffWhen;
+
+    public const string DefaultHandOffWhen =
+        "answering needs the capsuleer's own data — what they have, own, are doing or have done: " +
+        "assets and ships, wallet and transactions, industry jobs, market orders, contracts, skills, " +
+        "standings, kills and losses, corporation members — anything to be looked up, counted, " +
+        "totalled, listed or compared; or anything current about other people or corporations that " +
+        "needs a lookup.";
+
+    /// <summary>Said when a role's model stops answering and its fallback takes over.
+    /// {user}, {purpose}, {primary} and {fallback} are filled in.</summary>
+    public string ModelFailoverMessage { get; set; } =
+        "{user}, the primary model I use for {purpose} has become unavailable, so I'm falling over to {fallback}.";
+
+    /// <summary>Said when the role's own model is back and has taken over again.</summary>
+    public string ModelReturnMessage { get; set; } =
+        "{user}, the primary model I use for {purpose} is back, so I've switched back to {primary}.";
+
+    /// <summary>As for voices: at least this long between one change and the next voluntary one.
+    /// A model that stops answering is always replaced at once.</summary>
+    public int ModelSwitchGapMinutes { get; set; } = 10;
+
+    /// <summary>How long a role's own model must stay up, checked continuously, before the
+    /// switch back to it.</summary>
+    public int ModelPreferredUpMinutes { get; set; } = 5;
+
+    public ModelProfile? ModelById(string? id) =>
+        string.IsNullOrEmpty(id) ? null : Models.FirstOrDefault(m => m.Id == id);
+
+    /// <summary>Whether data questions go to a model of their own — and so whether there is
+    /// anything to route.</summary>
+    public bool RolesSplit =>
+        AnalystRole.ModelId.Length > 0 && AnalystRole.ModelId != ConversationRole.ModelId;
+
+    /// <summary>
+    /// Brings a file written before models became a list up to date, and repairs roles that name a
+    /// model no longer there. The model the file used becomes the first in the list and does both
+    /// jobs — nothing changes until the capsuleer says so. Any other service the file holds a
+    /// working setup for comes along too, so trying it is a choice rather than retyping.
+    /// Idempotent; called after every load.
+    /// </summary>
+    public void NormalizeModels()
+    {
+        if (Models.Count == 0)
+        {
+            var first = LegacyModel(Provider);
+            Models = [first];
+            foreach (var other in Enum.GetValues<AgentProviderType>())
+                if (other != Provider && LegacyConfigured(other))
+                    Models.Add(LegacyModel(other));
+            ConversationRole = new() { ModelId = first.Id };
+            AnalystRole      = new();
+        }
+
+        if (ModelById(ConversationRole.ModelId) is null) ConversationRole.ModelId = Models[0].Id;
+        if (AnalystRole.ModelId.Length > 0 && ModelById(AnalystRole.ModelId) is null) AnalystRole.ModelId = "";
+        if (ModelById(ConversationRole.FallbackId) is null) ConversationRole.FallbackId = "";
+        if (ModelById(AnalystRole.FallbackId) is null) AnalystRole.FallbackId = "";
+        if (SummaryModelId.Length > 0 && ModelById(SummaryModelId) is null) SummaryModelId = "";
+    }
+
+    private ModelProfile LegacyModel(AgentProviderType provider) => provider switch
+    {
+        AgentProviderType.Claude => new() { Provider = provider, Model = ClaudeModel },
+        AgentProviderType.OpenAI => new() { Provider = provider, Model = OpenAiModel },
+        _                        => new() { Provider = provider, Model = LocalModel, Endpoint = LocalEndpoint },
+    };
+
+    /// <summary>Whether the old single-model fields hold a setup worth carrying over for a service
+    /// that was not the one selected: a key, or a local server that is not the untouched default.</summary>
+    private bool LegacyConfigured(AgentProviderType provider) => provider switch
+    {
+        AgentProviderType.Claude => !string.IsNullOrWhiteSpace(ClaudeApiKey),
+        AgentProviderType.OpenAI => !string.IsNullOrWhiteSpace(OpenAiApiKey),
+        _                        => LocalEndpoint.Trim() != "http://localhost:11434" || LocalModel.Trim() != "llama3.1",
+    };
+
+    /// <summary>
+    /// Writes the model that answers data questions — the one able to do everything — back into
+    /// the single-model fields, so an older build that opens this file still has a working agent.
+    /// </summary>
+    public void MirrorLegacyModel()
+    {
+        if ((ModelById(AnalystRole.ModelId) ?? ModelById(ConversationRole.ModelId)) is not { } m) return;
+        Provider = m.Provider;
+        switch (m.Provider)
+        {
+            case AgentProviderType.Claude: ClaudeModel = m.ModelName; break;
+            case AgentProviderType.OpenAI: OpenAiModel = m.ModelName; break;
+            default: LocalEndpoint = m.Endpoint; LocalModel = m.ModelName; break;
+        }
+    }
 
     // Context management
     public bool PersistHistory           { get; set; } = true;
@@ -165,6 +295,66 @@ public sealed class AgentSettings
     public string WhisperLanguage       { get; set; } = "en";
     public string MicrophoneDeviceName  { get; set; } = "";   // empty = use system default
     public int    PushToTalkKey         { get; set; } = 0;    // 0 = disabled; Win32 VK code otherwise
+}
+
+/// <summary>
+/// One model the agent can think with: a service and a model name, and for a server of the
+/// capsuleer's own its address. The keys are per service, on the settings themselves.
+/// </summary>
+public sealed class ModelProfile
+{
+    /// <summary>What the roles refer to it by. Stable across renames and edits.</summary>
+    public string            Id       { get; set; } = NewId();
+
+    /// <summary>What it is called in the lists and under a reply. Blank: described instead.</summary>
+    public string            Name     { get; set; } = "";
+    public AgentProviderType Provider { get; set; } = AgentProviderType.Claude;
+    public string            Model    { get; set; } = "";
+
+    /// <summary>A local server's root, as Ollama documents it: http://gpu-box:11434.</summary>
+    public string            Endpoint { get; set; } = "";
+
+    public static string NewId() => Guid.NewGuid().ToString("N")[..12];
+
+    public ModelProfile Clone() => (ModelProfile)MemberwiseClone();
+
+    public string ModelName => Model.Trim().Length > 0 ? Model.Trim() : DefaultModel(Provider);
+
+    public static string DefaultModel(AgentProviderType provider) => provider switch
+    {
+        AgentProviderType.Claude => "claude-sonnet-4-6",
+        AgentProviderType.OpenAI => "gpt-5",
+        _                        => "llama3.1",
+    };
+
+    /// <summary>Runs on a machine of the capsuleer's own, and so costs nothing to use.</summary>
+    public bool IsLocal => Provider == AgentProviderType.Local;
+
+    /// <summary>Its name, or what it is: "Claude — claude-sonnet-4-6", "Local — qwen3:8b on gpu-box".</summary>
+    public string Label => Name.Trim().Length > 0 ? Name.Trim() : Describe();
+
+    public string Describe() => Provider switch
+    {
+        AgentProviderType.Claude => $"Claude — {ModelName}",
+        AgentProviderType.OpenAI => $"OpenAI — {ModelName}",
+        _ => Uri.TryCreate(Endpoint.Trim(), UriKind.Absolute, out var uri)
+            ? $"Local — {ModelName} on {uri.Host}"
+            : $"Local — {ModelName}",
+    };
+}
+
+/// <summary>A role's model, and the model to fall over to when it stops answering.</summary>
+public sealed class ModelRole
+{
+    public string ModelId    { get; set; } = "";
+
+    /// <summary>Blank: none — the role simply fails, as a single model always did.</summary>
+    public string FallbackId { get; set; } = "";
+
+    /// <summary>Say so, in the chat and aloud, when the fallback takes over and when it hands back.</summary>
+    public bool   Announce   { get; set; } = true;
+
+    public ModelRole Clone() => (ModelRole)MemberwiseClone();
 }
 
 /// <summary>

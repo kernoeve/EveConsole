@@ -71,7 +71,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string HeaderTitleText     => $"{DisplayAgentName} Agent";
     public string EnableCheckboxText  => $"Enable {DisplayAgentName} AI companion";
     public string EnableHelpText      =>
-        $"When enabled, the {DisplayAgentName} panel is available from the title bar. Requires a configured provider below.";
+        $"When enabled, the {DisplayAgentName} panel is available from the title bar. Requires a model set up below — with its key, or its server's address.";
     public string HistoryHelpText     =>
         $"History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {DisplayAgentName} panel.";
     public string SummarizationHelpText =>
@@ -99,26 +99,293 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isEnabled, value);
     }
 
-    // ── provider selection ─────────────────────────────────────────────────────
-    public IReadOnlyList<AgentProviderType> Providers { get; } =
-        Enum.GetValues<AgentProviderType>();
+    // ── Models ─────────────────────────────────────────────────────────────────
+    //
+    // Every model the agent can think with, and the roles that use them: the conversation, the
+    // questions that need the capsuleer's data, and the summaries. One model in both roles is how
+    // the agent always worked, and is what an older settings file becomes.
 
-    private AgentProviderType _selectedProvider;
-    public AgentProviderType SelectedProvider
+    public System.Collections.ObjectModel.ObservableCollection<ModelProfileVm> Models { get; } = [];
+
+    private ModelProfileVm? _selectedModel;
+    public ModelProfileVm? SelectedModel
     {
-        get => _selectedProvider;
+        get => _selectedModel;
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedProvider, value);
-            this.RaisePropertyChanged(nameof(ShowClaude));
-            this.RaisePropertyChanged(nameof(ShowOpenAi));
-            this.RaisePropertyChanged(nameof(ShowLocal));
+            this.RaiseAndSetIfChanged(ref _selectedModel, value);
+            this.RaisePropertyChanged(nameof(HasSelectedModel));
         }
     }
 
-    public bool ShowClaude => _selectedProvider == AgentProviderType.Claude;
-    public bool ShowOpenAi => _selectedProvider == AgentProviderType.OpenAI;
-    public bool ShowLocal  => _selectedProvider == AgentProviderType.Local;
+    public bool HasSelectedModel => _selectedModel is not null;
+
+    /// <summary>At least one model stays: the conversation needs one.</summary>
+    public bool CanRemoveModel => _selectedModel is not null && Models.Count > 1;
+
+    public ICommand AddModelCommand    { get; }
+    public ICommand RemoveModelCommand { get; }
+
+    private void AddModel()
+    {
+        var model = new ModelProfileVm(this, new ModelProfile
+        {
+            Provider = AgentProviderType.Local,
+            Endpoint = "http://localhost:11434",
+        });
+        Models.Add(model);
+        RebuildChoices();
+        SelectedModel = model;
+    }
+
+    private void RemoveModel()
+    {
+        if (_selectedModel is not { } model || Models.Count <= 1) return;
+        var index = Models.IndexOf(model);
+        Models.Remove(model);
+
+        // A role that named it: the conversation takes the first model left; the others go back
+        // to "same as conversation" or to no fallback.
+        if (_conversationModelId   == model.Id) _conversationModelId   = Models[0].Id;
+        if (_conversationFallbackId == model.Id) _conversationFallbackId = "";
+        if (_analystModelId        == model.Id) _analystModelId        = "";
+        if (_analystFallbackId     == model.Id) _analystFallbackId     = "";
+        if (_summaryModelId        == model.Id) _summaryModelId        = "";
+
+        RebuildChoices();
+        SelectedModel = Models[Math.Min(index, Models.Count - 1)];
+    }
+
+    /// <summary>A model's name or service changed: the tags that depend on it follow. The lists
+    /// update themselves — the entries are the models.</summary>
+    public void OnModelsChanged() => this.RaisePropertyChanged(nameof(RoleSummary));
+
+    // What each role's list offers. The models are the entries; "None" and "Same as conversation"
+    // are fixed ones in front.
+    private readonly FixedModelChoice _none = new("None — the role simply fails");
+    private readonly FixedModelChoice _same = new("Same as the conversation");
+
+    public System.Collections.ObjectModel.ObservableCollection<ModelChoice> ConversationChoices { get; } = [];
+    public System.Collections.ObjectModel.ObservableCollection<ModelChoice> AnalystChoices      { get; } = [];
+    public System.Collections.ObjectModel.ObservableCollection<ModelChoice> FallbackChoices     { get; } = [];
+
+    /// <summary>After a model is added or removed. The selections are read again, by id.</summary>
+    private void RebuildChoices()
+    {
+        ConversationChoices.Clear();
+        AnalystChoices.Clear();
+        FallbackChoices.Clear();
+        AnalystChoices.Add(_same);
+        FallbackChoices.Add(_none);
+        foreach (var m in Models)
+        {
+            ConversationChoices.Add(m);
+            AnalystChoices.Add(m);
+            FallbackChoices.Add(m);
+        }
+        RaiseRoles();
+        this.RaisePropertyChanged(nameof(CanRemoveModel));
+    }
+
+    private void RaiseRoles()
+    {
+        this.RaisePropertyChanged(nameof(SelectedConversationModel));
+        this.RaisePropertyChanged(nameof(SelectedConversationFallback));
+        this.RaisePropertyChanged(nameof(SelectedAnalystModel));
+        this.RaisePropertyChanged(nameof(SelectedAnalystFallback));
+        this.RaisePropertyChanged(nameof(SelectedSummaryModel));
+        this.RaisePropertyChanged(nameof(IsSplit));
+        this.RaisePropertyChanged(nameof(RoleSummary));
+    }
+
+    private ModelChoice? Find(string id, FixedModelChoice empty) =>
+        id.Length == 0 ? empty : Models.FirstOrDefault(m => m.Id == id) ?? (ModelChoice)empty;
+
+    // ── Roles ───────────────────────────────────────────────────────────────────
+
+    private string _conversationModelId = "";
+    public ModelChoice? SelectedConversationModel
+    {
+        get => Models.FirstOrDefault(m => m.Id == _conversationModelId) ?? Models.FirstOrDefault();
+        set
+        {
+            // ⚠️ Null comes back through the binding whenever the list is rebuilt; it is not a choice.
+            if (value is not ModelProfileVm m || m.Id == _conversationModelId) return;
+            _conversationModelId = m.Id;
+            RaiseRoles();
+        }
+    }
+
+    private string _conversationFallbackId = "";
+    public ModelChoice? SelectedConversationFallback
+    {
+        get => Find(_conversationFallbackId, _none);
+        set
+        {
+            if (value is null || value.Id == _conversationFallbackId) return;
+            _conversationFallbackId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    private bool _conversationAnnounce = true;
+    public bool ConversationAnnounce
+    {
+        get => _conversationAnnounce;
+        set => this.RaiseAndSetIfChanged(ref _conversationAnnounce, value);
+    }
+
+    private string _analystModelId = "";
+    public ModelChoice? SelectedAnalystModel
+    {
+        get => Find(_analystModelId, _same);
+        set
+        {
+            if (value is null || value.Id == _analystModelId) return;
+            _analystModelId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    private string _analystFallbackId = "";
+    public ModelChoice? SelectedAnalystFallback
+    {
+        get => Find(_analystFallbackId, _none);
+        set
+        {
+            if (value is null || value.Id == _analystFallbackId) return;
+            _analystFallbackId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    private bool _analystAnnounce = true;
+    public bool AnalystAnnounce
+    {
+        get => _analystAnnounce;
+        set => this.RaiseAndSetIfChanged(ref _analystAnnounce, value);
+    }
+
+    private string _summaryModelId = "";
+    public ModelChoice? SelectedSummaryModel
+    {
+        get => Find(_summaryModelId, _same);
+        set
+        {
+            if (value is null || value.Id == _summaryModelId) return;
+            _summaryModelId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    /// <summary>Data questions go to a model of their own — so there is routing to describe.</summary>
+    public bool IsSplit => _analystModelId.Length > 0 && _analystModelId != _conversationModelId;
+
+    /// <summary>What the roles come to, in a sentence, under the Roles box.</summary>
+    public string RoleSummary
+    {
+        get
+        {
+            var conversation = (SelectedConversationModel as ModelProfileVm)?.ToProfile().Label ?? "the first model";
+            if (!IsSplit)
+                return $"{conversation} does everything: the conversation, the app's tools and every question about your data, with the whole prompt.";
+            var analyst = Models.FirstOrDefault(m => m.Id == _analystModelId)?.ToProfile().Label ?? "?";
+            return $"{conversation} talks with you and works the app, with a prompt about half the size and no access to your data. " +
+                   $"Before each message it is asked, in one word, whether the message needs your data; if it does, {analyst} answers it " +
+                   "instead, with the database and ESI. If a data question slips through, the conversation model hands it over itself. " +
+                   "Start a message with /data or /chat to send it one way or the other regardless.";
+        }
+    }
+
+    private string _handOffWhen = AgentSettings.DefaultHandOffWhen;
+    /// <summary>Finishes "Send a message to the data model when…" — what the router is told.</summary>
+    public string HandOffWhen
+    {
+        get => _handOffWhen;
+        set => this.RaiseAndSetIfChanged(ref _handOffWhen, value);
+    }
+
+    public ICommand ResetHandOffWhenCommand { get; }
+
+    // ── When a model changes ──────────────────────────────────────────────────
+
+    private string _modelFailoverMessage = "";
+    public string ModelFailoverMessage
+    {
+        get => _modelFailoverMessage;
+        set => this.RaiseAndSetIfChanged(ref _modelFailoverMessage, value);
+    }
+
+    private string _modelReturnMessage = "";
+    public string ModelReturnMessage
+    {
+        get => _modelReturnMessage;
+        set => this.RaiseAndSetIfChanged(ref _modelReturnMessage, value);
+    }
+
+    private int _modelSwitchGapMinutes = 10;
+    public int ModelSwitchGapMinutes
+    {
+        get => _modelSwitchGapMinutes;
+        set => this.RaiseAndSetIfChanged(ref _modelSwitchGapMinutes, Math.Clamp(value, 0, 240));
+    }
+
+    private int _modelPreferredUpMinutes = 5;
+    public int ModelPreferredUpMinutes
+    {
+        get => _modelPreferredUpMinutes;
+        set => this.RaiseAndSetIfChanged(ref _modelPreferredUpMinutes, Math.Clamp(value, 0, 240));
+    }
+
+    /// <summary>
+    /// Asks one model for a sentence, as it stands on the tab — unsaved, with the keys as typed.
+    /// A model of our own costs nothing to ask; a paid one, a few tokens, recorded like any other.
+    /// </summary>
+    public async Task<(bool Ok, string Message)> TestModelAsync(ModelProfileVm vm)
+    {
+        var profile = vm.ToProfile();
+        var keys    = new AgentSettings
+        {
+            ClaudeApiKey   = _claudeApiKey.Trim(),
+            ClaudeCacheTtl = _claudeCacheTtl,
+            OpenAiApiKey   = _openAiApiKey.Trim(),
+        };
+        if (AgentService.BuildProvider(profile, keys) is not { } provider)
+            return (false, profile.Provider switch
+            {
+                AgentProviderType.Claude => "It needs the Claude key, under Service keys below.",
+                AgentProviderType.OpenAI => "It needs the OpenAI key, under Service keys below.",
+                _                        => "It needs the server's address.",
+            });
+
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin("settings-test", provider.ProviderName, profile.ModelName, 0);
+        var failure = "";
+        var reply   = new System.Text.StringBuilder();
+        var watch   = System.Diagnostics.Stopwatch.StartNew();
+        TimeSpan? first = null;
+        try
+        {
+            // A model of our own may have to load onto the GPU first.
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+            await foreach (var chunk in provider.StreamAsync(
+                               "You are being tested. Reply with one short sentence.",
+                               [new AgentMessage(MessageRole.User, "Say hello.")],
+                               tools: null, onUsage: u => telemetry?.Usage(u), ct: timeout.Token).ConfigureAwait(false))
+            {
+                if (chunk.Length > 0) first ??= watch.Elapsed;
+                reply.Append(chunk);
+            }
+
+            var text = reply.ToString().Trim();
+            if (text.Length == 0) { failure = "no answer"; return (false, "It answered with nothing."); }
+            if (text.Length > 90) text = text[..90] + "…";
+            return (true, $"Answered in {(first ?? watch.Elapsed).TotalSeconds:0.0} s: \"{text}\"");
+        }
+        catch (OperationCanceledException) { failure = "timed out"; return (false, "No answer within 90 seconds."); }
+        catch (Exception ex) { failure = ex.Message; return (false, ex.GetBaseException().Message); }
+        finally { telemetry?.Complete(reply.Length, failure); }
+    }
 
     // ── Claude ─────────────────────────────────────────────────────────────────
     private string _claudeApiKey = "";
@@ -144,41 +411,12 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         }
     }
 
-    private string _claudeModel = "";
-    public string ClaudeModel
-    {
-        get => _claudeModel;
-        set => this.RaiseAndSetIfChanged(ref _claudeModel, value);
-    }
-
     // ── OpenAI ─────────────────────────────────────────────────────────────────
     private string _openAiApiKey = "";
     public string OpenAiApiKey
     {
         get => _openAiApiKey;
         set => this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
-    }
-
-    private string _openAiModel = "";
-    public string OpenAiModel
-    {
-        get => _openAiModel;
-        set => this.RaiseAndSetIfChanged(ref _openAiModel, value);
-    }
-
-    // ── Local LLM ──────────────────────────────────────────────────────────────
-    private string _localEndpoint = "";
-    public string LocalEndpoint
-    {
-        get => _localEndpoint;
-        set => this.RaiseAndSetIfChanged(ref _localEndpoint, value);
-    }
-
-    private string _localModel = "";
-    public string LocalModel
-    {
-        get => _localModel;
-        set => this.RaiseAndSetIfChanged(ref _localModel, value);
     }
 
     // ── context management ─────────────────────────────────────────────────────
@@ -499,6 +737,9 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         RemoveVoiceCommand         = ReactiveCommand.Create(RemoveVoice);
         MoveVoiceUpCommand         = ReactiveCommand.Create(() => MoveVoice(-1));
         MoveVoiceDownCommand       = ReactiveCommand.Create(() => MoveVoice(+1));
+        AddModelCommand            = ReactiveCommand.Create(AddModel);
+        RemoveModelCommand         = ReactiveCommand.Create(RemoveModel);
+        ResetHandOffWhenCommand    = ReactiveCommand.Create(() => { HandOffWhen = AgentSettings.DefaultHandOffWhen; });
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
         LoadFromService();
         SaveCommand               = ReactiveCommand.Create(Save);
@@ -528,16 +769,29 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _userName               = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
         _userGuidance           = s.UserGuidance ?? "";
         _isEnabled              = s.Enabled;
-        _selectedProvider       = s.Provider;
         _claudeApiKey           = s.ClaudeApiKey;
-        _claudeModel            = s.ClaudeModel;
         _claudeCacheTtl         = s.ClaudeCacheTtl == "1h" ? "1h" : "5m";
         _openAiApiKey           = s.OpenAiApiKey;
-        _openAiModel            = s.OpenAiModel;
-        _localEndpoint          = s.LocalEndpoint;
-        _localModel             = s.LocalModel;
         _persistHistory         = s.PersistHistory;
         _summarizationThreshold = s.SummarizationThreshold;
+
+        s.NormalizeModels();
+        Models.Clear();
+        foreach (var model in s.Models) Models.Add(new ModelProfileVm(this, model));
+        _selectedModel           = Models.FirstOrDefault();
+        _conversationModelId     = s.ConversationRole.ModelId;
+        _conversationFallbackId  = s.ConversationRole.FallbackId;
+        _conversationAnnounce    = s.ConversationRole.Announce;
+        _analystModelId          = s.AnalystRole.ModelId;
+        _analystFallbackId       = s.AnalystRole.FallbackId;
+        _analystAnnounce         = s.AnalystRole.Announce;
+        _summaryModelId          = s.SummaryModelId;
+        _handOffWhen             = string.IsNullOrWhiteSpace(s.HandOffWhen) ? AgentSettings.DefaultHandOffWhen : s.HandOffWhen;
+        _modelFailoverMessage    = s.ModelFailoverMessage;
+        _modelReturnMessage      = s.ModelReturnMessage;
+        _modelSwitchGapMinutes   = s.ModelSwitchGapMinutes;
+        _modelPreferredUpMinutes = s.ModelPreferredUpMinutes;
+        RebuildChoices();
 
         s.NormalizeVoices();
         _speechOn                = s.SpeechOn;
@@ -571,14 +825,28 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             UserName     = string.IsNullOrWhiteSpace(_userName) ? AgentSettings.DefaultUserName : _userName.Trim(),
             UserGuidance = (_userGuidance ?? "").Trim(),
             Enabled       = _isEnabled,
-            Provider      = _selectedProvider,
             ClaudeApiKey  = _claudeApiKey.Trim(),
-            ClaudeModel   = string.IsNullOrWhiteSpace(_claudeModel)    ? "claude-sonnet-4-6"          : _claudeModel.Trim(),
             ClaudeCacheTtl = _claudeCacheTtl,
             OpenAiApiKey  = _openAiApiKey.Trim(),
-            OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-5"                      : _openAiModel.Trim(),
-            LocalEndpoint = string.IsNullOrWhiteSpace(_localEndpoint)  ? "http://localhost:11434"      : _localEndpoint.Trim(),
-            LocalModel    = string.IsNullOrWhiteSpace(_localModel)     ? "llama3.1"                   : _localModel.Trim(),
+
+            Models           = [.. Models.Select(m => m.ToProfile())],
+            ConversationRole = new() { ModelId = _conversationModelId, FallbackId = _conversationFallbackId, Announce = _conversationAnnounce },
+            AnalystRole      = new() { ModelId = _analystModelId,      FallbackId = _analystFallbackId,      Announce = _analystAnnounce },
+            SummaryModelId   = _summaryModelId,
+            HandOffWhen      = string.IsNullOrWhiteSpace(_handOffWhen) ? AgentSettings.DefaultHandOffWhen : _handOffWhen.Trim(),
+            ModelFailoverMessage    = string.IsNullOrWhiteSpace(_modelFailoverMessage) ? new AgentSettings().ModelFailoverMessage : _modelFailoverMessage.Trim(),
+            ModelReturnMessage      = string.IsNullOrWhiteSpace(_modelReturnMessage)   ? new AgentSettings().ModelReturnMessage   : _modelReturnMessage.Trim(),
+            ModelSwitchGapMinutes   = _modelSwitchGapMinutes,
+            ModelPreferredUpMinutes = _modelPreferredUpMinutes,
+
+            // The old single-model fields are carried as they are; the file gets them written
+            // back from the data model when it is saved, for an older build.
+            Provider      = _service.Settings.Provider,
+            ClaudeModel   = _service.Settings.ClaudeModel,
+            OpenAiModel   = _service.Settings.OpenAiModel,
+            LocalEndpoint = _service.Settings.LocalEndpoint,
+            LocalModel    = _service.Settings.LocalModel,
+
             PersistHistory         = _persistHistory,
             SummarizationThreshold = _summarizationThreshold < 1000 ? 1000 : _summarizationThreshold,
 

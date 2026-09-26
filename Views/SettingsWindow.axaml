@@ -1833,97 +1833,201 @@
                   </Grid>
                 </Border>
 
-                <!-- Provider selection -->
+                <!-- The models -->
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Provider" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Models" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
-                    <Grid Grid.Row="1" ColumnDefinitions="120,*" Margin="12 10">
-                      <TextBlock Grid.Column="0" Text="LLM Provider:"
-                                 FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                      <ComboBox Grid.Column="1"
-                                ItemsSource="{Binding Providers}"
-                                SelectedItem="{Binding SelectedProvider}"
-                                HorizontalAlignment="Stretch">
-                      </ComboBox>
-                    </Grid>
+                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Every model the agent can think with: a server of your own such as Ollama, which is free, or a paid service. Which one does what is set under Roles below." />
+
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 4 0 0">
+                        <ListBox Grid.Column="0" ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}"
+                                 MinHeight="60" MaxHeight="150"
+                                 Background="{DynamicResource SurfaceInputBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ModelProfileVm">
+                              <TextBlock Text="{Binding Label}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                          </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="8 0 0 0">
+                          <Button Content="Add" Command="{Binding AddModelCommand}" Padding="10 3" HorizontalAlignment="Stretch" />
+                          <Button Content="Remove" Command="{Binding RemoveModelCommand}" IsEnabled="{Binding CanRemoveModel}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" ToolTip.Tip="At least one model stays" />
+                        </StackPanel>
+                      </Grid>
+
+                      <!-- The selected model -->
+                      <Border IsVisible="{Binding HasSelectedModel}" Margin="0 6 0 0" Padding="10 8"
+                              BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3">
+                        <StackPanel Spacing="8" DataContext="{Binding SelectedModel}" x:DataType="vm:ModelProfileVm">
+                          <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                          <TextBox Text="{Binding Name}" Watermark="{Binding NameWatermark}" />
+
+                          <TextBlock Text="Service" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                          <ComboBox ItemsSource="{Binding ServiceOptions}" SelectedItem="{Binding SelectedService}" HorizontalAlignment="Stretch" />
+
+                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="8">
+                            <TextBlock Text="Server address" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Endpoint}" Watermark="http://gpu-box:11434" />
+                          </StackPanel>
+
+                          <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                          <TextBox Text="{Binding Model}" Watermark="{Binding ModelWatermark}" />
+                          <TextBlock Text="{Binding ModelHelp}" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+
+                          <StackPanel Spacing="6" Margin="0 4 0 0">
+                            <StackPanel.Styles>
+                              <!-- Classes, not a local Foreground: a local value would beat these. -->
+                              <Style Selector="TextBlock.test">
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.ok">
+                                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.failed">
+                                <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+                              </Style>
+                            </StackPanel.Styles>
+                            <Button Content="Test This Model" Command="{Binding TestModelCommand}"
+                                    Padding="12 4" HorizontalAlignment="Left"
+                                    ToolTip.Tip="Asks it for one sentence, as set here, before saving. Free on a server of your own; a few tokens on a paid service." />
+                            <TextBlock Classes="test" Classes.ok="{Binding TestOk}" Classes.failed="{Binding TestFailed}"
+                                       Text="{Binding TestStatus}" IsVisible="{Binding HasTestStatus}"
+                                       FontSize="11" TextWrapping="Wrap" />
+                          </StackPanel>
+                        </StackPanel>
+                      </Border>
+                    </StackPanel>
                   </Grid>
                 </Border>
 
-                <!-- Claude settings -->
-                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
-                        IsVisible="{Binding ShowClaude}">
+                <!-- Keys, one per service -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Claude (Anthropic)" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Service keys" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
-                      <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding ClaudeApiKey}"
-                               Watermark="sk-ant-…"
-                               PasswordChar="•" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="One key per paid service, used by every model on that service. A server of your own needs none." />
+
+                      <TextBlock Text="Claude (Anthropic) API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding ClaudeApiKey}" Watermark="sk-ant-…" PasswordChar="•" />
                       <HyperlinkButton Content="Get your Anthropic API key at console.anthropic.com"
                                        NavigateUri="https://console.anthropic.com/settings/keys"
-                                       FontSize="10"
-                                       Padding="0"
-                                       HorizontalAlignment="Left" />
-                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding ClaudeModel}"
-                               Watermark="claude-sonnet-4-6" />
-                      <TextBlock Text="Available models: claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5-20251001"
-                                 FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                                       FontSize="10" Padding="0" HorizontalAlignment="Left" />
 
-                      <TextBlock Text="Prompt Cache Lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                      <TextBlock Text="Claude prompt cache lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
                       <ComboBox ItemsSource="{Binding ClaudeCacheTtlOptions}"
                                 SelectedItem="{Binding ClaudeCacheTtlOption}"
                                 HorizontalAlignment="Stretch" />
                       <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
                                  Text="Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message." />
-                    </StackPanel>
-                  </Grid>
-                </Border>
 
-                <!-- OpenAI settings -->
-                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
-                        IsVisible="{Binding ShowOpenAi}">
-                  <Grid RowDefinitions="Auto,Auto">
-                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="OpenAI" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-                    </Border>
-                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
-                      <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding OpenAiApiKey}"
-                               Watermark="sk-…"
-                               PasswordChar="•" />
+                      <TextBlock Text="OpenAI API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                      <TextBox Text="{Binding OpenAiApiKey}" Watermark="sk-…" PasswordChar="•" />
                       <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
                                        NavigateUri="https://platform.openai.com/api-keys"
-                                       FontSize="10"
-                                       Padding="0"
-                                       HorizontalAlignment="Left" />
-                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding OpenAiModel}"
-                               Watermark="gpt-5" />
+                                       FontSize="10" Padding="0" HorizontalAlignment="Left" />
                     </StackPanel>
                   </Grid>
                 </Border>
 
-                <!-- Local LLM settings -->
-                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
-                        IsVisible="{Binding ShowLocal}">
+                <!-- The roles -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Local LLM (Ollama / LM Studio)" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Roles" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
-                      <TextBlock Text="API Endpoint" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding LocalEndpoint}"
-                               Watermark="http://localhost:11434" />
-                      <TextBlock Text="Model Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding LocalModel}"
-                               Watermark="llama3.1" />
-                      <TextBlock Text="Must expose an OpenAI-compatible /v1/chat/completions endpoint (Ollama, LM Studio, and most local runners do by default)."
-                                 FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                      <StackPanel.DataTemplates>
+                        <DataTemplate x:DataType="vm:ModelChoice">
+                          <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                      </StackPanel.DataTemplates>
+
+                      <!-- Conversation -->
+                      <TextBlock Text="Conversation" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Talks with you and works the app — opens and arranges its tools, sets alarms and destinations, remembers your standing instructions." />
+                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding ConversationChoices}" SelectedItem="{Binding SelectedConversationModel}"
+                                HorizontalAlignment="Stretch" />
+                      <TextBlock Text="If it stops answering, fall over to" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding FallbackChoices}" SelectedItem="{Binding SelectedConversationFallback}"
+                                HorizontalAlignment="Stretch" />
+                      <CheckBox IsChecked="{Binding ConversationAnnounce}"
+                                Content="Say so when it falls over, and when it comes back — in the chat, and aloud when speaking" />
+
+                      <!-- Data -->
+                      <TextBlock Text="Questions about your data" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 10 0 0" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Anything that needs your database or ESI — what you have, own, are doing or have done. The model here gets the whole prompt and every tool." />
+                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding AnalystChoices}" SelectedItem="{Binding SelectedAnalystModel}"
+                                HorizontalAlignment="Stretch" />
+                      <StackPanel IsVisible="{Binding IsSplit}" Spacing="8">
+                        <TextBlock Text="If it stops answering, fall over to" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                        <ComboBox ItemsSource="{Binding FallbackChoices}" SelectedItem="{Binding SelectedAnalystFallback}"
+                                  HorizontalAlignment="Stretch" />
+                        <CheckBox IsChecked="{Binding AnalystAnnounce}"
+                                  Content="Say so when it falls over, and when it comes back — in the chat, and aloud when speaking" />
+
+                        <TextBlock Text="Send a message to this model when…" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                        <TextBox Text="{Binding HandOffWhen}" AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="70" VerticalContentAlignment="Top" />
+                        <Button Content="Reset to the default" Command="{Binding ResetHandOffWhenCommand}"
+                                Padding="10 3" HorizontalAlignment="Left" />
+                      </StackPanel>
+
+                      <!-- Summaries -->
+                      <TextBlock Text="Summaries" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 10 0 0" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Compacts older messages when the conversation grows long (see Context Management). A small free model does this well." />
+                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding AnalystChoices}" SelectedItem="{Binding SelectedSummaryModel}"
+                                HorizontalAlignment="Stretch" />
+
+                      <TextBlock Text="{Binding RoleSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                 TextWrapping="Wrap" Margin="0 8 0 0" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+
+                <!-- When a model changes -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+                  <Grid RowDefinitions="Auto,Auto">
+                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                      <TextBlock Text="When a model changes" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Said for a role that says so (above) when its model stops answering and the fallback takes over, and again when its own model is back. {user} is your name from Personalisation, {purpose} is &quot;our conversation&quot; or &quot;data access&quot;, {primary} and {fallback} are the two models' names. Nothing is switched silently at start: if a role's own model is not there, the first message finds out, and says so." />
+                      <TextBlock Text="Falling over" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding ModelFailoverMessage}" TextWrapping="Wrap" />
+                      <TextBlock Text="Coming back" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding ModelReturnMessage}" TextWrapping="Wrap" />
+
+                      <Grid ColumnDefinitions="Auto,130,Auto" RowDefinitions="Auto,Auto" Margin="0 4 0 0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="At least" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding ModelSwitchGapMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="minutes between one change and the next switch back"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Up for" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 6 8 0" />
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding ModelPreferredUpMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" Margin="0 6 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="minutes without a break before a role's own model returns"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 6 0 0" />
+                      </Grid>
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="A model that stops answering is replaced at once, before a word of the answer — these only govern coming back, so a server that keeps dropping out cannot make the agent flip back and forth. A switch back waits for your next message, and for one real word from the returning model." />
                     </StackPanel>
                   </Grid>
                 </Border>

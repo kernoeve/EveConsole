@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Avalonia.Threading;
 using EveConsole.Agent;
+using EveConsole.Agent.Tools.Actions;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
@@ -474,6 +475,26 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
     public Task SendAsync() => SendAsync(showUserMessage: true);
 
+    /// <summary>Which model a turn goes to.</summary>
+    private enum Part
+    {
+        /// <summary>One model does everything — the whole prompt and every tool — as it always did.</summary>
+        Whole,
+        /// <summary>The conversation model: the app's own tools, and a hand-off for data questions.</summary>
+        Conversation,
+        /// <summary>The model that reads the capsuleer's data.</summary>
+        Analyst,
+    }
+
+    /// <summary>How one model's attempt at a turn ended.</summary>
+    /// <param name="Answered">It produced a reply, which is now in the conversation.</param>
+    /// <param name="HandedOff">The conversation model passed the message to the data model.</param>
+    /// <param name="Acted">
+    /// It wrote or did something — text shown and perhaps spoken, a tool run — so the turn cannot
+    /// simply be given to another model and started over.
+    /// </param>
+    private sealed record Attempt(bool Answered, bool HandedOff, Exception? Error, bool Acted);
+
     /// <param name="showUserMessage">
     /// False when the app is speaking on the capsuleer's behalf — an alarm handing over
     /// something to report. The text still goes to the model, since the reply is meaningless
@@ -483,6 +504,10 @@ public sealed class AgentPanelViewModel : ReactiveObject
     {
         var text = Input.Trim();
         if (string.IsNullOrEmpty(text) || IsBusy) return;
+
+        // "/data …" or "/chat …": this one message goes where the capsuleer says.
+        var forced = TakeOverride(ref text);
+        if (string.IsNullOrEmpty(text)) return;
 
         // Only a message the capsuleer wrote counts; an alarm's own prompt arrives this way too.
         string? replyingTo = null;
@@ -497,10 +522,11 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
         ApplyNavigationIntent(text);
 
-        if (_service.Provider is null || !_service.Provider.IsConfigured)
+        var roles = _service.Roles;
+        if (roles.Conversation is not { CanAnswer: true })
         {
             ErrorText = _service.Settings.Enabled
-                ? "API key not configured. Add your key in Settings → Agent."
+                ? "No model is set up. Add one, with its key or its server's address, in Settings → AI Agent."
                 : "Agent is disabled. Enable it in Settings → Agent.";
             return;
         }
@@ -547,25 +573,134 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // this one started; the prompt is built from what the database says now.
         await _service.RefreshSharedAsync();
 
-        var systemPrompt = BuildSystemPrompt();
-        var sb = new StringBuilder();
-
-        var telemetry = _service.Telemetry;
-        telemetry?.Begin(_conversationId, _service.Provider.ProviderName, "", text.Length);
-        var failure = "";
-
         // Says what is happening while nothing is on screen. A question needing discovery can run
         // six round trips over twenty seconds, and an empty panel through all of it is
         // indistinguishable from a hang — which is exactly how it was read.
         SetStatus("Thinking…");
 
-        // Every tool the turn calls, in the order first called, for the line under the reply.
+        var answered = false;
+        var failure  = "";
+        try
+        {
+            // Also between turns: a role's own model that is back, and has stayed up, takes over
+            // again — and says so, if the role says such things.
+            foreach (var change in await roles.ApplyPendingReturnsAsync(ct)) await ShowModelChangeAsync(change);
+
+            // Who answers. One model: that one, as always. Two: where the capsuleer said, else where
+            // the router sends it. An alarm's report needs no data — the alarm brought it.
+            var part = !roles.IsSplit ? Part.Whole
+                     : forced ?? (showUserMessage ? await RouteAsync(text, ct) : Part.Conversation);
+
+            for (var attempt = 0; attempt < 4 && !ct.IsCancellationRequested; attempt++)
+            {
+                var seat   = part == Part.Analyst ? roles.Analyst! : roles.Conversation!;
+                var result = await RunAsync(part, seat, text.Length, ct);
+
+                if (result.HandedOff)
+                {
+                    part = Part.Analyst;
+                    SetStatus("Looking into it…");
+                    continue;
+                }
+
+                if (result.Error is { } error)
+                {
+                    // The model is not there to answer. Its fallback takes over at once — and
+                    // answers this very message, when nothing has been said or done yet. After
+                    // that, the error stands and the next message goes to the fallback.
+                    if (ModelFailure.IsUnavailable(error, ct) && roles.FailOver(seat) is { } change)
+                    {
+                        await ShowModelChangeAsync(change);
+                        if (!result.Acted) continue;
+                    }
+
+                    failure = error is OperationCanceledException && ct.IsCancellationRequested ? "cancelled" : error.Message;
+                    if (failure != "cancelled")
+                        await Dispatcher.UIThread.InvokeAsync(() => ErrorText = $"Error: {error.Message}");
+                }
+
+                answered = result.Answered;
+                break;
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { failure = "cancelled"; }
+        catch (Exception ex)
+        {
+            failure = ex.Message;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StreamingText = "";
+                ErrorText     = $"Error: {ex.Message}";
+            });
+        }
+        finally
+        {
+            // ⚠️ Always leave something in the conversation. A turn that produced no text at all —
+            // it failed, or the model stopped mid-tool — otherwise looks identical to the app
+            // having hung, and the capsuleer is left watching a panel that will never change.
+            if (!answered && !ct.IsCancellationRequested)
+            {
+                var note = failure.Length > 0
+                    ? $"That did not complete: {failure}"
+                    : "That finished without producing an answer. Worth asking again — the "
+                      + "detail of what happened is in Settings → Error Log.";
+
+                var noteMsg = new AgentMessage(MessageRole.Assistant, note);
+                FlushDeferredNotes();
+                _history.Add(noteMsg);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    Messages.Add(noteMsg);
+                    StreamingText = "";
+                });
+                SaveHistory();
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StatusText = "";
+                IsBusy     = false;
+            });
+        }
+    }
+
+    /// <summary>
+    /// One model's attempt at the turn: streams its answer to the screen and the voice, and puts a
+    /// finished reply into the conversation, tagged with the model that wrote it.
+    /// </summary>
+    private async Task<Attempt> RunAsync(Part part, ModelRoles.Seat seat, int userChars, CancellationToken turn)
+    {
+        var model = seat.Model;
+        if (seat.Provider is not { IsConfigured: true } provider)
+            return new Attempt(false, false, new HttpRequestException(
+                $"{model.Label} is not set up — it needs its key or its server's address in Settings → AI Agent.",
+                null, System.Net.HttpStatusCode.Unauthorized), Acted: false);
+
+        var scope        = part == Part.Conversation ? PromptScope.Conversation : PromptScope.Full;
+        var tools        = part == Part.Conversation ? _service.ConversationTools : _service.Tools;
+        var systemPrompt = BuildSystemPrompt(scope);
+
+        // The conversation model may hand the message over. That stops its stream at once, so
+        // nothing it goes on to write — a guess, most likely — is shown or said.
+        using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(turn);
+        var handedOff = 0;
+        _service.HandOffRequested = part == Part.Conversation
+            ? _ => { Interlocked.Exchange(ref handedOff, 1); attemptCts.Cancel(); }
+            : null;
+
+        // Every tool this model calls, in the order first called, for the line under its reply.
         var toolCounts = new Dictionary<string, int>();
         _service.ToolActivity = tool =>
         {
+            if (tool == HandOffTool.ToolName) return;
             SetStatus(ToolStatus(tool));
             lock (toolCounts) toolCounts[tool] = toolCounts.GetValueOrDefault(tool) + 1;
         };
+
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin(_conversationId, provider.ProviderName, model.ModelName, userChars);
+        var failure = "";
+        var sb      = new StringBuilder();
 
         try
         {
@@ -605,8 +740,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
             // says — see the threshold check after the turn.
             long promptTokens = 0; int? window = null;
 
-            await foreach (var chunk in _service.Provider.StreamAsync(
-                systemPrompt, _history, _service.Tools,
+            await foreach (var chunk in provider.StreamAsync(
+                systemPrompt, _history, tools,
                 onUsage: u =>
                 {
                     telemetry?.Usage(u);
@@ -614,7 +749,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
                     window       = u.ContextLength ?? window;
                 },
                 volatileContext: CurrentAppState(),
-                ct: ct).ConfigureAwait(false))
+                ct: attemptCts.Token).ConfigureAwait(false))
             {
                 lock (sb) sb.Append(chunk);
                 PostStreamingText();
@@ -635,84 +770,160 @@ public sealed class AgentPanelViewModel : ReactiveObject
             // Whatever is left has no closing punctuation and never will.
             if (speaking) SpeakCompleteSentences(pending, flush: true);
 
-            if (!ct.IsCancellationRequested && sb.Length > 0)
+            if (turn.IsCancellationRequested || finalText.Length == 0)
             {
-                var responseText = sb.ToString();
-                string toolsUsed;
-                lock (toolCounts) toolsUsed = ToolUseSummary.Describe(toolCounts);
-                var assistantMsg = new AgentMessage(MessageRole.Assistant, responseText) { ToolsUsed = toolsUsed };
-                // A voice that took over mid-answer introduced itself before this answer ended.
-                FlushDeferredNotes();
-                _history.Add(assistantMsg);
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    Messages.Add(assistantMsg);
-                    StreamingText = "";
-                });
-
-                // ⚠️ Not spoken here any more. The sentences went to TTS as they were produced,
-                // and speaking the finished text again would say the whole answer twice.
-
-                SaveHistory();
-
-                // Fire background summarization if threshold is crossed — or if the prompt is
-                // closing on the model's window, when the server has said what that is.
-                //
-                // ⚠️ The threshold is set blind to the window, and a local server does not refuse
-                // a prompt that outgrows it. Ollama drops the OLDEST messages to make room, and
-                // the oldest message in this layout is the system prompt: measured on a 2k window,
-                // the instructions went first, whole, while the chat stayed, and the model went on
-                // answering with none. Eighty percent leaves room for the next question and the
-                // reply; the summary then shrinks the history well below it.
-                if (EstimateTokens() >= _service.Settings.SummarizationThreshold
-                    || (window is > 0 && promptTokens > window.Value * 0.8))
-                    _summarizationTask = SummarizeAsync();
+                bool actedHere;
+                lock (toolCounts) actedHere = finalText.Length > 0 || toolCounts.Count > 0;
+                return new Attempt(false, false, null, actedHere);
             }
-        }
-        catch (OperationCanceledException) { failure = "cancelled"; }
-        catch (Exception ex)
-        {
-            failure = ex.Message;
+
+            string toolsUsed;
+            lock (toolCounts) toolsUsed = ToolUseSummary.Describe(toolCounts);
+            var assistantMsg = new AgentMessage(MessageRole.Assistant, finalText)
+            {
+                ToolsUsed  = toolsUsed,
+                AnsweredBy = model.Label,
+                AnsweredAs = part switch
+                {
+                    Part.Analyst      => ModelRoleKind.Analyst,
+                    Part.Conversation => ModelRoleKind.Conversation,
+                    _                 => null,
+                },
+            };
+            // A voice or a model that took over mid-answer said so before this answer ended.
+            FlushDeferredNotes();
+            _history.Add(assistantMsg);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                Messages.Add(assistantMsg);
                 StreamingText = "";
-                ErrorText     = $"Error: {ex.Message}";
             });
+
+            // ⚠️ Not spoken here any more. The sentences went to TTS as they were produced,
+            // and speaking the finished text again would say the whole answer twice.
+
+            SaveHistory();
+
+            // Fire background summarization if threshold is crossed — or if the prompt is
+            // closing on the model's window, when the server has said what that is.
+            //
+            // ⚠️ The threshold is set blind to the window, and a local server does not refuse
+            // a prompt that outgrows it. Ollama drops the OLDEST messages to make room, and
+            // the oldest message in this layout is the system prompt: measured on a 2k window,
+            // the instructions went first, whole, while the chat stayed, and the model went on
+            // answering with none. Eighty percent leaves room for the next question and the
+            // reply; the summary then shrinks the history well below it.
+            if (EstimateTokens() >= _service.Settings.SummarizationThreshold
+                || (window is > 0 && promptTokens > window.Value * 0.8))
+                _summarizationTask = SummarizeAsync();
+
+            return new Attempt(true, false, null, Acted: true);
+        }
+        catch (OperationCanceledException) when (Volatile.Read(ref handedOff) == 1 && !turn.IsCancellationRequested)
+        {
+            failure = "handed off";
+            await Dispatcher.UIThread.InvokeAsync(() => StreamingText = "");
+            return new Attempt(false, true, null, Acted: false);
+        }
+        catch (Exception ex)
+        {
+            failure = ex is OperationCanceledException && turn.IsCancellationRequested ? "cancelled" : ex.Message;
+            await Dispatcher.UIThread.InvokeAsync(() => StreamingText = "");
+            bool acted;
+            lock (sb) acted = sb.Length > 0;
+            lock (toolCounts) acted |= toolCounts.Count > 0;
+            return new Attempt(false, false, ex, acted);
         }
         finally
         {
-            // ⚠️ Always leave something in the conversation. A turn that produced no text at all —
-            // it failed, or the model stopped mid-tool — otherwise looks identical to the app
-            // having hung, and the capsuleer is left watching a panel that will never change.
-            if (sb.Length == 0 && !ct.IsCancellationRequested)
-            {
-                var note = failure.Length > 0
-                    ? $"That did not complete: {failure}"
-                    : "That finished without producing an answer. Worth asking again — the "
-                      + "detail of what happened is in Settings → Error Log.";
-
-                var noteMsg = new AgentMessage(MessageRole.Assistant, note);
-                _history.Add(noteMsg);
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    Messages.Add(noteMsg);
-                    StreamingText = "";
-                });
-                SaveHistory();
-            }
-
-            // ⚠️ In the finally, so a cancelled or failed turn is still recorded. Those are the
+            // ⚠️ In the finally, so a cancelled or failed attempt is still recorded. Those are the
             // ones worth having: a turn that burned four round trips and then threw is exactly
             // the spend that would otherwise never appear in the total.
-            telemetry?.Complete(sb.Length, failure);
+            int length;
+            lock (sb) length = sb.Length;
+            telemetry?.Complete(length, failure);
 
-            _service.ToolActivity = null;
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText = "";
-                IsBusy     = false;
-            });
+            _service.HandOffRequested = null;
+            _service.ToolActivity     = null;
         }
+    }
+
+    /// <summary>
+    /// "/data …" sends one message to the model that reads the data, "/chat …" to the conversation
+    /// model, whatever the router would have decided. The prefix is taken off the message.
+    /// </summary>
+    private static Part? TakeOverride(ref string text)
+    {
+        foreach (var (prefix, part) in new[] { ("/data", Part.Analyst), ("/chat", Part.Conversation) })
+        {
+            if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+            if (text.Length > prefix.Length && !char.IsWhiteSpace(text[prefix.Length])) continue;
+            text = text[prefix.Length..].Trim();
+            return part;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Asks the conversation model which model should answer — one word about one message. When
+    /// it cannot say, the conversation model answers, with its hand-off tool to fall back on.
+    /// </summary>
+    private async Task<Part> RouteAsync(string text, CancellationToken ct)
+    {
+        var seat = _service.Roles.Conversation;
+        if (seat?.Provider is not { IsConfigured: true } provider) return Part.Conversation;
+
+        // The exchange before this message: the last thing the capsuleer said, and the reply.
+        var earlier   = _history.Take(_history.Count - 1).Where(m => m.ShowInChat && !m.IsSummary).ToList();
+        var lastReply = earlier.LastOrDefault(m => m.Role == MessageRole.Assistant && m.ToolsUsed is not ("model change" or "voice change" or "alarm"));
+        var lastUser  = earlier.LastOrDefault(m => m.Role == MessageRole.User);
+        var fromData  = lastReply?.AnsweredAs switch
+        {
+            ModelRoleKind.Analyst      => true,
+            ModelRoleKind.Conversation => (bool?)false,
+            _                          => null,
+        };
+
+        var prompt = ModelRouter.Prompt(_service.Settings.HandOffWhen, lastUser?.Content, lastReply?.Content,
+                                        fromData, text, local: seat.Model.IsLocal);
+
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin($"{_conversationId}:route", provider.ProviderName, seat.Model.ModelName, text.Length);
+        var failure = "";
+        var reply   = new StringBuilder();
+        try
+        {
+            // A model of our own may have to load first; beyond this, the conversation model
+            // answers and hands off if it must.
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(20));
+            await foreach (var chunk in provider.StreamAsync(
+                               ModelRouter.SystemPrompt, [new AgentMessage(MessageRole.User, prompt)],
+                               tools: null, onUsage: u => telemetry?.Usage(u), ct: timeout.Token).ConfigureAwait(false))
+                reply.Append(chunk);
+
+            return ModelRouter.Parse(reply.ToString()) == ModelRoleKind.Analyst ? Part.Analyst : Part.Conversation;
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            failure = ex.Message;
+            return Part.Conversation;
+        }
+        finally { telemetry?.Complete(reply.Length, failure); }
+    }
+
+    /// <summary>
+    /// A role's model changed — it fell over to its fallback, or came back. Said in the chat as the
+    /// agent's own line, and aloud when it speaks. The model hears of it too, in the history just
+    /// before its reply — not before the reply is written, where it would read as the reply begun.
+    /// </summary>
+    private async Task ShowModelChangeAsync(ModelChange change)
+    {
+        if (change.Announcement.Length == 0) return;   // the role says nothing; the tag under the reply still shows it
+        var line = new AgentMessage(MessageRole.Assistant, change.Announcement) { ToolsUsed = "model change" };
+        await Dispatcher.UIThread.InvokeAsync(() => Messages.Add(line));
+        lock (_deferredNotes) _deferredNotes.Add(line);
+        if (_tts?.IsSpeaking == true) _tts.SpeakAsync(change.Announcement);
     }
 
     /// <summary>
@@ -723,7 +934,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// byte-identical prefix, and a tail that changes each turn would invalidate roughly 33k
     /// tokens of tool schemas and app reference every single time.</para>
     /// </summary>
-    private string BuildSystemPrompt()
+    private string BuildSystemPrompt(PromptScope scope)
     {
         // The persona speaking is the persona writing: a voice with a name of its own gives the
         // model that name, or it would go on introducing itself as someone the capsuleer is not
@@ -734,7 +945,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
             settings = settings.Clone();
             settings.AgentName = AgentName;
         }
-        return AgentService.BuildSystemPrompt(settings, _service.Schema?.Prompt);
+        return AgentService.BuildSystemPrompt(settings, scope == PromptScope.Full ? _service.Schema?.Prompt : null, scope);
     }
 
     /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
@@ -787,7 +998,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
     // ── Background summarization ─────────────────────────────────────────────
     private async Task SummarizeAsync()
     {
-        if (_service.Provider is null || !_service.Provider.IsConfigured) return;
+        // Its own model when one is chosen for it, otherwise whatever answers the conversation now.
+        if (_service.Roles.Summary is not { Provider: { IsConfigured: true } provider } target) return;
+
+        // The prompt its model already has cached: the whole of it for a model that reads the
+        // data, the conversation model's for the conversation model.
+        var roles = _service.Roles;
+        var scope = !roles.IsSplit ? PromptScope.Full
+                  : target.OwnModel && target.Model.Id == roles.Analyst?.Primary.Id ? PromptScope.Full
+                  : PromptScope.Conversation;
 
         // Build a one-shot summarization call using current history.
         // We do NOT pass tools — summarization should be cheap and focused.
@@ -810,13 +1029,13 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // missing from the total with nothing to hint that a chunk of the bill was unaccounted.
         // Its own conversation id, so it does not read as a turn in the thread it summarises.
         var telemetry = _service.Telemetry;
-        telemetry?.Begin($"{_conversationId}:summarize", _service.Provider.ProviderName, "", 0);
+        telemetry?.Begin($"{_conversationId}:summarize", provider.ProviderName, target.Model.ModelName, 0);
         var failure = "";
 
         try
         {
-            await foreach (var chunk in _service.Provider.StreamAsync(
-                AgentService.BuildSystemPrompt(_service.Settings), historySnapshot, tools: null,
+            await foreach (var chunk in provider.StreamAsync(
+                AgentService.BuildSystemPrompt(_service.Settings, scope: scope), historySnapshot, tools: null,
                 onUsage: u => telemetry?.Usage(u),
                 ct: CancellationToken.None))
             {

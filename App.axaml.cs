@@ -3997,12 +3997,15 @@ public class App : Application
                   .Log("AgentSchema", "Build", ex);
             }
 
-            return new AgentService
+            var agent = new AgentService
             {
                 Telemetry   = sp.GetRequiredService<AgentTelemetryService>(),
                 Schema      = schema,
                 Preferences = sp.GetRequiredService<AppPreferencesService>(),
             };
+            // The watcher that brings a role back to its own model reports what it did not expect.
+            agent.Roles.Errors = sp.GetRequiredService<AppErrorLogger>();
+            return agent;
         });
         // Speech in and out are billable too, and on their own units — characters for a voice,
         // audio seconds for a transcriber — so they record into the same ledger as the LLM.

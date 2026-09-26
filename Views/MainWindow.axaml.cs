@@ -339,7 +339,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 try { w.Close(); } catch { /* already gone */ }
         };
         vm.AlarmActions.AgentAvailable      =
-            () => agentService.Settings.Enabled && agentService.Provider is { IsConfigured: true };
+            () => agentService.Settings.Enabled && agentService.Roles.Conversation is { CanAnswer: true };
 
         agentService.NavigateEntityCallback = (kind, id, _) =>
             Dispatcher.UIThread.Post(() =>

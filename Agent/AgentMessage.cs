@@ -36,6 +36,19 @@ public sealed record AgentMessage
     /// </summary>
     public string? ToolsUsed { get; init; }
 
+    /// <summary>
+    /// The model that wrote this reply, as Settings names it. Null for replies from before there
+    /// was a choice, and for the app's own lines. Shown under the bubble — the persona is one,
+    /// but which model spoke for it, and whether that was the paid one, is the capsuleer's to see.
+    /// </summary>
+    public string? AnsweredBy { get; init; }
+
+    /// <summary>
+    /// Which model answered: the conversation model, or the one that reads the data. Null when one
+    /// model did everything. The router reads it — a follow-up to a data answer is data too.
+    /// </summary>
+    public ModelRoleKind? AnsweredAs { get; init; }
+
     /// <summary>When it was said, in the capsuleer's own time, for the label above the bubble.</summary>
     [JsonIgnore]
     public string TimeText => Timestamp.ToLocalTime().ToString("d MMM yyyy HH:mm");
@@ -47,9 +60,11 @@ public sealed record AgentMessage
     [JsonIgnore]
     public string EveTimeText => Timestamp.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " EVE";
 
-    /// <summary>The line above the bubble: when, and for the agent's replies, what it called.</summary>
+    /// <summary>The line above the bubble: when, and for the agent's replies, which model wrote it
+    /// and what it called.</summary>
     [JsonIgnore]
-    public string MetaText => ToolsUsed is null ? TimeText : $"{TimeText}  ·  {ToolsUsed}";
+    public string MetaText => string.Join("  ·  ",
+        new[] { TimeText, AnsweredBy, ToolsUsed }.Where(s => !string.IsNullOrEmpty(s)));
 
     /// <summary>
     /// The text as every provider sends it: the capsuleer's turns carry when they were sent, the
