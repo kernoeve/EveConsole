@@ -32,7 +32,9 @@ public sealed record VoiceTestResult(bool Spoke, string Message);
 ///
 /// <para>Every voice goes through one queue, one utterance at a time and in order — the answer
 /// is spoken sentence by sentence while it is still being written, and without the queue the
-/// sentences talked over each other and cut each other off.</para>
+/// sentences talked over each other and cut each other off. The NEXT sentence's audio is made
+/// while one plays (see <see cref="_lines"/>): a GPU server takes a second or so per sentence,
+/// and made one after another that second fell silent before every sentence of an answer.</para>
 /// </summary>
 public sealed class TtsService : IDisposable
 {
@@ -57,10 +59,16 @@ public sealed class TtsService : IDisposable
                                Func<string, CancellationToken, Task> speak,
                                Func<CancellationToken, Task<bool>> isAvailable,
                                Action stop, Action<float> setVolume, Action dispose,
+                               Func<string, CancellationToken, Task<Func<CancellationToken, Task>>>? prepare = null,
                                Func<TimeSpan?>? lastSynthesis = null)
     {
         public VoiceProfile Profile { get; } = profile;
         public Task SpeakAsync(string text, CancellationToken ct) => speak(text, ct);
+
+        /// <summary>Makes the audio without playing it; what it returns plays it. An engine that
+        /// makes and plays in one step makes nothing here, and does both when played.</summary>
+        public Task<Func<CancellationToken, Task>> PrepareAsync(string text, CancellationToken ct) =>
+            prepare is null ? Task.FromResult<Func<CancellationToken, Task>>(c => speak(text, c)) : prepare(text, ct);
         public Task<bool> IsAvailableAsync(CancellationToken ct) => isAvailable(ct);
         public void Stop() => stop();
         public void SetVolume(float v) => setVolume(v);
@@ -117,7 +125,7 @@ public sealed class TtsService : IDisposable
                 else
                     client.Configure(p.ServerUrl, p.ServerApiKey, p.ServerVoice, p.ServerModel, p.ServerSpeed);
                 return new Voice(p, client.SpeakAsync, client.IsAvailableAsync, client.Stop, client.SetVolume, client.Dispose,
-                                 () => client.LastSynthesis);
+                                 client.PrepareAsync, () => client.LastSynthesis);
             }
 
             default:
@@ -297,6 +305,31 @@ public sealed class TtsService : IDisposable
     private int _generation;
     private CancellationTokenSource _stop = new();
 
+    /// <summary>Tests listen here — the voice's own name and what it finished playing. Nothing else does.</summary>
+    internal Action<string, string>? Spoken { get; set; }
+
+    /// <summary>A piece of an answer on its way to being spoken, and the making of its audio.</summary>
+    private sealed class Line(string text, int generation)
+    {
+        public string Text       { get; } = text;
+        public int    Generation { get; } = generation;
+
+        /// <summary>Started at most once, under the queue's lock — see <see cref="Preparing"/>.</summary>
+        public Task<Prepared>? Preparation;
+    }
+
+    /// <summary>A line's audio, made and waiting to play, and the voice that made it; or why it
+    /// could not be made; or neither, when it was stopped.</summary>
+    private sealed record Prepared(Voice? Voice, Func<CancellationToken, Task>? Play, string? Error, long MadeMs);
+
+    /// <summary>
+    /// Lines queued and not yet playing, in order. Only the FIRST is made ahead — while the line
+    /// before it plays — which hides a server's time to make a sentence behind the one before
+    /// it. Never more than one ahead: stopping throws away one sentence at most, which matters on
+    /// a voice billed per character.
+    /// </summary>
+    private readonly LinkedList<Line> _lines = new();
+
     public void SpeakAsync(string text)
     {
         if (_muted || !IsSpeaking) return;
@@ -304,7 +337,60 @@ public sealed class TtsService : IDisposable
         // Say system names the way capsuleers do — "C-FD0D" as "C tac F D zero D" — rather than
         // however the engine guesses. Done here, on the way out, so the text shown is unaffected.
         text = EvePronunciation.Expand(text);
-        Enqueue(generation => SayAsync(text, generation));
+        lock (_queueGate)
+        {
+            var line = new Line(text, Volatile.Read(ref _generation));
+            _lines.AddLast(line);
+            if (_lines.First!.Value == line) Preparing(line);   // nothing ahead of it waiting
+            Enqueue(_ => SayAsync(line));
+        }
+    }
+
+    /// <summary>The making of a line's audio, started now if it has not been.</summary>
+    private Task<Prepared> Preparing(Line line)
+    {
+        lock (_queueGate) return line.Preparation ??= Task.Run(() => PrepareLineAsync(line));
+    }
+
+    /// <summary>A line leaves the waiting list as it starts to play — or is dropped — and the line
+    /// behind it may be made now.</summary>
+    private void Release(Line line)
+    {
+        lock (_queueGate)
+        {
+            if (!_lines.Remove(line)) return;
+            if (_lines.First?.Value is { } next) Preparing(next);
+        }
+    }
+
+    /// <summary>Makes a line's audio with the voice speaking now.</summary>
+    private async Task<Prepared> PrepareLineAsync(Line line)
+    {
+        await _selection;
+        Voice voice;
+        lock (_state)
+        {
+            if (!_speechOn || _voices.Length == 0) return new Prepared(null, null, null, 0);
+            voice = _voices[Math.Clamp(_active, 0, _voices.Length - 1)];
+        }
+        return await PrepareWithAsync(voice, line);
+    }
+
+    private async Task<Prepared> PrepareWithAsync(Voice voice, Line line)
+    {
+        var token = _stop.Token;   // before the check: a stop after it cancels this token
+        if (Stale(line.Generation)) return new Prepared(voice, null, null, 0);
+        var started = Environment.TickCount64;
+        try
+        {
+            var play = await voice.PrepareAsync(line.Text, token);
+            return new Prepared(voice, play, null, Environment.TickCount64 - started);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { return new Prepared(voice, null, null, 0); }
+        catch (Exception ex)
+        {
+            return new Prepared(voice, null, ex.GetBaseException().Message, Environment.TickCount64 - started);
+        }
     }
 
     private void Enqueue(Func<int, Task> work)
@@ -323,21 +409,57 @@ public sealed class TtsService : IDisposable
 
     private bool Stale(int generation) => Volatile.Read(ref _generation) != generation || _muted;
 
-    private async Task SayAsync(string text, int generation)
+    private async Task SayAsync(Line line)
     {
-        await _selection;
-        if (Stale(generation)) return;
-
-        Voice voice; int index;
-        lock (_state)
+        try
         {
-            if (!_speechOn || _voices.Length == 0) return;
-            index = Math.Clamp(_active, 0, _voices.Length - 1);
-            voice = _voices[index];
-        }
+            await _selection;
+            if (Stale(line.Generation)) return;
 
-        if (await TrySpeakAsync(voice, text, generation)) return;
-        await FailOverAsync(index, text, generation);
+            var prepared = await Preparing(line);
+            if (Stale(line.Generation)) return;
+
+            Voice voice; int index;
+            lock (_state)
+            {
+                if (!_speechOn || _voices.Length == 0) return;
+                index = Math.Clamp(_active, 0, _voices.Length - 1);
+                voice = _voices[index];
+            }
+
+            // ⚠️ Made ahead by a voice that is no longer the one speaking — a handover or a
+            // return came in between — so it is made again, never played. A sentence in the old
+            // voice after the new one has introduced itself would undo the handover.
+            if (!ReferenceEquals(prepared.Voice, voice))
+                prepared = await PrepareWithAsync(voice, line);
+
+            if (prepared.Play is null)
+            {
+                if (prepared.Error is null) return;   // stopped
+                Record(voice, line.Text, prepared.MadeMs, prepared.Error);
+                await FailOverAsync(index, line.Text, line.Generation);
+                return;
+            }
+
+            Release(line);   // the next line is made while this one plays
+            var token = _stop.Token;
+            if (Stale(line.Generation)) return;
+            var started = Environment.TickCount64;
+            try
+            {
+                await prepared.Play(token);
+                if (token.IsCancellationRequested) return;
+                Record(voice, line.Text, prepared.MadeMs + (Environment.TickCount64 - started));
+                Spoken?.Invoke(voice.Profile.Name, line.Text);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+            catch (Exception ex)
+            {
+                Record(voice, line.Text, prepared.MadeMs + (Environment.TickCount64 - started), ex.GetBaseException().Message);
+                await FailOverAsync(index, line.Text, line.Generation);
+            }
+        }
+        finally { Release(line); }
     }
 
     /// <summary>Speaks with one voice and records it. False when it could not speak; true when it
@@ -349,20 +471,22 @@ public sealed class TtsService : IDisposable
     /// otherwise why it could not.</summary>
     private async Task<string?> SpeakOrWhyNotAsync(Voice voice, string text, int generation)
     {
+        var token = _stop.Token;   // before the check: a stop after it cancels this token
         if (Stale(generation)) return null;
         var started = Environment.TickCount64;
-        var token   = _stop.Token;
         try
         {
             await voice.SpeakAsync(text, token);
-            if (!token.IsCancellationRequested) Record(voice, text, started);
+            if (token.IsCancellationRequested) return null;
+            Record(voice, text, Environment.TickCount64 - started);
+            Spoken?.Invoke(voice.Profile.Name, text);
             return null;
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { return null; }
         catch (Exception ex)
         {
             var why = ex.GetBaseException().Message;
-            Record(voice, text, started, why);
+            Record(voice, text, Environment.TickCount64 - started, why);
             return why;
         }
     }
@@ -545,7 +669,7 @@ public sealed class TtsService : IDisposable
                     why is not null   ? new VoiceTestResult(false, why)
                   : Stale(generation) ? new VoiceTestResult(false, "Stopped before it finished.")
                   : voice.LastSynthesis is { } made
-                      ? new VoiceTestResult(true, $"Spoke. It took {made.TotalSeconds:0.0} s to make before it could play — about the wait before each sentence of an answer.")
+                      ? new VoiceTestResult(true, $"Spoke. It took {made.TotalSeconds:0.0} s to make before it could play — the wait before an answer's first sentence; each after it is made while the one before plays.")
                       : new VoiceTestResult(true, "Spoke."));
             }
             catch (Exception ex) { result.TrySetResult(new VoiceTestResult(false, ex.GetBaseException().Message)); }
@@ -559,8 +683,13 @@ public sealed class TtsService : IDisposable
     public void Stop()
     {
         // Drops anything still queued. Without this, stopping silences the current utterance and
-        // the backlog simply carries on — into the next question's answer.
-        Interlocked.Increment(ref _generation);
+        // the backlog simply carries on — into the next question's answer. Under the queue's lock,
+        // so a line queued as it happens is either dropped with the rest or counted after.
+        lock (_queueGate)
+        {
+            Interlocked.Increment(ref _generation);
+            _lines.Clear();
+        }
         var old = Interlocked.Exchange(ref _stop, new CancellationTokenSource());
         old.Cancel();
         old.Dispose();
@@ -579,7 +708,9 @@ public sealed class TtsService : IDisposable
     /// voices are logged too, with IsLocal set: they cost nothing, but the volume and latency
     /// still answer "what would this cost on a paid voice".
     /// </summary>
-    private void Record(Voice voice, string billedText, long startedTicks, string error = "")
+    /// <param name="durationMs">Making plus playing. Not the wait in between: a line made ahead
+    /// waits for the one before it to finish, and that is no measure of the voice.</param>
+    private void Record(Voice voice, string billedText, long durationMs, string error = "")
     {
         var provider = voice.Profile.Provider;
         Telemetry?.ServiceCall(
@@ -589,7 +720,7 @@ public sealed class TtsService : IDisposable
             isLocal:    provider is TtsProvider.Kokoro or TtsProvider.Piper or TtsProvider.LocalServer,
             unitKind:   "characters",
             units:      billedText.Length,
-            durationMs: (int)(Environment.TickCount64 - startedTicks),
+            durationMs: (int)durationMs,
             error:      error);
 
         if (error.Length > 0 && Errors is { } errors)

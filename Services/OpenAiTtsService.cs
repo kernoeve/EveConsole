@@ -152,26 +152,43 @@ public sealed class OpenAiTtsService : IDisposable
     /// could not; returns quietly when stopped.</summary>
     public async Task SpeakAsync(string text, CancellationToken ct = default)
     {
-        if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
-        if (IsOpenAi && string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No OpenAI API key is set.");
-        var stripped = StripMarkdown(text);
-        if (string.IsNullOrWhiteSpace(stripped)) return;
-
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
         var token = linked.Token;
-
         try
         {
-            var made  = System.Diagnostics.Stopwatch.StartNew();
-            var bytes = await SynthesizeAsync(stripped, token);
-            LastSynthesis = made.Elapsed;
-            await PlayAsync(bytes, token);
+            var play = await PrepareAsync(text, token);
+            await play(token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { /* stopped */ }
     }
 
+    /// <summary>
+    /// Makes the audio for an utterance WITHOUT playing it, and returns what plays it — so the
+    /// next sentence can be made while this one plays. Throws when it could not be made; the
+    /// returned player returns quietly when stopped.
+    /// </summary>
+    public async Task<Func<CancellationToken, Task>> PrepareAsync(string text, CancellationToken ct = default)
+    {
+        if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
+        if (IsOpenAi && string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No OpenAI API key is set.");
+        var stripped = StripMarkdown(text);
+        if (string.IsNullOrWhiteSpace(stripped)) return _ => Task.CompletedTask;
+
+        var made  = System.Diagnostics.Stopwatch.StartNew();
+        var bytes = await SynthesizeAsync(stripped, ct);
+        LastSynthesis = made.Elapsed;
+        return playCt => PlayMadeAsync(bytes, playCt);
+    }
+
+    private async Task PlayMadeAsync(byte[] bytes, CancellationToken ct)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
+        try { await PlayAsync(bytes, linked.Token); }
+        catch (OperationCanceledException) when (linked.Token.IsCancellationRequested) { /* stopped */ }
+    }
+
     /// <summary>How long the last utterance took to make, before it could start playing — on a
-    /// server, the wait before each sentence.</summary>
+    /// server, the wait before an answer's first sentence (the rest are made during the one before).</summary>
     public TimeSpan? LastSynthesis { get; private set; }
 
     /// <summary>The audio for <paramref name="input"/>. Throws when the service refused, or sent nothing.</summary>
