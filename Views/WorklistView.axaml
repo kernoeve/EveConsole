@@ -2479,7 +2479,7 @@
     </TabItem>
 
     <!-- Last: the settings here are set once and then left, unlike the tabs above them. Which
-         characters may be given jobs lives on Settings → Industry. -->
+         characters may be given jobs lives on Settings → Characters. -->
     <TabItem Header="Other">
       <ScrollViewer HorizontalScrollBarVisibility="Disabled">
       <StackPanel Margin="14 12" Spacing="18"

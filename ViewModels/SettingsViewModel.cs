@@ -28,7 +28,7 @@ public class SettingsViewModel : ReactiveObject
     /// <summary>
     /// Shared with the Worklist tool rather than a second instance of its own.
     ///
-    /// <para>The Industry tab here edits which characters may be given jobs; the Worklist tool
+    /// <para>The Characters tab here edits which characters may be given jobs; the Worklist tool
     /// reads that same list to plan against. Two view models over one table would each hold their
     /// own copy of the grid and neither would see the other's edits until a reload.</para>
     /// </summary>

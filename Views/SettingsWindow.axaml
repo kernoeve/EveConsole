@@ -255,6 +255,65 @@
       </Grid>
     </TabItem>
 
+    <!-- ══ Characters ════════════════════════════════════════════════════════ -->
+    <!-- What each character is used for: industry slots and skill-queue alerts. Moved out of the
+         Industry tab, since the skill queue column is not about industry at all. -->
+    <TabItem Header="Characters">
+      <!-- Horizontal scrolling off explicitly: the grid sizes its Free / total column with a star,
+           and an unbounded width would push the columns after it out of view. -->
+      <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12" Margin="0 0 4 0">
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding IndustryVm}">
+              <TextBlock Text="Characters" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="Which characters may be given industry jobs, and on what. Every authorised character is listed automatically with all three activities on — clear the ones a character should not be given, which is how an alt is taken out of consideration. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do. Clear Skill queue for a character whose queue is empty on purpose, and it raises no skill queue alerts." />
+
+              <DataGrid ItemsSource="{Binding Chars}" MinHeight="160" MaxHeight="480"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="11" Width="200"
+                                      IsReadOnly="True" />
+
+                  <!-- Editable in place, saving on change. -->
+                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True" ClipboardContentBinding="{Binding Activities}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                          <CheckBox Content="Mfg"  IsChecked="{Binding Manufacturing, Mode=TwoWay}" FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Manufacturing" />
+                          <CheckBox Content="Rxn"  IsChecked="{Binding Reactions, Mode=TwoWay}"     FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Reactions" />
+                          <CheckBox Content="Sci"  IsChecked="{Binding Science, Mode=TwoWay}"       FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Science — copying, research, invention" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="11" Width="*"
+                                      IsReadOnly="True" />
+
+                  <DataGridTemplateColumn Header="Skill queue" Width="90" SortMemberPath="SkillQueue"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding SkillQueue}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <CheckBox IsChecked="{Binding SkillQueue, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="Character skill queue should be kept running. Clear it for an alt whose queue is deliberately empty, and neither the Overview alerts nor the worklist will report it." />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ SDE ══════════════════════════════════════════════════════════════ -->
     <TabItem Header="SDE">
       <ScrollViewer>
@@ -728,9 +787,6 @@
 
     <!-- ══ Industry ══════════════════════════════════════════════════════════ -->
     <TabItem Header="Industry">
-      <!-- Horizontal scrolling off explicitly: the characters grid below sizes its last column
-           with a star, and an unbounded width would push that column out of view rather than
-           fitting it. -->
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="12" Margin="0 0 4 0">
 
@@ -782,56 +838,6 @@
 
               <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="Off by default. Component markets bounce around, and a few units listed cheap don't guarantee the quantity you need is available at that price — nor that it's worth tracking down and hauling. When off, the calculators build every component they can (items that genuinely can't be costed are still bought). Turn it on to let cheaper-of-build-vs-buy decide."/>
-            </StackPanel>
-          </Border>
-
-          <!-- Industry characters. Moved here from the Worklist tool: it is configuration, and
-               the tool itself is for reading the work rather than setting up who does it. -->
-          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-                  CornerRadius="4" Padding="12 10">
-            <StackPanel Spacing="8" DataContext="{Binding IndustryVm}">
-              <TextBlock Text="Industry Characters" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
-              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                         Text="Which characters may be given jobs, and on what. Every authorised character is listed automatically with all three activities on — clear the ones a character should not be given, which is how an alt is taken out of consideration. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do." />
-
-              <DataGrid ItemsSource="{Binding Chars}" MinHeight="160" MaxHeight="320"
-                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
-                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-                <DataGrid.Columns>
-                  <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="11" Width="200"
-                                      IsReadOnly="True" />
-
-                  <!-- Editable in place, saving on change. -->
-                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True" ClipboardContentBinding="{Binding Activities}">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:IndyCharRow">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                          <CheckBox Content="Mfg"  IsChecked="{Binding Manufacturing, Mode=TwoWay}" FontSize="11"
-                                    MinHeight="0" ToolTip.Tip="Manufacturing" />
-                          <CheckBox Content="Rxn"  IsChecked="{Binding Reactions, Mode=TwoWay}"     FontSize="11"
-                                    MinHeight="0" ToolTip.Tip="Reactions" />
-                          <CheckBox Content="Sci"  IsChecked="{Binding Science, Mode=TwoWay}"       FontSize="11"
-                                    MinHeight="0" ToolTip.Tip="Science — copying, research, invention" />
-                        </StackPanel>
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
-
-                  <DataGridTemplateColumn Header="Skill queue" Width="90" SortMemberPath="SkillQueue"
-                                          IsReadOnly="True" ClipboardContentBinding="{Binding SkillQueue}">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:IndyCharRow">
-                        <CheckBox IsChecked="{Binding SkillQueue, Mode=TwoWay}" FontSize="11" MinHeight="0"
-                                  HorizontalAlignment="Center"
-                                  ToolTip.Tip="Character skill queue should be kept running. Clear it for an alt whose queue is deliberately empty, and neither the Overview alerts nor the worklist will report it." />
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
-
-                  <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="11" Width="*"
-                                      IsReadOnly="True" />
-                </DataGrid.Columns>
-              </DataGrid>
             </StackPanel>
           </Border>
 
