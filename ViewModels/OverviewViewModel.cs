@@ -144,52 +144,56 @@ public class AlertRowVm : ReactiveObject
     public bool NoIcon  => Icon is null;
 }
 
-// A recent notification rendered in the in-game style: icon + one-liner + age,
-// with the full detail in a tooltip.
+/// <summary>
+/// A notification on the Overview: its icon, what it is and how long ago, and a line or three of
+/// what matters for its type (<see cref="NotificationBrief"/>) — a bill's kind, where, how much
+/// and when due; a standing's who, by how much and for whom. The rest is a click away: the card
+/// opens the notification in the Notifications tool.
+/// </summary>
 public class NotificationBoxVm : ReactiveObject
 {
-    public string OneLiner    { get; init; } = "";
-    public string AgeText     { get; init; } = "";
-    public bool   IsUnread    { get; init; }
-    public string UnreadDot   => IsUnread ? "●" : "";
+    public long   NotificationId { get; init; }
+    public string Title          { get; init; } = "";
+    public string AgeText        { get; init; } = "";
+    public bool   IsUnread       { get; init; }
+    public string UnreadDot      => IsUnread ? "●" : "";
+    public IReadOnlyList<NotifBriefLineVm> Lines { get; init; } = [];
 
-    /// <summary>
-    /// The header of the tooltip — type, time, recipients, sender — which is cheap and built
-    /// with the row. The notification's own body is appended later by
-    /// <see cref="AppendBody"/>, because formatting it costs a database context and several
-    /// queries EACH, and the tooltip is not read for most rows.
-    /// </summary>
-    private string _tooltipText = "";
-    public string TooltipText
-    {
-        get => _tooltipText;
-        set => this.RaiseAndSetIfChanged(ref _tooltipText, value);
-    }
+    /// <summary>The leading icon's images.evetech.net path — the structure, the character a
+    /// membership notice is about, the sender — or null for the glyph.</summary>
+    public string? IconPath      { get; init; }
+    public string  FallbackGlyph { get; init; } = "✉";
 
-    public void AppendBody(string body)
-    {
-        if (!string.IsNullOrEmpty(body)) TooltipText = $"{_tooltipText}\n\n{body}";
-    }
-
-    private Bitmap? _icon;
+    /// <summary>Fetched the first time the card is shown: the list is virtualised, and most of
+    /// a busy month's cards are never scrolled to.</summary>
     public Bitmap? Icon
     {
-        get => _icon;
-        set
+        get
         {
-            this.RaiseAndSetIfChanged(ref _icon, value);
-            this.RaisePropertyChanged(nameof(HasIcon));
-            this.RaisePropertyChanged(nameof(NoIcon));
+            if (!_iconRequested && IconPath is not null) { _iconRequested = true; _ = LoadIconAsync(); }
+            return _icon;
         }
     }
+    private Bitmap? _icon;
+    private bool    _iconRequested;
 
-    public string  FallbackGlyph { get; init; } = "✉";
     public bool HasIcon => Icon is not null;
-    public bool NoIcon  => Icon is null;
+    public bool NoIcon  => !HasIcon;
 
-    /// <summary>Carried so the body and icon can be filled in after the list is on screen.</summary>
-    public string? RawText  { get; init; }
-    public string? IconPath { get; init; }
+    private async Task LoadIconAsync()
+    {
+        var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/{IconPath}");
+        if (bmp is null) return;
+        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _icon = bmp;
+            this.RaisePropertyChanged(nameof(Icon));
+            this.RaisePropertyChanged(nameof(HasIcon));
+            this.RaisePropertyChanged(nameof(NoIcon));
+        });
+    }
+
+    public void Open() => EntityNavigator.Instance.Notification(NotificationId);
 }
 
 public class OverviewViewModel : ReactiveObject
@@ -308,7 +312,14 @@ public class OverviewViewModel : ReactiveObject
     public bool NoNews  => !HasNews;
 
     // ── Recent notifications ────────────────────────────────────────────────────
-    public ObservableCollection<NotificationBoxVm> RecentNotifications { get; } = [];
+    // Replaced whole on each load: a bound collection filled a card at a time makes the list
+    // react once per card, and a busy period runs to a thousand of them.
+    private IReadOnlyList<NotificationBoxVm> _recentNotifications = [];
+    public IReadOnlyList<NotificationBoxVm> RecentNotifications
+    {
+        get => _recentNotifications;
+        private set => this.RaiseAndSetIfChanged(ref _recentNotifications, value);
+    }
 
     private bool _hasNotifications;
     public bool HasNotifications { get => _hasNotifications; private set => this.RaiseAndSetIfChanged(ref _hasNotifications, value); }
@@ -668,21 +679,7 @@ public class OverviewViewModel : ReactiveObject
             } while (_loadPending);
         }
         finally { IsLoading = false; }
-
-        // Only once everything else has finished. Task.Run rather than a bare call because an
-        // async method runs synchronously on its caller until it genuinely suspends, and this
-        // caller is the UI thread — SQLite's async is synchronous underneath, so a bare call
-        // would put those queries straight back onto it.
-        if (_pendingDetailFill is { } pending)
-        {
-            _pendingDetailFill = null;
-            _ = Task.Run(() => FillNotificationDetailAsync(pending));
-        }
     }
-
-    /// <summary>Notification rows whose body and icon still need filling in, held until the
-    /// Overview has finished loading so the two do not compete for the database.</summary>
-    private List<NotificationBoxVm>? _pendingDetailFill;
 
     /// <summary>
     /// Runs a database query on the threadpool.
@@ -1086,55 +1083,38 @@ public class OverviewViewModel : ReactiveObject
             var recipientsByNotif = recipients.GroupBy(x => x.NotificationId)
                 .ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).Distinct().ToList());
 
-            // Parse each notification's fields once, up front.
-            var parsed = rows.ToDictionary(r => r.NotificationId, r => NotificationSummary.Parse(r.Text));
+            // Every card's facts — names, items, systems, stations, structures — worked out in one
+            // pass for the whole list, the same way the Notifications tool reads each one.
+            var bodies = await NotificationBody.BuildManyAsync(
+                [.. rows.Select(r => (r.Type, (string?)r.Text))], _names, _dbFactory);
 
-            // Resolve every entity (sender, recipients, and per-notification fields) in one batch.
-            var entityIds = new HashSet<long>();
-            foreach (var r in rows) if (r.SenderId > 0) entityIds.Add(r.SenderId);
-            foreach (var (_, cid) in recipients) entityIds.Add(cid);
-            foreach (var f in parsed.Values)
-                foreach (var id in NotificationSummary.EntityIds(f)) entityIds.Add(id);
-
-            var names = await _names.ResolveAsync(entityIds);
-
-            // Resolve structure names for one-liners (structure life-cycle / ownership notifications).
-            var structIds = parsed.Values
-                .Where(f => f.StructureId.HasValue).Select(f => f.StructureId!.Value).Distinct().ToList();
-            var structNames = structIds.Count == 0
-                ? new Dictionary<long, string>()
-                : await db.EsiStructureNames.AsNoTracking()
-                    .Where(s => structIds.Contains(s.StructureId))
-                    .ToDictionaryAsync(s => s.StructureId, s => s.Name);
+            // The character each came to, for the cards that say whom it was for (standings).
+            var characterNames = await _names.ResolveAsync(recipients.Select(x => x.CharacterId).Distinct());
 
             var boxes = new List<NotificationBoxVm>(rows.Count);
-            foreach (var r in rows)
+            for (var i = 0; i < rows.Count; i++)
             {
-                var f        = parsed[r.NotificationId];
-                var oneLiner = NotificationSummary.OneLiner(r.Type, f, names, structNames);
-                var (iconPath, glyph) = NotificationSummary.Icon(r.Type, r.SenderId, r.SenderType, f);
+                var r = rows[i];
+                var (iconPath, glyph) = NotificationSummary.Icon(
+                    r.Type, r.SenderId, r.SenderType, NotificationSummary.Parse(r.Text));
 
-                var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var cids)
-                    ? string.Join(", ", cids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}").OrderBy(s => s))
-                    : "";
-                var sender = r.SenderId > 0
-                    ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
-                    : "—";
-                var tip = new StringBuilder();
-                tip.Append(NotificationTitles.For(r.Type)).Append('\n');
-                tip.Append(r.Timestamp.ToLocalTime().ToString("MMM d, yyyy HH:mm"));
-                if (chars.Length > 0) tip.Append("\nTo: ").Append(chars);
-                if (sender != "—")    tip.Append("\nFrom: ").Append(sender);
+                NotifValueVm? recipient = null;
+                if (recipientsByNotif.TryGetValue(r.NotificationId, out var cids) && cids.Count == 1)
+                    recipient = new NotifValueVm
+                    {
+                        Text    = characterNames.TryGetValue(cids[0], out var cn) && cn.Length > 0 ? cn : $"ID {cids[0]}",
+                        IconUrl = $"characters/{cids[0]}/portrait?size=32",
+                    };
 
                 boxes.Add(new NotificationBoxVm
                 {
-                    OneLiner      = oneLiner,
-                    AgeText       = NotificationSummary.Age(r.Timestamp),
-                    TooltipText   = tip.ToString(),
-                    IsUnread      = !r.IsRead,
-                    FallbackGlyph = glyph,
-                    RawText       = r.Text,
-                    IconPath      = iconPath,
+                    NotificationId = r.NotificationId,
+                    Title          = NotificationTitles.For(r.Type),
+                    AgeText        = NotificationSummary.Age(r.Timestamp),
+                    IsUnread       = !r.IsRead,
+                    Lines          = NotificationBrief.For(r.Type, bodies[i], recipient),
+                    IconPath       = iconPath,
+                    FallbackGlyph  = glyph,
                 });
             }
 
@@ -1159,56 +1139,10 @@ public class OverviewViewModel : ReactiveObject
         if (boxes is null) return;   // nothing to do, or unchanged since last refresh
 
         // The only part that must be here. Everything above it is off the UI thread now.
-        RecentNotifications.Clear();
-        foreach (var b in boxes) RecentNotifications.Add(b);
-        HasNotifications = RecentNotifications.Count > 0;
+        // Icons are not fetched here: each card asks for its own when it is first shown.
+        RecentNotifications = boxes;
+        HasNotifications    = boxes.Count > 0;
         this.RaisePropertyChanged(nameof(NoNotifications));
-
-        // Bodies and icons after the list is on screen, not before it. Formatting one body
-        // costs its own database context and several queries, so doing all of them inline
-        // was the whole reason this section took so long to appear — for text that is only
-        // read if the user hovers that particular row.
-        // Handed to LoadAsync rather than started here. This runs part-way through the
-        // Overview load, and four background readers competing with the queries still to
-        // come only slow down the very thing they were meant to get out of the way of.
-        _pendingDetailFill = boxes;
-    }
-
-    /// <summary>
-    /// Fills in each notification's icon and formatted body once the list is already showing.
-    ///
-    /// Four at a time: every body opens its own database context, so letting several hundred
-    /// run at once would trade a slow load for a stalled one.
-    /// </summary>
-    private async Task FillNotificationDetailAsync(List<NotificationBoxVm> boxes)
-    {
-        if (_names is null || _dbFactory is null) return;
-
-        using var gate = new SemaphoreSlim(4, 4);
-        try
-        {
-            await Task.WhenAll(boxes.Select(async box =>
-            {
-                await gate.WaitAsync();
-                try
-                {
-                    var icon = box.IconPath is null ? null : await GetImageAsync(box.IconPath);
-                    var body = await NotificationFormatter.FormatAsync(box.RawText, _names, _dbFactory);
-
-                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        if (icon is not null)        box.Icon = icon;
-                        if (body.Length > 0)         box.AppendBody(body);
-                    });
-                }
-                finally { gate.Release(); }
-            }));
-        }
-        catch (Exception ex)
-        {
-            // A tooltip that will not format is not worth surfacing, and nothing awaits this.
-            _errorLogger.Log("OverviewViewModel", "FillNotificationDetail", ex);
-        }
     }
 
     // ── Personal killmails ────────────────────────────────────────────────────

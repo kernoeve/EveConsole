@@ -1,12 +1,11 @@
-using System.Text;
 using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 
 namespace EveConsole.ViewModels;
 
-// Condenses an ESI notification into the in-game style: a leading icon, a one-line
-// summary, and a relative age — with the full detail left for a tooltip. Best-effort
-// and generic: unknown types fall back to a humanized type label and a sender-based icon.
+// The small pieces a notification is listed with: its leading icon and its age ("3 hours ago"),
+// plus the few top-level fields the icon is chosen from. What a notification says is laid out by
+// NotificationBody (the Notifications tool) and NotificationBrief (the Overview's cards).
 public static class NotificationSummary
 {
     private static readonly IDeserializer Yaml = new DeserializerBuilder().Build();
@@ -57,108 +56,6 @@ public static class NotificationSummary
             if (m.Success && long.TryParse(m.Groups[1].Value, out var lt)) f.StructureTypeId = lt;
         }
         return f;
-    }
-
-    // Entity (character/corp/alliance) ids referenced by known keys — for batch name resolution.
-    public static IEnumerable<long> EntityIds(NotifFields f)
-    {
-        foreach (var (k, v) in f.Scalars)
-            if (IsEntityKey(k) && long.TryParse(v, out var id) && id > 0)
-                yield return id;
-    }
-
-    private static bool IsEntityKey(string key)
-    {
-        var k = key.ToLowerInvariant();
-        return k.Contains("char") || k.Contains("corp") || k.Contains("owner")
-            || k.Contains("alliance") || k.EndsWith("by") || k.Contains("ceo")
-            || k.Contains("director") || k.Contains("applicant");
-    }
-
-    // ── One-liner ────────────────────────────────────────────────────────────────
-
-    public static string OneLiner(string type, NotifFields f,
-        IReadOnlyDictionary<long, string> names, IReadOnlyDictionary<long, string> structNames)
-    {
-        string Ent(string key) =>
-            f.Scalars.TryGetValue(key, out var v) && long.TryParse(v, out var id)
-            && names.TryGetValue(id, out var n) && n.Length > 0 ? n : "";
-
-        string Structure() =>
-            f.StructureId is long sid && structNames.TryGetValue(sid, out var n) && n.Length > 0
-                ? n : (f.StructureName ?? "A structure");
-
-        // "<subject> <verb> <object>" — empty subject ⇒ empty (caller supplies a fallback).
-        string Line(string subject, string verb, string obj)
-        {
-            if (subject.Length == 0) return "";
-            var s = obj.Length > 0 ? $"{subject} {verb} {obj}" : $"{subject} {verb}";
-            return Regex.Replace(s, @"\s+", " ").Trim();
-        }
-
-        string charN = Ent("charID");
-        string corpN = Ent("corpID");
-
-        return type switch
-        {
-            "CorpAppNewMsg"      => Line(charN, "applied to join", corpN).AppendIfPlain("Someone applied to join your corp"),
-            "CorpAppInvitedMsg"  => Line(charN, "was invited to", corpN).AppendIfPlain("A character was invited to your corp"),
-            "CorpAppAcceptMsg" or
-            "CharAppAcceptMsg"   => Line(charN, "joined", corpN).AppendIfPlain("A character joined your corp"),
-            "CharAppWithdrawMsg" => (charN.Length > 0 ? $"{charN} withdrew their application" : "An application was withdrawn"),
-            "CharAppRejectMsg"   => (charN.Length > 0 ? $"{charN}'s application was rejected" : "An application was rejected"),
-            "CharTerminationMsg" => Line(charN, "left", corpN).AppendIfPlain("A character left your corp"),
-
-            "OwnershipTransferred" => Ent("newOwnerCorpID") is { Length: > 0 } no
-                ? $"'{Structure()}' transferred to {no}"
-                : $"'{Structure()}' ownership transferred",
-
-            "StructureOnline"        => $"{Structure()} came online",
-            "StructureAnchoring"     => $"{Structure()} started anchoring",
-            "StructureUnanchoring"   => $"{Structure()} started unanchoring",
-            "StructureUnderAttack"   => $"{Structure()} is under attack",
-            "StructureLostArmor"     => $"{Structure()} lost its armor timer",
-            "StructureLostShields"   => $"{Structure()} lost its shield timer",
-            "StructureWentHighPower" => $"{Structure()} went to high power",
-            "StructureWentLowPower"  => $"{Structure()} went to low power",
-            "StructureFuelAlert"     => $"{Structure()} is low on fuel",
-            "StructureNoReagentsAlert"  => $"{Structure()} is out of reagents",
-            "StructureLowReagentsAlert" => $"{Structure()} is low on reagents",
-            "StructureItemsMovedToSafety" or
-            "StructureItemsMovedIntoSafety" => "Items moved to asset safety",
-            "StructureImpendingAbandonmentAssetsAtRisk" => "Assets at risk in an abandoned structure",
-            "StructureAnchoringDenied" => $"{Structure()} anchoring denied",
-            "StructureItemsDelivered"  => "Items delivered to a structure",
-
-            "MoonminingExtractionStarted"   => "Moon extraction started",
-            "MoonminingExtractionFinished"  => "Moon extraction ready to fracture",
-            "MoonminingExtractionCancelled" => "Moon extraction cancelled",
-            "MoonminingAutomaticFracture"   => "Moon automatically fractured",
-            "MoonminingLaserFired"          => "Moon drill laser fired",
-
-            "TowerAlertMsg" or "TowerResourceAlertMsg" => "Starbase (POS) alert",
-
-            "CorpAllBillMsg"     => "Corporation bill issued",
-            "InsurancePayoutMsg" => "Insurance payout received",
-            "CloneActivationMsg2" or "CloneActivationMsg" => "Jump clone activated",
-            "JumpCloneDeletedMsg1" or "JumpCloneDeletedMsg2" => "Jump clone deleted",
-            "KillReportVictim"   => "You lost a ship",
-            "KillReportFinalBlow" => "You got a killmail",
-
-            "WarDeclared"           => "War declared",
-            "WarInherited"          => "War inherited",
-            "WarAllyInherited"      => "War ally inherited",
-            "WarInvalid"            => "War declared invalid",
-            "WarRetractedByConcord" => "War retracted by CONCORD",
-            "WarHQRemovedFromSpace" => "War HQ removed from space",
-            "OfferedToAlly"         => "Offered as a war ally",
-
-            "CorporationGoalCreated"   => "Corp project created",
-            "CorporationGoalCompleted" => "Corp project completed",
-            "CorporationGoalClosed"    => "Corp project closed",
-
-            _ => NotificationTitles.For(type),
-        };
     }
 
     // ── Icon ─────────────────────────────────────────────────────────────────────
@@ -212,11 +109,4 @@ public static class NotificationSummary
     private static string U(int n, string unit) => $"{n} {unit}{(n == 1 ? "" : "s")}";
     private static string Two(int a, string au, int b, string bu) =>
         (b > 0 ? $"{U(a, au)} and {U(b, bu)}" : U(a, au)) + " ago";
-}
-
-file static class NotifStringExt
-{
-    // If the composed one-liner ended up empty (names didn't resolve), use a plain fallback.
-    public static string AppendIfPlain(this string s, string fallback) =>
-        string.IsNullOrWhiteSpace(s) ? fallback : s;
 }

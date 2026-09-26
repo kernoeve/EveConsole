@@ -172,12 +172,18 @@ public class NotificationsViewModel : ReactiveObject
     private static readonly NotifTypeOption AllTypes = new("All types", []);
     public IReadOnlyList<string>                     SenderTypes { get; } = ["All senders", "Corporation", "Character"];
 
+    // ⚠️ Every order ends on NotificationId. Many notifications share a minute, and without a
+    // final tiebreak the database may order a tie differently from one query to the next — so
+    // the page a notification was counted onto (ShowNotification) need not be the page it is
+    // then served on.
     public IReadOnlyList<GridSortOption> SortOptions { get; } =
     [
-        new("Date: newest first", "\"Timestamp\" DESC"),
-        new("Date: oldest first", "\"Timestamp\" ASC"),
-        new("Type (A → Z)",       TypeOrderToken + " ASC, \"Timestamp\" DESC"),
+        new("Date: newest first", "\"Timestamp\" DESC, \"NotificationId\" DESC"),
+        new("Date: oldest first", "\"Timestamp\" ASC, \"NotificationId\" ASC"),
+        new("Type (A → Z)",       TypeOrderToken + " ASC, \"Timestamp\" DESC, \"NotificationId\" DESC"),
     ];
+
+    private string SortSql => _selectedSort.Sql.Replace(TypeOrderToken, _typeOrderSql);
 
     /// <summary>
     /// Types in the order of the names they are shown by. Sorting on ESI's identifier would put
@@ -298,6 +304,71 @@ public class NotificationsViewModel : ReactiveObject
         _ = ReloadPageAsync();
     }
 
+    /// <summary>The notification the next load lands on, when one was opened from elsewhere.</summary>
+    private long? _focusId;
+
+    /// <summary>
+    /// Opens one notification — what an Overview card does: its row selected on whatever page
+    /// it falls, and its detail below. Filters are left as they are unless they would hide it,
+    /// and then they are cleared, since there is no knowing which of them the user still wants.
+    /// </summary>
+    public void ShowNotification(long notificationId)
+    {
+        if (notificationId <= 0) return;
+        _focusId = notificationId;
+        if (_initialized) _ = FocusAsync();   // otherwise InitAsync lands on it
+    }
+
+    private async Task FocusAsync()
+    {
+        if (_focusId is not long id) return;
+
+        // A load already running would land on its own first row; let it finish.
+        for (var waited = 0; IsLoading && waited < 400; waited++) await Task.Delay(25);
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+#pragma warning disable EF1002
+            var (baseWhere, ps) = BuildFilter();
+            var where = baseWhere + (_showUnreadOnly ? " AND \"IsRead\" = FALSE" : "");
+
+            var shown = await db.EsiNotifications
+                .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {where} AND \"NotificationId\" = {id}", ps)
+                .AsNoTracking().AnyAsync();
+            if (!shown)
+            {
+                _selectedCharacter  = Characters.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedCharacter));
+                _selectedType       = AllTypes;      this.RaisePropertyChanged(nameof(SelectedType));
+                _selectedSenderType = "All senders"; this.RaisePropertyChanged(nameof(SelectedSenderType));
+                _fromDate           = null;          this.RaisePropertyChanged(nameof(FromDate));
+                _thruDate           = null;          this.RaisePropertyChanged(nameof(ThruDate));
+                _showUnreadOnly     = false;         this.RaisePropertyChanged(nameof(ShowUnreadOnly));
+                (where, ps) = BuildFilter();
+            }
+
+            // Where it falls in the current order, counted the way the page query orders —
+            // one row per notification, the same sort — so the page it is counted onto is the
+            // page it is served on.
+            var position = await db.Database.SqlQueryRaw<long>(
+                    "SELECT x.\"rn\" AS \"Value\" FROM (" +
+                    $"SELECT g.\"NotificationId\", ROW_NUMBER() OVER (ORDER BY {SortSql}) AS \"rn\" FROM (" +
+                    $"SELECT \"NotificationId\", \"Type\", \"Timestamp\" FROM \"EsiNotifications\" WHERE {where} " +
+                    "GROUP BY \"NotificationId\", \"Type\", \"Timestamp\") g" +
+                    $") x WHERE x.\"NotificationId\" = {id}", ps)
+                .ToListAsync();
+#pragma warning restore EF1002
+            Pager.SetPage(position.Count > 0 ? (int)((position[0] - 1) / GridPager.PageSize) + 1 : 1);
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("NotificationsViewModel", "FocusAsync", ex);
+            StatusText = AppErrorLogger.Line("Could not find that notification", ex);
+        }
+        _focusId = id;   // a reload that slipped in meanwhile will have spent it
+        await ReloadPageAsync();
+    }
+
     private async Task InitAsync()
     {
         try
@@ -334,7 +405,8 @@ public class NotificationsViewModel : ReactiveObject
             _typeOrderSql = whens.Length > 0 ? $"CASE \"Type\"{whens} ELSE {rank} END" : "\"Type\"";
 
             _initialized = true;
-            await ReloadPageAsync();
+            if (_focusId is not null) await FocusAsync();   // opened on a notification before it was ready
+            else await ReloadPageAsync();
         }
         catch (Exception ex)
         {
@@ -423,7 +495,7 @@ public class NotificationsViewModel : ReactiveObject
                         $"WHERE {where} " +
                         "GROUP BY \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
                         "\"Timestamp\", \"Text\" " +
-                        $"ORDER BY {_selectedSort.Sql.Replace(TypeOrderToken, _typeOrderSql)} " +
+                        $"ORDER BY {SortSql} " +
                         $"LIMIT {GridPager.PageSize} OFFSET {Pager.Offset}", ps)
                     .AsNoTracking().ToListAsync();
 
@@ -455,7 +527,10 @@ public class NotificationsViewModel : ReactiveObject
                     : [];
                 Rows.Add(new NotificationRowVm(r, recipientList, names));
             }
-            SelectedRow = Rows.FirstOrDefault();
+            // Opened on one notification: that row, else the first.
+            SelectedRow = (_focusId is long focus ? Rows.FirstOrDefault(r => r.NotificationId == focus) : null)
+                          ?? Rows.FirstOrDefault();
+            _focusId    = null;
             StatusText = Pager.TotalCount == 0 ? "No notifications match these filters." : "";
         }
         catch (Exception ex)

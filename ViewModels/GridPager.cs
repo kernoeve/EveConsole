@@ -63,6 +63,15 @@ public class GridPager : ReactiveObject
         RaisePaging();
     }
 
+    // Land on a given page without reloading — the caller reloads, and its fresh count clamps
+    // the page back into range (used to open a grid on one particular row).
+    public void SetPage(int page)
+    {
+        page = Math.Max(1, page);
+        if (page != _currentPage) { _currentPage = page; this.RaisePropertyChanged(nameof(CurrentPage)); }
+        RaisePaging();
+    }
+
     // Pull CurrentPage back into range after a fresh count (call before reading Offset).
     public void ClampToRange()
     {

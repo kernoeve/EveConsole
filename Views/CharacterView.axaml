@@ -476,37 +476,7 @@
               </ListBox.Styles>
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:NotificationBoxVm">
-                  <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                          CornerRadius="3" Padding="8 6" Margin="0 0 0 6">
-                    <ToolTip.Tip>
-                      <TextBlock Text="{Binding TooltipText}" FontSize="11" MaxWidth="440"
-                                 FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
-                    </ToolTip.Tip>
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                      <!-- Icon: portrait / structure-type / logo, or a fallback glyph -->
-                      <Panel Grid.Column="0" Width="32" Height="32" Margin="0 0 8 0"
-                             VerticalAlignment="Top">
-                        <Border IsVisible="{Binding HasIcon}" Width="32" Height="32"
-                                CornerRadius="3" ClipToBounds="True">
-                          <Image Source="{Binding Icon}" Width="32" Height="32" Stretch="UniformToFill" />
-                        </Border>
-                        <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
-                                   FontSize="16" Foreground="{DynamicResource InfoBrush}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                      </Panel>
-
-                      <!-- One-liner + relative age -->
-                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="{Binding OneLiner}" FontSize="12" Foreground="{DynamicResource TextBrightBrush}"
-                                   TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding AgeText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
-                      </StackPanel>
-
-                      <!-- Unread marker -->
-                      <TextBlock Grid.Column="2" Text="{Binding UnreadDot}" Foreground="{DynamicResource AccentBrush}"
-                                 FontSize="12" VerticalAlignment="Top" Margin="6 0 0 0" />
-                    </Grid>
-                  </Border>
+                  <views:NotificationCard />
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>

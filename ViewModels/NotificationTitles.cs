@@ -1,18 +1,36 @@
+using System.Text.RegularExpressions;
+
 namespace EveConsole.ViewModels;
 
 /// <summary>
 /// What a notification type is called on screen — the Notifications tool's type list, grid and
-/// detail title, and the Overview's notification boxes all ask here.
+/// detail title, and the Overview's notification cards all ask here.
 ///
 /// <para>ESI's type names are identifiers ("CharAppAcceptMsg", "NPCStandingsLost"), and splitting
 /// them into words only goes so far: "Char App Accept Msg" is still not something a capsuleer
 /// would say. The types this app actually receives are named here in the game's own terms; any
-/// other falls back to <see cref="NotificationFormatter.Humanize"/>.</para>
+/// other falls back to <see cref="Humanize"/>.</para>
 /// </summary>
 public static class NotificationTitles
 {
     public static string For(string type) =>
-        Titles.TryGetValue(type, out var title) ? title : NotificationFormatter.Humanize(type);
+        Titles.TryGetValue(type, out var title) ? title : Humanize(type);
+
+    /// <summary>An identifier as words: "structureTypeID" → "Structure Type ID". For a type or a
+    /// field nobody has named yet.</summary>
+    public static string Humanize(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return key;
+        // The second split breaks an acronym off the word after it: "NPCStandingsLost" was
+        // "NPCStandings Lost", since only a lower-to-upper step was ever a boundary.
+        var spaced = Regex.Replace(key, @"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", " ");
+        spaced = spaced.Replace("_", " ");
+        spaced = Regex.Replace(spaced, @"\bID\b", "ID", RegexOptions.IgnoreCase);
+        var words = spaced.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.Equals("id", StringComparison.OrdinalIgnoreCase) ? "ID"
+                       : char.ToUpperInvariant(w[0]) + w[1..]);
+        return string.Join(" ", words);
+    }
 
     private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
     {

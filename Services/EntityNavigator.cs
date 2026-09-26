@@ -35,6 +35,10 @@ public class EntityNavigator
     /// tool of its own, where an NPC station belongs to the entity browser.</summary>
     public Action<long>?             OpenStructure { get; set; }
 
+    /// <summary>A notification, in the Notifications tool: its row selected, on whatever page it
+    /// falls, and its detail open below — what an Overview card opens.</summary>
+    public Action<long>?             OpenNotification { get; set; }
+
     /// <summary>Map overlay by key — "security", "sovereignty", "adm" and so on.</summary>
     public Func<string, string>?     SetOverlay   { get; set; }
 
@@ -46,6 +50,7 @@ public class EntityNavigator
     public void Constellation(string name)       { if (name.Length > 0) OpenConstellation?.Invoke(name); }
     public void Contract(int contractId)         { if (contractId > 0) OpenContract?.Invoke(contractId); }
     public void Structure(long structureId)      { if (structureId > 0) OpenStructure?.Invoke(structureId); }
+    public void Notification(long notificationId) { if (notificationId > 0) OpenNotification?.Invoke(notificationId); }
 
     /// <summary>
     /// Shared instance. A static rather than an injected dependency on purpose: the row view

@@ -126,7 +126,7 @@
     </Border>
 
     <!-- Grid -->
-    <DataGrid Grid.Row="1"
+    <DataGrid Grid.Row="1" x:Name="NotifGrid"
               ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
               AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"

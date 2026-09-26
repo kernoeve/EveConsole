@@ -22,6 +22,9 @@ public sealed class NotifValueVm : ReactiveObject
     public bool    IsGood     { get; init; }
     public bool    IsBad      { get; init; }
 
+    /// <summary>A joining word on an Overview card ("at", "due", "for") rather than a value.</summary>
+    public bool    IsDim      { get; init; }
+
     /// <summary>An images.evetech.net path ("types/34/icon?size=32"); empty to keep the icon's
     /// room without a picture, so a system lines up under the structure above it; null for a
     /// value with no picture at all — a date, a sum.</summary>
@@ -32,13 +35,32 @@ public sealed class NotifValueVm : ReactiveObject
     public bool IsPlain     => Open is null;
     public bool HasIconSlot => IconUrl is not null;
 
+    /// <summary>A picture to show, not just room kept for one — what a card asks, where a
+    /// system needs no gap in front of it.</summary>
+    public bool HasPicture  => !string.IsNullOrEmpty(IconUrl);
+
+    /// <summary>
+    /// Fetched the first time something asks for it: the binding of a card scrolled into view,
+    /// or of the detail pane. The Overview holds up to a thousand notifications in a virtualised
+    /// list, and only the pictures somebody looks at are worth the request.
+    /// </summary>
+    public Bitmap? Icon
+    {
+        get
+        {
+            if (!_iconRequested && !string.IsNullOrEmpty(IconUrl)) _ = LoadIconAsync();
+            return _icon;
+        }
+        private set => this.RaiseAndSetIfChanged(ref _icon, value);
+    }
     private Bitmap? _icon;
-    public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
+    private bool    _iconRequested;
 
     public void OpenIt() => Open?.Invoke();
 
     public async Task LoadIconAsync()
     {
+        _iconRequested = true;
         if (string.IsNullOrEmpty(IconUrl)) return;
         var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/{IconUrl}");
         await Dispatcher.UIThread.InvokeAsync(() => Icon = bmp);
@@ -82,6 +104,15 @@ public sealed class NotificationBodyVm
     public IReadOnlyList<NotifFieldVm> Fields { get; init; } = [];
     public IReadOnlyList<NotifTableVm> Tables { get; init; } = [];
     public IReadOnlyList<NotifFieldVm> Notes  { get; init; } = [];
+
+    /// <summary>
+    /// The same values by name, for the Overview's cards, which show a few per type. A YAML key
+    /// ("structureID", "moonID"), or a name this layout gives: bill, amount, location, alliance,
+    /// due; with, change, now, others for standings; summary; "key.count" for a list's length,
+    /// "ore.total". A list's own key holds its first row. Case does not matter.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<NotifValueVm>> Facts { get; init; } =
+        new Dictionary<string, IReadOnlyList<NotifValueVm>>();
 
     public bool HasSummary => Summary.Length > 0;
     public bool HasFields  => Fields.Count > 0;
@@ -337,31 +368,73 @@ public static class NotificationBody
     };
 
     /// <summary>Lays out one notification. Text it cannot read comes back whole, as a note,
-    /// rather than as an empty pane.</summary>
+    /// rather than as an empty pane. Icons are fetched when first shown.</summary>
     public static async Task<NotificationBodyVm> BuildAsync(
-        string type, string? text, ContractNameResolver names, IDbContextFactory<AppDbContext> dbFactory)
-    {
-        object? tree = null;
-        if (!string.IsNullOrWhiteSpace(text))
-        {
-            try { tree = Yaml.Deserialize<object>(new StringReader(text)); }
-            catch { return Raw(text); }
-        }
+        string type, string? text, ContractNameResolver names, IDbContextFactory<AppDbContext> dbFactory) =>
+        (await BuildManyAsync([(type, text)], names, dbFactory))[0];
 
-        var r     = new Resolution();
+    /// <summary>
+    /// Lays out many at once — the Overview's whole list — with every name, item, system,
+    /// station and structure among them looked up in one pass rather than a pass each. In the
+    /// order given.
+    /// </summary>
+    public static async Task<IReadOnlyList<NotificationBodyVm>> BuildManyAsync(
+        IReadOnlyList<(string Type, string? Text)> notifications,
+        ContractNameResolver names, IDbContextFactory<AppDbContext> dbFactory)
+    {
+        var r        = new Resolution();
+        var prepared = notifications.Select(n => Prepare(n.Type, n.Text, r)).ToList();
+        await r.ResolveAsync(names, dbFactory);
+        return [.. prepared.Select(p => p.Finish(r))];
+    }
+
+    /// <summary>One notification read and waiting for its names: the parts of its layout, the
+    /// sentence to write once names are known, or the raw text it could not be read as.</summary>
+    private sealed class Prepared(string type, Parts parts, Func<Resolution, string>? summary, string? raw)
+    {
+        public NotificationBodyVm Finish(Resolution r)
+        {
+            if (raw is not null) return Raw(raw);
+
+            var said = summary?.Invoke(r) ?? "";
+            if (said.Length == 0 && parts.IsEmpty && Descriptions.TryGetValue(type, out var description))
+                said = description;
+
+            var facts = parts.Facts.ToDictionary(
+                f => f.Key, f => (IReadOnlyList<NotifValueVm>)[.. f.Value.Select(p => p.Build(r))],
+                StringComparer.OrdinalIgnoreCase);
+            if (said.Length > 0) facts["summary"] = [new NotifValueVm { Text = said }];
+
+            return new NotificationBodyVm
+            {
+                Summary = said,
+                Fields  = [.. parts.Fields.OrderBy(f => f.Rank).Select(f => new NotifFieldVm
+                              { Label = f.Label, Values = [.. f.Values.Select(p => p.Build(r))] })],
+                Tables  = [.. parts.Tables.Select(t => t.Build(r))],
+                Notes   = [.. parts.Notes.Select(n => new NotifFieldVm
+                              { Label = n.Label, Values = [new NotifValueVm { Text = n.Text }] })],
+                Facts   = facts,
+            };
+        }
+    }
+
+    private static Prepared Prepare(string type, string? text, Resolution r)
+    {
         var parts = new Parts();
-        Func<Resolution, string>? summary = null;
+        if (string.IsNullOrWhiteSpace(text)) return new Prepared(type, parts, null, null);
+
+        object? tree;
+        try { tree = Yaml.Deserialize<object>(new StringReader(text)); }
+        catch { return new Prepared(type, parts, null, text); }
 
         switch (tree)
         {
             case null:
-                break;
+                return new Prepared(type, parts, null, null);
             case IList<object> list when type.StartsWith("NPCStandings", StringComparison.Ordinal):
-                summary = Standings(list, r, parts);
-                break;
+                return new Prepared(type, parts, Standings(list, r, parts), null);
             case IDictionary<object, object> bill when type == "CorpAllBillMsg":
-                summary = Bill(bill, r, parts);
-                break;
+                return new Prepared(type, parts, Bill(bill, r, parts), null);
             case IDictionary<object, object> map:
             {
                 Hints(map, r);
@@ -374,33 +447,11 @@ public static class NotificationBody
                     if (hqLinked && key.Equals("warHQ", StringComparison.OrdinalIgnoreCase)) continue;
                     AddField(key, v, overrides, r, parts);
                 }
-                break;
+                return new Prepared(type, parts, null, null);
             }
             default:
-                return Raw(text!);
+                return new Prepared(type, parts, null, text);
         }
-
-        await r.ResolveAsync(names, dbFactory);
-
-        var body = new NotificationBodyVm
-        {
-            Summary = summary?.Invoke(r) ?? "",
-            Fields  = [.. parts.Fields.OrderBy(f => f.Rank).Select(f => new NotifFieldVm
-                          { Label = f.Label, Values = [.. f.Values.Select(p => p.Build(r))] })],
-            Tables  = [.. parts.Tables.Select(t => t.Build(r))],
-            Notes   = [.. parts.Notes.Select(n => new NotifFieldVm
-                          { Label = n.Label, Values = [new NotifValueVm { Text = n.Text }] })],
-        };
-        if (body.IsEmpty && Descriptions.TryGetValue(type, out var said))
-            body = new NotificationBodyVm { Summary = said };
-
-        // Icons after the layout, so the pane shows at once and the pictures arrive into it.
-        foreach (var v in body.Fields.SelectMany(f => f.Values)
-                     .Concat(body.Tables.SelectMany(t => t.Rows.SelectMany(row => new[] { row.Cell1, row.Cell2, row.Cell3 })))
-                     .OfType<NotifValueVm>())
-            _ = v.LoadIconAsync();
-
-        return body;
     }
 
     private static NotificationBodyVm Raw(string text) =>
@@ -433,7 +484,39 @@ public static class NotificationBody
         public readonly List<PendingTable> Tables = [];
         public readonly List<(string Label, string Text)> Notes = [];
 
-        public void Field(string label, Pending value, int rank) => Fields.Add((label, [value], rank));
+        /// <summary>The same values by name — see <see cref="NotificationBodyVm.Facts"/>.</summary>
+        public readonly Dictionary<string, List<Pending>> Facts = new(StringComparer.OrdinalIgnoreCase);
+
+        public bool IsEmpty => Fields.Count == 0 && Tables.Count == 0 && Notes.Count == 0;
+
+        public void Field(string key, string label, Pending value, int rank)
+        {
+            Fields.Add((label, [value], rank));
+            Facts[key] = [value];
+        }
+
+        public void Note(string key, string label, string text)
+        {
+            Notes.Add((label, text));
+            Facts[key] = [Pending.Plain(text)];
+        }
+
+        /// <summary>A list, and under its key the first row as a card shows it — quantity
+        /// first where there is one ("115 × Hydrogen Fuel Block") — with the rest counted.</summary>
+        public void Table(string key, PendingTable table, bool quantityFirst = false)
+        {
+            Tables.Add(table);
+            if (table.Rows.Count == 0) return;
+
+            var (c1, c2, c3) = table.Rows[0];
+            List<Pending> first = quantityFirst && c2 is not null
+                ? [c2 with { Text = $"{c2.Text} ×", Flush = false }, c1]
+                : [c1, .. new[] { c2, c3 }.OfType<Pending>()];
+            if (table.Rows.Count > 1) first.Add(Pending.Muted($"+{table.Rows.Count - 1} more"));
+
+            Facts[key] = first;
+            Facts[$"{key}.count"] = [Pending.Plain(table.Rows.Count.ToString("N0", CultureInfo.CurrentCulture))];
+        }
     }
 
     private static void AddField(string key, object? value, Dictionary<string, F>? overrides, Resolution r, Parts parts)
@@ -448,58 +531,63 @@ public static class NotificationBody
         {
             case K.LongText:
                 var t = Strip(scalar ?? "").Trim();
-                if (t.Length > 0) parts.Notes.Add((def.Label, t));
+                if (t.Length > 0) parts.Note(key, def.Label, t);
                 return;
 
             case K.TypeQuantities when value is IList<object> pairs:          // [[quantity, typeId], ...]
-                parts.Tables.Add(new PendingTable(def.Label, "Type", "Quantity", "",
+                parts.Table(key, new PendingTable(def.Label, "Type", "Quantity", "",
                     [.. pairs.OfType<IList<object>>().Where(p => p.Count >= 2)
-                        .Select(p => (r.Type(Int(p[1])), (Pending?)Pending.Number(Long(p[0])), (Pending?)null))]));
+                        .Select(p => (r.Type(Int(p[1])), (Pending?)Pending.Number(Long(p[0])), (Pending?)null))]),
+                    quantityFirst: true);
                 return;
 
             case K.Wants when value is IList<object> wants:                   // [{quantity, typeID}, ...]
-                parts.Tables.Add(new PendingTable(def.Label, "Type", "Quantity", "",
+                parts.Table(key, new PendingTable(def.Label, "Type", "Quantity", "",
                     [.. wants.OfType<IDictionary<object, object>>()
-                        .Select(w => (r.Type(Int(Get(w, "typeID"))), (Pending?)Pending.Number(Long(Get(w, "quantity"))), (Pending?)null))]));
+                        .Select(w => (r.Type(Int(Get(w, "typeID"))), (Pending?)Pending.Number(Long(Get(w, "quantity"))), (Pending?)null))]),
+                    quantityFirst: true);
                 return;
 
             case K.OreVolumes when value is IDictionary<object, object> ore:  // { typeId: m³ }
             {
-                var rows = ore.Select(o => (r.Type(Int(o.Key)), (Pending?)Pending.Right(M3(Dbl(o.Value))), (Pending?)null)).ToList();
-                if (rows.Count > 1) rows.Add((Pending.Plain("Total"), Pending.Right(M3(ore.Values.Sum(Dbl))), null));
+                var total = M3(ore.Values.Sum(Dbl));
+                var rows  = ore.Select(o => (r.Type(Int(o.Key)), (Pending?)Pending.Right(M3(Dbl(o.Value))), (Pending?)null)).ToList();
+                if (rows.Count > 1) rows.Add((Pending.Plain("Total"), Pending.Right(total), null));
                 parts.Tables.Add(new PendingTable(def.Label, "", "Volume", "", rows));
+                parts.Facts["ore.total"] = [Pending.Plain(total)];
+                parts.Facts["ore.count"] = [Pending.Plain(ore.Count.ToString("N0", CultureInfo.CurrentCulture))];
                 return;
             }
 
             case K.TypeList when value is IList<object> types:
                 if (types.Count > 0)
-                    parts.Tables.Add(new PendingTable(def.Label, "", "", "",
+                    parts.Table(key, new PendingTable(def.Label, "", "", "",
                         [.. types.Select(x => (r.Type(Int(x)), (Pending?)null, (Pending?)null))]));
                 return;
 
             case K.StructureList when value is IList<object> ids:
                 if (ids.Count > 0)
-                    parts.Tables.Add(new PendingTable(def.Label, "", "", "",
+                    parts.Table(key, new PendingTable(def.Label, "", "", "",
                         [.. ids.Select(x => (r.Structure(Long(x)), (Pending?)null, (Pending?)null))]));
                 return;
 
             case K.LinkDataEntity when value is IList<object> { Count: >= 3 } link:   // ["showinfo", typeId, id]
-                parts.Field(def.Label, r.Entity(Long(link[2]), ShowInfoKind(Int(link[1]))), rank);
+                parts.Field(key, def.Label, r.Entity(Long(link[2]), ShowInfoKind(Int(link[1]))), rank);
                 return;
 
             case K.StructureIdType when value is IList<object> { Count: >= 2 } idType:  // [id, typeId]
-                parts.Field(def.Label, r.Structure(Long(idType[0]), Int(idType[1])), rank);
+                parts.Field(key, def.Label, r.Structure(Long(idType[0]), Int(idType[1])), rank);
                 return;
         }
 
         if (scalar is null)
         {
             // A shape nothing above expects: shown flattened, so it is at least visible.
-            parts.Field(def.Label, Pending.Plain(Flatten(value)), rank);
+            parts.Field(key, def.Label, Pending.Plain(Flatten(value)), rank);
             return;
         }
 
-        if (Value(def.Kind, scalar, r) is { } p) parts.Field(def.Label, p, rank);
+        if (Value(def.Kind, scalar, r) is { } p) parts.Field(key, def.Label, p, rank);
     }
 
     /// <summary>A key nobody listed. Named from the key, with the old id heuristics so an
@@ -508,7 +596,7 @@ public static class NotificationBody
     {
         var k = key.ToLowerInvariant();
         if (k.EndsWith("link") || k.EndsWith("linkdata") || k.Contains("showinfo")) return new("", K.Skip);
-        var label = NotificationFormatter.Humanize(key);
+        var label = NotificationTitles.Humanize(key);
         var s = value?.ToString() ?? "";
         if (s.Equals("true", StringComparison.OrdinalIgnoreCase)
             || s.Equals("false", StringComparison.OrdinalIgnoreCase)) return new(label, K.Bool);
@@ -606,7 +694,12 @@ public static class NotificationBody
         if (first is not { } f) return null;
         parts.Tables.Add(new PendingTable("Standing changes", "With", "Change", "Standing now", rows));
 
+        // For a card: who, by how much, to what — and how many more changed with it.
         var others = rows.Count - 1;
+        parts.Facts["with"]   = [rows[0].Item1];
+        parts.Facts["change"] = [rows[0].Item2!];
+        if (f.Now is double resulting) parts.Facts["now"] = [Pending.Plain(Standing(resulting))];
+        if (others > 0) parts.Facts["others"] = [Pending.Muted($"+{others} other{(others == 1 ? "" : "s")}")];
         return res =>
         {
             // The verb carries the direction, so the amount goes unsigned: "decreased by 0.0056".
@@ -632,29 +725,30 @@ public static class NotificationBody
         var due      = Date(Long(Get(map, "dueDate")));
         var what     = BillTypes.GetValueOrDefault(billType, $"Bill type {billType}");
 
-        // All one rank: a bill reads in the order it is written here.
-        parts.Field("Bill", Pending.Plain(what), 0);
-        parts.Field("Amount", Pending.Plain(Isk(amount)), 0);
-        if (Long(Get(map, "debtorID")) is var debtor and > 0)     parts.Field("Billed to",  r.Entity(debtor, K.Entity), 0);
-        if (Long(Get(map, "creditorID")) is var creditor and > 0) parts.Field("Payable to", r.Entity(creditor, K.Entity), 0);
+        // All one rank: a bill reads in the order it is written here. The keys are the names a
+        // card asks for (NotificationBodyVm.Facts).
+        parts.Field("bill", "Bill", Pending.Plain(what), 0);
+        parts.Field("amount", "Amount", Pending.Plain(Isk(amount)), 0);
+        if (Long(Get(map, "debtorID")) is var debtor and > 0)     parts.Field("debtor", "Billed to",  r.Entity(debtor, K.Entity), 0);
+        if (Long(Get(map, "creditorID")) is var creditor and > 0) parts.Field("creditor", "Payable to", r.Entity(creditor, K.Entity), 0);
 
         Pending? place = null;
         switch (billType)
         {
             case 2:
-                if (ext1 > 0) parts.Field("Rented", r.Type((int)ext1), 0);
-                if (ext2 > 0) parts.Field("Location", place = r.Location(ext2), 0);
+                if (ext1 > 0) parts.Field("rented", "Rented", r.Type((int)ext1), 0);
+                if (ext2 > 0) parts.Field("location", "Location", place = r.Location(ext2), 0);
                 break;
             case 5:
-                if (ext1 > 0) parts.Field("For alliance", r.Entity(ext1, K.Alliance), 0);
+                if (ext1 > 0) parts.Field("alliance", "For alliance", r.Entity(ext1, K.Alliance), 0);
                 break;
             default:
-                if (ext1 > 0) parts.Field("Reference", Pending.Plain(ext1.ToString(CultureInfo.InvariantCulture)), 0);
-                if (ext2 > 0) parts.Field("Second reference", Pending.Plain(ext2.ToString(CultureInfo.InvariantCulture)), 0);
+                if (ext1 > 0) parts.Field("reference", "Reference", Pending.Plain(ext1.ToString(CultureInfo.InvariantCulture)), 0);
+                if (ext2 > 0) parts.Field("reference2", "Second reference", Pending.Plain(ext2.ToString(CultureInfo.InvariantCulture)), 0);
                 break;
         }
-        if (issued is not null) parts.Field("Issued", Pending.Plain(issued), 0);
-        if (due is not null)    parts.Field("Due", Pending.Plain(due), 0);
+        if (issued is not null) parts.Field("issued", "Issued", Pending.Plain(issued), 0);
+        if (due is not null)    parts.Field("due", "Due", Pending.Plain(due), 0);
 
         return res =>
         {
@@ -669,16 +763,17 @@ public static class NotificationBody
     private sealed record Ref(K Kind, long Id, int IconTypeId = 0);
 
     private sealed record Pending(string? Text, Ref? Ref, bool Flush = false, bool Good = false, bool Bad = false,
-                                  Action? Open = null, string? Tip = null)
+                                  Action? Open = null, string? Tip = null, bool Dim = false)
     {
         public static Pending Plain(string text)                         => new(text, null);
+        public static Pending Muted(string text)                         => new(text, null, Dim: true);
         public static Pending Right(string text)                         => new(text, null, Flush: true);
         public static Pending Number(long n)                             => new(n.ToString("N0", CultureInfo.CurrentCulture), null, Flush: true);
         public static Pending Link(string text, string tip, Action open) => new(text, null, Open: open, Tip: tip);
 
         public NotifValueVm Build(Resolution r) =>
             Ref is null
-                ? new NotifValueVm { Text = Text ?? "", AlignRight = Flush, IsGood = Good, IsBad = Bad, Open = Open, Tip = Tip }
+                ? new NotifValueVm { Text = Text ?? "", AlignRight = Flush, IsGood = Good, IsBad = Bad, Open = Open, Tip = Tip, IsDim = Dim }
                 : r.Build(Ref);
     }
 
