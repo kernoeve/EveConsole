@@ -116,8 +116,10 @@ public static class AppKnowledge
         and one of two modes: "Build & Sell Order" (build cost vs the market's lowest sell
         price) and "Build & Sell to Buy Order" (build cost vs the highest buy order). For
         each item it lists Profit/Unit, Margin, the time to build one unit (Build Time /
-        Slot Days), and — the headline metric — Profit per Slot Day (unit profit divided by
-        the days a single unit occupies the slot), defaulting to that column descending.
+        Slot Days), Profit per Slot Day (unit profit divided by the days a single unit
+        occupies the slot) and the 30-day units and ISK sold. Results sort by ISK Sold 30d,
+        highest first, until the capsuleer clicks another column; the market, mode, filters
+        and sort are all remembered, on this machine, across tabs and restarts.
         Both build cost and build time use the default Indy Park; build time assumes a
         researched blueprint (TE20) and maxed industry skills and applies that park's
         structure role and rig time bonuses (per item category), so Slot Days reflect the

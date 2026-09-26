@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive;
+using Avalonia.Collections;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
@@ -88,34 +90,55 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         new("Build & Sell to Buy Order",  IndustryMode.BuildAndSellToBuyOrder),
     ];
 
+    // ⚠️ Every choice on this screen is kept here and remembered in UiState, never left to its
+    // control. The tab rebuilds its controls each time it is shown, so anything held only by a
+    // control — the chosen market, the grid's sort — was lost on leaving the tab and coming back.
+
     private IndustryModeOption _selectedMode;
     public IndustryModeOption SelectedMode
     {
         get => _selectedMode;
-        set => this.RaiseAndSetIfChanged(ref _selectedMode, value);
+        set
+        {
+            if (value is null) return;
+            this.RaiseAndSetIfChanged(ref _selectedMode, value);
+            UiState.Set(UiState.IndustryOppsMode, value.Kind.ToString());
+        }
     }
 
     // ── Market config (pricing source) ────────────────────────────────────────
 
     public ObservableCollection<IndustryMarketConfig> MarketConfigs { get; } = [];
 
+    /// <summary>True while the market list is being rebuilt.</summary>
+    private bool _reloadingConfigs;
+
     private IndustryMarketConfig? _selectedConfig;
     public IndustryMarketConfig? SelectedConfig
     {
         get => _selectedConfig;
-        set => this.RaiseAndSetIfChanged(ref _selectedConfig, value);
+        set
+        {
+            // ⚠️ A null while the list is rebuilt is the dropdown losing the item it showed, not
+            // the user clearing the choice — it is what used to empty "Price At".
+            if (value is null && _reloadingConfigs) return;
+            this.RaiseAndSetIfChanged(ref _selectedConfig, value);
+            if (value is not null) UiState.SetLong(UiState.IndustryOppsPriceAt, value.ConfigId);
+        }
     }
 
     // ── Filters ────────────────────────────────────────────────────────────────
 
-    private string _minIskVolume = "";
+    // The two volume boxes are remembered when Calculate uses them rather than on every
+    // keystroke; until then the view model, which outlives the tab, holds what was typed.
+    private string _minIskVolume = UiState.Get(UiState.IndustryOppsMinIskVol) ?? "";
     public string MinIskVolume
     {
         get => _minIskVolume;
         set => this.RaiseAndSetIfChanged(ref _minIskVolume, value);
     }
 
-    private string _minUnitVolume = "";
+    private string _minUnitVolume = UiState.Get(UiState.IndustryOppsMinUnitVol) ?? "";
     public string MinUnitVolume
     {
         get => _minUnitVolume;
@@ -123,21 +146,29 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     }
 
     // Faction items (MetaGroupId = 4) are ME0 BPCs that are often not worth building.
-    private bool _skipFactionItems = true;
+    private bool _skipFactionItems = UiState.GetBool(UiState.IndustryOppsSkipFaction, true);
     public bool SkipFactionItems
     {
         get => _skipFactionItems;
-        set => this.RaiseAndSetIfChanged(ref _skipFactionItems, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _skipFactionItems, value);
+            UiState.SetBool(UiState.IndustryOppsSkipFaction, value);
+        }
     }
 
     // Only items whose blueprint is a buyable BPO, or is invented from one (T2 from a T1
     // BPO). Excludes only items built from BPCs with no obtainable BPO — faction and
     // limited-run items — whose blueprint/contract cost we can't account for.
-    private bool _bpoOnly = true;
+    private bool _bpoOnly = UiState.GetBool(UiState.IndustryOppsBpoOnly, true);
     public bool BpoOnly
     {
         get => _bpoOnly;
-        set => this.RaiseAndSetIfChanged(ref _bpoOnly, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _bpoOnly, value);
+            UiState.SetBool(UiState.IndustryOppsBpoOnly, value);
+        }
     }
 
     // ── Excluded market groups (and everything nested under them) ────────────
@@ -223,6 +254,37 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     public ObservableCollection<IndustryRow> Results { get; } = [];
 
+    /// <summary>
+    /// The results as the grid shows them, sorted.
+    ///
+    /// <para>⚠️ Owned here, not by the grid. A grid bound to <see cref="Results"/> keeps its sort
+    /// in a view of its own, which goes with the grid when the tab is left; bound to this, a
+    /// rebuilt grid finds the sort — and draws its header arrow — from where it was left. The sort
+    /// is also remembered between sessions, and starts as ISK Sold 30d, highest first.</para>
+    /// </summary>
+    public DataGridCollectionView ResultsView { get; }
+
+    private static readonly HashSet<string> SortablePaths =
+        typeof(IndustryRow).GetProperties().Select(p => p.Name).ToHashSet();
+
+    private void RestoreSort()
+    {
+        var saved = (UiState.Get(UiState.IndustryOppsSort) ?? "").Split(':');
+        var (path, direction) = saved.Length == 2 && SortablePaths.Contains(saved[0])
+            ? (saved[0], saved[1] == "asc" ? ListSortDirection.Ascending : ListSortDirection.Descending)
+            : (nameof(IndustryRow.IskVol30d), ListSortDirection.Descending);
+
+        ResultsView.SortDescriptions.Add(DataGridSortDescription.FromPath(path, direction));
+    }
+
+    private void SaveSort()
+    {
+        // A header click clears the sort and adds the new one; only the second is worth keeping.
+        if (ResultsView.SortDescriptions.FirstOrDefault() is { } sort)
+            UiState.Set(UiState.IndustryOppsSort,
+                $"{sort.PropertyPath}:{(sort.Direction == ListSortDirection.Ascending ? "asc" : "desc")}");
+    }
+
     private string _statusText = "Select a market config, then click Calculate.";
     public string StatusText
     {
@@ -244,7 +306,12 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         _connString     = connString;
         _historyService = historyService;
         _batchSvc       = batchSvc;
-        _selectedMode   = ModeOptions[0];
+        _selectedMode   = ModeOptions.FirstOrDefault(m => m.Kind.ToString() == UiState.Get(UiState.IndustryOppsMode))
+                       ?? ModeOptions[0];
+
+        ResultsView = new DataGridCollectionView(Results);
+        RestoreSort();
+        ResultsView.SortDescriptions.CollectionChanged += (_, _) => SaveSort();
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
         AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
         RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
@@ -270,17 +337,29 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             ORDER BY "SortOrder"
             """);
 
-        MarketConfigs.Clear();
-        using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        var fresh = new List<IndustryMarketConfig>();
+        using (var reader = await cmd.ExecuteReaderAsync())
+            while (await reader.ReadAsync())
+                fresh.Add(new IndustryMarketConfig(
+                    reader.GetInt32(0),
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    reader.GetInt64(3)));
+
+        // ⚠️ The choice is carried across by id. The list is rebuilt from new objects every time
+        // the tab is shown, and the old choice is none of them — keeping the object, as this did,
+        // left the dropdown showing nothing.
+        var keepId = _selectedConfig?.ConfigId ?? UiState.GetLong(UiState.IndustryOppsPriceAt, 0);
+
+        _reloadingConfigs = true;
+        try
         {
-            MarketConfigs.Add(new IndustryMarketConfig(
-                reader.GetInt32(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetInt64(3)));
+            MarketConfigs.Clear();
+            foreach (var c in fresh) MarketConfigs.Add(c);
         }
-        _selectedConfig ??= MarketConfigs.FirstOrDefault();
+        finally { _reloadingConfigs = false; }
+
+        _selectedConfig = MarketConfigs.FirstOrDefault(c => c.ConfigId == keepId) ?? MarketConfigs.FirstOrDefault();
         this.RaisePropertyChanged(nameof(SelectedConfig));
     }
 
@@ -316,6 +395,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             minUnitVol = uv;
         }
 
+        // Remembered once they have been used; see MinIskVolume.
+        UiState.Set(UiState.IndustryOppsMinIskVol,  (MinIskVolume  ?? "").Trim());
+        UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
+
         Results.Clear();
         StatusText = "Calculating…";
         IsCalculating = true;
@@ -341,8 +424,10 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
             var rows = await BuildRowsAsync(candidates, regionId, minIskVol, minUnitVol,
                                             typesWithSell, typesWithBuy, configHasRawOrders);
-            // Default display order — best profit-per-slot-day first. Headers allow re-sorting.
-            foreach (var r in rows.OrderByDescending(r => r.ProfitPerSlotDay)) Results.Add(r);
+            // ResultsView sorts them — by the sort the user left, ISK Sold 30d if none. Added in
+            // that default order anyway, so the list reads the same with the sort cleared.
+            foreach (var r in rows.OrderByDescending(r => r.IskVol30d).ThenByDescending(r => r.ProfitPerSlotDay))
+                Results.Add(r);
 
             int noSell = rows.Count(r => !r.HasSellOrders);
             var note   = noSell > 0 ? $"  ·  * {noSell} priced from 30-day avg (no sell orders)" : "";

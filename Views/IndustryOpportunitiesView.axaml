@@ -164,8 +164,9 @@
     <!-- ── Results area ───────────────────────────────────────────────────────── -->
     <Grid>
 
+    <!-- ResultsView, not Results: the sort lives there, so it survives the tab being left. -->
     <DataGrid x:CompileBindings="False"
-              ItemsSource="{Binding Results}"
+              ItemsSource="{Binding ResultsView}"
               DoubleTapped="OnGridDoubleTapped"
               AutoGenerateColumns="False"
               IsReadOnly="True"
