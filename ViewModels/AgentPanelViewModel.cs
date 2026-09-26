@@ -109,8 +109,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
     public AgentService Service => _service;
 
-    public string AgentName      => string.IsNullOrWhiteSpace(_service.Settings.AgentName)
-        ? AgentSettings.DefaultAgentName : _service.Settings.AgentName.Trim();
+    /// <summary>
+    /// Who the agent is right now. While it speaks, the voice speaking — each voice can be a
+    /// persona of its own, and the name follows it through a failover and back. Otherwise, and
+    /// for a voice with no name of its own, the name from Personalisation.
+    /// </summary>
+    public string AgentName => _tts?.ActiveName is { Length: > 0 } voiceName
+        ? voiceName
+        : string.IsNullOrWhiteSpace(_service.Settings.AgentName)
+            ? AgentSettings.DefaultAgentName : _service.Settings.AgentName.Trim();
     public string AgentNameUpper => AgentName.ToUpperInvariant();
     public string AskWatermark   => $"Ask {AgentName}…";
 
@@ -212,8 +219,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
     // ── TTS mute / volume (session controls, separate from Settings) ──────────
     // These are only visible when a TTS provider is active.
-    public bool HasTts => _tts is not null &&
-                          _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None;
+    public bool HasTts => _tts?.IsSpeaking == true;
 
     private bool _isMuted;
     public bool IsMuted
@@ -290,6 +296,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
         if (service.Settings.PersistHistory)
             LoadHistory();
 
+        if (_tts is not null) _tts.ActiveVoiceChanged += OnVoiceChanged;
+
         // Restore panel open state from last session (only if agent is enabled)
         if (service.Settings.PanelOpen && service.Settings.Enabled)
             _isOpen = true;
@@ -328,11 +336,69 @@ public sealed class AgentPanelViewModel : ReactiveObject
         });
         SaveHistory();
 
-        if (_tts is not null && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None)
+        if (_tts?.IsSpeaking == true)
         {
             _tts.Stop();
             _tts.SpeakAsync(text);
         }
+    }
+
+    // ── A change of voice, and so of persona ────────────────────────────────────
+
+    /// <summary>
+    /// The voice speaking changed. The name in the title bar and the panel follows it at once;
+    /// a failover's announcement goes into the chat and the history as the new persona's own
+    /// line. (A return is recorded by <see cref="SendAsync"/>, which makes it happen.)
+    /// </summary>
+    private void OnVoiceChanged(VoiceChange change) => Dispatcher.UIThread.Post(() =>
+    {
+        // The voices may have been configured after this panel was made; the first choice,
+        // announced as Initial, is when the volume and mute controls learn there is speech.
+        this.RaisePropertyChanged(nameof(HasTts));
+        this.RaisePropertyChanged(nameof(AgentName));
+        this.RaisePropertyChanged(nameof(AgentNameUpper));
+        this.RaisePropertyChanged(nameof(AskWatermark));
+        if (change.Reason == VoiceChangeReason.Failover) RecordVoiceChange(change, immediate: !IsBusy);
+    });
+
+    /// <summary>Voice-change notes that arrived mid-turn, held until the turn has stopped reading
+    /// the history — a note added while the provider is walking it would break the walk.</summary>
+    private readonly List<AgentMessage> _deferredNotes = [];
+
+    /// <summary>
+    /// What the model is told about a change of voice, so it answers as the persona now speaking
+    /// and knows why: the announcement as that persona's own line, or — when nothing was said
+    /// aloud — a hidden note. Nothing when the name did not change.
+    /// </summary>
+    private void RecordVoiceChange(VoiceChange change, bool immediate)
+    {
+        if (string.Equals(change.PreviousName, change.CurrentName, StringComparison.OrdinalIgnoreCase)) return;
+
+        var note = change.Announcement.Length > 0
+            ? new AgentMessage(MessageRole.Assistant, change.Announcement) { ToolsUsed = "voice change" }
+            : new AgentMessage(MessageRole.User,
+                $"[{change.PreviousName} has stepped away and you are now {change.CurrentName}. " +
+                $"Carry on the conversation as {change.CurrentName}.]") { ShowInChat = false };
+
+        if (note.ShowInChat) Messages.Add(note);
+        if (immediate)
+        {
+            _history.Add(note);
+            SaveHistory();
+        }
+        else lock (_deferredNotes) _deferredNotes.Add(note);
+    }
+
+    private void FlushDeferredNotes()
+    {
+        List<AgentMessage> notes;
+        lock (_deferredNotes)
+        {
+            if (_deferredNotes.Count == 0) return;
+            notes = [.. _deferredNotes];
+            _deferredNotes.Clear();
+        }
+        _history.AddRange(notes);
     }
 
     /// <summary>
@@ -453,6 +519,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
         }
         _summarizationTask = null;
 
+        // Between turns is where the voice may change of its own accord. A note held from a
+        // failover mid-answer goes in first; then a preferred voice that is back and has stayed up
+        // takes over — announced — so the model knows who it is before it writes a word.
+        FlushDeferredNotes();
+        if (_tts?.ApplyPendingReturn() is { } returned) RecordVoiceChange(returned, immediate: true);
+
         // A reply to something the app said aloud goes to the model with a note of what that
         // was — hidden, like an alarm's own prompt, because the capsuleer already heard it.
         if (replyingTo is not null)
@@ -526,8 +598,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
             // Speech runs alongside the stream rather than after it. The agent often writes a
             // sentence, calls a tool, thinks, and writes more — so waiting for the end meant
             // silence through all of that and then a wall of text read at once.
-            var speaking = _tts is not null
-                        && _service.Settings.TtsProvider != EveConsole.Agent.TtsProvider.None;
+            var speaking = _tts?.IsSpeaking == true;
             var pending  = new StringBuilder();
 
             // What the turn's largest prompt came to, and the window it went into when the server
@@ -570,6 +641,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
                 string toolsUsed;
                 lock (toolCounts) toolsUsed = ToolUseSummary.Describe(toolCounts);
                 var assistantMsg = new AgentMessage(MessageRole.Assistant, responseText) { ToolsUsed = toolsUsed };
+                // A voice that took over mid-answer introduced itself before this answer ended.
+                FlushDeferredNotes();
                 _history.Add(assistantMsg);
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
@@ -651,7 +724,18 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// tokens of tool schemas and app reference every single time.</para>
     /// </summary>
     private string BuildSystemPrompt()
-        => AgentService.BuildSystemPrompt(_service.Settings, _service.Schema?.Prompt);
+    {
+        // The persona speaking is the persona writing: a voice with a name of its own gives the
+        // model that name, or it would go on introducing itself as someone the capsuleer is not
+        // hearing. The cached prefix changes with it — once, at the change.
+        var settings = _service.Settings;
+        if (AgentName != settings.AgentName)
+        {
+            settings = settings.Clone();
+            settings.AgentName = AgentName;
+        }
+        return AgentService.BuildSystemPrompt(settings, _service.Schema?.Prompt);
+    }
 
     /// <summary>What the capsuleer is looking at right now. Changes per turn, so it is never
     /// part of the cached prefix.</summary>

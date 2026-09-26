@@ -8,7 +8,11 @@ namespace EveConsole.Services;
 
 public sealed class ElevenLabsTtsService : IDisposable
 {
-    private static readonly HttpClient _http = new();
+    // A short connect timeout, so an unreachable service is handed over in seconds.
+    private static readonly HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(3) })
+    {
+        Timeout = TimeSpan.FromSeconds(90),
+    };
 
     // Reuse the LibVLC instance already initialized by OpenAiTtsService.
     private static LibVLC? _vlc;
@@ -62,15 +66,40 @@ public sealed class ElevenLabsTtsService : IDisposable
         lock (_playerLock) { try { _player?.Stop(); } catch { } }
     }
 
-    public async Task SpeakAsync(string text)
+    /// <summary>Whether the voice can be reached, at no cost: the account endpoint, with the key.</summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
-        var vlc = GetVlc();
-        if (vlc is null || string.IsNullOrEmpty(_apiKey)) return;
+        if (GetVlc() is null || string.IsNullOrEmpty(_apiKey)) return false;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(5));
+            using var req = new HttpRequestMessage(HttpMethod.Get, "https://api.elevenlabs.io/v1/user");
+            req.Headers.Add("xi-api-key", _apiKey);
+            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
+            return resp.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
+        catch (HttpRequestException) { return false; }
+    }
+
+    /// <summary>
+    /// Speaks one utterance and returns when it has finished playing. Throws when it could not;
+    /// returns quietly when stopped.
+    ///
+    /// <para>⚠️ It no longer stops what is playing first, and no longer swallows failures: the
+    /// first cut each streamed sentence off with the next, the second recorded a voice that had
+    /// stopped working as speech that worked. TtsService's queue orders the sentences.</para>
+    /// </summary>
+    public async Task SpeakAsync(string text, CancellationToken cancel = default)
+    {
+        var vlc = GetVlc() ?? throw new InvalidOperationException("Audio playback (VLC) is not available.");
+        if (string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No ElevenLabs API key is set.");
         var stripped = StripMarkdown(text);
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
-        Stop();
-        var ct = _cts.Token;
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancel, _cts.Token);
+        var ct = linked.Token;
 
         try
         {
@@ -90,18 +119,18 @@ public sealed class ElevenLabsTtsService : IDisposable
 
             using var resp = await _http.SendAsync(req,
                 HttpCompletionOption.ResponseContentRead, ct);
-            resp.EnsureSuccessStatusCode();
+            if (!resp.IsSuccessStatusCode)
+            {
+                var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
+                throw new HttpRequestException(
+                    $"ElevenLabs answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {(detail.Length > 200 ? detail[..200] + "…" : detail)}");
+            }
 
             var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
-            if (ct.IsCancellationRequested) return;
-
+            if (bytes.Length == 0) throw new InvalidOperationException("ElevenLabs returned no audio.");
             await PlayAsync(vlc, bytes, ct);
         }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[ElevenLabs TTS] {ex.Message}");
-        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { /* stopped */ }
     }
 
     private async Task PlayAsync(LibVLC vlc, byte[] bytes, CancellationToken ct)
@@ -125,19 +154,20 @@ public sealed class ElevenLabsTtsService : IDisposable
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
+            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException("The audio could not be played."));
             player.EndReached      += OnEnd;
-            player.EncounteredError += OnEnd;
+            player.EncounteredError += OnError;
 
             try
             {
                 player.Play(media);
                 await tcs.Task.ConfigureAwait(false);
             }
-            catch (OperationCanceledException) { player.Stop(); }
+            catch (OperationCanceledException) { player.Stop(); throw; }
             finally
             {
                 player.EndReached      -= OnEnd;
-                player.EncounteredError -= OnEnd;
+                player.EncounteredError -= OnError;
                 lock (_playerLock) { if (_player == player) _player = null; }
                 player.Dispose();
             }

@@ -113,27 +113,31 @@ public sealed class PiperTtsService : IDisposable
         catch { _model = null; }
     }
 
-    public void SpeakAsync(string text)
+    /// <summary>Can speak now: the bundled runtime is there and the voice has been downloaded.</summary>
+    public bool IsAvailable => _vlc is not null && IsBinaryAvailable && IsVoiceDownloaded;
+
+    /// <summary>
+    /// Speaks one utterance and returns when it has finished playing. Throws when it could not;
+    /// returns quietly when stopped.
+    ///
+    /// <para>⚠️ It used to stop what was playing, start the new one in the background and return
+    /// at once — so each streamed sentence cut the previous one off — and to swallow every failure.
+    /// TtsService's queue orders the sentences now, and needs the failure to hand over.</para>
+    /// </summary>
+    public async Task SpeakAsync(string text, CancellationToken cancel = default)
     {
-        if (_vlc is null) return;
+        if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
         var stripped = StripMarkdown(text);
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
-        Stop();
-        var ct = _cts.Token;
-        _ = InferAndPlayAsync(stripped, ct);
-    }
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancel, _cts.Token);
+        var ct = linked.Token;
 
-    private async Task InferAndPlayAsync(string text, CancellationToken ct)
-    {
         if (_model is null)
         {
             await LoadVoiceAsync();
             if (_model is null)
-            {
-                System.Diagnostics.Debug.WriteLine("[Piper] Voice model not loaded — cannot speak.");
-                return;
-            }
+                throw new InvalidOperationException($"The Piper voice '{_voiceKey}' is not downloaded or could not load.");
         }
 
         try
@@ -146,16 +150,13 @@ public sealed class PiperTtsService : IDisposable
             };
 
             var provider = new PiperProvider(config);
-            var wavBytes = await provider.InferAsync(text, AudioOutputType.Wav);
-            if (ct.IsCancellationRequested || wavBytes is null || wavBytes.Length == 0) return;
+            var wavBytes = await provider.InferAsync(stripped, AudioOutputType.Wav);
+            if (ct.IsCancellationRequested) return;
+            if (wavBytes is null || wavBytes.Length == 0) throw new InvalidOperationException("Piper produced no audio.");
 
             await PlayWavAsync(wavBytes, ct);
         }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[Piper TTS] {ex.Message}");
-        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { /* stopped */ }
     }
 
     private async Task PlayWavAsync(byte[] wavBytes, CancellationToken ct)
@@ -179,19 +180,20 @@ public sealed class PiperTtsService : IDisposable
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
+            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException("The audio could not be played."));
             player.EndReached       += OnEnd;
-            player.EncounteredError += OnEnd;
+            player.EncounteredError += OnError;
 
             try
             {
                 player.Play(media);
                 await tcs.Task.ConfigureAwait(false);
             }
-            catch (OperationCanceledException) { player.Stop(); }
+            catch (OperationCanceledException) { player.Stop(); throw; }
             finally
             {
                 player.EndReached       -= OnEnd;
-                player.EncounteredError -= OnEnd;
+                player.EncounteredError -= OnError;
                 lock (_playerLock) { if (_player == player) _player = null; }
                 player.Dispose();
             }

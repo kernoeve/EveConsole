@@ -61,6 +61,15 @@ public sealed class KokoroTtsService : IDisposable
 
     private KokoroTTS? _tts;
     private string     _voiceId = "af_heart";
+    private float      _volume  = 1f;
+
+    /// <summary>0.0–1.0, through KokoroSharp's own playback. Kept and applied on load as well,
+    /// so a volume set before the model has loaded is not lost.</summary>
+    public void SetVolume(float volume)
+    {
+        _volume = Math.Clamp(volume, 0f, 1f);
+        try { _tts?.SetVolume(_volume); } catch { /* the engine has gone */ }
+    }
 
     public bool IsReady => _tts is not null;
 
@@ -89,7 +98,9 @@ public sealed class KokoroTtsService : IDisposable
                     throw new DirectoryNotFoundException($"Kokoro's voices are missing from {VoicesDir}");
                 KokoroVoiceManager.LoadVoicesFromPath(VoicesDir);
             }
-            _tts = KokoroTTS.LoadModel(await EnsureModelAsync());
+            var tts = KokoroTTS.LoadModel(await EnsureModelAsync());
+            try { tts.SetVolume(_volume); } catch { /* default volume, then */ }
+            _tts = tts;
         });
     }
 
@@ -144,8 +155,17 @@ public sealed class KokoroTtsService : IDisposable
     /// <para>Callers arrive through TtsService's queue, which already runs this on a pool thread,
     /// so blocking holds up nothing but the next utterance — which is the point.</para>
     /// </summary>
-    public void SpeakAsync(string text)
+    /// <summary>Can speak, or can once it has loaded: the voices are here and the last load did
+    /// not fail. A model still to be downloaded counts as available — it is fetched on first use.</summary>
+    public bool IsAvailable => Directory.Exists(VoicesDir) && _load is not { IsFaulted: true };
+
+    /// <param name="voiceId">Which voice — several Kokoro voices share the one loaded model.
+    /// Null: the configured one.</param>
+    public void Speak(string text, string? voiceId = null, CancellationToken ct = default)
     {
+        using var stopOnCancel = ct.Register(Stop);
+        if (ct.IsCancellationRequested) return;
+
         // ⚠️ An utterance that arrives while the model is still loading WAITS for it rather than
         // being dropped. The model takes seconds to load at startup, and an alarm that fired in
         // the first minute — a store order transition caught by the startup polls — was written
@@ -169,7 +189,7 @@ public sealed class KokoroTtsService : IDisposable
 
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
-        var voice  = KokoroVoiceManager.GetVoice(_voiceId);
+        var voice  = KokoroVoiceManager.GetVoice(string.IsNullOrEmpty(voiceId) ? _voiceId : voiceId);
         var done   = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var handle = _tts.SpeakFast(stripped, voice);
 

@@ -29,6 +29,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(TtsVolumeHelpText));
             this.RaisePropertyChanged(nameof(MicHelpText));
             this.RaisePropertyChanged(nameof(PttHelpText));
+            this.RaisePropertyChanged(nameof(DefaultName));
+            foreach (var voice in Voices) voice.RefreshLabel();
         }
     }
 
@@ -194,55 +196,123 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _summarizationThreshold, value);
     }
 
-    // ── TTS provider selection ─────────────────────────────────────────────────
-    public IReadOnlyList<TtsProvider> TtsProviders { get; } = Enum.GetValues<TtsProvider>();
+    // ── Voices ─────────────────────────────────────────────────────────────────
+    //
+    // A list, in order of preference: the first that can speak is used, and when it fails the
+    // next takes over. Each voice can carry a name of its own — the voice is part of who the
+    // capsuleer is talking to — which stands in for the agent's name while that voice speaks.
 
-    private TtsProvider _ttsProvider;
-    public TtsProvider TtsProvider
+    private bool _speechOn;
+    public bool SpeechOn
     {
-        get => _ttsProvider;
+        get => _speechOn;
+        set => this.RaiseAndSetIfChanged(ref _speechOn, value);
+    }
+
+    public System.Collections.ObjectModel.ObservableCollection<VoiceProfileVm> Voices { get; } = [];
+
+    private VoiceProfileVm? _selectedVoice;
+    public VoiceProfileVm? SelectedVoice
+    {
+        get => _selectedVoice;
         set
         {
-            this.RaiseAndSetIfChanged(ref _ttsProvider, value);
-            this.RaisePropertyChanged(nameof(ShowOpenAiTtsSettings));
-            this.RaisePropertyChanged(nameof(ShowElevenLabsTtsSettings));
-            this.RaisePropertyChanged(nameof(ShowKokoroTtsSettings));
-            this.RaisePropertyChanged(nameof(ShowPiperTtsSettings));
+            this.RaiseAndSetIfChanged(ref _selectedVoice, value);
+            this.RaisePropertyChanged(nameof(HasSelectedVoice));
         }
     }
 
-    public bool ShowOpenAiTtsSettings       => _ttsProvider == TtsProvider.OpenAi;
-    public bool ShowElevenLabsTtsSettings   => _ttsProvider == TtsProvider.ElevenLabs;
-    public bool ShowKokoroTtsSettings       => _ttsProvider == TtsProvider.Kokoro;
-    public bool ShowPiperTtsSettings        => _ttsProvider == TtsProvider.Piper;
+    public bool HasSelectedVoice => _selectedVoice is not null;
 
-    // ── OpenAI TTS ─────────────────────────────────────────────────────────────
-    public IReadOnlyList<string> OpenAiTtsVoices => TtsService.OpenAiVoices;
-    public IReadOnlyList<string> OpenAiTtsModels => TtsService.OpenAiModels;
+    public ICommand AddVoiceCommand      { get; }
+    public ICommand RemoveVoiceCommand   { get; }
+    public ICommand MoveVoiceUpCommand   { get; }
+    public ICommand MoveVoiceDownCommand { get; }
 
-    private string _openAiTtsVoice = "nova";
-    public string OpenAiTtsVoice
+    /// <summary>The agent's own name, which a voice without a name of its own goes by.</summary>
+    public string DefaultName => DisplayAgentName;
+
+    private void AddVoice()
     {
-        get => _openAiTtsVoice;
-        set => this.RaiseAndSetIfChanged(ref _openAiTtsVoice, value);
+        // A new voice starts as Kokoro — free and bundled — and goes to the end: a fallback,
+        // until it is moved up.
+        var vm = new VoiceProfileVm(this, _tts, new VoiceProfile());
+        Voices.Add(vm);
+        Renumber();
+        SelectedVoice = vm;
+        OnVoiceEnginesChanged();
     }
 
-    private string _openAiTtsModel = "tts-1";
-    public string OpenAiTtsModel
+    private void RemoveVoice()
     {
-        get => _openAiTtsModel;
-        set => this.RaiseAndSetIfChanged(ref _openAiTtsModel, value);
+        if (_selectedVoice is not { } vm) return;
+        var at = Voices.IndexOf(vm);
+        Voices.Remove(vm);
+        Renumber();
+        SelectedVoice = Voices.Count == 0 ? null : Voices[Math.Min(at, Voices.Count - 1)];
+        OnVoiceEnginesChanged();
     }
 
-    private double _openAiTtsSpeed = 1.0;
-    public double OpenAiTtsSpeed
+    private void MoveVoice(int by)
     {
-        get => _openAiTtsSpeed;
-        set => this.RaiseAndSetIfChanged(ref _openAiTtsSpeed, value);
+        if (_selectedVoice is not { } vm) return;
+        var from = Voices.IndexOf(vm);
+        var to   = from + by;
+        if (from < 0 || to < 0 || to >= Voices.Count) return;
+        Voices.Move(from, to);
+        Renumber();
+        SelectedVoice = vm;
     }
 
-    // ── ElevenLabs TTS ────────────────────────────────────────────────────────
-    public IReadOnlyList<string> ElevenLabsModels => TtsService.ElevenLabsModels;
+    private void Renumber()
+    {
+        for (var i = 0; i < Voices.Count; i++) Voices[i].Position = i + 1;
+    }
+
+    /// <summary>A voice's engine changed, or a voice came or went: the Kokoro model box shows
+    /// only while some voice uses it.</summary>
+    public void OnVoiceEnginesChanged() => this.RaisePropertyChanged(nameof(UsesKokoro));
+
+    public bool UsesKokoro => Voices.Any(v => v.Provider == TtsProvider.Kokoro);
+
+    // ── When the voice changes ─────────────────────────────────────────────────
+
+    private bool _announceVoiceChanges = true;
+    public bool AnnounceVoiceChanges
+    {
+        get => _announceVoiceChanges;
+        set => this.RaiseAndSetIfChanged(ref _announceVoiceChanges, value);
+    }
+
+    private string _voiceHandoverMessage = "";
+    public string VoiceHandoverMessage
+    {
+        get => _voiceHandoverMessage;
+        set => this.RaiseAndSetIfChanged(ref _voiceHandoverMessage, value);
+    }
+
+    private string _voiceReturnMessage = "";
+    public string VoiceReturnMessage
+    {
+        get => _voiceReturnMessage;
+        set => this.RaiseAndSetIfChanged(ref _voiceReturnMessage, value);
+    }
+
+    private int _voiceSwitchGapMinutes = 10;
+    public int VoiceSwitchGapMinutes
+    {
+        get => _voiceSwitchGapMinutes;
+        set => this.RaiseAndSetIfChanged(ref _voiceSwitchGapMinutes, Math.Max(0, value));
+    }
+
+    private int _voicePreferredUpMinutes = 5;
+    public int VoicePreferredUpMinutes
+    {
+        get => _voicePreferredUpMinutes;
+        set => this.RaiseAndSetIfChanged(ref _voicePreferredUpMinutes, Math.Max(0, value));
+    }
+
+    // ── Keys the voices share with the rest of the agent ─────────────────────────
 
     private string _elevenLabsApiKey = "";
     public string ElevenLabsApiKey
@@ -251,36 +321,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _elevenLabsApiKey, value);
     }
 
-    private string _elevenLabsVoiceId = "21m00Tcm4TlvDq8ikWAM";
-    public string ElevenLabsVoiceId
-    {
-        get => _elevenLabsVoiceId;
-        set => this.RaiseAndSetIfChanged(ref _elevenLabsVoiceId, value);
-    }
-
-    private string _elevenLabsModel = "eleven_turbo_v2_5";
-    public string ElevenLabsModel
-    {
-        get => _elevenLabsModel;
-        set => this.RaiseAndSetIfChanged(ref _elevenLabsModel, value);
-    }
-
-    // ── Kokoro local TTS ──────────────────────────────────────────────────────
-    public IReadOnlyList<string> KokoroVoiceLabels =>
-        KokoroTtsService.Voices.Select(v => v.Label).ToList();
-
-    private string _kokoroVoiceId = "af_heart";
-
-    public string? SelectedKokoroVoiceLabel
-    {
-        get => KokoroTtsService.Voices.FirstOrDefault(v => v.Id == _kokoroVoiceId).Label;
-        set
-        {
-            var match = KokoroTtsService.Voices.FirstOrDefault(v => v.Label == value);
-            _kokoroVoiceId = match.Id ?? _kokoroVoiceId;
-            this.RaisePropertyChanged();
-        }
-    }
+    // ── Kokoro's model: one, however many Kokoro voices are listed ───────────────
 
     public bool IsKokoroModelDownloaded => _tts?.Kokoro.IsReady == true;
 
@@ -299,53 +340,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     }
 
     public ICommand DownloadKokoroModelCommand { get; }
-
-    // ── Piper local TTS ───────────────────────────────────────────────────────
-    public IReadOnlyList<string> PiperVoiceLabels =>
-        PiperTtsService.VoiceCatalogue.Select(v => $"{v.Label}  [{v.Size}]").ToList();
-
-    private string _piperVoiceKey = "en_US-libritts_r-medium";
-
-    public string? SelectedPiperVoiceLabel
-    {
-        get => PiperTtsService.VoiceCatalogue
-            .Select(v => $"{v.Label}  [{v.Size}]")
-            .FirstOrDefault(label => PiperTtsService.VoiceCatalogue
-                .Any(v => v.Key == _piperVoiceKey && $"{v.Label}  [{v.Size}]" == label));
-        set
-        {
-            var match = PiperTtsService.VoiceCatalogue
-                .FirstOrDefault(v => $"{v.Label}  [{v.Size}]" == value);
-            if (match != default)
-            {
-                _piperVoiceKey = match.Key;
-                this.RaisePropertyChanged(nameof(IsPiperVoiceDownloaded));
-            }
-            this.RaisePropertyChanged();
-        }
-    }
-
-    public bool IsPiperBinaryAvailable => _tts?.Piper.IsBinaryAvailable == true;
-
-    public bool IsPiperVoiceDownloaded =>
-        !string.IsNullOrEmpty(_piperVoiceKey) &&
-        Directory.Exists(PiperTtsService.GetVoiceModelPath(_piperVoiceKey));
-
-    private bool _isDownloadingPiper;
-    public bool IsDownloadingPiper
-    {
-        get => _isDownloadingPiper;
-        private set => this.RaiseAndSetIfChanged(ref _isDownloadingPiper, value);
-    }
-
-    private string _piperDownloadStatus = "";
-    public string PiperDownloadStatus
-    {
-        get => _piperDownloadStatus;
-        private set => this.RaiseAndSetIfChanged(ref _piperDownloadStatus, value);
-    }
-
-    public ICommand DownloadPiperVoiceCommand  { get; }
 
     // ── Speech input (push-to-talk) ───────────────────────────────────────────
     public IReadOnlyList<SpeechInputProvider> SpeechInputProviders { get; } =
@@ -483,8 +477,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     public ICommand DownloadModelCommand { get; }
 
-    public ICommand TestVoiceCommand { get; }
-
     // ── feedback ───────────────────────────────────────────────────────────────
     private string _saveStatus = "";
     public string SaveStatus
@@ -501,10 +493,12 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _service                  = service;
         _tts                      = tts;
         _speech                   = speech;
-        TestVoiceCommand          = ReactiveCommand.Create(TestVoice);
         DownloadModelCommand      = ReactiveCommand.Create(DownloadModel);
         DownloadKokoroModelCommand = ReactiveCommand.Create(DownloadKokoroModel);
-        DownloadPiperVoiceCommand  = ReactiveCommand.Create(DownloadPiperVoice);
+        AddVoiceCommand            = ReactiveCommand.Create(AddVoice);
+        RemoveVoiceCommand         = ReactiveCommand.Create(RemoveVoice);
+        MoveVoiceUpCommand         = ReactiveCommand.Create(() => MoveVoice(-1));
+        MoveVoiceDownCommand       = ReactiveCommand.Create(() => MoveVoice(+1));
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
         LoadFromService();
         SaveCommand               = ReactiveCommand.Create(Save);
@@ -545,17 +539,18 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _persistHistory         = s.PersistHistory;
         _summarizationThreshold = s.SummarizationThreshold;
 
-        _ttsProvider      = s.TtsProvider;
-        _openAiTtsVoice   = s.OpenAiTtsVoice;
-        _openAiTtsModel   = s.OpenAiTtsModel;
-        _openAiTtsSpeed   = s.OpenAiTtsSpeed;
-
-        _elevenLabsApiKey  = s.ElevenLabsApiKey;
-        _elevenLabsVoiceId = s.ElevenLabsVoiceId;
-        _elevenLabsModel   = s.ElevenLabsModel;
-
-        _kokoroVoiceId = string.IsNullOrEmpty(s.KokoroVoice) ? "af_heart" : s.KokoroVoice;
-        _piperVoiceKey = string.IsNullOrEmpty(s.PiperVoice)  ? "en_US-libritts_r-medium" : s.PiperVoice;
+        s.NormalizeVoices();
+        _speechOn                = s.SpeechOn;
+        _elevenLabsApiKey        = s.ElevenLabsApiKey;
+        _announceVoiceChanges    = s.AnnounceVoiceChanges;
+        _voiceHandoverMessage    = s.VoiceHandoverMessage;
+        _voiceReturnMessage      = s.VoiceReturnMessage;
+        _voiceSwitchGapMinutes   = s.VoiceSwitchGapMinutes;
+        _voicePreferredUpMinutes = s.VoicePreferredUpMinutes;
+        Voices.Clear();
+        foreach (var profile in s.Voices) Voices.Add(new VoiceProfileVm(this, _tts, profile));
+        Renumber();
+        _selectedVoice = Voices.FirstOrDefault();
 
         _speechInputProvider      = s.SpeechInputProvider;
         _whisperLocalModel        = s.WhisperLocalModel;
@@ -587,17 +582,18 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             PersistHistory         = _persistHistory,
             SummarizationThreshold = _summarizationThreshold < 1000 ? 1000 : _summarizationThreshold,
 
-            TtsProvider    = _ttsProvider,
-            OpenAiTtsVoice = _openAiTtsVoice,
-            OpenAiTtsModel = _openAiTtsModel,
-            OpenAiTtsSpeed = _openAiTtsSpeed,
+            SpeechOn                = _speechOn,
+            Voices                  = [.. Voices.Select(v => v.ToProfile())],
+            ElevenLabsApiKey        = _elevenLabsApiKey.Trim(),
+            AnnounceVoiceChanges    = _announceVoiceChanges,
+            VoiceHandoverMessage    = string.IsNullOrWhiteSpace(_voiceHandoverMessage) ? new AgentSettings().VoiceHandoverMessage : _voiceHandoverMessage.Trim(),
+            VoiceReturnMessage      = string.IsNullOrWhiteSpace(_voiceReturnMessage)   ? new AgentSettings().VoiceReturnMessage   : _voiceReturnMessage.Trim(),
+            VoiceSwitchGapMinutes   = _voiceSwitchGapMinutes,
+            VoicePreferredUpMinutes = _voicePreferredUpMinutes,
 
-            ElevenLabsApiKey  = _elevenLabsApiKey.Trim(),
-            ElevenLabsVoiceId = _elevenLabsVoiceId.Trim(),
-            ElevenLabsModel   = _elevenLabsModel,
-
-            KokoroVoice = _kokoroVoiceId,
-            PiperVoice  = _piperVoiceKey,
+            // Kept as they are: the panel sets these, and a Save here must not reset them.
+            TtsVolume = _service.Settings.TtsVolume,
+            PanelOpen = _service.Settings.PanelOpen,
 
             SpeechInputProvider   = _speechInputProvider,
             WhisperLocalModel     = _whisperLocalModel,
@@ -619,24 +615,15 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         SaveStatus = "Saved.";
     }
 
-    private void TestVoice()
+    /// <summary>
+    /// Speaks with one voice as it stands on the tab, unsaved — on its own, not through the list,
+    /// so a test neither fails over nor disturbs the voice a conversation is using.
+    /// </summary>
+    public void TestVoice(VoiceProfileVm voice)
     {
         if (_tts is null) return;
-        _tts.Configure(new AgentSettings
-        {
-            TtsProvider       = _ttsProvider,
-            OpenAiApiKey      = _openAiApiKey.Trim(),
-            OpenAiTtsVoice    = _openAiTtsVoice,
-            OpenAiTtsModel    = _openAiTtsModel,
-            OpenAiTtsSpeed    = _openAiTtsSpeed,
-            ElevenLabsApiKey  = _elevenLabsApiKey.Trim(),
-            ElevenLabsVoiceId = _elevenLabsVoiceId.Trim(),
-            ElevenLabsModel   = _elevenLabsModel,
-            KokoroVoice       = _kokoroVoiceId,
-            PiperVoice        = _piperVoiceKey,
-        });
-        var name = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim();
-        _tts.SpeakAsync($"{name} voice test. Your AI companion is ready, Capsuleer.");
+        var keys = new AgentSettings { OpenAiApiKey = _openAiApiKey.Trim(), ElevenLabsApiKey = _elevenLabsApiKey.Trim() };
+        _tts.TestVoice(voice.ToProfile(), keys, $"{voice.SpokenName} voice test. Your AI companion is ready, Capsuleer.");
     }
 
     private void DownloadKokoroModel()
@@ -660,34 +647,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             finally
             {
                 IsDownloadingKokoroModel = false;
-            }
-        });
-    }
-
-    private void DownloadPiperVoice()
-    {
-        if (IsDownloadingPiper || _tts is null) return;
-        IsDownloadingPiper = true;
-        PiperDownloadStatus = $"Downloading voice '{_piperVoiceKey}'…";
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                _tts.Piper.Configure(_piperVoiceKey);
-                await _tts.Piper.DownloadVoiceAsync(
-                    new Progress<string>(msg => PiperDownloadStatus = msg),
-                    CancellationToken.None);
-                this.RaisePropertyChanged(nameof(IsPiperVoiceDownloaded));
-                PiperDownloadStatus = "Voice model ready.";
-            }
-            catch (Exception ex)
-            {
-                PiperDownloadStatus = $"Download failed: {ex.Message}";
-            }
-            finally
-            {
-                IsDownloadingPiper = false;
             }
         });
     }

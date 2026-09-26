@@ -441,6 +441,9 @@ public sealed class AgentService : ReactiveObject
         }
         catch { _settings = new(); }
 
+        // A file from before voices became a list: its one voice becomes the first.
+        _settings.NormalizeVoices();
+
         RebuildProvider();
     }
 
@@ -601,6 +604,8 @@ public sealed class AgentService : ReactiveObject
         try
         {
             var forFile = Preferences is null ? _settings : WithoutShared(_settings);
+            // The first voice in the single-voice fields too, for an older build reading the file.
+            forFile.MirrorLegacyVoice();
             Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(forFile, _jsonOpts));
         }

@@ -2010,162 +2010,219 @@
         <TabItem Header="Voice (TTS)">
           <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="12" Margin="0 0 8 0">
-                <!-- Voice (TTS) -->
+
+                <!-- The voices, in order of preference -->
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Voice (TTS)" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Voices" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
 
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <CheckBox IsChecked="{Binding SpeechOn}" Content="Speak the agent's replies" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="In order of preference. The first voice that can speak is used; if it fails, the next takes over at once and, when the first is back and has stayed up, it returns. A voice can have a name of its own — the voice is part of who you are talking to — and while it speaks it is the agent's name, in the panel and in the conversation. A voice with no name goes by the agent's name from Personalisation." />
 
-                      <TextBlock Text="Provider" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <ComboBox ItemsSource="{Binding TtsProviders}"
-                                SelectedItem="{Binding TtsProvider}"
-                                HorizontalAlignment="Stretch" />
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 4 0 0">
+                        <ListBox Grid.Column="0" ItemsSource="{Binding Voices}" SelectedItem="{Binding SelectedVoice}"
+                                 MinHeight="70" MaxHeight="170"
+                                 Background="{DynamicResource SurfaceInputBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:VoiceProfileVm">
+                              <TextBlock Text="{Binding Label}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                          </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="8 0 0 0">
+                          <Button Content="Add" Command="{Binding AddVoiceCommand}" Padding="10 3" HorizontalAlignment="Stretch" />
+                          <Button Content="Remove" Command="{Binding RemoveVoiceCommand}" IsEnabled="{Binding HasSelectedVoice}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" />
+                          <Button Content="▲ Up" Command="{Binding MoveVoiceUpCommand}" IsEnabled="{Binding HasSelectedVoice}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" ToolTip.Tip="Prefer this voice over the one above it" />
+                          <Button Content="▼ Down" Command="{Binding MoveVoiceDownCommand}" IsEnabled="{Binding HasSelectedVoice}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                      </Grid>
+
+                      <!-- The selected voice -->
+                      <Border IsVisible="{Binding HasSelectedVoice}" Margin="0 6 0 0" Padding="10 8"
+                              BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3">
+                        <StackPanel Spacing="8" DataContext="{Binding SelectedVoice}" x:DataType="vm:VoiceProfileVm">
+                          <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                          <TextBox Text="{Binding Name}" Watermark="{Binding NameWatermark}" />
+
+                          <TextBlock Text="Engine" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                          <ComboBox ItemsSource="{Binding EngineOptions}" SelectedItem="{Binding SelectedEngine}" HorizontalAlignment="Stretch" />
+
+                          <!-- Kokoro -->
+                          <StackPanel IsVisible="{Binding ShowKokoro}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Kokoro 82M runs fully offline on this PC. Its voices ship with the application; the model (~320 MB) is downloaded once — see Kokoro model below." />
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding KokoroVoiceLabels}" SelectedItem="{Binding SelectedKokoroVoiceLabel}"
+                                      HorizontalAlignment="Stretch" />
+                          </StackPanel>
+
+                          <!-- A server of our own -->
+                          <StackPanel IsVisible="{Binding ShowLocalServer}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Any server that speaks OpenAI's speech API — Kokoro-FastAPI, Chatterbox-TTS-Server (full or Turbo), Orpheus-FastAPI — usually on another machine's GPU. Free to use; if the server cannot be reached, the next voice in the list takes over." />
+                            <TextBlock Text="Server address (up to and including /v1)" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerUrl}" Watermark="http://gpu-box:8880/v1" />
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerModel}" Watermark="as the server names it — kokoro, chatterbox, orpheus…" />
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerVoice}" Watermark="as the server names it — af_heart, tara…" />
+                            <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <Grid ColumnDefinitions="*,52">
+                              <Slider Grid.Column="0" Minimum="0.25" Maximum="4.0" Value="{Binding ServerSpeed}"
+                                      TickFrequency="0.25" IsSnapToTickEnabled="True" />
+                              <TextBlock Grid.Column="1" Text="{Binding ServerSpeed, StringFormat='{}{0:F2}x'}"
+                                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                         VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="API key (only if the server asks for one)" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerApiKey}" PasswordChar="•" />
+                          </StackPanel>
+
+                          <!-- Piper -->
+                          <StackPanel IsVisible="{Binding ShowPiper}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Piper is a fast offline engine. Its runtime ships with the application; only the voice model is downloaded." />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <TextBlock Text="Runtime:" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                              <TextBlock Text="✔ Bundled" FontSize="11" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center"
+                                         IsVisible="{Binding IsPiperBinaryAvailable}" />
+                              <TextBlock Text="⚠ Not found in app directory" FontSize="11" Foreground="{DynamicResource WarnBrush}"
+                                         VerticalAlignment="Center" IsVisible="{Binding !IsPiperBinaryAvailable}" />
+                            </StackPanel>
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding PiperVoiceLabels}" SelectedItem="{Binding SelectedPiperVoiceLabel}"
+                                      HorizontalAlignment="Stretch" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                              <Button Content="Download Voice Model" Command="{Binding DownloadPiperVoiceCommand}"
+                                      IsEnabled="{Binding !IsDownloadingPiper}" Padding="12 4" />
+                              <TextBlock Text="✔ Voice ready" FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                                         VerticalAlignment="Center" IsVisible="{Binding IsPiperVoiceDownloaded}" />
+                            </StackPanel>
+                            <ProgressBar IsIndeterminate="{Binding IsDownloadingPiper}" Height="4" IsVisible="{Binding IsDownloadingPiper}" />
+                            <TextBlock Text="{Binding PiperDownloadStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                       IsVisible="{Binding PiperDownloadStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+
+                          <!-- OpenAI -->
+                          <StackPanel IsVisible="{Binding ShowOpenAi}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="OpenAI's voices, billed per character. Uses the OpenAI API key from the Agent tab." />
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding OpenAiVoices}" SelectedItem="{Binding OpenAiVoice}" HorizontalAlignment="Stretch" />
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding OpenAiModels}" SelectedItem="{Binding OpenAiModel}" HorizontalAlignment="Stretch" />
+                            <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <Grid ColumnDefinitions="*,52">
+                              <Slider Grid.Column="0" Minimum="0.25" Maximum="4.0" Value="{Binding OpenAiSpeed}"
+                                      TickFrequency="0.25" IsSnapToTickEnabled="True" />
+                              <TextBlock Grid.Column="1" Text="{Binding OpenAiSpeed, StringFormat='{}{0:F2}x'}"
+                                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                         VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                          </StackPanel>
+
+                          <!-- ElevenLabs -->
+                          <StackPanel IsVisible="{Binding ShowElevenLabs}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="ElevenLabs' voices, billed per character. The API key is set once, below, for every ElevenLabs voice." />
+                            <TextBlock Text="Voice ID" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ElevenLabsVoiceId}" Watermark="21m00Tcm4TlvDq8ikWAM (Rachel)" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Find voice IDs in your ElevenLabs account under My Voices or the Voice Library." />
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding ElevenLabsModels}" SelectedItem="{Binding ElevenLabsModel}" HorizontalAlignment="Stretch" />
+                          </StackPanel>
+
+                          <Button Content="Test This Voice" Command="{Binding TestVoiceCommand}"
+                                  Padding="12 4" HorizontalAlignment="Left" Margin="0 4 0 0"
+                                  ToolTip.Tip="Speaks with this voice as set here, before saving — on its own, not through the list" />
+                        </StackPanel>
+                      </Border>
+
                       <TextBlock Text="{Binding TtsVolumeHelpText}"
                                  FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
 
-                      <!-- OpenAI TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowOpenAiTtsSettings}" Spacing="8">
-                        <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBlock Text="Shared with the OpenAI LLM provider setting above."
-                                   FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" />
-                        <TextBox Text="{Binding OpenAiApiKey}"
-                                 Watermark="sk-…" PasswordChar="•" />
-                        <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
-                                         NavigateUri="https://platform.openai.com/api-keys"
-                                         FontSize="10"
-                                         Padding="0"
-                                         HorizontalAlignment="Left" />
-                        <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding OpenAiTtsVoices}"
-                                  SelectedItem="{Binding OpenAiTtsVoice}"
-                                  HorizontalAlignment="Stretch" />
-                        <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding OpenAiTtsModels}"
-                                  SelectedItem="{Binding OpenAiTtsModel}"
-                                  HorizontalAlignment="Stretch" />
-                        <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <Grid ColumnDefinitions="*,52">
-                          <Slider Grid.Column="0"
-                                  Minimum="0.25" Maximum="4.0"
-                                  Value="{Binding OpenAiTtsSpeed}"
-                                  TickFrequency="0.25" IsSnapToTickEnabled="True" />
-                          <TextBlock Grid.Column="1"
-                                     Text="{Binding OpenAiTtsSpeed, StringFormat='{}{0:F2}x'}"
-                                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        </Grid>
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                Padding="12 4" HorizontalAlignment="Left" />
+                <!-- Kokoro's model: one for every Kokoro voice -->
+                <Border IsVisible="{Binding UsesKokoro}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+                  <Grid RowDefinitions="Auto,Auto">
+                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                      <TextBlock Text="Kokoro model" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                 Text="One model serves every Kokoro voice. It is downloaded once (~320 MB, only the neural network weights — no executable code) into this PC's data folder, where updates leave it alone." />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Load Model" Command="{Binding DownloadKokoroModelCommand}"
+                                IsEnabled="{Binding !IsDownloadingKokoroModel}" Padding="12 4" />
+                        <TextBlock Text="✔ Model loaded" FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                                   VerticalAlignment="Center" IsVisible="{Binding IsKokoroModelDownloaded}" />
                       </StackPanel>
+                      <ProgressBar IsIndeterminate="True" Height="4" IsVisible="{Binding IsDownloadingKokoroModel}" />
+                      <TextBlock Text="{Binding KokoroModelStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                 IsVisible="{Binding KokoroModelStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
 
-                      <!-- ElevenLabs TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowElevenLabsTtsSettings}" Spacing="8">
-                        <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBox Text="{Binding ElevenLabsApiKey}"
-                                 Watermark="Your ElevenLabs API key" PasswordChar="•" />
-                        <HyperlinkButton Content="Get your ElevenLabs API key at elevenlabs.io"
-                                         NavigateUri="https://elevenlabs.io/app/settings/api-keys"
-                                         FontSize="10"
-                                         Padding="0"
-                                         HorizontalAlignment="Left" />
-                        <TextBlock Text="Voice ID" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBox Text="{Binding ElevenLabsVoiceId}"
-                                 Watermark="21m00Tcm4TlvDq8ikWAM (Rachel)" />
-                        <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Find voice IDs in your ElevenLabs account under My Voices or the Voice Library." />
-                        <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding ElevenLabsModels}"
-                                  SelectedItem="{Binding ElevenLabsModel}"
-                                  HorizontalAlignment="Stretch" />
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
+                <!-- When the voice changes -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+                  <Grid RowDefinitions="Auto,Auto">
+                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                      <TextBlock Text="When the voice changes" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <CheckBox IsChecked="{Binding AnnounceVoiceChanges}" Content="Announce it, in the new voice" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Said by the voice taking over, and kept in the conversation so the agent knows who it is now. Only when the name changes — give each voice its own name for a change to be announced. Nothing is said when the app starts: you simply hear whoever is speaking. {previous} and {current} stand for the two names." />
+                      <TextBlock Text="Taking over" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding VoiceHandoverMessage}" TextWrapping="Wrap" />
+                      <TextBlock Text="Coming back" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding VoiceReturnMessage}" TextWrapping="Wrap" />
 
-                      <!-- Kokoro local TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowKokoroTtsSettings}" Spacing="8">
-                        <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Kokoro 82M is a high-quality neural TTS model that runs fully offline. On first use, the ONNX model weight file (~320 MB) is downloaded and cached automatically — no executable code is downloaded, only the neural network weights. Voice embeddings are bundled with the application." />
+                      <Grid ColumnDefinitions="Auto,130,Auto" RowDefinitions="Auto,Auto" Margin="0 4 0 0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="At least" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding VoiceSwitchGapMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="minutes between one change and the next switch back"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Up for" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 6 8 0" />
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding VoicePreferredUpMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" Margin="0 6 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="minutes without a break before a preferred voice returns"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 6 0 0" />
+                      </Grid>
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="A voice that fails is replaced at once — these only govern coming back, so a server that keeps dropping out cannot make the voice flip back and forth. A switch back waits for the end of the current answer." />
+                    </StackPanel>
+                  </Grid>
+                </Border>
 
-                        <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding KokoroVoiceLabels}"
-                                  SelectedItem="{Binding SelectedKokoroVoiceLabel}"
-                                  HorizontalAlignment="Stretch" />
-
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
-                          <Button Content="Load Model (downloads ~320 MB on first use)"
-                                  Command="{Binding DownloadKokoroModelCommand}"
-                                  IsEnabled="{Binding !IsDownloadingKokoroModel}"
-                                  Padding="12 4" />
-                          <TextBlock Text="✔ Model loaded" FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsKokoroModelDownloaded}" />
-                        </StackPanel>
-
-                        <ProgressBar IsIndeterminate="True"
-                                     Height="4"
-                                     IsVisible="{Binding IsDownloadingKokoroModel}" />
-                        <TextBlock Text="{Binding KokoroModelStatus}"
-                                   FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                   IsVisible="{Binding KokoroModelStatus,
-                                               Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                IsEnabled="{Binding IsKokoroModelDownloaded}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
-
-                      <!-- Piper local TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowPiperTtsSettings}" Spacing="8">
-                        <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Piper is a fast offline neural TTS engine. The Piper runtime is bundled with the application — no executable downloads. Only the voice model (a data file) is downloaded on demand." />
-
-                        <!-- Binary status -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                          <TextBlock Text="Runtime:" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
-                          <TextBlock Text="✔ Bundled" FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsPiperBinaryAvailable}" />
-                          <TextBlock Text="⚠ Not found in app directory" FontSize="11" Foreground="{DynamicResource WarnBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding !IsPiperBinaryAvailable}" />
-                        </StackPanel>
-
-                        <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding PiperVoiceLabels}"
-                                  SelectedItem="{Binding SelectedPiperVoiceLabel}"
-                                  HorizontalAlignment="Stretch" />
-
-                        <!-- Piper voice download -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                          <Button Content="Download Voice Model"
-                                  Command="{Binding DownloadPiperVoiceCommand}"
-                                  IsEnabled="{Binding !IsDownloadingPiper}"
-                                  Padding="12 4" />
-                          <TextBlock Text="✔ Voice ready" FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsPiperVoiceDownloaded}" />
-                        </StackPanel>
-
-                        <ProgressBar IsIndeterminate="{Binding IsDownloadingPiper}"
-                                     Height="4"
-                                     IsVisible="{Binding IsDownloadingPiper}" />
-                        <TextBlock Text="{Binding PiperDownloadStatus}"
-                                   FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                   IsVisible="{Binding PiperDownloadStatus,
-                                               Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                IsEnabled="{Binding IsPiperVoiceDownloaded}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
-
+                <!-- Keys for the paid voices -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+                  <Grid RowDefinitions="Auto,Auto">
+                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                      <TextBlock Text="Paid voice keys" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <TextBlock Text="ElevenLabs API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding ElevenLabsApiKey}" Watermark="Only needed for an ElevenLabs voice" PasswordChar="•" />
+                      <HyperlinkButton Content="Get your ElevenLabs API key at elevenlabs.io"
+                                       NavigateUri="https://elevenlabs.io/app/settings/api-keys"
+                                       FontSize="10" Padding="0" HorizontalAlignment="Left" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="OpenAI's voices use the OpenAI API key from the Agent tab." />
                     </StackPanel>
                   </Grid>
                 </Border>
