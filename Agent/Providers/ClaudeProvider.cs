@@ -192,7 +192,16 @@ public sealed class ClaudeProvider : IAgentProvider
         using var request  = BuildRequest(systemPrompt, volatileContext, rawMessages, toolMap);
         using var response = await _http.SendAsync(
             request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            // The service's own words — "overloaded", "invalid x-api-key", a model name it does not
+            // know — and the status with them, so a role can tell a service that is down from a
+            // request it refused. EnsureSuccessStatusCode kept the status and threw the words away.
+            var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            throw new HttpRequestException(
+                $"Claude returned {(int)response.StatusCode}: {(body.Length > 400 ? body[..400] + "…" : body)}",
+                null, response.StatusCode);
+        }
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
         using  var reader      = new StreamReader(stream);
@@ -292,6 +301,21 @@ public sealed class ClaudeProvider : IAgentProvider
                     if (root.TryGetProperty("usage", out var u))
                         outTok = ReadLong(u, "output_tokens");
                     break;
+                }
+
+                // ⚠️ An error part-way through a stream that began well — "overloaded" most often.
+                // Unhandled, it ended the stream quietly and the turn read as an answer that
+                // stopped, with nothing to say why and nothing for a fallback model to act on.
+                case "error":
+                {
+                    var err     = root.TryGetProperty("error", out var e) ? e : root;
+                    var kind    = err.TryGetProperty("type",    out var k) ? k.GetString() ?? "" : "";
+                    var message = err.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
+                    throw new HttpRequestException($"Claude stream error: {kind} — {message}", null,
+                        kind == "overloaded_error" ? (System.Net.HttpStatusCode)529
+                        : kind == "rate_limit_error" ? System.Net.HttpStatusCode.TooManyRequests
+                        : kind is "invalid_request_error" ? System.Net.HttpStatusCode.BadRequest
+                        : System.Net.HttpStatusCode.InternalServerError);
                 }
             }
         }
@@ -516,6 +540,29 @@ public sealed class ClaudeProvider : IAgentProvider
         request.Headers.Add("anthropic-version", AnthropicVersion);
         request.Headers.Add("Accept",            "text/event-stream");
         return request;
+    }
+
+    /// <summary>
+    /// Anthropic's model list, which costs nothing and answers only to a key it accepts: the
+    /// service is up and will take the key. Whether it will take the next request — overloaded,
+    /// out of credit — is found out by sending it.
+    /// </summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
+    {
+        if (!IsConfigured) return false;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(10));
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/v1/models?limit=1");
+            request.Headers.Add("x-api-key",         _apiKey);
+            request.Headers.Add("anthropic-version", AnthropicVersion);
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
+                                            .ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
+        catch (HttpRequestException) { return false; }
     }
 
     /// <summary>

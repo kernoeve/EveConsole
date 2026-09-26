@@ -145,7 +145,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             // The service's own words: a wrong model name, a key without access, a local server
             // that does not know the model. Those are what the capsuleer needs to see.
             var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-            throw new HttpRequestException($"{ProviderName} returned {(int)response.StatusCode}: {Trim(body, 400)}");
+            // With the status, so a role can tell a server that is down from a request it refused.
+            throw new HttpRequestException(
+                $"{ProviderName} returned {(int)response.StatusCode}: {Trim(body, 400)}", null, response.StatusCode);
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
@@ -424,6 +426,38 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             }
         }
         catch { /* the window is a courtesy; the turn already succeeded without it */ }
+    }
+
+    /// <summary>
+    /// The service's model list, which costs nothing to read. OpenAI's own service: that the key
+    /// is accepted. A server of our own: that it lists this model — Ollama answers a request for a
+    /// model it has not pulled with a 404, so a server that is up without it cannot answer either.
+    /// ⚠️ Not a request for an answer: that would load the model onto the GPU every half minute
+    /// while a role waits to go back to it, and keep it there.
+    /// </summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
+    {
+        if (!IsConfigured) return false;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(10));
+            using var request = new HttpRequestMessage(HttpMethod.Get, _baseUrl + "models");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseContentRead, timeout.Token)
+                                            .ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode) return false;
+            if (!_isLocal) return true;
+
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false));
+            return doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array
+                && data.EnumerateArray().Any(m => m.TryGetProperty("id", out var id)
+                                                 && id.ValueKind == JsonValueKind.String
+                                                 && IsOurModel(id.GetString() ?? ""));
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
+        catch (HttpRequestException) { return false; }
+        catch (JsonException)        { return false; }
     }
 
     /// <summary>
