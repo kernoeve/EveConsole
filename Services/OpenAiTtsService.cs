@@ -128,7 +128,11 @@ public sealed class OpenAiTtsService : IDisposable
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
             if (!IsOpenAi)
             {
-                timeout.CancelAfter(TimeSpan.FromSeconds(15));   // a word, on a GPU that may be busy
+                // ⚠️ Generous: the first request after a server starts pays its warm-up and the
+                // preparing of the voice — measured at 12 s for Chatterbox Turbo on an RTX 3080
+                // that then speaks far faster — and a check that gave up sooner started the app
+                // on the next voice, only to "return" five minutes later.
+                timeout.CancelAfter(TimeSpan.FromSeconds(30));
                 await SynthesizeAsync(ProbeText, timeout.Token);
                 return true;
             }
