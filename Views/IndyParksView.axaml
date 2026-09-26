@@ -245,6 +245,9 @@
                                    VerticalAlignment="Center" />
                         <NumericUpDown x:CompileBindings="False"
                                        Value="{Binding FacilityTax}"
+                                       IsEnabled="{Binding TaxEditable}"
+                                       ToolTip.ShowOnDisabled="True"
+                                       ToolTip.Tip="{Binding TaxLockTip}"
                                        Minimum="0" Maximum="100" Increment="0.1"
                                        FormatString="{}{0:0.##}"
                                        MinWidth="80" FontSize="12"

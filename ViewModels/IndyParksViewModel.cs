@@ -135,8 +135,17 @@ public class StructureVm : ReactiveObject
             this.RaisePropertyChanged(nameof(IsNpcStation));
             this.RaisePropertyChanged(nameof(FittingEditable));
             this.RaisePropertyChanged(nameof(FittingSourceText));
+            this.RaisePropertyChanged(nameof(TaxEditable));
+            this.RaisePropertyChanged(nameof(TaxLockTip));
         }
     }
+
+    /// <summary>An NPC station's facility tax is the game's, not an owner's.</summary>
+    public bool TaxEditable => !IsNpcStation;
+
+    public string? TaxLockTip => TaxEditable
+        ? null
+        : $"NPC stations charge a fixed {IndyParksViewModel.NpcFacilityTax}% facility tax.";
 
     /// <summary>
     /// An NPC station takes no rigs and no service modules — its services are the station's own —
@@ -511,6 +520,10 @@ public class IndyParksViewModel : ReactiveObject
     public static readonly string[] StructureTypeKeys   = ["raitaru", "azbel", "sotiyo", "athanor", "tatara", "npc_station"];
     public const string NpcStationKey = "npc_station";
 
+    /// <summary>The facility tax at every NPC station, in percent — fixed by the game, not set by
+    /// an owner, so an NPC station's tax is this and cannot be edited.</summary>
+    public const decimal NpcFacilityTax = 0.25m;
+
     /// <summary>
     /// An NPC station's services as the Upwell service modules that do the same job, so a park
     /// says what the station is good for in the same terms as its structures.
@@ -720,10 +733,17 @@ public class IndyParksViewModel : ReactiveObject
                  })
             thrown.Subscribe(ex => _errorLogger?.Log(nameof(IndyParksViewModel), "command", ex));
 
+        // ⚠️ The park is taken when the name changes, not when the save fires half a second later,
+        // and a name the loader puts in the box is not a rename at all. Taking both at save time
+        // let a quick click to another park write the first park's name into the second.
+        // Throttled per park, so a rename just before switching still saves.
         this.WhenAnyValue(x => x.ParkName)
             .Skip(1)
-            .Throttle(TimeSpan.FromMilliseconds(500))
-            .SubscribeAsyncSafe(_ => SaveParkNameAsync(), _errorLogger, "IndyParks.SaveParkName");
+            .Where(_ => !_suppressSave && _selectedPark is not null)
+            .Select(name => (ParkId: _selectedPark!.Id, Name: name))
+            .GroupBy(p => p.ParkId)
+            .SelectMany(park => park.Throttle(TimeSpan.FromMilliseconds(500)))
+            .SubscribeAsyncSafe(p => SaveParkNameAsync(p.ParkId, p.Name), _errorLogger, "IndyParks.SaveParkName");
 
         this.WhenAnyValue(x => x.ItemSearchText)
             .Throttle(TimeSpan.FromMilliseconds(300))
@@ -951,12 +971,26 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Park detail ───────────────────────────────────────────────────────
 
+    /// <summary>
+    /// The newest park load. Each load takes a number, and only the newest may put its park on
+    /// screen.
+    ///
+    /// <para>⚠️ Loads overlap when parks are clicked through quickly, and they do not finish in
+    /// the order they started. Without this an older, slower load could paint its park over the
+    /// one now selected — its structures, and its name in the box, where the next save wrote it
+    /// into the selected park.</para>
+    /// </summary>
+    private int _parkLoadSeq;
+
     private async Task LoadParkDetailAsync(int? parkId)
     {
+        var seq = Interlocked.Increment(ref _parkLoadSeq);
+
         if (parkId is null)
         {
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
+                if (seq != Volatile.Read(ref _parkLoadSeq)) return;
                 _suppressSave = true;
                 ParkName = "";
                 Structures.Clear();
@@ -1012,6 +1046,9 @@ public class IndyParksViewModel : ReactiveObject
 
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // A park clicked since this load began has its own load coming; this one is stale.
+            if (seq != Volatile.Read(ref _parkLoadSeq)) return;
+
             _suppressSave = true;
 
             ParkName = park.Name;
@@ -1238,15 +1275,17 @@ public class IndyParksViewModel : ReactiveObject
                 s.SystemName    = r.Name;
                 s.SecurityClass = r.SecurityClass;
             }
+            // After the hull, which the link may just have made an NPC station.
+            if (s.StructureTypeKey == NpcStationKey) s.FacilityTax = NpcFacilityTax;
         }
 
         var changed = new List<int>();
         var retyped = new List<int>();
         foreach (var s in structures)
         {
-            var before = (s.DisplayName, s.RealStructureName, s.StructureTypeKey, s.SystemName, s.SecurityClass);
+            var before = (s.DisplayName, s.RealStructureName, s.StructureTypeKey, s.SystemName, s.SecurityClass, s.FacilityTax);
             Derive(s);
-            if (before != (s.DisplayName, s.RealStructureName, s.StructureTypeKey, s.SystemName, s.SecurityClass))
+            if (before != (s.DisplayName, s.RealStructureName, s.StructureTypeKey, s.SystemName, s.SecurityClass, s.FacilityTax))
                 changed.Add(s.Id);
             if (before.StructureTypeKey != s.StructureTypeKey)
                 retyped.Add(s.Id);
@@ -1515,20 +1554,18 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Park name save ────────────────────────────────────────────────────
 
-    private async Task SaveParkNameAsync()
+    /// <summary>Saves a rename to the park it was typed for, which need no longer be selected.</summary>
+    private async Task SaveParkNameAsync(int id, string name)
     {
-        if (_suppressSave || _selectedPark is null) return;
-        var id = _selectedPark.Id;
-        var name = ParkName;
         await using var db = await _dbFactory.CreateDbContextAsync();
         var park = await db.IndyParks.FindAsync(id);
-        if (park is null) return;
+        if (park is null || park.Name == name) return;
         park.Name = name;
         await db.SaveChangesAsync();
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
-            if (_selectedPark?.Id == id)
-                _selectedPark.Name = name;
+            if (Parks.FirstOrDefault(p => p.Id == id) is { } item)
+                item.Name = name;
         });
 
         ParksChanged?.Invoke();
