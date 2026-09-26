@@ -38,6 +38,14 @@ public sealed class TtsService : IDisposable
     /// </summary>
     public Agent.AgentTelemetryService? Telemetry { get; set; }
 
+    /// <summary>
+    /// Where a voice that has stopped working is reported: the Error Log, once per distinct
+    /// failure per session. The usage ledger records every failed utterance, but nobody reads
+    /// that when the symptom is silence — Kokoro failed seventy times in four days unnoticed.
+    /// </summary>
+    public AppErrorLogger? Errors { get; set; }
+    private readonly HashSet<string> _reported = [];
+
     public float Volume  => _volume;
     public bool  IsMuted => _muted;
 
@@ -170,7 +178,8 @@ public sealed class TtsService : IDisposable
     /// spoken — so reading the current setting attributes finished speech to whatever provider
     /// happens to be selected by then. Changing voice mid-answer billed Kokoro's words to OpenAI.</para>
     private void Record(TtsProvider provider, string model, string billedText, long startedTicks, string error = "")
-        => Telemetry?.ServiceCall(
+    {
+        Telemetry?.ServiceCall(
             kind:       "tts",
             provider:   provider.ToString(),
             model:      model,
@@ -179,6 +188,14 @@ public sealed class TtsService : IDisposable
             units:      billedText.Length,
             durationMs: (int)(Environment.TickCount64 - startedTicks),
             error:      error);
+
+        if (error.Length > 0 && Errors is { } errors)
+        {
+            bool first;
+            lock (_reported) first = _reported.Add($"{provider}|{error}");
+            if (first) errors.Log("TtsService", $"{provider} voice ({model})", $"Speech failed, so the agent is silent: {error}");
+        }
+    }
 
     public void SpeakAsync(string text)
     {

@@ -4009,6 +4009,7 @@ public class App : Application
         services.AddSingleton<TtsService>(sp => new TtsService
         {
             Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+            Errors    = sp.GetRequiredService<AppErrorLogger>(),
         });
         services.AddSingleton<SpeechInputService>(sp => new SpeechInputService
         {

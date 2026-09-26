@@ -649,7 +649,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             try
             {
-                await _tts.Kokoro.LoadAsync(); // KokoroSharp handles download + caching internally
+                await _tts.Kokoro.LoadAsync(); // downloads the model into the data folder the first time
                 KokoroModelStatus = "Kokoro model ready.";
                 this.RaisePropertyChanged(nameof(IsKokoroModelDownloaded));
             }
