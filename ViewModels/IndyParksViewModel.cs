@@ -132,8 +132,42 @@ public class StructureVm : ReactiveObject
             this.RaiseAndSetIfChanged(ref _structureTypeKey, value);
             this.RaisePropertyChanged(nameof(StructureTypeLabel));
             this.RaisePropertyChanged(nameof(DisplayHeader));
+            this.RaisePropertyChanged(nameof(IsNpcStation));
+            this.RaisePropertyChanged(nameof(FittingEditable));
+            this.RaisePropertyChanged(nameof(FittingSourceText));
         }
     }
+
+    /// <summary>
+    /// An NPC station takes no rigs and no service modules — its services are the station's own —
+    /// so both are locked, and its service list is filled in from what the station offers.
+    /// </summary>
+    public bool IsNpcStation => _structureTypeKey == IndyParksViewModel.NpcStationKey;
+
+    /// <summary>
+    /// The linked facility's hull as a park type key, when the park has a key for it. Set by the
+    /// loader; while set, the type is the facility's and cannot be chosen.
+    /// </summary>
+    private string? _linkedTypeKey;
+    public string? LinkedTypeKey
+    {
+        get => _linkedTypeKey;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _linkedTypeKey, value);
+            this.RaisePropertyChanged(nameof(TypeEditable));
+            this.RaisePropertyChanged(nameof(TypeLockTip));
+        }
+    }
+
+    /// <summary>A linked facility names itself.</summary>
+    public bool NameEditable => RealStructureId is null;
+
+    public bool TypeEditable => LinkedTypeKey is null;
+
+    public string? NameLockTip => NameEditable ? null : "Named by the linked facility. Unlink it to rename.";
+
+    public string? TypeLockTip => TypeEditable ? null : "Set by the linked facility's hull.";
 
     // ComboBox binds to this; setting it propagates back to StructureTypeKey
     public string StructureTypeLabel
@@ -267,10 +301,15 @@ public class StructureVm : ReactiveObject
         }
     }
 
-    public bool FittingEditable => !_fittingFromAssets;
+    public bool FittingEditable => !_fittingFromAssets && !IsNpcStation;
 
-    public string FittingSourceText => _fittingFromAssets
-        ? "From assets — the game reports this structure's fitting, so it cannot be edited here."
+    public string FittingSourceText =>
+        IsNpcStation
+            ? RealStructureId is null
+                ? "NPC station — it takes no rigs. Link the station to list the services it offers."
+                : "NPC station — it takes no rigs, and its service modules stand for the station's own services."
+        : _fittingFromAssets
+            ? "From assets — the game reports this structure's fitting, so it cannot be edited here."
         : RealStructureId is null
             ? ""
             : "Entered by hand — this fitting is also written to the linked structure.";
@@ -295,6 +334,9 @@ public class StructureVm : ReactiveObject
             this.RaisePropertyChanged(nameof(SecurityEditable));
             this.RaisePropertyChanged(nameof(SystemLockTip));
             this.RaisePropertyChanged(nameof(SecurityLockTip));
+            this.RaisePropertyChanged(nameof(NameEditable));
+            this.RaisePropertyChanged(nameof(NameLockTip));
+            this.RaisePropertyChanged(nameof(FittingSourceText));
         }
     }
 
@@ -467,6 +509,27 @@ public class IndyParksViewModel : ReactiveObject
     // ── Predefined data ───────────────────────────────────────────────────
 
     public static readonly string[] StructureTypeKeys   = ["raitaru", "azbel", "sotiyo", "athanor", "tatara", "npc_station"];
+    public const string NpcStationKey = "npc_station";
+
+    /// <summary>
+    /// An NPC station's services as the Upwell service modules that do the same job, so a park
+    /// says what the station is good for in the same terms as its structures.
+    ///
+    /// <para>Only services with an Upwell equivalent appear. A laboratory stands for both labs,
+    /// since an NPC lab researches, copies and invents; no NPC station offers reactions or a
+    /// capital shipyard, and so none is given one.</para>
+    /// </summary>
+    private static readonly (int ServiceId, int ModuleTypeId)[] NpcServiceModules =
+    [
+        (StationServiceIds.Factory,           35878),   // Standup Manufacturing Plant I
+        (StationServiceIds.Laboratory,        35891),   // Standup Research Lab I
+        (StationServiceIds.Laboratory,        35886),   // Standup Invention Lab I
+        (StationServiceIds.ReprocessingPlant, 35899),   // Standup Reprocessing Facility I
+        (StationServiceIds.Refinery,          35899),
+        (StationServiceIds.Market,            35892),   // Standup Market Hub I
+        (StationServiceIds.Cloning,           35894),   // Standup Cloning Center I
+        (StationServiceIds.JumpCloneFacility, 35894),
+    ];
     public static readonly string[] StructureTypeLabels = ["Raitaru", "Azbel", "Sotiyo", "Athanor", "Tatara", "NPC Station"];
     public static readonly string[] SecurityClasses     = ["highsec", "lowsec", "nullsec", "wormhole"];
     public static readonly string[] SecurityLabels      = ["High Sec", "Low Sec", "Null Sec", "Wormhole"];
@@ -912,11 +975,13 @@ public class IndyParksViewModel : ReactiveObject
         var structures = await db.IndyStructures.AsNoTracking()
             .Where(s => s.ParkId == id).OrderBy(s => s.Id).ToListAsync();
 
-        // Which system each structure is really in, and so which security class it must carry.
-        // A stored name or class that disagrees is put right here rather than only on screen:
-        // rig strength is planned from the stored class.
-        var systems = await ResolveSystemsAsync(db, structures);
-        await CorrectSystemsAsync(structures, systems);
+        // What each structure's link and system decide for it — the facility's name and hull, the
+        // system and its security class, and an NPC station's services. A stored value that
+        // disagrees is put right here rather than only on screen: rig strength, job costs and the
+        // planners all read what is stored.
+        var systems    = await ResolveSystemsAsync(db, structures);
+        var facilities = await ResolveFacilitiesAsync(db, structures);
+        await CorrectDerivedAsync(structures, systems, facilities);
 
         var structIds = structures.Select(s => s.Id).ToList();
         var rigs = await db.IndyStructureRigs.AsNoTracking()
@@ -955,7 +1020,8 @@ public class IndyParksViewModel : ReactiveObject
             foreach (var s in structures)
             {
                 var vm = BuildStructureVm(s);
-                vm.SystemId = systems.TryGetValue(s.Id, out var system) ? system.SystemId : null;
+                vm.SystemId      = systems.TryGetValue(s.Id, out var system) ? system.SystemId : null;
+                vm.LinkedTypeKey = facilities.TryGetValue(s.Id, out var facility) ? facility.TypeKey : null;
                 var structureRigs = rigs.Where(r => r.StructureId == s.Id).ToList();
                 var availableRigs = GetRigsForType(s.StructureTypeKey);
                 for (int slot = 0; slot < 3; slot++)
@@ -1078,38 +1144,174 @@ public class IndyParksViewModel : ReactiveObject
         return result;
     }
 
+    /// <summary>What a linked facility is: its name, the park's key for its hull (null where the
+    /// park has none), and for an NPC station the operation that decides its services.</summary>
+    private sealed record ResolvedFacility(string? Name, string? TypeKey, int? OperationId);
+
     /// <summary>
-    /// Writes back the system name and security class wherever a structure's stored ones
-    /// disagree with the system it is in, and updates the loaded rows to match.
+    /// What each linked structure's facility is, from whichever table knows it. Unlinked
+    /// structures are left out.
+    ///
+    /// <para>A facility no table knows keeps the name it was linked under and gets no hull, so its
+    /// type stays the park's to choose.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, ResolvedFacility>> ResolveFacilitiesAsync(
+        AppDbContext db, IReadOnlyList<IndyStructure> structures)
+    {
+        var linked = structures.Where(s => s.RealStructureId is > 0).ToList();
+        if (linked.Count == 0) return [];
+
+        var ids   = linked.Select(s => s.RealStructureId!.Value).Distinct().ToList();
+        var known = new Dictionary<long, (string? Name, int TypeId, int? OperationId, bool Npc)>();
+
+        var stationIds = ids.Where(f => f <= int.MaxValue).Select(f => (int)f).ToList();
+        if (stationIds.Count > 0)
+            foreach (var st in await db.SdeStations.AsNoTracking()
+                         .Where(s => stationIds.Contains(s.StationId))
+                         .Select(s => new { s.StationId, s.Name, s.OperationId }).ToListAsync())
+                known[st.StationId] = (st.Name, 0, st.OperationId, true);
+
+        // Player structures, the formal table first: the first name found is kept, and a later
+        // source can still supply a hull an earlier one lacked.
+        void Merge(long id, string name, int typeId)
+        {
+            known.TryGetValue(id, out var k);
+            known[id] = (string.IsNullOrWhiteSpace(k.Name) ? name : k.Name,
+                         k.TypeId > 0 ? k.TypeId : typeId, null, false);
+        }
+
+        var playerIds = ids.Where(f => f > int.MaxValue).ToList();
+        if (playerIds.Count > 0)
+        {
+            foreach (var r in await db.Structures.AsNoTracking()
+                         .Where(s => playerIds.Contains(s.StructureId))
+                         .Select(s => new { s.StructureId, s.Name, s.TypeId }).ToListAsync())
+                Merge(r.StructureId, r.Name, r.TypeId);
+
+            foreach (var r in await db.EsiStructureNames.AsNoTracking()
+                         .Where(s => playerIds.Contains(s.StructureId))
+                         .Select(s => new { s.StructureId, s.Name, s.TypeId }).ToListAsync())
+                Merge(r.StructureId, r.Name, r.TypeId);
+
+            foreach (var r in await db.EsiCorpStructures.AsNoTracking()
+                         .Where(s => playerIds.Contains(s.StructureId))
+                         .Select(s => new { s.StructureId, s.Name, s.TypeId }).ToListAsync())
+                Merge(r.StructureId, r.Name, r.TypeId);
+        }
+
+        var result = new Dictionary<int, ResolvedFacility>();
+        foreach (var s in linked)
+        {
+            var found = known.TryGetValue(s.RealStructureId!.Value, out var f);
+            var name  = found && !string.IsNullOrWhiteSpace(f.Name) ? f.Name
+                      : string.IsNullOrWhiteSpace(s.RealStructureName) ? null
+                      : s.RealStructureName;
+            var key   = !found ? null : f.Npc ? NpcStationKey : IndyBulkAddService.KeyForTypeId(f.TypeId);
+
+            result[s.Id] = new ResolvedFacility(name, key, found && f.Npc ? f.OperationId : null);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Writes back what a structure's link and system decide for it wherever the stored row
+    /// disagrees, and updates the loaded rows to match: a linked facility's name and hull, the
+    /// system name and security class, and for an NPC station its services and empty rigs.
     ///
     /// <para>Nothing is written for a park that already agrees, which is every park after the
     /// first load.</para>
     /// </summary>
-    private async Task CorrectSystemsAsync(
-        List<IndyStructure> structures, Dictionary<int, ResolvedSystem> systems)
+    private async Task CorrectDerivedAsync(
+        List<IndyStructure>               structures,
+        Dictionary<int, ResolvedSystem>   systems,
+        Dictionary<int, ResolvedFacility> facilities)
     {
-        var wrong = structures
-            .Where(s => systems.TryGetValue(s.Id, out var r)
-                     && (s.SystemName != r.Name || s.SecurityClass != r.SecurityClass))
-            .ToList();
-        if (wrong.Count == 0) return;
-
-        var ids = wrong.Select(s => s.Id).ToList();
-        await using (var db = await _dbFactory.CreateDbContextAsync())
+        void Derive(IndyStructure s)
         {
-            foreach (var entity in await db.IndyStructures.Where(s => ids.Contains(s.Id)).ToListAsync())
+            if (facilities.TryGetValue(s.Id, out var f))
             {
-                entity.SystemName    = systems[entity.Id].Name;
-                entity.SecurityClass = systems[entity.Id].SecurityClass;
+                if (f.Name is { } name)   { s.DisplayName = name; s.RealStructureName = name; }
+                if (f.TypeKey is { } key) s.StructureTypeKey = key;
             }
-            await db.SaveChangesAsync();
+            if (systems.TryGetValue(s.Id, out var r))
+            {
+                s.SystemName    = r.Name;
+                s.SecurityClass = r.SecurityClass;
+            }
         }
 
-        foreach (var s in wrong)
+        var changed = new List<int>();
+        var retyped = new List<int>();
+        foreach (var s in structures)
         {
-            s.SystemName    = systems[s.Id].Name;
-            s.SecurityClass = systems[s.Id].SecurityClass;
+            var before = (s.DisplayName, s.RealStructureName, s.StructureTypeKey, s.SystemName, s.SecurityClass);
+            Derive(s);
+            if (before != (s.DisplayName, s.RealStructureName, s.StructureTypeKey, s.SystemName, s.SecurityClass))
+                changed.Add(s.Id);
+            if (before.StructureTypeKey != s.StructureTypeKey)
+                retyped.Add(s.Id);
         }
+
+        var npc    = structures.Where(s => s.StructureTypeKey == NpcStationKey).ToList();
+        var npcIds = npc.Select(s => s.Id).ToList();
+        if (changed.Count == 0 && npc.Count == 0) return;
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+
+        if (changed.Count > 0)
+            foreach (var entity in await db.IndyStructures.Where(s => changed.Contains(s.Id)).ToListAsync())
+                Derive(entity);
+
+        // Rigs a structure cannot carry come off: all of an NPC station's, and those that do not
+        // fit a hull the link has just changed — as choosing another type by hand does. A hull
+        // with no rig list at all (the SDE not imported) is left alone rather than stripped.
+        var typeOf = structures.ToDictionary(s => s.Id, s => s.StructureTypeKey);
+        foreach (var rig in await db.IndyStructureRigs
+                     .Where(r => r.RigTypeId > 0 && (retyped.Contains(r.StructureId) || npcIds.Contains(r.StructureId)))
+                     .ToListAsync())
+        {
+            var key  = typeOf[rig.StructureId];
+            var fits = GetRigsForType(key);
+            if (key == NpcStationKey || (fits.Count > 0 && fits.All(o => o.TypeId != rig.RigTypeId)))
+                rig.RigTypeId = 0;
+        }
+
+        // An NPC station's services are the station's own: what its operation offers, as the
+        // Upwell modules that do the same job — and none while it is not linked to a station.
+        if (npc.Count > 0)
+        {
+            var opIds = npc.Select(s => facilities.GetValueOrDefault(s.Id)?.OperationId)
+                           .OfType<int>().Distinct().ToList();
+
+            var offered = (await db.SdeStationOperationServices.AsNoTracking()
+                    .Where(o => opIds.Contains(o.OperationId)).ToListAsync())
+                .GroupBy(o => o.OperationId)
+                .ToDictionary(g => g.Key, g => g.Select(o => o.ServiceId).ToHashSet());
+
+            var stored = (await db.IndyStructureServices.AsNoTracking()
+                    .Where(v => npcIds.Contains(v.StructureId)).ToListAsync())
+                .GroupBy(v => v.StructureId)
+                .ToDictionary(g => g.Key, g => g.Select(v => v.TypeId).ToHashSet());
+
+            foreach (var s in npc)
+            {
+                var services = facilities.GetValueOrDefault(s.Id)?.OperationId is int op
+                            && offered.TryGetValue(op, out var ids)
+                    ? ids
+                    : new HashSet<int>();
+
+                var wanted = NpcServiceModules.Where(m => services.Contains(m.ServiceId))
+                                              .Select(m => m.ModuleTypeId).ToHashSet();
+
+                if ((stored.GetValueOrDefault(s.Id) ?? new HashSet<int>()).SetEquals(wanted)) continue;
+
+                await db.IndyStructureServices.Where(v => v.StructureId == s.Id).ExecuteDeleteAsync();
+                foreach (var typeId in wanted)
+                    db.IndyStructureServices.Add(new IndyStructureService { StructureId = s.Id, TypeId = typeId });
+            }
+        }
+
+        await db.SaveChangesAsync();
     }
 
     /// <summary>
@@ -1202,17 +1404,26 @@ public class IndyParksViewModel : ReactiveObject
     {
         vm.RealStructureId   = null;
         vm.RealStructureName = "";
+        vm.LinkedTypeKey     = null;   // the hull is the park's to choose again
         // With no link there is no asset feed, so the fitting becomes hand-editable again. Set
         // here as well as in the loader, or the fields stay locked until the park is re-entered.
         vm.FittingFromAssets = false;
         await SaveStructureDbAsync(vm);
+
+        // An unlinked NPC station no longer says which station it is, so it has no services to
+        // show; the loader clears them.
+        if (vm.IsNpcStation) await LoadParkDetailAsync(vm.ParkId);
     }
 
     private void WireStructureVm(StructureVm vm)
     {
         // Reload rig list when structure type changes
+        var previousType = vm.StructureTypeKey;
         vm.WhenAnyValue(x => x.StructureTypeKey).Skip(1).SubscribeAsyncSafe(async key =>
         {
+            var wasNpc = previousType == NpcStationKey;
+            previousType = key;
+
             var rigs = GetRigsForType(key);
             foreach (var slot in vm.RigSlots)
             {
@@ -1221,6 +1432,16 @@ public class IndyParksViewModel : ReactiveObject
             }
             await SaveStructureDbAsync(vm);
             await SaveAllRigSlotsAsync(vm);
+
+            // An NPC station's service modules are the station's own, so none carry into that type
+            // or out of it. The loader fills a station's in from what the station offers.
+            if (wasNpc)
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                await db.IndyStructureServices.Where(v => v.StructureId == vm.Id).ExecuteDeleteAsync();
+            }
+            if (wasNpc || key == NpcStationKey)
+                await LoadParkDetailAsync(vm.ParkId);
         }, _errorLogger, "IndyParks.StructureTypeChanged");
 
         vm.WhenAnyValue(x => x.DisplayName, x => x.SystemName, x => x.SecurityClass, x => x.FacilityTax)

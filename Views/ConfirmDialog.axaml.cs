@@ -15,11 +15,14 @@ public partial class ConfirmDialog : Window
     /// </summary>
     private readonly string? _required;
 
-    public ConfirmDialog(string message, string? requiredPhrase = null)
+    /// <param name="title">The window caption. Left out, it is "Confirm" — never the framework's
+    /// own "Window", which is what every one of these dialogs used to say.</param>
+    public ConfirmDialog(string message, string? requiredPhrase = null, string? title = null)
     {
         InitializeComponent();
         MessageText.Text = message;
         _required        = requiredPhrase;
+        if (title is not null) Title = title;
 
         if (_required is null) return;
 

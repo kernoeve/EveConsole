@@ -179,9 +179,14 @@
                           Margin="0 0 0 8" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
                     <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
-                      <!-- Row 0: Name + Type + Default + Remove button -->
+                      <!-- Row 0: Name + Type + Default + Remove button.
+                           A linked facility names itself and decides its own hull, so both lock
+                           with the link, as the system and security class below do. -->
                       <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 0 0 10">
                         <TextBox Grid.Column="0" Text="{Binding DisplayName}"
+                                 IsEnabled="{Binding NameEditable}"
+                                 ToolTip.ShowOnDisabled="True"
+                                 ToolTip.Tip="{Binding NameLockTip}"
                                  Watermark="Structure name…"
                                  Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                                  CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
@@ -189,6 +194,9 @@
                         <ComboBox Grid.Column="1"
                                   SelectedItem="{Binding StructureTypeLabel}"
                                   ItemsSource="{x:Static vm:IndyParksViewModel.StructureTypeLabels}"
+                                  IsEnabled="{Binding TypeEditable}"
+                                  ToolTip.ShowOnDisabled="True"
+                                  ToolTip.Tip="{Binding TypeLockTip}"
                                   MinWidth="120" Margin="8 0 0 0" FontSize="12"
                                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <CheckBox Grid.Column="2" IsChecked="{Binding IsDefaultFacility}"

@@ -18,7 +18,7 @@ public partial class IndyParksView : UserControl
             if (DataContext is not IndyParksViewModel vm) return;
             vm.ConfirmDelete = message => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
                 TopLevel.GetTopLevel(this) is Window owner
-                    && await new ConfirmDialog(message).ShowDialog<bool>(owner));
+                    && await new ConfirmDialog(message, title: "Removal Confirmation").ShowDialog<bool>(owner));
         };
     }
 
