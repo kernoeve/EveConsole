@@ -106,10 +106,18 @@ public sealed class OpenAiTtsService : IDisposable
         lock (_playerLock) { try { _player?.Stop(); } catch { } }
     }
 
+    /// <summary>What a server of our own is asked to say, unheard, to show it can still speak.</summary>
+    internal const string ProbeText = "Ready.";
+
     /// <summary>
-    /// Whether the voice can be reached, at no cost. OpenAI's service: the free model list, with
-    /// the key. A server of our own: any answer at all within a few seconds — it is up; whether
-    /// it can speak shows on the next sentence.
+    /// Whether the voice can speak, at no cost. OpenAI's service: the free model list, with the
+    /// key. A server of our own: one word, made and not played.
+    ///
+    /// <para>⚠️ Not merely "does it answer". A server that has lost its GPU — a system update
+    /// can do that to a running container — or never loaded its model still answers everything
+    /// except the one request that matters. Trusting that would bring the voice back every ten
+    /// minutes, only for it to fail on the first sentence and announce the handover all over
+    /// again. One word costs nothing on a GPU of our own.</para>
     /// </summary>
     public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
@@ -118,14 +126,22 @@ public sealed class OpenAiTtsService : IDisposable
         try
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            if (!IsOpenAi)
+            {
+                timeout.CancelAfter(TimeSpan.FromSeconds(15));   // a word, on a GPU that may be busy
+                await SynthesizeAsync(ProbeText, timeout.Token);
+                return true;
+            }
+
             timeout.CancelAfter(TimeSpan.FromSeconds(5));
             using var req = new HttpRequestMessage(HttpMethod.Get, $"{_endpoint}/models");
-            if (_apiKey.Length > 0) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
             using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
-            return !IsOpenAi || resp.IsSuccessStatusCode;
+            return resp.IsSuccessStatusCode;
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }   // timed out
-        catch (HttpRequestException) { return false; }
+        catch (HttpRequestException)      { return false; }
+        catch (InvalidOperationException) { return false; }   // answered, with no audio
     }
 
     /// <summary>Speaks one utterance and returns when it has finished playing. Throws when it
@@ -142,35 +158,42 @@ public sealed class OpenAiTtsService : IDisposable
 
         try
         {
-            // ⚠️ WAV from a server of our own: Orpheus-FastAPI makes nothing else, and Chatterbox
-            // and Kokoro-FastAPI both make it too. Size is no concern on a local network. MP3 from
-            // OpenAI's service, where it comes over the internet.
-            var body = JsonSerializer.Serialize(new
-            {
-                model           = _model,
-                input           = stripped,
-                voice           = _voice,
-                speed           = _speed,
-                response_format = Format,
-            });
-
-            using var req = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint}/audio/speech");
-            if (_apiKey.Length > 0) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-            req.Content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseContentRead, token);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
-                throw new HttpRequestException(
-                    $"{(IsOpenAi ? "OpenAI" : _endpoint)} answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {Short(detail)}");
-            }
-
-            var bytes = await resp.Content.ReadAsByteArrayAsync(token);
-            if (bytes.Length == 0) throw new InvalidOperationException("The voice server returned no audio.");
+            var bytes = await SynthesizeAsync(stripped, token);
             await PlayAsync(bytes, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { /* stopped */ }
+    }
+
+    /// <summary>The audio for <paramref name="input"/>. Throws when the service refused, or sent nothing.</summary>
+    private async Task<byte[]> SynthesizeAsync(string input, CancellationToken ct)
+    {
+        // ⚠️ WAV from a server of our own: Orpheus-FastAPI makes nothing else, and Chatterbox
+        // and Kokoro-FastAPI both make it too. Size is no concern on a local network. MP3 from
+        // OpenAI's service, where it comes over the internet.
+        var body = JsonSerializer.Serialize(new
+        {
+            model           = _model,
+            input,
+            voice           = _voice,
+            speed           = _speed,
+            response_format = Format,
+        });
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint}/audio/speech");
+        if (_apiKey.Length > 0) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseContentRead, ct);
+        if (!resp.IsSuccessStatusCode)
+        {
+            var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
+            throw new HttpRequestException(
+                $"{(IsOpenAi ? "OpenAI" : _endpoint)} answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {Short(detail)}");
+        }
+
+        var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
+        if (bytes.Length == 0) throw new InvalidOperationException("The voice server returned no audio.");
+        return bytes;
     }
 
     private static string Short(string s) => s.Length > 200 ? s[..200] + "…" : s;

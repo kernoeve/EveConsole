@@ -412,8 +412,9 @@ public sealed class TtsService : IDisposable
 
     /// <summary>
     /// Watches the voices preferred over the one speaking, every half minute while one is.
-    /// ⚠️ Checks only — a local server's reachability, a cloud voice's free account endpoint —
-    /// never a billed request.
+    /// ⚠️ Never a billed request: a cloud voice is checked on its free account endpoint, a server
+    /// of our own by making one word on its own GPU. Reachability alone let a server that could
+    /// no longer speak come back — see OpenAiTtsService.IsAvailableAsync.
     /// </summary>
     private async Task WatchPreferredAsync(CancellationToken ct)
     {
