@@ -2066,13 +2066,15 @@
                           <!-- A server of our own -->
                           <StackPanel IsVisible="{Binding ShowLocalServer}" Spacing="8">
                             <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                       Text="Any server that speaks OpenAI's speech API — Kokoro-FastAPI, Chatterbox-TTS-Server (full or Turbo), Orpheus-FastAPI — usually on another machine's GPU. Free to use; if the server cannot be reached, the next voice in the list takes over." />
+                                       Text="Any server that speaks OpenAI's speech API — Kokoro-FastAPI, Chatterbox-TTS-Server (full or Turbo), Orpheus-FastAPI — usually on another machine's GPU. Free to use; if the server cannot speak, the next voice in the list takes over." />
                             <TextBlock Text="Server address (up to and including /v1)" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <TextBox Text="{Binding ServerUrl}" Watermark="http://gpu-box:8880/v1" />
                             <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <TextBox Text="{Binding ServerModel}" Watermark="as the server names it — kokoro, chatterbox, orpheus…" />
                             <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <TextBox Text="{Binding ServerVoice}" Watermark="as the server names it — af_heart, tara…" />
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Chatterbox: a file from its voices folder, with .wav — Emily.wav (it ignores the model). Orpheus: tara, leah, jess, leo, dan, mia, zac or zoe (model orpheus). Kokoro-FastAPI: af_heart, bf_emma… (model kokoro)." />
                             <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <Grid ColumnDefinitions="*,52">
                               <Slider Grid.Column="0" Minimum="0.25" Maximum="4.0" Value="{Binding ServerSpeed}"
@@ -2140,9 +2142,26 @@
                             <ComboBox ItemsSource="{Binding ElevenLabsModels}" SelectedItem="{Binding ElevenLabsModel}" HorizontalAlignment="Stretch" />
                           </StackPanel>
 
-                          <Button Content="Test This Voice" Command="{Binding TestVoiceCommand}"
-                                  Padding="12 4" HorizontalAlignment="Left" Margin="0 4 0 0"
-                                  ToolTip.Tip="Speaks with this voice as set here, before saving — on its own, not through the list" />
+                          <StackPanel Spacing="6" Margin="0 4 0 0">
+                            <StackPanel.Styles>
+                              <!-- Classes, not a local Foreground: a local value would beat these. -->
+                              <Style Selector="TextBlock.test">
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.spoke">
+                                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.failed">
+                                <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+                              </Style>
+                            </StackPanel.Styles>
+                            <Button Content="Test This Voice" Command="{Binding TestVoiceCommand}"
+                                    Padding="12 4" HorizontalAlignment="Left"
+                                    ToolTip.Tip="Speaks with this voice as set here, before saving — on its own, not through the list" />
+                            <TextBlock Classes="test" Classes.spoke="{Binding TestSpoke}" Classes.failed="{Binding TestFailed}"
+                                       Text="{Binding TestStatus}" IsVisible="{Binding HasTestStatus}"
+                                       FontSize="11" TextWrapping="Wrap" />
+                          </StackPanel>
                         </StackPanel>
                       </Border>
 

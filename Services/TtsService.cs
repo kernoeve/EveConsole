@@ -17,6 +17,9 @@ public enum VoiceChangeReason
 /// <param name="Announcement">What the new voice said about the change; empty when nothing was said.</param>
 public sealed record VoiceChange(string PreviousName, string CurrentName, VoiceChangeReason Reason, string Announcement);
 
+/// <summary>How a test of one voice from Settings went, in words for the settings tab.</summary>
+public sealed record VoiceTestResult(bool Spoke, string Message);
+
 /// <summary>
 /// The agent's voices: a list in order of preference, one speaking at a time.
 ///
@@ -53,7 +56,8 @@ public sealed class TtsService : IDisposable
     private sealed class Voice(VoiceProfile profile,
                                Func<string, CancellationToken, Task> speak,
                                Func<CancellationToken, Task<bool>> isAvailable,
-                               Action stop, Action<float> setVolume, Action dispose)
+                               Action stop, Action<float> setVolume, Action dispose,
+                               Func<TimeSpan?>? lastSynthesis = null)
     {
         public VoiceProfile Profile { get; } = profile;
         public Task SpeakAsync(string text, CancellationToken ct) => speak(text, ct);
@@ -61,6 +65,10 @@ public sealed class TtsService : IDisposable
         public void Stop() => stop();
         public void SetVolume(float v) => setVolume(v);
         public void Dispose() => dispose();
+
+        /// <summary>How long the last utterance took to make before it could play — known only
+        /// for the engines that make it apart from playing it.</summary>
+        public TimeSpan? LastSynthesis => lastSynthesis?.Invoke();
 
         /// <summary>What the usage ledger bills it under.</summary>
         public string Model => Profile.Provider switch
@@ -108,7 +116,8 @@ public sealed class TtsService : IDisposable
                     client.Configure(s.OpenAiApiKey, p.OpenAiVoice, p.OpenAiModel, p.OpenAiSpeed);
                 else
                     client.Configure(p.ServerUrl, p.ServerApiKey, p.ServerVoice, p.ServerModel, p.ServerSpeed);
-                return new Voice(p, client.SpeakAsync, client.IsAvailableAsync, client.Stop, client.SetVolume, client.Dispose);
+                return new Voice(p, client.SpeakAsync, client.IsAvailableAsync, client.Stop, client.SetVolume, client.Dispose,
+                                 () => client.LastSynthesis);
             }
 
             default:
@@ -333,22 +342,28 @@ public sealed class TtsService : IDisposable
 
     /// <summary>Speaks with one voice and records it. False when it could not speak; true when it
     /// spoke — or was stopped, which is not a failure.</summary>
-    private async Task<bool> TrySpeakAsync(Voice voice, string text, int generation)
+    private async Task<bool> TrySpeakAsync(Voice voice, string text, int generation) =>
+        await SpeakOrWhyNotAsync(voice, text, generation) is null;
+
+    /// <summary>Speaks with one voice and records it. Null when it spoke, or was stopped;
+    /// otherwise why it could not.</summary>
+    private async Task<string?> SpeakOrWhyNotAsync(Voice voice, string text, int generation)
     {
-        if (Stale(generation)) return true;
+        if (Stale(generation)) return null;
         var started = Environment.TickCount64;
         var token   = _stop.Token;
         try
         {
             await voice.SpeakAsync(text, token);
             if (!token.IsCancellationRequested) Record(voice, text, started);
-            return true;
+            return null;
         }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { return true; }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { return null; }
         catch (Exception ex)
         {
-            Record(voice, text, started, ex.GetBaseException().Message);
-            return false;
+            var why = ex.GetBaseException().Message;
+            Record(voice, text, started, why);
+            return why;
         }
     }
 
@@ -505,18 +520,38 @@ public sealed class TtsService : IDisposable
 
     /// <summary>
     /// Speaks with one profile as it stands on the settings tab — not through the list, so a test
-    /// neither fails over nor disturbs the voice a session is using. Queued like any utterance.
+    /// neither fails over nor disturbs the voice a session is using. Queued like any utterance,
+    /// and completes when it has been heard or has failed.
+    ///
+    /// <para>⚠️ The result is for the settings tab to SHOW. A failed test used to go only to the
+    /// Error Log and the usage ledger, so on the tab the button simply did nothing — a voice
+    /// file named without its ".wav" looked exactly like a server that was not there.</para>
     /// </summary>
-    public void TestVoice(VoiceProfile profile, AgentSettings keys, string text)
+    public Task<VoiceTestResult> TestVoiceAsync(VoiceProfile profile, AgentSettings keys, string text)
     {
-        var voice = BuildVoice(profile.Clone(), keys);
-        voice.SetVolume(_muted ? 0f : _volume);
+        if (_muted)
+            return Task.FromResult(new VoiceTestResult(false, "Speech is muted — unmute it in the agent panel to hear the test."));
+
+        var voice  = BuildVoice(profile.Clone(), keys);
+        voice.SetVolume(_volume);
         var spoken = EvePronunciation.Expand(text);
+        var result = new TaskCompletionSource<VoiceTestResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         Enqueue(async generation =>
         {
-            try     { await TrySpeakAsync(voice, spoken, generation); }
+            try
+            {
+                var why = await SpeakOrWhyNotAsync(voice, spoken, generation);
+                result.TrySetResult(
+                    why is not null   ? new VoiceTestResult(false, why)
+                  : Stale(generation) ? new VoiceTestResult(false, "Stopped before it finished.")
+                  : voice.LastSynthesis is { } made
+                      ? new VoiceTestResult(true, $"Spoke. It took {made.TotalSeconds:0.0} s to make before it could play — about the wait before each sentence of an answer.")
+                      : new VoiceTestResult(true, "Spoke."));
+            }
+            catch (Exception ex) { result.TrySetResult(new VoiceTestResult(false, ex.GetBaseException().Message)); }
             finally { voice.Dispose(); }
         });
+        return result.Task;
     }
 
     // ── Stopping ─────────────────────────────────────────────────────────────────

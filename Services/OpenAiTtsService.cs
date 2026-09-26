@@ -158,11 +158,17 @@ public sealed class OpenAiTtsService : IDisposable
 
         try
         {
+            var made  = System.Diagnostics.Stopwatch.StartNew();
             var bytes = await SynthesizeAsync(stripped, token);
+            LastSynthesis = made.Elapsed;
             await PlayAsync(bytes, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { /* stopped */ }
     }
+
+    /// <summary>How long the last utterance took to make, before it could start playing — on a
+    /// server, the wait before each sentence.</summary>
+    public TimeSpan? LastSynthesis { get; private set; }
 
     /// <summary>The audio for <paramref name="input"/>. Throws when the service refused, or sent nothing.</summary>
     private async Task<byte[]> SynthesizeAsync(string input, CancellationToken ct)
@@ -188,12 +194,40 @@ public sealed class OpenAiTtsService : IDisposable
         {
             var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
             throw new HttpRequestException(
-                $"{(IsOpenAi ? "OpenAI" : _endpoint)} answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {Short(detail)}");
+                $"{(IsOpenAi ? "OpenAI" : _endpoint)} answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {Reason(detail)}");
         }
 
         var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
         if (bytes.Length == 0) throw new InvalidOperationException("The voice server returned no audio.");
         return bytes;
+    }
+
+    /// <summary>
+    /// The reason inside an error answer — FastAPI servers send {"detail": "…"}, OpenAI
+    /// {"error": {"message": "…"}} — or the answer itself. It ends up in front of the person
+    /// setting the voice up: "Voice file 'Taylor' not found." says what to fix, the raw JSON less so.
+    /// </summary>
+    private static string Reason(string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("detail", out var detail) && detail.ValueKind == JsonValueKind.String)
+                    return Short(detail.GetString()!);
+                if (root.TryGetProperty("error", out var error))
+                {
+                    if (error.ValueKind == JsonValueKind.String) return Short(error.GetString()!);
+                    if (error.ValueKind == JsonValueKind.Object && error.TryGetProperty("message", out var message)
+                        && message.ValueKind == JsonValueKind.String)
+                        return Short(message.GetString()!);
+                }
+            }
+        }
+        catch (JsonException) { }
+        return Short(body);
     }
 
     private static string Short(string s) => s.Length > 200 ? s[..200] + "…" : s;

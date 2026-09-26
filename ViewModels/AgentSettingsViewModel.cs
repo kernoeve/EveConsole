@@ -619,11 +619,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     /// Speaks with one voice as it stands on the tab, unsaved — on its own, not through the list,
     /// so a test neither fails over nor disturbs the voice a conversation is using.
     /// </summary>
-    public void TestVoice(VoiceProfileVm voice)
+    public Task<VoiceTestResult> TestVoiceAsync(VoiceProfileVm voice)
     {
-        if (_tts is null) return;
+        if (_tts is null) return Task.FromResult(new VoiceTestResult(false, "Speech is not available."));
         var keys = new AgentSettings { OpenAiApiKey = _openAiApiKey.Trim(), ElevenLabsApiKey = _elevenLabsApiKey.Trim() };
-        _tts.TestVoice(voice.ToProfile(), keys, $"{voice.SpokenName} voice test. Your AI companion is ready, Capsuleer.");
+        return _tts.TestVoiceAsync(voice.ToProfile(), keys, $"{voice.SpokenName} voice test. Your AI companion is ready, Capsuleer.");
     }
 
     private void DownloadKokoroModel()

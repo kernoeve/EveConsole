@@ -34,7 +34,7 @@ public sealed class VoiceProfileVm : ReactiveObject
         _serverSpeed       = p.ServerSpeed;
         _serverApiKey      = p.ServerApiKey;
 
-        TestVoiceCommand          = ReactiveCommand.Create(() => _owner.TestVoice(this));
+        TestVoiceCommand          = ReactiveCommand.CreateFromTask(TestAsync);
         DownloadPiperVoiceCommand = ReactiveCommand.Create(DownloadPiperVoice);
     }
 
@@ -141,6 +141,36 @@ public sealed class VoiceProfileVm : ReactiveObject
     public bool ShowLocalServer => _provider == TtsProvider.LocalServer;
 
     public ICommand TestVoiceCommand { get; }
+
+    private string _testStatus = "";
+    /// <summary>How the last test went: "Testing…", then the time it took or the reason it could
+    /// not speak — the server's own words, e.g. "Voice file 'Taylor' not found.".</summary>
+    public string TestStatus
+    {
+        get => _testStatus;
+        private set { this.RaiseAndSetIfChanged(ref _testStatus, value); this.RaisePropertyChanged(nameof(HasTestStatus)); }
+    }
+
+    public bool HasTestStatus => _testStatus.Length > 0;
+
+    private bool _testSpoke;
+    public bool TestSpoke { get => _testSpoke; private set => this.RaiseAndSetIfChanged(ref _testSpoke, value); }
+
+    private bool _testFailed;
+    public bool TestFailed { get => _testFailed; private set => this.RaiseAndSetIfChanged(ref _testFailed, value); }
+
+    private async Task TestAsync()
+    {
+        TestSpoke  = false;
+        TestFailed = false;
+        TestStatus = "Testing…";
+        VoiceTestResult result;
+        try   { result = await _owner.TestVoiceAsync(this); }
+        catch (Exception ex) { result = new VoiceTestResult(false, ex.GetBaseException().Message); }
+        TestSpoke  = result.Spoke;
+        TestFailed = !result.Spoke;
+        TestStatus = result.Message;
+    }
 
     // ── Kokoro ────────────────────────────────────────────────────────────────
 
