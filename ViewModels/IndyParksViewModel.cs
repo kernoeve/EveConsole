@@ -809,12 +809,23 @@ public class IndyParksViewModel : ReactiveObject
         var structIds = await db.IndyStructures.Where(s => s.ParkId == id)
             .Select(s => s.Id).ToListAsync();
 
+        // ⚠️ The default is passed on, never left with the deleted park. Everything that plans
+        // against "the default park" — the Worklist on <Default>, the build-cost engine — would
+        // otherwise find none while other parks still exist. It goes to the first park left, by
+        // name, which is also the one the list lands on.
+        var isDefault = await db.IndyParks.Where(p => p.Id == id).Select(p => p.IsDefault).FirstOrDefaultAsync();
+        var heir = isDefault
+            ? await db.IndyParks.Where(p => p.Id != id).OrderBy(p => p.Name)
+                .Select(p => new { p.Id, p.Name }).FirstOrDefaultAsync()
+            : null;
+
         if (ConfirmDelete is not null && !await ConfirmDelete(
                 $"Delete the park \"{name}\"?\n\n"
               + (structIds.Count > 0
                     ? $"Its {structIds.Count} structure{(structIds.Count == 1 ? "" : "s")}, with their rigs and service modules, "
                     : "")
-              + "its category assignments and its item exceptions are deleted with it. This cannot be undone."))
+              + "its category assignments and its item exceptions are deleted with it. This cannot be undone."
+              + (heir is not null ? $"\n\nIt is the default park, so \"{heir.Name}\" becomes the default." : "")))
             return;
 
         // ⚠️ One transaction, not six. Each ExecuteDelete takes the write lock on its own, so a
@@ -832,13 +843,22 @@ public class IndyParksViewModel : ReactiveObject
         await db.IndyStructures.Where(s => s.ParkId == id).ExecuteDeleteAsync();
         await db.IndyParks.Where(p => p.Id == id).ExecuteDeleteAsync();
 
+        // In the same transaction, so there is never a moment with parks and no default.
+        if (heir is not null)
+            await db.IndyParks.Where(p => p.Id == heir.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsDefault, true));
+
         await tx.CommitAsync();
 
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             var item = Parks.FirstOrDefault(p => p.Id == id);
             if (item is not null) Parks.Remove(item);
-            SelectedPark = Parks.FirstOrDefault();
+
+            if (heir is not null)
+                foreach (var p in Parks) p.IsDefault = p.Id == heir.Id;
+
+            SelectedPark = Parks.FirstOrDefault(p => p.Id == heir?.Id) ?? Parks.FirstOrDefault();
         });
 
         ParksChanged?.Invoke();

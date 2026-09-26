@@ -182,8 +182,8 @@ public class WorklistIndustryViewModel : ReactiveObject
     }
 
     /// <summary>
-    /// Rebuilds the park dropdown alone, for when Indy Parks adds, deletes or renames a park. The
-    /// rest of the tab is left as it is.
+    /// Rebuilds the park dropdown alone, for when Indy Parks adds, deletes, renames or stars a
+    /// park, and re-plans only if the park the worklist plans against has moved.
     ///
     /// <para>⚠️ A chosen park that was deleted goes back to &lt;Default&gt; in the setting, not
     /// only on screen. <see cref="WorklistSettings.ResolveParkIdAsync"/> returns any positive id
@@ -198,8 +198,17 @@ public class WorklistIndustryViewModel : ReactiveObject
             var parks = await db.IndyParks.AsNoTracking().OrderBy(p => p.Name).ToListAsync();
 
             var chosen = _settings.IndustryParkId;
-            var gone   = chosen > 0 && parks.All(p => p.Id != chosen);
-            if (gone) await _settings.SetIndustryParkAsync(0);
+            if (chosen > 0 && parks.All(p => p.Id != chosen))
+            {
+                await _settings.SetIndustryParkAsync(0);
+                chosen = 0;
+            }
+
+            // What the worklist actually plans against: the chosen park, or the starred one for
+            // <Default>. It moves when the chosen park is deleted, and when the star is passed on.
+            var planned = chosen > 0 ? chosen : parks.FirstOrDefault(p => p.IsDefault)?.Id ?? 0;
+            var moved   = planned != _plannedParkId;
+            _plannedParkId = planned;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -217,8 +226,7 @@ public class WorklistIndustryViewModel : ReactiveObject
                 finally { _loading = false; }
             });
 
-            // The park the worklist plans against changed with the delete, so its plan has too.
-            if (gone && IndustryChanged is not null) await IndustryChanged();
+            if (moved && IndustryChanged is not null) await IndustryChanged();
         }
         catch (Exception ex)
         {
@@ -460,6 +468,10 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     private bool _loading;
 
+    /// <summary>The park the last load planned against: the chosen one, or the starred one for
+    /// &lt;Default&gt;. Compared when Indy Parks reports a change, to tell whether the plan moved.</summary>
+    private int _plannedParkId;
+
     public async Task LoadAsync()
     {
         _loading = true;
@@ -478,6 +490,7 @@ public class WorklistIndustryViewModel : ReactiveObject
             // planned against.
             var chosenParkId = _settings.IndustryParkId;
             var parkId       = await WorklistSettings.ResolveParkIdAsync(db, chosenParkId);
+            _plannedParkId   = parkId;
             var defaultName  = chosenParkId > 0
                 ? ""
                 : parks.FirstOrDefault(p => p.Id == parkId)?.Name ?? "";
