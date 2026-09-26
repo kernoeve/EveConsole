@@ -260,7 +260,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         return regions
             .Select(r => new PlaceMatch(r.Name, "Region", r.RegionId, 0))
             .Concat(systems.Select(s => new PlaceMatch(
-                s.Name, $"{s.Security:F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
+                s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
             .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase))
             .ThenBy(p => p.SystemId == 0 ? 0 : 1)   // regions before systems at equal rank
             .ThenBy(p => p.Name.Length)

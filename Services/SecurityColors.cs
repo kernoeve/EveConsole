@@ -10,7 +10,8 @@ namespace EveConsole.Services;
 /// scaling. <b>Security level</b> is that value rounded to one decimal, and it is what decides
 /// high / low / null, which is the question most people are actually asking. Verified against
 /// dotlan: Pemene (0.4502) shows 0.5, Neziel (0.4489) shows 0.4 — the boundary sits exactly at
-/// 0.45 and rounds half away from zero.
+/// 0.45 and rounds half away from zero. The one exception, just above 0.0, is on
+/// <see cref="Rounded"/>.
 ///
 /// So the displayed value is the rounded one and the colour is derived from the same rounded
 /// value, always. Anything showing a number in one convention and a colour from the other tells
@@ -31,11 +32,25 @@ public static class SecurityColors
     ];
 
     /// <summary>
-    /// The security level: true security to one decimal, half away from zero. Every other member
-    /// derives from this, so the number shown and the colour beside it can never disagree.
+    /// The security level: true security to one decimal, half away from zero — except that
+    /// anything above 0.0 and below 0.05 is 0.1. Every other member derives from this, so the
+    /// number shown and the colour beside it can never disagree.
+    ///
+    /// <para>⚠️ The exception is the game's own rule (EVE University, "System security"): any
+    /// system with a true security above 0.0 is low sec, so none may read 0.0. Plain rounding put
+    /// a handful of low-sec systems — thirteen in the current SDE — at 0.0 in null-sec red, the
+    /// very display bug the game itself fixed in Revelations.</para>
     /// </summary>
-    public static double Rounded(double trueSecurity) =>
-        Math.Round(trueSecurity, 1, MidpointRounding.AwayFromZero);
+    public static double Rounded(double trueSecurity)
+    {
+        if (trueSecurity is > 0.0 and < 0.05) return 0.1;
+
+        var level = Math.Round(trueSecurity, 1, MidpointRounding.AwayFromZero);
+
+        // ⚠️ A true security just below 0.0 rounds to negative zero, which prints as "-0.0" —
+        // and slips past a "< 0" clamp, since negative zero is not less than zero.
+        return level == 0 ? 0.0 : level;
+    }
 
     public static Color Of(double trueSecurity)
     {

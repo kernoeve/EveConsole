@@ -33,7 +33,7 @@ public sealed class ItemAssetRowVm
     public int     SolarSystemId      { get; init; }
     public string  Region             { get; init; } = "";
     public double? Security           { get; init; }
-    public string  SecurityText       => Security is double s ? s.ToString("0.0") : "";
+    public string  SecurityText       => Security is double s ? SecurityColors.Text(s) : "";
 
     public double  Value              { get; init; }
     public string  ValueText          => Value > 0 ? MarketFmt.Isk(Value) : "—";
