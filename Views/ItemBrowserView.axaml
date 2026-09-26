@@ -806,8 +806,11 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="1.5*"/>
-                    <DataGridTextColumn Header="Flag"      Binding="{Binding Flag}"      Width="110"/>
+                    <!-- ⚠️ FontSize on each text column: a DataGridTextColumn does not take the
+                         grid's FontSize, it has its own larger default — the templated columns
+                         around these set 11 on their TextBlocks. -->
+                    <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="1.5*" FontSize="11"/>
+                    <DataGridTextColumn Header="Flag"      Binding="{Binding Flag}"      Width="110"  FontSize="11"/>
                     <DataGridTemplateColumn Header="Value" Width="90" SortMemberPath="Value" ClipboardContentBinding="{Binding ValueText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
@@ -839,7 +842,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="120"/>
+                    <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="120" FontSize="11"/>
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
@@ -912,8 +915,9 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Required Items" Binding="{Binding RequiredText}" Width="*"/>
-                    <DataGridTextColumn Header="AK" Binding="{Binding AkText}" Width="80"/>
+                    <!-- FontSize on each: text columns ignore the grid's (see the Assets grid). -->
+                    <DataGridTextColumn Header="Required Items" Binding="{Binding RequiredText}" Width="*"  FontSize="11"/>
+                    <DataGridTextColumn Header="AK" Binding="{Binding AkText}" Width="80" FontSize="11"/>
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
