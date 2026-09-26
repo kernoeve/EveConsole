@@ -68,6 +68,8 @@ public sealed class OpenAiTtsService : IDisposable
     /// <summary>OpenAI's own service, which needs a key.</summary>
     public bool IsOpenAi => _endpoint == OpenAiEndpoint;
 
+    private string Format => IsOpenAi ? "mp3" : "wav";
+
     public void Configure(string apiKey, string voice, string model, double speed) =>
         Configure(OpenAiEndpoint, apiKey, voice, model, speed);
 
@@ -140,13 +142,16 @@ public sealed class OpenAiTtsService : IDisposable
 
         try
         {
+            // ⚠️ WAV from a server of our own: Orpheus-FastAPI makes nothing else, and Chatterbox
+            // and Kokoro-FastAPI both make it too. Size is no concern on a local network. MP3 from
+            // OpenAI's service, where it comes over the internet.
             var body = JsonSerializer.Serialize(new
             {
                 model           = _model,
                 input           = stripped,
                 voice           = _voice,
                 speed           = _speed,
-                response_format = "mp3",
+                response_format = Format,
             });
 
             using var req = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint}/audio/speech");
@@ -173,7 +178,7 @@ public sealed class OpenAiTtsService : IDisposable
     private async Task PlayAsync(byte[] bytes, CancellationToken ct)
     {
         // Write to a temp file so VLC can read it reliably without stream lifecycle issues.
-        var temp = Path.Combine(Path.GetTempPath(), $"aura_{Guid.NewGuid():N}.mp3");
+        var temp = Path.Combine(Path.GetTempPath(), $"aura_{Guid.NewGuid():N}.{Format}");
         await File.WriteAllBytesAsync(temp, bytes, CancellationToken.None);
 
         try
