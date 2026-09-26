@@ -159,6 +159,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         long promptTok = 0, completionTok = 0, cachedTok = 0;
         var usageSeen  = false;
 
+        // A local reasoning model's thinking, where the server streams it inside the answer.
+        var thinking   = _isLocal ? new ThinkingFilter() : null;
+
         // ⚠️ No EndOfStream — a synchronous, blocking read. ReadLineAsync returns null at the end.
         while (!ct.IsCancellationRequested)
         {
@@ -203,6 +206,7 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             if (delta.TryGetProperty("content", out var c) && c.ValueKind == JsonValueKind.String)
             {
                 var piece = c.GetString() ?? "";
+                if (thinking is not null) piece = thinking.Push(piece);
                 if (piece.Length > 0) { text.Append(piece); yield return piece; }
             }
 
@@ -231,6 +235,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
                 }
             }
         }
+
+        // What the thinking filter held back at the end in case it began a tag, and did not.
+        if (thinking?.Flush() is { Length: > 0 } rest) { text.Append(rest); yield return rest; }
 
         // A model that produced tool calls but no finish_reason (seen from some local servers)
         // still wants them run.
@@ -426,6 +433,73 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             }
         }
         catch { /* the window is a courtesy; the turn already succeeded without it */ }
+    }
+
+    /// <summary>
+    /// Takes a local reasoning model's thinking out of its answer. Qwen3 and DeepSeek-R1 think
+    /// between &lt;think&gt; tags before they answer, and over Ollama's OpenAI-compatible surface
+    /// the thinking can arrive inside the answer text, where it would fill the chat and be read
+    /// aloud. The tags may be split across streamed pieces, so a piece that ends in what could be
+    /// the start of one is held back until the next shows whether it is. It is also kept out of
+    /// the assistant turn echoed back after a tool call, as the model's own makers advise.
+    /// </summary>
+    private sealed class ThinkingFilter
+    {
+        private const string Open  = "<think>";
+        private const string Close = "</think>";
+
+        private bool   _inside;
+        private bool   _answered;   // anything shown yet; the blank lines after thinking are not
+        private string _carry = "";
+
+        public string Push(string piece)
+        {
+            var text = _carry + piece;
+            _carry   = "";
+            var shown = new StringBuilder();
+            var i     = 0;
+            while (i < text.Length)
+            {
+                var tag = _inside ? Close : Open;
+                var at  = text.IndexOf(tag, i, StringComparison.OrdinalIgnoreCase);
+                if (at < 0)
+                {
+                    // Hold back a tail that may be the start of the tag.
+                    var keep = PartialTag(text, i, tag);
+                    if (!_inside) shown.Append(text, i, text.Length - i - keep);
+                    _carry = text[(text.Length - keep)..];
+                    break;
+                }
+                if (!_inside) shown.Append(text, i, at - i);
+                i       = at + tag.Length;
+                _inside = !_inside;
+            }
+
+            var result = shown.ToString();
+            if (!_answered)
+            {
+                result = result.TrimStart();
+                _answered = result.Length > 0;
+            }
+            return result;
+        }
+
+        /// <summary>What was held back, at the end of the stream: text that did not start a tag.</summary>
+        public string Flush()
+        {
+            var rest = _inside ? "" : _carry;
+            _carry = "";
+            return _answered ? rest : rest.TrimStart();
+        }
+
+        /// <summary>How much of the end of <paramref name="text"/> could be the start of <paramref name="tag"/>.</summary>
+        private static int PartialTag(string text, int from, string tag)
+        {
+            for (var n = Math.Min(tag.Length - 1, text.Length - from); n > 0; n--)
+                if (string.Compare(text, text.Length - n, tag, 0, n, StringComparison.OrdinalIgnoreCase) == 0)
+                    return n;
+            return 0;
+        }
     }
 
     /// <summary>
