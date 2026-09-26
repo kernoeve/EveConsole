@@ -1549,7 +1549,7 @@
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="ESI only returns a killmail when you were the victim or got the final blow — participating in a kill without the final blow is invisible to it. zKillboard tracks every participant, so merging it in fills that gap. Optional; off by default. Merges into the same Kills data used everywhere else, never duplicates or overwrites what ESI already provided." />
+                           Text="ESI only returns a killmail when you were the victim or got the final blow — participating in a kill without the final blow is invisible to it. zKillboard tracks every participant, so merging it in fills that gap. On by default, for your own characters and their corporations; untick it to turn it off. Merges into the same Kills data used everywhere else, never duplicates or overwrites what ESI already provided." />
 
                 <CheckBox IsChecked="{Binding Enabled}"
                           Content="Enable zKillboard kill import" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
