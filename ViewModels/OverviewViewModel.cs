@@ -1121,7 +1121,7 @@ public class OverviewViewModel : ReactiveObject
                     ? (names.TryGetValue(r.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {r.SenderId}")
                     : "—";
                 var tip = new StringBuilder();
-                tip.Append(NotificationFormatter.Humanize(r.Type)).Append('\n');
+                tip.Append(NotificationTitles.For(r.Type)).Append('\n');
                 tip.Append(r.Timestamp.ToLocalTime().ToString("MMM d, yyyy HH:mm"));
                 if (chars.Length > 0) tip.Append("\nTo: ").Append(chars);
                 if (sender != "—")    tip.Append("\nFrom: ").Append(sender);

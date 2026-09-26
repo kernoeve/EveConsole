@@ -42,9 +42,52 @@
     <Style Selector="Button.link:pointerover TextBlock.linktext">
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
+
+    <!-- A value in the detail pane. Colour from a style, never set on the element, so the
+         good / bad classes (a standing going up or down) can replace it. -->
+    <Style Selector=":is(TextBlock).val">
+      <Setter Property="FontSize"   Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector=":is(TextBlock).val.good"><Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector=":is(TextBlock).val.bad"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="StackPanel.flush"><Setter Property="HorizontalAlignment" Value="Right" /></Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,2*,4,1*,Auto">
+  <UserControl.DataTemplates>
+    <!-- One value: its icon where it has one, then its name — a link when it opens something. -->
+    <DataTemplate DataType="vm:NotifValueVm">
+      <StackPanel Orientation="Horizontal" Spacing="6" Classes.flush="{Binding AlignRight}"
+                  ToolTip.Tip="{Binding Tip}">
+        <Border IsVisible="{Binding HasIconSlot}" Width="20" Height="20" CornerRadius="2" ClipToBounds="True"
+                VerticalAlignment="Center">
+          <Image Source="{Binding Icon}" Width="20" Height="20" Stretch="UniformToFill" />
+        </Border>
+        <Button Classes="link" IsVisible="{Binding IsLink}" Click="OnOpenValue">
+          <TextBlock Classes="linktext val" Text="{Binding Text}" />
+        </Button>
+        <SelectableTextBlock Classes="val" IsVisible="{Binding IsPlain}" Text="{Binding Text}"
+                             Classes.good="{Binding IsGood}" Classes.bad="{Binding IsBad}" />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+
+  <UserControl.Resources>
+    <!-- A labelled field. Labels share one width per column, so the values line up. -->
+    <DataTemplate x:Key="FieldRow" x:DataType="vm:NotifFieldVm">
+      <Grid Margin="0 1" MinHeight="22">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Classes="flabel" Text="{Binding Label}" Margin="0 0 14 0" />
+        <ItemsControl Grid.Column="1" ItemsSource="{Binding Values}" VerticalAlignment="Center" />
+      </Grid>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid RowDefinitions="Auto,3*,4,2*,Auto">
 
     <!-- Filter bar -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="12 8">
@@ -54,7 +97,13 @@
                   MinWidth="150" FontSize="11" VerticalAlignment="Center" />
         <TextBlock Classes="flabel" Text="Type:" />
         <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedType}"
-                  MinWidth="180" FontSize="11" VerticalAlignment="Center" />
+                  MinWidth="220" FontSize="11" VerticalAlignment="Center">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:NotifTypeOption">
+              <TextBlock Text="{Binding Label}" ToolTip.Tip="{Binding RawTypes}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
         <TextBlock Classes="flabel" Text="Sender:" />
         <ComboBox ItemsSource="{Binding SenderTypes}" SelectedItem="{Binding SelectedSenderType}"
                   MinWidth="120" FontSize="11" VerticalAlignment="Center" />
@@ -128,37 +177,176 @@
       <Panel>
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
-          <StackPanel Margin="12 8" Spacing="6" DataContext="{Binding Detail}"
+          <StackPanel Margin="12 10" Spacing="10" DataContext="{Binding Detail}"
                       x:DataType="vm:NotificationDetailVm">
-            <!-- Top section: icon (portrait / logo / structure) + title + meta, matching the
-                 Overview notifications list. -->
-            <Grid ColumnDefinitions="Auto,*">
-              <Panel Grid.Column="0" Width="40" Height="40" Margin="0 0 10 0" VerticalAlignment="Top">
-                <Border IsVisible="{Binding HasIcon}" Width="40" Height="40"
-                        CornerRadius="3" ClipToBounds="True">
-                  <Image Source="{Binding Icon}" Width="40" Height="40" Stretch="UniformToFill" />
+
+            <!-- Header, packed to the left rather than spread across the pane: the sender's
+                 icon, the sender and date (room for the longest names), read state and the
+                 characters it came to, then their portraits. -->
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto,Auto"
+                  HorizontalAlignment="Left">
+              <Panel Grid.RowSpan="3" Width="44" Height="44" Margin="0 0 12 0" VerticalAlignment="Top">
+                <Border IsVisible="{Binding HasIcon}" Width="44" Height="44" CornerRadius="3" ClipToBounds="True">
+                  <Image Source="{Binding Icon}" Width="44" Height="44" Stretch="UniformToFill" />
                 </Border>
                 <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
-                           FontSize="20" Foreground="{DynamicResource InfoBrush}"
+                           FontSize="22" Foreground="{DynamicResource InfoBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Panel>
-              <StackPanel Grid.Column="1" Spacing="6">
-                <TextBlock Text="{Binding TypeLabel}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
-                <Grid ColumnDefinitions="70,*,70,*" RowDefinitions="Auto,Auto">
-                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="dhdr" Text="Date" />
-                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DateText}"  FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 12 0" />
-                  <TextBlock Grid.Row="0" Grid.Column="2" Classes="dhdr" Text="Read" />
-                  <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ReadText}"  FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="dhdr" Text="Char" />
-                  <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Character}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 0 12 0" />
-                  <TextBlock Grid.Row="1" Grid.Column="2" Classes="dhdr" Text="Sender" />
-                  <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Sender}"    FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
-                </Grid>
+
+              <TextBlock Grid.Column="1" Grid.ColumnSpan="4" Text="{Binding Title}" Margin="0 0 0 4"
+                         FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
+
+              <TextBlock Grid.Row="1" Grid.Column="1" Classes="dhdr" Text="Sender" Margin="0 0 10 0" />
+              <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="6"
+                          MinWidth="340" Margin="0 0 28 0">
+                <ContentControl Content="{Binding Sender}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding SenderType}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+              <!-- Row 2 hangs from the top: a long list of characters wraps downwards without
+                   dragging the date and its label into the middle of it. -->
+              <TextBlock Grid.Row="2" Grid.Column="1" Classes="dhdr" Text="Date" Margin="0 3 10 0" VerticalAlignment="Top" />
+              <TextBlock Grid.Row="2" Grid.Column="2" Classes="val" Text="{Binding DateText}" VerticalAlignment="Top" />
+
+              <TextBlock Grid.Row="1" Grid.Column="3" Classes="dhdr" Text="Read" Margin="0 0 10 0" />
+              <TextBlock Grid.Row="1" Grid.Column="4" Classes="val" Text="{Binding ReadText}" />
+              <TextBlock Grid.Row="2" Grid.Column="3" Classes="dhdr" Text="Character" Margin="0 3 10 0" VerticalAlignment="Top" />
+              <ItemsControl Grid.Row="2" Grid.Column="4" ItemsSource="{Binding Recipients}"
+                            MaxWidth="420" VerticalAlignment="Top">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:NotifValueVm">
+                    <Panel Margin="0 0 10 0">
+                      <Button Classes="link" IsVisible="{Binding IsLink}" Click="OnOpenValue" ToolTip.Tip="{Binding Tip}">
+                        <TextBlock Classes="linktext val" Text="{Binding Text}" />
+                      </Button>
+                      <TextBlock Classes="val" IsVisible="{Binding IsPlain}" Text="{Binding Text}" />
+                    </Panel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <StackPanel Grid.Column="5" Grid.RowSpan="3" Orientation="Horizontal" Spacing="4"
+                          Margin="28 0 0 0" VerticalAlignment="Top">
+                <ItemsControl ItemsSource="{Binding Portraits}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:NotifValueVm">
+                      <Button Classes="link" Click="OnOpenValue" ToolTip.Tip="{Binding Text}">
+                        <Border Width="44" Height="44" CornerRadius="3" ClipToBounds="True"
+                                Background="{DynamicResource SurfacePanelBrush}">
+                          <Image Source="{Binding Icon}" Width="44" Height="44" Stretch="UniformToFill" />
+                        </Border>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding MoreRecipients}" IsVisible="{Binding HasMoreRecipients}"
+                           FontSize="12" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
               </StackPanel>
             </Grid>
-            <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0 2" />
-            <SelectableTextBlock Text="{Binding Body}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                 FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
+
+            <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" />
+
+            <!-- Body, laid out for the type: a sentence where one helps, then the fields (two
+                 columns once there are many), then any lists, then long text. -->
+            <TextBlock Text="{Binding Body.Summary}" IsVisible="{Binding Body.HasSummary}"
+                       FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"
+                       MaxWidth="900" HorizontalAlignment="Left" />
+
+            <Grid ColumnDefinitions="Auto,Auto" HorizontalAlignment="Left" IsVisible="{Binding Body.HasFields}">
+              <ItemsControl Grid.Column="0" ItemsSource="{Binding Body.FieldsLeft}"
+                            ItemTemplate="{StaticResource FieldRow}" Grid.IsSharedSizeScope="True" />
+              <ItemsControl Grid.Column="1" ItemsSource="{Binding Body.FieldsRight}" Margin="48 0 0 0"
+                            ItemTemplate="{StaticResource FieldRow}" Grid.IsSharedSizeScope="True" />
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Body.Tables}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><StackPanel Spacing="12" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NotifTableVm">
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="dhdr" Text="{Binding Title}" />
+
+                    <!-- A plain list flows across the pane in columns. -->
+                    <ItemsControl IsVisible="{Binding IsList}" ItemsSource="{Binding Rows}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NotifRowVm">
+                          <ContentControl Content="{Binding Cell1}" Width="330" Margin="0 1" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- A table: one width per column across the header and every row. -->
+                    <StackPanel IsVisible="{Binding !IsList}" Grid.IsSharedSizeScope="True" HorizontalAlignment="Left">
+                      <Grid Margin="0 0 0 2">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="c1" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="c2" />
+                          <ColumnDefinition Width="Auto" SharedSizeGroup="c3" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Classes="dhdr" Text="{Binding Header1}" Margin="0 0 28 0" />
+                        <TextBlock Grid.Column="1" Classes="dhdr" Text="{Binding Header2}" IsVisible="{Binding HasCol2}"
+                                   HorizontalAlignment="Right" Margin="0 0 28 0" />
+                        <TextBlock Grid.Column="2" Classes="dhdr" Text="{Binding Header3}" IsVisible="{Binding HasCol3}"
+                                   HorizontalAlignment="Right" />
+                      </Grid>
+                      <ItemsControl ItemsSource="{Binding Rows}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:NotifRowVm">
+                            <Grid Margin="0 1">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="c1" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="c2" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="c3" />
+                              </Grid.ColumnDefinitions>
+                              <ContentControl Content="{Binding Cell1}" Margin="0 0 28 0" />
+                              <ContentControl Grid.Column="1" Content="{Binding Cell2}" HorizontalAlignment="Right" Margin="0 0 28 0" />
+                              <ContentControl Grid.Column="2" Content="{Binding Cell3}" HorizontalAlignment="Right" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ItemsControl ItemsSource="{Binding Body.Notes}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NotifFieldVm">
+                  <StackPanel Spacing="3" Margin="0 2 0 0">
+                    <TextBlock Classes="dhdr" Text="{Binding Label}" />
+                    <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="12"
+                                         Foreground="{DynamicResource TextSecondaryBrush}"
+                                         MaxWidth="900" HorizontalAlignment="Left" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="No further details." IsVisible="{Binding NoBody}"
+                       FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
+
+            <!-- The notification as ESI sent it, for checking a translation against the source. -->
+            <StackPanel Spacing="4" IsVisible="{Binding HasRawText}">
+              <CheckBox x:Name="RawToggle" Content="Show the original text" FontSize="11"
+                        Foreground="{DynamicResource TextFaintBrush}" />
+              <SelectableTextBlock Text="{Binding RawText}" IsVisible="{Binding #RawToggle.IsChecked}"
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
+                                   FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" />
+            </StackPanel>
           </StackPanel>
         </ScrollViewer>
         <TextBlock Text="Select a notification to view its details."

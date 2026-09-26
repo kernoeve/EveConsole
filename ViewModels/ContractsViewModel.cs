@@ -546,6 +546,20 @@ public class ContractNameResolver
     /// </summary>
     private readonly ConcurrentDictionary<long, string> _names = new();
 
+    /// <summary>What each resolved id is, as the name cache or ESI said — "character",
+    /// "corporation", "alliance", "faction". Kept apart from the persisted copy because that write
+    /// can fail, and the answer is still right for this session.</summary>
+    private readonly ConcurrentDictionary<long, string> _categories = new();
+
+    /// <summary>
+    /// What an id resolved as, or null when nothing said. Asked after <see cref="ResolveAsync"/>.
+    ///
+    /// <para>⚠️ Better than any id-range guess: older alliances and corporations were numbered
+    /// from the character range, so only the category tells a logo from a portrait.</para>
+    /// </summary>
+    public string? CategoryOf(long id) =>
+        _categories.TryGetValue(id, out var c) && c.Length > 0 && c != "_unresolved" ? c : null;
+
     /// <summary>
     /// Only one resolve runs at a time.
     ///
@@ -579,10 +593,14 @@ public class ContractNameResolver
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             // 1. Persistent name cache — populated across sessions.
-            foreach (var kv in await db.UniverseNames.AsNoTracking()
+            foreach (var u in await db.UniverseNames.AsNoTracking()
                          .Where(u => need.Contains(u.EntityId))
-                         .ToDictionaryAsync(u => u.EntityId, u => u.Name))
-                _names[kv.Key] = kv.Value;
+                         .Select(u => new { u.EntityId, u.Name, u.Category })
+                         .ToListAsync())
+            {
+                _names[u.EntityId] = u.Name;
+                if (u.Category.Length > 0) _categories[u.EntityId] = u.Category;
+            }
 
             // 2. Local (authoritative) tables for anything the cache missed.
             var miss = need.Where(id => !_names.ContainsKey(id)).ToList();
@@ -590,12 +608,18 @@ public class ContractNameResolver
             {
                 foreach (var kv in await db.Characters.Where(c => miss.Contains(c.Id))
                              .ToDictionaryAsync(c => c.Id, c => c.Name))
-                    _names[kv.Key] = kv.Value;
+                {
+                    _names[kv.Key]      = kv.Value;
+                    _categories[kv.Key] = "character";
+                }
 
                 var intMiss = miss.Where(id => id <= int.MaxValue).Select(id => (int)id).ToList();
                 foreach (var kv in await db.Corporations.Where(c => intMiss.Contains(c.Id))
                              .ToDictionaryAsync(c => (long)c.Id, c => c.Name))
-                    _names[kv.Key] = kv.Value;
+                {
+                    _names[kv.Key]      = kv.Value;
+                    _categories[kv.Key] = "corporation";
+                }
             }
 
             // 3. ESI for the remainder (int64-capable). universe/names returns 404 for the WHOLE
@@ -628,6 +652,7 @@ public class ContractNameResolver
                     foreach (var n in await _esi.GetNamesAsync(chunk))
                     {
                         _names[n.Id] = n.Name;
+                        if (n.Category is { Length: > 0 }) _categories[n.Id] = n.Category;
                         resolved.Add(new UniverseName { EntityId = n.Id, Name = n.Name, Category = n.Category });
                     }
                 }

@@ -157,29 +157,41 @@ public static class NotificationSummary
             "CorporationGoalCompleted" => "Corp project completed",
             "CorporationGoalClosed"    => "Corp project closed",
 
-            _ => NotificationFormatter.Humanize(type),
+            _ => NotificationTitles.For(type),
         };
     }
 
     // ── Icon ─────────────────────────────────────────────────────────────────────
     // Returns an images.evetech.net path (relative) plus a fallback glyph. A null path
     // means "no image — use the glyph".
-    public static (string? Path, string Glyph) Icon(string type, long senderId, string senderType, NotifFields f)
+    //
+    // senderFirst: the Notifications tool puts this icon beside the sender's name, so apart from
+    // a structure's own icon it shows the sender; the Overview list shows the character a
+    // membership notification is about instead.
+    public static (string? Path, string Glyph) Icon(string type, long senderId, string senderType, NotifFields f,
+                                                    bool senderFirst = false)
     {
         // Structure notifications → the structure's own type icon.
         if (f.StructureTypeId is long tid && tid > 0)
             return ($"types/{tid}/icon?size=64", "▣");
 
+        // A starbase is named by its control tower's type.
+        if (type.StartsWith("Tower", StringComparison.Ordinal)
+            && f.Scalars.TryGetValue("typeID", out var tv) && long.TryParse(tv, out var tower) && tower > 0)
+            return ($"types/{tower}/icon?size=64", "▣");
+
         // Character-centric application / membership notifications → that character's portrait.
-        if (f.Scalars.TryGetValue("charID", out var cv) && long.TryParse(cv, out var cid) && cid > 0)
+        if (!senderFirst && f.Scalars.TryGetValue("charID", out var cv) && long.TryParse(cv, out var cid) && cid > 0)
             return ($"characters/{cid}/portrait?size=64", "☺");
 
-        // Otherwise fall back to the sender's portrait / logo.
+        // Otherwise fall back to the sender's portrait / logo. A faction's logo is served
+        // under corporations/, as the entity browser's is.
         return senderType switch
         {
             "character"   when senderId > 0 => ($"characters/{senderId}/portrait?size=64", "☺"),
             "corporation" when senderId > 0 => ($"corporations/{senderId}/logo?size=64", "✦"),
             "alliance"    when senderId > 0 => ($"alliances/{senderId}/logo?size=64", "✦"),
+            "faction"     when senderId > 0 => ($"corporations/{senderId}/logo?size=64", "✦"),
             _ => (null, "✉"),
         };
     }

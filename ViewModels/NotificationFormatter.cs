@@ -237,7 +237,9 @@ public static class NotificationFormatter
     public static string Humanize(string key)
     {
         if (string.IsNullOrEmpty(key)) return key;
-        var spaced = Regex.Replace(key, @"(?<=[a-z0-9])(?=[A-Z])", " ");
+        // The second split breaks an acronym off the word after it: "NPCStandingsLost" was
+        // "NPCStandings Lost", since only a lower-to-upper step was ever a boundary.
+        var spaced = Regex.Replace(key, @"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", " ");
         spaced = spaced.Replace("_", " ");
         spaced = Regex.Replace(spaced, @"\bID\b", "ID", RegexOptions.IgnoreCase);
         var words = spaced.Split(' ', StringSplitOptions.RemoveEmptyEntries)

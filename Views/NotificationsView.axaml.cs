@@ -19,4 +19,8 @@ public partial class NotificationsView : ReactiveUserControl<NotificationsViewMo
         => Row(sender)?.OpenCharacter();
     private void OnOpenNotifSender(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Row(sender)?.OpenSender();
+
+    // Anything named in the detail pane: a character, corporation, item, system or structure.
+    private void OnOpenValue(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as NotifValueVm)?.OpenIt();
 }
