@@ -95,9 +95,6 @@ public static class PostgresSchema
             "OrderRef"   TEXT        NOT NULL DEFAULT ''
         )
         """,
-        """
-        CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")
-        """,
         // Pictures the site shows for a store: the banner, bytes and all.
         """
         CREATE TABLE IF NOT EXISTS "StoreWebAssets" (
@@ -737,6 +734,9 @@ public static class PostgresSchema
     /// </summary>
     public static readonly string[] Indexes =
     [
+        // ⚠️ Here, not beside its table in Tables: the drift check reads this list, and an index
+        // anywhere else is invisible to it — this one was reported missing while it existed.
+        """CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")""",
         """CREATE INDEX IF NOT EXISTS "IX_OrderLabels_Label" ON "OrderLabels" ("Label")""",
         """CREATE INDEX IF NOT EXISTS "IX_SaleLabels_Label" ON "SaleLabels" ("Label")""",
         """CREATE INDEX IF NOT EXISTS "IX_StoreMails_In" ON "StoreMails" ("StoreId", "MailId", "Direction")""",
