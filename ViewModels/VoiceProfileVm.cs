@@ -15,6 +15,10 @@ public sealed class VoiceProfileVm : ReactiveObject
     private readonly AgentSettingsViewModel _owner;
     private readonly TtsService?            _tts;
 
+    /// <summary>The settings tab, for what belongs to an engine rather than a voice — its key,
+    /// Kokoro's model — shown with whichever voice uses that engine.</summary>
+    public AgentSettingsViewModel Owner => _owner;
+
     public VoiceProfileVm(AgentSettingsViewModel owner, TtsService? tts, VoiceProfile p)
     {
         _owner = owner;
@@ -130,7 +134,6 @@ public sealed class VoiceProfileVm : ReactiveObject
             this.RaisePropertyChanged(nameof(ShowElevenLabs));
             this.RaisePropertyChanged(nameof(ShowLocalServer));
             this.RaisePropertyChanged(nameof(Label));
-            _owner.OnVoiceEnginesChanged();
         }
     }
 

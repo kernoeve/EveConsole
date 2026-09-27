@@ -478,7 +478,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         Voices.Add(vm);
         Renumber();
         SelectedVoice = vm;
-        OnVoiceEnginesChanged();
     }
 
     private void RemoveVoice()
@@ -488,7 +487,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         Voices.Remove(vm);
         Renumber();
         SelectedVoice = Voices.Count == 0 ? null : Voices[Math.Min(at, Voices.Count - 1)];
-        OnVoiceEnginesChanged();
     }
 
     private void MoveVoice(int by)
@@ -506,12 +504,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     {
         for (var i = 0; i < Voices.Count; i++) Voices[i].Position = i + 1;
     }
-
-    /// <summary>A voice's engine changed, or a voice came or went: the Kokoro model box shows
-    /// only while some voice uses it.</summary>
-    public void OnVoiceEnginesChanged() => this.RaisePropertyChanged(nameof(UsesKokoro));
-
-    public bool UsesKokoro => Voices.Any(v => v.Provider == TtsProvider.Kokoro);
 
     // ── When the voice changes ─────────────────────────────────────────────────
 

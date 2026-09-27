@@ -24,11 +24,15 @@ public sealed class FixedModelChoice(string label) : ModelChoice
 
 /// <summary>
 /// One model on the settings tab: what it is called, which service runs it, its model name and —
-/// for a server of the capsuleer's own — its address. The keys are per service, on the tab.
+/// for a server of the capsuleer's own — its address. The keys are per service, kept on the tab
+/// and shown with whichever model uses that service.
 /// </summary>
 public sealed class ModelProfileVm : ModelChoice
 {
     private readonly AgentSettingsViewModel _owner;
+
+    /// <summary>The settings tab, for what belongs to a service rather than a model: its key.</summary>
+    public AgentSettingsViewModel Owner => _owner;
 
     /// <summary>What the roles refer to it by; kept through every edit.</summary>
     public override string Id { get; }
@@ -108,6 +112,8 @@ public sealed class ModelProfileVm : ModelChoice
             this.RaiseAndSetIfChanged(ref _provider, value);
             this.RaisePropertyChanged(nameof(SelectedService));
             this.RaisePropertyChanged(nameof(ShowEndpoint));
+            this.RaisePropertyChanged(nameof(ShowClaude));
+            this.RaisePropertyChanged(nameof(ShowOpenAi));
             this.RaisePropertyChanged(nameof(ModelWatermark));
             this.RaisePropertyChanged(nameof(ModelHelp));
             this.RaisePropertyChanged(nameof(NameWatermark));
@@ -116,6 +122,8 @@ public sealed class ModelProfileVm : ModelChoice
     }
 
     public bool ShowEndpoint => _provider == AgentProviderType.Local;
+    public bool ShowClaude   => _provider == AgentProviderType.Claude;
+    public bool ShowOpenAi   => _provider == AgentProviderType.OpenAI;
 
     // ── Model ─────────────────────────────────────────────────────────────────
 
@@ -135,9 +143,9 @@ public sealed class ModelProfileVm : ModelChoice
     public string ModelHelp => _provider switch
     {
         AgentProviderType.Claude =>
-            "Available: claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5-20251001. Uses the Claude key below.",
+            "Available: claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5-20251001.",
         AgentProviderType.OpenAI =>
-            "Uses the OpenAI key below.",
+            "As OpenAI names it.",
         _ =>
             "As the server lists it — for Ollama, what \"ollama list\" shows. The server must offer OpenAI's " +
             "/v1/chat/completions, as Ollama, LM Studio and most local runners do.",
