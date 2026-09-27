@@ -62,7 +62,9 @@ public sealed class ModelProfileVm : ModelChoice
     /// <summary>What the lists show: its name or what it is, and whether it costs money to use.</summary>
     public override string Label => $"{ToProfile().Label}  ({(_provider == AgentProviderType.Local ? "free" : "paid")})";
 
-    private void Changed()
+    /// <summary>Something the lists show was edited. (Not "Changed": that is ReactiveObject's own
+    /// observable, and a method of that name hid it.)</summary>
+    private void Edited()
     {
         this.RaisePropertyChanged(nameof(Label));
         _owner.OnModelsChanged();
@@ -74,7 +76,7 @@ public sealed class ModelProfileVm : ModelChoice
     public string Name
     {
         get => _name;
-        set { this.RaiseAndSetIfChanged(ref _name, value); Changed(); }
+        set { this.RaiseAndSetIfChanged(ref _name, value); Edited(); }
     }
 
     public string NameWatermark => ToProfile() is var p ? p.Describe() : "";
@@ -117,7 +119,7 @@ public sealed class ModelProfileVm : ModelChoice
             this.RaisePropertyChanged(nameof(ModelWatermark));
             this.RaisePropertyChanged(nameof(ModelHelp));
             this.RaisePropertyChanged(nameof(NameWatermark));
-            Changed();
+            Edited();
         }
     }
 
@@ -131,7 +133,7 @@ public sealed class ModelProfileVm : ModelChoice
     public string Model
     {
         get => _model;
-        set { this.RaiseAndSetIfChanged(ref _model, value); this.RaisePropertyChanged(nameof(NameWatermark)); Changed(); }
+        set { this.RaiseAndSetIfChanged(ref _model, value); this.RaisePropertyChanged(nameof(NameWatermark)); Edited(); }
     }
 
     public string ModelWatermark => _provider switch
@@ -156,7 +158,7 @@ public sealed class ModelProfileVm : ModelChoice
     public string Endpoint
     {
         get => _endpoint;
-        set { this.RaiseAndSetIfChanged(ref _endpoint, value); this.RaisePropertyChanged(nameof(NameWatermark)); Changed(); }
+        set { this.RaiseAndSetIfChanged(ref _endpoint, value); this.RaisePropertyChanged(nameof(NameWatermark)); Edited(); }
     }
 
     private bool _think;
