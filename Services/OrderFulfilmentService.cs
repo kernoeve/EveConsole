@@ -178,9 +178,10 @@ public class OrderFulfilmentService(
         // ⚠️ Only what is OURS counts as supply: an authenticated character's own hangar, or a
         // corporation marked personal. A corporation token lets the app SEE an alliance corp's
         // assets and jobs — that is what it is for — and both of these queries used to count
-        // them. An order for a Phoenix read "in stock" off five of Brave Newbies' capitals in a
-        // hangar the user could not sell from, while the two actually being built for it sat
-        // unattached. The same test the contract match already applies, for the same reason.
+        // them. An order for a capital read "in stock" off five hulls in an alliance
+        // corporation's hangar the user could not sell from, while the two actually being built
+        // for it sat unattached. The same test the contract match already applies, for the same
+        // reason.
         var stock = await db.EsiAssets
             .Where(a => typeIds.Contains(a.TypeId))
             .Where(a => (a.OwnerType == "character"   && ours.Characters.Contains(a.OwnerId))
@@ -228,7 +229,12 @@ public class OrderFulfilmentService(
         var jobUnitsLeft = openJobs.ToDictionary(
             j => j.JobId,
             j => (long)j.Runs * perRun.GetValueOrDefault(j.ProductTypeId!.Value, 1));
-        var changed = false;
+
+        var now = DateTimeOffset.UtcNow;
+
+        // Which contract each order is on, settled for every order before any of them takes
+        // stock or a job — see ContractsAsync.
+        var (onContract, changed) = await ContractsAsync(db, orders, ours, claimed, now, ct);
 
         foreach (var order in orders)
         {
@@ -238,44 +244,17 @@ public class OrderFulfilmentService(
             // A contract is linked as soon as one is found, but only ACCEPTANCE completes the
             // order: an outstanding contract has been offered and not taken, which is a promise,
             // not a sale. The link is still worth showing while it sits there.
-            if (await FindContractAsync(db, order, ours, claimed, ct) is { } hit)
+            if (onContract.TryGetValue(order.Id, out var contract))
             {
-                claimed.Add(hit.ContractId);
-
-                if (order.LinkedContractId != hit.ContractId)
-                {
-                    order.LinkedContractId = hit.ContractId;
-                    changed = true;
-                }
-
                 // The contract is the agreed price once there is one — it is what the buyer
                 // actually pays, where the order's figure was an intention.
-                if (hit.Price > 0 && Math.Abs(order.PurchasePrice - hit.Price) > 0.01)
+                if (contract.Price > 0 && Math.Abs(order.PurchasePrice - contract.Price) > 0.01)
                 {
-                    order.PurchasePrice = hit.Price;
+                    order.PurchasePrice = contract.Price;
                     changed = true;
                 }
 
-                if (hit.IsAccepted)
-                {
-                    order.Status      = "completed";
-                    order.CompletedOn = (hit.AcceptedAt ?? DateTimeOffset.UtcNow)
-                        .UtcDateTime.ToString("yyyy-MM-dd");
-                    changed = true;
-                    continue;   // settled; nothing left to forecast
-                }
-
-                if (hit.IsDeclined)
-                {
-                    // Offered exactly what they asked for and turned down. Reserving stock for
-                    // them after that holds goods nobody is waiting on.
-                    order.Status      = "canceled";
-                    order.CompletedOn = DateTimeOffset.UtcNow.UtcDateTime.ToString("yyyy-MM-dd");
-                    changed = true;
-                    continue;
-                }
-
-                // ⚠️ Offered and not yet taken, and that is as far as this order goes.
+                // ⚠️ Offered, taken or turned down, this order holds no supply from here on.
                 //
                 // It used to fall through to stock and jobs, on the reasoning that a pending
                 // order still wants a supply. It does not: the goods are already in the
@@ -283,22 +262,20 @@ public class OrderFulfilmentService(
                 // job producing the type and pinned it to this order — a job that cannot be for
                 // it, since what the order needed is sitting in the contract — and took that job
                 // away from the order that was actually waiting on it.
-                //
-                // ⚠️ An incomplete job attached to a contracted order is cleared for the same
-                // reason. A COMPLETE one is left alone: it may well be where the contracted
-                // goods came from, and erasing that would lose the only record of how the order
-                // was filled.
-                if (order.LinkedJobId is int linked && openJobIds.Contains(linked))
+                changed |= ReleaseSupply(order, openJobIds);
+
+                if (contract.IsAccepted)
                 {
-                    order.FulfilmentSource = SourceContract;
-                    order.LinkedJobId      = null;
-                    order.LinkedJobIds     = "";
-                    order.UnitsInBuild     = 0;
+                    order.Status      = "completed";
+                    order.CompletedOn = (contract.SettledAt ?? now).UtcDateTime.ToString("yyyy-MM-dd");
                     changed = true;
                 }
-                else if (order.FulfilmentSource != SourceContract && order.LinkedJobId is null)
+                else if (contract.IsDeclined)
                 {
-                    order.FulfilmentSource = SourceContract;
+                    // Offered exactly what they asked for and turned down. Reserving stock for
+                    // them after that holds goods nobody is waiting on.
+                    order.Status      = "canceled";
+                    order.CompletedOn = (contract.SettledAt ?? now).UtcDateTime.ToString("yyyy-MM-dd");
                     changed = true;
                 }
 
@@ -396,14 +373,14 @@ public class OrderFulfilmentService(
         return changed;
     }
 
-    /// <summary>Sets the derived fields, reporting whether anything actually moved.</summary>
     /// <summary>
-    /// Records where an order is coming from, and which jobs are building it.
+    /// Records where an order is coming from, and which jobs are building it, reporting whether
+    /// anything actually moved.
     ///
     /// <para>⚠️ LinkedJobId is written as the head of the list, never independently. It is what
-    /// a contracted order clears by id and what rows written before the list existed carry, so
-    /// it has to stay truthful — but two fields that can disagree about the same thing is how
-    /// the tracker ended up showing a job that no longer had anything to do with the order.</para>
+    /// rows written before the list existed carry, so it has to stay truthful — but two fields
+    /// that can disagree about the same thing is how the tracker ended up showing a job that no
+    /// longer had anything to do with the order.</para>
     /// </summary>
     private static bool SetJobs(
         TrackedOrder order, string source, IReadOnlyList<int> jobIds, int unitsInBuild)
@@ -424,7 +401,147 @@ public class OrderFulfilmentService(
     }
 
     /// <summary>
-    /// The contract that delivered this order, if there is one.
+    /// Clears what an order on a contract was holding: nothing on the shelf is reserved for it
+    /// and nothing is in build for it, so the pass hands both to the orders behind it. Reports
+    /// whether anything moved.
+    ///
+    /// <para>⚠️ Units in build are cleared outright. Left over from the forecast made before
+    /// the contract, they went on reading "2 in build" beside a contract carrying both hulls —
+    /// saying the order still waited on jobs that were by then building for the orders queued
+    /// behind it.</para>
+    ///
+    /// <para>⚠️ Running jobs are let go; finished ones are kept. A running job cannot be where
+    /// the contracted goods came from — they are already made — whereas a FINISHED one may well
+    /// be, and erasing it would lose the only record of how the order was filled. The source
+    /// stays as it was while one is kept.</para>
+    /// </summary>
+    private static bool ReleaseSupply(TrackedOrder order, HashSet<int> openJobIds)
+    {
+        var jobs = order.LinkedJobIds
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => int.TryParse(s, out var id) ? id : 0)
+            .Where(id => id > 0)
+            .ToList();
+        // A row written before the list existed carries only the one.
+        if (jobs.Count == 0 && order.LinkedJobId is int only) jobs.Add(only);
+
+        var finished = jobs.Where(id => !openJobIds.Contains(id)).ToList();
+        var source   = finished.Count > 0 ? order.FulfilmentSource : SourceContract;
+
+        var moved = SetJobs(order, source, finished, 0);
+        if (order.StockOnHand != 0)
+        {
+            order.StockOnHand = 0;
+            moved = true;
+        }
+        return moved;
+    }
+
+    /// <summary>
+    /// The contract each pending order is on, by order id, and whether a link moved.
+    ///
+    /// <para>A linked contract — attached by hand, or matched by an earlier pass — is the
+    /// order's, and is read for what it now says. ⚠️ It used to count only if it also passed the
+    /// match below, so a contract attached by hand precisely because the match could not see it
+    /// was never read at all: the order sat pending beside a contract that had been accepted,
+    /// still holding the hulls in build that the orders behind it were waiting on.</para>
+    ///
+    /// <para>A link is let go only when its contract has lapsed — withdrawn, deleted, failed, or
+    /// left outstanding past its expiry — and the order is then matched afresh like any other.
+    /// A linked contract no poll has brought in stays linked: it was typed in by hand and is
+    /// taken at its word, but only a contract that can be read settles the order.</para>
+    ///
+    /// <para>The rest are matched to contracts nobody has claimed. ⚠️ Exact fits first, across
+    /// every order, and only then contracts with units to spare — otherwise an order for one
+    /// hull that happens to rank first takes the two-hull contract cut for an order for two,
+    /// which is then left with nothing to match.</para>
+    /// </summary>
+    private static async Task<(Dictionary<int, ContractState> OnContract, bool Changed)> ContractsAsync(
+        AppDbContext db, List<TrackedOrder> orders, OurIds ours, HashSet<int> claimed,
+        DateTimeOffset now, CancellationToken ct)
+    {
+        var onContract = new Dictionary<int, ContractState>();
+        var changed    = false;
+
+        var linkedIds = orders.Where(o => o.LinkedContractId is not null)
+                              .Select(o => o.LinkedContractId!.Value).Distinct().ToList();
+        var linked = await StatesAsync(db, linkedIds, ct);
+
+        foreach (var order in orders)
+        {
+            if (order.LinkedContractId is not int id) continue;
+
+            if (!linked.TryGetValue(id, out var state))
+                onContract[order.Id] = ContractState.Unseen(id);
+            else if (!state.HasLapsed(now))
+                onContract[order.Id] = state;
+            else
+            {
+                order.LinkedContractId = null;
+                changed = true;
+            }
+        }
+
+        // What could be each unlinked order's: contracts sent to its recipient that offer the
+        // ordered type.
+        var found = new Dictionary<int, List<int>>();
+        foreach (var order in orders)
+            if (order.LinkedContractId is null
+                && await CandidateIdsAsync(db, order, ours, ct) is { Count: > 0 } ids)
+                found[order.Id] = ids;
+        if (found.Count == 0) return (onContract, changed);
+
+        var candidateIds = found.Values.SelectMany(ids => ids).Distinct().ToList();
+        var typeIds      = orders.Select(o => o.TypeId).Distinct().ToList();
+        var states       = await StatesAsync(db, candidateIds, ct);
+
+        // ⚠️ Summed over the contract's lines, never read off one. A hull with rigs fitted is
+        // listed on a line of its own, so a contract for two Phoenixes, one of them assembled and
+        // rigged, is two lines of one — and the match used to want a single line of two, so it
+        // never linked. What else is offered alongside, the rigs included, does not count
+        // against a contract, and neither does whether a hull is packaged.
+        var carried = (await db.EsiContractItems.AsNoTracking()
+                .Where(i => candidateIds.Contains(i.ContractId) && typeIds.Contains(i.TypeId) && i.IsIncluded)
+                .GroupBy(i => new { i.ContractId, i.TypeId })
+                .Select(g => new { g.Key.ContractId, g.Key.TypeId, Units = g.Sum(i => i.Quantity) })
+                .ToListAsync(ct))
+            .ToDictionary(x => (x.ContractId, x.TypeId), x => x.Units);
+
+        // Each order's candidates, the closest fit first and then the oldest: the whole order,
+        // for a contract still in play.
+        var candidates = new Dictionary<int, List<Candidate>>();
+        foreach (var order in orders)
+        {
+            if (!found.TryGetValue(order.Id, out var ids)) continue;
+            candidates[order.Id] = ids
+                .Where(id => states.TryGetValue(id, out var s) && !s.HasLapsed(now))
+                .Select(id => new Candidate(states[id], carried.GetValueOrDefault((id, order.TypeId))))
+                .Where(c => c.Units >= order.Units)
+                .OrderBy(c => c.Units - order.Units)
+                .ThenBy(c => c.Contract.ContractId)
+                .ToList();
+        }
+
+        foreach (var exact in new[] { true, false })
+            foreach (var order in orders)
+            {
+                if (onContract.ContainsKey(order.Id)
+                    || !candidates.TryGetValue(order.Id, out var list)
+                    || list.FirstOrDefault(c => !claimed.Contains(c.Contract.ContractId)
+                                             && (!exact || c.Units == order.Units)) is not { } pick)
+                    continue;
+
+                claimed.Add(pick.Contract.ContractId);
+                onContract[order.Id]   = pick.Contract;
+                order.LinkedContractId = pick.Contract.ContractId;
+                changed = true;
+            }
+
+        return (onContract, changed);
+    }
+
+    /// <summary>
+    /// Contracts that could have delivered this order, by id.
     ///
     /// <para>Deliberately strict, because the consequence is marking an order complete:</para>
     /// <list type="bullet">
@@ -436,34 +553,15 @@ public class OrderFulfilmentService(
     /// somebody else's order;</item>
     /// <item>issued AFTER the order was placed, so a delivery from three months ago cannot be read
     /// as fulfilling something ordered today;</item>
-    /// <item>carrying at least the ordered units of the ordered type;</item>
-    /// <item>not already linked to another order.</item>
+    /// <item>offering the ordered type. Whether it offers enough of it is for the caller, which
+    /// counts every line.</item>
     /// </list>
     ///
     /// <para>Only a finished contract completes an order. An outstanding one has been offered and
     /// not yet accepted, which is not a sale.</para>
-    /// <summary>A contract that could settle an order, with what it says.</summary>
-    private sealed record ContractHit(int ContractId, string Status, double Price, DateTimeOffset? AcceptedAt)
-    {
-        /// <summary>Accepted is the only status that means the buyer actually took it.</summary>
-        public bool IsAccepted => Status is "finished";
-
-        /// <summary>
-        /// The buyer turned it down. That ends the order — they were offered exactly what they
-        /// asked for and said no, so continuing to reserve stock for them would hold goods
-        /// nobody is waiting on.
-        ///
-        /// <para>⚠️ Only "rejected", not "cancelled" or "failed". Those two are the ISSUER's
-        /// side — a contract withdrawn to re-cut at a different price is not the buyer changing
-        /// their mind, and cancelling the order for it would throw away a sale still in progress.
-        /// Neither is matched at all, so such an order simply goes back to being forecast from
-        /// stock and jobs.</para>
-        /// </summary>
-        public bool IsDeclined => Status is "rejected";
-    }
-
-    private static async Task<ContractHit?> FindContractAsync(
-        AppDbContext db, TrackedOrder order, OurIds ours, HashSet<int> claimed, CancellationToken ct)
+    /// </summary>
+    private static async Task<List<int>> CandidateIdsAsync(
+        AppDbContext db, TrackedOrder order, OurIds ours, CancellationToken ct)
     {
         // The order said who the contract goes to, or it goes to the buyer; a contract to either
         // is this order's. The recipient can be a corporation — ESI puts a corporation's id in
@@ -472,8 +570,8 @@ public class OrderFulfilmentService(
         var recipients = new List<long>();
         if (order.BuyerId      > 0) recipients.Add(order.BuyerId);
         if (order.ContractToId > 0 && !recipients.Contains(order.ContractToId)) recipients.Add(order.ContractToId);
-        if (recipients.Count == 0) return null;
-        if (ours.Characters.Count == 0 && ours.Corporations.Count == 0) return null;
+        if (recipients.Count == 0) return [];
+        if (ours.Characters.Count == 0 && ours.Corporations.Count == 0) return [];
 
         // ⚠️ Raw SQL, not a LINQ Where. ContractRecord.DateIssued is a DateTimeOffset and EF Core's
         // SQLite provider cannot translate a comparison on one — it throws at RUNTIME, not at build
@@ -498,46 +596,114 @@ public class OrderFulfilmentService(
         // Outstanding and in-progress contracts are candidates too: the link is worth showing
         // before acceptance, it just does not complete the order.
         //
-        // ⚠️ GROUP BY, not DISTINCT on the row: contracts are polled per owner, so one contract
-        // appears once for each of our characters or corporations that can see it, and the copies
-        // are identical. Without this a single delivery looks like several candidates.
+        // ⚠️ The items are an EXISTS, not a join, and the ids DISTINCT. Contracts are polled per
+        // owner, so one contract is a row for each of our characters or corporations that can
+        // see it, while its items are stored once: a join repeats every item for every owner
+        // row, and anything counted over it counts one hull as two.
         var sql = $$"""
-            SELECT c."ContractId" AS "Value"
+            SELECT DISTINCT c."ContractId" AS "Value"
             FROM "EsiContracts" c
-            JOIN "EsiContractItems" i ON i."ContractId" = c."ContractId"
             WHERE c."Status" IN ('finished', 'outstanding', 'in_progress', 'rejected')
               AND c."AssigneeId" IN ({{string.Join(",", recipients)}})
-              AND c."DateIssued" > {1}
+              AND c."DateIssued" > {0}
               AND ({{string.Join(" OR ", tests)}})
-              AND i."TypeId" = {2} AND i."IsIncluded" = TRUE AND i."Quantity" >= {3}
-            GROUP BY c."ContractId"
-            ORDER BY c."ContractId"
+              AND EXISTS (SELECT 1 FROM "EsiContractItems" i
+                          WHERE i."ContractId" = c."ContractId"
+                            AND i."TypeId" = {1} AND i."IsIncluded" = TRUE)
             """;
 
         // ⚠️ Scalar ids only. SqlQueryRaw with an unmapped result type is not something to rely on
-        // here — the details are read back through EF below, where there is no DateTimeOffset
+        // here — what each contract says is read back through EF, where there is no DateTimeOffset
         // comparison left to translate and the columns arrive properly typed.
-        // {0} is no longer used by the text — the recipients are embedded, being our own ids —
-        // but the placeholders are positional, so it keeps its slot.
-        var ids = await db.Database
-            .SqlQueryRaw<int>(sql, order.BuyerId, placed, order.TypeId, order.Units)
+        return await db.Database
+            .SqlQueryRaw<int>(sql, placed, order.TypeId)
             .ToListAsync(ct);
-        if (ids.Count == 0) return null;
-
-        // An already-linked contract stays this order's, so a re-run cannot hand it to another.
-        var chosen = ids.FirstOrDefault(id => id == order.LinkedContractId);
-        if (chosen == 0) chosen = ids.FirstOrDefault(id => !claimed.Contains(id));
-        if (chosen == 0) return null;
-
-        var c = await db.EsiContracts.AsNoTracking()
-            .Where(x => x.ContractId == chosen)
-            .Select(x => new { x.Status, x.Price, x.DateAccepted })
-            .FirstOrDefaultAsync(ct);
-        if (c is null) return null;
-
-        return new ContractHit(chosen, c.Status, (double)c.Price, c.DateAccepted);
     }
 
+    /// <summary>
+    /// What each of these contracts now says, by id. One no poll has brought in is absent.
+    ///
+    /// <para>⚠️ A contract is a row for each owner that can see it, each only as fresh as that
+    /// owner's last poll: a corporation's copy can still read outstanding after a character's
+    /// has seen it accepted. The most settled row speaks for the contract — a contract that has
+    /// been decided cannot become undecided — where whichever row came back first could read a
+    /// delivered order as still waiting.</para>
+    /// </summary>
+    private static async Task<Dictionary<int, ContractState>> StatesAsync(
+        AppDbContext db, List<int> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return new();
+
+        var rows = await db.EsiContracts.AsNoTracking()
+            .Where(c => ids.Contains(c.ContractId))
+            .Select(c => new { c.ContractId, c.Status, c.Price, c.DateAccepted, c.DateCompleted, c.DateExpired })
+            .ToListAsync(ct);
+
+        return rows.GroupBy(r => r.ContractId).ToDictionary(g => g.Key, g =>
+        {
+            var said = g.OrderBy(r => Settledness(r.Status)).First();
+            return new ContractState(g.Key, said.Status, (double)said.Price,
+                g.Max(r => r.DateAccepted) ?? g.Max(r => r.DateCompleted),
+                g.Max(r => r.DateExpired));
+        });
+    }
+
+    /// <summary>How far along a contract's status is, the most settled lowest.</summary>
+    private static int Settledness(string status) => status switch
+    {
+        "finished"                                         => 0,
+        "rejected"                                         => 1,
+        "cancelled" or "deleted" or "failed" or "reversed" => 2,
+        "outstanding"                                      => 4,
+        _                                                  => 3,   // in progress, or a courier half done
+    };
+
+    /// <summary>How long past its expiry an outstanding contract is still given; see
+    /// <see cref="ContractState.HasLapsed"/>.</summary>
+    private static readonly TimeSpan ExpiryGrace = TimeSpan.FromHours(1);
+
+    /// <summary>A contract as it now stands, as far as the order it carries is concerned.</summary>
+    private sealed record ContractState(
+        int ContractId, string Status, double Price, DateTimeOffset? SettledAt, DateTimeOffset? ExpiresAt)
+    {
+        /// <summary>Accepted is the only status that means the buyer actually took it.</summary>
+        public bool IsAccepted => Status is "finished";
+
+        /// <summary>
+        /// The buyer turned it down. That ends the order — they were offered exactly what they
+        /// asked for and said no, so continuing to reserve stock for them would hold goods
+        /// nobody is waiting on.
+        ///
+        /// <para>⚠️ Only "rejected", not "cancelled" or "failed". Those two are the ISSUER's
+        /// side — a contract withdrawn to re-cut at a different price is not the buyer changing
+        /// their mind, and cancelling the order for it would throw away a sale still in progress.
+        /// They lapse instead: the order lets go of the contract and goes back to being matched,
+        /// and forecast from stock and jobs.</para>
+        /// </summary>
+        public bool IsDeclined => Status is "rejected";
+
+        /// <summary>
+        /// Gone without being taken: withdrawn, deleted, failed or reversed — or left outstanding
+        /// past its expiry, which is how ESI goes on reporting an expired contract.
+        ///
+        /// <para>⚠️ An hour's grace on the expiry. Contracts are polled, not pushed, so one
+        /// accepted in its last minutes reads as outstanding and expired until the next poll
+        /// brings the acceptance in, and letting go of it then would unlink an order that was in
+        /// fact delivered.</para>
+        /// </summary>
+        public bool HasLapsed(DateTimeOffset now) =>
+            Status is "cancelled" or "deleted" or "failed" or "reversed"
+            || (Status is "outstanding" && ExpiresAt is { } expires && expires < now - ExpiryGrace);
+
+        /// <summary>
+        /// A contract linked by hand that no poll has brought in — one no character here can see,
+        /// or one not polled yet. There is nothing to read, so it neither settles nor lapses.
+        /// </summary>
+        public static ContractState Unseen(int contractId) => new(contractId, "", 0, null, null);
+    }
+
+    /// <summary>A contract that could be an order's, and how many of the ordered type it carries.</summary>
+    private sealed record Candidate(ContractState Contract, long Units);
 
     private sealed record OurIds(HashSet<long> Characters, HashSet<long> Corporations);
 

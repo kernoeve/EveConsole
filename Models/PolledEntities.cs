@@ -1070,13 +1070,15 @@ public class TrackedOrder
     public int    UnitsInBuild     { get; set; }
 
     /// <summary>
-    /// The contract that delivered this order — issued by one of our characters or personal
-    /// corporations, to this order's buyer, carrying the item.
+    /// The contract this order is on — matched by OrderFulfilmentService (issued by one of our
+    /// characters or personal corporations, to this order's buyer, carrying the ordered units
+    /// over all its lines) or attached by hand. Its acceptance completes the order; one that
+    /// lapses unaccepted is let go.
     /// </summary>
     public int?   LinkedContractId { get; set; }
 
     /// <summary>
-    /// When the order was settled — completed or cancelled. Set from the contract-s acceptance
+    /// When the order was settled — completed or cancelled. Set from the contract's acceptance
     /// date when a contract closed it, and to today when the user sets the status by hand.
     /// </summary>
     public string? CompletedOn { get; set; }

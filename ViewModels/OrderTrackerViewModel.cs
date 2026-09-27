@@ -78,7 +78,7 @@ public class TrackedOrderRowVm : ReactiveObject
 
     public string EstDate { get; }
 
-    /// <summary>When the order was settled — from the contract-s acceptance date, or today when
+    /// <summary>When the order was settled — from the contract's acceptance date, or today when
     /// the status was set by hand.</summary>
     public string CompletedOn { get; }
     public bool   IsPriority   { get; }
@@ -212,11 +212,15 @@ public class TrackedOrderRowVm : ReactiveObject
         // contracted row it contradicts the contract sitting beside it.
         var open = o.Status == "pending" && o.LinkedContractId is null;
 
-        StockOnHand  = o.StockOnHand;
-        UnitsInBuild = o.UnitsInBuild;
+        // ⚠️ In build too, and the sort values with the text. "2 in build" stayed on an order
+        // whose contract carried both hulls, telling the user it still waited on jobs that were
+        // by then building for the orders behind it — and a row settled before the pass cleared
+        // these still carries whatever it last forecast.
+        StockOnHand  = open ? o.StockOnHand  : 0;
+        UnitsInBuild = open ? o.UnitsInBuild : 0;
 
         StockText = open ? $"{o.StockOnHand:N0}/{o.Units:N0}" : "";
-        IndyJob   = o.UnitsInBuild > 0 ? $"{o.UnitsInBuild:N0} in build" : "";
+        IndyJob   = UnitsInBuild > 0 ? $"{UnitsInBuild:N0} in build" : "";
 
         // Never below zero: a job that overshoots the order is not a negative shortfall, it is
         // simply covered, and "-6" in a column headed Short reads as a fault.
@@ -606,12 +610,17 @@ public class OrderTrackerViewModel : ReactiveObject
                 Status        = r.Status,
                 IsPriority    = r.IsPriority,
                 CompletedOn   = r.CompletedOn ?? SettledOn(r.Status, null),
+                // ⚠️ Kept. The dialog offers the box on a new order as on an edited one, and a
+                // contract typed in here was silently dropped — the order then waited to be
+                // matched against a contract the user had already named.
+                LinkedContractId = r.LinkedContractId,
                 // ⚠️ From the same pool as the store's, so a code identifies one order whichever
                 // way it arrived. An order typed in after a conversation is still an order
                 // somebody may ask about by number.
                 OrderRef      = await OrderReference.NewAsync(db),
                 CreatedAt     = DateTimeOffset.UtcNow,
             });
+            if (r.LinkedContractId is int taken) await TakeContractAsync(db, taken, orderId: 0);
             await db.SaveChangesAsync();
             _fulfilment?.Nudge();   // a new order is matched against stock, jobs and contracts now, not at the next pass
 
@@ -653,13 +662,14 @@ public class OrderTrackerViewModel : ReactiveObject
 
             // A contract typed in by hand overrides whatever the poll found — the point of the
             // field is the case where the automatic match cannot see it, usually because the
-            // contract-s item list differs from the order.
+            // contract's item list differs from the order.
             if (r.LinkedContractId != o.LinkedContractId)
             {
                 o.LinkedContractId = r.LinkedContractId;
                 // Unlinking drops the date the contract supplied — unless the user typed one
                 // in this same edit, which is an explicit instruction to keep that date.
                 if (r.LinkedContractId is null && r.CompletedOn is null) o.CompletedOn = null;
+                if (r.LinkedContractId is int taken) await TakeContractAsync(db, taken, o.Id);
             }
             await db.SaveChangesAsync();
             _fulfilment?.Nudge();
@@ -686,6 +696,23 @@ public class OrderTrackerViewModel : ReactiveObject
         => status is "completed" or "canceled"
             ? existing ?? DateTime.Now.ToString("yyyy-MM-dd")
             : null;
+
+    /// <summary>
+    /// A contract attached by hand is this order's alone: any other PENDING order on it lets go,
+    /// to be matched or forecast afresh at the next pass.
+    ///
+    /// <para>⚠️ Attaching by hand is usually a correction — the match put the contract on the
+    /// wrong order, or could not see it at all — and the pass honours every link it finds, so
+    /// leaving the old one in place would have one contract deliver two orders. A settled order
+    /// is left alone: reopening history is the user's call, not a side effect of an edit.</para>
+    /// </summary>
+    private static async Task TakeContractAsync(AppDbContext db, int contractId, int orderId)
+    {
+        var others = await db.TrackedOrders
+            .Where(x => x.Id != orderId && x.Status == "pending" && x.LinkedContractId == contractId)
+            .ToListAsync();
+        foreach (var other in others) other.LinkedContractId = null;
+    }
     private async Task DeleteAsync()
     {
         if (Selected is null) return;

@@ -270,9 +270,14 @@ public static class AppKnowledge
         Orders you have committed to deliver: entered with Add Order, or booked by a Store from EVE
         mail or the web. One row per order line; lines of one order share an Order #. Open orders
         show fulfilment (On hand, in build, Short) and the delivering Contract, matched
-        automatically from your contracts. Also Purchase Price, Status (Pending, Completed,
-        Canceled), Build Cost and Profit. Orders marked Priority come first in the Worklist. Sales
-        already made are in the Sales Tracker.
+        automatically from your contracts: one you issued to the buyer (or the order's Contract
+        To) after the order was placed, carrying at least the ordered quantity counted over all
+        its lines. Extras such as fitted rigs, and whether a hull is packaged or assembled, do not
+        matter. A contract can also be attached by hand with Edit. Accepting the contract
+        completes the order and declining it cancels it; while an order is on a contract, its
+        stock and jobs go to the orders behind it. Also Purchase Price, Status (Pending,
+        Completed, Canceled), Build Cost and Profit. Orders marked Priority come first in the
+        Worklist. Sales already made are in the Sales Tracker.
 
         ### Sales Tracker
         Sales already made: market sell transactions and finished item-exchange contracts, each
