@@ -41,6 +41,7 @@ public sealed class ModelProfileVm : ModelChoice
         _provider = p.Provider;
         _model    = p.Model;
         _endpoint = p.Endpoint;
+        _think    = p.Think;
         TestModelCommand = ReactiveCommand.CreateFromTask(TestAsync);
     }
 
@@ -51,6 +52,7 @@ public sealed class ModelProfileVm : ModelChoice
         Provider = _provider,
         Model    = (_model ?? "").Trim(),
         Endpoint = (_endpoint ?? "").Trim(),
+        Think    = _think,
     };
 
     /// <summary>What the lists show: its name or what it is, and whether it costs money to use.</summary>
@@ -147,6 +149,14 @@ public sealed class ModelProfileVm : ModelChoice
     {
         get => _endpoint;
         set { this.RaiseAndSetIfChanged(ref _endpoint, value); this.RaisePropertyChanged(nameof(NameWatermark)); Changed(); }
+    }
+
+    private bool _think;
+    /// <summary>A local reasoning model may think before it answers — slower, never shown.</summary>
+    public bool Think
+    {
+        get => _think;
+        set => this.RaiseAndSetIfChanged(ref _think, value);
     }
 
     // ── Trying it ─────────────────────────────────────────────────────────────

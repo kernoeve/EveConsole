@@ -314,6 +314,14 @@ public sealed class ModelProfile
     /// <summary>A local server's root, as Ollama documents it: http://gpu-box:11434.</summary>
     public string            Endpoint { get; set; } = "";
 
+    /// <summary>
+    /// A local reasoning model — Qwen3 — may think before it answers: on unless unticked, which is
+    /// how such a model behaves anyway. The thinking is never shown, but every answer waits for it;
+    /// off tells the model not to think, for speed at some cost in care — which matters most when
+    /// it is choosing a tool, such as handing a question to the data model.
+    /// </summary>
+    public bool              Think    { get; set; } = true;
+
     public static string NewId() => Guid.NewGuid().ToString("N")[..12];
 
     public ModelProfile Clone() => (ModelProfile)MemberwiseClone();

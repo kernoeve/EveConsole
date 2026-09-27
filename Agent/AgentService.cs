@@ -757,7 +757,7 @@ public sealed class AgentService : ReactiveObject
         AgentProviderType.OpenAI when !string.IsNullOrWhiteSpace(keys.OpenAiApiKey)
             => OpenAiCompatibleProvider.OpenAi(keys.OpenAiApiKey, m.ModelName),
         AgentProviderType.Local when !string.IsNullOrWhiteSpace(m.Endpoint)
-            => OpenAiCompatibleProvider.Local(m.Endpoint, m.ModelName),
+            => OpenAiCompatibleProvider.Local(m.Endpoint, m.ModelName, think: m.Think),
         _ => null,
     };
 }

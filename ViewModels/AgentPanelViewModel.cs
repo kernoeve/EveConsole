@@ -292,6 +292,15 @@ public sealed class AgentPanelViewModel : ReactiveObject
                    this.RaisePropertyChanged(nameof(AgentNameUpper));
                    this.RaisePropertyChanged(nameof(AskWatermark));
                    ConfigureHotkey(s.PushToTalkKey);
+
+                   // A different model may have a different window; the next turn measures again.
+                   var models = JsonSerializer.Serialize(new { s.Models, s.ConversationRole, s.AnalystRole });
+                   if (models != _modelsSeen)
+                   {
+                       _modelsSeen    = models;
+                       _localWindow   = 0;
+                       _localOverhead = 0;
+                   }
                });
 
         if (service.Settings.PersistHistory)
@@ -736,17 +745,18 @@ public sealed class AgentPanelViewModel : ReactiveObject
             var speaking = _tts?.IsSpeaking == true;
             var pending  = new StringBuilder();
 
-            // What the turn's largest prompt came to, and the window it went into when the server
-            // says — see the threshold check after the turn.
-            long promptTokens = 0; int? window = null;
+            // The first round's prompt, and the window it went into when the server says: what this
+            // model carries besides the history — see the check after the turn.
+            long firstPrompt = 0; int? window = null;
+            var historyBefore = EstimateTokens();
 
             await foreach (var chunk in provider.StreamAsync(
                 systemPrompt, _history, tools,
                 onUsage: u =>
                 {
                     telemetry?.Usage(u);
-                    promptTokens = Math.Max(promptTokens, u.InputTokens + u.CacheReadTokens);
-                    window       = u.ContextLength ?? window;
+                    if (firstPrompt == 0) firstPrompt = u.InputTokens + u.CacheReadTokens;
+                    window = u.ContextLength ?? window;
                 },
                 volatileContext: CurrentAppState(),
                 ct: attemptCts.Token).ConfigureAwait(false))
@@ -804,18 +814,16 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
             SaveHistory();
 
-            // Fire background summarization if threshold is crossed — or if the prompt is
-            // closing on the model's window, when the server has said what that is.
-            //
-            // ⚠️ The threshold is set blind to the window, and a local server does not refuse
-            // a prompt that outgrows it. Ollama drops the OLDEST messages to make room, and
-            // the oldest message in this layout is the system prompt: measured on a 2k window,
-            // the instructions went first, whole, while the chat stayed, and the model went on
-            // answering with none. Eighty percent leaves room for the next question and the
-            // reply; the summary then shrinks the history well below it.
-            if (EstimateTokens() >= _service.Settings.SummarizationThreshold
-                || (window is > 0 && promptTokens > window.Value * 0.8))
-                _summarizationTask = SummarizeAsync();
+            // A model of our own that says what its window is: remember that, and what it carries
+            // besides the history — prompt, tools, app state — so the check below is made after
+            // EVERY turn, the data model's too.
+            if (window is > 0 && firstPrompt > 0)
+            {
+                _localWindow   = window.Value;
+                _localOverhead = Math.Max(0, firstPrompt - historyBefore);
+            }
+
+            if (NeedsSummary()) _summarizationTask = SummarizeAsync();
 
             return new Attempt(true, false, null, Acted: true);
         }
@@ -847,6 +855,32 @@ public sealed class AgentPanelViewModel : ReactiveObject
             _service.ToolActivity     = null;
         }
     }
+
+    /// <summary>The last window a model of our own reported, and what it carries besides the
+    /// history. Forgotten when the models or roles change: the model may have.</summary>
+    private int    _localWindow;
+    private long   _localOverhead;
+    private string _modelsSeen = "";
+
+    /// <summary>
+    /// Whether the history should be summarised now: past the threshold, or closing on the window
+    /// of a model of our own.
+    ///
+    /// <para>⚠️ The threshold is set blind to the window, and a local server does not refuse a
+    /// prompt that outgrows it. Ollama drops the OLDEST messages to make room, and the oldest
+    /// message in this layout is the system prompt: measured on a 2k window, the instructions went
+    /// first, whole, while the chat stayed, and the model went on answering with none. Eighty
+    /// percent leaves room for the next question and the reply.</para>
+    ///
+    /// <para>⚠️ Judged on the NEXT prompt that model will be sent — what it carries besides the
+    /// history plus the history as it now stands — not on the turn just answered. With a model of
+    /// its own for the data, a long data answer grows the shared history in a turn the local model
+    /// never saw: checked only after its own turns, its next prompt could outgrow the window with
+    /// nothing having noticed.</para>
+    /// </summary>
+    private bool NeedsSummary() =>
+        EstimateTokens() >= _service.Settings.SummarizationThreshold
+        || (_localWindow > 0 && _localOverhead + EstimateTokens() > _localWindow * 0.8);
 
     /// <summary>
     /// "/data …" sends one message to the model that reads the data, "/chat …" to the conversation
@@ -996,6 +1030,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
     private int EstimateTokens() => _history.Sum(m => m.Content.Length / 4);
 
     // ── Background summarization ─────────────────────────────────────────────
+
+    /// <summary>What a summary model of our own is told, in place of the agent's whole prompt.</summary>
+    private const string SummaryPrompt =
+        "You summarise a conversation between a capsuleer and their EVE Online companion, so the " +
+        "companion can carry on from the summary alone.";
+
     private async Task SummarizeAsync()
     {
         // Its own model when one is chosen for it, otherwise whatever answers the conversation now.
@@ -1007,6 +1047,14 @@ public sealed class AgentPanelViewModel : ReactiveObject
         var scope = !roles.IsSplit ? PromptScope.Full
                   : target.OwnModel && target.Model.Id == roles.Analyst?.Primary.Id ? PromptScope.Full
                   : PromptScope.Conversation;
+
+        // ⚠️ A model of our own gets one line, not the agent's prompt. The long prompt earns its
+        // place only through Anthropic's cache, which a summary shares with the turns before it;
+        // Ollama has no such cache to share, and the prompt took 8k tokens of a 16k window — the
+        // room the history being summarised needed.
+        var systemPrompt = target.Model.IsLocal
+            ? SummaryPrompt
+            : AgentService.BuildSystemPrompt(_service.Settings, scope: scope);
 
         // Build a one-shot summarization call using current history.
         // We do NOT pass tools — summarization should be cheap and focused.
@@ -1035,7 +1083,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         try
         {
             await foreach (var chunk in provider.StreamAsync(
-                AgentService.BuildSystemPrompt(_service.Settings, scope: scope), historySnapshot, tools: null,
+                systemPrompt, historySnapshot, tools: null,
                 onUsage: u => telemetry?.Usage(u),
                 ct: CancellationToken.None))
             {

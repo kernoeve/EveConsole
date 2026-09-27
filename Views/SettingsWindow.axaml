@@ -1879,6 +1879,12 @@
                           <TextBox Text="{Binding Model}" Watermark="{Binding ModelWatermark}" />
                           <TextBlock Text="{Binding ModelHelp}" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
 
+                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="4">
+                            <CheckBox IsChecked="{Binding Think}" Content="Let it think before answering (slower)" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="For models that think before they answer, such as Qwen3. The thinking is never shown, but every answer waits for it. Untick for quicker replies: the model is told not to think, at some cost in care — most of all in choosing a tool. Models that do not think ignore it." />
+                          </StackPanel>
+
                           <StackPanel Spacing="6" Margin="0 4 0 0">
                             <StackPanel.Styles>
                               <!-- Classes, not a local Foreground: a local value would beat these. -->

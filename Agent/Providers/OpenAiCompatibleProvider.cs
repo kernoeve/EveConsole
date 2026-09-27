@@ -46,6 +46,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     private readonly string _model;
     private readonly bool   _isLocal;
 
+    /// <summary>A local reasoning model may think before it answers; false tells it not to.</summary>
+    private readonly bool   _think;
+
     // The loaded model's context window, from Ollama's /api/ps. Asked after each local round —
     // one small GET to a server on the LAN, and the answer can change if the server is restarted
     // with a different length — and never again once a server has said it has no such route.
@@ -57,13 +60,15 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         ? !string.IsNullOrWhiteSpace(_baseUrl) && !string.IsNullOrWhiteSpace(_model)
         : !string.IsNullOrWhiteSpace(_apiKey);
 
-    private OpenAiCompatibleProvider(string providerName, string baseUrl, string apiKey, string model, bool isLocal)
+    private OpenAiCompatibleProvider(string providerName, string baseUrl, string apiKey, string model, bool isLocal,
+                                     bool think = true)
     {
         ProviderName = providerName;
         _baseUrl     = baseUrl;
         _apiKey      = apiKey;
         _model       = model;
         _isLocal     = isLocal;
+        _think       = think;
     }
 
     /// <summary>OpenAI's own service.</summary>
@@ -78,11 +83,17 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     /// (LM Studio's own examples do) is not made to have it twice. The bearer token is a
     /// placeholder: Ollama ignores it, and some servers refuse a request without one.</para>
     /// </summary>
-    public static OpenAiCompatibleProvider Local(string endpoint, string model)
+    /// <param name="think">
+    /// Whether a reasoning model — Qwen3 — may think before it answers. The thinking is hidden
+    /// from the answer either way (see <see cref="ThinkingFilter"/>), but it is waited for. False
+    /// ends the system prompt with Qwen3's own switch, "/no_think", which other models pass over.
+    /// </param>
+    public static OpenAiCompatibleProvider Local(string endpoint, string model, bool think = true)
     {
         var root = (endpoint ?? "").Trim().TrimEnd('/');
         if (!root.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)) root += "/v1";
-        return new("Local", root + "/", "ollama", string.IsNullOrWhiteSpace(model) ? "llama3.1" : model.Trim(), isLocal: true);
+        return new("Local", root + "/", "ollama", string.IsNullOrWhiteSpace(model) ? "llama3.1" : model.Trim(),
+                   isLocal: true, think: think);
     }
 
     public async IAsyncEnumerable<string> StreamAsync(
@@ -106,6 +117,10 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         // re-sent uncached on every turn. Measured: 11,136 cached of 23,700 on each new turn.
         // Trailing, only it changes; the prefix through the newest user message is byte-identical
         // to the previous request and hits.
+        // Qwen3's switch goes at the END of the stable text: the same on every call, so the cached
+        // prefix is unchanged by it, and last is where Qwen3 looks for the latest instruction.
+        if (_isLocal && !_think) systemPrompt += "\n\n/no_think";
+
         var messages = new List<object> { new { role = "system", content = systemPrompt } };
         foreach (var m in history)
             messages.Add(new
