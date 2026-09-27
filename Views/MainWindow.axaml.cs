@@ -287,6 +287,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         agentService.WindowOpenRequested  += name => Dispatcher.UIThread.Post(() => OpenToolByName(vm, name));
         agentService.DataRefreshRequested += ()   => Dispatcher.UIThread.Post(() => vm.ForceResolveNamesAsync());
         agentService.ContextProvider       = () => BuildAgentContext(vm);
+        agentService.OnScreenProvider      = () => OnScreenName(vm.SelectedTab);
 
         // ⚠️ Invoke, not Post. The tool has to return a status message to the model in the same
         // call, so it needs the tab name back — and the agent runs on a background thread, while
@@ -532,28 +533,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OpenToolByName(MainWindowViewModel vm, string name)
     {
-        var toolId = name.ToLowerInvariant() switch
-        {
-            "overview"       => "overview",
-            "characters"     => "characters",
-            "assets"         => "assets",
-            "items"          => "items",
-            "industry"       => "industry",
-            "indy_parks"     => "indy_parks",
-            "prod_calc"      => "prod_calc",
-            "market_levels"  => "market_levels",
-            "inv_levels"     => "inv_levels",
-            "trade"          => "trade",
-            "industry_opps"  => "industry_opps",
-            "net_worth"      => "net_worth",
-            "wallet"         => "wallet",
-            "corp_activity"  => "corp_activity",
-            "killmails"      => "killmails",
-            "eve_mail"       => "eve_mail",
-            "data"           => "data",
-            _                => null
-        };
-        if (toolId is null) return;
+        // Any tool in the catalogue, by id or by name. It listed 17 of the 40 before, and dropped
+        // the rest without a word — including "background", which the agent was offered.
+        if (EveConsole.Agent.AppKnowledge.Tool(name)?.Id is not { } toolId) return;
 
         // If the tool is in a detached window, bring it forward instead.
         Window? detached = toolId switch
@@ -578,7 +560,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         };
 
         if (detached is not null) detached.Activate();
-        else vm.OpenTool(toolId);
+        else
+        {
+            try   { vm.OpenTool(toolId); }
+            catch (ArgumentException) { /* a catalogue id the window does not know: nothing to open */ }
+        }
     }
 
     // ── Title bar actions ─────────────────────────────────────────────────────
@@ -882,6 +868,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     // ── Agent context snapshot ─────────────────────────────────────────────────
 
+    /// <summary>The tool a tab shows, by the name the Tool Reference uses — "Universe Map", not
+    /// the tab's "Universe" — or the tab's own title for one that is not a tool.</summary>
+    private static string? OnScreenName(ToolTab? tab) =>
+        tab is null ? null : EveConsole.Agent.AppKnowledge.Tool(tab.Id)?.Name ?? tab.Title;
+
     private string BuildAgentContext(MainWindowViewModel vm)
     {
         var sb = new StringBuilder();
@@ -891,15 +882,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var now = DateTimeOffset.UtcNow;
         sb.AppendLine($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd}).");
 
-        var activeTitle = vm.SelectedTab?.Title ?? "None";
-        sb.AppendLine($"Active tab: {activeTitle}");
-        var activeIntent = EveConsole.Agent.AppKnowledge.TabIntent(activeTitle);
-        if (!string.IsNullOrEmpty(activeIntent))
-            sb.AppendLine($"Active tab purpose: {activeIntent}");
+        // ⚠️ What is on screen, first and unmistakable, with the guide's own words about it. A
+        // small model asked "what is this?" answered from memory, named the wrong tool, and went
+        // on naming it after the capsuleer had moved on — the other open tabs were listed right
+        // below the active one, and read as candidates.
+        var active = vm.SelectedTab;
+        var onScreen = OnScreenName(active);
+        sb.AppendLine($"On screen: {onScreen ?? "no tool"} — the tab the capsuleer has open now.");
+        if (EveConsole.Agent.AppKnowledge.EntryFor(active?.Id) is { Length: > 0 } entry)
+            sb.AppendLine($"What the Tool Reference says about it:\n{entry}");
+        else if (onScreen is not null)
+            sb.AppendLine("The Tool Reference has no entry for it: say only what its name makes plain, and that you have no description of it.");
 
-        var openTabs = vm.OpenTabs.Select(t => t.Title).ToList();
-        if (openTabs.Count > 0)
-            sb.AppendLine($"Open tabs: {string.Join(", ", openTabs)}");
+        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => t.Title).ToList();
+        if (otherTabs.Count > 0)
+            sb.AppendLine($"Other tabs open behind it (not on screen): {string.Join(", ", otherTabs)}");
 
         var detached = new List<string>();
         if (_characterViewerWindow?.IsVisible == true) detached.Add("Characters");
@@ -910,8 +907,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (detached.Count > 0)
             sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
 
+        // (open_window's own description lists every tool id. It was repeated here, in part, and a
+        // small model lifted names from the list into its description of an unrelated tool.)
         sb.AppendLine("You know what each tool does (see your Tool Reference) — explain and guide from that knowledge; only use capture_tab to read specific on-screen values you cannot get from the data tools.");
-        sb.AppendLine("Available tool IDs for open_window: overview, characters, assets, items, industry, indy_parks, prod_calc, market_levels, inv_levels, trade, net_worth, wallet, corp_activity, killmails, eve_mail, data, background");
 
         if (vm.CharacterViewerVm.SelectedCharacter is { } ch)
             sb.AppendLine($"Selected character: {ch.Name} (ID: {ch.Id})");

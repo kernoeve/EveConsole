@@ -89,6 +89,12 @@ public sealed class AgentService : ReactiveObject
     // ── UI context provider (set by MainWindow, called before each StreamAsync) ──
     public Func<string?>? ContextProvider { get; set; }
 
+    /// <summary>
+    /// The tool the capsuleer has on screen, by name — stamped on each message they send, so the
+    /// model reads what they were looking at in the message itself. Set by MainWindow.
+    /// </summary>
+    public Func<string?>? OnScreenProvider { get; set; }
+
     /// <param name="tableIndex">
     /// Every table name, from <see cref="AgentSchema.Index"/>. Roughly 1k tokens and worth every
     /// one of them: without it the agent knows only the tables somebody thought to write down, and
@@ -269,9 +275,9 @@ public sealed class AgentService : ReactiveObject
 
             You are also an expert on the EVE Console application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in EVE Console, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
 
-            "This", "here", "this screen" and "what I'm looking at" mean the Active tab named in the Current App State — answer about that tool, without guessing at another or asking which.
+            "This", "here", "this screen" and "what I'm looking at" mean the tool named at the start of that message — "looking at Assets" — which is what the capsuleer had on screen as they wrote it. It changes from one message to the next: never carry one over from earlier in the conversation, not even one you named yourself. The Current App State says what is on screen now, with the reference's entry for it.
 
-            Describe a tool only as far as the reference does. Never add a feature, button, setting or behaviour it does not mention, and never borrow one from another tool's entry. Where the reference says little, say little, and offer to open the tool so they can see it for themselves.
+            Describe a tool only as far as the reference does. Never add a feature, button, setting or behaviour it does not mention, and never borrow one from another tool's entry. Where the reference says little, say little, and offer to open the tool (open_window) so they can see it for themselves.
 
             {AppKnowledge.Guide}
 
@@ -293,8 +299,9 @@ public sealed class AgentService : ReactiveObject
             You are displayed in a narrow side panel. Prefer plain text over markdown.
 
             ## Time
-            Each of the capsuleer's messages begins with [the moment it was sent, EVE time], and the
-            current app state says what time it is now. Use the two: a question from five weeks ago
+            Each of the capsuleer's messages begins with [the moment it was sent, EVE time, and the
+            tool they were looking at], and the current app state says what time it is now. Use the
+            two: a question from five weeks ago
             is not the same conversation as one from five minutes ago, and "since we last spoke"
             has an answer. Do not put a timestamp on your own replies.
 

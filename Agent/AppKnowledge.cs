@@ -46,6 +46,14 @@ public static class AppKnowledge
         soon (opens that character's Skills), items moved to Asset Safety, and standing
         projects that are not currently active (opens Corp Activity > Standing Projects).
 
+        ### Worklist
+        A to-do list across your characters and personal corps, rebuilt on each refresh: tasks
+        such as buying, hauling and building, with blocked and snoozed tasks behind toggles. Tabs:
+        Worklist, Station Needs and Item Needs (the work by place and by item), Bottlenecks, Final
+        Products, and Config, which switches each source on or off: industry jobs, invention and
+        copying, material purchases, logistics, refining, standing buy orders, inventory levels,
+        standing projects, skill queues, asset safety, and Order Tracker customer orders.
+
         ### Characters (Character Viewer)
         Deep per-character viewer; pick a character from the dropdown. Tabs: Skills
         (skill groups and levels, plus the training queue showing each skill's remaining
@@ -109,6 +117,13 @@ public static class AppKnowledge
         breakdown of build cost, materials required (optionally down the full build
         chain), and job details, using your Indy Parks setup and current market prices.
 
+        ### Price Overrides
+        Hand-set prices that the build-cost engine and the Production Calculator use instead of
+        their computed or market values. Add a type with "+ Add Type" and fill any of Build Cost,
+        Market Value or Contract Value (for a blueprint, the per-run BPC price); a blank cell stays
+        computed. Save & Recalculate stores the list and recalculates the stored build costs other
+        tools read. A pinned build cost still loses to buying when the market is cheaper.
+
         ### Industry Opportunities
         Compares each buildable item's cached build cost against a market price to rank
         what is worth manufacturing — weighing profit against how long a build ties up a
@@ -167,6 +182,38 @@ public static class AppKnowledge
         station within a region; it cannot reach a player structure. (A legacy Fuzzwork
         source cannot either — it is regional/hub data with no per-structure orders.)
 
+        ### Market Overview
+        A regional dashboard over the stored market data: pick a Region (or all) and a Period
+        (last 30 days by default). Summary shows open sell and buy order counts and ISK, units and
+        ISK sold, pie charts by type and market group, and daily sales ISK; the other tabs break
+        these down by market group and by type and list open orders by type. Sales here are
+        region-wide market history, not your own sales, and NPC orders are left out.
+
+        ### Item Valuation
+        An appraisal tool like the web ones: paste any list the client copies — a hangar or
+        cargo hold, a contract's items, a fit, a multibuy list, a spreadsheet's rows, or typed
+        lines such as "Tritanium 22222" or "Warrior II x5". The paste is read leniently: on a
+        line with columns (tabs, commas, semicolons, pipes or runs of spaces, quoted or not)
+        the first column is the item name, the first whole number after it is the count, and
+        every other column is ignored; no number means one; a header row is skipped; the same
+        item on several lines is added up. Then pick a STATION (any station or structure with
+        orders in the app's books, whichever market source fetched them; not a market source,
+        so two stations of one region can be compared), a price basis (Sell = lowest sell
+        order, Buy = highest buy order, Split = halfway), whether to value the items or their
+        reprocessed output, and press Appraise. The Values tab shows every item three ways at
+        that station, unit and total side by side: market (from contracts where the station
+        has no orders, marked "contract"), build (the app's build cost) and reprocessed (the
+        materials at the same station's prices, at the app's yields); the highest of the three
+        is green, the others red with how far below they sit, and the panel above totals each
+        the same way plus volume and counts. "Reprocessed output" turns the list into its
+        materials batch by batch and keeps as "Left over" whatever could not be reprocessed. The
+        Market compare tab adds more stations: each item's unit, total and per cent below the
+        best across the stations, with a total per station. Price % values at a share of the
+        price (a 90% buyback). Buy orders count at the station, from its system, or
+        region-wide; NPC and jump-ranged ones do not. Names the SDE does not know stay in the
+        table flagged; item names open the Item Browser; Copy puts both tables on the clipboard
+        as tab-separated text. Nothing is stored.
+
         ### Market Levels
         Monitor a specific, definable market (region or structure) for the quantity of
         sell orders currently listed on a chosen list of items. Items are organized into
@@ -179,6 +226,22 @@ public static class AppKnowledge
         in-build, buy orders, etc. — against target levels. Conceptually like jEveAssets
         stockpiles. Grouped/collapsible with per-group multipliers, and columns for
         target, available, difference, assets, industry jobs, market price and build cost.
+
+        ### LP Market Values
+        What loyalty points are worth, per corporation. Each LP store offer is valued at the
+        default asset-value prices (contract price when there is none), minus its ISK cost and any
+        items it also consumes, per LP. Current Values lists each corporation's mean ISK / LP over
+        offers worth more than zero, with Median, Best Offer and Best Item, Your LP and Holding
+        Worth; corporations you hold LP with come first. Recalculate reprices. History charts one
+        corporation's ISK / LP over time.
+
+        ### Contracts
+        Two tabs, each a grid with a detail panel for the selected contract: parties, prices,
+        locations, dates, and every item offered or requested (with BPC runs and ME/TE).
+        Corporation & Personal holds your characters' and corporations' contracts, filtered by
+        Scope, Status, Assignee and Acceptor. Public searches the public contracts the app sweeps
+        from every non-wormhole region, filtered by Show (active, historical or all), type, region,
+        category and item name, 200 per page. Both read stored data, not live ESI.
 
         ### Trade Opportunities
         Find profitable hauling between two markets. Pick a From (source) and To
@@ -194,6 +257,38 @@ public static class AppKnowledge
         (Blueprints & Reactions, Ship SKINs, Special Edition Assets, Apparel, Skills,
         Trade Goods). Results are a shopping list within cargo/ISK limits, sortable by any
         column, defaulting to highest Total Profit first.
+
+        ### Standing Buy Orders
+        Buy orders you intend to keep standing at a station or structure, declared with Add and
+        matched against your characters' and corporations' live buy orders. Status reads Missing
+        (no live order there), Outbid (someone bids higher) or Active, and the Note flags one
+        running low on volume or near expiry. Station best bid is known only where that station is
+        a configured price source (Settings > Market). Missing, outbid, low and expiring orders can
+        raise Worklist tasks.
+
+        ### Order Tracker
+        Orders you have committed to deliver: entered with Add Order, or booked by a Store from EVE
+        mail or the web. One row per order line; lines of one order share an Order #. Open orders
+        show fulfilment (On hand, in build, Short) and the delivering Contract, matched
+        automatically from your contracts. Also Purchase Price, Status (Pending, Completed,
+        Canceled), Build Cost and Profit. Orders marked Priority come first in the Worklist. Sales
+        already made are in the Sales Tracker.
+
+        ### Sales Tracker
+        Sales already made: market sell transactions and finished item-exchange contracts, each
+        with build cost and market value from the nearest daily price snapshot, and profit against
+        the basis chosen in "Profit based on" (Build or Market). Filter by date, owner and sale
+        type. Summary shows profit by buyer, by market group and by item, plus charts of sales,
+        costs, profit and margin; Detail lists each sale. Right-click marks a sale not for profit
+        (kept out of the figures) or adds labels.
+
+        ### Sale Posting
+        A shareable price list. On Definitions a posting (with a region and a build-price
+        multiplier) holds sections, which may override the multiplier, and sections hold items.
+        Each item shows In Stock, In Build and Reserved (overridable), three reference prices
+        (Build Cost, Mkt Value, Contract), your Sale Price, profit against Build or Market, and a
+        Ready estimate. The Posting tab renders it as Plain Text, Slack, Discord, Markdown, HTML,
+        EVE Mail or BBCode to copy. A Store sells a posting.
 
         ### Stores (EVE Mail store and web shop)
         A store sells a sale posting — a price list priced from build costs or the market — to
@@ -224,6 +319,14 @@ public static class AppKnowledge
         ### Net Worth
         A historical chart of your net worth over time (assets, wallet, etc.).
 
+        ### Income & Expense
+        Where ISK came from and went, from the wallet journal of every authenticated character and
+        personal corp together (there is no owner picker). Income and Expenses list categories by
+        journal type, largest first, with smaller ones rolled into Other; a chart shows daily
+        income, expense and running cashflow. The period follows the Overview's period selector.
+        ISK moved between your own wallets is left out. For asset value see Net Worth; for
+        individual entries, Wallet.
+
         ### Wallet
         Browse wallet transactions and the wallet journal for your characters.
 
@@ -243,18 +346,58 @@ public static class AppKnowledge
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.
 
+        ### Player Entities
+        Look up players on three tabs: Pilots, Corporations and Alliances. Search by name (two
+        letters minimum; names not yet cached are fetched from ESI). The selected entity shows its
+        portrait or logo, key facts, and sub-tabs where there is content: Description, Kills /
+        Losses, Corp History (pilots), Alliance History (corporations), Member Corps (alliances)
+        and Intel Reports (pilots). Player names elsewhere in the app open here, and
+        navigate_to_entity opens a pilot, corporation or alliance.
+
+        ### NPC Entities
+        NPC entities from the game's static data, on four tabs: Agents, Stations, Corporations and
+        Factions; search by name. An NPC corporation shows its faction, headquarters, ticker and
+        tax rate, with sub-tabs for its agents, stations, market orders (in regions you have market
+        data for) and LP store offers. A station lists its agents; a faction, its corporations and
+        Faction Warfare systems. navigate_to_entity opens an agent, NPC corporation or faction
+        here.
+
         ## Communication tools
 
         ### Eve Mail
         Read and compose EVE mail from within EVE Console.
 
+        ### Notifications
+        The in-game notifications synced for your characters: structure alerts, wars, insurance,
+        corporation and faction messages and more. One sent to several of your characters is one
+        row listing them all, unread while any of them has not read it. Filter by character, type,
+        sender type and date (the last 30 days by default), or Unread only; the selected row's
+        formatted body shows below. A notification card on the Overview opens here. Needs the
+        esi-characters.read_notifications.v1 scope.
+
         ## Tools
+
+        ### Structure Browser
+        Player-owned structures the app knows of, from your own data and ESI's public list; Add by
+        ID adds another. Filter by location, type, corp and alliance; Show unknown includes those
+        ESI will not describe for lack of docking access. Selecting one shows tabs: Details (notes;
+        name, system and type are hand-editable only where ESI is silent), Fitting (from your
+        assets, or entered by hand, which carries rigs to a linked Indy Parks entry), Assets,
+        Cargo, Fuel, Fighters and Industry Jobs.
 
         ### Universe Map
         A drill-down map: New Eden, then a region, then a system page. Overlays colour systems
         by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
         intel sightings. The system page has tabs for its celestials, kills, industry indices,
         graphs and intel.
+
+        ### Jump Planner
+        Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
+        Conservation levels (the range per jump is shown) and a Jump Through rule for where
+        midpoints may stop (anywhere, stations and structures, Fortizar/Keepstar or Keepstar
+        systems), then add waypoints by name and Plan Route. The map shows the route with total
+        jumps, light-years and isotope fuel, above a per-leg table; drag a midpoint to move it or
+        click it for alternatives. High-sec waypoints are refused.
 
         ### Alarms
         User-defined alarms. Nothing exists by default — each one is something the capsuleer (or
@@ -276,6 +419,20 @@ public static class AppKnowledge
         ### ESI Explorer
         A raw browser for ESI endpoints — advanced/developer use for inspecting the API
         directly.
+
+        ### Error Log
+        The app's own recorded errors, such as a failed ESI call or a calculation error, newest
+        first: Time, Client (which machine or worker logged it), Source, Context, Message and Inner
+        exception. The From / Thru range defaults to the last 24 hours and loads at most 5,000
+        rows; the list is read when the tab opens, and Refresh re-reads it. Selecting a row shows
+        the full text, which is what to copy into a bug report.
+
+        ### AI Usage (AI Usage & Cost)
+        What this assistant has used and its estimated cost — agent turns, speech out and speech
+        in — over a date range (last 30 days by default), grouped by day, week or month. Tabs:
+        Summary (calls, tokens, cache use and cost per period and model), Detail (each call, with
+        the tools its turn used) and Rates, the editable price list every cost is worked out from.
+        A service with no rate shows "no rate" and is left out of the total; local models are free.
 
         ## Local logs (game logs, chat logs, intel)
 
@@ -334,31 +491,6 @@ public static class AppKnowledge
           will fire on every check.
         - Do not try to filter to "since I last looked". Write the query for current state over
           a sensible recent window; the alarm works out what is new.
-
-        ### Item Valuation (Market / Trade)
-        An appraisal tool like the web ones: paste any list the client copies — a hangar or
-        cargo hold, a contract's items, a fit, a multibuy list, a spreadsheet's rows, or typed
-        lines such as "Tritanium 22222" or "Warrior II x5". The paste is read leniently: on a
-        line with columns (tabs, commas, semicolons, pipes or runs of spaces, quoted or not)
-        the first column is the item name, the first whole number after it is the count, and
-        every other column is ignored; no number means one; a header row is skipped; the same
-        item on several lines is added up. Then pick a STATION (any station or structure with
-        orders in the app's books, whichever market source fetched them; not a market source,
-        so two stations of one region can be compared), a price basis (Sell = lowest sell
-        order, Buy = highest buy order, Split = halfway), whether to value the items or their
-        reprocessed output, and press Appraise. The Values tab shows every item three ways at
-        that station, unit and total side by side: market (from contracts where the station
-        has no orders, marked "contract"), build (the app's build cost) and reprocessed (the
-        materials at the same station's prices, at the app's yields); the highest of the three
-        is green, the others red with how far below they sit, and the panel above totals each
-        the same way plus volume and counts. "Reprocessed output" turns the list into its
-        materials batch by batch and keeps as "Left over" whatever could not be reprocessed. The
-        Market compare tab adds more stations: each item's unit, total and per cent below the
-        best across the stations, with a total per station. Price % values at a share of the
-        price (a 90% buyback). Buy orders count at the station, from its system, or
-        region-wide; NPC and jump-ranged ones do not. Names the SDE does not know stay in the
-        table flagged; item names open the Item Browser; Copy puts both tables on the clipboard
-        as tab-separated text. Nothing is stored.
 
         ## Settings (gear icon)
         Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE
@@ -434,30 +566,114 @@ public static class AppKnowledge
         """;
 
     /// <summary>
-    /// One-line "what this tab is for" summary, matched against a tab title or tool id.
-    /// Used to give the agent focused context about the view the capsuleer is on so it
-    /// does not have to guess what a screenshot is showing.
+    /// Every tool the application opens as a tab: its id — what open_window takes and a tab is
+    /// keyed by — the name it goes by, and the heading its entry in <see cref="Guide"/> starts
+    /// with. One list for the agent's open_window, for naming the tab the capsuleer has on screen,
+    /// and for finding what the guide says about it.
+    ///
+    /// <para>⚠️ Keep it in step with the sidebar (MainWindowViewModel) and the guide. The agent
+    /// could open 17 of these 41 tools, and the guide left 17 undescribed: asked about one of
+    /// those, a small model borrowed the nearest entry — the Universe Map's for the Jump Planner —
+    /// and could not open the tool it offered to open.</para>
     /// </summary>
-    public static string TabIntent(string tabTitleOrId)
+    public static readonly IReadOnlyList<(string Id, string Name, string Heading)> Tools =
+    [
+        ("overview",            "Overview",               "Overview"),
+        ("worklist",            "Worklist",               "Worklist"),
+        ("characters",          "Characters",             "Characters"),
+        ("assets",              "Assets",                 "Assets"),
+        ("items",               "Item Browser",           "Item Browser"),
+        ("inv_levels",          "Inventory Levels",       "Inventory Levels"),
+        ("structure_browser",   "Structure Browser",      "Structure Browser"),
+        ("universe",            "Universe Map",           "Universe Map"),
+        ("jump_planner",        "Jump Planner",           "Jump Planner"),
+        ("industry",            "Industry Jobs",          "Industry Jobs"),
+        ("indy_parks",          "Indy Parks",             "Indy Parks"),
+        ("prod_calc",           "Production Calculator",  "Production Calc"),
+        ("price_overrides",     "Price Overrides",        "Price Overrides"),
+        ("industry_opps",       "Industry Opportunities", "Industry Opportunities"),
+        ("market_viewer",       "Market Overview",        "Market Overview"),
+        ("item_valuation",      "Item Valuation",         "Item Valuation"),
+        ("lp_market_values",    "LP Market Values",       "LP Market Values"),
+        ("market_levels",       "Market Levels",          "Market Levels"),
+        ("contracts",           "Contracts",              "Contracts"),
+        ("trade",               "Trade Opportunities",    "Trade Opportunities"),
+        ("standing_buy_orders", "Standing Buy Orders",    "Standing Buy Orders"),
+        ("order_tracker",       "Order Tracker",          "Order Tracker"),
+        ("sales_tracker",       "Sales Tracker",          "Sales Tracker"),
+        ("sale_posting",        "Sale Posting",           "Sale Posting"),
+        ("stores",              "Stores",                 "Stores"),
+        ("net_worth",           "Net Worth",              "Net Worth"),
+        ("income_expense",      "Income & Expense",       "Income & Expense"),
+        ("wallet",              "Wallet",                 "Wallet"),
+        ("corp_activity",       "Corp Activity",          "Corp Activity"),
+        ("killmails",           "Killmails",              "Killmails"),
+        ("player_entities",     "Player Entities",        "Player Entities"),
+        ("npc_entities",        "NPC Entities",           "NPC Entities"),
+        ("eve_mail",            "Eve Mail",               "Eve Mail"),
+        ("notifications",       "Notifications",          "Notifications"),
+        ("background",          "Background Processes",   "Background Processes"),
+        ("data",                "ESI Explorer",           "ESI Explorer"),
+        ("error_log",           "Error Log",              "Error Log"),
+        ("ai_usage",            "AI Usage",               "AI Usage"),
+        ("game_log",            "Game Log",               "Game Log and Chat Log"),
+        ("chat_log",            "Chat Log",               "Game Log and Chat Log"),
+        ("alarms",              "Alarms",                 "Alarms"),
+    ];
+
+    /// <summary>
+    /// The tool a tab shows: by its id, or — for a caller with only a title, or a name the agent
+    /// wrote — by name. Tab titles are sometimes short forms ("Universe", "Trade"), so a name
+    /// that starts with the title counts. Null for a tab that is not a tool: a table or document
+    /// the agent opened.
+    /// </summary>
+    public static (string Id, string Name, string Heading)? Tool(string? idOrTitle)
     {
-        var t = (tabTitleOrId ?? "").ToLowerInvariant();
-        if (t.Contains("overview"))    return "Cross-character dashboard: income/expense charts, EVE news, and clickable alerts.";
-        if (t.Contains("character"))   return "Per-character viewer: skills and training queue, attributes, clones, medals, titles, standings.";
-        if (t.Contains("asset"))       return "Searchable list of all assets across characters and corps, filterable by name/location/owner.";
-        if (t.Contains("item"))        return "Look up any item: description, attributes, requirements, required-for (skills), industry, market orders, price history.";
-        if (t.Contains("industr") && t.Contains("job")) return "All manufacturing/reaction/invention/research jobs, filterable by status/activity/owner.";
-        if (t.Contains("indy") || t.Contains("park"))   return "Define industry parks (structures per item category) that drive build-cost calculations.";
-        if (t.Contains("prod"))        return "Production calculator: build cost, materials, and job breakdown for a chosen blueprint/product.";
-        if (t.Contains("industry_opp") || (t.Contains("industry") && t.Contains("opp"))) return "Rank buildable items by profit vs slot time: build cost vs market sell/buy price, with Profit per Slot Day.";
-        if (t.Contains("market level"))return "Monitor sell-order stock levels for a defined item list on a chosen market.";
-        if (t.Contains("inv") && t.Contains("level")) return "Monitor your own holdings (assets/in-build/orders) against target levels, jEveAssets-style.";
-        if (t.Contains("trade"))       return "Find profitable hauling between two markets with cargo/ISK/volume constraints and group exclusions.";
-        if (t.Contains("net worth"))   return "Historical chart of net worth over time.";
-        if (t.Contains("wallet"))      return "Wallet transactions and journal for your characters.";
-        if (t.Contains("corp"))        return "Corporation activity and finances: 24h/monthly summaries, taxes, mining, killmails, projects, standing projects, top-10 lists.";
-        if (t.Contains("killmail"))    return "Corp and personal killmails with detailed kill reports.";
-        if (t.Contains("mail"))        return "Read and compose EVE mail.";
-        if (t.Contains("esi") || t.Contains("explorer") || t == "data") return "Raw ESI endpoint browser (advanced/developer use).";
-        return "";
+        var key = (idOrTitle ?? "").Trim();
+        if (key.Length == 0) return null;
+        foreach (var t in Tools) if (t.Id.Equals(key, StringComparison.OrdinalIgnoreCase)) return t;
+        foreach (var t in Tools) if (t.Name.Equals(key, StringComparison.OrdinalIgnoreCase)) return t;
+        foreach (var t in Tools)
+            if (t.Name.StartsWith(key, StringComparison.OrdinalIgnoreCase) || t.Heading.StartsWith(key, StringComparison.OrdinalIgnoreCase))
+                return t;
+        return null;
+    }
+
+    /// <summary>
+    /// What the guide says about one tool: every section whose heading starts with the tool's —
+    /// its description and, where there is one, its entry under Interactions — cut to
+    /// <paramref name="limit"/> characters. Empty for a tool the guide does not describe.
+    /// </summary>
+    public static string EntryFor(string? toolId, int limit = 1800)
+    {
+        if (Tool(toolId) is not { } tool) return "";
+        var lines = Guide.Split('\n');
+        var entry = new System.Text.StringBuilder();
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+            if (!line.StartsWith("### ") || !line[4..].StartsWith(tool.Heading, StringComparison.OrdinalIgnoreCase)) continue;
+            var end = i + 1;
+            while (end < lines.Length && !lines[end].TrimStart().StartsWith('#')) end++;
+            entry.AppendLine(string.Join('\n', lines[i..end].Select(l => l.TrimEnd())).Trim()).AppendLine();
+            i = end - 1;
+        }
+        var text = entry.ToString().Trim();
+        return text.Length <= limit ? text : text[..limit].TrimEnd() + "…";
+    }
+
+    /// <summary>
+    /// What a tab is for, in a sentence: the first of the guide's entry for its tool. From the
+    /// guide itself, so the two cannot disagree — the keyword matching this replaced gave the
+    /// Market Overview the Overview's description ("overview") and Item Valuation the Item
+    /// Browser's ("item").
+    /// </summary>
+    public static string TabIntent(string? tabTitleOrId)
+    {
+        var entry = EntryFor(Tool(tabTitleOrId)?.Id);
+        if (entry.Length == 0) return "";
+        var body = string.Join(' ', entry.Split('\n').Skip(1).TakeWhile(l => l.Trim().Length > 0).Select(l => l.Trim()));
+        var stop = body.IndexOf(". ", StringComparison.Ordinal);
+        return stop < 0 ? body : body[..(stop + 1)];
     }
 }

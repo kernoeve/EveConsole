@@ -47,6 +47,11 @@ public static class ModelRouter
             $"Send a message to DATA when {when}\n" +
             "Everything else goes to CHAT: conversation, general EVE Online knowledge, how the application works, " +
             "opening or arranging its tools, alarms, destinations, and remembering instructions.\n" +
+            // ⚠️ "I'm on Assets now" went to DATA: the word matched "assets and ships" above. Naming
+            // a tool is not asking what the records hold.
+            "A message about the application itself — what a tool does, which tool is on screen, where to find " +
+            "something — is CHAT even when it names a tool such as Assets or Market Orders. It is DATA only when " +
+            "it asks what the capsuleer's own records hold.\n" +
             "A follow-up to an answer that came from DATA — \"and for my alt?\", \"what about last week?\", " +
             "\"sort that by value\" — is DATA too.\n\n" +
             $"The last exchange:\n{exchange}\n\n" +

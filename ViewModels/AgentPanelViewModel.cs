@@ -569,7 +569,12 @@ public sealed class AgentPanelViewModel : ReactiveObject
                 "them in that light: the ship it names is still undocked unless they say otherwise.]")
             { ShowInChat = false });
 
-        var userMsg = new AgentMessage(MessageRole.User, text) { ShowInChat = showUserMessage };
+        // Stamped with what they had on screen as they wrote it — see AgentMessage.OnScreen.
+        var userMsg = new AgentMessage(MessageRole.User, text)
+        {
+            ShowInChat = showUserMessage,
+            OnScreen   = _service.OnScreenProvider?.Invoke(),
+        };
         _history.Add(userMsg);
         if (userMsg.ShowInChat) Messages.Add(userMsg);
 
