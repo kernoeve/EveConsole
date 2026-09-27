@@ -626,6 +626,17 @@ public static class PostgresSchema
         """
         ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "MailUpdates" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // An order delivered over several contracts: each with the units it carries, and how many
+        // of the order have been accepted and how many are waiting on the buyer.
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "LinkedContracts" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "UnitsDelivered" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "UnitsContracted" INTEGER NOT NULL DEFAULT 0
+        """,
 
 
         // ── Agent telemetry ──────────────────────────────────────────────────

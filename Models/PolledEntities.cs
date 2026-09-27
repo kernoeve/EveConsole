@@ -1070,12 +1070,35 @@ public class TrackedOrder
     public int    UnitsInBuild     { get; set; }
 
     /// <summary>
-    /// The contract this order is on — matched by OrderFulfilmentService (issued by one of our
-    /// characters or personal corporations, to this order's buyer, carrying the ordered units
-    /// over all its lines) or attached by hand. Its acceptance completes the order; one that
-    /// lapses unaccepted is let go.
+    /// The one contract to name for this order, out of <see cref="LinkedContracts"/>: the oldest
+    /// still waiting for the buyer to accept it, or else the latest. Null when there are none.
+    ///
+    /// <para>⚠️ Kept because the mail, the web site, alarms and labels all read it — and on
+    /// an order with one contract, which is most of them, it is exactly what it always was.</para>
     /// </summary>
     public int?   LinkedContractId { get; set; }
+
+    /// <summary>
+    /// Every contract carrying this order, oldest first, with the units each carries:
+    /// "236432592:1,236455120:1". Matched by OrderFulfilmentService — issued by one of our
+    /// characters or personal corporations, to this order's buyer, after the order was placed —
+    /// or attached by hand, as a bare id until the pass has counted its units. Read and written
+    /// through <see cref="OrderContractLinks"/>.
+    ///
+    /// <para>⚠️ Several, and with units. An order for several often goes out over several
+    /// contracts, and one contract can carry two orders for the same buyer; a single link per
+    /// order either completed an order for two on a contract carrying one, or never linked the
+    /// one-hull contract at all.</para>
+    /// </summary>
+    public string LinkedContracts  { get; set; } = "";
+
+    /// <summary>Units on contracts the buyer has accepted. The order completes when these are
+    /// all of <see cref="Units"/>.</summary>
+    public int    UnitsDelivered   { get; set; }
+
+    /// <summary>Units on contracts made out and not yet accepted. Nothing on the shelf or in
+    /// build is held for these.</summary>
+    public int    UnitsContracted  { get; set; }
 
     /// <summary>
     /// When the order was settled — completed or cancelled. Set from the contract's acceptance

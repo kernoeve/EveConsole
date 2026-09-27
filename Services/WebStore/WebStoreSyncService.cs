@@ -862,7 +862,9 @@ public class WebStoreSyncService(
         var open = mine.Where(o => o.Status == "pending").ToList();
         if (open.Count == 0) return ("rejected", "Nothing on the order is still open.", mine[0].OrderRef);
 
-        var contracted = open.Where(o => o.LinkedContractId is not null).ToList();
+        // Only a contract still waiting on the buyer has to be withdrawn; one already accepted
+        // for part of the order is a delivery made.
+        var contracted = open.Where(OrderContractLinks.AwaitsAcceptance).ToList();
         foreach (var o in open)
         {
             o.Status        = "canceled";

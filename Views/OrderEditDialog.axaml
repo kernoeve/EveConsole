@@ -111,9 +111,9 @@
 
       <StackPanel Spacing="5">
         <TextBlock Classes="lbl" Text="CONTRACT" />
-        <TextBox x:Name="ContractBox" Watermark="contract id, if the match missed it" Padding="8 5" />
+        <TextBox x:Name="ContractBox" Watermark="contract ids, if the match missed one" Padding="8 5" />
         <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                   Text="Normally filled in automatically. Type an id here when the contract cannot be matched — usually because its item list differs from the order. Clearing it removes the link." />
+                   Text="Normally filled in automatically — every contract carrying this order, since an order can go out over several. Add an id here when a contract cannot be matched, usually because it was made out before the order was entered; separate several with commas. Removing an id lets that contract go." />
       </StackPanel>
 
       <StackPanel Spacing="5">

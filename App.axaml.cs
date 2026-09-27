@@ -856,6 +856,9 @@ public class App : Application
                         "StockOnHand"      INTEGER NOT NULL DEFAULT 0,
                         "UnitsInBuild"     INTEGER NOT NULL DEFAULT 0,
                         "LinkedContractId" INTEGER NULL,
+                        "LinkedContracts"  TEXT    NOT NULL DEFAULT '',
+                        "UnitsDelivered"   INTEGER NOT NULL DEFAULT 0,
+                        "UnitsContracted"  INTEGER NOT NULL DEFAULT 0,
                         "CompletedOn"      TEXT NULL,
                         "StoreId"          INTEGER NOT NULL DEFAULT 0,
                         "OrderRef"         TEXT    NOT NULL DEFAULT '',
@@ -896,6 +899,11 @@ public class App : Application
                 // The web site's id for an order placed there.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "WebOrderId" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "MailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // An order delivered over several contracts: each with the units it carries, and how
+                // many of the order have been accepted and how many are waiting on the buyer.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContracts" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsDelivered" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsContracted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)

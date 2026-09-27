@@ -269,15 +269,17 @@ public static class AppKnowledge
         ### Order Tracker
         Orders you have committed to deliver: entered with Add Order, or booked by a Store from EVE
         mail or the web. One row per order line; lines of one order share an Order #. Open orders
-        show fulfilment (On hand, in build, Short) and the delivering Contract, matched
-        automatically from your contracts: one you issued to the buyer (or the order's Contract
-        To) after the order was placed, carrying at least the ordered quantity counted over all
-        its lines. Extras such as fitted rigs, and whether a hull is packaged or assembled, do not
-        matter. A contract can also be attached by hand with Edit. Accepting the contract
-        completes the order and declining it cancels it; while an order is on a contract, its
-        stock and jobs go to the orders behind it. Also Purchase Price, Status (Pending,
-        Completed, Canceled), Build Cost and Profit. Orders marked Priority come first in the
-        Worklist. Sales already made are in the Sales Tracker.
+        show fulfilment (On hand, in build, Short) and the delivering Contracts, matched
+        automatically from your contracts issued to the buyer (or the order's Contract To) after
+        the order was placed. Units are counted over every line of a contract; extras such as
+        fitted rigs, and whether a hull is packaged or assembled, do not matter. An order can go
+        out over several contracts, and one contract can carry several orders: On contract shows
+        units waiting for the buyer to accept, Delivered shows units accepted of units ordered,
+        and only what no contract carries is planned from stock and builds. The order completes
+        when every unit is accepted; a buyer declining a contract for the whole order cancels it.
+        Contracts can also be attached by hand with Edit (several ids, comma separated). Also
+        Purchase Price, Status (Pending, Completed, Canceled), Build Cost and Profit. Orders
+        marked Priority come first in the Worklist. Sales already made are in the Sales Tracker.
 
         ### Sales Tracker
         Sales already made: market sell transactions and finished item-exchange contracts, each

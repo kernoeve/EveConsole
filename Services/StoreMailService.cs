@@ -167,17 +167,25 @@ public class StoreMailService(
 
     /// <summary>
     /// What an order line's state is, as one string, for comparison against what was last sent.
-    /// </summary>
-    /// <summary>
-    /// What an order line's state is, as one string, for comparison against what was last sent.
     ///
     /// <para>⚠️ The contract id is part of it. A contract being cut is the most interesting thing
     /// that happens to an order between ordering and receiving it — "go and accept it" is
     /// actionable in a way that "still on its way" is not — and without this the row would look
     /// unchanged and the buyer would never be told.</para>
+    ///
+    /// <para>⚠️ The units delivered and on contract are added only to an order part way there,
+    /// where a second contract or an acceptance is news the rest of the string can miss. Every
+    /// other order's state reads exactly as it always has: changing it would have mailed every
+    /// buyer with an open order at once.</para>
     /// </summary>
     internal static string StateOf(TrackedOrder o) =>
-        $"{o.Status}|{o.FulfilmentSource}|{o.EstimatedDate}|{o.LinkedContractId}";
+        $"{o.Status}|{o.FulfilmentSource}|{o.EstimatedDate}|{o.LinkedContractId}"
+        + (PartWay(o) ? $"|{o.UnitsDelivered}/{o.UnitsContracted}" : "");
+
+    /// <summary>Open, with some of it delivered or only some of it on a contract.</summary>
+    private static bool PartWay(TrackedOrder o) =>
+        o.Status == "pending"
+        && (o.UnitsDelivered > 0 || (o.UnitsContracted > 0 && o.UnitsContracted < o.Units));
 
     /// <summary>
     /// An expected date for anything coming off the shelf, before the state is stamped.
@@ -1092,7 +1100,7 @@ public class StoreMailService(
     /// </summary>
     private static string Expect(TrackedOrder? o)
     {
-        if (o?.LinkedContractId is not null)
+        if (o is not null && OrderContractLinks.AwaitsAcceptance(o))
             return "A contract is already waiting for you to accept.";
 
         // ⚠️ The date, wherever there is one. A stock order gets one from the store's own
@@ -1124,14 +1132,21 @@ public class StoreMailService(
         "completed" => "delivered",
 
         // ⚠️ Says which kind of cancelled. An order withdrawn by the buyer and one ended because
-        // they declined the contract look identical in the row, and only one of them is news.
-        "canceled"  => o.LinkedContractId is not null
+        // they declined the contract look identical in the row, and only one of them is news —
+        // and one cancelled after part of it was delivered says what they did get.
+        "canceled"  => o.UnitsDelivered > 0
+                        ? $"{o.UnitsDelivered:N0} of {o.Units:N0} delivered, and the rest cancelled"
+                        : o.LinkedContractId is not null
                         ? "the contract was declined, so this order is closed"
                         : "cancelled",
 
+        // ⚠️ Part delivered, or only part on a contract: each part said. "Waiting for you to
+        // accept it" is untrue of the units already accepted, and "delivered" of the rest.
+        _ when PartWay(o) => Parts(o),
+
         // A contract on the table outranks everything else that could be said. It is the only
         // state where the next move is theirs.
-        _ when o.LinkedContractId is not null
+        _ when OrderContractLinks.AwaitsAcceptance(o)
                     => "contract created — waiting for you to accept it",
 
         _ => o.FulfilmentSource switch
@@ -1147,6 +1162,29 @@ public class StoreMailService(
                         : "waiting on materials",
         },
     };
+
+    /// <summary>
+    /// An order part way there, a part at a time: "1 of 2 delivered; 1 in production, expected
+    /// 2026-09-28". What is neither delivered nor on a contract is said from the shelf and the
+    /// jobs held for it — the source names the contract whenever one is waiting, so it cannot.
+    /// </summary>
+    private static string Parts(TrackedOrder o)
+    {
+        var parts = new List<string>();
+        if (o.UnitsDelivered  > 0) parts.Add($"{o.UnitsDelivered:N0} of {o.Units:N0} delivered");
+        if (o.UnitsContracted > 0) parts.Add($"{o.UnitsContracted:N0} on a contract waiting for you to accept it");
+
+        var rest = o.Units - o.UnitsDelivered - o.UnitsContracted;
+        var due  = o.EstimatedDate is { Length: > 0 } d ? d : null;
+        if (rest > 0)
+            parts.Add($"{rest:N0} " + (o.StockOnHand >= rest
+                ? (due is null ? "ready now" : $"ready now, contract expected {due}")
+                : o.UnitsInBuild > 0
+                    ? (due is null ? "in production" : $"in production, expected {due}")
+                    : (due is null ? "waiting on materials" : $"expected {due}")));
+
+        return string.Join("; ", parts);
+    }
 
     // ── CANCEL ────────────────────────────────────────────────────────────────
 
