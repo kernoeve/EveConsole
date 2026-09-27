@@ -30,6 +30,12 @@ using System.Text.RegularExpressions;
 //  is narrower than it may look.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ⚠️ SQLite, pinned, before anything reads the engine. Left to itself DbEngine reads the machine's
+// config.json, and on a developer machine set to PostgreSQL the SQLite database this builds was
+// fingerprinted with information_schema — "A fresh install would not start" on every run, from a
+// fault that is the machine's, not the build's. CI has no config.json, which is why it never saw it.
+EveConsole.Services.DbEngine.Pin(EveConsole.Services.DbBackend.Sqlite);
+
 var root = args.Length > 0 ? args[0] : FindRepoRoot();
 if (root is null)
 {
