@@ -826,6 +826,15 @@ public class AssetBrowserViewModel : ReactiveObject
 
     private static string FormatValue(string column, object value)
     {
+        // ⚠️ Build Cost is read straight from the build-cost table, where it is a decimal — TEXT on
+        // SQLite, numeric on PostgreSQL — not the double the computed columns beside it are. It
+        // missed the branch below and was shown raw, without the commas every other ISK column
+        // has. Brought to the same type first, so it is formatted the same way.
+        if (value is decimal m) value = (double)m;
+        else if (value is string s && column is "Build Cost" or "Value" or "Value Per Unit" or "Total Value" or "ISK/m³"
+                 && double.TryParse(s, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            value = parsed;
+
         if (value is double d)
         {
             return column switch
