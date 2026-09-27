@@ -433,6 +433,11 @@ public static class AppKnowledge
         Summary (calls, tokens, cache use and cost per period and model), Detail (each call, with
         the tools its turn used) and Rates, the editable price list every cost is worked out from.
         A service with no rate shows "no rate" and is left out of the total; local models are free.
+        Every model a paid service lists gets a rate row of its own, added when the list loads in
+        Settings or when this tool opens: priced from LiteLLM's price list where it has the model
+        (the note names the list, the date and the provider's pricing page to check it against),
+        otherwise a copy of the service's "(any model)" rate whose note says "Not set yet". A rate
+        edited here is never changed by either.
 
         ## Local logs (game logs, chat logs, intel)
 
@@ -497,8 +502,11 @@ public static class AppKnowledge
         (import/update the EVE Static Data Export — required before item and market
         lookups work), Market (define price sources and the default asset-value and
         manufacturing-cost pricing), Timers and Polling (ESI poll intervals), Corp Top 10
-        (exclude list for corp top-10 lists), AI Agent (configure this assistant —
-        provider, model, API key, voice/TTS, push-to-talk), Alerts (toggle Overview
+        (exclude list for corp top-10 lists), AI Agent (configure this assistant: the models
+        it thinks with, each chosen from its service's own list with that service's key beside
+        it, and which one talks, which answers data questions and which summarises, under Roles;
+        Personalisation; the voices it speaks with, in order of preference; and push-to-talk
+        speech input), Alerts (toggle Overview
         alerts), Price History (regions whose market history is swept in the background —
         every type that trades in those regions is refreshed on the "Price History Sweep"
         interval in Timers, default 24h, so the opportunity tools read it from the DB),
