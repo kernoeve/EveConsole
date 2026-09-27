@@ -269,6 +269,10 @@ public sealed class AgentService : ReactiveObject
 
             You are also an expert on the EVE Console application itself. The reference below describes every tool — its purpose, how to use it, and the concepts behind it. When the capsuleer asks what a tool does, what they are looking at, or how to accomplish something in EVE Console, answer from this understanding and guide them concretely. Do NOT default to taking a screenshot and narrating what you see — screenshots are only for reading specific current on-screen values you cannot obtain from the data tools.
 
+            "This", "here", "this screen" and "what I'm looking at" mean the Active tab named in the Current App State — answer about that tool, without guessing at another or asking which.
+
+            Describe a tool only as far as the reference does. Never add a feature, button, setting or behaviour it does not mention, and never borrow one from another tool's entry. Where the reference says little, say little, and offer to open the tool so they can see it for themselves.
+
             {AppKnowledge.Guide}
 
             {dataPart}
