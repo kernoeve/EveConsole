@@ -24,25 +24,42 @@ public static partial class SpeechText
     [GeneratedRegex(@"\*([^*]+)\*")]                              private static partial Regex Italic { get; }
     [GeneratedRegex(@"__([^_]+)__")]                              private static partial Regex BoldUnderscore { get; }
     [GeneratedRegex(@"(?<!\w)_([^_]+)_(?!\w)")]                   private static partial Regex ItalicUnderscore { get; }
-    [GeneratedRegex(@"^#{1,6}\s+", RegexOptions.Multiline)]       private static partial Regex Heading { get; }
-    [GeneratedRegex(@"^\s*[>*\-+]\s", RegexOptions.Multiline)]    private static partial Regex Bullet { get; }
-    [GeneratedRegex(@"\[([^\]]+)\]\([^)]*\)")]                    private static partial Regex Link { get; }
+    // A heading's hashes at a line's start, space after them or not ("###Assets"); not "#1".
+    [GeneratedRegex(@"^[ \t]*#{1,6}(?=[ \t]|\p{L})[ \t]*", RegexOptions.Multiline)] private static partial Regex Heading { get; }
+    // ⚠️ And anywhere else a run of them stands as a word. A heading reaches the voice mid-line
+    // whenever its line break is lost on the way, and was read out as "hash hash hash".
+    [GeneratedRegex(@"(?<=\s)#{2,6}[ \t]*|(?<=\s)#[ \t]+")]                          private static partial Regex StrayHashes { get; }
+    [GeneratedRegex(@"^\s*[>*\-+]\s", RegexOptions.Multiline)]                        private static partial Regex Bullet { get; }
+    [GeneratedRegex(@"\[([^\]]+)\]\([^)]*\)")]                                        private static partial Regex Link { get; }
+    // A rule between sections: ---, *** or ___, spaced or not.
+    [GeneratedRegex(@"^[ \t]*([-*_])([ \t]*\1){2,}[ \t]*$", RegexOptions.Multiline)]  private static partial Regex Rule { get; }
+    // A table: the row of dashes under its header, the bars at a row's ends, and those between cells.
+    [GeneratedRegex(@"^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(\|[ \t]*:?-{3,}:?[ \t]*)+\|?[ \t]*$", RegexOptions.Multiline)]
+    private static partial Regex TableDivider { get; }
+    [GeneratedRegex(@"^[ \t]*\|[ \t]*|[ \t]*\|[ \t]*$", RegexOptions.Multiline)]      private static partial Regex TableEdge { get; }
+    [GeneratedRegex(@"[ \t]*\|[ \t]*")]                                               private static partial Regex TableBar { get; }
 
     /// <summary>
-    /// The text without its markdown: a heading's hashes, emphasis marks, bullets, code fences and
-    /// link targets, which a voice would otherwise read out or trip over. The words stay.
+    /// The text without its markdown: headings' hashes, emphasis marks, bullets, rules, table bars,
+    /// code fences and link targets, which a voice would otherwise read out or trip over. The
+    /// words stay; a table's cells are read as a list.
     /// </summary>
     public static string WithoutMarkdown(string text)
     {
         text = CodeBlock.Replace(text, " ");
         text = InlineCode.Replace(text, "$1");
+        text = TableDivider.Replace(text, "");         // before emphasis, which would eat a "* * *"
+        text = Rule.Replace(text, "");
         text = Bold.Replace(text, "$1");
         text = Italic.Replace(text, "$1");
         text = BoldUnderscore.Replace(text, "$1");
         text = ItalicUnderscore.Replace(text, "$1");   // not inside a name: snake_case stays
         text = Heading.Replace(text, "");
+        text = StrayHashes.Replace(text, "");
         text = Bullet.Replace(text, "");
         text = Link.Replace(text, "$1");
+        text = TableEdge.Replace(text, "");
+        text = TableBar.Replace(text, ", ");
         return text;
     }
 

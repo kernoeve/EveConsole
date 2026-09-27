@@ -60,9 +60,13 @@ public static class SpeechSegmenter
 
         // A bare "Right." lands as a stutter between longer utterances, so short fragments wait
         // and are spoken with whatever follows them.
+        //
+        // ⚠️ Put back as it was cut: a fragment that ended its line keeps the line break. Joined
+        // with a space, "Sure." pulled the next line's "### Assets" up beside it, mid-line, where
+        // nothing reads a heading's hashes as markup — and the voice said "hash hash hash".
         if (ready.Length < MinimumUtterance)
         {
-            pending.Insert(0, ready + " ");
+            pending.Insert(0, ready + (text[cut] == '\n' ? "\n" : " "));
             return null;
         }
 
