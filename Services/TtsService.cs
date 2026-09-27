@@ -334,9 +334,11 @@ public sealed class TtsService : IDisposable
     {
         if (_muted || !IsSpeaking) return;
 
-        // Say system names the way capsuleers do — "C-FD0D" as "C tac F D zero D" — rather than
-        // however the engine guesses. Done here, on the way out, so the text shown is unaffected.
-        text = EvePronunciation.Expand(text);
+        // Made ready to be said, for every engine alike: markdown and emoji out, and system names
+        // the way capsuleers say them — "C-FD0D" as "C tac F D zero D". Done here, on the way
+        // out, so the text shown is unaffected.
+        text = SpeechText.Prepare(text);
+        if (string.IsNullOrWhiteSpace(text)) return;   // it was nothing but a 👍
         lock (_queueGate)
         {
             var line = new Line(text, Volatile.Read(ref _generation));
@@ -538,7 +540,7 @@ public sealed class TtsService : IDisposable
         if (!announce || string.Equals(previous, current, StringComparison.OrdinalIgnoreCase)) return "";
 
         var message = FormatMessage(template, previous, current);
-        if (message.Length > 0) await TrySpeakAsync(voice, EvePronunciation.Expand(message), generation);
+        if (message.Length > 0) await TrySpeakAsync(voice, SpeechText.Prepare(message), generation);
         return message;
     }
 
@@ -625,7 +627,7 @@ public sealed class TtsService : IDisposable
             : "";
         if (message.Length > 0)
         {
-            var spoken = EvePronunciation.Expand(message);
+            var spoken = SpeechText.Prepare(message);
             Enqueue(generation => TrySpeakAsync(voice, spoken, generation));
         }
 
@@ -658,7 +660,7 @@ public sealed class TtsService : IDisposable
 
         var voice  = BuildVoice(profile.Clone(), keys);
         voice.SetVolume(_volume);
-        var spoken = EvePronunciation.Expand(text);
+        var spoken = SpeechText.Prepare(text);
         var result = new TaskCompletionSource<VoiceTestResult>(TaskCreationOptions.RunContinuationsAsynchronously);
         Enqueue(async generation =>
         {
