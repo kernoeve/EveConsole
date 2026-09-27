@@ -52,10 +52,11 @@ public sealed class ModelProfileVm : ModelChoice
         _endpoint = p.Endpoint;
         _think    = p.Think;
         TestModelCommand   = ReactiveCommand.CreateFromTask(TestAsync);
-        RefreshListCommand = ReactiveCommand.CreateFromTask(() => LoadListAsync(force: true));
+        ModelList = new ServiceListChoice(() => _model, id => Model = id, ListSource, ListFound, ListEmpty,
+                                          "models", "Type the model's name instead.", Listed);
         _relist.Throttle(TimeSpan.FromMilliseconds(700))
                .ObserveOnUi("model list")
-               .Subscribe(settled => { if (ReferenceEquals(_owner.SelectedModel, this)) _ = LoadListAsync(); });
+               .Subscribe(settled => { if (ReferenceEquals(_owner.SelectedModel, this)) _ = ModelList.LoadAsync(); });
     }
 
     public ModelProfile ToProfile() => new()
@@ -132,7 +133,7 @@ public sealed class ModelProfileVm : ModelChoice
             // A model's name belongs to its service: another service, another list to choose from,
             // and its first offered once it arrives.
             Model = "";
-            _ = LoadListAsync();
+            _ = ModelList.LoadAsync();
         }
     }
 
@@ -150,7 +151,7 @@ public sealed class ModelProfileVm : ModelChoice
         {
             this.RaiseAndSetIfChanged(ref _model, value);
             this.RaisePropertyChanged(nameof(NameWatermark));
-            this.RaisePropertyChanged(nameof(SelectedListing));
+            ModelList.ValueChanged();
             Edited();
         }
     }
@@ -182,47 +183,8 @@ public sealed class ModelProfileVm : ModelChoice
     // time it ships (see ModelListing). Loaded when the model is selected on the tab, and again
     // once its key or address has stopped changing.
 
-    private IReadOnlyList<ModelListing> _listings = [];
-    /// <summary>
-    /// What the service offers, newest first where it says — with the model chosen before at the
-    /// top, marked, when it is no longer among them. Empty until the list has loaded, and when it
-    /// cannot be: then the model's name is typed instead.
-    /// </summary>
-    public IReadOnlyList<ModelListing> Listings
-    {
-        get => _listings;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _listings, value);
-            this.RaisePropertyChanged(nameof(ShowListings));
-            this.RaisePropertyChanged(nameof(SelectedListing));
-        }
-    }
-
-    public bool ShowListings => _listings.Count > 0;
-
-    public ModelListing? SelectedListing
-    {
-        get => _listings.FirstOrDefault(l => l.Id == (_model ?? "").Trim());
-        set { if (value is not null && value.Id != (_model ?? "").Trim()) Model = value.Id; }
-    }
-
-    private string _listStatus = "";
-    /// <summary>How many there are, or why there is no list: no key yet, the service's refusal.</summary>
-    public string ListStatus
-    {
-        get => _listStatus;
-        private set { this.RaiseAndSetIfChanged(ref _listStatus, value); this.RaisePropertyChanged(nameof(HasListStatus)); }
-    }
-
-    public bool HasListStatus => _listStatus.Length > 0;
-
-    public ICommand RefreshListCommand { get; }
-
-    /// <summary>What the list was last asked for — service, address, key — so a model selected
-    /// again is not asked twice.</summary>
-    private string _listedFor = "";
-    private CancellationTokenSource? _listing;
+    /// <summary>The model, chosen from what its service lists.</summary>
+    public ServiceListChoice ModelList { get; }
 
     /// <summary>A key or an address being typed: the list is asked for once it settles.</summary>
     private readonly Subject<Unit> _relist = new();
@@ -230,8 +192,8 @@ public sealed class ModelProfileVm : ModelChoice
     /// <summary>The owner's key for this model's service changed.</summary>
     internal void KeyChanged() => _relist.OnNext(Unit.Default);
 
-    /// <summary>Asks the service for its models, unless it was just asked the same.</summary>
-    public async Task LoadListAsync(bool force = false)
+    /// <summary>What to ask this model's service for, as things stand on the tab.</summary>
+    private ServiceListChoice.Source ListSource()
     {
         var key = _provider switch
         {
@@ -240,60 +202,35 @@ public sealed class ModelProfileVm : ModelChoice
             _                        => "",
         };
         var endpoint = (_endpoint ?? "").Trim();
-        var forWhat  = $"{_provider}|{endpoint}|{key.Length}:{key.GetHashCode()}";   // not the key itself
-        if (!force && forWhat == _listedFor) return;
-
-        _listing?.Cancel();
-        var cts = _listing = new CancellationTokenSource();
-
-        var cannot = _provider switch
+        var question = $"{_provider}|{endpoint}|{key.Length}:{key.GetHashCode()}";   // not the key itself
+        return _provider switch
         {
-            AgentProviderType.Claude when key.Length == 0     => "Enter the Claude key above to choose from Anthropic's models.",
-            AgentProviderType.OpenAI when key.Length == 0     => "Enter the OpenAI key above to choose from OpenAI's models.",
-            AgentProviderType.Local  when endpoint.Length == 0 => "Enter the server's address to choose from its models.",
-            _ => null,
+            AgentProviderType.Claude when key.Length == 0      => ServiceListChoice.Source.Unavailable("Enter the Claude key above to choose from Anthropic's models.", question),
+            AgentProviderType.OpenAI when key.Length == 0      => ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's models.", question),
+            AgentProviderType.Local  when endpoint.Length == 0 => ServiceListChoice.Source.Unavailable("Enter the server's address to choose from its models.", question),
+            AgentProviderType.Claude => new(null, question, ct => ClaudeProvider.ListModelsAsync(key, ct)),
+            AgentProviderType.OpenAI => new(null, question, ct => OpenAiCompatibleProvider.ListOpenAiModelsAsync(key, ct)),
+            _                        => new(null, question, ct => OpenAiCompatibleProvider.ListLocalModelsAsync(endpoint, ct)),
         };
-        if (cannot is not null) { _listedFor = forWhat; Listings = []; ListStatus = cannot; return; }
-
-        ListStatus = "Asking for the list of models…";
-        try
-        {
-            var found = _provider switch
-            {
-                AgentProviderType.Claude => await ClaudeProvider.ListModelsAsync(key, cts.Token),
-                AgentProviderType.OpenAI => await OpenAiCompatibleProvider.ListOpenAiModelsAsync(key, cts.Token),
-                _                        => await OpenAiCompatibleProvider.ListLocalModelsAsync(endpoint, cts.Token),
-            };
-            if (cts.IsCancellationRequested) return;
-            _listedFor = forWhat;
-
-            // A model chosen before and no longer offered stays, marked, rather than swapped for
-            // another behind the capsuleer's back. None chosen yet: the first offered, which on
-            // Anthropic's and OpenAI's lists is the newest.
-            var chosen = (_model ?? "").Trim();
-            Listings = found.Count > 0 && chosen.Length > 0 && found.All(l => l.Id != chosen)
-                ? [new ModelListing(chosen, chosen, Listed: false), .. found]
-                : found;
-            if (chosen.Length == 0 && found.Count > 0) Model = found[0].Id;
-
-            ListStatus = (_provider, found.Count) switch
-            {
-                (AgentProviderType.Local, 0) => "The server lists no models: pull one first, as \"ollama pull\" does.",
-                (_, 0)                       => "The service lists no models for this key.",
-                (AgentProviderType.Claude, var n) => $"{n} models your key can use, newest first.",
-                (AgentProviderType.OpenAI, var n) => $"{n} models for conversation, newest first.",
-                (_, var n)                   => $"{n} models on the server.",
-            };
-        }
-        catch (Exception ex) when (!cts.IsCancellationRequested)
-        {
-            _listedFor = "";                   // asked again next time
-            Listings   = [];
-            var why    = ex is OperationCanceledException ? "no answer within 15 seconds." : ex.GetBaseException().Message;
-            ListStatus = $"Could not get the list of models — {why} Type the model's name instead.";
-        }
-        catch (OperationCanceledException) { /* superseded by a newer request */ }
     }
+
+    /// <summary>A paid service's list: a rate row for each model on it. A server of our own is free.</summary>
+    private void Listed(IReadOnlyList<ModelListing> listed)
+    {
+        if (_provider == AgentProviderType.Claude)      _owner.AddListedRates(ListedRates.ClaudeChat, listed);
+        else if (_provider == AgentProviderType.OpenAI) _owner.AddListedRates(ListedRates.OpenAiChat, listed);
+    }
+
+    private string ListFound(int n) => _provider switch
+    {
+        AgentProviderType.Claude => $"{n} models your key can use, newest first.",
+        AgentProviderType.OpenAI => $"{n} models for conversation, newest first.",
+        _                        => $"{n} models on the server.",
+    };
+
+    private string ListEmpty() => _provider == AgentProviderType.Local
+        ? "The server lists no models: pull one first, as \"ollama pull\" does."
+        : "The service lists no models for this key.";
 
     private bool _think;
     /// <summary>A local reasoning model may think before it answers — slower, never shown.</summary>

@@ -1,6 +1,7 @@
 using EveConsole.Agent;
 using EveConsole.Services;
 using ReactiveUI;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Linq;
 
@@ -115,7 +116,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _selectedModel, value);
             this.RaisePropertyChanged(nameof(HasSelectedModel));
-            _ = value?.LoadListAsync();         // the service's models, to choose from
+            _ = value?.ModelList.LoadAsync();   // the service's models, to choose from
         }
     }
 
@@ -426,6 +427,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
             if (_selectedModel?.Provider == AgentProviderType.OpenAI) _selectedModel.KeyChanged();
+            if (_selectedVoice?.Provider == TtsProvider.OpenAi) _selectedVoice.KeyChanged();
+            if (_speechInputProvider == SpeechInputProvider.OpenAiWhisper) _relistTranscription.OnNext(System.Reactive.Unit.Default);
         }
     }
 
@@ -467,6 +470,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _selectedVoice, value);
             this.RaisePropertyChanged(nameof(HasSelectedVoice));
+            _ = value?.LoadListsAsync();        // its engine's models and voices, to choose from
         }
     }
 
@@ -558,7 +562,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string ElevenLabsApiKey
     {
         get => _elevenLabsApiKey;
-        set => this.RaiseAndSetIfChanged(ref _elevenLabsApiKey, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _elevenLabsApiKey, value);
+            if (_selectedVoice?.Provider == TtsProvider.ElevenLabs) _selectedVoice.KeyChanged();
+        }
     }
 
     // ── Kokoro's model: one, however many Kokoro voices are listed ───────────────
@@ -597,7 +605,42 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(ShowMicrophoneSettings));
             if (value != SpeechInputProvider.None && _microphoneDevices.Count == 0)
                 RefreshMicrophoneDevices();
+            if (value == SpeechInputProvider.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
         }
+    }
+
+    /// <summary>
+    /// A rate row for each model a service listed that has none (see ListedRates): so a model can be
+    /// priced as itself, not as the service's "(any model)" rate, without the capsuleer adding it.
+    /// </summary>
+    internal void AddListedRates((string Kind, string Provider) rate, IReadOnlyList<ModelListing> listed)
+    {
+        if (_service.Telemetry is { } telemetry)
+            _ = telemetry.AddListedRatesAsync(rate.Kind, rate.Provider, listed.Select(l => l.Id));
+    }
+
+    // ── OpenAI's transcription model: from its list, never a name written here ──
+
+    private string _transcriptionModel = "";
+    public string TranscriptionModel
+    {
+        get => _transcriptionModel;
+        set { this.RaiseAndSetIfChanged(ref _transcriptionModel, value); TranscriptionList.ValueChanged(); }
+    }
+
+    /// <summary>OpenAI's transcription models for the key, newest first.</summary>
+    public ServiceListChoice TranscriptionList { get; }
+
+    /// <summary>The key being typed: the list is asked for once it settles.</summary>
+    private readonly System.Reactive.Subjects.Subject<System.Reactive.Unit> _relistTranscription = new();
+
+    private ServiceListChoice.Source TranscriptionSource()
+    {
+        var key = _openAiApiKey.Trim();
+        return key.Length == 0
+            ? ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's transcription models.", "none")
+            : new(null, $"openai-stt|{key.Length}:{key.GetHashCode()}",   // not the key itself
+                  ct => EveConsole.Agent.Providers.OpenAiCompatibleProvider.ListOpenAiTranscriptionModelsAsync(key, ct));
     }
 
     public bool ShowLocalWhisperSettings => _speechInputProvider == SpeechInputProvider.LocalWhisper;
@@ -743,6 +786,12 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         RemoveModelCommand         = ReactiveCommand.Create(RemoveModel);
         ResetHandOffWhenCommand    = ReactiveCommand.Create(() => { HandOffWhen = AgentSettings.DefaultHandOffWhen; });
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
+        TranscriptionList         = new ServiceListChoice(() => _transcriptionModel, id => TranscriptionModel = id, TranscriptionSource,
+            n => $"{n} transcription models your key can use, newest first.", () => "OpenAI lists no transcription models for this key.",
+            "models", "Type the model's name instead.", listed => AddListedRates(ListedRates.OpenAiTranscribe, listed));
+        _relistTranscription.Throttle(TimeSpan.FromMilliseconds(700))
+                            .ObserveOnUi("transcription list")
+                            .Subscribe(settled => _ = TranscriptionList.LoadAsync());
         LoadFromService();
         SaveCommand               = ReactiveCommand.Create(Save);
 
@@ -795,7 +844,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _modelSwitchGapMinutes   = s.ModelSwitchGapMinutes;
         _modelPreferredUpMinutes = s.ModelPreferredUpMinutes;
         RebuildChoices();
-        _ = _selectedModel?.LoadListAsync();    // the first model's list, as the tab opens on it
+        _ = _selectedModel?.ModelList.LoadAsync();   // the first model's list, as the tab opens on it
 
         s.NormalizeVoices();
         _speechOn                = s.SpeechOn;
@@ -809,8 +858,12 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         foreach (var profile in s.Voices) Voices.Add(new VoiceProfileVm(this, _tts, profile));
         Renumber();
         _selectedVoice = Voices.FirstOrDefault();
+        _ = _selectedVoice?.LoadListsAsync();
 
         _speechInputProvider      = s.SpeechInputProvider;
+        s.NormalizeTranscription();
+        _transcriptionModel       = s.OpenAiTranscriptionModel ?? "";
+        if (_speechInputProvider == SpeechInputProvider.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
         _whisperLocalModel        = s.WhisperLocalModel;
         _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
         _selectedMicrophoneDevice = string.IsNullOrEmpty(s.MicrophoneDeviceName) ? SystemDefaultMicrophone : s.MicrophoneDeviceName;
@@ -872,6 +925,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             SpeechInputProvider   = _speechInputProvider,
             WhisperLocalModel     = _whisperLocalModel,
             WhisperLanguage       = string.IsNullOrWhiteSpace(_whisperLanguage) ? "en" : _whisperLanguage.Trim(),
+            OpenAiTranscriptionModel = (_transcriptionModel ?? "").Trim(),
             // The empty name is what the recorder reads as "the system default".
             MicrophoneDeviceName  = _selectedMicrophoneDevice is null or SystemDefaultMicrophone ? "" : _selectedMicrophoneDevice,
             PushToTalkKey         = GlobalHotkeyService.KeyOptions
@@ -882,7 +936,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         // when _service.Configure raises the Settings property-changed (which re-evaluates
         // HasSpeechInput and HasTts on AgentPanelViewModel).
         _speech?.Configure(settings.SpeechInputProvider, settings.OpenAiApiKey,
-                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage);
+                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage,
+                           settings.OpenAiTranscriptionModel ?? "");
         _tts?.Configure(settings);
         _service.Configure(settings);
 

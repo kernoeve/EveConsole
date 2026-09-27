@@ -3,6 +3,7 @@ using EveConsole.Agent.Tools;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EveConsole.Agent;
@@ -157,6 +158,59 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
                 errors.Log("AgentTelemetry", $"ServiceCall({kind})", ex);
             }
         });
+    }
+
+    /// <summary>What a rate row copied from the "(any model)" row says of itself.</summary>
+    public const string CopiedRateNote =
+        "Not set yet: the \"(any model)\" rate, copied when this model was first listed. Enter its published rate.";
+
+    /// <summary>
+    /// A rate row for each model a service lists that has none: the service's "(any model)" rate,
+    /// copied, and saying so — so every model can be given its own price, and none is costed as
+    /// another model without its row showing it. Returns how many were added.
+    ///
+    /// <para>⚠️ Insert-if-absent, as the seed is: a row that exists — seeded, copied before, or set
+    /// by the capsuleer — is never touched. No price comes with a model list, so a copy is the most
+    /// that can be known; the note says it is one. A service with no "(any model)" row has nothing
+    /// to copy and gets nothing.</para>
+    /// </summary>
+    public async Task<int> AddListedRatesAsync(string kind, string provider, IEnumerable<string> models)
+    {
+        try
+        {
+            using var scope = scopes.CreateScope();
+            var db   = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var rows = await db.ServiceRates.Where(r => r.Kind == kind && r.Provider == provider).ToListAsync();
+            if (rows.FirstOrDefault(r => r.Model == "") is not { } any) return 0;
+
+            var have  = rows.Select(r => r.Model).ToHashSet(StringComparer.Ordinal);
+            var added = 0;
+            foreach (var model in models.Select(m => (m ?? "").Trim()).Where(m => m.Length > 0).Distinct())
+            {
+                if (!have.Add(model)) continue;
+                db.ServiceRates.Add(new ServiceRate
+                {
+                    Kind              = kind,
+                    Provider          = provider,
+                    Model             = model,
+                    InputPerUnit      = any.InputPerUnit,
+                    OutputPerUnit     = any.OutputPerUnit,
+                    CacheReadPerUnit  = any.CacheReadPerUnit,
+                    CacheWritePerUnit = any.CacheWritePerUnit,
+                    Notes             = CopiedRateNote,
+                    UpdatedAt         = DateTimeOffset.UtcNow,
+                });
+                added++;
+            }
+            if (added > 0) await db.SaveChangesAsync();
+            return added;
+        }
+        catch (DbUpdateException) { return 0; }   // another client added the same rows first: the key is unique
+        catch (Exception ex)
+        {
+            errors.Log("AgentTelemetry", $"AddListedRates({kind}, {provider})", ex);
+            return 0;
+        }
     }
 
     /// <summary>

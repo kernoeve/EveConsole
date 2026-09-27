@@ -82,7 +82,10 @@ public sealed class ClaudeProvider : IAgentProvider
     private readonly string _apiKey;
     private readonly string _model;
 
-    public string ProviderName => "Claude (Anthropic)";
+    /// <summary>What usage is recorded and priced under — see ServiceRate.</summary>
+    public const string ServiceName = "Claude (Anthropic)";
+
+    public string ProviderName => ServiceName;
     public bool   IsConfigured => !string.IsNullOrWhiteSpace(_apiKey) && !string.IsNullOrWhiteSpace(_model);
 
     /// <param name="model">As Anthropic's model list names it. No default: see ModelListing.</param>

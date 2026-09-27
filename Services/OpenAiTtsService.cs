@@ -48,16 +48,23 @@ public sealed class OpenAiTtsService : IDisposable
 
     public static bool IsVlcAvailable => _vlc is not null;
 
-    public static readonly IReadOnlyList<string> Voices =
+    // ⚠️ The one list of names written here, because OpenAI publishes no list of its voices to
+    // ask — its models come from its own list (see ModelListing). These are the voices its
+    // text-to-speech guide names, checked 27 September 2026; tts-1 and tts-1-hd take only the
+    // first nine. A voice OpenAI adds later needs adding here.
+    private static readonly string[] OlderModelVoices =
         ["alloy", "ash", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
+    private static readonly string[] NewerModelVoices =
+        [.. OlderModelVoices, "ballad", "verse", "marin", "cedar"];
 
-    public static readonly IReadOnlyList<string> Models =
-        ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"];
+    /// <summary>The voices OpenAI documents for <paramref name="model"/>.</summary>
+    public static IReadOnlyList<string> VoicesFor(string? model) =>
+        (model ?? "").StartsWith("tts-1", StringComparison.OrdinalIgnoreCase) ? OlderModelVoices : NewerModelVoices;
 
     private string _endpoint = OpenAiEndpoint;
     private string _apiKey   = "";
-    private string _voice    = "nova";
-    private string _model    = "tts-1";
+    private string _voice    = "";
+    private string _model    = "";
     private double _speed    = 1.0;
     private int    _volume   = 100; // VLC 0–200 (100 = normal)
 
@@ -78,17 +85,15 @@ public sealed class OpenAiTtsService : IDisposable
     {
         _endpoint = string.IsNullOrWhiteSpace(endpoint) ? OpenAiEndpoint : endpoint.Trim().TrimEnd('/');
         _apiKey   = apiKey ?? "";
-        _voice    = voice ?? "";
-        _model    = model ?? "";
+        _voice    = (voice ?? "").Trim();
+        _model    = (model ?? "").Trim();
         _speed    = speed is < 0.25 or > 4.0 ? 1.0 : speed;
-
-        // OpenAI's defaults; a local server's model and voice are whatever it calls them.
-        if (IsOpenAi)
-        {
-            if (_voice.Length == 0) _voice = "nova";
-            if (_model.Length == 0) _model = "tts-1";
-        }
+        // No defaults: OpenAI's voice and model are chosen on the settings tab, and a local
+        // server's are whatever it calls them.
     }
+
+    /// <summary>OpenAI's service needs a voice and a model chosen; a server of our own decides for itself.</summary>
+    private bool IsSetUp => !IsOpenAi || (_voice.Length > 0 && _model.Length > 0);
 
     // volume: 0.0 – 1.0 maps to VLC 0–100 (normal output, no amplification)
     public void SetVolume(float volume)
@@ -122,7 +127,7 @@ public sealed class OpenAiTtsService : IDisposable
     public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
         if (_vlc is null) return false;
-        if (IsOpenAi && string.IsNullOrEmpty(_apiKey)) return false;
+        if (IsOpenAi && (string.IsNullOrEmpty(_apiKey) || !IsSetUp)) return false;
         try
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -171,6 +176,7 @@ public sealed class OpenAiTtsService : IDisposable
     {
         if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
         if (IsOpenAi && string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No OpenAI API key is set.");
+        if (!IsSetUp) throw new InvalidOperationException("No OpenAI voice or model is chosen for this voice — choose them in Settings.");
         var stripped = StripMarkdown(text);
         if (string.IsNullOrWhiteSpace(stripped)) return _ => Task.CompletedTask;
 

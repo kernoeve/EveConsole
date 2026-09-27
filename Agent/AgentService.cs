@@ -572,6 +572,7 @@ public sealed class AgentService : ReactiveObject
         _settings.NormalizeModels();
         // And a text saved in the default's words, as they all were, is the default again.
         _settings.NormalizeWording();
+        _settings.NormalizeTranscription();
 
         ConfigureRoles();
     }

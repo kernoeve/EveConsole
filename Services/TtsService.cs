@@ -49,10 +49,7 @@ public sealed class TtsService : IDisposable
     public KokoroTtsService Kokoro => _kokoro;
     public PiperTtsService  Piper  => _piperDownloads;
 
-    public static IReadOnlyList<string> OpenAiVoices     => OpenAiTtsService.Voices;
-    public static IReadOnlyList<string> OpenAiModels     => OpenAiTtsService.Models;
-    public static bool                  VlcAvailable     => OpenAiTtsService.IsVlcAvailable;
-    public static IReadOnlyList<string> ElevenLabsModels => ElevenLabsTtsService.Models;
+    public static bool VlcAvailable => OpenAiTtsService.IsVlcAvailable;
 
     /// <summary>A voice from the list, with its engine.</summary>
     private sealed class Voice(VoiceProfile profile,

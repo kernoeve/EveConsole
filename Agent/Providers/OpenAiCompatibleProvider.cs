@@ -75,7 +75,10 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
 
     /// <summary>OpenAI's own service. The model as its list names it; no default (see ModelListing).</summary>
     public static OpenAiCompatibleProvider OpenAi(string apiKey, string model)
-        => new("OpenAI", OpenAiBase, apiKey ?? "", (model ?? "").Trim(), isLocal: false);
+        => new(OpenAiName, OpenAiBase, apiKey ?? "", (model ?? "").Trim(), isLocal: false);
+
+    /// <summary>What OpenAI's usage is recorded and priced under — see ServiceRate.</summary>
+    public const string OpenAiName = "OpenAI";
 
     /// <summary>
     /// A model server on this machine or the network.
@@ -124,6 +127,22 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         var all = await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false);
         return [.. all.Where(m => !notForTalk.Any(word => m.Id.Contains(word, StringComparison.OrdinalIgnoreCase)))];
     }
+
+    /// <summary>OpenAI's speech models for this key — its voices — newest first: those named for it ("tts").</summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListOpenAiSpeechModelsAsync(string apiKey, CancellationToken ct = default)
+        => [.. (await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false))
+               .Where(m => m.Id.Contains("tts", StringComparison.OrdinalIgnoreCase))];
+
+    /// <summary>
+    /// OpenAI's transcription models for this key, newest first: those named for it ("whisper",
+    /// "transcribe"). Less the diarizing ones, which answer in a form of their own that speech input
+    /// does not read.
+    /// </summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListOpenAiTranscriptionModelsAsync(string apiKey, CancellationToken ct = default)
+        => [.. (await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false))
+               .Where(m => (m.Id.Contains("whisper", StringComparison.OrdinalIgnoreCase)
+                            || m.Id.Contains("transcribe", StringComparison.OrdinalIgnoreCase))
+                           && !m.Id.Contains("diarize", StringComparison.OrdinalIgnoreCase))];
 
     /// <summary>GET models from an OpenAI-style list: ids, in the order given — or newest first
     /// where the entries carry a "created" time, as OpenAI's do.</summary>

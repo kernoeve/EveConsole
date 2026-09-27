@@ -1169,6 +1169,10 @@ public class MainWindowViewModel : ReactiveObject
         ExplorerVm           = new EsiExplorerViewModel(connString);
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
         AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
+        // A model a paid service has added gets a rate row of its own when the tool is opened.
+        AgentUsageVm.SyncListedRates = ct => agentService.Telemetry is { } telemetry
+            ? EveConsole.Agent.ListedRates.SyncAsync(agentService.Settings, telemetry, ct)
+            : Task.FromResult(0);
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
@@ -1198,7 +1202,8 @@ public class MainWindowViewModel : ReactiveObject
         var s = agentService.Settings;
         ttsService.Configure(s);
         speechInputService.Configure(s.SpeechInputProvider, s.OpenAiApiKey,
-                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage);
+                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage,
+                                     s.OpenAiTranscriptionModel ?? "");
 
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 

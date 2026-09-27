@@ -219,15 +219,15 @@ public sealed class AgentSettings
     // Text-to-speech
     public TtsProvider TtsProvider     { get; set; } = TtsProvider.None;
 
-    // OpenAI TTS (reuses OpenAiApiKey above)
+    // OpenAI TTS (reuses OpenAiApiKey above). No model named: chosen from OpenAI's list.
     public string OpenAiTtsVoice { get; set; } = "nova";
-    public string OpenAiTtsModel { get; set; } = "tts-1";
+    public string OpenAiTtsModel { get; set; } = "";
     public double OpenAiTtsSpeed { get; set; } = 1.0;
 
-    // ElevenLabs TTS
+    // ElevenLabs TTS. No voice or model named: chosen from the account's lists.
     public string ElevenLabsApiKey  { get; set; } = "";
-    public string ElevenLabsVoiceId { get; set; } = "21m00Tcm4TlvDq8ikWAM"; // Rachel
-    public string ElevenLabsModel   { get; set; } = "eleven_turbo_v2_5";
+    public string ElevenLabsVoiceId { get; set; } = "";
+    public string ElevenLabsModel   { get; set; } = "";
 
     // Kokoro local TTS
     public string KokoroVoice { get; set; } = "af_heart";
@@ -340,6 +340,20 @@ public sealed class AgentSettings
     public string WhisperLanguage       { get; set; } = "en";
     public string MicrophoneDeviceName  { get; set; } = "";   // empty = use system default
     public int    PushToTalkKey         { get; set; } = 0;    // 0 = disabled; Win32 VK code otherwise
+
+    /// <summary>
+    /// OpenAI's transcription model for speech input, as its list names it; chosen on the settings
+    /// tab. Null only in a file saved before it could be chosen (see NormalizeTranscription).
+    /// </summary>
+    public string? OpenAiTranscriptionModel { get; set; }
+
+    /// <summary>
+    /// A file from before the transcription model could be chosen: speech input on OpenAI then
+    /// always used whisper-1, so a setup that used it keeps it until the capsuleer picks another
+    /// from the list. Anything else starts with none chosen. Idempotent; called after every load.
+    /// </summary>
+    public void NormalizeTranscription() =>
+        OpenAiTranscriptionModel ??= SpeechInputProvider == SpeechInputProvider.OpenAiWhisper ? "whisper-1" : "";
 }
 
 /// <summary>
@@ -428,14 +442,15 @@ public sealed class VoiceProfile
     public string KokoroVoice { get; set; } = "af_heart";
     public string PiperVoice  { get; set; } = "en_US-libritts_r-medium";
 
-    // OpenAI's own service; the key is AgentSettings.OpenAiApiKey, shared with the model.
+    // OpenAI's own service; the key is AgentSettings.OpenAiApiKey, shared with the model. The model
+    // comes from OpenAI's list (see ModelListing); the voice from the ones it documents, nova among them.
     public string OpenAiVoice { get; set; } = "nova";
-    public string OpenAiModel { get; set; } = "tts-1";
+    public string OpenAiModel { get; set; } = "";
     public double OpenAiSpeed { get; set; } = 1.0;
 
-    // ElevenLabs; the key is AgentSettings.ElevenLabsApiKey.
-    public string ElevenLabsVoiceId { get; set; } = "21m00Tcm4TlvDq8ikWAM"; // Rachel
-    public string ElevenLabsModel   { get; set; } = "eleven_turbo_v2_5";
+    // ElevenLabs; the key is AgentSettings.ElevenLabsApiKey. Voice and model from the account's lists.
+    public string ElevenLabsVoiceId { get; set; } = "";
+    public string ElevenLabsModel   { get; set; } = "";
 
     // A server of our own speaking OpenAI's speech API.
     /// <summary>Up to and including /v1, as those servers document it: http://gpu-box:8880/v1.</summary>

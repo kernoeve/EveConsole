@@ -9,7 +9,10 @@ namespace EveConsole.Services;
 public sealed class ElevenLabsTtsService : IDisposable
 {
     // A short connect timeout, so an unreachable service is handed over in seconds.
-    private static readonly HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(3) })
+    // ⚠️ Not readonly, and only so a harness can put a client over a fake service in its place, as
+    // tools/AgentStreamCheck does for the model providers; .NET 9 refuses a reflection write to an
+    // initonly static. Nothing in the application assigns it.
+    private static HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(3) })
     {
         Timeout = TimeSpan.FromSeconds(90),
     };
@@ -33,12 +36,11 @@ public sealed class ElevenLabsTtsService : IDisposable
 
     public static bool IsVlcAvailable => GetVlc() is not null;
 
-    public static readonly IReadOnlyList<string> Models =
-        ["eleven_turbo_v2_5", "eleven_flash_v2_5", "eleven_multilingual_v2", "eleven_turbo_v2"];
-
+    // ⚠️ No voice or model named here: both come from the account's own lists (ListVoicesAsync,
+    // ListModelsAsync), chosen on the settings tab. A voice with neither is not set up.
     private string _apiKey  = "";
-    private string _voiceId = "21m00Tcm4TlvDq8ikWAM";
-    private string _model   = "eleven_turbo_v2_5";
+    private string _voiceId = "";
+    private string _model   = "";
     private int    _volume  = 100;
 
     private MediaPlayer? _player;
@@ -47,9 +49,87 @@ public sealed class ElevenLabsTtsService : IDisposable
 
     public void Configure(string apiKey, string voiceId, string model)
     {
-        _apiKey  = apiKey  ?? "";
-        _voiceId = string.IsNullOrEmpty(voiceId) ? "21m00Tcm4TlvDq8ikWAM" : voiceId;
-        _model   = string.IsNullOrEmpty(model)   ? "eleven_turbo_v2_5"    : model;
+        _apiKey  = apiKey ?? "";
+        _voiceId = (voiceId ?? "").Trim();
+        _model   = (model   ?? "").Trim();
+    }
+
+    /// <summary>
+    /// The models this account can speak with, in ElevenLabs' own order: GET /v1/models, less
+    /// those that do not do text to speech. Throws with the service's reason when it refuses.
+    /// </summary>
+    public static async Task<IReadOnlyList<EveConsole.Agent.ModelListing>> ListModelsAsync(string apiKey, CancellationToken ct = default)
+    {
+        using var doc = await GetAsync("https://api.elevenlabs.io/v1/models", apiKey, ct);
+        if (doc.RootElement.ValueKind != JsonValueKind.Array) return [];
+        return [.. doc.RootElement.EnumerateArray()
+            .Where(m => m.TryGetProperty("can_do_text_to_speech", out var tts) && tts.ValueKind == JsonValueKind.True)
+            .Select(m => (Id: Text(m, "model_id"), Name: Text(m, "name")))
+            .Where(m => m.Id.Length > 0)
+            .Select(m => new EveConsole.Agent.ModelListing(m.Id, m.Name.Length > 0 ? m.Name : m.Id))];
+    }
+
+    /// <summary>
+    /// The voices in this account — its own, and the ones it has added — by name: GET /v2/voices,
+    /// every page. Throws with the service's reason when it refuses.
+    /// </summary>
+    public static async Task<IReadOnlyList<EveConsole.Agent.ModelListing>> ListVoicesAsync(string apiKey, CancellationToken ct = default)
+    {
+        var voices = new List<EveConsole.Agent.ModelListing>();
+        string? next = null;
+        do
+        {
+            var url = "https://api.elevenlabs.io/v2/voices?page_size=100&include_total_count=false"
+                    + (next is null ? "" : "&next_page_token=" + Uri.EscapeDataString(next));
+            using var doc = await GetAsync(url, apiKey, ct);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("voices", out var list) && list.ValueKind == JsonValueKind.Array)
+                foreach (var v in list.EnumerateArray())
+                {
+                    var id = Text(v, "voice_id");
+                    if (id.Length == 0) continue;
+                    var name     = Text(v, "name");
+                    var category = Text(v, "category");
+                    voices.Add(new EveConsole.Agent.ModelListing(id,
+                        (name.Length > 0 ? name : id) + (category.Length > 0 ? $" · {category}" : "")));
+                }
+            next = root.TryGetProperty("has_more", out var more) && more.ValueKind == JsonValueKind.True
+                   && Text(root, "next_page_token") is { Length: > 0 } token ? token : null;
+        }
+        while (next is not null && voices.Count < 5000);
+        return voices;
+    }
+
+    private static string Text(JsonElement e, string name) =>
+        e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
+
+    private static async Task<JsonDocument> GetAsync(string url, string apiKey, CancellationToken ct)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("xi-api-key", apiKey);
+        using var resp = await _http.SendAsync(req, timeout.Token);
+        var body = await resp.Content.ReadAsStringAsync(timeout.Token);
+        if (!resp.IsSuccessStatusCode)
+            throw new HttpRequestException($"ElevenLabs answered {(int)resp.StatusCode}: {Reason(body)}", null, resp.StatusCode);
+        return JsonDocument.Parse(body);
+    }
+
+    /// <summary>The words in an error answer — {"detail": {"message": "…"}} or {"detail": "…"} — or the answer itself.</summary>
+    private static string Reason(string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("detail", out var d))
+            {
+                if (d.ValueKind == JsonValueKind.String) return d.GetString() ?? body;
+                if (d.ValueKind == JsonValueKind.Object && Text(d, "message") is { Length: > 0 } message) return message;
+            }
+        }
+        catch (JsonException) { }
+        return body.Length > 200 ? body[..200] + "…" : body;
     }
 
     public void SetVolume(float volume)
@@ -69,7 +149,7 @@ public sealed class ElevenLabsTtsService : IDisposable
     /// <summary>Whether the voice can be reached, at no cost: the account endpoint, with the key.</summary>
     public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
-        if (GetVlc() is null || string.IsNullOrEmpty(_apiKey)) return false;
+        if (GetVlc() is null || string.IsNullOrEmpty(_apiKey) || _voiceId.Length == 0 || _model.Length == 0) return false;
         try
         {
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -95,6 +175,8 @@ public sealed class ElevenLabsTtsService : IDisposable
     {
         var vlc = GetVlc() ?? throw new InvalidOperationException("Audio playback (VLC) is not available.");
         if (string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No ElevenLabs API key is set.");
+        if (_voiceId.Length == 0 || _model.Length == 0)
+            throw new InvalidOperationException("No ElevenLabs voice or model is chosen for this voice — choose them in Settings.");
         var stripped = StripMarkdown(text);
         if (string.IsNullOrWhiteSpace(stripped)) return;
 

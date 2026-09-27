@@ -1,5 +1,9 @@
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Windows.Input;
 using EveConsole.Agent;
+using EveConsole.Agent.Providers;
 using EveConsole.Services;
 using ReactiveUI;
 
@@ -40,6 +44,25 @@ public sealed class VoiceProfileVm : ReactiveObject
 
         TestVoiceCommand          = ReactiveCommand.CreateFromTask(TestAsync);
         DownloadPiperVoiceCommand = ReactiveCommand.Create(DownloadPiperVoice);
+
+        OpenAiModelList = new ServiceListChoice(() => _openAiModel, id => OpenAiModel = id, OpenAiModelSource,
+            n => $"{n} speech models your key can use, newest first.", () => "OpenAI lists no speech models for this key.",
+            "models", "Type the model's name instead.", listed => _owner.AddListedRates(ListedRates.OpenAiSpeech, listed));
+        OpenAiVoiceList = new ServiceListChoice(() => _openAiVoice, id => OpenAiVoice = id, OpenAiVoiceSource,
+            _ => "The voices OpenAI documents for this model — it publishes no list to ask for.", () => "",
+            "voices", "");
+        ElevenLabsVoiceList = new ServiceListChoice(() => _elevenLabsVoiceId, id => ElevenLabsVoiceId = id,
+            () => ElevenLabsSource("voices", ElevenLabsTtsService.ListVoicesAsync),
+            n => $"{n} voices in your account.", () => "Your account has no voices yet: add one from ElevenLabs' Voice Library.",
+            "voices", "Type the voice ID instead.");
+        ElevenLabsModelList = new ServiceListChoice(() => _elevenLabsModel, id => ElevenLabsModel = id,
+            () => ElevenLabsSource("models", ElevenLabsTtsService.ListModelsAsync),
+            n => $"{n} models that can speak.", () => "ElevenLabs lists no speech models for this key.",
+            "models", "Type the model's ID instead.", listed => _owner.AddListedRates(ListedRates.ElevenLabs, listed));
+
+        _relist.Throttle(TimeSpan.FromMilliseconds(700))
+               .ObserveOnUi("voice lists")
+               .Subscribe(settled => { if (ReferenceEquals(_owner.SelectedVoice, this)) _ = LoadListsAsync(); });
     }
 
     public VoiceProfile ToProfile() => new()
@@ -134,6 +157,7 @@ public sealed class VoiceProfileVm : ReactiveObject
             this.RaisePropertyChanged(nameof(ShowElevenLabs));
             this.RaisePropertyChanged(nameof(ShowLocalServer));
             this.RaisePropertyChanged(nameof(Label));
+            _ = LoadListsAsync();               // the new engine's lists
         }
     }
 
@@ -256,37 +280,101 @@ public sealed class VoiceProfileVm : ReactiveObject
         });
     }
 
+    // ── The services' own lists ───────────────────────────────────────────────
+    //
+    // ⚠️ Models and voices are asked of the service, never written here (see ModelListing): when
+    // the voice is selected on the tab, when its engine changes, and once a key typed has settled.
+
+    /// <summary>A key being typed: the lists are asked for once it settles.</summary>
+    private readonly Subject<Unit> _relist = new();
+
+    /// <summary>The owner's key for this voice's engine changed.</summary>
+    internal void KeyChanged() => _relist.OnNext(Unit.Default);
+
+    /// <summary>The lists this voice's engine has, asked for unless just asked the same.</summary>
+    public Task LoadListsAsync() => _provider switch
+    {
+        TtsProvider.OpenAi     => Task.WhenAll(OpenAiModelList.LoadAsync(), OpenAiVoiceList.LoadAsync()),
+        TtsProvider.ElevenLabs => Task.WhenAll(ElevenLabsVoiceList.LoadAsync(), ElevenLabsModelList.LoadAsync()),
+        _                      => Task.CompletedTask,
+    };
+
+    private static string Question(string what, string key) => $"{what}|{key.Length}:{key.GetHashCode()}";   // not the key itself
+
     // ── OpenAI ────────────────────────────────────────────────────────────────
 
-    public IReadOnlyList<string> OpenAiVoices => TtsService.OpenAiVoices;
-    public IReadOnlyList<string> OpenAiModels => TtsService.OpenAiModels;
+    /// <summary>OpenAI's speech models for the key, newest first.</summary>
+    public ServiceListChoice OpenAiModelList { get; }
+
+    /// <summary>The voices OpenAI documents for the chosen model (it publishes no list to ask).</summary>
+    public ServiceListChoice OpenAiVoiceList { get; }
+
+    private ServiceListChoice.Source OpenAiModelSource()
+    {
+        var key = _owner.OpenAiApiKey.Trim();
+        return key.Length == 0
+            ? ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's speech models.", "none")
+            : new(null, Question("openai-tts", key), ct => OpenAiCompatibleProvider.ListOpenAiSpeechModelsAsync(key, ct));
+    }
+
+    private ServiceListChoice.Source OpenAiVoiceSource()
+    {
+        var model = (_openAiModel ?? "").Trim();
+        IReadOnlyList<ModelListing> voices = [.. OpenAiTtsService.VoicesFor(model).Select(v => new ModelListing(v, v))];
+        return new(null, "voices|" + model, _ => Task.FromResult(voices));
+    }
 
     private string _openAiVoice;
     public string OpenAiVoice
     {
         get => _openAiVoice;
-        set { this.RaiseAndSetIfChanged(ref _openAiVoice, value); this.RaisePropertyChanged(nameof(Label)); }
+        set { this.RaiseAndSetIfChanged(ref _openAiVoice, value); this.RaisePropertyChanged(nameof(Label)); OpenAiVoiceList.ValueChanged(); }
     }
 
     private string _openAiModel;
-    public string OpenAiModel { get => _openAiModel; set => this.RaiseAndSetIfChanged(ref _openAiModel, value); }
+    public string OpenAiModel
+    {
+        get => _openAiModel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _openAiModel, value);
+            OpenAiModelList.ValueChanged();
+            _ = OpenAiVoiceList.LoadAsync();    // the voices that model takes
+        }
+    }
 
     private double _openAiSpeed;
     public double OpenAiSpeed { get => _openAiSpeed; set => this.RaiseAndSetIfChanged(ref _openAiSpeed, value); }
 
     // ── ElevenLabs ────────────────────────────────────────────────────────────
 
-    public IReadOnlyList<string> ElevenLabsModels => TtsService.ElevenLabsModels;
+    /// <summary>The voices in the ElevenLabs account, by name.</summary>
+    public ServiceListChoice ElevenLabsVoiceList { get; }
+
+    /// <summary>ElevenLabs' models that can speak, in its own order.</summary>
+    public ServiceListChoice ElevenLabsModelList { get; }
+
+    private ServiceListChoice.Source ElevenLabsSource(string what, Func<string, CancellationToken, Task<IReadOnlyList<ModelListing>>> list)
+    {
+        var key = _owner.ElevenLabsApiKey.Trim();
+        return key.Length == 0
+            ? ServiceListChoice.Source.Unavailable($"Enter the ElevenLabs key above to choose from its {what}.", "none")
+            : new(null, Question("elevenlabs-" + what, key), ct => list(key, ct));
+    }
 
     private string _elevenLabsVoiceId;
     public string ElevenLabsVoiceId
     {
         get => _elevenLabsVoiceId;
-        set { this.RaiseAndSetIfChanged(ref _elevenLabsVoiceId, value); this.RaisePropertyChanged(nameof(Label)); }
+        set { this.RaiseAndSetIfChanged(ref _elevenLabsVoiceId, value); this.RaisePropertyChanged(nameof(Label)); ElevenLabsVoiceList.ValueChanged(); }
     }
 
     private string _elevenLabsModel;
-    public string ElevenLabsModel { get => _elevenLabsModel; set => this.RaiseAndSetIfChanged(ref _elevenLabsModel, value); }
+    public string ElevenLabsModel
+    {
+        get => _elevenLabsModel;
+        set { this.RaiseAndSetIfChanged(ref _elevenLabsModel, value); ElevenLabsModelList.ValueChanged(); }
+    }
 
     // ── A server of our own ───────────────────────────────────────────────────
 
