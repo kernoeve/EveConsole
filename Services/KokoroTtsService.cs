@@ -203,7 +203,15 @@ public sealed class KokoroTtsService : IDisposable
 
         // A ceiling, not an expectation: if a completion signal is ever missed, speech resumes
         // late rather than stopping for the rest of the session.
-        done.Task.Wait(TimeSpan.FromMinutes(2));
+        //
+        // ⚠️ And a stop ends the wait at once. StopPlayback raises OnSpeechCanceled only for an
+        // utterance that has begun to PLAY; stopped while it is still being made — the first
+        // moment of a sentence, which is exactly when an interruption lands, the next sentence
+        // having just started — no event comes at all, and this waited out the whole two minutes
+        // with every sentence of the next answer queued behind it. Measured with the real engine:
+        // stopped 3 s in, it returned at once; stopped 0.2 s in, it returned after 119.9 s.
+        try   { done.Task.Wait((int)TimeSpan.FromMinutes(2).TotalMilliseconds, ct); }
+        catch (OperationCanceledException) { /* stopped — the playback was stopped with it */ }
     }
 
     /// <summary>
