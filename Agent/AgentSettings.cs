@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace EveConsole.Agent;
 
 public enum AgentProviderType  { Claude, OpenAI, Local }
@@ -92,11 +94,19 @@ public sealed class AgentSettings
     /// <summary>Compacts the history when it grows long. Blank: the conversation's model.</summary>
     public string SummaryModelId { get; set; } = "";
 
+    // ── Texts the capsuleer may reword ─────────────────────────────────────────────
+    // Each is stored empty while it is the default, and read through its …Text property: a
+    // better default then reaches everyone who never changed theirs. See DefaultWording.
+
     /// <summary>
-    /// When a message goes to the data model, in the capsuleer's own words. Read by the router
-    /// before each turn, finishing the sentence "Send a message to DATA when…".
+    /// When a message goes to the data model, in the capsuleer's own words; empty for the
+    /// default. Read by the router before each turn, finishing the sentence "Send a message to
+    /// DATA when…".
     /// </summary>
-    public string HandOffWhen { get; set; } = DefaultHandOffWhen;
+    public string HandOffWhen { get; set; } = "";
+
+    /// <summary>The rule as the router reads it: the capsuleer's words, or the default's.</summary>
+    [JsonIgnore] public string HandOffWhenText => HandOffWhenWording.Use(HandOffWhen);
 
     public const string DefaultHandOffWhen =
         "answering needs the capsuleer's own data — what they have, own, are doing or have done: " +
@@ -105,14 +115,24 @@ public sealed class AgentSettings
         "totalled, listed or compared; or anything current about other people or corporations that " +
         "needs a lookup.";
 
-    /// <summary>Said when a role's model stops answering and its fallback takes over.
-    /// {user}, {purpose}, {primary} and {fallback} are filled in.</summary>
-    public string ModelFailoverMessage { get; set; } =
-        "{user}, the primary model I use for {purpose} has become unavailable, so I'm falling over to {fallback}.";
+    public static readonly DefaultWording HandOffWhenWording = new(DefaultHandOffWhen);
 
-    /// <summary>Said when the role's own model is back and has taken over again.</summary>
-    public string ModelReturnMessage { get; set; } =
-        "{user}, the primary model I use for {purpose} is back, so I've switched back to {primary}.";
+    /// <summary>Said when a role's model stops answering and its fallback takes over; empty for
+    /// the default. {user}, {purpose}, {primary} and {fallback} are filled in.</summary>
+    public string ModelFailoverMessage { get; set; } = "";
+
+    [JsonIgnore] public string ModelFailoverMessageText => ModelFailoverWording.Use(ModelFailoverMessage);
+
+    public static readonly DefaultWording ModelFailoverWording = new(
+        "{user}, the primary model I use for {purpose} has become unavailable, so I'm falling over to {fallback}.");
+
+    /// <summary>Said when the role's own model is back and has taken over again; empty for the default.</summary>
+    public string ModelReturnMessage { get; set; } = "";
+
+    [JsonIgnore] public string ModelReturnMessageText => ModelReturnWording.Use(ModelReturnMessage);
+
+    public static readonly DefaultWording ModelReturnWording = new(
+        "{user}, the primary model I use for {purpose} is back, so I've switched back to {primary}.");
 
     /// <summary>As for voices: at least this long between one change and the next voluntary one.
     /// A model that stops answering is always replaced at once.</summary>
@@ -232,13 +252,35 @@ public sealed class AgentSettings
     /// <summary>Speak an announcement when the voice changes in the middle of a session.</summary>
     public bool AnnounceVoiceChanges { get; set; } = true;
 
-    /// <summary>Spoken by the voice taking over. {previous} and {current} are the two names.</summary>
-    public string VoiceHandoverMessage { get; set; } =
-        "Sorry, {previous} had to step away. I'm {current}, and I'll pick up from here.";
+    /// <summary>Spoken by the voice taking over; empty for the default. {previous} and {current}
+    /// are the two names.</summary>
+    public string VoiceHandoverMessage { get; set; } = "";
 
-    /// <summary>Spoken by the preferred voice when it returns.</summary>
-    public string VoiceReturnMessage { get; set; } =
-        "{current} here, back with you. Thank you, {previous}.";
+    [JsonIgnore] public string VoiceHandoverMessageText => VoiceHandoverWording.Use(VoiceHandoverMessage);
+
+    public static readonly DefaultWording VoiceHandoverWording = new(
+        "Sorry, {previous} had to step away. I'm {current}, and I'll pick up from here.");
+
+    /// <summary>Spoken by the preferred voice when it returns; empty for the default.</summary>
+    public string VoiceReturnMessage { get; set; } = "";
+
+    [JsonIgnore] public string VoiceReturnMessageText => VoiceReturnWording.Use(VoiceReturnMessage);
+
+    public static readonly DefaultWording VoiceReturnWording = new(
+        "{current} here, back with you. Thank you, {previous}.");
+
+    /// <summary>
+    /// Each text the capsuleer may reword as it is stored: empty where it holds a default's words,
+    /// as every file saved before this did. Idempotent; called after every load.
+    /// </summary>
+    public void NormalizeWording()
+    {
+        HandOffWhen          = HandOffWhenWording.Store(HandOffWhen);
+        ModelFailoverMessage = ModelFailoverWording.Store(ModelFailoverMessage);
+        ModelReturnMessage   = ModelReturnWording.Store(ModelReturnMessage);
+        VoiceHandoverMessage = VoiceHandoverWording.Store(VoiceHandoverMessage);
+        VoiceReturnMessage   = VoiceReturnWording.Store(VoiceReturnMessage);
+    }
 
     /// <summary>At least this long between one voice change and the next voluntary one, so a
     /// flaky server cannot make the persona flip back and forth. A failing voice is always

@@ -923,7 +923,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
             _                          => null,
         };
 
-        var prompt = ModelRouter.Prompt(_service.Settings.HandOffWhen, lastUser?.Content, lastReply?.Content,
+        var prompt = ModelRouter.Prompt(_service.Settings.HandOffWhenText, lastUser?.Content, lastReply?.Content,
                                         fromData, text, local: seat.Model.IsLocal);
 
         var telemetry = _service.Telemetry;

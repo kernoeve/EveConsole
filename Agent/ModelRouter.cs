@@ -36,7 +36,7 @@ public static class ModelRouter
     public static string Prompt(string handOffWhen, string? lastUser, string? lastReply,
                                 bool? lastReplyFromData, string message, bool local)
     {
-        var when = string.IsNullOrWhiteSpace(handOffWhen) ? AgentSettings.DefaultHandOffWhen : handOffWhen.Trim();
+        var when = AgentSettings.HandOffWhenWording.Use(handOffWhen);
 
         var exchange = lastUser is null && lastReply is null
             ? "(none — this is the first message)"

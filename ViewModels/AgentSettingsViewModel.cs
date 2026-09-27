@@ -778,9 +778,10 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _analystFallbackId       = s.AnalystRole.FallbackId;
         _analystAnnounce         = s.AnalystRole.Announce;
         _summaryModelId          = s.SummaryModelId;
-        _handOffWhen             = string.IsNullOrWhiteSpace(s.HandOffWhen) ? AgentSettings.DefaultHandOffWhen : s.HandOffWhen;
-        _modelFailoverMessage    = s.ModelFailoverMessage;
-        _modelReturnMessage      = s.ModelReturnMessage;
+        // The words in force, the default's when none of the capsuleer's own are stored.
+        _handOffWhen             = s.HandOffWhenText;
+        _modelFailoverMessage    = s.ModelFailoverMessageText;
+        _modelReturnMessage      = s.ModelReturnMessageText;
         _modelSwitchGapMinutes   = s.ModelSwitchGapMinutes;
         _modelPreferredUpMinutes = s.ModelPreferredUpMinutes;
         RebuildChoices();
@@ -789,8 +790,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _speechOn                = s.SpeechOn;
         _elevenLabsApiKey        = s.ElevenLabsApiKey;
         _announceVoiceChanges    = s.AnnounceVoiceChanges;
-        _voiceHandoverMessage    = s.VoiceHandoverMessage;
-        _voiceReturnMessage      = s.VoiceReturnMessage;
+        _voiceHandoverMessage    = s.VoiceHandoverMessageText;
+        _voiceReturnMessage      = s.VoiceReturnMessageText;
         _voiceSwitchGapMinutes   = s.VoiceSwitchGapMinutes;
         _voicePreferredUpMinutes = s.VoicePreferredUpMinutes;
         Voices.Clear();
@@ -825,9 +826,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             ConversationRole = new() { ModelId = _conversationModelId, FallbackId = _conversationFallbackId, Announce = _conversationAnnounce },
             AnalystRole      = new() { ModelId = _analystModelId,      FallbackId = _analystFallbackId,      Announce = _analystAnnounce },
             SummaryModelId   = _summaryModelId,
-            HandOffWhen      = string.IsNullOrWhiteSpace(_handOffWhen) ? AgentSettings.DefaultHandOffWhen : _handOffWhen.Trim(),
-            ModelFailoverMessage    = string.IsNullOrWhiteSpace(_modelFailoverMessage) ? new AgentSettings().ModelFailoverMessage : _modelFailoverMessage.Trim(),
-            ModelReturnMessage      = string.IsNullOrWhiteSpace(_modelReturnMessage)   ? new AgentSettings().ModelReturnMessage   : _modelReturnMessage.Trim(),
+            // Only the capsuleer's own words are stored; a default's are stored as nothing, so
+            // a better default reaches them too (see DefaultWording).
+            HandOffWhen             = AgentSettings.HandOffWhenWording.Store(_handOffWhen),
+            ModelFailoverMessage    = AgentSettings.ModelFailoverWording.Store(_modelFailoverMessage),
+            ModelReturnMessage      = AgentSettings.ModelReturnWording.Store(_modelReturnMessage),
             ModelSwitchGapMinutes   = _modelSwitchGapMinutes,
             ModelPreferredUpMinutes = _modelPreferredUpMinutes,
 
@@ -846,8 +849,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             Voices                  = [.. Voices.Select(v => v.ToProfile())],
             ElevenLabsApiKey        = _elevenLabsApiKey.Trim(),
             AnnounceVoiceChanges    = _announceVoiceChanges,
-            VoiceHandoverMessage    = string.IsNullOrWhiteSpace(_voiceHandoverMessage) ? new AgentSettings().VoiceHandoverMessage : _voiceHandoverMessage.Trim(),
-            VoiceReturnMessage      = string.IsNullOrWhiteSpace(_voiceReturnMessage)   ? new AgentSettings().VoiceReturnMessage   : _voiceReturnMessage.Trim(),
+            VoiceHandoverMessage    = AgentSettings.VoiceHandoverWording.Store(_voiceHandoverMessage),
+            VoiceReturnMessage      = AgentSettings.VoiceReturnWording.Store(_voiceReturnMessage),
             VoiceSwitchGapMinutes   = _voiceSwitchGapMinutes,
             VoicePreferredUpMinutes = _voicePreferredUpMinutes,
 

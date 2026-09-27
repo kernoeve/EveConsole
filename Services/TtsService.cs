@@ -208,8 +208,8 @@ public sealed class TtsService : IDisposable
         {
             _speechOn        = s.SpeechOn;
             _announce        = s.AnnounceVoiceChanges;
-            _handoverMessage = s.VoiceHandoverMessage;
-            _returnMessage   = s.VoiceReturnMessage;
+            _handoverMessage = s.VoiceHandoverMessageText;
+            _returnMessage   = s.VoiceReturnMessageText;
             _defaultName     = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName.Trim();
             _switchGap       = TimeSpan.FromMinutes(Math.Max(0, s.VoiceSwitchGapMinutes));
             _preferredUp     = TimeSpan.FromMinutes(Math.Max(0, s.VoicePreferredUpMinutes));

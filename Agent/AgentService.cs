@@ -570,6 +570,8 @@ public sealed class AgentService : ReactiveObject
         // one model, which then does both jobs until the capsuleer gives data questions their own.
         _settings.NormalizeVoices();
         _settings.NormalizeModels();
+        // And a text saved in the default's words, as they all were, is the default again.
+        _settings.NormalizeWording();
 
         ConfigureRoles();
     }

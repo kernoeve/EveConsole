@@ -138,8 +138,8 @@ public sealed class ModelRoles : IDisposable
             _userName        = string.IsNullOrWhiteSpace(s.UserName)
                                || s.UserName.Trim().Equals(AgentSettings.DefaultUserName, StringComparison.OrdinalIgnoreCase)
                                    ? "Capsuleer" : s.UserName.Trim();
-            _failoverMessage = s.ModelFailoverMessage ?? "";
-            _returnMessage   = s.ModelReturnMessage ?? "";
+            _failoverMessage = s.ModelFailoverMessageText;
+            _returnMessage   = s.ModelReturnMessageText;
             _switchGap       = TimeSpan.FromMinutes(Math.Max(0, s.ModelSwitchGapMinutes));
             _preferredUp     = TimeSpan.FromMinutes(Math.Max(0, s.ModelPreferredUpMinutes));
 
