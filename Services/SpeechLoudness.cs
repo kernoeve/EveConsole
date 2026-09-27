@@ -23,25 +23,47 @@ public static class SpeechLoudness
 
     /// <summary>
     /// <paramref name="wav"/> brought to <paramref name="targetLufs"/> — but never raised to within
-    /// a decibel of full scale. Returned unchanged when it is not a WAV this reads (16-bit PCM or
-    /// 32-bit float), when it is silence, or when it is already within a fraction of a decibel.
+    /// a decibel of full scale — with its header's lengths put right if a service that streams it
+    /// wrote placeholders there. Returned as it came when it is not a WAV this reads (16-bit PCM or
+    /// 32-bit float), or when it needs neither: silence, or already within a fraction of a decibel.
     /// </summary>
     public static byte[] Level(byte[] wav, double targetLufs = TargetLufs)
     {
         if (Read(wav) is not { } pcm) return wav;
         var samples = Samples(wav, pcm);
-        if (Integrated(samples, pcm.Channels, pcm.SampleRate) is not { } lufs) return wav;
 
-        var peak = 0f;
-        foreach (var s in samples) peak = Math.Max(peak, Math.Abs(s));
+        var gain = 0.0;
+        if (Integrated(samples, pcm.Channels, pcm.SampleRate) is { } lufs)
+        {
+            var peak = 0f;
+            foreach (var s in samples) peak = Math.Max(peak, Math.Abs(s));
+            gain = Math.Clamp(targetLufs - lufs, -30, 12);
+            if (peak > 0) gain = Math.Min(gain, CeilingDb - 20 * Math.Log10(peak));
+        }
 
-        var gainDb = Math.Clamp(targetLufs - lufs, -30, 12);
-        if (peak > 0) gainDb = Math.Min(gainDb, CeilingDb - 20 * Math.Log10(peak));
-        if (Math.Abs(gainDb) < 0.25) return wav;
+        var louder = Math.Abs(gain) >= 0.25;
+        var header = HeaderLengthsWrong(wav, pcm);
+        if (!louder && !header) return wav;
 
         var output = (byte[])wav.Clone();
-        Write(output, pcm, samples, (float)Math.Pow(10, gainDb / 20));
+        if (louder) Write(output, pcm, samples, (float)Math.Pow(10, gain / 20));
+        if (header) PutLengthsRight(output, pcm);
         return output;
+    }
+
+    /// <summary>
+    /// ⚠️ OpenAI and ElevenLabs stream their WAV, and a header written before the audio is made
+    /// cannot know its length: they put 0 or 0xFFFFFFFF there. Read tolerates it; a player need
+    /// not, so the lengths are written in as they are.
+    /// </summary>
+    private static bool HeaderLengthsWrong(byte[] b, Pcm pcm) =>
+        BitConverter.ToUInt32(b, 4) != (uint)(b.Length - 8)
+        || BitConverter.ToUInt32(b, pcm.Offset - 4) != (uint)pcm.Length;
+
+    private static void PutLengthsRight(byte[] b, Pcm pcm)
+    {
+        BitConverter.TryWriteBytes(b.AsSpan(4, 4), (uint)(b.Length - 8));
+        BitConverter.TryWriteBytes(b.AsSpan(pcm.Offset - 4, 4), (uint)pcm.Length);
     }
 
     /// <summary>The integrated loudness of a WAV, in LUFS; null when it cannot be read or is silence.</summary>

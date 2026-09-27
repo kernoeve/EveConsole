@@ -110,7 +110,8 @@ public sealed class TtsService : IDisposable
             {
                 var eleven = new ElevenLabsTtsService();
                 eleven.Configure(s.ElevenLabsApiKey, p.ElevenLabsVoiceId, p.ElevenLabsModel);
-                return new Voice(p, eleven.SpeakAsync, eleven.IsAvailableAsync, eleven.Stop, eleven.SetVolume, eleven.Dispose);
+                return new Voice(p, eleven.SpeakAsync, eleven.IsAvailableAsync, eleven.Stop, eleven.SetVolume, eleven.Dispose,
+                                 eleven.PrepareAsync, () => eleven.LastSynthesis);
             }
 
             case TtsProvider.OpenAi:

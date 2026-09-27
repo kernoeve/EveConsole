@@ -24,8 +24,11 @@ public sealed class OpenAiTtsService : IDisposable
     /// ⚠️ A short connect timeout: a server that is switched off must be given up on in seconds,
     /// or the voice falls silent mid-answer while it waits. The overall timeout is generous —
     /// a long sentence on a busy GPU can take a while to synthesise.
+    ///
+    /// <para>⚠️ Not readonly, and only so a harness can put a client over a fake service in its
+    /// place (see ElevenLabsTtsService._http). Nothing in the application assigns it.</para>
     /// </summary>
-    private static readonly HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(3) })
+    private static HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(3) })
     {
         Timeout = TimeSpan.FromSeconds(90),
     };
@@ -75,7 +78,8 @@ public sealed class OpenAiTtsService : IDisposable
     /// <summary>OpenAI's own service, which needs a key.</summary>
     public bool IsOpenAi => _endpoint == OpenAiEndpoint;
 
-    private string Format => IsOpenAi ? "mp3" : "wav";
+    /// <summary>WAV from every server, OpenAI's too — see PrepareAsync.</summary>
+    private const string Format = "wav";
 
     public void Configure(string apiKey, string voice, string model, double speed) =>
         Configure(OpenAiEndpoint, apiKey, voice, model, speed);
@@ -182,9 +186,11 @@ public sealed class OpenAiTtsService : IDisposable
 
         var made  = System.Diagnostics.Stopwatch.StartNew();
         var bytes = await SynthesizeAsync(stripped, ct);
-        // ⚠️ A server's speech comes at whatever level its model makes — Chatterbox's about 6 dB
-        // over Kokoro's — so it is brought to Kokoro's. OpenAI's MP3 is played as it comes.
-        if (!IsOpenAi) bytes = SpeechLoudness.Level(bytes);
+        // ⚠️ Every voice's speech comes at whatever level its model makes — Chatterbox's about
+        // 6 dB over Kokoro's — so each is brought to Kokoro's. OpenAI's too, which is why it is
+        // asked for WAV rather than the MP3 it sent before: the levelling reads WAV.
+        bytes = SpeechLoudness.Level(bytes);
+        LastAudio = bytes;
         LastSynthesis = made.Elapsed;
         return playCt => PlayMadeAsync(bytes, playCt);
     }
@@ -196,6 +202,9 @@ public sealed class OpenAiTtsService : IDisposable
         catch (OperationCanceledException) when (linked.Token.IsCancellationRequested) { /* stopped */ }
     }
 
+    /// <summary>The last audio made, as it will be played — for a harness to measure.</summary>
+    internal byte[]? LastAudio { get; private set; }
+
     /// <summary>How long the last utterance took to make, before it could start playing — on a
     /// server, the wait before an answer's first sentence (the rest are made during the one before).</summary>
     public TimeSpan? LastSynthesis { get; private set; }
@@ -203,9 +212,9 @@ public sealed class OpenAiTtsService : IDisposable
     /// <summary>The audio for <paramref name="input"/>. Throws when the service refused, or sent nothing.</summary>
     private async Task<byte[]> SynthesizeAsync(string input, CancellationToken ct)
     {
-        // ⚠️ WAV from a server of our own: Orpheus-FastAPI makes nothing else, and Chatterbox
-        // and Kokoro-FastAPI both make it too. Size is no concern on a local network. MP3 from
-        // OpenAI's service, where it comes over the internet.
+        // ⚠️ WAV from every server: Orpheus-FastAPI makes nothing else, Chatterbox and
+        // Kokoro-FastAPI make it too, and OpenAI's service does — larger than its MP3, about
+        // 50 KB a second of speech, which is what levelling it costs.
         var body = JsonSerializer.Serialize(new
         {
             model           = _model,

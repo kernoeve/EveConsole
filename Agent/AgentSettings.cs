@@ -452,6 +452,10 @@ public sealed class VoiceProfile
     public string ElevenLabsVoiceId { get; set; } = "";
     public string ElevenLabsModel   { get; set; } = "";
 
+    /// <summary>The voice's name as the account lists it, kept with its ID for the voice list to
+    /// show. Empty for a voice given by its ID alone.</summary>
+    public string ElevenLabsVoiceName { get; set; } = "";
+
     // A server of our own speaking OpenAI's speech API.
     /// <summary>Up to and including /v1, as those servers document it: http://gpu-box:8880/v1.</summary>
     public string ServerUrl    { get; set; } = "http://localhost:8880/v1";
@@ -481,7 +485,7 @@ public sealed class VoiceProfile
         TtsProvider.Kokoro      => $"Kokoro — {KokoroVoice}",
         TtsProvider.Piper       => $"Piper — {PiperVoice}",
         TtsProvider.OpenAi      => $"OpenAI — {OpenAiVoice}",
-        TtsProvider.ElevenLabs  => $"ElevenLabs — {ElevenLabsVoiceId}",
+        TtsProvider.ElevenLabs  => $"ElevenLabs — {(ElevenLabsVoiceName.Length > 0 ? ElevenLabsVoiceName : ElevenLabsVoiceId.Length > 0 ? ElevenLabsVoiceId : "no voice chosen")}",
         TtsProvider.LocalServer => $"Local server — {(ServerModel.Length > 0 ? ServerModel : ServerUrl)}{(ServerVoice.Length > 0 ? $" ({ServerVoice})" : "")}",
         _                       => Provider.ToString(),
     };

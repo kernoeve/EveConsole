@@ -173,51 +173,80 @@ public sealed class ElevenLabsTtsService : IDisposable
     /// </summary>
     public async Task SpeakAsync(string text, CancellationToken cancel = default)
     {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancel, _cts.Token);
+        var ct = linked.Token;
+        try
+        {
+            var play = await PrepareAsync(text, ct);
+            await play(ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { /* stopped */ }
+    }
+
+    /// <summary>How long the last utterance took to make, before it could start playing.</summary>
+    public TimeSpan? LastSynthesis { get; private set; }
+
+    /// <summary>The last audio made, as it will be played — for a harness to measure.</summary>
+    internal byte[]? LastAudio { get; private set; }
+
+    /// <summary>
+    /// Makes the audio for an utterance WITHOUT playing it, and returns what plays it — so the next
+    /// sentence is made while this one plays, as the other paid and local voices do. Throws when
+    /// it could not be made; the returned player returns quietly when stopped.
+    /// </summary>
+    public async Task<Func<CancellationToken, Task>> PrepareAsync(string text, CancellationToken ct = default)
+    {
         var vlc = GetVlc() ?? throw new InvalidOperationException("Audio playback (VLC) is not available.");
         if (string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No ElevenLabs API key is set.");
         if (_voiceId.Length == 0 || _model.Length == 0)
             throw new InvalidOperationException("No ElevenLabs voice or model is chosen for this voice — choose them in Settings.");
         var stripped = StripMarkdown(text);
-        if (string.IsNullOrWhiteSpace(stripped)) return;
+        if (string.IsNullOrWhiteSpace(stripped)) return _ => Task.CompletedTask;
 
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancel, _cts.Token);
-        var ct = linked.Token;
-
-        try
+        var made = System.Diagnostics.Stopwatch.StartNew();
+        var body = JsonSerializer.Serialize(new
         {
-            var body = JsonSerializer.Serialize(new
-            {
-                text        = stripped,
-                model_id    = _model,
-                voice_settings = new { stability = 0.5, similarity_boost = 0.75 },
-            });
+            text        = stripped,
+            model_id    = _model,
+            voice_settings = new { stability = 0.5, similarity_boost = 0.75 },
+        });
 
-            using var req = new HttpRequestMessage(
-                HttpMethod.Post,
-                $"https://api.elevenlabs.io/v1/text-to-speech/{_voiceId}");
-            req.Headers.Add("xi-api-key", _apiKey);
-            req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("audio/mpeg"));
-            req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+        // ⚠️ WAV, not the MP3 it sends unless asked: the levelling reads WAV, and ElevenLabs'
+        // voices are brought to Kokoro's level like every other (see SpeechLoudness). 24 kHz, the
+        // highest rate every plan may ask for — 44.1 kHz is for Pro and above.
+        using var req = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"https://api.elevenlabs.io/v1/text-to-speech/{_voiceId}?output_format=wav_24000");
+        req.Headers.Add("xi-api-key", _apiKey);
+        req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("audio/wav"));
+        req.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
-            using var resp = await _http.SendAsync(req,
-                HttpCompletionOption.ResponseContentRead, ct);
-            if (!resp.IsSuccessStatusCode)
-            {
-                var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
-                throw new HttpRequestException(
-                    $"ElevenLabs answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {(detail.Length > 200 ? detail[..200] + "…" : detail)}");
-            }
-
-            var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
-            if (bytes.Length == 0) throw new InvalidOperationException("ElevenLabs returned no audio.");
-            await PlayAsync(vlc, bytes, ct);
+        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseContentRead, ct);
+        if (!resp.IsSuccessStatusCode)
+        {
+            var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
+            throw new HttpRequestException(
+                $"ElevenLabs answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {(detail.Length > 200 ? detail[..200] + "…" : detail)}");
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { /* stopped */ }
+
+        var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
+        if (bytes.Length == 0) throw new InvalidOperationException("ElevenLabs returned no audio.");
+        bytes = SpeechLoudness.Level(bytes);
+        LastSynthesis = made.Elapsed;
+        LastAudio     = bytes;
+        return playCt => PlayMadeAsync(vlc, bytes, playCt);
+    }
+
+    private async Task PlayMadeAsync(LibVLC vlc, byte[] bytes, CancellationToken ct)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
+        try { await PlayAsync(vlc, bytes, linked.Token); }
+        catch (OperationCanceledException) when (linked.Token.IsCancellationRequested) { /* stopped */ }
     }
 
     private async Task PlayAsync(LibVLC vlc, byte[] bytes, CancellationToken ct)
     {
-        var temp = Path.Combine(Path.GetTempPath(), $"aura_el_{Guid.NewGuid():N}.mp3");
+        var temp = Path.Combine(Path.GetTempPath(), $"aura_el_{Guid.NewGuid():N}.wav");
         await File.WriteAllBytesAsync(temp, bytes, CancellationToken.None);
 
         try

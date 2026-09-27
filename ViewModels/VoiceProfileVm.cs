@@ -35,6 +35,7 @@ public sealed class VoiceProfileVm : ReactiveObject
         _openAiModel       = p.OpenAiModel;
         _openAiSpeed       = p.OpenAiSpeed;
         _elevenLabsVoiceId = p.ElevenLabsVoiceId;
+        _elevenLabsVoiceName = p.ElevenLabsVoiceName;
         _elevenLabsModel   = p.ElevenLabsModel;
         _serverUrl         = p.ServerUrl;
         _serverModel       = p.ServerModel;
@@ -54,7 +55,9 @@ public sealed class VoiceProfileVm : ReactiveObject
         ElevenLabsVoiceList = new ServiceListChoice(() => _elevenLabsVoiceId, id => ElevenLabsVoiceId = id,
             () => ElevenLabsSource("voices", ElevenLabsTtsService.ListVoicesAsync),
             n => $"{n} voices in your account.", () => "Your account has no voices yet: add one from ElevenLabs' Voice Library.",
-            "voices", "Type the voice ID instead.");
+            "voices", "Type the voice ID instead.",
+            // A voice kept from before names were: its name, now the list has it.
+            listed => { if (_elevenLabsVoiceName.Length == 0 && VoiceNameFor(_elevenLabsVoiceId) is { Length: > 0 } name) { _elevenLabsVoiceName = name; this.RaisePropertyChanged(nameof(Label)); } });
         ElevenLabsModelList = new ServiceListChoice(() => _elevenLabsModel, id => ElevenLabsModel = id,
             () => ElevenLabsSource("models", ElevenLabsTtsService.ListModelsAsync),
             n => $"{n} models that can speak.", () => "ElevenLabs lists no speech models for this key.",
@@ -75,6 +78,7 @@ public sealed class VoiceProfileVm : ReactiveObject
         OpenAiModel       = _openAiModel,
         OpenAiSpeed       = _openAiSpeed,
         ElevenLabsVoiceId = (_elevenLabsVoiceId ?? "").Trim(),
+        ElevenLabsVoiceName = _elevenLabsVoiceName ?? "",
         ElevenLabsModel   = _elevenLabsModel,
         ServerUrl         = (_serverUrl ?? "").Trim(),
         ServerModel       = (_serverModel ?? "").Trim(),
@@ -366,8 +370,24 @@ public sealed class VoiceProfileVm : ReactiveObject
     public string ElevenLabsVoiceId
     {
         get => _elevenLabsVoiceId;
-        set { this.RaiseAndSetIfChanged(ref _elevenLabsVoiceId, value); this.RaisePropertyChanged(nameof(Label)); ElevenLabsVoiceList.ValueChanged(); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _elevenLabsVoiceId, value);
+            // By name when it comes from the account's list; a voice typed in by its ID is not.
+            _elevenLabsVoiceName = VoiceNameFor(value);
+            this.RaisePropertyChanged(nameof(Label));
+            ElevenLabsVoiceList.ValueChanged();
+        }
     }
+
+    private string _elevenLabsVoiceName;
+
+    /// <summary>A voice's name as the account's list gives it — without the " · premade" after
+    /// it — or empty when the list does not have it.</summary>
+    private string VoiceNameFor(string? id) =>
+        ElevenLabsVoiceList.Listings.FirstOrDefault(l => l.Listed && l.Id == (id ?? "").Trim()) is { } listing
+            ? listing.Name.Split(" · ")[0]
+            : "";
 
     private string _elevenLabsModel;
     public string ElevenLabsModel
