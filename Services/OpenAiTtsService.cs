@@ -176,6 +176,9 @@ public sealed class OpenAiTtsService : IDisposable
 
         var made  = System.Diagnostics.Stopwatch.StartNew();
         var bytes = await SynthesizeAsync(stripped, ct);
+        // ⚠️ A server's speech comes at whatever level its model makes — Chatterbox's about 6 dB
+        // over Kokoro's — so it is brought to Kokoro's. OpenAI's MP3 is played as it comes.
+        if (!IsOpenAi) bytes = SpeechLoudness.Level(bytes);
         LastSynthesis = made.Elapsed;
         return playCt => PlayMadeAsync(bytes, playCt);
     }
