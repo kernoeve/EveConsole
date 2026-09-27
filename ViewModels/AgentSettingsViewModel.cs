@@ -136,7 +136,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             Endpoint = "http://localhost:11434",
         });
         Models.Add(model);
-        RebuildChoices();
+        AddChoice(model);
         SelectedModel = model;
     }
 
@@ -154,7 +154,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         if (_analystFallbackId     == model.Id) _analystFallbackId     = "";
         if (_summaryModelId        == model.Id) _summaryModelId        = "";
 
-        RebuildChoices();
+        RemoveChoice(model);
         SelectedModel = Models[Math.Min(index, Models.Count - 1)];
     }
 
@@ -171,7 +171,15 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public System.Collections.ObjectModel.ObservableCollection<ModelChoice> AnalystChoices      { get; } = [];
     public System.Collections.ObjectModel.ObservableCollection<ModelChoice> FallbackChoices     { get; } = [];
 
-    /// <summary>After a model is added or removed. The selections are read again, by id.</summary>
+    /// <summary>
+    /// The lists from scratch, as the tab opens. The selections are read again, by id.
+    ///
+    /// <para>⚠️ Only then. A list emptied and refilled while the tab is open leaves each role's
+    /// dropdown blank: emptying it sends null back through the binding, the role's setter rightly
+    /// refuses it, and the binding then takes the role as unchanged and never shows it again. The
+    /// role was kept, but all five dropdowns read as cleared. A model added or removed changes the
+    /// lists by that one entry instead (AddChoice, RemoveChoice).</para>
+    /// </summary>
     private void RebuildChoices()
     {
         ConversationChoices.Clear();
@@ -185,6 +193,27 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             AnalystChoices.Add(m);
             FallbackChoices.Add(m);
         }
+        RaiseRoles();
+        this.RaisePropertyChanged(nameof(CanRemoveModel));
+    }
+
+    /// <summary>A model added: one more entry in each role's list, and every selection left as it is.</summary>
+    private void AddChoice(ModelProfileVm model)
+    {
+        ConversationChoices.Add(model);
+        AnalystChoices.Add(model);
+        FallbackChoices.Add(model);
+        RaiseRoles();
+        this.RaisePropertyChanged(nameof(CanRemoveModel));
+    }
+
+    /// <summary>A model removed: its entry out of each list. The roles that named it have been
+    /// moved on already, and are shown as they now are.</summary>
+    private void RemoveChoice(ModelProfileVm model)
+    {
+        ConversationChoices.Remove(model);
+        AnalystChoices.Remove(model);
+        FallbackChoices.Remove(model);
         RaiseRoles();
         this.RaisePropertyChanged(nameof(CanRemoveModel));
     }
