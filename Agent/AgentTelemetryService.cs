@@ -213,6 +213,52 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
         }
     }
 
+    private static readonly SemaphoreSlim PublishedGate = new(1, 1);
+
+    /// <summary>
+    /// Every row still holding a copied "(any model)" rate, given the model's published rate where
+    /// LiteLLM's list has one in the row's unit (see PublishedRates). Returns how many.
+    ///
+    /// <para>⚠️ Only rows whose note is still the copy's: a rate set by hand, or looked up before,
+    /// is never touched. With none waiting, the list is not fetched at all.</para>
+    /// </summary>
+    public async Task<int> ApplyPublishedRatesAsync(CancellationToken ct = default)
+    {
+        await PublishedGate.WaitAsync(ct);
+        try
+        {
+            using var scope = scopes.CreateScope();
+            var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var copies = await db.ServiceRates.Where(r => r.Notes == CopiedRateNote && r.Model != "").ToListAsync(ct);
+            if (copies.Count == 0) return 0;
+
+            using var list = await PublishedRates.LoadAsync(ct);
+            if (list is null) return 0;
+
+            var now    = DateTimeOffset.UtcNow;
+            var priced = 0;
+            foreach (var row in copies)
+            {
+                if (PublishedRates.Find(list, row.Kind, row.Provider, row.Model) is not { } rate) continue;
+                row.InputPerUnit      = rate.Input;
+                row.OutputPerUnit     = rate.Output;
+                row.CacheReadPerUnit  = rate.CacheRead;
+                row.CacheWritePerUnit = rate.CacheWrite;
+                row.Notes             = PublishedRates.Note(rate, now);
+                row.UpdatedAt         = now;
+                priced++;
+            }
+            if (priced > 0) await db.SaveChangesAsync(ct);
+            return priced;
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            errors.Log("AgentTelemetry", "ApplyPublishedRates", ex);
+            return 0;
+        }
+        finally { PublishedGate.Release(); }
+    }
+
     /// <summary>
     /// Closes the turn and writes it. Fire-and-forget by design: the capsuleer's answer is already
     /// on screen and must not wait on a database.

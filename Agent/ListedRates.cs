@@ -20,9 +20,10 @@ public static class ListedRates
     public static (string Kind, string Provider) OpenAiTranscribe => ("stt", nameof(SpeechInputProvider.OpenAiWhisper));
 
     /// <summary>
-    /// Every paid service with a key: its list, and a rate row for each model on it that has none.
-    /// Returns how many rows were added. A service that does not answer is passed over — this only
-    /// adds rows, and the next time will do.
+    /// Every paid service with a key: its list, and a rate row for each model on it that has none;
+    /// then each row still holding a copied rate given the model's published one, where LiteLLM's
+    /// list has it (see PublishedRates). Returns how many rows were added or priced. A service that
+    /// does not answer is passed over — this only adds, and the next time will do.
     /// </summary>
     public static async Task<int> SyncAsync(AgentSettings keys, AgentTelemetryService telemetry, CancellationToken ct = default)
     {
@@ -49,6 +50,6 @@ public static class ListedRates
         if (eleven.Length > 0)
             await Add(ElevenLabs, () => ElevenLabsTtsService.ListModelsAsync(eleven, ct));
 
-        return added;
+        return added + await telemetry.ApplyPublishedRatesAsync(ct);
     }
 }

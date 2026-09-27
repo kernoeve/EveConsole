@@ -644,8 +644,14 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     /// </summary>
     internal void AddListedRates((string Kind, string Provider) rate, IReadOnlyList<ModelListing> listed)
     {
-        if (_service.Telemetry is { } telemetry)
-            _ = telemetry.AddListedRatesAsync(rate.Kind, rate.Provider, listed.Select(l => l.Id));
+        if (_service.Telemetry is not { } telemetry) return;
+        var ids = listed.Select(l => l.Id).ToList();
+        _ = Task.Run(async () =>
+        {
+            // And each new row its published rate, where LiteLLM's list has one (see PublishedRates).
+            if (await telemetry.AddListedRatesAsync(rate.Kind, rate.Provider, ids) > 0)
+                await telemetry.ApplyPublishedRatesAsync();
+        });
     }
 
     // ── OpenAI's transcription model: from its list, never a name written here ──
