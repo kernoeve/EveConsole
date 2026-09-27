@@ -56,9 +56,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     private bool _contextProbeSupported = true;
 
     public string ProviderName { get; }
-    public bool   IsConfigured => _isLocal
-        ? !string.IsNullOrWhiteSpace(_baseUrl) && !string.IsNullOrWhiteSpace(_model)
-        : !string.IsNullOrWhiteSpace(_apiKey);
+    public bool   IsConfigured => !string.IsNullOrWhiteSpace(_model) && (_isLocal
+        ? !string.IsNullOrWhiteSpace(_baseUrl)
+        : !string.IsNullOrWhiteSpace(_apiKey));
 
     private OpenAiCompatibleProvider(string providerName, string baseUrl, string apiKey, string model, bool isLocal,
                                      bool think = true)
@@ -71,9 +71,11 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         _think       = think;
     }
 
-    /// <summary>OpenAI's own service.</summary>
+    private const string OpenAiBase = "https://api.openai.com/v1/";
+
+    /// <summary>OpenAI's own service. The model as its list names it; no default (see ModelListing).</summary>
     public static OpenAiCompatibleProvider OpenAi(string apiKey, string model)
-        => new("OpenAI", "https://api.openai.com/v1/", apiKey ?? "", string.IsNullOrWhiteSpace(model) ? "gpt-5" : model.Trim(), isLocal: false);
+        => new("OpenAI", OpenAiBase, apiKey ?? "", (model ?? "").Trim(), isLocal: false);
 
     /// <summary>
     /// A model server on this machine or the network.
@@ -89,11 +91,62 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     /// ends the system prompt with Qwen3's own switch, "/no_think", which other models pass over.
     /// </param>
     public static OpenAiCompatibleProvider Local(string endpoint, string model, bool think = true)
+        => new("Local", LocalBase(endpoint), LocalToken, (model ?? "").Trim(), isLocal: true, think: think);
+
+    private const string LocalToken = "ollama";
+
+    /// <summary>The OpenAI-compatible surface under a server's root: its /v1/, not twice.</summary>
+    private static string LocalBase(string? endpoint)
     {
         var root = (endpoint ?? "").Trim().TrimEnd('/');
         if (!root.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)) root += "/v1";
-        return new("Local", root + "/", "ollama", string.IsNullOrWhiteSpace(model) ? "llama3.1" : model.Trim(),
-                   isLocal: true, think: think);
+        return root + "/";
+    }
+
+    /// <summary>
+    /// The models a server of the capsuleer's own has — Ollama's "ollama list" — for the settings
+    /// tab to offer. Throws with the reason when the server cannot be reached or refuses.
+    /// </summary>
+    public static Task<IReadOnlyList<ModelListing>> ListLocalModelsAsync(string endpoint, CancellationToken ct = default)
+        => ListAsync(LocalBase(endpoint), LocalToken, "The server", ct);
+
+    /// <summary>
+    /// The models OpenAI offers this key, newest first, less those plainly not for conversation:
+    /// speech, transcription, images, embeddings, moderation, real-time audio.
+    ///
+    /// <para>⚠️ A list of what to leave OUT, never of what to keep. OpenAI's list says nothing of
+    /// what a model is for, so any rule is a guess; one that named the families to keep would
+    /// hide the next family the day it came out.</para>
+    /// </summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListOpenAiModelsAsync(string apiKey, CancellationToken ct = default)
+    {
+        string[] notForTalk = ["tts", "whisper", "transcribe", "audio", "realtime", "dall-e", "image", "embedding", "moderation", "search", "sora"];
+        var all = await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false);
+        return [.. all.Where(m => !notForTalk.Any(word => m.Id.Contains(word, StringComparison.OrdinalIgnoreCase)))];
+    }
+
+    /// <summary>GET models from an OpenAI-style list: ids, in the order given — or newest first
+    /// where the entries carry a "created" time, as OpenAI's do.</summary>
+    private static async Task<IReadOnlyList<ModelListing>> ListAsync(string baseUrl, string apiKey, string who, CancellationToken ct)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        using var request = new HttpRequestMessage(HttpMethod.Get, baseUrl + "models");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+        using var response = await _http.SendAsync(request, timeout.Token).ConfigureAwait(false);
+        var body = await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"{who} answered {(int)response.StatusCode}: {(body.Length > 200 ? body[..200] + "…" : body)}",
+                                           null, response.StatusCode);
+
+        using var doc = JsonDocument.Parse(body);
+        if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return [];
+        return [.. data.EnumerateArray()
+            .Select(m => (Id: m.TryGetProperty("id", out var id) ? id.GetString() ?? "" : "",
+                          Created: m.TryGetProperty("created", out var c) && c.ValueKind == JsonValueKind.Number ? c.GetInt64() : 0))
+            .Where(m => m.Id.Length > 0)
+            .OrderByDescending(m => m.Created)                 // stable: an unstamped list keeps its order
+            .Select(m => new ModelListing(m.Id, m.Id))];
     }
 
     public async IAsyncEnumerable<string> StreamAsync(

@@ -48,7 +48,9 @@ public sealed class AgentSettings
     }
 
     public string ClaudeApiKey  { get; set; } = "";
-    public string ClaudeModel   { get; set; } = "claude-sonnet-4-6";
+    // (No model named by default here either: a file that never had one gets a model with none
+    // chosen, and the settings tab offers the service's list. See ModelProfile.ModelName.)
+    public string ClaudeModel   { get; set; } = "";
 
     /// <summary>
     /// How long Anthropic keeps the cached prompt prefix warm between requests: "5m" (the
@@ -59,10 +61,10 @@ public sealed class AgentSettings
     public string ClaudeCacheTtl { get; set; } = "5m";
 
     public string OpenAiApiKey  { get; set; } = "";
-    public string OpenAiModel   { get; set; } = "gpt-5";
+    public string OpenAiModel   { get; set; } = "";
 
     public string LocalEndpoint { get; set; } = "http://localhost:11434";
-    public string LocalModel    { get; set; } = "llama3.1";
+    public string LocalModel    { get; set; } = "";
 
     // ⚠️ Provider, ClaudeModel, OpenAiModel, LocalEndpoint and LocalModel above are the ONE model
     // this file described before there was a list. They are read once, to make the list's first
@@ -190,7 +192,8 @@ public sealed class AgentSettings
     {
         AgentProviderType.Claude => !string.IsNullOrWhiteSpace(ClaudeApiKey),
         AgentProviderType.OpenAI => !string.IsNullOrWhiteSpace(OpenAiApiKey),
-        _                        => LocalEndpoint.Trim() != "http://localhost:11434" || LocalModel.Trim() != "llama3.1",
+        // "llama3.1" was the untouched default until models came from the server's own list.
+        _                        => LocalEndpoint.Trim() != "http://localhost:11434" || LocalModel.Trim() is not ("" or "llama3.1"),
     };
 
     /// <summary>
@@ -368,29 +371,34 @@ public sealed class ModelProfile
 
     public ModelProfile Clone() => (ModelProfile)MemberwiseClone();
 
-    public string ModelName => Model.Trim().Length > 0 ? Model.Trim() : DefaultModel(Provider);
-
-    public static string DefaultModel(AgentProviderType provider) => provider switch
-    {
-        AgentProviderType.Claude => "claude-sonnet-4-6",
-        AgentProviderType.OpenAI => "gpt-5",
-        _                        => "llama3.1",
-    };
+    /// <summary>
+    /// The model as its service names it; empty while none is chosen.
+    ///
+    /// <para>⚠️ No default to fall back on. It was "claude-sonnet-4-6", "gpt-5", "llama3.1": names
+    /// out of date by the time they shipped, used without a word whenever the field was empty. A
+    /// model with none chosen is now not set up, and says so; the settings tab offers the
+    /// service's own list and picks from it (see ModelListing).</para>
+    /// </summary>
+    public string ModelName => Model.Trim();
 
     /// <summary>Runs on a machine of the capsuleer's own, and so costs nothing to use.</summary>
     public bool IsLocal => Provider == AgentProviderType.Local;
 
-    /// <summary>Its name, or what it is: "Claude — claude-sonnet-4-6", "Local — qwen3:8b on gpu-box".</summary>
+    /// <summary>Its name, or what it is: "Claude — claude-opus-5", "Local — qwen3:8b on gpu-box".</summary>
     public string Label => Name.Trim().Length > 0 ? Name.Trim() : Describe();
 
-    public string Describe() => Provider switch
+    public string Describe()
     {
-        AgentProviderType.Claude => $"Claude — {ModelName}",
-        AgentProviderType.OpenAI => $"OpenAI — {ModelName}",
-        _ => Uri.TryCreate(Endpoint.Trim(), UriKind.Absolute, out var uri)
-            ? $"Local — {ModelName} on {uri.Host}"
-            : $"Local — {ModelName}",
-    };
+        var model = ModelName.Length > 0 ? ModelName : "no model chosen";
+        return Provider switch
+        {
+            AgentProviderType.Claude => $"Claude — {model}",
+            AgentProviderType.OpenAI => $"OpenAI — {model}",
+            _ => Uri.TryCreate(Endpoint.Trim(), UriKind.Absolute, out var uri)
+                ? $"Local — {model} on {uri.Host}"
+                : $"Local — {model}",
+        };
+    }
 }
 
 /// <summary>A role's model, and the model to fall over to when it stops answering.</summary>

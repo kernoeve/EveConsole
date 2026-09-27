@@ -757,13 +757,13 @@ public sealed class AgentService : ReactiveObject
 
     /// <summary>
     /// What answers for one model, with the keys on <paramref name="keys"/> — null when it is not
-    /// set up: no key for its service, no address for a server of our own.
+    /// set up: no model chosen, no key for its service, no address for a server of our own.
     ///
     /// <para>⚠️ Every service the settings tab offers has to build something here. OpenAI and
     /// Local were selectable for months with no provider behind them, so choosing either yielded
     /// "not configured" — and nothing said why until a message was sent.</para>
     /// </summary>
-    public static IAgentProvider? BuildProvider(ModelProfile m, AgentSettings keys) => m.Provider switch
+    public static IAgentProvider? BuildProvider(ModelProfile m, AgentSettings keys) => m.ModelName.Length == 0 ? null : m.Provider switch
     {
         AgentProviderType.Claude when !string.IsNullOrWhiteSpace(keys.ClaudeApiKey)
             => new ClaudeProvider(keys.ClaudeApiKey, m.ModelName, keys.ClaudeCacheTtl),

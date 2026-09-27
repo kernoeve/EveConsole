@@ -1870,24 +1870,9 @@
                           <TextBlock Text="Service" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
                           <ComboBox ItemsSource="{Binding ServiceOptions}" SelectedItem="{Binding SelectedService}" HorizontalAlignment="Stretch" />
 
-                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="8">
-                            <TextBlock Text="Server address" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                            <TextBox Text="{Binding Endpoint}" Watermark="http://gpu-box:11434" />
-                          </StackPanel>
-
-                          <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                          <TextBox Text="{Binding Model}" Watermark="{Binding ModelWatermark}" />
-                          <TextBlock Text="{Binding ModelHelp}" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
-
-                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="4">
-                            <CheckBox IsChecked="{Binding Think}" Content="Let it think before answering (slower)" />
-                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
-                                       Text="For models that think before they answer, such as Qwen3. The thinking is never shown, but every answer waits for it. Untick for quicker replies: the model is told not to think, at some cost in care — most of all in choosing a tool. Models that do not think ignore it." />
-                          </StackPanel>
-
-                          <!-- The service's own settings: one key per service, shared by every model on
-                               it, and shown with whichever model is selected on that service. -->
-                          <StackPanel IsVisible="{Binding ShowClaude}" Spacing="8" Margin="0 4 0 0">
+                          <!-- The service's key, before the model: the list of models is asked for with
+                               it. One key per service, shared by every model on it. -->
+                          <StackPanel IsVisible="{Binding ShowClaude}" Spacing="8">
                             <TextBlock Text="Claude (Anthropic) API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <TextBox Text="{Binding Owner.ClaudeApiKey}" Watermark="sk-ant-…" PasswordChar="•" />
                             <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
@@ -1895,16 +1880,9 @@
                             <HyperlinkButton Content="Get your Anthropic API key at console.anthropic.com"
                                              NavigateUri="https://console.anthropic.com/settings/keys"
                                              FontSize="10" Padding="0" HorizontalAlignment="Left" />
-
-                            <TextBlock Text="Prompt cache lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
-                            <ComboBox ItemsSource="{Binding Owner.ClaudeCacheTtlOptions}"
-                                      SelectedItem="{Binding Owner.ClaudeCacheTtlOption}"
-                                      HorizontalAlignment="Stretch" />
-                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
-                                       Text="Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message. For every Claude model in the list." />
                           </StackPanel>
 
-                          <StackPanel IsVisible="{Binding ShowOpenAi}" Spacing="8" Margin="0 4 0 0">
+                          <StackPanel IsVisible="{Binding ShowOpenAi}" Spacing="8">
                             <TextBlock Text="OpenAI API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
                             <TextBox Text="{Binding Owner.OpenAiApiKey}" Watermark="sk-…" PasswordChar="•" />
                             <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
@@ -1912,6 +1890,49 @@
                             <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
                                              NavigateUri="https://platform.openai.com/api-keys"
                                              FontSize="10" Padding="0" HorizontalAlignment="Left" />
+                          </StackPanel>
+
+                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="8">
+                            <TextBlock Text="Server address" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Endpoint}" Watermark="http://gpu-box:11434" />
+                          </StackPanel>
+
+                          <!-- The model, from the service's own list; typed only when there is no list. -->
+                          <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                          <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0" IsVisible="{Binding ShowListings}"
+                                      ItemsSource="{Binding Listings}" SelectedItem="{Binding SelectedListing}"
+                                      HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                              <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="agent:ModelListing">
+                                  <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBox Grid.Column="0" IsVisible="{Binding !ShowListings}"
+                                     Text="{Binding Model}" Watermark="{Binding ModelWatermark}" />
+                            <Button Grid.Column="1" Content="↺" Command="{Binding RefreshListCommand}"
+                                    Padding="8 4" Margin="6 0 0 0" VerticalAlignment="Stretch"
+                                    ToolTip.Tip="Ask the service for its list of models again" />
+                          </Grid>
+                          <TextBlock Text="{Binding ListStatus}" IsVisible="{Binding HasListStatus}"
+                                     FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding ModelHelp}" IsVisible="{Binding ModelHelp, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                     FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+
+                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="4">
+                            <CheckBox IsChecked="{Binding Think}" Content="Let it think before answering (slower)" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="For models that think before they answer, such as Qwen3. The thinking is never shown, but every answer waits for it. Untick for quicker replies: the model is told not to think, at some cost in care — most of all in choosing a tool. Models that do not think ignore it." />
+                          </StackPanel>
+
+                          <StackPanel IsVisible="{Binding ShowClaude}" Spacing="8" Margin="0 4 0 0">
+                            <TextBlock Text="Prompt cache lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding Owner.ClaudeCacheTtlOptions}"
+                                      SelectedItem="{Binding Owner.ClaudeCacheTtlOption}"
+                                      HorizontalAlignment="Stretch" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message. For every Claude model in the list." />
                           </StackPanel>
 
                           <StackPanel Spacing="6" Margin="0 4 0 0">

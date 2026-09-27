@@ -83,10 +83,11 @@ public sealed class ClaudeProvider : IAgentProvider
     private readonly string _model;
 
     public string ProviderName => "Claude (Anthropic)";
-    public bool   IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
+    public bool   IsConfigured => !string.IsNullOrWhiteSpace(_apiKey) && !string.IsNullOrWhiteSpace(_model);
 
+    /// <param name="model">As Anthropic's model list names it. No default: see ModelListing.</param>
     /// <param name="cacheTtl">"5m" or "1h"; anything else is the default.</param>
-    public ClaudeProvider(string apiKey, string model = "claude-sonnet-4-6", string cacheTtl = "5m")
+    public ClaudeProvider(string apiKey, string model, string cacheTtl = "5m")
     {
         _apiKey    = apiKey;
         _model     = model;
@@ -563,6 +564,63 @@ public sealed class ClaudeProvider : IAgentProvider
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
         catch (HttpRequestException) { return false; }
+    }
+
+    /// <summary>
+    /// The models this key can use, newest first, as Anthropic lists them (GET /v1/models) — the
+    /// settings tab's choice, so no model's name is written into the app to go stale. Free to
+    /// call. Throws with the service's own words when it refuses: a key it does not accept, say.
+    /// </summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListModelsAsync(string apiKey, CancellationToken ct = default)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+
+        var models = new List<ModelListing>();
+        string? after = null;
+        do
+        {
+            var url = "https://api.anthropic.com/v1/models?limit=1000" + (after is null ? "" : "&after_id=" + Uri.EscapeDataString(after));
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-api-key",         apiKey);
+            request.Headers.Add("anthropic-version", AnthropicVersion);
+            using var response = await _http.SendAsync(request, timeout.Token).ConfigureAwait(false);
+            var body = await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException(
+                    $"Anthropic answered {(int)response.StatusCode}: {ErrorMessage(body)}", null, response.StatusCode);
+
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+                foreach (var m in data.EnumerateArray())
+                {
+                    if (!m.TryGetProperty("id", out var id) || id.GetString() is not { Length: > 0 } modelId) continue;
+                    var name = m.TryGetProperty("display_name", out var d) && d.GetString() is { Length: > 0 } shown ? shown : modelId;
+                    models.Add(new ModelListing(modelId, name));
+                }
+
+            after = root.TryGetProperty("has_more", out var more) && more.ValueKind == JsonValueKind.True
+                    && root.TryGetProperty("last_id", out var last) && last.GetString() is { Length: > 0 } lastId
+                ? lastId : null;
+        }
+        while (after is not null && models.Count < 5000);
+
+        return models;
+    }
+
+    /// <summary>The message in an error answer — {"error": {"message": "…"}} — or the answer itself.</summary>
+    private static string ErrorMessage(string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("error", out var e) && e.ValueKind == JsonValueKind.Object
+                && e.TryGetProperty("message", out var m) && m.GetString() is { Length: > 0 } message)
+                return message;
+        }
+        catch (JsonException) { }
+        return body.Length > 200 ? body[..200] + "…" : body;
     }
 
     /// <summary>

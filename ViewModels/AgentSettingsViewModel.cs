@@ -115,6 +115,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _selectedModel, value);
             this.RaisePropertyChanged(nameof(HasSelectedModel));
+            _ = value?.LoadListAsync();         // the service's models, to choose from
         }
     }
 
@@ -353,8 +354,9 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         if (AgentService.BuildProvider(profile, keys) is not { } provider)
             return (false, profile.Provider switch
             {
-                AgentProviderType.Claude => "It needs the Claude key, under Service keys below.",
-                AgentProviderType.OpenAI => "It needs the OpenAI key, under Service keys below.",
+                _ when profile.ModelName.Length == 0 => "Choose a model first.",
+                AgentProviderType.Claude => "It needs the Claude key, above.",
+                AgentProviderType.OpenAI => "It needs the OpenAI key, above.",
                 _                        => "It needs the server's address.",
             });
 
@@ -392,7 +394,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string ClaudeApiKey
     {
         get => _claudeApiKey;
-        set => this.RaiseAndSetIfChanged(ref _claudeApiKey, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _claudeApiKey, value);
+            if (_selectedModel?.Provider == AgentProviderType.Claude) _selectedModel.KeyChanged();
+        }
     }
 
     // ── Claude prompt-cache lifetime ────────────────────────────────────────────
@@ -416,7 +422,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string OpenAiApiKey
     {
         get => _openAiApiKey;
-        set => this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
+            if (_selectedModel?.Provider == AgentProviderType.OpenAI) _selectedModel.KeyChanged();
+        }
     }
 
     // ── context management ─────────────────────────────────────────────────────
@@ -785,6 +795,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _modelSwitchGapMinutes   = s.ModelSwitchGapMinutes;
         _modelPreferredUpMinutes = s.ModelPreferredUpMinutes;
         RebuildChoices();
+        _ = _selectedModel?.LoadListAsync();    // the first model's list, as the tab opens on it
 
         s.NormalizeVoices();
         _speechOn                = s.SpeechOn;
