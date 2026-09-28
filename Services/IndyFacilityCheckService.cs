@@ -17,6 +17,9 @@ public enum FacilityRigVerdict
     /// <summary>Research, copying or invention — bonused by rigs this check does not
     /// model, so silence rather than a false alarm.</summary>
     NotApplicable,
+    /// <summary>An NPC station. Stations take no rigs, so there is nothing to be rigged for,
+    /// and running a job there is the pilot's own choice — never a finding.</summary>
+    NpcStation,
 }
 
 public sealed record FacilityRigResult(int JobId, FacilityRigVerdict Verdict, string Note);
@@ -60,7 +63,8 @@ public class IndyFacilityCheckService(IDbContextFactory<AppDbContext> dbFactory)
             .GroupBy(s => s.RealStructureId!.Value)
             .ToDictionary(g => g.Key, g => (
                 Ids:         g.Select(s => s.Id).ToList(),
-                DisplayName: g.First().DisplayName));
+                DisplayName: g.First().DisplayName,
+                IsNpc:       g.All(s => s.StructureTypeKey == "npc_station")));
 
         var jobs = await db.EsiIndustryJobs.AsNoTracking()
             .Where(j => jobIds.Contains(j.JobId))
@@ -118,6 +122,15 @@ public class IndyFacilityCheckService(IDbContextFactory<AppDbContext> dbFactory)
             if (!byFacility.TryGetValue(j.FacilityId, out var park))
             {
                 results[j.JobId] = new FacilityRigResult(j.JobId, FacilityRigVerdict.Unknown, "");
+                continue;
+            }
+
+            // An NPC station: no rigs to have, so none to be missing. Known by the park entry,
+            // or by the id itself — stations are numbered below 100,000,000, structures are
+            // item ids in the trillions — should an entry have been saved with the wrong type.
+            if (park.IsNpc || j.FacilityId < 100_000_000L)
+            {
+                results[j.JobId] = new FacilityRigResult(j.JobId, FacilityRigVerdict.NpcStation, "");
                 continue;
             }
 

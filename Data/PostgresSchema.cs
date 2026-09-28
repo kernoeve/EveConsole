@@ -95,9 +95,6 @@ public static class PostgresSchema
             "OrderRef"   TEXT        NOT NULL DEFAULT ''
         )
         """,
-        """
-        CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")
-        """,
         // Pictures the site shows for a store: the banner, bytes and all.
         """
         CREATE TABLE IF NOT EXISTS "StoreWebAssets" (
@@ -626,6 +623,17 @@ public static class PostgresSchema
         """
         ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "MailUpdates" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // An order delivered over several contracts: each with the units it carries, and how many
+        // of the order have been accepted and how many are waiting on the buyer.
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "LinkedContracts" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "UnitsDelivered" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "TrackedOrders" ADD COLUMN IF NOT EXISTS "UnitsContracted" INTEGER NOT NULL DEFAULT 0
+        """,
 
 
         // ── Agent telemetry ──────────────────────────────────────────────────
@@ -710,6 +718,64 @@ public static class PostgresSchema
         """
         ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "TokenError" TEXT NOT NULL DEFAULT ''
         """,
+
+        // ── Corp moon-mining ledger, one row per day ─────────────────────────
+        //
+        // Replaces "EsiCorpMiningLedger", which was keyed without the date and so held only each
+        // miner's newest day per ore — see CorpMiningLedgerEntry. The old rows move across once
+        // and the old table goes. Each date is put back at 00:00 UTC: the old reader stored ESI's
+        // bare date as midnight in the polling machine's zone, and rounding to the NEAREST
+        // midnight undoes that on either side of UTC, where truncating would not east of it.
+        // Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpMiningLedgerDays" (
+            "CorporationId"         BIGINT      NOT NULL,
+            "ObserverId"            BIGINT      NOT NULL,
+            "LastUpdated"           TIMESTAMPTZ NOT NULL,
+            "CharacterId"           BIGINT      NOT NULL,
+            "RecordedCorporationId" BIGINT      NOT NULL,
+            "TypeId"                INTEGER     NOT NULL,
+            "Quantity"              BIGINT      NOT NULL,
+            CONSTRAINT "PK_EsiCorpMiningLedgerDays" PRIMARY KEY
+                ("CorporationId", "ObserverId", "LastUpdated", "CharacterId", "RecordedCorporationId", "TypeId")
+        )
+        """,
+        """
+        DO $$
+        BEGIN
+            IF to_regclass('"EsiCorpMiningLedger"') IS NOT NULL THEN
+                INSERT INTO "EsiCorpMiningLedgerDays"
+                    ("CorporationId", "ObserverId", "LastUpdated", "CharacterId",
+                     "RecordedCorporationId", "TypeId", "Quantity")
+                SELECT "CorporationId", "ObserverId",
+                       date_trunc('day', ("LastUpdated" AT TIME ZONE 'UTC') + interval '12 hours')
+                           AT TIME ZONE 'UTC',
+                       "CharacterId", "RecordedCorporationId", "TypeId", "Quantity"
+                FROM "EsiCorpMiningLedger"
+                ON CONFLICT DO NOTHING;
+                DROP TABLE "EsiCorpMiningLedger";
+            END IF;
+        END $$
+        """,
+
+        // ── Hoboleaks build info ─────────────────────────────────────────────
+        //
+        // Revision arrived after PostgreSQL support and reached servers only through the Hobo
+        // import's own ALTER, spelled for SQLite: INTEGER, which is int4 here where the model has
+        // a long. Added as the model has it, and an int4 one widened once.
+        """
+        ALTER TABLE "HoboBuildInfos" ADD COLUMN IF NOT EXISTS "Revision" BIGINT NOT NULL DEFAULT 0
+        """,
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = current_schema() AND table_name = 'HoboBuildInfos'
+                         AND column_name = 'Revision' AND data_type = 'integer') THEN
+                ALTER TABLE "HoboBuildInfos" ALTER COLUMN "Revision" TYPE BIGINT;
+            END IF;
+        END $$
+        """,
     ];
 
     /// <summary>
@@ -726,6 +792,9 @@ public static class PostgresSchema
     /// </summary>
     public static readonly string[] Indexes =
     [
+        // ⚠️ Here, not beside its table in Tables: the drift check reads this list, and an index
+        // anywhere else is invisible to it — this one was reported missing while it existed.
+        """CREATE INDEX IF NOT EXISTS "IX_StoreWebEvents_Store_Seq" ON "StoreWebEvents" ("StoreId", "Seq")""",
         """CREATE INDEX IF NOT EXISTS "IX_OrderLabels_Label" ON "OrderLabels" ("Label")""",
         """CREATE INDEX IF NOT EXISTS "IX_SaleLabels_Label" ON "SaleLabels" ("Label")""",
         """CREATE INDEX IF NOT EXISTS "IX_StoreMails_In" ON "StoreMails" ("StoreId", "MailId", "Direction")""",
@@ -780,6 +849,25 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_OccurredAt" ON "ServiceUsage" ("OccurredAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_Kind_OccurredAt" ON "ServiceUsage" ("Kind", "OccurredAt")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ServiceRates_Key" ON "ServiceRates" ("Kind", "Provider", "Model")""",
+
+        // EF's own names for indexes created above under these. The model uses these names now
+        // (HasDatabaseName), so the copies exist only where EF built the database before it did —
+        // a fresh install got each index twice. Dropping one loses nothing: the index it copies
+        // stays under the other name. Mirrored for SQLite in App.axaml.cs.
+        """DROP INDEX IF EXISTS "IX_AgentInteractions_ConversationId_StartedAt" """,
+        """DROP INDEX IF EXISTS "IX_AgentToolCalls_InteractionId_Sequence" """,
+        """DROP INDEX IF EXISTS "IX_AlarmAlerts_Dismissed_CreatedAt" """,
+        """DROP INDEX IF EXISTS "IX_AlarmEvents_AlarmId_FiredAt" """,
+        """DROP INDEX IF EXISTS "IX_AlarmSeenKeys_AlarmId_FirstSeenAt" """,
+        """DROP INDEX IF EXISTS "IX_EsiCorpMemberSessions_CorporationId_CharacterId_LogonDate" """,
+        """DROP INDEX IF EXISTS "IX_IntelReports_Obsolete_ReportedAt" """,
+        """DROP INDEX IF EXISTS "IX_IntelReports_SystemId_ReportedAt" """,
+        """DROP INDEX IF EXISTS "IX_MarketRawOrders_ConfigId_TypeId_IsBuyOrder" """,
+        """DROP INDEX IF EXISTS "IX_SdeAgents_LocationId" """,
+        """DROP INDEX IF EXISTS "IX_SdeCelestials_SolarSystemId" """,
+        """DROP INDEX IF EXISTS "IX_ServiceRates_Kind_Provider_Model" """,
+        """DROP INDEX IF EXISTS "IX_StoreWebEvents_StoreId_Seq" """,
+        """DROP INDEX IF EXISTS "IX_StructureFittings_StructureId_Band_SlotIndex" """,
     ];
 
     /// <summary>

@@ -32,6 +32,9 @@ public class NotificationRowVm
     public bool HasCharacterLink { get; }
     public bool HasSenderLink => _senderId > 0;
 
+    /// <summary>Every character the notification arrived under, by name.</summary>
+    public IReadOnlyList<(long Id, string Name)> Recipients { get; }
+
     public void OpenCharacter()
         => EntityNavigator.Instance.Entity(EntityKind.Pilot, _characterId);
 
@@ -46,16 +49,17 @@ public class NotificationRowVm
         EntityNavigator.Instance.Entity(kind, _senderId);
     }
 
-    // characters = the (comma-joined) names of every character the notification arrived under.
+    // recipients = every character the notification arrived under, sorted by name.
     public NotificationRowVm(
-        CharacterNotification n, string characters,
+        CharacterNotification n, IReadOnlyList<(long Id, string Name)> recipients,
         IReadOnlyDictionary<long, string> names)
     {
         Record         = n;
         NotificationId = n.NotificationId;
         DateText       = n.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
-        TypeLabel      = NotificationFormatter.Humanize(n.Type);
-        Character      = characters.Length > 0 ? characters : $"ID {n.CharacterId}";
+        TypeLabel      = NotificationTitles.For(n.Type);
+        Recipients     = recipients;
+        Character      = recipients.Count > 0 ? string.Join(", ", recipients.Select(x => x.Name)) : $"ID {n.CharacterId}";
         Sender         = n.SenderId > 0
             ? (names.TryGetValue(n.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {n.SenderId}")
             : "—";
@@ -66,34 +70,85 @@ public class NotificationRowVm
         _characterId     = n.CharacterId;
         _senderId        = n.SenderId;
         _senderTypeRaw   = n.SenderType;
-        HasCharacterLink = n.CharacterId > 0 && !Character.Contains(',');
+        HasCharacterLink = n.CharacterId > 0 && recipients.Count <= 1;
     }
 }
 
+/// <summary>A choice in the type filter: the name a type is shown by, and every ESI type shown
+/// under it — "NPC standings changed" covers both NPCStandingsLost and NPCStandingsGained.</summary>
+public sealed class NotifTypeOption(string label, IReadOnlyList<string> types)
+{
+    public string                Label { get; } = label;
+    public IReadOnlyList<string> Types { get; } = types;
+    public bool IsAll => Types.Count == 0;
+
+    /// <summary>ESI's own name, for anyone matching a type against the API documentation.</summary>
+    public string? RawTypes => IsAll ? null : string.Join(", ", Types);
+
+    public override string ToString() => Label;
+}
+
+/// <summary>
+/// The selected notification. A header — who sent it, when, whether it was read, who it came
+/// to — over the body, laid out for its type by <see cref="NotificationBody"/>.
+/// </summary>
 public class NotificationDetailVm
 {
-    public string TypeLabel  { get; }
-    public string DateText   { get; }
-    public string Character  { get; }
-    public string Sender     { get; }
-    public string ReadText   { get; }
-    public string Body       { get; }
+    public string       Title      { get; }
+    public string       DateText   { get; }
+    public NotifValueVm Sender     { get; }
+    public string       SenderType { get; }
+    public string       ReadText   { get; }
 
-    // Same icon treatment as the Overview notifications list: sender portrait / corp-alliance logo
-    // / structure-type icon, with a glyph fallback when there's no image.
+    /// <summary>The characters it came to, as links; their portraits sit at the right.</summary>
+    public IReadOnlyList<NotifValueVm> Recipients { get; }
+    public IReadOnlyList<NotifValueVm> Portraits  { get; }
+    public string MoreRecipients    { get; }
+    public bool   HasMoreRecipients => MoreRecipients.Length > 0;
+
+    public NotificationBodyVm Body { get; }
+    public bool   NoBody     => Body.IsEmpty;
+    public string RawText    { get; }
+    public bool   HasRawText => RawText.Length > 0;
+
+    /// <summary>Beside the sender: the structure's own icon for a structure notification, the
+    /// sender's portrait or logo otherwise, with a glyph when there is neither.</summary>
     public Bitmap? Icon          { get; }
     public bool    HasIcon       => Icon is not null;
     public bool    NoIcon        => Icon is null;
     public string  FallbackGlyph { get; }
 
-    public NotificationDetailVm(NotificationRowVm row, string body, Bitmap? icon, string glyph)
+    /// <summary>A crowd of portraits stops saying anything; past this many the rest are a count.</summary>
+    private const int MaxPortraits = 6;
+
+    public NotificationDetailVm(NotificationRowVm row, NotificationBodyVm body, Bitmap? icon, string glyph)
     {
-        TypeLabel = row.TypeLabel;
-        DateText  = row.Record.Timestamp.ToLocalTime().ToString("dddd, MMM d yyyy  HH:mm");
-        Character = row.Character;
-        Sender    = row.SenderType.Length > 0 ? $"{row.Sender} ({row.SenderType})" : row.Sender;
-        ReadText  = row.ReadText;
-        Body      = body.Length > 0 ? body : "(no details)";
+        Title      = row.TypeLabel;
+        DateText   = row.Record.Timestamp.ToLocalTime().ToString("dddd, MMM d yyyy  HH:mm");
+        Sender     = new NotifValueVm
+        {
+            Text = row.Sender,
+            Tip  = row.HasSenderLink ? "Open in the entity browser" : null,
+            Open = row.HasSenderLink ? row.OpenSender : null,
+        };
+        SenderType = row.SenderType;
+        ReadText   = row.ReadText;
+
+        Recipients = row.Recipients.Count > 0
+            ? [.. row.Recipients.Select(c => new NotifValueVm
+                {
+                    Text    = c.Name,
+                    Tip     = "Open in the entity browser",
+                    IconUrl = $"characters/{c.Id}/portrait?size=64",
+                    Open    = () => EntityNavigator.Instance.Entity(EntityKind.Pilot, c.Id),
+                })]
+            : [new NotifValueVm { Text = row.Character }];
+        Portraits      = [.. Recipients.Where(r => r.HasIconSlot).Take(MaxPortraits)];
+        MoreRecipients = Recipients.Count > MaxPortraits ? $"+{Recipients.Count - MaxPortraits}" : "";
+        foreach (var p in Portraits) _ = p.LoadIconAsync();
+
+        Body          = body;
+        RawText       = row.Record.Text?.Trim() ?? "";
         Icon          = icon;
         FallbackGlyph = glyph;
     }
@@ -113,15 +168,31 @@ public class NotificationsViewModel : ReactiveObject
     public GridPager Pager { get; }
 
     public ObservableCollection<ContractPartyOption> Characters  { get; } = new();
-    public ObservableCollection<string>              Types       { get; } = new();
+    public ObservableCollection<NotifTypeOption>     Types       { get; } = new();
+    private static readonly NotifTypeOption AllTypes = new("All types", []);
     public IReadOnlyList<string>                     SenderTypes { get; } = ["All senders", "Corporation", "Character"];
 
+    // ⚠️ Every order ends on NotificationId. Many notifications share a minute, and without a
+    // final tiebreak the database may order a tie differently from one query to the next — so
+    // the page a notification was counted onto (ShowNotification) need not be the page it is
+    // then served on.
     public IReadOnlyList<GridSortOption> SortOptions { get; } =
     [
-        new("Date: newest first", "\"Timestamp\" DESC"),
-        new("Date: oldest first", "\"Timestamp\" ASC"),
-        new("Type (A → Z)",       "\"Type\" ASC, \"Timestamp\" DESC"),
+        new("Date: newest first", "\"Timestamp\" DESC, \"NotificationId\" DESC"),
+        new("Date: oldest first", "\"Timestamp\" ASC, \"NotificationId\" ASC"),
+        new("Type (A → Z)",       TypeOrderToken + " ASC, \"Timestamp\" DESC, \"NotificationId\" DESC"),
     ];
+
+    private string SortSql => _selectedSort.Sql.Replace(TypeOrderToken, _typeOrderSql);
+
+    /// <summary>
+    /// Types in the order of the names they are shown by. Sorting on ESI's identifier would put
+    /// "New corporation application" (CorpAppNewMsg) among the C's; this ranks each type by its
+    /// place in the type list instead, as SQL, so the sort still runs in the database. Stands in
+    /// for <see cref="TypeOrderToken"/> in the sort; a type first seen after start-up sorts last.
+    /// </summary>
+    private string _typeOrderSql = "\"Type\"";
+    private const string TypeOrderToken = "{type-order}";
     private GridSortOption _selectedSort;
     public GridSortOption SelectedSort
     {
@@ -136,11 +207,11 @@ public class NotificationsViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedCharacter, value); ResetAndReload(); }
     }
 
-    private string _selectedType = "All types";
-    public string SelectedType
+    private NotifTypeOption _selectedType = AllTypes;
+    public NotifTypeOption SelectedType
     {
         get => _selectedType;
-        set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? "All types"); ResetAndReload(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? AllTypes); ResetAndReload(); }
     }
 
     private string _selectedSenderType = "All senders";
@@ -216,7 +287,7 @@ public class NotificationsViewModel : ReactiveObject
         ClearFiltersCommand = ReactiveCommand.Create(() =>
         {
             _selectedCharacter  = Characters.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedCharacter));
-            _selectedType       = "All types";   this.RaisePropertyChanged(nameof(SelectedType));
+            _selectedType       = AllTypes;      this.RaisePropertyChanged(nameof(SelectedType));
             _selectedSenderType = "All senders";  this.RaisePropertyChanged(nameof(SelectedSenderType));
             _fromDate           = DateTime.Today.AddDays(-30); this.RaisePropertyChanged(nameof(FromDate));
             _thruDate           = null; this.RaisePropertyChanged(nameof(ThruDate));
@@ -231,6 +302,71 @@ public class NotificationsViewModel : ReactiveObject
         if (!_initialized) return;
         Pager.Reset();
         _ = ReloadPageAsync();
+    }
+
+    /// <summary>The notification the next load lands on, when one was opened from elsewhere.</summary>
+    private long? _focusId;
+
+    /// <summary>
+    /// Opens one notification — what an Overview card does: its row selected on whatever page
+    /// it falls, and its detail below. Filters are left as they are unless they would hide it,
+    /// and then they are cleared, since there is no knowing which of them the user still wants.
+    /// </summary>
+    public void ShowNotification(long notificationId)
+    {
+        if (notificationId <= 0) return;
+        _focusId = notificationId;
+        if (_initialized) _ = FocusAsync();   // otherwise InitAsync lands on it
+    }
+
+    private async Task FocusAsync()
+    {
+        if (_focusId is not long id) return;
+
+        // A load already running would land on its own first row; let it finish.
+        for (var waited = 0; IsLoading && waited < 400; waited++) await Task.Delay(25);
+
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+#pragma warning disable EF1002
+            var (baseWhere, ps) = BuildFilter();
+            var where = baseWhere + (_showUnreadOnly ? " AND \"IsRead\" = FALSE" : "");
+
+            var shown = await db.EsiNotifications
+                .FromSqlRaw($"SELECT * FROM \"EsiNotifications\" WHERE {where} AND \"NotificationId\" = {id}", ps)
+                .AsNoTracking().AnyAsync();
+            if (!shown)
+            {
+                _selectedCharacter  = Characters.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedCharacter));
+                _selectedType       = AllTypes;      this.RaisePropertyChanged(nameof(SelectedType));
+                _selectedSenderType = "All senders"; this.RaisePropertyChanged(nameof(SelectedSenderType));
+                _fromDate           = null;          this.RaisePropertyChanged(nameof(FromDate));
+                _thruDate           = null;          this.RaisePropertyChanged(nameof(ThruDate));
+                _showUnreadOnly     = false;         this.RaisePropertyChanged(nameof(ShowUnreadOnly));
+                (where, ps) = BuildFilter();
+            }
+
+            // Where it falls in the current order, counted the way the page query orders —
+            // one row per notification, the same sort — so the page it is counted onto is the
+            // page it is served on.
+            var position = await db.Database.SqlQueryRaw<long>(
+                    "SELECT x.\"rn\" AS \"Value\" FROM (" +
+                    $"SELECT g.\"NotificationId\", ROW_NUMBER() OVER (ORDER BY {SortSql}) AS \"rn\" FROM (" +
+                    $"SELECT \"NotificationId\", \"Type\", \"Timestamp\" FROM \"EsiNotifications\" WHERE {where} " +
+                    "GROUP BY \"NotificationId\", \"Type\", \"Timestamp\") g" +
+                    $") x WHERE x.\"NotificationId\" = {id}", ps)
+                .ToListAsync();
+#pragma warning restore EF1002
+            Pager.SetPage(position.Count > 0 ? (int)((position[0] - 1) / GridPager.PageSize) + 1 : 1);
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log("NotificationsViewModel", "FocusAsync", ex);
+            StatusText = AppErrorLogger.Line("Could not find that notification", ex);
+        }
+        _focusId = id;   // a reload that slipped in meanwhile will have spent it
+        await ReloadPageAsync();
     }
 
     private async Task InitAsync()
@@ -248,13 +384,29 @@ public class NotificationsViewModel : ReactiveObject
             _selectedCharacter = Characters.FirstOrDefault();
             this.RaisePropertyChanged(nameof(SelectedCharacter));
 
-            var types = await db.EsiNotifications.Select(n => n.Type).Distinct().OrderBy(t => t).ToListAsync();
+            // By the name each type is shown under, so the list reads like the grid; types
+            // that share a name are one choice.
+            var types = await db.EsiNotifications.Select(n => n.Type).Distinct().ToListAsync();
             Types.Clear();
-            Types.Add("All types");
-            foreach (var t in types) Types.Add(t);
+            Types.Add(AllTypes);
+            foreach (var g in types.GroupBy(NotificationTitles.For)
+                                   .OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase))
+                Types.Add(new NotifTypeOption(g.Key, [.. g.OrderBy(t => t, StringComparer.Ordinal)]));
+            _selectedType = AllTypes;
+            this.RaisePropertyChanged(nameof(SelectedType));
+
+            var rank  = 0;
+            var whens = new System.Text.StringBuilder();
+            foreach (var option in Types.Where(o => !o.IsAll))
+            {
+                foreach (var t in option.Types) whens.Append($" WHEN '{t.Replace("'", "''")}' THEN {rank}");
+                rank++;
+            }
+            _typeOrderSql = whens.Length > 0 ? $"CASE \"Type\"{whens} ELSE {rank} END" : "\"Type\"";
 
             _initialized = true;
-            await ReloadPageAsync();
+            if (_focusId is not null) await FocusAsync();   // opened on a notification before it was ready
+            else await ReloadPageAsync();
         }
         catch (Exception ex)
         {
@@ -271,8 +423,12 @@ public class NotificationsViewModel : ReactiveObject
         if (_selectedCharacter?.Id is long cid)
         { parts.Add($"\"CharacterId\" = {{{ps.Count}}}"); ps.Add(cid); }
 
-        if (_selectedType is { Length: > 0 } t && t != "All types")
-        { parts.Add($"\"Type\" = {{{ps.Count}}}"); ps.Add(t); }
+        if (!_selectedType.IsAll)
+        {
+            var marks = new List<string>();
+            foreach (var t in _selectedType.Types) { marks.Add($"{{{ps.Count}}}"); ps.Add(t); }
+            parts.Add($"\"Type\" IN ({string.Join(", ", marks)})");
+        }
 
         var senderType = _selectedSenderType switch
         {
@@ -339,7 +495,8 @@ public class NotificationsViewModel : ReactiveObject
                         $"WHERE {where} " +
                         "GROUP BY \"NotificationId\", \"Type\", \"SenderId\", \"SenderType\", " +
                         "\"Timestamp\", \"Text\" " +
-                        $"ORDER BY {_selectedSort.Sql} LIMIT {GridPager.PageSize} OFFSET {Pager.Offset}", ps)
+                        $"ORDER BY {SortSql} " +
+                        $"LIMIT {GridPager.PageSize} OFFSET {Pager.Offset}", ps)
                     .AsNoTracking().ToListAsync();
 
             // All characters each page notification arrived under (respecting the character/date/etc.
@@ -364,13 +521,16 @@ public class NotificationsViewModel : ReactiveObject
             Rows.Clear();
             foreach (var r in rows)
             {
-                var chars = recipientsByNotif.TryGetValue(r.NotificationId, out var ids)
-                    ? string.Join(", ", ids.Select(id => names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}")
-                                            .OrderBy(s => s))
-                    : "";
-                Rows.Add(new NotificationRowVm(r, chars, names));
+                IReadOnlyList<(long Id, string Name)> recipientList = recipientsByNotif.TryGetValue(r.NotificationId, out var ids)
+                    ? [.. ids.Select(id => (id, names.TryGetValue(id, out var cn) && cn.Length > 0 ? cn : $"ID {id}"))
+                             .OrderBy(x => x.Item2, StringComparer.CurrentCultureIgnoreCase)]
+                    : [];
+                Rows.Add(new NotificationRowVm(r, recipientList, names));
             }
-            SelectedRow = Rows.FirstOrDefault();
+            // Opened on one notification: that row, else the first.
+            SelectedRow = (_focusId is long focus ? Rows.FirstOrDefault(r => r.NotificationId == focus) : null)
+                          ?? Rows.FirstOrDefault();
+            _focusId    = null;
             StatusText = Pager.TotalCount == 0 ? "No notifications match these filters." : "";
         }
         catch (Exception ex)
@@ -387,12 +547,13 @@ public class NotificationsViewModel : ReactiveObject
         if (row is null) { Detail = null; return; }
         try
         {
-            var body = await NotificationFormatter.FormatAsync(row.Record.Text, _names, _dbFactory);
+            var body = await NotificationBody.BuildAsync(row.Record.Type, row.Record.Text, _names, _dbFactory);
 
-            // Resolve the notification icon the same way the Overview list does.
+            // The icon sits beside the sender: a structure notification shows the structure,
+            // anything else the sender.
             var f = NotificationSummary.Parse(row.Record.Text);
             var (iconPath, glyph) = NotificationSummary.Icon(
-                row.Record.Type, row.Record.SenderId, row.Record.SenderType, f);
+                row.Record.Type, row.Record.SenderId, row.Record.SenderType, f, senderFirst: true);
             var icon = iconPath is null
                 ? null
                 : await EveImageCache.GetAsync($"https://images.evetech.net/{iconPath}");
@@ -403,7 +564,15 @@ public class NotificationsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log("NotificationsViewModel", "BuildDetail", ex);
-            Detail = new NotificationDetailVm(row, row.Record.Text ?? "", null, "✉");
+            if (ReferenceEquals(row, SelectedRow))
+                Detail = new NotificationDetailVm(row, new NotificationBodyVm
+                {
+                    Notes = [new NotifFieldVm
+                    {
+                        Label  = AppErrorLogger.Line("Could not lay this notification out", ex),
+                        Values = [new NotifValueVm { Text = row.Record.Text?.Trim() ?? "" }],
+                    }],
+                }, null, "✉");
         }
     }
 }

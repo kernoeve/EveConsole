@@ -856,6 +856,9 @@ public class App : Application
                         "StockOnHand"      INTEGER NOT NULL DEFAULT 0,
                         "UnitsInBuild"     INTEGER NOT NULL DEFAULT 0,
                         "LinkedContractId" INTEGER NULL,
+                        "LinkedContracts"  TEXT    NOT NULL DEFAULT '',
+                        "UnitsDelivered"   INTEGER NOT NULL DEFAULT 0,
+                        "UnitsContracted"  INTEGER NOT NULL DEFAULT 0,
                         "CompletedOn"      TEXT NULL,
                         "StoreId"          INTEGER NOT NULL DEFAULT 0,
                         "OrderRef"         TEXT    NOT NULL DEFAULT '',
@@ -896,6 +899,11 @@ public class App : Application
                 // The web site's id for an order placed there.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "WebOrderId" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "MailUpdates" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // An order delivered over several contracts: each with the units it carries, and how
+                // many of the order have been accepted and how many are waiting on the buyer.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "LinkedContracts" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsDelivered" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "TrackedOrders" ADD COLUMN "UnitsContracted" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
 
                 // Sale Posting — postings → sections → items (see SalePostingModels.cs)
@@ -2166,18 +2174,43 @@ public class App : Application
                     )
                     """);
 
+                // One row per character, the corp they were in, ore and DAY — see
+                // CorpMiningLedgerEntry. It replaces "EsiCorpMiningLedger", which was keyed without
+                // the date and so held only each miner's newest day per ore.
                 db.Database.ExecuteSqlRaw("""
-                    CREATE TABLE IF NOT EXISTS "EsiCorpMiningLedger" (
+                    CREATE TABLE IF NOT EXISTS "EsiCorpMiningLedgerDays" (
                         "CorporationId"         INTEGER NOT NULL,
                         "ObserverId"            INTEGER NOT NULL,
+                        "LastUpdated"           TEXT    NOT NULL,
                         "CharacterId"           INTEGER NOT NULL,
+                        "RecordedCorporationId" INTEGER NOT NULL DEFAULT 0,
                         "TypeId"                INTEGER NOT NULL,
                         "Quantity"              INTEGER NOT NULL DEFAULT 0,
-                        "RecordedCorporationId" INTEGER NOT NULL DEFAULT 0,
-                        "LastUpdated"           TEXT    NOT NULL,
-                        PRIMARY KEY ("CorporationId", "ObserverId", "CharacterId", "TypeId")
+                        PRIMARY KEY ("CorporationId", "ObserverId", "LastUpdated", "CharacterId",
+                                     "RecordedCorporationId", "TypeId")
                     )
                     """);
+
+                // Carry the old table's rows over, then drop it. Each date is put back at 00:00
+                // UTC by rounding to the NEAREST midnight, as on PostgreSQL: the old reader stored
+                // ESI's bare date as midnight in the polling machine's zone — with that offset
+                // here, or converted to UTC in a database copied back from a server, where the
+                // date's first ten characters can be the day before. SQLite reads the offset.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""
+                        INSERT OR IGNORE INTO "EsiCorpMiningLedgerDays"
+                            ("CorporationId", "ObserverId", "LastUpdated", "CharacterId",
+                             "RecordedCorporationId", "TypeId", "Quantity")
+                        SELECT "CorporationId", "ObserverId",
+                               COALESCE(date("LastUpdated", '+12 hours'), substr("LastUpdated", 1, 10))
+                                   || ' 00:00:00+00:00',
+                               "CharacterId", "RecordedCorporationId", "TypeId", "Quantity"
+                        FROM "EsiCorpMiningLedger"
+                        """);
+                    db.Database.ExecuteSqlRaw("""DROP TABLE "EsiCorpMiningLedger" """);
+                }
+                catch { /* no old table — a fresh install, or already carried over */ }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiCorpProjects" (
@@ -3378,6 +3411,28 @@ public class App : Application
                 // provider, and a missing table there breaks a screen that has nothing to do with
                 // the agent.
                 AgentTelemetrySchema.Ensure(db);
+
+                // EF's own names for indexes this block creates under its own. The model uses
+                // those names now (HasDatabaseName), so these exist only where EF built the file
+                // before it did, each a copy of an index that stays. Mirrored in PostgresSchema.
+                foreach (var sql in new[]
+                {
+                    """DROP INDEX IF EXISTS "IX_AgentInteractions_ConversationId_StartedAt" """,
+                    """DROP INDEX IF EXISTS "IX_AgentToolCalls_InteractionId_Sequence" """,
+                    """DROP INDEX IF EXISTS "IX_AlarmAlerts_Dismissed_CreatedAt" """,
+                    """DROP INDEX IF EXISTS "IX_AlarmEvents_AlarmId_FiredAt" """,
+                    """DROP INDEX IF EXISTS "IX_AlarmSeenKeys_AlarmId_FirstSeenAt" """,
+                    """DROP INDEX IF EXISTS "IX_EsiCorpMemberSessions_CorporationId_CharacterId_LogonDate" """,
+                    """DROP INDEX IF EXISTS "IX_IntelReports_Obsolete_ReportedAt" """,
+                    """DROP INDEX IF EXISTS "IX_IntelReports_SystemId_ReportedAt" """,
+                    """DROP INDEX IF EXISTS "IX_MarketRawOrders_ConfigId_TypeId_IsBuyOrder" """,
+                    """DROP INDEX IF EXISTS "IX_SdeAgents_LocationId" """,
+                    """DROP INDEX IF EXISTS "IX_SdeCelestials_SolarSystemId" """,
+                    """DROP INDEX IF EXISTS "IX_ServiceRates_Kind_Provider_Model" """,
+                    """DROP INDEX IF EXISTS "IX_StoreWebEvents_StoreId_Seq" """,
+                    """DROP INDEX IF EXISTS "IX_StructureFittings_StructureId_Band_SlotIndex" """,
+                })
+                    db.Database.ExecuteSqlRaw(sql);
             }
 
             // ⚠️ Outside the engine branch, because the rate list is DATA rather than schema and
@@ -3997,18 +4052,22 @@ public class App : Application
                   .Log("AgentSchema", "Build", ex);
             }
 
-            return new AgentService
+            var agent = new AgentService
             {
                 Telemetry   = sp.GetRequiredService<AgentTelemetryService>(),
                 Schema      = schema,
                 Preferences = sp.GetRequiredService<AppPreferencesService>(),
             };
+            // The watcher that brings a role back to its own model reports what it did not expect.
+            agent.Roles.Errors = sp.GetRequiredService<AppErrorLogger>();
+            return agent;
         });
         // Speech in and out are billable too, and on their own units — characters for a voice,
         // audio seconds for a transcriber — so they record into the same ledger as the LLM.
         services.AddSingleton<TtsService>(sp => new TtsService
         {
             Telemetry = sp.GetRequiredService<AgentTelemetryService>(),
+            Errors    = sp.GetRequiredService<AppErrorLogger>(),
         });
         services.AddSingleton<SpeechInputService>(sp => new SpeechInputService
         {

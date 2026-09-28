@@ -46,6 +46,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     private readonly string _model;
     private readonly bool   _isLocal;
 
+    /// <summary>A local reasoning model may think before it answers; false tells it not to.</summary>
+    private readonly bool   _think;
+
     // The loaded model's context window, from Ollama's /api/ps. Asked after each local round —
     // one small GET to a server on the LAN, and the answer can change if the server is restarted
     // with a different length — and never again once a server has said it has no such route.
@@ -53,22 +56,29 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     private bool _contextProbeSupported = true;
 
     public string ProviderName { get; }
-    public bool   IsConfigured => _isLocal
-        ? !string.IsNullOrWhiteSpace(_baseUrl) && !string.IsNullOrWhiteSpace(_model)
-        : !string.IsNullOrWhiteSpace(_apiKey);
+    public bool   IsConfigured => !string.IsNullOrWhiteSpace(_model) && (_isLocal
+        ? !string.IsNullOrWhiteSpace(_baseUrl)
+        : !string.IsNullOrWhiteSpace(_apiKey));
 
-    private OpenAiCompatibleProvider(string providerName, string baseUrl, string apiKey, string model, bool isLocal)
+    private OpenAiCompatibleProvider(string providerName, string baseUrl, string apiKey, string model, bool isLocal,
+                                     bool think = true)
     {
         ProviderName = providerName;
         _baseUrl     = baseUrl;
         _apiKey      = apiKey;
         _model       = model;
         _isLocal     = isLocal;
+        _think       = think;
     }
 
-    /// <summary>OpenAI's own service.</summary>
+    private const string OpenAiBase = "https://api.openai.com/v1/";
+
+    /// <summary>OpenAI's own service. The model as its list names it; no default (see ModelListing).</summary>
     public static OpenAiCompatibleProvider OpenAi(string apiKey, string model)
-        => new("OpenAI", "https://api.openai.com/v1/", apiKey ?? "", string.IsNullOrWhiteSpace(model) ? "gpt-5" : model.Trim(), isLocal: false);
+        => new(OpenAiName, OpenAiBase, apiKey ?? "", (model ?? "").Trim(), isLocal: false);
+
+    /// <summary>What OpenAI's usage is recorded and priced under — see ServiceRate.</summary>
+    public const string OpenAiName = "OpenAI";
 
     /// <summary>
     /// A model server on this machine or the network.
@@ -78,11 +88,84 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
     /// (LM Studio's own examples do) is not made to have it twice. The bearer token is a
     /// placeholder: Ollama ignores it, and some servers refuse a request without one.</para>
     /// </summary>
-    public static OpenAiCompatibleProvider Local(string endpoint, string model)
+    /// <param name="think">
+    /// Whether a reasoning model — Qwen3 — may think before it answers. The thinking is hidden
+    /// from the answer either way (see <see cref="ThinkingFilter"/>), but it is waited for. False
+    /// ends the system prompt with Qwen3's own switch, "/no_think", which other models pass over.
+    /// </param>
+    public static OpenAiCompatibleProvider Local(string endpoint, string model, bool think = true)
+        => new("Local", LocalBase(endpoint), LocalToken, (model ?? "").Trim(), isLocal: true, think: think);
+
+    private const string LocalToken = "ollama";
+
+    /// <summary>The OpenAI-compatible surface under a server's root: its /v1/, not twice.</summary>
+    private static string LocalBase(string? endpoint)
     {
         var root = (endpoint ?? "").Trim().TrimEnd('/');
         if (!root.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)) root += "/v1";
-        return new("Local", root + "/", "ollama", string.IsNullOrWhiteSpace(model) ? "llama3.1" : model.Trim(), isLocal: true);
+        return root + "/";
+    }
+
+    /// <summary>
+    /// The models a server of the capsuleer's own has — Ollama's "ollama list" — for the settings
+    /// tab to offer. Throws with the reason when the server cannot be reached or refuses.
+    /// </summary>
+    public static Task<IReadOnlyList<ModelListing>> ListLocalModelsAsync(string endpoint, CancellationToken ct = default)
+        => ListAsync(LocalBase(endpoint), LocalToken, "The server", ct);
+
+    /// <summary>
+    /// The models OpenAI offers this key, newest first, less those plainly not for conversation:
+    /// speech, transcription, images, embeddings, moderation, real-time audio.
+    ///
+    /// <para>⚠️ A list of what to leave OUT, never of what to keep. OpenAI's list says nothing of
+    /// what a model is for, so any rule is a guess; one that named the families to keep would
+    /// hide the next family the day it came out.</para>
+    /// </summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListOpenAiModelsAsync(string apiKey, CancellationToken ct = default)
+    {
+        string[] notForTalk = ["tts", "whisper", "transcribe", "audio", "realtime", "dall-e", "image", "embedding", "moderation", "search", "sora"];
+        var all = await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false);
+        return [.. all.Where(m => !notForTalk.Any(word => m.Id.Contains(word, StringComparison.OrdinalIgnoreCase)))];
+    }
+
+    /// <summary>OpenAI's speech models for this key — its voices — newest first: those named for it ("tts").</summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListOpenAiSpeechModelsAsync(string apiKey, CancellationToken ct = default)
+        => [.. (await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false))
+               .Where(m => m.Id.Contains("tts", StringComparison.OrdinalIgnoreCase))];
+
+    /// <summary>
+    /// OpenAI's transcription models for this key, newest first: those named for it ("whisper",
+    /// "transcribe"). Less the diarizing ones, which answer in a form of their own that speech input
+    /// does not read.
+    /// </summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListOpenAiTranscriptionModelsAsync(string apiKey, CancellationToken ct = default)
+        => [.. (await ListAsync(OpenAiBase, apiKey, "OpenAI", ct).ConfigureAwait(false))
+               .Where(m => (m.Id.Contains("whisper", StringComparison.OrdinalIgnoreCase)
+                            || m.Id.Contains("transcribe", StringComparison.OrdinalIgnoreCase))
+                           && !m.Id.Contains("diarize", StringComparison.OrdinalIgnoreCase))];
+
+    /// <summary>GET models from an OpenAI-style list: ids, in the order given — or newest first
+    /// where the entries carry a "created" time, as OpenAI's do.</summary>
+    private static async Task<IReadOnlyList<ModelListing>> ListAsync(string baseUrl, string apiKey, string who, CancellationToken ct)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        using var request = new HttpRequestMessage(HttpMethod.Get, baseUrl + "models");
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+        using var response = await _http.SendAsync(request, timeout.Token).ConfigureAwait(false);
+        var body = await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false);
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"{who} answered {(int)response.StatusCode}: {(body.Length > 200 ? body[..200] + "…" : body)}",
+                                           null, response.StatusCode);
+
+        using var doc = JsonDocument.Parse(body);
+        if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return [];
+        return [.. data.EnumerateArray()
+            .Select(m => (Id: m.TryGetProperty("id", out var id) ? id.GetString() ?? "" : "",
+                          Created: m.TryGetProperty("created", out var c) && c.ValueKind == JsonValueKind.Number ? c.GetInt64() : 0))
+            .Where(m => m.Id.Length > 0)
+            .OrderByDescending(m => m.Created)                 // stable: an unstamped list keeps its order
+            .Select(m => new ModelListing(m.Id, m.Id))];
     }
 
     public async IAsyncEnumerable<string> StreamAsync(
@@ -106,6 +189,10 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         // re-sent uncached on every turn. Measured: 11,136 cached of 23,700 on each new turn.
         // Trailing, only it changes; the prefix through the newest user message is byte-identical
         // to the previous request and hits.
+        // Qwen3's switch goes at the END of the stable text: the same on every call, so the cached
+        // prefix is unchanged by it, and last is where Qwen3 looks for the latest instruction.
+        if (_isLocal && !_think) systemPrompt += "\n\n/no_think";
+
         var messages = new List<object> { new { role = "system", content = systemPrompt } };
         foreach (var m in history)
             messages.Add(new
@@ -145,7 +232,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             // The service's own words: a wrong model name, a key without access, a local server
             // that does not know the model. Those are what the capsuleer needs to see.
             var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-            throw new HttpRequestException($"{ProviderName} returned {(int)response.StatusCode}: {Trim(body, 400)}");
+            // With the status, so a role can tell a server that is down from a request it refused.
+            throw new HttpRequestException(
+                $"{ProviderName} returned {(int)response.StatusCode}: {Trim(body, 400)}", null, response.StatusCode);
         }
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
@@ -156,6 +245,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
         var stopReason = "";
         long promptTok = 0, completionTok = 0, cachedTok = 0;
         var usageSeen  = false;
+
+        // A local reasoning model's thinking, where the server streams it inside the answer.
+        var thinking   = _isLocal ? new ThinkingFilter() : null;
 
         // ⚠️ No EndOfStream — a synchronous, blocking read. ReadLineAsync returns null at the end.
         while (!ct.IsCancellationRequested)
@@ -201,6 +293,7 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             if (delta.TryGetProperty("content", out var c) && c.ValueKind == JsonValueKind.String)
             {
                 var piece = c.GetString() ?? "";
+                if (thinking is not null) piece = thinking.Push(piece);
                 if (piece.Length > 0) { text.Append(piece); yield return piece; }
             }
 
@@ -229,6 +322,9 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
                 }
             }
         }
+
+        // What the thinking filter held back at the end in case it began a tag, and did not.
+        if (thinking?.Flush() is { Length: > 0 } rest) { text.Append(rest); yield return rest; }
 
         // A model that produced tool calls but no finish_reason (seen from some local servers)
         // still wants them run.
@@ -424,6 +520,105 @@ public sealed class OpenAiCompatibleProvider : IAgentProvider
             }
         }
         catch { /* the window is a courtesy; the turn already succeeded without it */ }
+    }
+
+    /// <summary>
+    /// Takes a local reasoning model's thinking out of its answer. Qwen3 and DeepSeek-R1 think
+    /// between &lt;think&gt; tags before they answer, and over Ollama's OpenAI-compatible surface
+    /// the thinking can arrive inside the answer text, where it would fill the chat and be read
+    /// aloud. The tags may be split across streamed pieces, so a piece that ends in what could be
+    /// the start of one is held back until the next shows whether it is. It is also kept out of
+    /// the assistant turn echoed back after a tool call, as the model's own makers advise.
+    /// </summary>
+    private sealed class ThinkingFilter
+    {
+        private const string Open  = "<think>";
+        private const string Close = "</think>";
+
+        private bool   _inside;
+        private bool   _answered;   // anything shown yet; the blank lines after thinking are not
+        private string _carry = "";
+
+        public string Push(string piece)
+        {
+            var text = _carry + piece;
+            _carry   = "";
+            var shown = new StringBuilder();
+            var i     = 0;
+            while (i < text.Length)
+            {
+                var tag = _inside ? Close : Open;
+                var at  = text.IndexOf(tag, i, StringComparison.OrdinalIgnoreCase);
+                if (at < 0)
+                {
+                    // Hold back a tail that may be the start of the tag.
+                    var keep = PartialTag(text, i, tag);
+                    if (!_inside) shown.Append(text, i, text.Length - i - keep);
+                    _carry = text[(text.Length - keep)..];
+                    break;
+                }
+                if (!_inside) shown.Append(text, i, at - i);
+                i       = at + tag.Length;
+                _inside = !_inside;
+            }
+
+            var result = shown.ToString();
+            if (!_answered)
+            {
+                result = result.TrimStart();
+                _answered = result.Length > 0;
+            }
+            return result;
+        }
+
+        /// <summary>What was held back, at the end of the stream: text that did not start a tag.</summary>
+        public string Flush()
+        {
+            var rest = _inside ? "" : _carry;
+            _carry = "";
+            return _answered ? rest : rest.TrimStart();
+        }
+
+        /// <summary>How much of the end of <paramref name="text"/> could be the start of <paramref name="tag"/>.</summary>
+        private static int PartialTag(string text, int from, string tag)
+        {
+            for (var n = Math.Min(tag.Length - 1, text.Length - from); n > 0; n--)
+                if (string.Compare(text, text.Length - n, tag, 0, n, StringComparison.OrdinalIgnoreCase) == 0)
+                    return n;
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// The service's model list, which costs nothing to read. OpenAI's own service: that the key
+    /// is accepted. A server of our own: that it lists this model — Ollama answers a request for a
+    /// model it has not pulled with a 404, so a server that is up without it cannot answer either.
+    /// ⚠️ Not a request for an answer: that would load the model onto the GPU every half minute
+    /// while a role waits to go back to it, and keep it there.
+    /// </summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
+    {
+        if (!IsConfigured) return false;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(10));
+            using var request = new HttpRequestMessage(HttpMethod.Get, _baseUrl + "models");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _apiKey);
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseContentRead, timeout.Token)
+                                            .ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode) return false;
+            if (!_isLocal) return true;
+
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false));
+            return doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array
+                && data.EnumerateArray().Any(m => m.TryGetProperty("id", out var id)
+                                                 && id.ValueKind == JsonValueKind.String
+                                                 && IsOurModel(id.GetString() ?? ""));
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
+        catch (HttpRequestException) { return false; }
+        catch (JsonException)        { return false; }
     }
 
     /// <summary>

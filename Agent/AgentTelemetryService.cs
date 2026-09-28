@@ -3,6 +3,7 @@ using EveConsole.Agent.Tools;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EveConsole.Agent;
@@ -157,6 +158,105 @@ public sealed class AgentTelemetryService(IServiceScopeFactory scopes, AppErrorL
                 errors.Log("AgentTelemetry", $"ServiceCall({kind})", ex);
             }
         });
+    }
+
+    /// <summary>What a rate row copied from the "(any model)" row says of itself.</summary>
+    public const string CopiedRateNote =
+        "Not set yet: the \"(any model)\" rate, copied when this model was first listed. Enter its published rate.";
+
+    /// <summary>
+    /// A rate row for each model a service lists that has none: the service's "(any model)" rate,
+    /// copied, and saying so — so every model can be given its own price, and none is costed as
+    /// another model without its row showing it. Returns how many were added.
+    ///
+    /// <para>⚠️ Insert-if-absent, as the seed is: a row that exists — seeded, copied before, or set
+    /// by the capsuleer — is never touched. No price comes with a model list, so a copy is the most
+    /// that can be known; the note says it is one. A service with no "(any model)" row has nothing
+    /// to copy and gets nothing.</para>
+    /// </summary>
+    public async Task<int> AddListedRatesAsync(string kind, string provider, IEnumerable<string> models)
+    {
+        try
+        {
+            using var scope = scopes.CreateScope();
+            var db   = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var rows = await db.ServiceRates.Where(r => r.Kind == kind && r.Provider == provider).ToListAsync();
+            if (rows.FirstOrDefault(r => r.Model == "") is not { } any) return 0;
+
+            var have  = rows.Select(r => r.Model).ToHashSet(StringComparer.Ordinal);
+            var added = 0;
+            foreach (var model in models.Select(m => (m ?? "").Trim()).Where(m => m.Length > 0).Distinct())
+            {
+                if (!have.Add(model)) continue;
+                db.ServiceRates.Add(new ServiceRate
+                {
+                    Kind              = kind,
+                    Provider          = provider,
+                    Model             = model,
+                    InputPerUnit      = any.InputPerUnit,
+                    OutputPerUnit     = any.OutputPerUnit,
+                    CacheReadPerUnit  = any.CacheReadPerUnit,
+                    CacheWritePerUnit = any.CacheWritePerUnit,
+                    Notes             = CopiedRateNote,
+                    UpdatedAt         = DateTimeOffset.UtcNow,
+                });
+                added++;
+            }
+            if (added > 0) await db.SaveChangesAsync();
+            return added;
+        }
+        catch (DbUpdateException) { return 0; }   // another client added the same rows first: the key is unique
+        catch (Exception ex)
+        {
+            errors.Log("AgentTelemetry", $"AddListedRates({kind}, {provider})", ex);
+            return 0;
+        }
+    }
+
+    private static readonly SemaphoreSlim PublishedGate = new(1, 1);
+
+    /// <summary>
+    /// Every row still holding a copied "(any model)" rate, given the model's published rate where
+    /// LiteLLM's list has one in the row's unit (see PublishedRates). Returns how many.
+    ///
+    /// <para>⚠️ Only rows whose note is still the copy's: a rate set by hand, or looked up before,
+    /// is never touched. With none waiting, the list is not fetched at all.</para>
+    /// </summary>
+    public async Task<int> ApplyPublishedRatesAsync(CancellationToken ct = default)
+    {
+        await PublishedGate.WaitAsync(ct);
+        try
+        {
+            using var scope = scopes.CreateScope();
+            var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var copies = await db.ServiceRates.Where(r => r.Notes == CopiedRateNote && r.Model != "").ToListAsync(ct);
+            if (copies.Count == 0) return 0;
+
+            using var list = await PublishedRates.LoadAsync(ct);
+            if (list is null) return 0;
+
+            var now    = DateTimeOffset.UtcNow;
+            var priced = 0;
+            foreach (var row in copies)
+            {
+                if (PublishedRates.Find(list, row.Kind, row.Provider, row.Model) is not { } rate) continue;
+                row.InputPerUnit      = rate.Input;
+                row.OutputPerUnit     = rate.Output;
+                row.CacheReadPerUnit  = rate.CacheRead;
+                row.CacheWritePerUnit = rate.CacheWrite;
+                row.Notes             = PublishedRates.Note(rate, now);
+                row.UpdatedAt         = now;
+                priced++;
+            }
+            if (priced > 0) await db.SaveChangesAsync(ct);
+            return priced;
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            errors.Log("AgentTelemetry", "ApplyPublishedRates", ex);
+            return 0;
+        }
+        finally { PublishedGate.Release(); }
     }
 
     /// <summary>

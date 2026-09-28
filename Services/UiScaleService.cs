@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
 
 namespace EveConsole.Services;
 
@@ -11,10 +10,11 @@ namespace EveConsole.Services;
 /// would have it, 50% to 200%, chosen by the user and kept for this machine.
 ///
 /// <para>Applied through a style on Window. The attached property switches on for every window
-/// as it is created, and the window's content is wrapped in a LayoutTransformControl carrying the
-/// scale. A window with a fixed size is resized along with its content as it opens, since the
-/// dialog was authored for 100% and its frame has to hold what it now draws; the main window keeps
-/// the size the user gave it and its content simply gets denser or roomier.</para>
+/// as it is created, and the window's content is wrapped in a UiScaleHost carrying the scale —
+/// not a LayoutTransformControl; the host says why. A window with a fixed size is resized along
+/// with its content as it opens, since the dialog was authored for 100% and its frame has to hold
+/// what it now draws; the main window keeps the size the user gave it and its content simply gets
+/// denser or roomier.</para>
 ///
 /// <para>⚠️ Popups are top-levels of their own — tooltips, flyouts, menus, dropdown lists, the
 /// worklist's floating detail — outside the content a window's wrap covers, and their content
@@ -37,7 +37,7 @@ public sealed class UiScaleService
     /// <summary>The scales on offer, as percentages.</summary>
     public static IReadOnlyList<int> Presets { get; } = [50, 75, 100, 125, 150, 175, 200];
 
-    private static readonly List<WeakReference<LayoutTransformControl>> Transforms = [];
+    private static readonly List<WeakReference<UiScaleHost>> Hosts = [];
 
     /// <summary>The scale each open window's frame was last sized for, so a change resizes it by
     /// the ratio rather than compounding.</summary>
@@ -97,16 +97,16 @@ public sealed class UiScaleService
         _scale = scale;
         UiState.Set(UiState.Scale, scale.ToString("0.00", CultureInfo.InvariantCulture));
 
-        for (var i = Transforms.Count - 1; i >= 0; i--)
+        for (var i = Hosts.Count - 1; i >= 0; i--)
         {
-            if (!Transforms[i].TryGetTarget(out var transform))
+            if (!Hosts[i].TryGetTarget(out var host))
             {
-                Transforms.RemoveAt(i);
+                Hosts.RemoveAt(i);
                 continue;
             }
 
-            transform.LayoutTransform = new ScaleTransform(_scale, _scale);
-            if (TopLevel.GetTopLevel(transform) is Window window) ResizeFor(window);
+            host.Scale = _scale;
+            if (TopLevel.GetTopLevel(host) is Window window) ResizeFor(window);
         }
 
         Changed?.Invoke();
@@ -127,24 +127,19 @@ public sealed class UiScaleService
 
     private static void WrapContent(Window window)
     {
-        if (window.Content is null || window.Content is LayoutTransformControl)
+        if (window.Content is null || window.Content is UiScaleHost)
             return;
 
         // A control cannot have two logical parents. Detach the original content from the Window
-        // before making the LayoutTransformControl its new parent.
+        // before making the host its new parent.
         if (window.Content is not Control content)
             return;
 
         window.Content = null;
 
-        var transform = new LayoutTransformControl
-        {
-            LayoutTransform = new ScaleTransform(_scale, _scale),
-            Child = content,
-        };
-
-        Transforms.Add(new WeakReference<LayoutTransformControl>(transform));
-        window.Content = transform;
+        var host = new UiScaleHost(content) { Scale = _scale };
+        Hosts.Add(new WeakReference<UiScaleHost>(host));
+        window.Content = host;
     }
 
     /// <summary>

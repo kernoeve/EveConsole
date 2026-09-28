@@ -19,9 +19,10 @@ namespace EveConsole.ViewModels;
 public record OrderDialogResult(int TypeId, string TypeName, int Units, string Buyer,
     string? EstimatedDate, double PurchasePrice, string Status, bool IsPriority = false,
     long BuyerId = 0, string BuyerType = "",
-    /// <summary>Typed in by hand when the automatic match cannot find the contract — usually
-    /// because its item list differs from the order. Null clears the link.</summary>
-    int? LinkedContractId = null,
+    /// <summary>The order's contracts, oldest first: those the match found, and any typed in by
+    /// hand when it could not — several for an order delivered over several contracts. Empty
+    /// removes them all.</summary>
+    IReadOnlyList<int>? LinkedContractIds = null,
     /// <summary>Overrides the automatic settled date when the real one differs.</summary>
     string? CompletedOn = null,
     /// <summary>Free tags on the order. Null means "not edited here" and leaves them alone.</summary>
@@ -78,7 +79,7 @@ public class TrackedOrderRowVm : ReactiveObject
 
     public string EstDate { get; }
 
-    /// <summary>When the order was settled — from the contract-s acceptance date, or today when
+    /// <summary>When the order was settled — from the contract's acceptance date, or today when
     /// the status was set by hand.</summary>
     public string CompletedOn { get; }
     public bool   IsPriority   { get; }
@@ -175,9 +176,26 @@ public class TrackedOrderRowVm : ReactiveObject
         LabelChips = LabelPalette.Chips(labels);
     }
 
+    /// <summary>Units the buyer has accepted, as "1/2" — delivered of ordered. Blank until the
+    /// first is; every unit on an order completed.</summary>
+    public int    Delivered      { get; }
+    public string DeliveredText  { get; }
+
+    /// <summary>Units on contracts made out and waiting for the buyer to accept.</summary>
+    public int    OnContract     { get; }
+    public string OnContractText { get; }
+
+    /// <summary>Every contract on the order, a line each with the units it carries and where it
+    /// stands.</summary>
+    public string ContractTip    { get; }
+
+    /// <summary>The order's contracts, oldest first — what the edit dialog shows.</summary>
+    public IReadOnlyList<int> ContractIds { get; }
+
     public TrackedOrderRowVm(TrackedOrder o, string typeName, double? buildCost,
                              string storeName = "",
-                             string contractLabel = "", string buildAsOf = "")
+                             string contractLabel = "", string buildAsOf = "",
+                             string contractTip = "")
     {
         Store    = storeName;
         OrderRef = o.OrderRef;
@@ -203,24 +221,37 @@ public class TrackedOrderRowVm : ReactiveObject
 
         LinkedJobId      = o.LinkedJobId;
         LinkedContractId = o.LinkedContractId;
-        Contract  = contractLabel;
-        FromStock = o.FulfilmentSource == OrderFulfilmentService.SourceStock ? "✓" : "";
+        ContractIds      = OrderContractLinks.Ids(o);
+        Contract    = contractLabel;
+        ContractTip = contractTip.Length > 0 ? contractTip : "Open this contract in the Contracts tool";
+        FromStock   = o.FulfilmentSource == OrderFulfilmentService.SourceStock ? "✓" : "";
 
-        // ⚠️ Only while the order is still being worked. A contracted order's goods are already
-        // made out to the buyer, and a settled one is history: "19/50" and a red shortfall on
-        // either is a question about supply that nobody needs to answer any more, and on a
-        // contracted row it contradicts the contract sitting beside it.
-        var open = o.Status == "pending" && o.LinkedContractId is null;
+        // Delivered and waiting on the buyer, apart: the two things contracts say about an order.
+        Delivered      = o.Status == "completed" ? o.Units : Math.Min(o.Units, o.UnitsDelivered);
+        DeliveredText  = Delivered > 0 ? $"{Delivered:N0}/{o.Units:N0}" : "";
+        OnContract     = o.Status == "pending" ? o.UnitsContracted : 0;
+        OnContractText = OnContract > 0 ? OnContract.ToString("N0") : "";
 
-        StockOnHand  = o.StockOnHand;
-        UnitsInBuild = o.UnitsInBuild;
+        // ⚠️ Only what is still to come from the shelf or a build, and only while the order is
+        // being worked. Units on a contract are already made out to the buyer, and a settled
+        // order is history: "19/50" and a red shortfall for either is a question about supply
+        // nobody needs to answer, and on a contracted row it contradicts the contract beside it.
+        var toSupply = OrderContractLinks.StillToSupply(o);
+        var open     = toSupply > 0;
 
-        StockText = open ? $"{o.StockOnHand:N0}/{o.Units:N0}" : "";
-        IndyJob   = o.UnitsInBuild > 0 ? $"{o.UnitsInBuild:N0} in build" : "";
+        // ⚠️ In build too, and the sort values with the text. "2 in build" stayed on an order
+        // whose contract carried both hulls, telling the user it still waited on jobs that were
+        // by then building for the orders behind it — and a row settled before the pass cleared
+        // these still carries whatever it last forecast.
+        StockOnHand  = open ? o.StockOnHand  : 0;
+        UnitsInBuild = open ? o.UnitsInBuild : 0;
+
+        StockText = open ? $"{o.StockOnHand:N0}/{toSupply:N0}" : "";
+        IndyJob   = UnitsInBuild > 0 ? $"{UnitsInBuild:N0} in build" : "";
 
         // Never below zero: a job that overshoots the order is not a negative shortfall, it is
         // simply covered, and "-6" in a column headed Short reads as a fault.
-        Shortfall     = open ? Math.Max(0, o.Units - o.StockOnHand - o.UnitsInBuild) : 0;
+        Shortfall     = open ? Math.Max(0, toSupply - o.StockOnHand - o.UnitsInBuild) : 0;
         ShortfallText = Shortfall > 0 ? Shortfall.ToString("N0") : "";
 
         BuildRaw = buildCost ?? 0;
@@ -242,14 +273,15 @@ public class TrackedOrderRowVm : ReactiveObject
         // would never redraw.
         Signature = string.Join("\u001f",
             Type, Units, Buyer, EstDate, CompletedOn, PriorityMark, Status,
-            StockText, IndyJob, ShortfallText, Contract, FromStock,
+            StockText, IndyJob, ShortfallText, Contract, ContractTip, FromStock,
+            DeliveredText, OnContractText,
             Purchase, Build, BuildBasis, Profit, ProfitPct,
             string.Join(",", LabelList));
     }
 
     public OrderDialogResult ToDialog() =>
         new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
-            PurchaseRaw, StatusRaw, IsPriority, BuyerId, BuyerType, LinkedContractId,
+            PurchaseRaw, StatusRaw, IsPriority, BuyerId, BuyerType, ContractIds,
             string.IsNullOrEmpty(CompletedOn) ? null : CompletedOn,
             LabelList.ToList());
 }
@@ -420,17 +452,35 @@ public class OrderTrackerViewModel : ReactiveObject
                     ? TypePriceHistoryService.ValueAsOf(rows, date)
                     : null;
 
-            // Contract titles for the linked contracts, so the column can name one rather than
-            // print a bare number. A contract without a title falls back to its id alone.
-            var contractIds = orders.Where(o => o.LinkedContractId != null)
-                                    .Select(o => o.LinkedContractId!.Value).Distinct().ToList();
-            var contractNames = contractIds.Count == 0
-                ? new Dictionary<int, string>()
-                : await db.EsiContracts.AsNoTracking()
+            // Every linked contract's title and where it stands, so the column can name one
+            // rather than print a bare number and the tip can say what each carries. A contract
+            // without a title falls back to its id alone.
+            var contractIds = orders.SelectMany(OrderContractLinks.Ids).Distinct().ToList();
+            var contractInfo = contractIds.Count == 0
+                ? new Dictionary<int, (string Title, string Status, DateTimeOffset? Accepted)>()
+                : (await db.EsiContracts.AsNoTracking()
                     .Where(c => contractIds.Contains(c.ContractId))
+                    .Select(c => new { c.ContractId, c.Title, c.Status, c.DateAccepted })
+                    .ToListAsync())
                     .GroupBy(c => c.ContractId)
-                    .Select(g => new { Id = g.Key, Title = g.Min(x => x.Title) })
-                    .ToDictionaryAsync(x => x.Id, x => x.Title ?? "");
+                    .ToDictionary(g => g.Key, g => (
+                        Title: g.Select(x => x.Title).FirstOrDefault(t => !string.IsNullOrEmpty(t)) ?? "",
+                        // ⚠️ The most settled owner row: rows are only as fresh as each owner's poll.
+                        Status: g.OrderBy(x => OrderFulfilmentService.Settledness(x.Status)).First().Status,
+                        Accepted: g.Max(x => x.DateAccepted)));
+
+            string Named(int id) =>
+                contractInfo.TryGetValue(id, out var c) && c.Title.Length > 0 ? $"{c.Title} ({id})" : $"Contract {id}";
+
+            string Where(int id) => contractInfo.TryGetValue(id, out var c)
+                ? c.Status switch
+                {
+                    "finished"                  => c.Accepted is { } at ? $"accepted {at.UtcDateTime:yyyy-MM-dd}" : "accepted",
+                    "outstanding" or "in_progress" => "waiting for the buyer",
+                    "rejected"                  => "declined",
+                    var other                   => other,
+                }
+                : "not in the contracts polled yet";
 
             _all.Clear();
             foreach (var o in orders)
@@ -443,11 +493,20 @@ public class OrderTrackerViewModel : ReactiveObject
                         ?? (buildCosts.TryGetValue(o.TypeId, out var bc) ? (double?)bc : null);
                 double? build = unit > 0 ? unit * o.Units : null;
 
-                var label = o.LinkedContractId is { } cid
-                    ? (contractNames.TryGetValue(cid, out var title) && title.Length > 0
-                        ? $"{title} ({cid})"
-                        : $"Contract {cid}")
-                    : "";
+                // One contract is named as it always was; several are counted and listed, and the
+                // tip says what each carries and where it stands.
+                var links = OrderContractLinks.Of(o);
+                var label = links.Count switch
+                {
+                    0 => "",
+                    1 => Named(links[0].ContractId),
+                    _ => $"{links.Count} contracts — {string.Join(", ", links.Select(l => l.ContractId))}",
+                };
+                var tip = links.Count == 0 ? "" : string.Join("\n", links.Select(l =>
+                        $"{Named(l.ContractId)} — " +
+                        (l.Units is int u ? $"{u:N0} unit{(u == 1 ? "" : "s")}" : "units not yet counted") +
+                        $", {Where(l.ContractId)}"))
+                    + (o.LinkedContractId is { } open ? $"\nClick to open contract {open} in the Contracts tool." : "");
 
                 // ⚠️ Named, not positional. storeName, contractLabel and buildAsOf are three
                 // optional strings in a row: passing them in the wrong order compiles perfectly
@@ -457,7 +516,8 @@ public class OrderTrackerViewModel : ReactiveObject
                     o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build,
                     storeName:     storeNames.GetValueOrDefault(o.StoreId, ""),
                     contractLabel: label,
-                    buildAsOf:     settled is not null ? o.CompletedOn ?? "" : ""));
+                    buildAsOf:     settled is not null ? o.CompletedOn ?? "" : "",
+                    contractTip:   tip));
             }
             // ⚠️ A contract linked since the last look is an order and a sale that have only just
             // become the same thing; this is where they find out about each other's labels. Same
@@ -606,12 +666,20 @@ public class OrderTrackerViewModel : ReactiveObject
                 Status        = r.Status,
                 IsPriority    = r.IsPriority,
                 CompletedOn   = r.CompletedOn ?? SettledOn(r.Status, null),
+                // ⚠️ Kept. The dialog offers the box on a new order as on an edited one, and a
+                // contract typed in here was silently dropped — the order then waited to be
+                // matched against a contract the user had already named. Bare ids: the pass
+                // counts what each carries.
+                LinkedContracts  = OrderContractLinks.Format((r.LinkedContractIds ?? []).Select(id => new ContractLink(id, null))),
+                LinkedContractId = r.LinkedContractIds is { Count: > 0 } typed ? typed[0] : null,
                 // ⚠️ From the same pool as the store's, so a code identifies one order whichever
                 // way it arrived. An order typed in after a conversation is still an order
                 // somebody may ask about by number.
                 OrderRef      = await OrderReference.NewAsync(db),
                 CreatedAt     = DateTimeOffset.UtcNow,
             });
+            if (r.LinkedContractIds is { Count: > 0 } taken)
+                await TakeContractsAsync(db, taken, orderId: 0, r.TypeId);
             await db.SaveChangesAsync();
             _fulfilment?.Nudge();   // a new order is matched against stock, jobs and contracts now, not at the next pass
 
@@ -651,15 +719,24 @@ public class OrderTrackerViewModel : ReactiveObject
             o.Status        = r.Status;
             o.IsPriority    = r.IsPriority;
 
-            // A contract typed in by hand overrides whatever the poll found — the point of the
-            // field is the case where the automatic match cannot see it, usually because the
-            // contract-s item list differs from the order.
-            if (r.LinkedContractId != o.LinkedContractId)
+            // Contracts typed in by hand join those the poll found — the point of the field is the
+            // case where the automatic match cannot see one, usually because it was cut before
+            // the order was entered — and any taken out of the box are let go. The ones kept
+            // keep the units the pass counted; a new one is a bare id until the pass counts it.
+            var typed   = r.LinkedContractIds ?? [];
+            var current = OrderContractLinks.Of(o);
+            if (!typed.SequenceEqual(current.Select(l => l.ContractId)))
             {
-                o.LinkedContractId = r.LinkedContractId;
-                // Unlinking drops the date the contract supplied — unless the user typed one
+                var added = typed.Where(id => current.All(l => l.ContractId != id)).ToList();
+                var next  = current.Where(l => typed.Contains(l.ContractId))
+                                   .Concat(added.Select(id => new ContractLink(id, null)))
+                                   .ToList();
+                o.LinkedContracts  = OrderContractLinks.Format(next);
+                o.LinkedContractId = next.Count > 0 ? next[0].ContractId : null;
+                // Unlinking drops the date the contracts supplied — unless the user typed one
                 // in this same edit, which is an explicit instruction to keep that date.
-                if (r.LinkedContractId is null && r.CompletedOn is null) o.CompletedOn = null;
+                if (next.Count == 0 && r.CompletedOn is null) o.CompletedOn = null;
+                if (added.Count > 0) await TakeContractsAsync(db, added, o.Id, o.TypeId);
             }
             await db.SaveChangesAsync();
             _fulfilment?.Nudge();
@@ -686,6 +763,52 @@ public class OrderTrackerViewModel : ReactiveObject
         => status is "completed" or "canceled"
             ? existing ?? DateTime.Now.ToString("yyyy-MM-dd")
             : null;
+
+    /// <summary>
+    /// Contracts attached by hand: each comes off any other PENDING order that holds every unit
+    /// of it, to be matched or forecast afresh at the next pass. One with units to spare stays
+    /// where it is as well — a contract of two can carry two orders for one.
+    ///
+    /// <para>⚠️ Attaching by hand is usually a correction — the match put the contract on the
+    /// wrong order, or could not see it at all — and the pass honours every link it finds, so
+    /// leaving a full one in place would have the new link count nothing, the units all being
+    /// spoken for. A settled order is left alone: reopening history is the user's call, not a
+    /// side effect of an edit.</para>
+    /// </summary>
+    private static async Task TakeContractsAsync(
+        AppDbContext db, IReadOnlyCollection<int> contractIds, int orderId, int typeId)
+    {
+        var others = (await db.TrackedOrders
+                .Where(x => x.Id != orderId && x.Status == "pending" && x.LinkedContractId != null)
+                .ToListAsync())
+            .Where(x => OrderContractLinks.Ids(x).Any(contractIds.Contains))
+            .ToList();
+        if (others.Count == 0) return;
+
+        var offered = await db.EsiContractItems.AsNoTracking()
+            .Where(i => contractIds.Contains(i.ContractId) && i.TypeId == typeId && i.IsIncluded)
+            .GroupBy(i => i.ContractId)
+            .Select(g => new { ContractId = g.Key, Units = g.Sum(i => i.Quantity) })
+            .ToDictionaryAsync(x => x.ContractId, x => x.Units);
+
+        foreach (var id in contractIds)
+        {
+            // What the others hold of it; a link not yet counted holds all of it.
+            var held = others.Where(x => x.TypeId == typeId)
+                .SelectMany(x => OrderContractLinks.Of(x).Where(l => l.ContractId == id))
+                .Sum(l => l.Units is int units ? (long)units : long.MaxValue / 4);
+            if (offered.GetValueOrDefault(id) - held > 0) continue;
+
+            foreach (var other in others.Where(x => x.TypeId == typeId))
+            {
+                var links = OrderContractLinks.Of(other);
+                var left  = links.Where(l => l.ContractId != id).ToList();
+                if (left.Count == links.Count) continue;
+                other.LinkedContracts  = OrderContractLinks.Format(left);
+                other.LinkedContractId = left.Count > 0 ? left[0].ContractId : null;
+            }
+        }
+    }
     private async Task DeleteAsync()
     {
         if (Selected is null) return;

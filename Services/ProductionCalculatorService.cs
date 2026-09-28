@@ -558,11 +558,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         //
         // Still null when the park nominates no catch-all, which plans with no structure
         // and no bonuses. Either way the caller records a warning rather than aborting.
+        //
+        // ⚠️ A category LISTED with no structure chosen falls through too. Every park lists all
+        // its categories, and an unassigned one maps to null — which TryGetValue finds, so it was
+        // returned as the answer and the catch-all never reached: every job in an unassigned
+        // category planned with no structure, no cost index, no facility tax and no role bonus.
         IndyStructure? StructureFor(string catKey, int typeId)
         {
-            if (itemOverrides.TryGetValue(typeId, out var overrideStruct))
+            if (itemOverrides.TryGetValue(typeId, out var overrideStruct) && overrideStruct is not null)
                 return overrideStruct;
-            if (!string.IsNullOrEmpty(catKey) && structByCategory.TryGetValue(catKey, out var s))
+            if (!string.IsNullOrEmpty(catKey) && structByCategory.TryGetValue(catKey, out var s) && s is not null)
                 return s;
             return ctx.DefaultStructure;
         }

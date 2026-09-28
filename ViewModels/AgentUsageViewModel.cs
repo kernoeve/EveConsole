@@ -324,6 +324,47 @@ public class AgentUsageViewModel : ReactiveObject
 
     public void Reload() => _ = LoadAsync();
 
+    /// <summary>
+    /// Asks each paid service there is a key for what it offers, and adds a rate row for any model
+    /// without one (see ListedRates). Set by the main window, which holds the keys; returns how
+    /// many rows were added.
+    /// </summary>
+    public Func<CancellationToken, Task<int>>? SyncListedRates { get; set; }
+
+    /// <summary>Once in a while, not on every change of date: the lists change by the month.</summary>
+    private static DateTime _ratesSyncedAt = DateTime.MinValue;
+
+    private async Task SyncListedRatesAsync()
+    {
+        if (SyncListedRates is null || DateTime.UtcNow - _ratesSyncedAt < TimeSpan.FromMinutes(10)) return;
+        _ratesSyncedAt = DateTime.UtcNow;
+        try
+        {
+            if (await SyncListedRates(CancellationToken.None) == 0) return;
+
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var rates = await db.ServiceRates.AsNoTracking()
+                                .OrderBy(r => r.Kind).ThenBy(r => r.Provider).ThenBy(r => r.Model)
+                                .ToListAsync();
+            _rates = new RateBook(rates);
+
+            // ⚠️ Rows being edited are not thrown away for a refresh: the new ones are added
+            // beside them instead, and the whole list is laid out in order next time.
+            if (Rates.Any(r => r.IsDirty))
+            {
+                var shown = Rates.Select(r => r.Row.Id).ToHashSet();
+                foreach (var r in rates.Where(r => !shown.Contains(r.Id))) Rates.Add(new ServiceRateVm(r));
+            }
+            else
+            {
+                Rates.Clear();
+                foreach (var r in rates) Rates.Add(new ServiceRateVm(r));
+            }
+            Rebuild();
+        }
+        catch (Exception ex) { _errors.Log("AgentUsageViewModel", "SyncListedRates", ex); }
+    }
+
     private bool _isLoading;
 
     private async Task LoadAsync()
@@ -396,6 +437,7 @@ public class AgentUsageViewModel : ReactiveObject
 
             Pager.Reset();
             Rebuild();
+            _ = SyncListedRatesAsync();          // new models' rate rows, then shown
         }
         catch (Exception ex)
         {

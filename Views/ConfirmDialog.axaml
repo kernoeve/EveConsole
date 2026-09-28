@@ -1,6 +1,7 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EveConsole.Views.ConfirmDialog"
+        Title="Confirm"
         Width="420"
         MinWidth="340"
         WindowStartupLocation="CenterOwner"

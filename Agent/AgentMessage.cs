@@ -36,6 +36,19 @@ public sealed record AgentMessage
     /// </summary>
     public string? ToolsUsed { get; init; }
 
+    /// <summary>
+    /// The model that wrote this reply, as Settings names it. Null for replies from before there
+    /// was a choice, and for the app's own lines. Shown under the bubble — the persona is one,
+    /// but which model spoke for it, and whether that was the paid one, is the capsuleer's to see.
+    /// </summary>
+    public string? AnsweredBy { get; init; }
+
+    /// <summary>
+    /// Which model answered: the conversation model, or the one that reads the data. Null when one
+    /// model did everything. The router reads it — a follow-up to a data answer is data too.
+    /// </summary>
+    public ModelRoleKind? AnsweredAs { get; init; }
+
     /// <summary>When it was said, in the capsuleer's own time, for the label above the bubble.</summary>
     [JsonIgnore]
     public string TimeText => Timestamp.ToLocalTime().ToString("d MMM yyyy HH:mm");
@@ -47,13 +60,26 @@ public sealed record AgentMessage
     [JsonIgnore]
     public string EveTimeText => Timestamp.ToUniversalTime().ToString("yyyy-MM-dd HH:mm") + " EVE";
 
-    /// <summary>The line above the bubble: when, and for the agent's replies, what it called.</summary>
+    /// <summary>The line above the bubble: when, and for the agent's replies, which model wrote it
+    /// and what it called.</summary>
     [JsonIgnore]
-    public string MetaText => ToolsUsed is null ? TimeText : $"{TimeText}  ·  {ToolsUsed}";
+    public string MetaText => string.Join("  ·  ",
+        new[] { TimeText, AnsweredBy, ToolsUsed }.Where(s => !string.IsNullOrEmpty(s)));
 
     /// <summary>
-    /// The text as every provider sends it: the capsuleer's turns carry when they were sent, the
-    /// agent's own and the summary do not.
+    /// The tool the capsuleer had on screen when they wrote this — the Tool Reference's name for
+    /// it. Null for what the app wrote, and for messages from before this was kept.
+    ///
+    /// <para>⚠️ In the message, not only in the live app state beside it. A small model asked
+    /// "what about this?" answered from its own last reply rather than the app state, and went on
+    /// naming the Universe Map after the capsuleer had moved to Assets. Stamped here, each message
+    /// says where it was written, and the history shows the move plainly.</para>
+    /// </summary>
+    public string? OnScreen { get; init; }
+
+    /// <summary>
+    /// The text as every provider sends it: the capsuleer's turns carry when they were sent, and
+    /// what they had on screen; the agent's own and the summary do not.
     ///
     /// <para>⚠️ One definition, used by every provider. The stamp is fixed at the moment the message
     /// was written, so a cached prefix is unchanged by it; and only the capsuleer's turns carry it,
@@ -61,7 +87,9 @@ public sealed record AgentMessage
     /// </summary>
     [JsonIgnore]
     public string ContentForModel =>
-        Role == MessageRole.User && !IsSummary ? $"[{EveTimeText}] {Content}" : Content;
+        Role == MessageRole.User && !IsSummary
+            ? $"[{EveTimeText}{(string.IsNullOrWhiteSpace(OnScreen) ? "" : $", looking at {OnScreen}")}] {Content}"
+            : Content;
 
     [JsonConstructor]
     public AgentMessage(MessageRole role, string content, DateTimeOffset timestamp)

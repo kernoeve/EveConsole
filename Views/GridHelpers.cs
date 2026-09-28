@@ -179,6 +179,13 @@ internal sealed class SelectableCell : Border
             TextAlignment       = rightAlign ? TextAlignment.Right         : TextAlignment.Left,
         };
         Child = _tb;
+
+        // ⚠️ Transparent, never null. A Border with no Background is not hit-tested in Avalonia:
+        // the pointer passes straight through it to the DataGridCell behind, so Tapped and
+        // PointerEntered on this cell never fire at all. That is what made every linked column
+        // in the Industry Jobs grid a link that did nothing — and what stopped HitTestCell
+        // finding a cell to name a column with while dragging a selection.
+        Background = Brushes.Transparent;
         DataContextChanged += (_, _) => Refresh();
 
         if (_onClick is not null)
@@ -225,6 +232,8 @@ internal sealed class SelectableCell : Border
         else
             _tb.ClearValue(TextBlock.ForegroundProperty);
 
-        Background = _svc.IsSelected(_grid, row, _col) ? SelectionBrush : null;
+        // ⚠️ Transparent rather than null when unselected — see the constructor. Null would take
+        // the cell out of hit testing again the first time anything refreshed it.
+        Background = _svc.IsSelected(_grid, row, _col) ? SelectionBrush : Brushes.Transparent;
     }
 }

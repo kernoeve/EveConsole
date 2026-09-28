@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.NotificationCard"
+             x:DataType="vm:NotificationBoxVm">
+
+  <!-- One notification on the Overview: icon, what it is, how long ago, and the few facts its
+       type calls for. Tall or short as those need. The whole card opens the notification in the
+       Notifications tool, so nothing inside it is a link of its own. -->
+  <UserControl.Styles>
+    <Style Selector="Border.card">
+      <Setter Property="Background"  Value="{DynamicResource SurfaceBaseBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+    </Style>
+    <Style Selector="Border.card:pointerover">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+
+    <!-- A value, or a joining word. Colour from styles only, so dim / good / bad can replace it. -->
+    <Style Selector="TextBlock.seg">
+      <Setter Property="FontSize"          Value="11" />
+      <Setter Property="Foreground"        Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextWrapping"      Value="Wrap" />
+      <Setter Property="MaxLines"          Value="2" />
+      <Setter Property="TextTrimming"      Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="TextBlock.seg.dim"><Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" /></Style>
+    <Style Selector="TextBlock.seg.good"><Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="TextBlock.seg.bad"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+  </UserControl.Styles>
+
+  <Border Classes="card" BorderThickness="1" CornerRadius="3" Padding="8 6" Margin="0 0 0 6"
+          Cursor="Hand" Tapped="OnTapped" ToolTip.Tip="Open in Notifications">
+    <Grid ColumnDefinitions="Auto,*">
+      <!-- Icon: the structure, the character it is about, or the sender; a glyph failing those -->
+      <Panel Width="32" Height="32" Margin="0 0 8 0" VerticalAlignment="Top">
+        <Border IsVisible="{Binding HasIcon}" Width="32" Height="32" CornerRadius="3" ClipToBounds="True">
+          <Image Source="{Binding Icon}" Width="32" Height="32" Stretch="UniformToFill" />
+        </Border>
+        <TextBlock IsVisible="{Binding NoIcon}" Text="{Binding FallbackGlyph}"
+                   FontSize="16" Foreground="{DynamicResource InfoBrush}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+      </Panel>
+
+      <StackPanel Grid.Column="1" Spacing="2">
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextBrightBrush}" TextTrimming="CharacterEllipsis"
+                     VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" Text="{Binding AgeText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                     VerticalAlignment="Center" Margin="8 0 0 0" />
+          <TextBlock Grid.Column="2" Text="{Binding UnreadDot}" Foreground="{DynamicResource AccentBrush}"
+                     FontSize="11" VerticalAlignment="Center" Margin="6 0 0 0" />
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Lines}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:NotifBriefLineVm">
+              <ItemsControl ItemsSource="{Binding Parts}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:NotifValueVm">
+                    <!-- A DockPanel, not a StackPanel: the text gets the width that is left, so a
+                         long structure name wraps inside the card instead of running out of it. -->
+                    <DockPanel Margin="0 1 5 1">
+                      <Border DockPanel.Dock="Left" IsVisible="{Binding HasPicture}" Width="16" Height="16"
+                              CornerRadius="2" ClipToBounds="True" VerticalAlignment="Center" Margin="0 0 4 0">
+                        <Image Source="{Binding Icon}" Width="16" Height="16" Stretch="UniformToFill" />
+                      </Border>
+                      <TextBlock Classes="seg" Classes.dim="{Binding IsDim}"
+                                 Classes.good="{Binding IsGood}" Classes.bad="{Binding IsBad}"
+                                 Text="{Binding Text}" />
+                    </DockPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

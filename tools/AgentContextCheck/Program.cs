@@ -126,8 +126,15 @@ var approxTokens = prompt.Length / 4;
 // Raised from 12,000 on 2026-09-11. What took it over: the core-table columns (measured to
 // replace 41 describe_tables calls), the ownership model, the clock, four new tools, and the
 // asset-location join — each added because a specific failure was measured, and each in the
-// cached prefix at a tenth of the price. The next raise should come with the same kind of reason.
-const int Budget = 14_000;
+// cached prefix at a tenth of the price.
+//
+// Raised from 14,000 on 2026-09-27, by the owner's decision, AFTER the in-app guide had been
+// compacted to fit — 35.7k to 25.3k characters, only what the prompt or the tools already said
+// twice — which left the prompt ~17 tokens under the old ceiling. At that margin the next
+// sentence added to any tool's guide entry fails the build, and a new feature's guide entry is
+// how the agent learns it exists. The 1,000 is room for the guide to grow with the app, not
+// for anything already in it. The next raise should come with the same kind of reason.
+const int Budget = 15_000;
 
 Console.WriteLine($"tables in model      : {schema.TableCount}");
 Console.WriteLine($"identifiers checked  : {checkedNames}");

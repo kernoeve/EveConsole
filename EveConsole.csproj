@@ -148,6 +148,25 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <!-- ═══ Kokoro's voices and espeak data — in the PUBLISHED app too ════════
+       KokoroSharp ships them as package content, copied by a target of its own that runs
+       after Build, into the build output only. A publish — so every release — never had
+       them: no voices folder, every utterance failed at once with "Attempted to access a
+       path that is not on the disk", and the agent's replies arrived in silence, while a
+       local build, which does have them, spoke fine.
+       Referenced directly only for GeneratePathProperty, which names the package's folder;
+       keep the version in step with KokoroSharp.CPU, which brings the same package in. -->
+  <ItemGroup>
+    <PackageReference Include="KokoroSharp" Version="0.6.7" GeneratePathProperty="true" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(PkgKokoroSharp)' != ''">
+    <None Include="$(PkgKokoroSharp)\content\**\*" Visible="false">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- ═══ Piper TTS binary — bundled at build time ══════════════════════════
        Downloads the Piper C++ binary from GitHub at developer build time.
        End users receive it as part of the normal application distribution

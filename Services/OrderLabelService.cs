@@ -102,13 +102,26 @@ public class OrderLabelService(IDbContextFactory<AppDbContext> dbFactory)
         await SpreadAsync(db, await ContractsOfOrdersAsync(db, orderIds, ct), clean, add: false, ct);
     }
 
-    /// <summary>The contracts a set of orders is linked to.</summary>
+    /// <summary>The contracts a set of orders is linked to — every one, an order going out over
+    /// several.</summary>
     private static async Task<List<long>> ContractsOfOrdersAsync(
         AppDbContext db, IReadOnlyCollection<int> orderIds, CancellationToken ct) =>
-        await db.TrackedOrders.AsNoTracking()
-            .Where(o => orderIds.Contains(o.Id) && o.LinkedContractId != null)
-            .Select(o => (long)o.LinkedContractId!.Value)
-            .Distinct().ToListAsync(ct);
+        (await LinkedAsync(db, ct))
+            .Where(p => orderIds.Contains(p.OrderId))
+            .Select(p => p.ContractId)
+            .Distinct().ToList();
+
+    /// <summary>
+    /// Every (order, contract) pair: an order can be on several contracts, and one contract can
+    /// carry several orders. Parsed from each order's list, so read whole — there are tens of
+    /// orders with contracts, not millions.
+    /// </summary>
+    private static async Task<List<(int OrderId, long ContractId)>> LinkedAsync(AppDbContext db, CancellationToken ct) =>
+        (await db.TrackedOrders.AsNoTracking()
+            .Where(o => o.LinkedContractId != null)
+            .ToListAsync(ct))
+        .SelectMany(o => OrderContractLinks.Ids(o).Select(id => (o.Id, (long)id)))
+        .ToList();
 
     /// <summary>
     /// Adds one label to several orders at once, skipping any that already carry it.
@@ -197,7 +210,7 @@ public class OrderLabelService(IDbContextFactory<AppDbContext> dbFactory)
     // ── Sales ─────────────────────────────────────────────────────────────────
     //
     // A sale and an order are the same delivery seen from two sides, and the thing that joins
-    // them is the contract: an order names one in LinkedContractId, and a contract sale IS one.
+    // them is the contract: an order names its contracts, and a contract sale IS one.
     // A label put on either belongs to both.
     //
     // ⚠️ Two tables and a reconciliation rather than one shared table, because the two sides
@@ -289,10 +302,9 @@ public class OrderLabelService(IDbContextFactory<AppDbContext> dbFactory)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        var linked = await db.TrackedOrders.AsNoTracking()
-            .Where(o => o.LinkedContractId != null)
-            .Select(o => new { o.Id, ContractId = (long)o.LinkedContractId!.Value })
-            .ToListAsync(ct);
+        var linked = (await LinkedAsync(db, ct))
+            .Select(p => new { Id = p.OrderId, p.ContractId })
+            .ToList();
         if (linked.Count == 0) return;
 
         var orderIds    = linked.Select(o => o.Id).ToHashSet();
@@ -351,9 +363,9 @@ public class OrderLabelService(IDbContextFactory<AppDbContext> dbFactory)
     {
         if (contractIds.Count == 0) return;
 
-        var orderIds = await db.TrackedOrders.AsNoTracking()
-            .Where(o => o.LinkedContractId != null && contractIds.Contains((long)o.LinkedContractId!.Value))
-            .Select(o => o.Id).ToListAsync(ct);
+        var orderIds = (await LinkedAsync(db, ct))
+            .Where(p => contractIds.Contains(p.ContractId))
+            .Select(p => p.OrderId).Distinct().ToList();
 
         if (add)
         {

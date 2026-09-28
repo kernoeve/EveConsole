@@ -651,6 +651,9 @@ public sealed record MidpointOption(string Label, JumpMidpoints Value)
 /// box rather than a formatted line.</summary>
 public sealed record SystemMatch(int Id, string Name, string Region, double Security)
 {
-    public string SecurityText => Security.ToString("N1", CultureInfo.InvariantCulture);
+    // The security level, not true security to one decimal: they differ just above 0.0, where
+    // the game shows 0.1 (see SecurityColors.Rounded).
+    public string SecurityText =>
+        EveConsole.Services.SecurityColors.Rounded(Security).ToString("N1", CultureInfo.InvariantCulture);
     public override string ToString() => Name;
 }

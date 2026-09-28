@@ -644,12 +644,13 @@ public class SalePostingService(
         await using var db = dbFactory.CreateDbContext();
 
         // Reserved = pending Order Tracker units (global; no location/owner dimension).
+        // ⚠️ Only those still to come from stock or a build. A unit delivered, or made out on a
+        // contract, has already left the hangar, and reserving it again counted it twice.
         var reserved = (await db.TrackedOrders
                 .Where(o => o.Status == "pending" && ids.Contains(o.TypeId))
-                .GroupBy(o => o.TypeId)
-                .Select(g => new { TypeId = g.Key, Units = g.Sum(o => o.Units) })
                 .ToListAsync(ct))
-            .ToDictionary(x => x.TypeId, x => (long)x.Units);
+            .GroupBy(o => o.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(o => (long)OrderContractLinks.StillToSupply(o)));
 
         // Contract value per type via the shared best/avg reduction rule.
         var contract = (await db.ContractPrices

@@ -21,6 +21,12 @@ using Microsoft.EntityFrameworkCore;
 //
 //     dotnet run --project tools/SdeUndoCheck -c Release -p:UseAppHost=false
 
+// ⚠️ EF1002 is suppressed for this file, as it is in BulkImport: a table name cannot be a bound
+// parameter, so the wipes below interpolate one — and every one comes from Tables(db), which
+// reads them out of the compiled entity model. Anything interpolated from elsewhere needs its
+// own argument.
+#pragma warning disable EF1002
+
 SQLitePCL.Batteries_V2.Init();
 DbEngine.Pin(DbBackend.Sqlite);
 

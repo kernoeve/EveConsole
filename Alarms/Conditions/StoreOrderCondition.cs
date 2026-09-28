@@ -149,6 +149,9 @@ public sealed class StoreOrderCondition : IAlarmCondition
                 ["status"]      = o.Status,
                 ["source"]      = o.FulfilmentSource,
                 ["contract_id"] = o.LinkedContractId,
+                ["contract_ids"] = OrderContractLinks.Ids(o),
+                ["units_delivered"]   = o.Status == "completed" ? o.Units : o.UnitsDelivered,
+                ["units_on_contract"] = o.UnitsContracted,
                 ["created_at"]  = o.CreatedAt,
             };
 
@@ -189,15 +192,27 @@ public sealed class StoreOrderCondition : IAlarmCondition
             }
 
             // ── A contract, an acceptance, a cancellation: new keys whenever they happen ──
-            if (o.LinkedContractId is { } contractId)
+            // ⚠️ Only while one is actually waiting on the buyer. An order can hold a contract
+            // that is already accepted while the rest of it is still being built, and naming that
+            // one as "awaiting acceptance" would announce a delivery that has happened.
+            if (OrderContractLinks.AwaitsAcceptance(o) && o.LinkedContractId is { } contractId)
             {
-                var accepted = o.Status == "completed";
-                if (!accepted)
-                    matches.Add(Match($"order:{o.Id}:contract:{contractId}",
-                        $"Order {reff} ({what} for {o.Buyer}) contracted — awaiting acceptance",
-                        $"Order for {what} for {o.Buyer} is contracted and awaiting acceptance.",
-                        $"Order {reff} contracted", detail, silent: isNew || !kinds["contracted"]));
+                var part = o.UnitsContracted > 0 && o.UnitsContracted < o.Units
+                    ? $"{o.UnitsContracted:N0} of {o.Units:N0} " : "";
+                matches.Add(Match($"order:{o.Id}:contract:{contractId}",
+                    $"Order {reff} ({what} for {o.Buyer}) {part}contracted — awaiting acceptance",
+                    $"Order for {what} for {o.Buyer}: {part}contracted and awaiting acceptance.",
+                    $"Order {reff} contracted", detail, silent: isNew || !kinds["contracted"]));
             }
+
+            // Part of it accepted, the order still open for the rest: one announcement for each
+            // new count, so the second hull of three is news in its own right.
+            if (o.Status == "pending" && o.UnitsDelivered > 0)
+                matches.Add(Match($"order:{o.Id}:delivered:{o.UnitsDelivered}",
+                    $"Order {reff} ({what} for {o.Buyer}): {o.UnitsDelivered:N0} of {o.Units:N0} delivered",
+                    $"{o.Buyer} accepted a contract for part of {what}: {o.UnitsDelivered:N0} of {o.Units:N0} delivered.",
+                    $"Order {reff}: {o.UnitsDelivered:N0} of {o.Units:N0} delivered", detail,
+                    silent: isNew || !kinds["accepted"]));
 
             switch (o.Status)
             {

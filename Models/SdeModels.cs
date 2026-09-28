@@ -390,6 +390,8 @@ public static class StationServiceIds
     public const int Factory           = 14;
     public const int Laboratory        = 15;
     public const int ReprocessingPlant = 5;
+    public const int Refinery          = 6;
+    public const int Cloning           = 10;
     public const int RepairFacilities  = 13;
     public const int Fitting           = 17;
     public const int OfficeRental      = 23;

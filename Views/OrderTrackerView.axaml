@@ -210,12 +210,20 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
+        <!-- What contracts say about the order, apart from what the shelf and the jobs say: units
+             made out and waiting on the buyer, and units they have accepted, of all ordered. An
+             order can go out over several contracts, and these are what it has come to. -->
+        <DataGridTextColumn Header="On contract" Binding="{Binding OnContractText}" Width="95"
+                            SortMemberPath="OnContract" CellStyleClasses="num" />
+        <DataGridTextColumn Header="Delivered" Binding="{Binding DeliveredText}" Width="85"
+                            SortMemberPath="Delivered" CellStyleClasses="num" />
+
         <DataGridTemplateColumn Header="Contract" Width="220" SortMemberPath="Contract" ClipboardContentBinding="{Binding Contract}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenContract" IsVisible="{Binding HasContractLink}"
-                        ToolTip.Tip="Open this contract in the Contracts tool">
+                        ToolTip.Tip="{Binding ContractTip}">
                   <TextBlock Text="{Binding Contract}" Classes="linktext"
                              TextTrimming="CharacterEllipsis" />
                 </Button>

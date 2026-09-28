@@ -67,7 +67,7 @@ public partial class OrderEditDialog : Window
             PriceBox.Value = (decimal)initial.PurchasePrice;
             StatusBox.SelectedIndex = initial.Status switch { "completed" => 1, "canceled" => 2, _ => 0 };
             PriorityBox.IsChecked = initial.IsPriority;
-            ContractBox.Text  = initial.LinkedContractId?.ToString() ?? "";
+            ContractBox.Text  = string.Join(", ", initial.LinkedContractIds ?? []);
             CompletedBox.Text = initial.CompletedOn ?? "";
         }
 
@@ -175,10 +175,19 @@ public partial class OrderEditDialog : Window
             status,
             PriorityBox.IsChecked == true,
             _buyerId, _buyerType,
-            int.TryParse(ContractBox.Text, out var contractId) && contractId > 0 ? contractId : null,
+            ContractIds(ContractBox.Text),
             completed,
             LabelsField.Labels.ToList()));
     }
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);
+
+    /// <summary>The contract ids typed into the box, in order: separated by commas, spaces or
+    /// new lines, anything that is not a positive number ignored.</summary>
+    private static List<int> ContractIds(string? text) =>
+        (text ?? "").Split([',', ';', ' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => int.TryParse(s, out var id) ? id : 0)
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
 }
