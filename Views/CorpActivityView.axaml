@@ -282,7 +282,9 @@
             <ListBox.ItemTemplate>
               <DataTemplate DataType="vm:Activity24hKillRowVm">
                 <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1">
-                  <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+                  <!-- ⚠️ Proportional name columns, and every cell clipped. Two fixed 160s left the location column
+                       nothing on a narrow panel (150% UI scale), and it was drawn over the victim's logo (#124). -->
+                  <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4 4 4 4">
 
                     <!-- Date / Time / ISK -->
                     <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
@@ -305,12 +307,12 @@
                            Margin="0 0 6 0" />
 
                     <!-- System / Constellation / Region -->
-                    <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                      <StackPanel Orientation="Horizontal" Spacing="3">
-                        <TextBlock Text="{Binding SecurityText}"
+                    <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                      <Grid ColumnDefinitions="Auto,*">
+                        <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0"
                                    FontSize="10" FontWeight="SemiBold"
                                    Foreground="{Binding SecurityColor}" />
-                        <Panel>
+                        <Panel Grid.Column="1">
                           <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
                             <TextBlock Text="{Binding SystemName}" Classes="linktext"
                                        FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -321,7 +323,7 @@
                                      TextTrimming="CharacterEllipsis" />
                         </Panel>
 
-                      </StackPanel>
+                      </Grid>
                       <TextBlock Text="{Binding ConstellationName}"
                                  FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                  TextTrimming="CharacterEllipsis"
@@ -348,7 +350,7 @@
                              VerticalAlignment="Center"
                              ToolTip.Tip="{Binding VictimAlliance}"
                              Margin="0 0 4 0" />
-                      <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                         <Panel>
                           <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -385,7 +387,7 @@
                              VerticalAlignment="Center"
                              ToolTip.Tip="{Binding FbAlliance}"
                              Margin="0 0 4 0" />
-                      <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                      <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                         <Panel>
                           <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -1439,7 +1441,7 @@
                 <ListBox.ItemTemplate>
                   <DataTemplate DataType="vm:Activity24hKillRowVm">
                     <Border BorderBrush="{DynamicResource SurfaceHoverBrush}" BorderThickness="0 0 0 1">
-                      <Grid ColumnDefinitions="70,50,*,160,160" Margin="4 4 4 4">
+                      <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4 4 4 4">
                         <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                           <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
                           <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" />
@@ -1448,10 +1450,10 @@
                         </StackPanel>
                         <Image Grid.Column="1" Source="{Binding ShipRender}" Width="48" Height="48"
                                Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding ShipName}" Margin="0 0 6 0" />
-                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                          <StackPanel Orientation="Horizontal" Spacing="3">
-                            <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold" ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
-                            <Panel>
+                        <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                          <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0" FontSize="10" FontWeight="SemiBold" ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
+                            <Panel Grid.Column="1">
                               <Button Classes="link" Click="OnOpenKillSystem" IsVisible="{Binding HasSystemLink}">
                                 <TextBlock Text="{Binding SystemName}" Classes="linktext"
                                            FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -1461,7 +1463,7 @@
                                          FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                          TextTrimming="CharacterEllipsis" />
                             </Panel>
-                          </StackPanel>
+                          </Grid>
                           <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"
                                      IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                           <Panel>
@@ -1476,7 +1478,7 @@
                         <Grid Grid.Column="3" ColumnDefinitions="32,*" Margin="0 0 4 0">
                           <Image Grid.Column="0" Source="{Binding VictimLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding VictimAlliance}" Margin="0 0 4 0" />
-                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                           <Button Classes="link" Click="OnOpenKillVictim" IsVisible="{Binding HasVictimLink}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -1506,7 +1508,7 @@
                         <Grid Grid.Column="4" ColumnDefinitions="32,*">
                           <Image Grid.Column="0" Source="{Binding FbLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" ToolTip.Tip="{Binding FbAlliance}" Margin="0 0 4 0" />
-                          <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                          <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                             <Panel>
                           <Button Classes="link" Click="OnOpenKillFb" IsVisible="{Binding HasFbLink}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
