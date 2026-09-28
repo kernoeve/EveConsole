@@ -35,6 +35,10 @@ public sealed record DeliveredPrint(
 /// <para>Delivery time is the job's completed date. Checked on 2,128 delivered jobs: never before
 /// the job's end date, and the median delivery came six hours after the job finished — which is
 /// why the end date would be the wrong clock.</para>
+///
+/// <para>Contracts leave the same gap, in both directions; ContractLag is the twin, and every
+/// reader of <see cref="ItemsAsync"/> reads it straight after. Prints have no contract
+/// counterpart: a contract line says how many copies, never their runs.</para>
 /// </summary>
 public static class DeliveryLag
 {

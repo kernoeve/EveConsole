@@ -174,7 +174,7 @@ public sealed record ScopeStock(
 
     /// <summary>
     /// Everything in scope: assets by owner, what running jobs will deliver, and what delivered
-    /// jobs have put in hangars that the asset poll has not seen yet.
+    /// jobs and contracts have moved in and out of hangars that the asset poll has not seen yet.
     ///
     /// <para>One loader for the three tools that net demand against it — jobs, hauling and
     /// purchasing — so they cannot disagree about what exists. Purchasing planned against
@@ -249,6 +249,16 @@ public sealed record ScopeStock(
             if (!Ours(d.OwnerType, d.OwnerId)) continue;
             var pile = d.OwnerType == "corporation" ? corpStock : personalStock;
             pile[(d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.TypeId, d.OwnerId)) + d.Units;
+        }
+
+        // And what contracts have moved since, the same way: out with one made, back with one
+        // deleted, in with one accepted. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (!Ours(m.OwnerType, m.OwnerId)) continue;
+            var pile = m.OwnerType == "corporation" ? corpStock : personalStock;
+            pile[(m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.TypeId, m.OwnerId)) + m.Units);
         }
 
         return new ScopeStock(corpStock, personalStock, inBuild);
@@ -756,11 +766,20 @@ public class IndustryDemandService(
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
         // Delivered since the asset poll is on hand, for the same reason it is everywhere else.
-        var delivered = (await DeliveryLag.ItemsAsync(db, ct, wanted))
-            .Where(d => scope is null || scope.Contains(d.Site))
-            .Where(d => d.OwnerType != "corporation" || corps is null || corps.Contains(d.OwnerId))
-            .GroupBy(d => d.TypeId)
-            .ToDictionary(g => g.Key, g => g.Sum(d => d.Units));
+        bool Counts(long site, string ownerType, long ownerId) =>
+            (scope is null || scope.Contains(site))
+            && (ownerType != "corporation" || corps is null || corps.Contains(ownerId));
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, wanted))
+            if (Counts(d.Site, d.OwnerType, d.OwnerId))
+                onHand[d.TypeId] = onHand.GetValueOrDefault(d.TypeId) + d.Units;
+
+        // ⚠️ And what a contract took since is not. The order it was made for stops being demand
+        // the moment the contract is linked — see above — while the hull it took stays in the
+        // snapshot for up to an hour, where it covered the next order in line and nothing was
+        // built for it. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct, wanted))
+            if (Counts(m.Site, m.OwnerType, m.OwnerId))
+                onHand[m.TypeId] = Math.Max(0, onHand.GetValueOrDefault(m.TypeId) + m.Units);
 
         return orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key)
             .Select(g =>
@@ -768,8 +787,7 @@ public class IndustryDemandService(
                 var units = g.Sum(o => (long)OrderContractLinks.StillToSupply(o));
                 return (g.Key, units,
                         Math.Max(0, units - onHand.GetValueOrDefault(g.Key)
-                                          - inBuild.GetValueOrDefault(g.Key)
-                                          - delivered.GetValueOrDefault(g.Key)),
+                                          - inBuild.GetValueOrDefault(g.Key)),
                         g.Count(),
                         // Several orders can want the same item; the most urgent of them decides
                         // how urgent building it is.

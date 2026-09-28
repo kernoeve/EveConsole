@@ -160,6 +160,15 @@ public class MaterialPurchaseGenerator(
             onHand[d.TypeId] = onHand.GetValueOrDefault(d.TypeId) + d.Units;
         }
 
+        // And what contracts have moved since — a material bought on a contract is on the shelf,
+        // one put on a contract is not. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct, rawIds))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            onHand[m.TypeId] = Math.Max(0, onHand.GetValueOrDefault(m.TypeId) + m.Units);
+        }
+
         // Less what jobs started since the last asset poll have already taken out of it. The
         // job generator makes the same correction for the same reason; here it is the mirror
         // image — inputs still counted as on hand cover a shortfall they no longer can, and for

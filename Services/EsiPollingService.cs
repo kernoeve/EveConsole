@@ -1477,10 +1477,15 @@ public class EsiPollingService : ReactiveObject
                 .ToListAsync(ct))
             .ToDictionary(c => c.ContractId);
 
+        // When this character's contracts were last seen as they stood, for any that have moved
+        // on since — the only date a deletion ever gets. See ContractRecord.StatusChangedAfter.
+        var lastSeen = await ContractLag.LastSeenAsync(db, charId, "character", "char.contracts", ct);
+
         foreach (var c in r.Data!)
         {
             if (existing.TryGetValue(c.ContractId, out var row))
             {
+                if (row.Status != c.Status) row.StatusChangedAfter = lastSeen;
                 row.Status        = c.Status;
                 row.AcceptorId    = c.AcceptorId;
                 row.DateAccepted  = c.DateAccepted;
@@ -2815,10 +2820,15 @@ public class EsiPollingService : ReactiveObject
                 .ToListAsync(ct))
             .ToDictionary(c => c.ContractId);
 
+        // As the character poll: when these were last seen as they stood, for the ones that have
+        // moved on. See ContractRecord.StatusChangedAfter.
+        var lastSeen = await ContractLag.LastSeenAsync(db, corpId, "corporation", "corp.contracts", ct);
+
         foreach (var c in r.Data!)
         {
             if (existing.TryGetValue(c.ContractId, out var row))
             {
+                if (row.Status != c.Status) row.StatusChangedAfter = lastSeen;
                 row.Status        = c.Status;
                 row.AcceptorId    = c.AcceptorId;
                 row.DateAccepted  = c.DateAccepted;
