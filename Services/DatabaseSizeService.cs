@@ -71,7 +71,9 @@ public sealed class DatabaseSizeService
     private static DatabaseSizeReport Analyse(
         string dbPath, IProgress<string>? progress, CancellationToken ct)
     {
-        using var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly");
+        // ⚠️ Pooling off, as everywhere else this file is opened outside the context factory: a
+        // pooled connection outlives its Dispose and keeps the file open for the process.
+        using var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly;Pooling=False");
         conn.Open();
 
         var pageSize  = (int)Scalar(conn, "PRAGMA page_size");

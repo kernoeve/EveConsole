@@ -5,12 +5,25 @@ namespace EveConsole.Services;
 
 /// <summary>
 /// Local TTS via Kokoro 82M (ONNX inference, fully offline after initial download).
-/// The ONNX model (~320 MB full precision) is downloaded and cached automatically by
-/// KokoroSharp on first call to LoadAsync(). Voice embeddings ship with the NuGet package.
-/// No executable code is downloaded — only the neural network weight file.
+/// The ONNX model (~320 MB full precision) is downloaded once, on the first call to
+/// LoadAsync(), into the app's data folder. Voice embeddings and the espeak phonemiser ship
+/// with the app. No executable code is downloaded — only the neural network weight file.
+///
+/// <para>⚠️ Everything is found by absolute path. Left to itself KokoroSharp reads "voices" and
+/// "kokoro.onnx" relative to the WORKING directory, so what it found depended on how the app
+/// was started; and in an installed app the working directory is the version folder, which the
+/// next update replaces — taking a downloaded model with it.</para>
 /// </summary>
 public sealed class KokoroTtsService : IDisposable
 {
+    /// <summary>Beside the executable: the release carries them (see the csproj).</summary>
+    private static string VoicesDir => Path.Combine(AppContext.BaseDirectory, "voices");
+
+    /// <summary>In the data folder, which survives updates, as the Whisper models do.</summary>
+    private static string ModelPath => Path.Combine(AppConfig.AppDataDir, "kokoro-models", "kokoro.onnx");
+
+    /// <summary>The full-precision model, from where KokoroSharp's own download takes it.</summary>
+    private const string ModelUrl = "https://github.com/taylorchu/kokoro-onnx/releases/download/v0.2.0/kokoro.onnx";
     // ── English voices bundled with KokoroSharp (via NuGet content) ─────────
     public static readonly IReadOnlyList<(string Id, string Label)> Voices =
     [
@@ -48,6 +61,15 @@ public sealed class KokoroTtsService : IDisposable
 
     private KokoroTTS? _tts;
     private string     _voiceId = "af_heart";
+    private float      _volume  = 1f;
+
+    /// <summary>0.0–1.0, through KokoroSharp's own playback. Kept and applied on load as well,
+    /// so a volume set before the model has loaded is not lost.</summary>
+    public void SetVolume(float volume)
+    {
+        _volume = Math.Clamp(volume, 0f, 1f);
+        try { _tts?.SetVolume(_volume); } catch { /* the engine has gone */ }
+    }
 
     public bool IsReady => _tts is not null;
 
@@ -56,24 +78,62 @@ public sealed class KokoroTtsService : IDisposable
         _voiceId = string.IsNullOrEmpty(voiceId) ? "af_heart" : voiceId;
     }
 
-    // Load (and download if necessary) the Kokoro ONNX model.
-    // KokoroSharp caches the model file automatically.
-    // Model is ~320 MB on first download; subsequent loads read from cache.
+    // Load (and download if necessary) the Kokoro ONNX model — ~320 MB the first time.
     private Task? _load;
 
     /// <summary>
-    /// Loads the model once; later calls return the same task, so an utterance that arrives
-    /// while the engine is still loading has something to wait on. A failed load is retried on
-    /// the next call rather than remembered.
+    /// Loads the voices and the model once; later calls return the same task, so an utterance
+    /// that arrives while the engine is still loading has something to wait on. A failed load is
+    /// retried on the next call rather than remembered.
     /// </summary>
     public Task LoadAsync()
     {
         if (_tts is not null) return Task.CompletedTask;
         if (_load is { IsFaulted: true } or { IsCanceled: true }) _load = null;
-        return _load ??= Task.Run(() =>
+        return _load ??= Task.Run(async () =>
         {
-            _tts = KokoroTTS.LoadModel(); // downloads + caches automatically
+            if (KokoroVoiceManager.Voices.Count == 0)
+            {
+                if (!Directory.Exists(VoicesDir))
+                    throw new DirectoryNotFoundException($"Kokoro's voices are missing from {VoicesDir}");
+                KokoroVoiceManager.LoadVoicesFromPath(VoicesDir);
+            }
+            var tts = KokoroTTS.LoadModel(await EnsureModelAsync());
+            try { tts.SetVolume(_volume); } catch { /* default volume, then */ }
+            _tts = tts;
         });
+    }
+
+    /// <summary>The model's path, fetching it first if this machine has never had it.</summary>
+    private static async Task<string> EnsureModelAsync()
+    {
+        var path = ModelPath;
+        if (File.Exists(path)) return path;
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+        // Where KokoroSharp's own download put it: the working directory — beside the executable
+        // for an installed app, and bin\ for a development run. Moved rather than fetched again.
+        foreach (var old in new[] { Path.Combine(AppContext.BaseDirectory, "kokoro.onnx"),
+                                    Path.Combine(Environment.CurrentDirectory, "kokoro.onnx") }.Distinct())
+        {
+            if (!File.Exists(old)) continue;
+            try { File.Move(old, path); return path; }
+            catch (IOException) { /* in use, or another volume that refused: download instead */ }
+        }
+
+        // Written under a temporary name and renamed when complete, so a download cut short is
+        // never mistaken for the model on the next start.
+        var temp = path + ".download";
+        using (var http = new HttpClient { Timeout = TimeSpan.FromMinutes(30) })
+        using (var response = await http.GetAsync(ModelUrl, HttpCompletionOption.ResponseHeadersRead))
+        {
+            response.EnsureSuccessStatusCode();
+            await using var source = await response.Content.ReadAsStreamAsync();
+            await using var target = File.Create(temp);
+            await source.CopyToAsync(target);
+        }
+        File.Move(temp, path, overwrite: true);
+        return path;
     }
 
 
@@ -95,8 +155,17 @@ public sealed class KokoroTtsService : IDisposable
     /// <para>Callers arrive through TtsService's queue, which already runs this on a pool thread,
     /// so blocking holds up nothing but the next utterance — which is the point.</para>
     /// </summary>
-    public void SpeakAsync(string text)
+    /// <summary>Can speak, or can once it has loaded: the voices are here and the last load did
+    /// not fail. A model still to be downloaded counts as available — it is fetched on first use.</summary>
+    public bool IsAvailable => Directory.Exists(VoicesDir) && _load is not { IsFaulted: true };
+
+    /// <param name="voiceId">Which voice — several Kokoro voices share the one loaded model.
+    /// Null: the configured one.</param>
+    public void Speak(string text, string? voiceId = null, CancellationToken ct = default)
     {
+        using var stopOnCancel = ct.Register(Stop);
+        if (ct.IsCancellationRequested) return;
+
         // ⚠️ An utterance that arrives while the model is still loading WAITS for it rather than
         // being dropped. The model takes seconds to load at startup, and an alarm that fired in
         // the first minute — a store order transition caught by the startup polls — was written
@@ -105,14 +174,22 @@ public sealed class KokoroTtsService : IDisposable
         if (_tts is null)
         {
             try { LoadAsync().Wait(TimeSpan.FromSeconds(120)); }
-            catch { /* the load's own failure; there is no voice to speak with */ }
-            if (_tts is null) return;
+            catch { /* the load's own failure, reported below */ }
+
+            // ⚠️ Thrown, not returned: TtsService records a throw as a failed utterance. A plain
+            // return was recorded as speech that worked, and the only sign of a voice that could
+            // not load was silence.
+            if (_tts is null)
+                throw new InvalidOperationException(
+                    _load?.Exception?.GetBaseException().Message is { } why
+                        ? $"The Kokoro voice could not load: {why}"
+                        : "The Kokoro voice is still downloading or loading its model.");
         }
         var stripped = StripMarkdown(text);
 
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
-        var voice  = KokoroVoiceManager.GetVoice(_voiceId);
+        var voice  = KokoroVoiceManager.GetVoice(string.IsNullOrEmpty(voiceId) ? _voiceId : voiceId);
         var done   = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var handle = _tts.SpeakFast(stripped, voice);
 
@@ -126,7 +203,15 @@ public sealed class KokoroTtsService : IDisposable
 
         // A ceiling, not an expectation: if a completion signal is ever missed, speech resumes
         // late rather than stopping for the rest of the session.
-        done.Task.Wait(TimeSpan.FromMinutes(2));
+        //
+        // ⚠️ And a stop ends the wait at once. StopPlayback raises OnSpeechCanceled only for an
+        // utterance that has begun to PLAY; stopped while it is still being made — the first
+        // moment of a sentence, which is exactly when an interruption lands, the next sentence
+        // having just started — no event comes at all, and this waited out the whole two minutes
+        // with every sentence of the next answer queued behind it. Measured with the real engine:
+        // stopped 3 s in, it returned at once; stopped 0.2 s in, it returned after 119.9 s.
+        try   { done.Task.Wait((int)TimeSpan.FromMinutes(2).TotalMilliseconds, ct); }
+        catch (OperationCanceledException) { /* stopped — the playback was stopped with it */ }
     }
 
     /// <summary>

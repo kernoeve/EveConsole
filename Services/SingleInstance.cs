@@ -140,7 +140,14 @@ public static class SingleInstance
 
         try
         {
-            _mutex = new Mutex(initiallyOwned: true, @"Local\EveConsole.SingleInstance", out var isFirst);
+            // ⚠️ Named per profile. The file lock above is beside the database and so is already
+            // a different lock for a different profile, but one fixed mutex name would refuse the
+            // second process anyway — which would make a profile impossible to run while the
+            // ordinary copy is open, the one arrangement it is for.
+            var name = AppConfig.ProfileName is { } profile
+                ? $@"Local\EveConsole.SingleInstance.{profile}"
+                : @"Local\EveConsole.SingleInstance";
+            _mutex = new Mutex(initiallyOwned: true, name, out var isFirst);
             if (isFirst) return true;
 
             // A restart waits for the outgoing process rather than treating it as a rival. It

@@ -336,11 +336,20 @@ public class BuildCostService
                 .Sum(r => bonusAttr.TryGetValue(r.RigTypeId, out var b) ? b * SecMult(s, r.RigTypeId) : 0.0);
         }
 
+        // ⚠️ Anything no item exception or category assignment covers is built at the park's
+        // catch-all facility, as the Production Calculator plans it. This returned null instead,
+        // so every item in an unassigned or unrecognised category was costed with no structure —
+        // no cost index, no facility tax, no role bonus — and the two tools disagreed.
+        var catchAll = defaultPark.DefaultStructureId is { } catchAllId
+            ? structures.FirstOrDefault(s => s.Id == catchAllId)
+            : null;
+
         IndyStructure? StructureFor(string catKey, int typeId)
         {
-            if (itemOverrides.TryGetValue(typeId, out var ov)) return ov;
-            if (string.IsNullOrEmpty(catKey)) return null;
-            return structByCategory.TryGetValue(catKey, out var s) ? s : null;
+            if (itemOverrides.TryGetValue(typeId, out var ov) && ov is not null) return ov;
+            if (!string.IsNullOrEmpty(catKey) && structByCategory.TryGetValue(catKey, out var s) && s is not null)
+                return s;
+            return catchAll;
         }
 
         // Map solar system names → IDs for cost index lookup.

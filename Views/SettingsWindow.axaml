@@ -255,6 +255,65 @@
       </Grid>
     </TabItem>
 
+    <!-- ══ Characters ════════════════════════════════════════════════════════ -->
+    <!-- What each character is used for: industry slots and skill-queue alerts. Moved out of the
+         Industry tab, since the skill queue column is not about industry at all. -->
+    <TabItem Header="Characters">
+      <!-- Horizontal scrolling off explicitly: the grid sizes its Free / total column with a star,
+           and an unbounded width would push the columns after it out of view. -->
+      <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="12" Margin="0 0 4 0">
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding IndustryVm}">
+              <TextBlock Text="Characters" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="Which characters may be given industry jobs, and on what. Every authorised character is listed automatically with all three activities on — clear the ones a character should not be given, which is how an alt is taken out of consideration. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do. Clear Skill queue for a character whose queue is empty on purpose, and it raises no skill queue alerts." />
+
+              <DataGrid ItemsSource="{Binding Chars}" MinHeight="160" MaxHeight="480"
+                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="11" Width="200"
+                                      IsReadOnly="True" />
+
+                  <!-- Editable in place, saving on change. -->
+                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True" ClipboardContentBinding="{Binding Activities}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                          <CheckBox Content="Mfg"  IsChecked="{Binding Manufacturing, Mode=TwoWay}" FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Manufacturing" />
+                          <CheckBox Content="Rxn"  IsChecked="{Binding Reactions, Mode=TwoWay}"     FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Reactions" />
+                          <CheckBox Content="Sci"  IsChecked="{Binding Science, Mode=TwoWay}"       FontSize="11"
+                                    MinHeight="0" ToolTip.Tip="Science — copying, research, invention" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+
+                  <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="11" Width="*"
+                                      IsReadOnly="True" />
+
+                  <DataGridTemplateColumn Header="Skill queue" Width="90" SortMemberPath="SkillQueue"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding SkillQueue}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <CheckBox IsChecked="{Binding SkillQueue, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="Character skill queue should be kept running. Clear it for an alt whose queue is deliberately empty, and neither the Overview alerts nor the worklist will report it." />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ SDE ══════════════════════════════════════════════════════════════ -->
     <TabItem Header="SDE">
       <ScrollViewer>
@@ -728,9 +787,6 @@
 
     <!-- ══ Industry ══════════════════════════════════════════════════════════ -->
     <TabItem Header="Industry">
-      <!-- Horizontal scrolling off explicitly: the characters grid below sizes its last column
-           with a star, and an unbounded width would push that column out of view rather than
-           fitting it. -->
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="12" Margin="0 0 4 0">
 
@@ -782,56 +838,6 @@
 
               <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="Off by default. Component markets bounce around, and a few units listed cheap don't guarantee the quantity you need is available at that price — nor that it's worth tracking down and hauling. When off, the calculators build every component they can (items that genuinely can't be costed are still bought). Turn it on to let cheaper-of-build-vs-buy decide."/>
-            </StackPanel>
-          </Border>
-
-          <!-- Industry characters. Moved here from the Worklist tool: it is configuration, and
-               the tool itself is for reading the work rather than setting up who does it. -->
-          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
-                  CornerRadius="4" Padding="12 10">
-            <StackPanel Spacing="8" DataContext="{Binding IndustryVm}">
-              <TextBlock Text="Industry Characters" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
-              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                         Text="Which characters may be given jobs, and on what. Every authorised character is listed automatically with all three activities on — clear the ones a character should not be given, which is how an alt is taken out of consideration. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do." />
-
-              <DataGrid ItemsSource="{Binding Chars}" MinHeight="160" MaxHeight="320"
-                        IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
-                        Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
-                <DataGrid.Columns>
-                  <DataGridTextColumn Header="Character" Binding="{Binding CharacterName}" FontSize="11" Width="200"
-                                      IsReadOnly="True" />
-
-                  <!-- Editable in place, saving on change. -->
-                  <DataGridTemplateColumn Header="Slots used for" Width="260" SortMemberPath="Activities" IsReadOnly="True" ClipboardContentBinding="{Binding Activities}">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:IndyCharRow">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                          <CheckBox Content="Mfg"  IsChecked="{Binding Manufacturing, Mode=TwoWay}" FontSize="11"
-                                    MinHeight="0" ToolTip.Tip="Manufacturing" />
-                          <CheckBox Content="Rxn"  IsChecked="{Binding Reactions, Mode=TwoWay}"     FontSize="11"
-                                    MinHeight="0" ToolTip.Tip="Reactions" />
-                          <CheckBox Content="Sci"  IsChecked="{Binding Science, Mode=TwoWay}"       FontSize="11"
-                                    MinHeight="0" ToolTip.Tip="Science — copying, research, invention" />
-                        </StackPanel>
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
-
-                  <DataGridTemplateColumn Header="Skill queue" Width="90" SortMemberPath="SkillQueue"
-                                          IsReadOnly="True" ClipboardContentBinding="{Binding SkillQueue}">
-                    <DataGridTemplateColumn.CellTemplate>
-                      <DataTemplate x:DataType="vm:IndyCharRow">
-                        <CheckBox IsChecked="{Binding SkillQueue, Mode=TwoWay}" FontSize="11" MinHeight="0"
-                                  HorizontalAlignment="Center"
-                                  ToolTip.Tip="Character skill queue should be kept running. Clear it for an alt whose queue is deliberately empty, and neither the Overview alerts nor the worklist will report it." />
-                      </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                  </DataGridTemplateColumn>
-
-                  <DataGridTextColumn Header="Free / total" Binding="{Binding Slots}" FontSize="11" Width="*"
-                                      IsReadOnly="True" />
-                </DataGrid.Columns>
-              </DataGrid>
             </StackPanel>
           </Border>
 
@@ -1543,7 +1549,7 @@
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="ESI only returns a killmail when you were the victim or got the final blow — participating in a kill without the final blow is invisible to it. zKillboard tracks every participant, so merging it in fills that gap. Optional; off by default. Merges into the same Kills data used everywhere else, never duplicates or overwrites what ESI already provided." />
+                           Text="ESI only returns a killmail when you were the victim or got the final blow — participating in a kill without the final blow is invisible to it. zKillboard tracks every participant, so merging it in fills that gap. On by default, for your own characters and their corporations; untick it to turn it off. Merges into the same Kills data used everywhere else, never duplicates or overwrites what ESI already provided." />
 
                 <CheckBox IsChecked="{Binding Enabled}"
                           Content="Enable zKillboard kill import" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
@@ -1827,97 +1833,225 @@
                   </Grid>
                 </Border>
 
-                <!-- Provider selection -->
+                <!-- The models -->
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Provider" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
-                    </Border>
-                    <Grid Grid.Row="1" ColumnDefinitions="120,*" Margin="12 10">
-                      <TextBlock Grid.Column="0" Text="LLM Provider:"
-                                 FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                      <ComboBox Grid.Column="1"
-                                ItemsSource="{Binding Providers}"
-                                SelectedItem="{Binding SelectedProvider}"
-                                HorizontalAlignment="Stretch">
-                      </ComboBox>
-                    </Grid>
-                  </Grid>
-                </Border>
-
-                <!-- Claude settings -->
-                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
-                        IsVisible="{Binding ShowClaude}">
-                  <Grid RowDefinitions="Auto,Auto">
-                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Claude (Anthropic)" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Models" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
-                      <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding ClaudeApiKey}"
-                               Watermark="sk-ant-…"
-                               PasswordChar="•" />
-                      <HyperlinkButton Content="Get your Anthropic API key at console.anthropic.com"
-                                       NavigateUri="https://console.anthropic.com/settings/keys"
-                                       FontSize="10"
-                                       Padding="0"
-                                       HorizontalAlignment="Left" />
-                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding ClaudeModel}"
-                               Watermark="claude-sonnet-4-6" />
-                      <TextBlock Text="Available models: claude-opus-4-8, claude-sonnet-4-6, claude-haiku-4-5-20251001"
-                                 FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
-
-                      <TextBlock Text="Prompt Cache Lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
-                      <ComboBox ItemsSource="{Binding ClaudeCacheTtlOptions}"
-                                SelectedItem="{Binding ClaudeCacheTtlOption}"
-                                HorizontalAlignment="Stretch" />
                       <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
-                                 Text="Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message." />
+                                 Text="Every model the agent can think with: a server of your own such as Ollama, which is free, or a paid service. Which one does what is set under Roles below." />
+
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 4 0 0">
+                        <ListBox Grid.Column="0" ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}"
+                                 MinHeight="60" MaxHeight="150"
+                                 Background="{DynamicResource SurfaceInputBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ModelProfileVm">
+                              <TextBlock Text="{Binding Label}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                          </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="8 0 0 0">
+                          <Button Content="Add" Command="{Binding AddModelCommand}" Padding="10 3" HorizontalAlignment="Stretch" />
+                          <Button Content="Remove" Command="{Binding RemoveModelCommand}" IsEnabled="{Binding CanRemoveModel}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" ToolTip.Tip="At least one model stays" />
+                        </StackPanel>
+                      </Grid>
+
+                      <!-- The selected model -->
+                      <Border IsVisible="{Binding HasSelectedModel}" Margin="0 6 0 0" Padding="10 8"
+                              BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3">
+                        <StackPanel Spacing="8" DataContext="{Binding SelectedModel}" x:DataType="vm:ModelProfileVm">
+                          <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                          <TextBox Text="{Binding Name}" Watermark="{Binding NameWatermark}" />
+
+                          <TextBlock Text="Service" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                          <ComboBox ItemsSource="{Binding ServiceOptions}" SelectedItem="{Binding SelectedService}" HorizontalAlignment="Stretch" />
+
+                          <!-- The service's key, before the model: the list of models is asked for with
+                               it. One key per service, shared by every model on it. -->
+                          <StackPanel IsVisible="{Binding ShowClaude}" Spacing="8">
+                            <TextBlock Text="Claude (Anthropic) API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Owner.ClaudeApiKey}" Watermark="sk-ant-…" PasswordChar="•" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="One key for every Claude model in the list." />
+                            <HyperlinkButton Content="Get your Anthropic API key at console.anthropic.com"
+                                             NavigateUri="https://console.anthropic.com/settings/keys"
+                                             FontSize="10" Padding="0" HorizontalAlignment="Left" />
+                          </StackPanel>
+
+                          <StackPanel IsVisible="{Binding ShowOpenAi}" Spacing="8">
+                            <TextBlock Text="OpenAI API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Owner.OpenAiApiKey}" Watermark="sk-…" PasswordChar="•" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="One key for every OpenAI model in the list, and for OpenAI's voices and speech input." />
+                            <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
+                                             NavigateUri="https://platform.openai.com/api-keys"
+                                             FontSize="10" Padding="0" HorizontalAlignment="Left" />
+                          </StackPanel>
+
+                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="8">
+                            <TextBlock Text="Server address" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Endpoint}" Watermark="http://gpu-box:11434" />
+                          </StackPanel>
+
+                          <!-- The model, from the service's own list; typed only when there is no list. -->
+                          <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                          <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0" IsVisible="{Binding ModelList.IsListed}"
+                                      ItemsSource="{Binding ModelList.Listings}" SelectedItem="{Binding ModelList.Selected}"
+                                      HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                              <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="agent:ModelListing">
+                                  <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBox Grid.Column="0" IsVisible="{Binding !ModelList.IsListed}"
+                                     Text="{Binding Model}" Watermark="{Binding ModelWatermark}" />
+                            <Button Grid.Column="1" Content="↺" Command="{Binding ModelList.RefreshCommand}"
+                                    Padding="8 4" Margin="6 0 0 0" VerticalAlignment="Stretch"
+                                    ToolTip.Tip="Ask the service for its list of models again" />
+                          </Grid>
+                          <TextBlock Text="{Binding ModelList.Status}" IsVisible="{Binding ModelList.HasStatus}"
+                                     FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding ModelHelp}" IsVisible="{Binding ModelHelp, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                     FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+
+                          <StackPanel IsVisible="{Binding ShowEndpoint}" Spacing="4">
+                            <CheckBox IsChecked="{Binding Think}" Content="Let it think before answering (slower)" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="For models that think before they answer, such as Qwen3. The thinking is never shown, but every answer waits for it. Untick for quicker replies: the model is told not to think, at some cost in care — most of all in choosing a tool. Models that do not think ignore it." />
+                          </StackPanel>
+
+                          <StackPanel IsVisible="{Binding ShowClaude}" Spacing="8" Margin="0 4 0 0">
+                            <TextBlock Text="Prompt cache lifetime" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding Owner.ClaudeCacheTtlOptions}"
+                                      SelectedItem="{Binding Owner.ClaudeCacheTtlOption}"
+                                      HorizontalAlignment="Stretch" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message. For every Claude model in the list." />
+                          </StackPanel>
+
+                          <StackPanel Spacing="6" Margin="0 4 0 0">
+                            <StackPanel.Styles>
+                              <!-- Classes, not a local Foreground: a local value would beat these. -->
+                              <Style Selector="TextBlock.test">
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.ok">
+                                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.failed">
+                                <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+                              </Style>
+                            </StackPanel.Styles>
+                            <Button Content="Test This Model" Command="{Binding TestModelCommand}"
+                                    Padding="12 4" HorizontalAlignment="Left"
+                                    ToolTip.Tip="Asks it for one sentence, as set here, before saving. Free on a server of your own; a few tokens on a paid service." />
+                            <TextBlock Classes="test" Classes.ok="{Binding TestOk}" Classes.failed="{Binding TestFailed}"
+                                       Text="{Binding TestStatus}" IsVisible="{Binding HasTestStatus}"
+                                       FontSize="11" TextWrapping="Wrap" />
+                          </StackPanel>
+                        </StackPanel>
+                      </Border>
                     </StackPanel>
                   </Grid>
                 </Border>
 
-                <!-- OpenAI settings -->
-                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
-                        IsVisible="{Binding ShowOpenAi}">
+                <!-- The roles -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="OpenAI" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Roles" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
-                      <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding OpenAiApiKey}"
-                               Watermark="sk-…"
-                               PasswordChar="•" />
-                      <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
-                                       NavigateUri="https://platform.openai.com/api-keys"
-                                       FontSize="10"
-                                       Padding="0"
-                                       HorizontalAlignment="Left" />
+                      <StackPanel.DataTemplates>
+                        <DataTemplate x:DataType="vm:ModelChoice">
+                          <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                      </StackPanel.DataTemplates>
+
+                      <!-- Conversation -->
+                      <TextBlock Text="Conversation" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Talks with you and works the app — opens and arranges its tools, sets alarms and destinations, remembers your standing instructions." />
                       <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding OpenAiModel}"
-                               Watermark="gpt-5" />
+                      <ComboBox ItemsSource="{Binding ConversationChoices}" SelectedItem="{Binding SelectedConversationModel}"
+                                HorizontalAlignment="Stretch" />
+                      <TextBlock Text="If it stops answering, fall over to" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding FallbackChoices}" SelectedItem="{Binding SelectedConversationFallback}"
+                                HorizontalAlignment="Stretch" />
+                      <CheckBox IsChecked="{Binding ConversationAnnounce}"
+                                Content="Say so when it falls over, and when it comes back — in the chat, and aloud when speaking" />
+
+                      <!-- Data -->
+                      <TextBlock Text="Questions about your data" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 10 0 0" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Anything that needs your database or ESI — what you have, own, are doing or have done. The model here gets the whole prompt and every tool." />
+                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding AnalystChoices}" SelectedItem="{Binding SelectedAnalystModel}"
+                                HorizontalAlignment="Stretch" />
+                      <StackPanel IsVisible="{Binding IsSplit}" Spacing="8">
+                        <TextBlock Text="If it stops answering, fall over to" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                        <ComboBox ItemsSource="{Binding FallbackChoices}" SelectedItem="{Binding SelectedAnalystFallback}"
+                                  HorizontalAlignment="Stretch" />
+                        <CheckBox IsChecked="{Binding AnalystAnnounce}"
+                                  Content="Say so when it falls over, and when it comes back — in the chat, and aloud when speaking" />
+
+                        <TextBlock Text="Send a message to this model when…" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                        <TextBox Text="{Binding HandOffWhen}" AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="70" VerticalContentAlignment="Top" />
+                        <Button Content="Reset to the default" Command="{Binding ResetHandOffWhenCommand}"
+                                Padding="10 3" HorizontalAlignment="Left" />
+                      </StackPanel>
+
+                      <!-- Summaries -->
+                      <TextBlock Text="Summaries" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0 10 0 0" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Compacts older messages when the conversation grows long (see Context Management). A small free model does this well." />
+                      <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <ComboBox ItemsSource="{Binding AnalystChoices}" SelectedItem="{Binding SelectedSummaryModel}"
+                                HorizontalAlignment="Stretch" />
+
+                      <TextBlock Text="{Binding RoleSummary}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
+                                 TextWrapping="Wrap" Margin="0 8 0 0" />
                     </StackPanel>
                   </Grid>
                 </Border>
 
-                <!-- Local LLM settings -->
-                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
-                        IsVisible="{Binding ShowLocal}">
+                <!-- When a model changes -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Local LLM (Ollama / LM Studio)" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="When a model changes" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
-                      <TextBlock Text="API Endpoint" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding LocalEndpoint}"
-                               Watermark="http://localhost:11434" />
-                      <TextBlock Text="Model Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <TextBox Text="{Binding LocalModel}"
-                               Watermark="llama3.1" />
-                      <TextBlock Text="Must expose an OpenAI-compatible /v1/chat/completions endpoint (Ollama, LM Studio, and most local runners do by default)."
-                                 FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Said for a role that says so (above) when its model stops answering and the fallback takes over, and again when its own model is back. {user} is your name from Personalisation, {purpose} is &quot;our conversation&quot; or &quot;data access&quot;, {primary} and {fallback} are the two models' names. Nothing is switched silently at start: if a role's own model is not there, the first message finds out, and says so." />
+                      <TextBlock Text="Falling over" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding ModelFailoverMessage}" TextWrapping="Wrap" />
+                      <TextBlock Text="Coming back" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding ModelReturnMessage}" TextWrapping="Wrap" />
+
+                      <Grid ColumnDefinitions="Auto,130,Auto" RowDefinitions="Auto,Auto" Margin="0 4 0 0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="At least" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding ModelSwitchGapMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="minutes between one change and the next switch back"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Up for" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 6 8 0" />
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding ModelPreferredUpMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" Margin="0 6 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="minutes without a break before a role's own model returns"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 6 0 0" />
+                      </Grid>
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="A model that stops answering is replaced at once, before a word of the answer — these only govern coming back, so a server that keeps dropping out cannot make the agent flip back and forth. A switch back waits for your next message, and for one real word from the returning model." />
                     </StackPanel>
                   </Grid>
                 </Border>
@@ -2004,162 +2138,288 @@
         <TabItem Header="Voice (TTS)">
           <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="12" Margin="0 0 8 0">
-                <!-- Voice (TTS) -->
+
+                <!-- The voices, in order of preference -->
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
                   <Grid RowDefinitions="Auto,Auto">
                     <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                      <TextBlock Text="Voice (TTS)" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                      <TextBlock Text="Voices" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                     </Border>
 
                     <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <CheckBox IsChecked="{Binding SpeechOn}" Content="Speak the agent's replies" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="In order of preference. The first voice that can speak is used; if it fails, the next takes over at once and, when the first is back and has stayed up, it returns. A voice can have a name of its own — the voice is part of who you are talking to — and while it speaks it is the agent's name, in the panel and in the conversation. A voice with no name goes by the agent's name from Personalisation." />
 
-                      <TextBlock Text="Provider" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                      <ComboBox ItemsSource="{Binding TtsProviders}"
-                                SelectedItem="{Binding TtsProvider}"
-                                HorizontalAlignment="Stretch" />
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 4 0 0">
+                        <ListBox Grid.Column="0" ItemsSource="{Binding Voices}" SelectedItem="{Binding SelectedVoice}"
+                                 MinHeight="70" MaxHeight="170"
+                                 Background="{DynamicResource SurfaceInputBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                          <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:VoiceProfileVm">
+                              <TextBlock Text="{Binding Label}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                          </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="8 0 0 0">
+                          <Button Content="Add" Command="{Binding AddVoiceCommand}" Padding="10 3" HorizontalAlignment="Stretch" />
+                          <Button Content="Remove" Command="{Binding RemoveVoiceCommand}" IsEnabled="{Binding HasSelectedVoice}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" />
+                          <Button Content="▲ Up" Command="{Binding MoveVoiceUpCommand}" IsEnabled="{Binding HasSelectedVoice}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" ToolTip.Tip="Prefer this voice over the one above it" />
+                          <Button Content="▼ Down" Command="{Binding MoveVoiceDownCommand}" IsEnabled="{Binding HasSelectedVoice}"
+                                  Padding="10 3" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                      </Grid>
+
+                      <!-- The selected voice -->
+                      <Border IsVisible="{Binding HasSelectedVoice}" Margin="0 6 0 0" Padding="10 8"
+                              BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3">
+                        <StackPanel Spacing="8" DataContext="{Binding SelectedVoice}" x:DataType="vm:VoiceProfileVm">
+                          <TextBlock Text="Name" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                          <TextBox Text="{Binding Name}" Watermark="{Binding NameWatermark}" />
+
+                          <TextBlock Text="Engine" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                          <ComboBox ItemsSource="{Binding EngineOptions}" SelectedItem="{Binding SelectedEngine}" HorizontalAlignment="Stretch" />
+
+                          <!-- Kokoro -->
+                          <StackPanel IsVisible="{Binding ShowKokoro}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Kokoro 82M runs fully offline on this PC. Its voices ship with the application; its model is downloaded once." />
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding KokoroVoiceLabels}" SelectedItem="{Binding SelectedKokoroVoiceLabel}"
+                                      HorizontalAlignment="Stretch" />
+
+                            <!-- The model: one for every Kokoro voice, shown with whichever is selected. -->
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                              <Button Content="Load Model" Command="{Binding Owner.DownloadKokoroModelCommand}"
+                                      IsEnabled="{Binding !Owner.IsDownloadingKokoroModel}" Padding="12 4" />
+                              <TextBlock Text="✔ Model loaded" FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                                         VerticalAlignment="Center" IsVisible="{Binding Owner.IsKokoroModelDownloaded}" />
+                            </StackPanel>
+                            <ProgressBar IsIndeterminate="True" Height="4" IsVisible="{Binding Owner.IsDownloadingKokoroModel}" />
+                            <TextBlock Text="{Binding Owner.KokoroModelStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                       IsVisible="{Binding Owner.KokoroModelStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="One model serves every Kokoro voice. It is downloaded once (~320 MB, only the neural network weights — no executable code) into this PC's data folder, where updates leave it alone." />
+                          </StackPanel>
+
+                          <!-- A server of our own -->
+                          <StackPanel IsVisible="{Binding ShowLocalServer}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Any server that speaks OpenAI's speech API — Kokoro-FastAPI, Chatterbox-TTS-Server (full or Turbo), Orpheus-FastAPI — usually on another machine's GPU. Free to use; if the server cannot speak, the next voice in the list takes over." />
+                            <TextBlock Text="Server address (up to and including /v1)" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerUrl}" Watermark="http://gpu-box:8880/v1" />
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerModel}" Watermark="as the server names it — kokoro, chatterbox, orpheus…" />
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerVoice}" Watermark="as the server names it — af_heart, tara…" />
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Chatterbox: a file from its voices folder, with .wav — Emily.wav (it ignores the model). Orpheus: tara, leah, jess, leo, dan, mia, zac or zoe (model orpheus). Kokoro-FastAPI: af_heart, bf_emma… (model kokoro)." />
+                            <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <Grid ColumnDefinitions="*,52">
+                              <Slider Grid.Column="0" Minimum="0.25" Maximum="4.0" Value="{Binding ServerSpeed}"
+                                      TickFrequency="0.25" IsSnapToTickEnabled="True" />
+                              <TextBlock Grid.Column="1" Text="{Binding ServerSpeed, StringFormat='{}{0:F2}x'}"
+                                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                         VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="API key (only if the server asks for one)" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding ServerApiKey}" PasswordChar="•" />
+                          </StackPanel>
+
+                          <!-- Piper -->
+                          <StackPanel IsVisible="{Binding ShowPiper}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="Piper is a fast offline engine. Its runtime ships with the application; only the voice model is downloaded." />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <TextBlock Text="Runtime:" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                              <TextBlock Text="✔ Bundled" FontSize="11" Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center"
+                                         IsVisible="{Binding IsPiperBinaryAvailable}" />
+                              <TextBlock Text="⚠ Not found in app directory" FontSize="11" Foreground="{DynamicResource WarnBrush}"
+                                         VerticalAlignment="Center" IsVisible="{Binding !IsPiperBinaryAvailable}" />
+                            </StackPanel>
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <ComboBox ItemsSource="{Binding PiperVoiceLabels}" SelectedItem="{Binding SelectedPiperVoiceLabel}"
+                                      HorizontalAlignment="Stretch" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                              <Button Content="Download Voice Model" Command="{Binding DownloadPiperVoiceCommand}"
+                                      IsEnabled="{Binding !IsDownloadingPiper}" Padding="12 4" />
+                              <TextBlock Text="✔ Voice ready" FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                                         VerticalAlignment="Center" IsVisible="{Binding IsPiperVoiceDownloaded}" />
+                            </StackPanel>
+                            <ProgressBar IsIndeterminate="{Binding IsDownloadingPiper}" Height="4" IsVisible="{Binding IsDownloadingPiper}" />
+                            <TextBlock Text="{Binding PiperDownloadStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                       IsVisible="{Binding PiperDownloadStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+
+                          <!-- OpenAI -->
+                          <StackPanel IsVisible="{Binding ShowOpenAi}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="OpenAI's voices, billed per character." />
+                            <TextBlock Text="OpenAI API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Owner.OpenAiApiKey}" Watermark="sk-…" PasswordChar="•" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="One key for every OpenAI voice, and for the Agent tab's OpenAI models and speech input." />
+                            <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
+                                             NavigateUri="https://platform.openai.com/api-keys"
+                                             FontSize="10" Padding="0" HorizontalAlignment="Left" />
+                            <!-- The model from OpenAI's own list; the voices it documents for that model. -->
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                            <Grid ColumnDefinitions="*,Auto">
+                              <ComboBox Grid.Column="0" IsVisible="{Binding OpenAiModelList.IsListed}"
+                                        ItemsSource="{Binding OpenAiModelList.Listings}" SelectedItem="{Binding OpenAiModelList.Selected}"
+                                        HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate x:DataType="agent:ModelListing">
+                                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                              <TextBox Grid.Column="0" IsVisible="{Binding !OpenAiModelList.IsListed}"
+                                       Text="{Binding OpenAiModel}" Watermark="as OpenAI names it" />
+                              <Button Grid.Column="1" Content="↺" Command="{Binding OpenAiModelList.RefreshCommand}"
+                                      Padding="8 4" Margin="6 0 0 0" VerticalAlignment="Stretch"
+                                      ToolTip.Tip="Ask OpenAI for its list of speech models again" />
+                            </Grid>
+                            <TextBlock Text="{Binding OpenAiModelList.Status}" IsVisible="{Binding OpenAiModelList.HasStatus}"
+                                       FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                            <ComboBox ItemsSource="{Binding OpenAiVoiceList.Listings}" SelectedItem="{Binding OpenAiVoiceList.Selected}"
+                                      HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                              <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="agent:ModelListing">
+                                  <TextBlock Text="{Binding Label}" />
+                                </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Text="{Binding OpenAiVoiceList.Status}" IsVisible="{Binding OpenAiVoiceList.HasStatus}"
+                                       FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                            <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <Grid ColumnDefinitions="*,52">
+                              <Slider Grid.Column="0" Minimum="0.25" Maximum="4.0" Value="{Binding OpenAiSpeed}"
+                                      TickFrequency="0.25" IsSnapToTickEnabled="True" />
+                              <TextBlock Grid.Column="1" Text="{Binding OpenAiSpeed, StringFormat='{}{0:F2}x'}"
+                                         FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                         VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                          </StackPanel>
+
+                          <!-- ElevenLabs -->
+                          <StackPanel IsVisible="{Binding ShowElevenLabs}" Spacing="8">
+                            <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
+                                       Text="ElevenLabs' voices, billed per character." />
+                            <TextBlock Text="ElevenLabs API key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                            <TextBox Text="{Binding Owner.ElevenLabsApiKey}" PasswordChar="•" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                       Text="One key for every ElevenLabs voice." />
+                            <HyperlinkButton Content="Get your ElevenLabs API key at elevenlabs.io"
+                                             NavigateUri="https://elevenlabs.io/app/settings/api-keys"
+                                             FontSize="10" Padding="0" HorizontalAlignment="Left" />
+                            <!-- The voice and the model, from the account's own lists. -->
+                            <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                            <Grid ColumnDefinitions="*,Auto">
+                              <ComboBox Grid.Column="0" IsVisible="{Binding ElevenLabsVoiceList.IsListed}"
+                                        ItemsSource="{Binding ElevenLabsVoiceList.Listings}" SelectedItem="{Binding ElevenLabsVoiceList.Selected}"
+                                        HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate x:DataType="agent:ModelListing">
+                                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                              <TextBox Grid.Column="0" IsVisible="{Binding !ElevenLabsVoiceList.IsListed}"
+                                       Text="{Binding ElevenLabsVoiceId}" Watermark="the voice's ID" />
+                              <Button Grid.Column="1" Content="↺" Command="{Binding ElevenLabsVoiceList.RefreshCommand}"
+                                      Padding="8 4" Margin="6 0 0 0" VerticalAlignment="Stretch"
+                                      ToolTip.Tip="Ask ElevenLabs for your voices again — after adding one there, say" />
+                            </Grid>
+                            <TextBlock Text="{Binding ElevenLabsVoiceList.Status}" IsVisible="{Binding ElevenLabsVoiceList.HasStatus}"
+                                       FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+
+                            <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                            <Grid ColumnDefinitions="*,Auto">
+                              <ComboBox Grid.Column="0" IsVisible="{Binding ElevenLabsModelList.IsListed}"
+                                        ItemsSource="{Binding ElevenLabsModelList.Listings}" SelectedItem="{Binding ElevenLabsModelList.Selected}"
+                                        HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate x:DataType="agent:ModelListing">
+                                    <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                              <TextBox Grid.Column="0" IsVisible="{Binding !ElevenLabsModelList.IsListed}"
+                                       Text="{Binding ElevenLabsModel}" Watermark="the model's ID" />
+                              <Button Grid.Column="1" Content="↺" Command="{Binding ElevenLabsModelList.RefreshCommand}"
+                                      Padding="8 4" Margin="6 0 0 0" VerticalAlignment="Stretch"
+                                      ToolTip.Tip="Ask ElevenLabs for its list of models again" />
+                            </Grid>
+                            <TextBlock Text="{Binding ElevenLabsModelList.Status}" IsVisible="{Binding ElevenLabsModelList.HasStatus}"
+                                       FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                          </StackPanel>
+
+                          <StackPanel Spacing="6" Margin="0 4 0 0">
+                            <StackPanel.Styles>
+                              <!-- Classes, not a local Foreground: a local value would beat these. -->
+                              <Style Selector="TextBlock.test">
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.spoke">
+                                <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+                              </Style>
+                              <Style Selector="TextBlock.test.failed">
+                                <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+                              </Style>
+                            </StackPanel.Styles>
+                            <Button Content="Test This Voice" Command="{Binding TestVoiceCommand}"
+                                    Padding="12 4" HorizontalAlignment="Left"
+                                    ToolTip.Tip="Speaks with this voice as set here, before saving — on its own, not through the list" />
+                            <TextBlock Classes="test" Classes.spoke="{Binding TestSpoke}" Classes.failed="{Binding TestFailed}"
+                                       Text="{Binding TestStatus}" IsVisible="{Binding HasTestStatus}"
+                                       FontSize="11" TextWrapping="Wrap" />
+                          </StackPanel>
+                        </StackPanel>
+                      </Border>
+
                       <TextBlock Text="{Binding TtsVolumeHelpText}"
                                  FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
 
-                      <!-- OpenAI TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowOpenAiTtsSettings}" Spacing="8">
-                        <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBlock Text="Shared with the OpenAI LLM provider setting above."
-                                   FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" />
-                        <TextBox Text="{Binding OpenAiApiKey}"
-                                 Watermark="sk-…" PasswordChar="•" />
-                        <HyperlinkButton Content="Get your OpenAI API key at platform.openai.com"
-                                         NavigateUri="https://platform.openai.com/api-keys"
-                                         FontSize="10"
-                                         Padding="0"
-                                         HorizontalAlignment="Left" />
-                        <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding OpenAiTtsVoices}"
-                                  SelectedItem="{Binding OpenAiTtsVoice}"
-                                  HorizontalAlignment="Stretch" />
-                        <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding OpenAiTtsModels}"
-                                  SelectedItem="{Binding OpenAiTtsModel}"
-                                  HorizontalAlignment="Stretch" />
-                        <TextBlock Text="Speed" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <Grid ColumnDefinitions="*,52">
-                          <Slider Grid.Column="0"
-                                  Minimum="0.25" Maximum="4.0"
-                                  Value="{Binding OpenAiTtsSpeed}"
-                                  TickFrequency="0.25" IsSnapToTickEnabled="True" />
-                          <TextBlock Grid.Column="1"
-                                     Text="{Binding OpenAiTtsSpeed, StringFormat='{}{0:F2}x'}"
-                                     FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                     VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        </Grid>
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
+                <!-- When the voice changes -->
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+                  <Grid RowDefinitions="Auto,Auto">
+                    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                      <TextBlock Text="When the voice changes" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                    </Border>
+                    <StackPanel Grid.Row="1" Margin="12 10" Spacing="8">
+                      <CheckBox IsChecked="{Binding AnnounceVoiceChanges}" Content="Announce it, in the new voice" />
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="Said by the voice taking over, and kept in the conversation so the agent knows who it is now. Only when the name changes — give each voice its own name for a change to be announced. Nothing is said when the app starts: you simply hear whoever is speaking. {previous} and {current} stand for the two names." />
+                      <TextBlock Text="Taking over" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding VoiceHandoverMessage}" TextWrapping="Wrap" />
+                      <TextBlock Text="Coming back" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+                      <TextBox Text="{Binding VoiceReturnMessage}" TextWrapping="Wrap" />
 
-                      <!-- ElevenLabs TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowElevenLabsTtsSettings}" Spacing="8">
-                        <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBox Text="{Binding ElevenLabsApiKey}"
-                                 Watermark="Your ElevenLabs API key" PasswordChar="•" />
-                        <HyperlinkButton Content="Get your ElevenLabs API key at elevenlabs.io"
-                                         NavigateUri="https://elevenlabs.io/app/settings/api-keys"
-                                         FontSize="10"
-                                         Padding="0"
-                                         HorizontalAlignment="Left" />
-                        <TextBlock Text="Voice ID" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBox Text="{Binding ElevenLabsVoiceId}"
-                                 Watermark="21m00Tcm4TlvDq8ikWAM (Rachel)" />
-                        <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Find voice IDs in your ElevenLabs account under My Voices or the Voice Library." />
-                        <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding ElevenLabsModels}"
-                                  SelectedItem="{Binding ElevenLabsModel}"
-                                  HorizontalAlignment="Stretch" />
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
-
-                      <!-- Kokoro local TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowKokoroTtsSettings}" Spacing="8">
-                        <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Kokoro 82M is a high-quality neural TTS model that runs fully offline. On first use, the ONNX model weight file (~320 MB) is downloaded and cached automatically — no executable code is downloaded, only the neural network weights. Voice embeddings are bundled with the application." />
-
-                        <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding KokoroVoiceLabels}"
-                                  SelectedItem="{Binding SelectedKokoroVoiceLabel}"
-                                  HorizontalAlignment="Stretch" />
-
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
-                          <Button Content="Load Model (downloads ~320 MB on first use)"
-                                  Command="{Binding DownloadKokoroModelCommand}"
-                                  IsEnabled="{Binding !IsDownloadingKokoroModel}"
-                                  Padding="12 4" />
-                          <TextBlock Text="✔ Model loaded" FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsKokoroModelDownloaded}" />
-                        </StackPanel>
-
-                        <ProgressBar IsIndeterminate="True"
-                                     Height="4"
-                                     IsVisible="{Binding IsDownloadingKokoroModel}" />
-                        <TextBlock Text="{Binding KokoroModelStatus}"
-                                   FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                   IsVisible="{Binding KokoroModelStatus,
-                                               Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                IsEnabled="{Binding IsKokoroModelDownloaded}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
-
-                      <!-- Piper local TTS settings -->
-                      <StackPanel IsVisible="{Binding ShowPiperTtsSettings}" Spacing="8">
-                        <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource BorderStrongBrush}"
-                                   Text="Piper is a fast offline neural TTS engine. The Piper runtime is bundled with the application — no executable downloads. Only the voice model (a data file) is downloaded on demand." />
-
-                        <!-- Binary status -->
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                          <TextBlock Text="Runtime:" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
-                          <TextBlock Text="✔ Bundled" FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsPiperBinaryAvailable}" />
-                          <TextBlock Text="⚠ Not found in app directory" FontSize="11" Foreground="{DynamicResource WarnBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding !IsPiperBinaryAvailable}" />
-                        </StackPanel>
-
-                        <TextBlock Text="Voice" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding PiperVoiceLabels}"
-                                  SelectedItem="{Binding SelectedPiperVoiceLabel}"
-                                  HorizontalAlignment="Stretch" />
-
-                        <!-- Piper voice download -->
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                          <Button Content="Download Voice Model"
-                                  Command="{Binding DownloadPiperVoiceCommand}"
-                                  IsEnabled="{Binding !IsDownloadingPiper}"
-                                  Padding="12 4" />
-                          <TextBlock Text="✔ Voice ready" FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                                     VerticalAlignment="Center"
-                                     IsVisible="{Binding IsPiperVoiceDownloaded}" />
-                        </StackPanel>
-
-                        <ProgressBar IsIndeterminate="{Binding IsDownloadingPiper}"
-                                     Height="4"
-                                     IsVisible="{Binding IsDownloadingPiper}" />
-                        <TextBlock Text="{Binding PiperDownloadStatus}"
-                                   FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
-                                   IsVisible="{Binding PiperDownloadStatus,
-                                               Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-
-                        <Button Content="Test Voice"
-                                Command="{Binding TestVoiceCommand}"
-                                IsEnabled="{Binding IsPiperVoiceDownloaded}"
-                                Padding="12 4" HorizontalAlignment="Left" />
-                      </StackPanel>
-
+                      <Grid ColumnDefinitions="Auto,130,Auto" RowDefinitions="Auto,Auto" Margin="0 4 0 0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="At least" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 0 8 0" />
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding VoiceSwitchGapMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="minutes between one change and the next switch back"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Up for" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   VerticalAlignment="Center" Margin="0 6 8 0" />
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding VoicePreferredUpMinutes}"
+                                       Minimum="0" Maximum="240" Increment="1" FormatString="0" Margin="0 6 0 0" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="minutes without a break before a preferred voice returns"
+                                   FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 6 0 0" />
+                      </Grid>
+                      <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
+                                 Text="A voice that fails is replaced at once — these only govern coming back, so a server that keeps dropping out cannot make the voice flip back and forth. A switch back waits for the end of the current answer." />
                     </StackPanel>
                   </Grid>
                 </Border>
@@ -2217,12 +2477,33 @@
                       <!-- OpenAI Whisper cloud -->
                       <StackPanel IsVisible="{Binding ShowCloudWhisperSettings}" Spacing="8">
                         <TextBlock Text="API Key" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <TextBlock Text="Shared with the OpenAI LLM provider setting above."
-                                   FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" />
+                        <TextBlock Text="The same OpenAI key as the Agent tab's OpenAI models and OpenAI's voices."
+                                   FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
                         <TextBox Text="{Binding OpenAiApiKey}"
                                  Watermark="sk-…" PasswordChar="•" />
+
+                        <!-- The model, from OpenAI's own list of transcription models. -->
+                        <TextBlock Text="Model" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 4 0 0" />
+                        <Grid ColumnDefinitions="*,Auto">
+                          <ComboBox Grid.Column="0" IsVisible="{Binding TranscriptionList.IsListed}"
+                                    ItemsSource="{Binding TranscriptionList.Listings}" SelectedItem="{Binding TranscriptionList.Selected}"
+                                    HorizontalAlignment="Stretch" MaxDropDownHeight="360">
+                            <ComboBox.ItemTemplate>
+                              <DataTemplate x:DataType="agent:ModelListing">
+                                <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                              </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                          </ComboBox>
+                          <TextBox Grid.Column="0" IsVisible="{Binding !TranscriptionList.IsListed}"
+                                   Text="{Binding TranscriptionModel}" Watermark="as OpenAI names it" />
+                          <Button Grid.Column="1" Content="↺" Command="{Binding TranscriptionList.RefreshCommand}"
+                                  Padding="8 4" Margin="6 0 0 0" VerticalAlignment="Stretch"
+                                  ToolTip.Tip="Ask OpenAI for its list of transcription models again" />
+                        </Grid>
+                        <TextBlock Text="{Binding TranscriptionList.Status}" IsVisible="{Binding TranscriptionList.HasStatus}"
+                                   FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap" />
                         <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
-                                   Text="Uses OpenAI Whisper API. Works on Windows and Linux." />
+                                   Text="Sent to OpenAI to be written down. Works on Windows and Linux." />
                       </StackPanel>
 
                       <!-- Local Whisper (Windows only) -->

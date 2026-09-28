@@ -58,6 +58,16 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
     private void OnOpenOrderLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ((sender as Control)?.DataContext as OrderRowVm)?.OpenLocation();
 
+    // The Assets tab's three links: where the stack is, who holds it, and the system.
+    private void OnOpenAssetLocation(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ItemAssetRowVm)?.OpenLocation();
+
+    private void OnOpenAssetOwner(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ItemAssetRowVm)?.OpenOwner();
+
+    private void OnOpenAssetSystem(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ((sender as Control)?.DataContext as ItemAssetRowVm)?.OpenSystem();
+
     private void OnDetailTabChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (sender is TabControl tc &&

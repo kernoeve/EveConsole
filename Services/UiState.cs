@@ -40,6 +40,18 @@ public static class UiState
     /// <summary>"0" once the user has ticked "don't ask again" on the external-link warning.</summary>
     public const string ConfirmExternalLinks  = "links.confirm_external";
 
+    // Industry Opportunities, as the screen was last left: the market priced at, the mode, the
+    // filters and the sort. The tab rebuilds its controls each time it is shown, so none of this
+    // can live in the controls.
+    public const string IndustryOppsPriceAt     = "industryopps.price_at";
+    public const string IndustryOppsMode        = "industryopps.mode";
+    public const string IndustryOppsMinIskVol   = "industryopps.min_isk_vol";
+    public const string IndustryOppsMinUnitVol  = "industryopps.min_unit_vol";
+    public const string IndustryOppsSkipFaction = "industryopps.skip_faction";
+    public const string IndustryOppsBpoOnly     = "industryopps.bpo_only";
+    /// <summary>The results sort as "PropertyPath:asc" or "PropertyPath:desc".</summary>
+    public const string IndustryOppsSort        = "industryopps.sort";
+
     /// <summary>
     /// This client's value for <paramref name="key"/>.
     ///

@@ -47,6 +47,11 @@ public class IndyBulkAddService(IDbContextFactory<AppDbContext> dbFactory)
     public static int TypeIdForKey(string key)
         => IndyTypes.Where(p => p.Value.Key == key).Select(p => p.Key).DefaultIfEmpty(0).Min();
 
+    /// <summary>The park's type key for a structure hull, or null for a hull the park has no key
+    /// for — a citadel, say, or an id nothing has resolved.</summary>
+    public static string? KeyForTypeId(int typeId)
+        => IndyTypes.TryGetValue(typeId, out var t) ? t.Key : null;
+
     /// <summary>Refineries are the moon-mining ones; the skip option applies only to these.</summary>
     private static readonly HashSet<string> RefineryKeys = ["athanor", "tatara"];
 

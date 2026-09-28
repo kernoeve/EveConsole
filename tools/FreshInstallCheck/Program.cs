@@ -30,6 +30,12 @@ using System.Text.RegularExpressions;
 //  is narrower than it may look.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ⚠️ SQLite, pinned, before anything reads the engine. Left to itself DbEngine reads the machine's
+// config.json, and on a developer machine set to PostgreSQL the SQLite database this builds was
+// fingerprinted with information_schema — "A fresh install would not start" on every run, from a
+// fault that is the machine's, not the build's. CI has no config.json, which is why it never saw it.
+EveConsole.Services.DbEngine.Pin(EveConsole.Services.DbBackend.Sqlite);
+
 var root = args.Length > 0 ? args[0] : FindRepoRoot();
 if (root is null)
 {
@@ -168,10 +174,58 @@ try
         }
     }
 
+    // ── Two indexes on the same columns ──────────────────────────────────────
+    //
+    // EF names a model index after its columns and the hand-written statements name theirs, and
+    // CREATE INDEX IF NOT EXISTS compares names, not columns. So a model index named differently
+    // from its hand-written twin gave every fresh install the index twice — 14 of them, on both
+    // engines, until 2026-09-27 — and nothing noticed, a duplicate index being no error at all.
+    // Every index statement is replayed for this, in either shape: the lone ExecuteSqlRaw calls
+    // above miss the ones written as array elements, and the telemetry, SDE and Hobo indexes
+    // live in files of their own.
+    foreach (var extra in new[] { "App.axaml.cs", "Data/AgentTelemetrySchema.cs", "Services/SdeImportService.cs", "Services/HoboImportService.cs" })
+        foreach (Match m in Regex.Matches(File.ReadAllText(Path.Combine(root, extra)),
+                     q3 + @"\s*((?:CREATE\s+(?:UNIQUE\s+)?|DROP\s+)INDEX\s.*?)" + q3, RegexOptions.Singleline))
+        {
+            using var cmd = cn.Command(m.Groups[1].Value.Trim());
+            try { cmd.ExecuteNonQuery(); } catch (SqliteException) { /* its table is not ours to judge here */ }
+        }
+
+    var byColumns = new Dictionary<string, List<string>>();
+    using (var q = cn.Command("""
+        SELECT m.name, il.name,
+               (SELECT group_concat(name, ', ') FROM (SELECT name FROM pragma_index_info(il.name) ORDER BY seqno))
+        FROM sqlite_master m, pragma_index_list(m.name) il
+        WHERE m.type = 'table' AND il.partial = 0
+        """))
+    using (var r = q.ExecuteReader())
+        while (r.Read())
+        {
+            var key = $"{r.GetString(0)} ({r.GetString(2)})";
+            if (!byColumns.TryGetValue(key, out var names)) byColumns[key] = names = [];
+            names.Add(r.GetString(1));
+        }
+    var duplicates = byColumns.Where(kv => kv.Value.Count > 1)
+        .Select(kv => $"  TWICE  {kv.Key}: {string.Join(", ", kv.Value.OrderBy(n => n, StringComparer.Ordinal))}")
+        .OrderBy(d => d, StringComparer.Ordinal).ToList();
+
     Console.WriteLine($"Fresh-install check: {ok} statement(s) ok, "
                     + $"{tolerated} tolerated inside try/catch, {failures.Count} problem(s).");
+    Console.WriteLine(duplicates.Count == 0
+        ? "Duplicate indexes: none."
+        : $"Duplicate indexes: {duplicates.Count} set(s) of indexes on the same columns.");
 
-    if (failures.Count == 0) return 0;
+    if (failures.Count == 0 && duplicates.Count == 0) return 0;
+
+    if (duplicates.Count > 0)
+    {
+        Console.WriteLine();
+        foreach (var d in duplicates) Console.WriteLine(d);
+        Console.WriteLine();
+        Console.WriteLine("A fresh install builds each index above more than once. Give the model's index the");
+        Console.WriteLine("hand-written name with HasDatabaseName, and drop EF's old name where it exists.");
+        if (failures.Count == 0) return 1;
+    }
 
     Console.WriteLine();
     foreach (var f in failures) Console.WriteLine(f);

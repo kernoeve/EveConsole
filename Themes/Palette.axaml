@@ -121,18 +121,19 @@
            of the dark theme: on light backgrounds depth reads as the raised thing
            being brighter. Keeping the dark theme's direction gives grey cards on
            a white page, which reads as disabled. ─────────────────────────────── -->
-      <!-- ⚠️ Toned down a step from the first attempt, which ran from #eceaf0 to pure white and
-           read as glare rather than as paper. Nothing here is #ffffff any more: the brightest
-           surface is the one thing raised above everything else, and it has more effect at f6
-           against a warmer ground than at ff against a cold one. -->
-      <Color x:Key="SurfaceBase">#e2e0e8</Color>
-      <Color x:Key="SurfacePanel">#eeecf2</Color>
-      <Color x:Key="SurfacePanelAlt">#e8e6ee</Color>
-      <Color x:Key="SurfaceHeader">#d8d5e0</Color>
-      <Color x:Key="SurfaceRaised">#f6f5f8</Color>
-      <Color x:Key="SurfaceInput">#f8f7fa</Color>
-      <Color x:Key="SurfaceHover">#dcd9e6</Color>
-      <Color x:Key="SurfaceSelected">#d8dcf0</Color>
+      <!-- ⚠️ Toned down twice now. The first attempt ran from #eceaf0 to pure white and read as
+           glare rather than as paper; the second still did, on a long session, and every surface
+           and line came down one more even step (0x12 a channel), faint and dim text with them so
+           hints keep their contrast. The brightest surface is the one raised above everything
+           else, and it has more effect a step down against a warmer ground than at white. -->
+      <Color x:Key="SurfaceBase">#d0ced6</Color>
+      <Color x:Key="SurfacePanel">#dcdae0</Color>
+      <Color x:Key="SurfacePanelAlt">#d6d4dc</Color>
+      <Color x:Key="SurfaceHeader">#c6c3ce</Color>
+      <Color x:Key="SurfaceRaised">#e4e3e6</Color>
+      <Color x:Key="SurfaceInput">#e6e5e8</Color>
+      <Color x:Key="SurfaceHover">#cac7d4</Color>
+      <Color x:Key="SurfaceSelected">#c6cade</Color>
       <!-- Washes that tell one run of columns from the next in a grid: a hue each, faint
            enough for the row banding, hover and selection beneath to show through. -->
       <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
@@ -140,15 +141,15 @@
       <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
       <!-- ── Lines ───────────────────────────────────────────────────────── -->
-      <Color x:Key="BorderSubtle">#dedce6</Color>
-      <Color x:Key="BorderDefault">#c6c3d2</Color>
-      <Color x:Key="BorderStrong">#a8a4b8</Color>
+      <Color x:Key="BorderSubtle">#cccad4</Color>
+      <Color x:Key="BorderDefault">#b4b1c0</Color>
+      <Color x:Key="BorderStrong">#9692a6</Color>
 
       <!-- ── Text. ⚠️ Nothing reaches #000: full black on off-white is a harsher
            edge than any of this needs, and the brightest step is where the dark
            theme's brightest step is — at headings. ────────────────────────── -->
-      <Color x:Key="TextFaint">#8a8698</Color>
-      <Color x:Key="TextDim">#757182</Color>
+      <Color x:Key="TextFaint">#7a7688</Color>
+      <Color x:Key="TextDim">#656172</Color>
       <Color x:Key="TextMuted">#5d596a</Color>
       <Color x:Key="TextSecondary">#454152</Color>
       <Color x:Key="TextPrimary">#2e2a3a</Color>
@@ -160,7 +161,7 @@
       <Color x:Key="Accent">#8a6a12</Color>
       <Color x:Key="AccentHover">#a8842a</Color>
       <Color x:Key="AccentPressed">#6d520a</Color>
-      <Color x:Key="AccentSurface">#f6ecd0</Color>
+      <Color x:Key="AccentSurface">#e4dabe</Color>
       <Color x:Key="AccentDeep">#503c06</Color>
       <Color x:Key="AccentPale">#c9a94e</Color>
 
@@ -178,14 +179,14 @@
       <Color x:Key="Bad">#b03030</Color>
       <Color x:Key="Warn">#a86410</Color>
       <Color x:Key="Info">#1f6f88</Color>
-      <Color x:Key="GoodSurface">#dff0e6</Color>
-      <Color x:Key="BadSurface">#fadedd</Color>
-      <Color x:Key="WarnSurface">#faecd4</Color>
-      <Color x:Key="InfoSurface">#dcecf2</Color>
+      <Color x:Key="GoodSurface">#cfe0d6</Color>
+      <Color x:Key="BadSurface">#eacecd</Color>
+      <Color x:Key="WarnSurface">#eadcc4</Color>
+      <Color x:Key="InfoSurface">#ccdce2</Color>
 
       <!-- The same two, pale. A plate on a light map hides the starfield the other way up. -->
-      <Color x:Key="SurfaceOverlay">#e0eeecf2</Color>
-      <Color x:Key="SurfaceOverlayStrong">#f2f6f5f8</Color>
+      <Color x:Key="SurfaceOverlay">#e0dcdae0</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f2e4e3e6</Color>
     </ResourceDictionary>
 
 
@@ -230,30 +231,32 @@
       <Color x:Key="SystemAccentColorLight2">#a8d8ee</Color>
       <Color x:Key="SystemAccentColorLight3">#a8d8ee</Color>
       <Color x:Key="SurfaceOverlay">#cc192434</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f0141c28</Color>
     </ResourceDictionary>
 
     <!-- ═══ BLUELIGHT — pale sky, a deep marine accent.
          Inherits Light: every colour that carries MEANING comes from there, so a
          chart line, a status word and a row tint read exactly as they do on Light. -->
     <ResourceDictionary x:Key="{x:Static svc:AppThemes.BlueLight}">
-      <Color x:Key="SurfaceBase">#dfe6ee</Color>
-      <Color x:Key="SurfacePanel">#f0f4f9</Color>
-      <Color x:Key="SurfacePanelAlt">#e8eef5</Color>
-      <Color x:Key="SurfaceHeader">#d2dce8</Color>
-      <Color x:Key="SurfaceRaised">#f8fafd</Color>
-      <Color x:Key="SurfaceInput">#ffffff</Color>
-      <Color x:Key="SurfaceHover">#d6e2ef</Color>
-      <Color x:Key="SurfaceSelected">#c6d8ee</Color>
+      <!-- One step darker, with Light; the input no longer pure white. -->
+      <Color x:Key="SurfaceBase">#cdd4dc</Color>
+      <Color x:Key="SurfacePanel">#dee2e7</Color>
+      <Color x:Key="SurfacePanelAlt">#d6dce3</Color>
+      <Color x:Key="SurfaceHeader">#c0cad6</Color>
+      <Color x:Key="SurfaceRaised">#e6e8eb</Color>
+      <Color x:Key="SurfaceInput">#e8eaed</Color>
+      <Color x:Key="SurfaceHover">#c4d0dd</Color>
+      <Color x:Key="SurfaceSelected">#b4c6dc</Color>
       <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
       <Color x:Key="ColumnGroupB">#2ced7d31</Color>
       <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
-      <Color x:Key="BorderSubtle">#d2dce6</Color>
-      <Color x:Key="BorderDefault">#b8c8d8</Color>
-      <Color x:Key="BorderStrong">#97abc0</Color>
+      <Color x:Key="BorderSubtle">#c0cad4</Color>
+      <Color x:Key="BorderDefault">#a6b6c6</Color>
+      <Color x:Key="BorderStrong">#8599ae</Color>
 
-      <Color x:Key="TextFaint">#7d8fa2</Color>
-      <Color x:Key="TextDim">#68798c</Color>
+      <Color x:Key="TextFaint">#6d7f92</Color>
+      <Color x:Key="TextDim">#58697c</Color>
       <Color x:Key="TextMuted">#4f6072</Color>
       <Color x:Key="TextSecondary">#3a4959</Color>
       <Color x:Key="TextPrimary">#26333f</Color>
@@ -262,7 +265,7 @@
       <Color x:Key="Accent">#1f5f8a</Color>
       <Color x:Key="AccentHover">#2b7aad</Color>
       <Color x:Key="AccentPressed">#164a6c</Color>
-      <Color x:Key="AccentSurface">#dceaf4</Color>
+      <Color x:Key="AccentSurface">#cad8e2</Color>
       <Color x:Key="AccentDeep">#123a54</Color>
       <Color x:Key="AccentPale">#9cc6e0</Color>
       <Color x:Key="SystemAccentColor">#1f5f8a</Color>
@@ -272,7 +275,8 @@
       <Color x:Key="SystemAccentColorLight1">#2b7aad</Color>
       <Color x:Key="SystemAccentColorLight2">#9cc6e0</Color>
       <Color x:Key="SystemAccentColorLight3">#9cc6e0</Color>
-      <Color x:Key="SurfaceOverlay">#ccf0f4f9</Color>
+      <Color x:Key="SurfaceOverlay">#ccdee2e7</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f2e6e8eb</Color>
     </ResourceDictionary>
 
     <!-- ═══ PINKDARK — plum and rose.
@@ -316,30 +320,32 @@
       <Color x:Key="SystemAccentColorLight2">#f4c0d2</Color>
       <Color x:Key="SystemAccentColorLight3">#f4c0d2</Color>
       <Color x:Key="SurfaceOverlay">#cc271c2c</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f01f1722</Color>
     </ResourceDictionary>
 
     <!-- ═══ PINKLIGHT — blush, a deep rose accent.
          Inherits Light: every colour that carries MEANING comes from there, so a
          chart line, a status word and a row tint read exactly as they do on Light. -->
     <ResourceDictionary x:Key="{x:Static svc:AppThemes.PinkLight}">
-      <Color x:Key="SurfaceBase">#eee4e9</Color>
-      <Color x:Key="SurfacePanel">#faf5f8</Color>
-      <Color x:Key="SurfacePanelAlt">#f4ecf1</Color>
-      <Color x:Key="SurfaceHeader">#e2d4dc</Color>
-      <Color x:Key="SurfaceRaised">#fdfafc</Color>
-      <Color x:Key="SurfaceInput">#ffffff</Color>
-      <Color x:Key="SurfaceHover">#ecdde5</Color>
-      <Color x:Key="SurfaceSelected">#edd6e2</Color>
+      <!-- One step darker, with Light; the input no longer pure white. -->
+      <Color x:Key="SurfaceBase">#dcd2d7</Color>
+      <Color x:Key="SurfacePanel">#e8e3e6</Color>
+      <Color x:Key="SurfacePanelAlt">#e2dadf</Color>
+      <Color x:Key="SurfaceHeader">#d0c2ca</Color>
+      <Color x:Key="SurfaceRaised">#ebe8ea</Color>
+      <Color x:Key="SurfaceInput">#edeaec</Color>
+      <Color x:Key="SurfaceHover">#dacbd3</Color>
+      <Color x:Key="SurfaceSelected">#dbc4d0</Color>
       <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
       <Color x:Key="ColumnGroupB">#2ced7d31</Color>
       <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
-      <Color x:Key="BorderSubtle">#e6d8e0</Color>
-      <Color x:Key="BorderDefault">#d0bcc8</Color>
-      <Color x:Key="BorderStrong">#b49caa</Color>
+      <Color x:Key="BorderSubtle">#d4c6ce</Color>
+      <Color x:Key="BorderDefault">#beaab6</Color>
+      <Color x:Key="BorderStrong">#a28a98</Color>
 
-      <Color x:Key="TextFaint">#9a8a92</Color>
-      <Color x:Key="TextDim">#85737d</Color>
+      <Color x:Key="TextFaint">#8a7a82</Color>
+      <Color x:Key="TextDim">#75636d</Color>
       <Color x:Key="TextMuted">#6b5a64</Color>
       <Color x:Key="TextSecondary">#52434c</Color>
       <Color x:Key="TextPrimary">#3a2d35</Color>
@@ -348,7 +354,7 @@
       <Color x:Key="Accent">#a03a5e</Color>
       <Color x:Key="AccentHover">#bc5077</Color>
       <Color x:Key="AccentPressed">#7e2846</Color>
-      <Color x:Key="AccentSurface">#f8e6ee</Color>
+      <Color x:Key="AccentSurface">#e6d4dc</Color>
       <Color x:Key="AccentDeep">#641c34</Color>
       <Color x:Key="AccentPale">#d894ac</Color>
       <Color x:Key="SystemAccentColor">#a03a5e</Color>
@@ -358,7 +364,8 @@
       <Color x:Key="SystemAccentColorLight1">#bc5077</Color>
       <Color x:Key="SystemAccentColorLight2">#d894ac</Color>
       <Color x:Key="SystemAccentColorLight3">#d894ac</Color>
-      <Color x:Key="SurfaceOverlay">#ccfaf5f8</Color>
+      <Color x:Key="SurfaceOverlay">#cce8e3e6</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f2ebe8ea</Color>
     </ResourceDictionary>
 
     <!-- ═══ BEIGEDARK — warm stone, a tan highlight.
@@ -402,30 +409,32 @@
       <Color x:Key="SystemAccentColorLight2">#ecd8b4</Color>
       <Color x:Key="SystemAccentColorLight3">#ecd8b4</Color>
       <Color x:Key="SurfaceOverlay">#cc29241e</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f0201c18</Color>
     </ResourceDictionary>
 
     <!-- ═══ BEIGELIGHT — cream and ink.
          Inherits Light: every colour that carries MEANING comes from there, so a
          chart line, a status word and a row tint read exactly as they do on Light. -->
     <ResourceDictionary x:Key="{x:Static svc:AppThemes.BeigeLight}">
-      <Color x:Key="SurfaceBase">#eae3d7</Color>
-      <Color x:Key="SurfacePanel">#f7f3ec</Color>
-      <Color x:Key="SurfacePanelAlt">#f1ece2</Color>
-      <Color x:Key="SurfaceHeader">#ded5c6</Color>
-      <Color x:Key="SurfaceRaised">#fdfbf7</Color>
-      <Color x:Key="SurfaceInput">#ffffff</Color>
-      <Color x:Key="SurfaceHover">#e6ded0</Color>
-      <Color x:Key="SurfaceSelected">#e2dcc8</Color>
+      <!-- One step darker, with Light; the input no longer pure white. -->
+      <Color x:Key="SurfaceBase">#d8d1c5</Color>
+      <Color x:Key="SurfacePanel">#e5e1da</Color>
+      <Color x:Key="SurfacePanelAlt">#dfdad0</Color>
+      <Color x:Key="SurfaceHeader">#ccc3b4</Color>
+      <Color x:Key="SurfaceRaised">#ebe9e5</Color>
+      <Color x:Key="SurfaceInput">#edebe7</Color>
+      <Color x:Key="SurfaceHover">#d4ccbe</Color>
+      <Color x:Key="SurfaceSelected">#d0cab6</Color>
       <Color x:Key="ColumnGroupA">#2c5b9bd5</Color>
       <Color x:Key="ColumnGroupB">#2ced7d31</Color>
       <Color x:Key="ColumnGroupC">#2c1abc9c</Color>
 
-      <Color x:Key="BorderSubtle">#e0d8c9</Color>
-      <Color x:Key="BorderDefault">#c8bda9</Color>
-      <Color x:Key="BorderStrong">#ab9e88</Color>
+      <Color x:Key="BorderSubtle">#cec6b7</Color>
+      <Color x:Key="BorderDefault">#b6ab97</Color>
+      <Color x:Key="BorderStrong">#998c76</Color>
 
-      <Color x:Key="TextFaint">#948a79</Color>
-      <Color x:Key="TextDim">#7d7466</Color>
+      <Color x:Key="TextFaint">#847a69</Color>
+      <Color x:Key="TextDim">#6d6456</Color>
       <Color x:Key="TextMuted">#635b50</Color>
       <Color x:Key="TextSecondary">#4c453c</Color>
       <Color x:Key="TextPrimary">#35302a</Color>
@@ -434,7 +443,7 @@
       <Color x:Key="Accent">#8a6a3a</Color>
       <Color x:Key="AccentHover">#a8834c</Color>
       <Color x:Key="AccentPressed">#6a5028</Color>
-      <Color x:Key="AccentSurface">#f4e9d6</Color>
+      <Color x:Key="AccentSurface">#e2d7c4</Color>
       <Color x:Key="AccentDeep">#4c3818</Color>
       <Color x:Key="AccentPale">#cfae7c</Color>
       <Color x:Key="SystemAccentColor">#8a6a3a</Color>
@@ -444,7 +453,8 @@
       <Color x:Key="SystemAccentColorLight1">#a8834c</Color>
       <Color x:Key="SystemAccentColorLight2">#cfae7c</Color>
       <Color x:Key="SystemAccentColorLight3">#cfae7c</Color>
-      <Color x:Key="SurfaceOverlay">#ccf7f3ec</Color>
+      <Color x:Key="SurfaceOverlay">#cce5e1da</Color>
+      <Color x:Key="SurfaceOverlayStrong">#f2ebe9e5</Color>
     </ResourceDictionary>
 
   </ResourceDictionary.ThemeDictionaries>
@@ -494,5 +504,15 @@
   <SolidColorBrush x:Key="InfoSurfaceBrush"      Color="{DynamicResource InfoSurface}" />
   <SolidColorBrush x:Key="SurfaceOverlayBrush"       Color="{DynamicResource SurfaceOverlay}" />
   <SolidColorBrush x:Key="SurfaceOverlayStrongBrush" Color="{DynamicResource SurfaceOverlayStrong}" />
+
+  <!-- ═══ Fluent's tooltip, dressed from the palette ═══════════════════════════
+       ⚠️ Left alone, Fluent's tooltip knows two colours: its own #2b2b2b under a dark
+       variant and #f2f2f2 under a light one, with a black edge either way — so every
+       tint showed its parent's neutral grey. These are the keys its ControlTheme reads
+       (checked at runtime against Fluent 11.2.3), taken here, above the theme, so a
+       tooltip is the raised popup surface of whichever theme is on. -->
+  <SolidColorBrush x:Key="ToolTipBackground"  Color="{DynamicResource SurfaceRaised}" />
+  <SolidColorBrush x:Key="ToolTipForeground"  Color="{DynamicResource TextPrimary}" />
+  <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{DynamicResource BorderStrong}" />
 
 </ResourceDictionary>

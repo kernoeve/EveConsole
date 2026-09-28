@@ -40,7 +40,10 @@ public static class DatabaseIntegrityService
             if (!File.Exists(dbPath)) return true;
             if (new FileInfo(dbPath).Length == 0) return true;
 
-            using var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly");
+            // ⚠️ Pooling off. A pooled connection is kept open after Dispose, so the file stays
+            // held for the life of the process — which blocks the shrink and the move this check
+            // runs just before, and leaves a handle on a database the app may not even be using.
+            using var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly;Pooling=False");
             conn.Open();
 
             using var cmd = conn.CreateCommand();

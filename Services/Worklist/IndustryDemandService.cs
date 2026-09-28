@@ -717,8 +717,14 @@ public class IndustryDemandService(
         //
         // Still "pending" as an order, correctly: it is not settled until the contract is taken.
         // Pending is about the customer; this is about the shelf.
-        var orders = await db.TrackedOrders.AsNoTracking()
-            .Where(o => o.Status == "pending" && o.LinkedContractId == null).ToListAsync(ct);
+        //
+        // ⚠️ By the unit, not the order. An order for two with one hull on a contract still
+        // wants the other built, and skipping every order with a contract dropped it from the
+        // plan; what is delivered or made out is taken off, and the rest is demand.
+        var orders = (await db.TrackedOrders.AsNoTracking()
+                .Where(o => o.Status == "pending").ToListAsync(ct))
+            .Where(o => OrderContractLinks.StillToSupply(o) > 0)
+            .ToList();
         if (orders.Count == 0) return [];
 
         // Each order's place in the queue, so the work it drives can be ranked against the work
@@ -759,7 +765,7 @@ public class IndustryDemandService(
         return orders.GroupBy(o => o.TypeId).OrderBy(g => g.Key)
             .Select(g =>
             {
-                var units = g.Sum(o => (long)o.Units);
+                var units = g.Sum(o => (long)OrderContractLinks.StillToSupply(o));
                 return (g.Key, units,
                         Math.Max(0, units - onHand.GetValueOrDefault(g.Key)
                                           - inBuild.GetValueOrDefault(g.Key)

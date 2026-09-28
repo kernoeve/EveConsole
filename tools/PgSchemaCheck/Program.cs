@@ -74,7 +74,12 @@ if (root is null)
     return failures == 0 ? 0 : 1;
 }
 
-var appSource = File.ReadAllText(Path.Combine(root, "App.axaml.cs"));
+// ⚠️ Every file that builds SQLite schema, not App.axaml.cs alone — the same list UpgradeCheck
+// replays. The agent telemetry tables and the SDE import make their own indexes, and reading only
+// the bootstrap reported seven of them as missing for SQLite while both engines had them.
+var appSource = string.Concat(
+    new[] { "App.axaml.cs", "Services/SdeImportService.cs", "Data/AgentTelemetrySchema.cs", "Services/HoboImportService.cs" }
+        .Select(f => File.ReadAllText(Path.Combine(root, f))));
 
 // Matches the statements wherever they sit: some are their own ExecuteSqlRaw call, others are
 // elements of a `foreach (var sql in new[] { … })`.

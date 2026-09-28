@@ -82,11 +82,15 @@ public sealed class ClaudeProvider : IAgentProvider
     private readonly string _apiKey;
     private readonly string _model;
 
-    public string ProviderName => "Claude (Anthropic)";
-    public bool   IsConfigured => !string.IsNullOrWhiteSpace(_apiKey);
+    /// <summary>What usage is recorded and priced under — see ServiceRate.</summary>
+    public const string ServiceName = "Claude (Anthropic)";
 
+    public string ProviderName => ServiceName;
+    public bool   IsConfigured => !string.IsNullOrWhiteSpace(_apiKey) && !string.IsNullOrWhiteSpace(_model);
+
+    /// <param name="model">As Anthropic's model list names it. No default: see ModelListing.</param>
     /// <param name="cacheTtl">"5m" or "1h"; anything else is the default.</param>
-    public ClaudeProvider(string apiKey, string model = "claude-sonnet-4-6", string cacheTtl = "5m")
+    public ClaudeProvider(string apiKey, string model, string cacheTtl = "5m")
     {
         _apiKey    = apiKey;
         _model     = model;
@@ -192,7 +196,16 @@ public sealed class ClaudeProvider : IAgentProvider
         using var request  = BuildRequest(systemPrompt, volatileContext, rawMessages, toolMap);
         using var response = await _http.SendAsync(
             request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            // The service's own words — "overloaded", "invalid x-api-key", a model name it does not
+            // know — and the status with them, so a role can tell a service that is down from a
+            // request it refused. EnsureSuccessStatusCode kept the status and threw the words away.
+            var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            throw new HttpRequestException(
+                $"Claude returned {(int)response.StatusCode}: {(body.Length > 400 ? body[..400] + "…" : body)}",
+                null, response.StatusCode);
+        }
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
         using  var reader      = new StreamReader(stream);
@@ -292,6 +305,21 @@ public sealed class ClaudeProvider : IAgentProvider
                     if (root.TryGetProperty("usage", out var u))
                         outTok = ReadLong(u, "output_tokens");
                     break;
+                }
+
+                // ⚠️ An error part-way through a stream that began well — "overloaded" most often.
+                // Unhandled, it ended the stream quietly and the turn read as an answer that
+                // stopped, with nothing to say why and nothing for a fallback model to act on.
+                case "error":
+                {
+                    var err     = root.TryGetProperty("error", out var e) ? e : root;
+                    var kind    = err.TryGetProperty("type",    out var k) ? k.GetString() ?? "" : "";
+                    var message = err.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
+                    throw new HttpRequestException($"Claude stream error: {kind} — {message}", null,
+                        kind == "overloaded_error" ? (System.Net.HttpStatusCode)529
+                        : kind == "rate_limit_error" ? System.Net.HttpStatusCode.TooManyRequests
+                        : kind is "invalid_request_error" ? System.Net.HttpStatusCode.BadRequest
+                        : System.Net.HttpStatusCode.InternalServerError);
                 }
             }
         }
@@ -516,6 +544,86 @@ public sealed class ClaudeProvider : IAgentProvider
         request.Headers.Add("anthropic-version", AnthropicVersion);
         request.Headers.Add("Accept",            "text/event-stream");
         return request;
+    }
+
+    /// <summary>
+    /// Anthropic's model list, which costs nothing and answers only to a key it accepts: the
+    /// service is up and will take the key. Whether it will take the next request — overloaded,
+    /// out of credit — is found out by sending it.
+    /// </summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
+    {
+        if (!IsConfigured) return false;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(10));
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/v1/models?limit=1");
+            request.Headers.Add("x-api-key",         _apiKey);
+            request.Headers.Add("anthropic-version", AnthropicVersion);
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
+                                            .ConfigureAwait(false);
+            return response.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }
+        catch (HttpRequestException) { return false; }
+    }
+
+    /// <summary>
+    /// The models this key can use, newest first, as Anthropic lists them (GET /v1/models) — the
+    /// settings tab's choice, so no model's name is written into the app to go stale. Free to
+    /// call. Throws with the service's own words when it refuses: a key it does not accept, say.
+    /// </summary>
+    public static async Task<IReadOnlyList<ModelListing>> ListModelsAsync(string apiKey, CancellationToken ct = default)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+
+        var models = new List<ModelListing>();
+        string? after = null;
+        do
+        {
+            var url = "https://api.anthropic.com/v1/models?limit=1000" + (after is null ? "" : "&after_id=" + Uri.EscapeDataString(after));
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-api-key",         apiKey);
+            request.Headers.Add("anthropic-version", AnthropicVersion);
+            using var response = await _http.SendAsync(request, timeout.Token).ConfigureAwait(false);
+            var body = await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException(
+                    $"Anthropic answered {(int)response.StatusCode}: {ErrorMessage(body)}", null, response.StatusCode);
+
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+                foreach (var m in data.EnumerateArray())
+                {
+                    if (!m.TryGetProperty("id", out var id) || id.GetString() is not { Length: > 0 } modelId) continue;
+                    var name = m.TryGetProperty("display_name", out var d) && d.GetString() is { Length: > 0 } shown ? shown : modelId;
+                    models.Add(new ModelListing(modelId, name));
+                }
+
+            after = root.TryGetProperty("has_more", out var more) && more.ValueKind == JsonValueKind.True
+                    && root.TryGetProperty("last_id", out var last) && last.GetString() is { Length: > 0 } lastId
+                ? lastId : null;
+        }
+        while (after is not null && models.Count < 5000);
+
+        return models;
+    }
+
+    /// <summary>The message in an error answer — {"error": {"message": "…"}} — or the answer itself.</summary>
+    private static string ErrorMessage(string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("error", out var e) && e.ValueKind == JsonValueKind.Object
+                && e.TryGetProperty("message", out var m) && m.GetString() is { Length: > 0 } message)
+                return message;
+        }
+        catch (JsonException) { }
+        return body.Length > 200 ? body[..200] + "…" : body;
     }
 
     /// <summary>

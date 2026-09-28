@@ -11,446 +11,507 @@ public static class AppKnowledge
     public const string Guide = """
         # EVE Console — Tool Reference
 
-        EVE Console is a locally-run capsuleer companion for EVE Online. All data lives
-        in a local SQLite database and is kept current by background ESI polling. The
-        left sidebar opens tools as tabs, grouped into: General, Assets,
-        Structures / Navigation, Industry, Market / Trade, Finance, Corp / Interactions,
-        Communication, and Data / Logs. The gear icon (top-right) opens Settings.
-
-        When the capsuleer asks what a tool is for or how to use it, answer from the
-        knowledge below — do NOT just screenshot and describe what is on screen. Use
-        capture_tab only when you need to read specific current on-screen values that
-        you cannot get from the database tools.
+        EVE Console's data lives in a local database (SQLite, or a shared PostgreSQL server) kept
+        current by background ESI polling. The left sidebar opens tools as tabs, grouped into
+        General, Assets, Structures / Navigation, Industry, Market / Trade, Finance, Corp /
+        Interactions, Communication and Data / Logs; the gear icon (top-right) opens Settings.
+        Quoted names are the exact labels of buttons, columns and menu items, right-click menus
+        included — cite them when the capsuleer asks how to do something.
 
         ## How data flows (under the hood)
-        - Background ESI polling refreshes assets, wallet, industry, market orders,
-          skills, etc. on their own timers. Data is current; never suggest refreshing
-          unless explicitly asked.
-        - Market price definitions: the user defines named "price sources" (a region or
-          a player structure market). As orders refresh, EVE Console computes and stores
-          a price per item, with optional filtering of lowball/highball anomaly orders,
-          and can base prices on a % over build cost — useful for capitals/supers/titans.
-        - Build costs: the app calculates and stores the manufacturing cost of every
-          craftable item, updating as market prices move. These feed the industry and
-          valuation tools.
-        - Automatic database backups run on a schedule (configurable in Settings).
-
-        ## Character tools
+        - Build costs: the manufacturing cost of every craftable item, stored and updated as
+          prices move; they feed the industry and valuation tools.
 
         ### Overview
-        The landing dashboard. Shows an activity summary across your ESI-authenticated
-        characters and personal corporations: income/expense breakdown charts (market
-        sales, bounties, contracts, taxes, fees), an EVE Online news feed, and an
-        Alerts panel. Alerts are configurable (Settings > Alerts) and each is a
-        clickable link that jumps to the relevant tool: skill queue empty/paused/ending
-        soon (opens that character's Skills), items moved to Asset Safety, and standing
-        projects that are not currently active (opens Corp Activity > Standing Projects).
+        The landing dashboard. An activity summary across your authenticated characters and
+        personal corporations — income/expense charts (market sales, bounties, contracts, taxes,
+        fees) — an EVE Online news feed, and an Alerts panel (set in Settings > Alerts). Each
+        alert is a link to its tool: skill queue empty, paused or ending soon (that character's
+        Skills), items moved to Asset Safety, a standing project no longer active (Corp Activity
+        > Standing Projects).
+
+        ### Worklist
+        A to-do list across your characters and personal corps, rebuilt on each refresh: buying,
+        hauling, building and more, with blocked and snoozed tasks behind toggles. Tabs:
+        Worklist, Station Needs and Item Needs (the work by place and by item), Bottlenecks, Final
+        Products, and Config, which switches each source on or off: industry jobs, invention and
+        copying, material purchases, logistics, refining, standing buy orders, inventory levels,
+        standing projects, skill queues, asset safety and Order Tracker customer orders.
 
         ### Characters (Character Viewer)
-        Deep per-character viewer; pick a character from the dropdown. Tabs: Skills
-        (skill groups and levels, plus the training queue showing each skill's remaining
-        train time and the total time to finish the queue — skill names are clickable
-        links into the Item Browser), Attributes (with neural remap info), Clones (jump
-        clones and implants), Medals, Titles, and Standings. Use this when a character
-        is not logged into the game client.
-
-        ## Assets tools
+        Deep per-character viewer; pick a character from the dropdown. Tabs: Skills (groups and
+        levels, and the training queue with each skill's remaining time and the queue's total;
+        skill names open the Item Browser), Attributes (with neural remap info), Clones (jump
+        clones and implants), Medals, Titles and Standings. Useful when a character is not
+        logged into the game client.
 
         ### Assets (Asset Browser)
-        The asset list, with a Scope dropdown above the filters: "Characters and personal
-        corps" (the default, remembered per machine) or "Everything", which also shows
-        corporations not marked personal. Every filter, set_asset_filter included, searches
-        within that scope. Search and filter by item name, location, and owner. Use
-        set_asset_filter to apply filters programmatically.
+        The asset list, with a Scope dropdown above the filters: "Characters and personal corps"
+        (the default, remembered per machine) or "Everything", which adds corporations not marked
+        personal. Every filter, set_asset_filter included, searches within that scope; search and
+        filter by item name, location and owner.
 
-        How asset locations nest (important when answering "where is X?"): every asset
-        sits in a location that is either a station, a solar system, a player-owned
-        structure, or ANOTHER item — a container. "Container" means anything that holds
-        items: a ship's cargo hold or other holds, an assembled ship parked in a hangar,
-        a station/secure/audit container, a jettisoned can, etc. Containers nest inside
-        containers (a can inside a ship inside a structure hangar), so an item's immediate
-        location often points only to its parent container, not to a place on the map. To
-        find where an item actually is, you follow that parent chain upward, container by
-        container, until you reach a real terminal location (a station, a player structure,
-        or open space in a solar system). That terminal is the "root" location, and it is
-        what determines the station → solar system → region → security — never the
-        immediate container. EVE Console precomputes this root for every asset (walking the
-        parent links for you), so the Asset Browser's Location Name, Solar System, Region,
-        and Security columns already reflect the true, fully-resolved location no matter how
-        deeply nested, while the Container column shows the nesting path within that
-        location. Player-structure names only resolve if an authenticated character has
-        docking access; otherwise they display as "<Unknown Structure>". When reasoning
-        about an item's system/region yourself, always use the resolved root/station, not
-        the item's direct container.
+        Locations nest: an item can sit in another item — a ship's holds, an assembled ship in a
+        hangar, a station/secure/audit container, a can — and containers in containers. Each
+        asset is resolved up that chain to its root (a station, a player structure, or space in
+        a system): Location Name, Solar System, Region and Security show where it really is,
+        however deep, and the Container column the path within it. Answer "where is X?" from the
+        root, never the immediate container. A player structure's name resolves only if an
+        authenticated character can dock there; otherwise it shows "<Unknown Structure>".
 
         ### Item Browser
-        Look up any published EVE item by name. Shows description, attributes/dogma,
-        current market orders and price history for your defined markets, and industry
-        details. Two skill-related tabs: Requirements (the skills needed to use or build
-        the item, each a clickable link) and — when the item IS a skill — Required For (a
-        level I-V selector showing which ships/modules/etc. require that skill at each
-        level). Use navigate_to_item to open a specific item.
-
-        ## Industry tools
+        Look up any published item by name, or browse the market-group tree on the left.
+        Description, attributes/dogma, current market orders and price history for your price
+        sources, and industry details. Requirements lists the skills needed to use or build it;
+        for a skill, Required For shows by level (I-V) what needs it. Skill names there — and in
+        a character's Skills tab — open that skill.
 
         ### Industry Jobs
-        Tracks all manufacturing, reaction, invention, and research jobs. Filter by
-        status (active/delivered), activity type, character/corp owner, and search by
-        blueprint or output item. Use set_industry_filter to filter programmatically.
+        Every manufacturing, reaction, invention and research job. Filter by status (active,
+        delivered), activity and character or corp owner, and search by blueprint or output
+        item.
 
         ### Indy Parks
-        Define "industry parks" — a mapping of which structures you run different
-        categories of items in, including per-item structure exceptions. These drive
-        accurate industry cost calculations (job cost, ME/TE bonuses, rig/structure
-        effects) used by the Production Calculator and build-cost engine.
+        Define "industry parks": which structures you run each category of item in, with per-item
+        structure exceptions. They drive the industry costs — job cost, ME/TE bonuses, rig and
+        structure effects — used by the Production Calculator and the build-cost engine.
 
         ### Production Calc (Production Calculator)
-        Plan a manufacturing job for a chosen blueprint/product. Produces an accurate
-        breakdown of build cost, materials required (optionally down the full build
-        chain), and job details, using your Indy Parks setup and current market prices.
+        Plan a manufacturing job for a blueprint or product. Build cost, materials (optionally
+        down the full build chain) and job details, from your Indy Parks and current prices.
+        Double-click a material or product row to open it in the Item Browser; right-click the
+        results for "Copy to Clipboard", "Export as CSV" or "Tab-delimited".
+
+        ### Price Overrides
+        Hand-set prices the build-cost engine and the Production Calculator use instead of their
+        computed or market ones. "+ Add Type", then fill any of Build Cost, Market Value or
+        Contract Value (for a blueprint, the per-run BPC price); a blank cell stays computed.
+        "Save & Recalculate" stores the list and recalculates the stored build costs other tools
+        read. A pinned build cost still loses to buying when the market is cheaper.
 
         ### Industry Opportunities
-        Compares each buildable item's cached build cost against a market price to rank
-        what is worth manufacturing — weighing profit against how long a build ties up a
-        job slot. Pick a market config to price against (the same Market Sources configs)
-        and one of two modes: "Build & Sell Order" (build cost vs the market's lowest sell
-        price) and "Build & Sell to Buy Order" (build cost vs the highest buy order). For
-        each item it lists Profit/Unit, Margin, the time to build one unit (Build Time /
-        Slot Days), and — the headline metric — Profit per Slot Day (unit profit divided by
-        the days a single unit occupies the slot), defaulting to that column descending.
-        Both build cost and build time use the default Indy Park; build time assumes a
-        researched blueprint (TE20) and maxed industry skills and applies that park's
-        structure role and rig time bonuses (per item category), so Slot Days reflect the
-        capsuleer's actual manufacturing setup.
-        Items with no current sell orders are still shown (they are often the most lucrative
-        when in demand): their sell side is priced from the 30-day history average and the
-        Sell Price is flagged with a "*". Optional "Min 30d ISK Vol" / "Min 30d Unit Vol"
-        liquidity filters and market-group exclusions (none by default) also apply. The tool
-        makes no ESI calls — it reads build cost, prices, and market history already in the
-        DB (history is kept current by the background Price History Sweep).
-
-        ## Market / Trade tools
+        Ranks what is worth manufacturing: each buildable item's stored build cost against a
+        market price, weighing profit against how long a build ties up a slot. Pick a market
+        config (the Market Sources configs) and a mode: "Build & Sell Order" (against the lowest
+        sell) or "Build & Sell to Buy Order" (against the highest buy). Columns: Profit/Unit,
+        Margin, Build Time / Slot Days (one unit), Profit per Slot Day, and 30-day units and ISK
+        sold. Sorted by ISK Sold 30d until another column is clicked; market, mode, filters and
+        sort are remembered on this machine across restarts. Build cost and time both use the
+        default Indy Park; time assumes a TE20 blueprint and maxed skills with that park's
+        structure role and rig time bonuses per category, so Slot Days match the actual setup.
+        Items with no sell orders still show, priced from the 30-day history average with a "*" on
+        Sell Price. Optional "Min 30d ISK Vol" / "Min 30d Unit Vol" filters; exclude market groups
+        with "+ Add Group" beside the Exclude Groups chips (✕ removes one; none by default).
+        Double-click a row to open the item in the Item Browser. It makes no ESI calls; history is
+        kept current by the background Price History Sweep.
 
         ### Price sources & the Method dropdown (Settings > Market)
-        Every market and valuation tool prices against a named "price source" defined in
-        Settings > Market. The Method dropdown chooses HOW that source gets its prices,
-        and the choice has real consequences the capsuleer often asks about:
-        - Fuzzwork — pre-computed percentile prices pulled from fuzzwork.co.uk. Fast, needs
-          no auth, and stores almost nothing locally (one price row per item). It does NOT
-          store individual orders, so the Item Browser's Market Orders tab will be empty for
-          a Fuzzwork source. Good as a quick global (Jita-style) reference price.
-        - Region (ESI Region) — fetches every public order across an ENTIRE region from ESI.
-          Use it for NPC trade hubs (e.g. The Forge for Jita). An optional Station Filter
-          narrows the computed price to a single NPC station (e.g. Jita 4-4) after the first
-          refresh. CRITICAL LIMITATION: ESI's public region market feed does not include
-          sell orders that sit inside player-owned structures — only orders at NPC stations
-          (plus public regional buy orders) come back. A market that lives inside a citadel,
-          Fortizar, Keepstar, etc. is therefore invisible to the Region method.
-        - Player Structure — fetches all orders inside one specific player-owned structure.
-          Requires an authenticated character with docking access to that structure. This is
-          the ONLY way to price a null-sec or low-sec staging market, or any private
-          structure market.
+        Market and valuation tools price against a named "price source" (Settings > Market): a
+        stored price per item, optionally filtering lowball/highball anomaly orders, and for an
+        item with no market a % over build cost (capitals, supers, titans). Its Method says how
+        it gets orders:
+        - Region (ESI Region): every public order in a whole region, from ESI — for NPC trade
+          hubs (The Forge for Jita). An optional Station Filter narrows the price to one NPC
+          station (Jita 4-4) after the first refresh. ⚠️ ESI's region feed does NOT include
+          orders inside player structures — only NPC-station orders and public regional buy
+          orders — so a market in a citadel, Fortizar or Keepstar is invisible to it, and the
+          Station Filter cannot reach one.
+        - Player Structure: every order inside one player structure; needs an authenticated
+          character with docking access there. The ONLY way to price a null-sec or low-sec
+          staging market, or any private structure market.
+        Fuzzwork is a LEGACY method: sources made with it by older versions (pre-computed
+        percentile prices from fuzzwork.co.uk) still refresh and price, but it can no longer be
+        chosen: it stores no individual orders (the Item Browser's Market Orders tab is empty for
+        it) and cannot reach a structure. Never recommend it; use a Region source instead.
 
-        So when the capsuleer asks something like "why can't I use the Region method for my
-        null-sec staging market?": it is because that market is inside a player structure,
-        and ESI's region endpoint does not return orders located inside structures — it only
-        sees NPC-station orders (and public regional buy orders). The fix is to define that
-        source with the Player Structure method using a character that has docking access to
-        the keep. The Station Filter under the Region method is only for isolating one NPC
-        station within a region; it cannot reach a player structure. (Fuzzwork likewise
-        cannot, since it is regional/hub data with no per-structure orders.)
+        ### Market Overview
+        A regional dashboard over the stored market data: pick a Region (or all) and a Period
+        (last 30 days by default). Summary shows open sell and buy order counts and ISK, units
+        and ISK sold, pie charts by type and market group, and daily sales ISK; other tabs break
+        these down by market group and type and list open orders by type. Sales are region-wide
+        market history, not your own; NPC orders are left out.
+
+        ### Item Valuation
+        An appraisal tool like the web ones: paste any list the client copies — a hangar or
+        cargo, a contract's items, a fit, a multibuy list, spreadsheet rows, or lines like
+        "Tritanium 22222" or "Warrior II x5". Read leniently: in columns (tabs, commas,
+        semicolons, pipes or spaces) the first is the name and the first whole number after it
+        the count — no number means one; other columns are ignored, a header row is skipped and
+        repeats are added up. Pick a STATION (any with orders in the app's books, from whichever
+        source — so two stations of one region can be compared), a basis (Sell = lowest sell,
+        Buy = highest buy, Split = halfway), the items or their reprocessed output, and press
+        Appraise. Values shows each item three ways at that station, unit and total: market (from
+        contracts where the station has none, marked "contract"), build (the app's build cost)
+        and reprocessed (materials at that station's prices, at the app's yields) — the highest
+        green, the others red with how far below; the panel above totals each, with volume and
+        counts. "Reprocessed output" turns the list into materials batch by batch, keeping what
+        could not be reprocessed as "Left over". Market compare adds stations: each item's unit,
+        total and % below the best, and a total per station. Price % values at a share of the
+        price (a 90% buyback). Buy orders count at the station, its system or region-wide; NPC and
+        jump-ranged ones do not. Unknown names stay in the table, flagged; item names open the
+        Item Browser; Copy puts both tables on the clipboard as tab-separated text. Nothing is
+        stored.
 
         ### Market Levels
-        Monitor a specific, definable market (region or structure) for the quantity of
-        sell orders currently listed on a chosen list of items. Items are organized into
-        collapsible collections/groups with a target level per item; columns show target
-        vs. available, plus market price, build cost, and industry-job counts. Useful for
-        watching whether a market is being kept stocked.
+        Watch a definable market (a region or a structure) for how much of a list of items is
+        listed for sale — whether it is being kept stocked. Collapsible collections and groups
+        with a target level per item; columns for target vs available, market price, build cost
+        and industry-job counts. Same controls as Inventory Levels.
 
         ### Inventory Levels
-        Monitor YOUR current holdings of a definable item list — available assets plus
-        in-build, buy orders, etc. — against target levels. Conceptually like jEveAssets
-        stockpiles. Grouped/collapsible with per-group multipliers, and columns for
-        target, available, difference, assets, industry jobs, market price and build cost.
+        Monitor your own holdings of a definable item list — available assets plus in-build, buy
+        orders and so on — against target levels, like jEveAssets stockpiles. Collections hold
+        Groups (each with a quantity multiplier ×N) and Groups hold Items (each with a target,
+        listed alphabetically); columns for target, available, difference, assets, industry jobs,
+        market price and build cost.
+
+        ### Inventory Levels & Market Levels (same controls)
+        - Toolbar: "+ Add Group", "+ Collection", "Refresh" (re-pulls the data).
+        - Collection row: expand/collapse arrows, "+"/"−" to expand or collapse all its groups,
+          "Rename", "Delete".
+        - Group row: toggle arrow, the editable multiplier (×N), "+ Item", "Edit" (group
+          scope/locality) and "Delete".
+        - Right-click a row: "Open in Item Browser" (on an item), and the bulk adds — "Add Items
+          From Fit" (paste or pick an EVE fit), "Add Items From Market Group" (a group and all its
+          sub-groups) and "Add Items From Blueprint" (its materials) — and "Delete Item".
+
+        ### LP Market Values
+        What loyalty points are worth, per corporation. Each LP store offer is valued at the default
+        asset-value prices (contract price where there is none), less its ISK cost and any items
+        it consumes, per LP. Current Values lists each corporation's mean ISK / LP over offers
+        worth more than zero, with Median, Best Offer, Best Item, Your LP and Holding Worth —
+        corporations you hold LP with first. Recalculate reprices; History charts one
+        corporation's ISK / LP over time.
+
+        ### Contracts
+        Two tabs, each a grid with a detail panel: parties, prices, locations, dates and every
+        item offered or requested (with BPC runs and ME/TE). Corporation & Personal holds your
+        characters' and corporations' contracts, filtered by Scope, Status, Assignee and
+        Acceptor. Public searches the public contracts swept from every non-wormhole region, by
+        Show (active, historical or all), type, region, category and item name, 200 per page.
+        Both read stored data, not live ESI.
 
         ### Trade Opportunities
-        Find profitable hauling between two markets. Pick a From (source) and To
-        (destination) station (type to filter the long list). Two modes: "Sell to Buy
-        Order" (buy from source sell orders, sell into destination buy orders) and
-        "Undercut Sell Order" (buy from source, relist cheaper than the destination's
-        current lowest sell). Constrain by cargo size (m³) and optional ISK cap. Optional
-        liquidity filters — "Min 30d ISK Vol" and "Min 30d Unit Vol" — check the
-        destination region's last-30-days market history (kept current in the DB by the
-        background Price History Sweep, so no ESI calls are made here) to avoid items that
-        don't actually move. You can also exclude whole market groups (and everything nested
-        under them) from the scan; a set of low-value/noise groups is excluded by default
-        (Blueprints & Reactions, Ship SKINs, Special Edition Assets, Apparel, Skills,
-        Trade Goods). Results are a shopping list within cargo/ISK limits, sortable by any
-        column, defaulting to highest Total Profit first.
+        Profitable hauling between two markets: pick a From and a To station (type to filter).
+        Modes: "Sell to Buy Order" (buy source sell orders, sell into destination buy orders) and
+        "Undercut Sell Order" (buy at the source, relist below the destination's lowest sell).
+        Limit by cargo (m³) and an optional ISK cap; optional "Min 30d ISK Vol" / "Min 30d Unit
+        Vol" check the destination region's 30-day history (kept current by the Price History
+        Sweep; no ESI calls here). Exclude market groups, and everything under them, with "+ Add
+        Group" beside the Exclude Groups chips (✕ removes one); Blueprints & Reactions, Ship
+        SKINs, Special Edition Assets, Apparel, Skills and Trade Goods are excluded by default.
+        The result is a shopping list within those limits, highest Total Profit first until
+        re-sorted; double-click a row to open the item in the Item Browser.
+
+        ### Standing Buy Orders
+        Buy orders you mean to keep standing at a station or structure, declared with Add and
+        matched against your characters' and corporations' live buy orders. Status: Missing (no
+        live order there), Outbid or Active; the Note flags one low on volume or near expiry.
+        Station best bid is known only where that station is a price source (Settings > Market).
+        Missing, outbid, low and expiring orders can raise Worklist tasks.
+
+        ### Order Tracker
+        Orders you have committed to deliver: added with Add Order, or booked by a Store from EVE
+        mail or the web; one row per line, lines of one order sharing an Order #. Contracts you
+        issue to the buyer (or the order's Contract To) after the order was placed are matched
+        automatically — units counted over every line; fitted rigs and other extras, packaged or
+        assembled, do not matter — or attached with Edit (ids comma separated). An order can span
+        several contracts and a contract several orders: On contract is units awaiting the buyer's
+        acceptance, Delivered is units accepted of those ordered, and only the rest is planned
+        from stock and builds (On hand, in build, Short). It completes when every unit is
+        accepted; a declined contract for the whole order cancels it. Also Purchase Price, Status
+        (Pending, Completed, Canceled), Build Cost and Profit; Priority orders come first in the
+        Worklist. Sales already made are in the Sales Tracker.
+
+        ### Sales Tracker
+        Sales already made: market sell transactions and finished item-exchange contracts, each
+        with build cost and market value from the nearest daily price snapshot, and profit against
+        the "Profit based on" basis (Build or Market). Filter by date, owner and sale type.
+        Summary shows profit by buyer, market group and item, with charts of sales, costs, profit
+        and margin; Detail lists each sale. Right-click a sale to mark it not for profit (left out
+        of the figures) or to add labels.
+
+        ### Sale Posting
+        A shareable price list. On Definitions a posting (with a region and a build-price
+        multiplier) holds sections, which may override the multiplier, and sections hold items.
+        Each item shows In Stock, In Build and Reserved (overridable), three reference prices
+        (Build Cost, Mkt Value, Contract), your Sale Price, profit against Build or Market, and a
+        Ready estimate. The Posting tab renders it as Plain Text, Slack, Discord, Markdown, HTML,
+        EVE Mail or BBCode to copy. A Store sells a posting.
 
         ### Stores (EVE Mail store and web shop)
-        A store sells a sale posting — a price list priced from build costs or the market — to
-        buyers through one or both of two doorways. EVE Mail: buyers mail the store's character
-        PRICES, ORDER, STATUS or CANCEL and the app answers and books orders. Web: a site the
-        owner hosts on Cloudflare (one Worker and one D1 database per store) where buyers sign
-        in with EVE SSO, see the price list with what is in stock, in build and reserved, place
-        orders and follow them. The app pushes the site the price list and the order book and
-        pulls what buyers did every few minutes ("Check the site every N minutes" on the Config
-        tab, 5 by default; a buyer waits up to that long for a confirmation); nothing on the
-        site ever reaches the database. A web order is booked only when
-        its item is on the posting, its quantity is within bounds, the buyer passes the store's
-        Serve policy (Anyone, or the allow list) and the quoted price is close to the posting's;
-        anything else waits under "Web site events" on the Overview for the owner to book or
-        decline; a visit (a buyer signing in, or back after half an hour or more away) is noted
-        there too. Every order, whichever doorway placed it, is in Order Tracker with a channel of
-        mail, web or manual, and a buyer sees all of theirs on the site. The Stores screen's
-        Config tab holds the site address, the shared secret the app signs each call with, the
-        site's theme (the store's own, independent of this desktop's), the words under "About this store" on the front page (plain text or HTML) with an optional banner picture across its top, the EVE developer
+        A store sells a sale posting — priced from build costs or the market — by EVE Mail, on the
+        web, or both. EVE Mail: buyers mail the store's character PRICES, ORDER, STATUS or CANCEL;
+        the app answers and books orders. Web: a site the owner hosts on Cloudflare (a Worker and
+        a D1 database per store) where buyers sign in with EVE SSO, see the price list with stock,
+        in build and reserved, and place and follow orders. The app pushes the price list and
+        order book and pulls what buyers did every few minutes ("Check the site every N minutes"
+        on Config, default 5 — a buyer waits up to that long for a confirmation); the site never
+        touches the database. A web order books only if its item is on the posting, its quantity
+        is in bounds, the buyer passes the Serve policy (Anyone, or the allow list) and its price
+        is close to the posting's; otherwise it waits under "Web site events" on the Overview for
+        the owner to book or decline, where buyer visits (signing in, or back after half an hour
+        or more) are noted too. Every order is in Order Tracker with a channel of mail, web or
+        manual; buyers see all theirs on the site. Config holds the site address, the shared
+        secret calls are signed with, the site's own theme (independent of this desktop's), the
+        "About this store" text (plain or HTML) and an optional banner picture, the EVE developer
         application's Client ID and Secret Key the site signs buyers in with (required whoever
-        hosts the site), and a Cloudflare section used only by the Deploy or update site button,
-        which puts the site on the owner's own account with a saved API token, at the free workers.dev address or a domain of their own on that account, and updates it to
-        the newest release; a site set up by hand with wrangler works the same.
-
-
-        ## Finance tools
+        hosts it), and a Cloudflare section used only by "Deploy or update site", which puts the
+        newest release on the owner's account with a saved API token, at the free workers.dev
+        address or their own domain; a site set up by hand with wrangler works the same.
 
         ### Net Worth
         A historical chart of your net worth over time (assets, wallet, etc.).
+
+        ### Income & Expense
+        Where ISK came from and went, from the wallet journal of every authenticated character and
+        personal corp together (no owner picker). Income and Expenses list categories by journal
+        type, largest first, smaller ones rolled into Other; a chart shows daily income, expense
+        and running cashflow. The period follows the Overview's period selector. ISK moved
+        between your own wallets is left out. Asset value is in Net Worth; single entries in Wallet.
 
         ### Wallet
         Browse wallet transactions and the wallet journal for your characters.
 
         ### Corp Activity
-        Corporation-level activity and finances (requires a director/accountant-scoped
-        corp character). Tabs include: Activity (24h) and Monthly Activity summaries
-        (ratting, industry, mining, kills/losses, income/expense); Income and Expense
-        breakdowns by type; Ratting Taxes, Industry Taxes, and Donations; Mining;
-        Killmails; Top 10 Lists (with a configurable exclude list); and Projects. The
-        Projects tab has ACTIVE and HISTORY sub-tabs for live corp projects, plus
-        STANDING PROJECTS — operator-defined repeating goals you want to always maintain
-        (e.g. a "deliver item" project at a station, or a "destroy NPC" project across a
-        system/constellation/region with an ADM threshold). Standing projects are matched
-        against live ESI corp projects to show remaining quantity/payout and whether each
-        is currently active; the Overview alerts if one has lapsed.
+        Corporation activity and finances (needs a corp character with director or accountant
+        scopes). Tabs: Activity (24h) and Monthly Activity summaries (ratting, industry, mining,
+        kills/losses, income/expense); Income and Expense by type; Ratting Taxes, Industry Taxes
+        and Donations; Mining; Killmails; Top 10 Lists (with an exclude list); and Projects —
+        ACTIVE and HISTORY for live corp projects, plus STANDING PROJECTS: goals you always want
+        running (a "deliver item" project at a station, or a "destroy NPC" project across a
+        system, constellation or region with an ADM threshold), matched against live ESI projects
+        to show remaining quantity and payout and whether each is active; the Overview alerts when
+        one lapses. "+ Add Project" defines one; each row has "Edit" and "Delete"; right-click for
+        "Clone item" and, on a deliver-item project, "Open Item in Item Browser". Players Active
+        counts members only: characters seen acting while in the corp (a login, a kill or loss,
+        moon mining, a corp job or contract, the corp's tax on their bounties or missions), plus
+        wallet and contract counterparties who are members now — never its customers, the users
+        of its structures or other corporations.
 
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.
 
-        ## Communication tools
+        ### Player Entities
+        Look up players on three tabs: Pilots, Corporations and Alliances. Search by name (two
+        letters minimum; names not yet cached are fetched from ESI). The selected entity shows its
+        portrait or logo, key facts, and sub-tabs where there is content: Description, Kills /
+        Losses, Corp History (pilots), Alliance History (corporations), Member Corps (alliances)
+        and Intel Reports (pilots). Player names elsewhere in the app open here, as does
+        navigate_to_entity for a pilot, corporation or alliance.
+
+        ### NPC Entities
+        NPC entities from the game's static data on four tabs — Agents, Stations, Corporations
+        and Factions — searched by name. An NPC corporation shows its faction, headquarters,
+        ticker and tax rate, with sub-tabs for its agents, stations, market orders (in regions
+        you have market data for) and LP store offers. A station lists its agents; a faction, its
+        corporations and Faction Warfare systems. navigate_to_entity opens an agent, NPC
+        corporation or faction here.
 
         ### Eve Mail
         Read and compose EVE mail from within EVE Console.
 
-        ## Tools
+        ### Notifications
+        The in-game notifications synced for your characters: structure alerts, wars, insurance,
+        corporation and faction messages and more. One sent to several of your characters is one
+        row listing them all, unread while any has not read it. Filter by character, type, sender
+        type and date (last 30 days by default), or Unread only; the selected row's formatted
+        body shows below. A notification card on the Overview opens here. Needs the
+        esi-characters.read_notifications.v1 scope.
+
+        ### Structure Browser
+        Player-owned structures the app knows of, from your own data and ESI's public list; Add
+        by ID adds another. Filter by location, type, corp and alliance; Show unknown includes
+        those ESI will not describe for lack of docking access. Selecting one shows tabs: Details
+        (notes; name, system and type hand-editable only where ESI is silent), Fitting (from your
+        assets, or entered by hand, which carries rigs to a linked Indy Parks entry), Assets,
+        Cargo, Fuel, Fighters and Industry Jobs.
 
         ### Universe Map
-        A drill-down map: New Eden, then a region, then a system page. Overlays colour systems
-        by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
+        A drill-down map: New Eden, then a region, then a system page. Overlays colour systems by
+        security, kills, jumps, industry indices, sovereignty, stations, planetary output and
         intel sightings. The system page has tabs for its celestials, kills, industry indices,
         graphs and intel.
 
+        ### Jump Planner
+        Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
+        Conservation levels (the range per jump is shown) and a Jump Through rule for where
+        midpoints may stop (anywhere, stations and structures, Fortizar/Keepstar or Keepstar
+        systems), then add waypoints by name and Plan Route. The map shows the route with total
+        jumps, light-years and isotope fuel, above a per-leg table; drag a midpoint to move it or
+        click it for alternatives. High-sec waypoints are refused.
+
         ### Alarms
-        User-defined alarms. Nothing exists by default — each one is something the capsuleer (or
-        you, on their behalf) set up: a condition to watch for and one or more actions to take
-        when it fires. Use the manage_alarms tool for this; see "Watching for things" below.
+        User-defined alarms — none exist by default. Each is a condition to watch for and one or
+        more actions when it fires, set up by the capsuleer or by you with manage_alarms (its
+        description lists the conditions and actions); for "tell me when…" the action is
+        agent_notify.
 
         ### Game Log and Chat Log
         Viewers over the EVE client's own log files, read from this PC. See "Local logs" below
-        for what is actually in them.
+        for what is in them.
 
         ### Background Processes
         A tab per background process — the ESI activity log and call schedule, price history,
         contract items, LP store, killmails, intel, alarms, order fulfilment, structures, the name
-        cache — each saying what that process is doing right now, live, even when the work runs
-        on another client sharing the database. The main window's bottom status bar carries one
-        short label per process (ESI Calls, Price History, Contract Items, LP Store, Killmails),
-        lit while it is busy; clicking a label opens this tool at that tab.
+        cache — each saying what it is doing right now, live, even when the work runs on another
+        client sharing the database. The bottom status bar has a short label per process (ESI
+        Calls, Price History, Contract Items, LP Store, Killmails), lit while busy; clicking one
+        opens this tool at that tab.
 
         ### ESI Explorer
-        A raw browser for ESI endpoints — advanced/developer use for inspecting the API
-        directly.
+        A raw browser for ESI endpoints — advanced/developer use for inspecting the API directly.
+
+        ### Error Log
+        The app's own recorded errors, such as a failed ESI call or a calculation error, newest
+        first: Time, Client (which machine or worker logged it), Source, Context, Message and
+        Inner exception. From / Thru defaults to the last 24 hours and loads at most 5,000 rows,
+        read when the tab opens; Refresh re-reads. Selecting a row shows the full text — what to
+        copy into a bug report.
+
+        ### AI Usage (AI Usage & Cost)
+        What this assistant has used and its estimated cost — agent turns, speech out and speech
+        in — over a date range (last 30 days by default), by day, week or month. Tabs: Summary
+        (calls, tokens, cache use and cost per period and model), Detail (each call, with the
+        tools its turn used) and Rates, the editable price list costs are worked out from. A
+        service with no rate shows "no rate" and is left out of the total; local models are free.
+        Every model a paid service lists gets its own rate row when the list loads in Settings or
+        this tool opens: priced from LiteLLM's price list where it has the model (the note names
+        the list, its date and the provider's pricing page to check), else a copy of the
+        service's "(any model)" rate noted "Not set yet". A rate edited here is never overwritten.
 
         ## Local logs (game logs, chat logs, intel)
-
-        EVE Console reads the EVE client's own log files from this machine, so this data exists
-        only for characters played on this PC and only since log import was switched on under
-        Settings > Game Logs / Chat Logs. It is not ESI data and cannot be backfilled from the
-        server.
-
-        - Game logs land in GameLogEvents, one row per line, classified into a Kind
-          (combat.*, movement.jumped, movement.undocked) with the original line kept in
-          RawText. Lines the parser does not recognise are still stored, with Kind='unmatched'.
-        - Chat logs land in ChatMessages, one row per message, deduplicated across the several
-          characters who may have been sitting in the same channel.
-        - Channels marked as intel channels are additionally parsed into IntelReports and
-          IntelReportCharacters — the system, the number of pilots, who reported it, and any
-          named pilots with the hull they were seen in.
-
-        Two things worth knowing before answering questions from game logs:
-        - The client only writes "Undocking from <station> to <system> solar system." when
-          undocking from an NPC station. Undocking from a player structure produces no such
-          line, so movement.undocked is silent for anyone living in a Keepstar or Fortizar.
-        - For where a character is and what they are flying right now, CharacterStatuses is
-          better than the logs: it is polled from ESI, covers every authenticated character
-          rather than only this PC, and carries the current ship.
-
-        ## Watching for things (alarms)
-
-        When the capsuleer asks to be told when something happens — "let me know when…", "alert
-        me if…", "tell me when…" — that is a request for an alarm, not something to answer once
-        and forget. Create it with manage_alarms. An alarm outlives the conversation; a promise
-        to keep an eye out does not.
-
-        Pick the condition that fits:
-        - "timer" for a time or a reminder.
-        - "intel" for a pilot being reported in named systems, or within N jumps of one.
-        - "ship_undock" for one of the capsuleer's own characters undocking — anywhere or from
-          named places, in any ship or named hulls and classes, and optionally only when the
-          ship left unfit, short of jump fuel, or short of ammunition.
-        - "undocked_too_long" for a wake-up call: a named hull or class still sitting undocked
-          in the system it undocked in after N seconds, in up to three escalating stages. When
-          it fires you are told what to say and that ANY reply from the capsuleer resets it —
-          ask, then wait.
-        - "market_contract" for an item listed at or below a price.
-        - "store_order" for the EVE Mail store: a new order (with the store, buyer, item, price
-          and whether it is in stock or must be built), an order contracted, accepted, canceled,
-          or newly fillable from stock or in build — each kind switchable.
-        - "sql" for anything else — it runs a SELECT on an interval.
-
-        For the action, "agent_notify" is what the capsuleer means by "tell me": when the alarm
-        fires you receive a message with the details and simply report it. That message IS the
-        prompt — do not go looking anything up to confirm it, and do not ask a follow-up.
-
-        Two rules for a "sql" alarm, both about not being noisy:
-        - Give the query a stable identifying column and name it in key_column. The alarm
-          announces only keys it has not seen; nominate something that changes every run and it
-          will fire on every check.
-        - Do not try to filter to "since I last looked". Write the query for current state over
-          a sensible recent window; the alarm works out what is new.
-
-        ### Item Valuation (Market / Trade)
-        An appraisal tool like the web ones: paste any list the client copies — a hangar or
-        cargo hold, a contract's items, a fit, a multibuy list, a spreadsheet's rows, or typed
-        lines such as "Tritanium 22222" or "Warrior II x5". The paste is read leniently: on a
-        line with columns (tabs, commas, semicolons, pipes or runs of spaces, quoted or not)
-        the first column is the item name, the first whole number after it is the count, and
-        every other column is ignored; no number means one; a header row is skipped; the same
-        item on several lines is added up. Then pick a STATION (any station or structure with
-        orders in the app's books, whichever market source fetched them; not a market source,
-        so two stations of one region can be compared), a price basis (Sell = lowest sell
-        order, Buy = highest buy order, Split = halfway), whether to value the items or their
-        reprocessed output, and press Appraise. The Values tab shows every item three ways at
-        that station, unit and total side by side: market (from contracts where the station
-        has no orders, marked "contract"), build (the app's build cost) and reprocessed (the
-        materials at the same station's prices, at the app's yields); the highest of the three
-        is green, the others red with how far below they sit, and the panel above totals each
-        the same way plus volume and counts. "Reprocessed output" turns the list into its
-        materials batch by batch and keeps as "Left over" whatever could not be reprocessed. The
-        Market compare tab adds more stations: each item's unit, total and per cent below the
-        best across the stations, with a total per station. Price % values at a share of the
-        price (a 90% buyback). Buy orders count at the station, from its system, or
-        region-wide; NPC and jump-ranged ones do not. Names the SDE does not know stay in the
-        table flagged; item names open the Item Browser; Copy puts both tables on the clipboard
-        as tab-separated text. Nothing is stored.
+        Read from the EVE client's own log files on this PC once log import is switched on under
+        Settings > Game Logs / Chat Logs: only characters played here, only since then, never
+        backfillable. Game log lines are classified by Kind (combat.*, movement.jumped,
+        movement.undocked; unrecognised ones 'unmatched'); chat is stored once per message however
+        many of your characters saw it; intel channels are parsed into IntelReports and
+        IntelReportCharacters — system, pilot count, reporter, and named pilots with their hulls.
+        Undocking from a player structure writes no log line.
 
         ## Settings (gear icon)
-        Tabs: ESI Tokens (add/manage ESI-authenticated characters via OAuth), SDE
-        (import/update the EVE Static Data Export — required before item and market
-        lookups work), Market (define price sources and the default asset-value and
-        manufacturing-cost pricing), Timers and Polling (ESI poll intervals), Corp Top 10
-        (exclude list for corp top-10 lists), AI Agent (configure this assistant —
-        provider, model, API key, voice/TTS, push-to-talk), Alerts (toggle Overview
-        alerts), Price History (regions whose market history is swept in the background —
-        every type that trades in those regions is refreshed on the "Price History Sweep"
-        interval in Timers, default 24h, so the opportunity tools read it from the DB),
-        Database (path, backups, move/rename/repoint), and Other (the theme and the UI scale,
-        50% to 200%, both this desktop's own; the scale also sits at the right end of the status
-        bar, next to the background-processing link, where clicking it offers the same choices).
-
-        ## Interactions & hidden functions (right-click menus, buttons, shortcuts)
-        Many actions live in right-click context menus or row buttons that are not
-        obvious from a screenshot. When the capsuleer asks "how do I…", cite the exact
-        control below.
-
-        ### Inventory Levels & Market Levels (same interaction model)
-        Structure: Collections contain Groups; Groups contain Items. Items have a target
-        level; each Group has a quantity multiplier, and Groups can be organized under
-        Collections.
-        - Toolbar: "+ Add Group" and "+ Collection" create the containers; "Refresh"
-          re-pulls the underlying data.
-        - Collection row buttons: expand/collapse arrows, "+"/"−" to expand/collapse all
-          groups, "Rename", "Delete".
-        - Group row: a toggle arrow, an editable quantity multiplier (×N), "+ Item",
-          "Edit" (group scope/locality settings), and "Delete".
-        - RIGHT-CLICK a row for the context menu: "Open in Item Browser" (on an item
-          row), and — the main bulk-add options — "Add Items From Fit" (paste/select an
-          EVE fitting to add all its modules/items), "Add Items From Market Group" (pick a
-          market group from a tree to add every item in that group and its sub-groups),
-          and "Add Items From Blueprint" (add a blueprint's materials). Also "Delete Item".
-        - Items within a group are listed alphabetically.
-
-        ### Item Browser
-        - Left tree: browse the market-group hierarchy, or use the search box to find an
-          item by name.
-        - Clickable skill links (in Requirements, Required For, and in the character
-          Skills tab) navigate the Item Browser to that skill.
-
-        ### Trade Opportunities
-        - DOUBLE-CLICK any result row to open that item in the Item Browser.
-        - "+ Add Group" (next to the Exclude Groups chips) opens the market-group tree to
-          add an exclusion; click the ✕ on a chip to remove one.
-
-        ### Industry Opportunities
-        - DOUBLE-CLICK any result row to open that item in the Item Browser.
-        - "+ Add Group" (next to the Exclude Groups chips) opens the market-group tree to
-          add an exclusion; click the ✕ on a chip to remove one.
-
-        ### Production Calculator
-        - DOUBLE-CLICK a material/product row to open that item in the Item Browser.
-        - Right-click the results for export options: "Copy to Clipboard", "Export as
-          CSV", "Tab-delimited".
-
-        ### Corp Activity — Standing Projects
-        - "+ Add Project" opens a dialog to define a standing project (deliver-item or
-          destroy-NPC, with scope/ADM settings). Each row has "Edit" and "Delete".
-        - RIGHT-CLICK a standing-project row: "Clone item" (duplicate the project as a
-          starting point) and, for deliver-item projects, "Open Item in Item Browser".
-
-        ### Overview
-        - Alert messages are clickable — clicking one navigates to the relevant tool
-          (e.g. a skill-queue alert opens that character's Skills; a standing-project
-          alert opens Corp Activity > Standing Projects).
-
-        ### Characters
-        - In the Skills tab, skill names are clickable links that open the Item Browser
-          for that skill.
+        Tabs: ESI Tokens (add and manage authenticated characters), SDE (import or update the
+        Static Data Export — needed before item and market lookups work), Market (price sources,
+        and the default asset-value and manufacturing-cost pricing), Timers and Polling (each kind
+        of ESI data's own refresh interval), Corp Top 10 (the exclude list), AI Agent (this
+        assistant's models, each picked from its service's own list beside that service's key;
+        Roles — which model talks, which answers data questions, which summarises;
+        Personalisation; voices in order of preference; push-to-talk), Alerts (Overview alerts),
+        Price History (regions whose market history the "Price History Sweep" refreshes, every
+        24h by default, for the opportunity tools), Database (path, scheduled backups, move,
+        rename, repoint) and Other (theme and UI scale, 50% to 200%, both this desktop's own; the
+        scale is also at the right end of the status bar).
         """;
 
     /// <summary>
-    /// One-line "what this tab is for" summary, matched against a tab title or tool id.
-    /// Used to give the agent focused context about the view the capsuleer is on so it
-    /// does not have to guess what a screenshot is showing.
+    /// Every tool the application opens as a tab: its id — what open_window takes and a tab is
+    /// keyed by — the name it goes by, and the heading its entry in <see cref="Guide"/> starts
+    /// with. One list for the agent's open_window, for naming the tab the capsuleer has on screen,
+    /// and for finding what the guide says about it.
+    ///
+    /// <para>⚠️ Keep it in step with the sidebar (MainWindowViewModel) and the guide. The agent
+    /// could open 17 of these 41 tools, and the guide left 17 undescribed: asked about one of
+    /// those, a small model borrowed the nearest entry — the Universe Map's for the Jump Planner —
+    /// and could not open the tool it offered to open.</para>
     /// </summary>
-    public static string TabIntent(string tabTitleOrId)
+    public static readonly IReadOnlyList<(string Id, string Name, string Heading)> Tools =
+    [
+        ("overview",            "Overview",               "Overview"),
+        ("worklist",            "Worklist",               "Worklist"),
+        ("characters",          "Characters",             "Characters"),
+        ("assets",              "Assets",                 "Assets"),
+        ("items",               "Item Browser",           "Item Browser"),
+        ("inv_levels",          "Inventory Levels",       "Inventory Levels"),
+        ("structure_browser",   "Structure Browser",      "Structure Browser"),
+        ("universe",            "Universe Map",           "Universe Map"),
+        ("jump_planner",        "Jump Planner",           "Jump Planner"),
+        ("industry",            "Industry Jobs",          "Industry Jobs"),
+        ("indy_parks",          "Indy Parks",             "Indy Parks"),
+        ("prod_calc",           "Production Calculator",  "Production Calc"),
+        ("price_overrides",     "Price Overrides",        "Price Overrides"),
+        ("industry_opps",       "Industry Opportunities", "Industry Opportunities"),
+        ("market_viewer",       "Market Overview",        "Market Overview"),
+        ("item_valuation",      "Item Valuation",         "Item Valuation"),
+        ("lp_market_values",    "LP Market Values",       "LP Market Values"),
+        ("market_levels",       "Market Levels",          "Market Levels"),
+        ("contracts",           "Contracts",              "Contracts"),
+        ("trade",               "Trade Opportunities",    "Trade Opportunities"),
+        ("standing_buy_orders", "Standing Buy Orders",    "Standing Buy Orders"),
+        ("order_tracker",       "Order Tracker",          "Order Tracker"),
+        ("sales_tracker",       "Sales Tracker",          "Sales Tracker"),
+        ("sale_posting",        "Sale Posting",           "Sale Posting"),
+        ("stores",              "Stores",                 "Stores"),
+        ("net_worth",           "Net Worth",              "Net Worth"),
+        ("income_expense",      "Income & Expense",       "Income & Expense"),
+        ("wallet",              "Wallet",                 "Wallet"),
+        ("corp_activity",       "Corp Activity",          "Corp Activity"),
+        ("killmails",           "Killmails",              "Killmails"),
+        ("player_entities",     "Player Entities",        "Player Entities"),
+        ("npc_entities",        "NPC Entities",           "NPC Entities"),
+        ("eve_mail",            "Eve Mail",               "Eve Mail"),
+        ("notifications",       "Notifications",          "Notifications"),
+        ("background",          "Background Processes",   "Background Processes"),
+        ("data",                "ESI Explorer",           "ESI Explorer"),
+        ("error_log",           "Error Log",              "Error Log"),
+        ("ai_usage",            "AI Usage",               "AI Usage"),
+        ("game_log",            "Game Log",               "Game Log and Chat Log"),
+        ("chat_log",            "Chat Log",               "Game Log and Chat Log"),
+        ("alarms",              "Alarms",                 "Alarms"),
+    ];
+
+    /// <summary>
+    /// The tool a tab shows: by its id, or — for a caller with only a title, or a name the agent
+    /// wrote — by name. Tab titles are sometimes short forms ("Universe", "Trade"), so a name
+    /// that starts with the title counts. Null for a tab that is not a tool: a table or document
+    /// the agent opened.
+    /// </summary>
+    public static (string Id, string Name, string Heading)? Tool(string? idOrTitle)
     {
-        var t = (tabTitleOrId ?? "").ToLowerInvariant();
-        if (t.Contains("overview"))    return "Cross-character dashboard: income/expense charts, EVE news, and clickable alerts.";
-        if (t.Contains("character"))   return "Per-character viewer: skills and training queue, attributes, clones, medals, titles, standings.";
-        if (t.Contains("asset"))       return "Searchable list of all assets across characters and corps, filterable by name/location/owner.";
-        if (t.Contains("item"))        return "Look up any item: description, attributes, requirements, required-for (skills), industry, market orders, price history.";
-        if (t.Contains("industr") && t.Contains("job")) return "All manufacturing/reaction/invention/research jobs, filterable by status/activity/owner.";
-        if (t.Contains("indy") || t.Contains("park"))   return "Define industry parks (structures per item category) that drive build-cost calculations.";
-        if (t.Contains("prod"))        return "Production calculator: build cost, materials, and job breakdown for a chosen blueprint/product.";
-        if (t.Contains("industry_opp") || (t.Contains("industry") && t.Contains("opp"))) return "Rank buildable items by profit vs slot time: build cost vs market sell/buy price, with Profit per Slot Day.";
-        if (t.Contains("market level"))return "Monitor sell-order stock levels for a defined item list on a chosen market.";
-        if (t.Contains("inv") && t.Contains("level")) return "Monitor your own holdings (assets/in-build/orders) against target levels, jEveAssets-style.";
-        if (t.Contains("trade"))       return "Find profitable hauling between two markets with cargo/ISK/volume constraints and group exclusions.";
-        if (t.Contains("net worth"))   return "Historical chart of net worth over time.";
-        if (t.Contains("wallet"))      return "Wallet transactions and journal for your characters.";
-        if (t.Contains("corp"))        return "Corporation activity and finances: 24h/monthly summaries, taxes, mining, killmails, projects, standing projects, top-10 lists.";
-        if (t.Contains("killmail"))    return "Corp and personal killmails with detailed kill reports.";
-        if (t.Contains("mail"))        return "Read and compose EVE mail.";
-        if (t.Contains("esi") || t.Contains("explorer") || t == "data") return "Raw ESI endpoint browser (advanced/developer use).";
-        return "";
+        var key = (idOrTitle ?? "").Trim();
+        if (key.Length == 0) return null;
+        foreach (var t in Tools) if (t.Id.Equals(key, StringComparison.OrdinalIgnoreCase)) return t;
+        foreach (var t in Tools) if (t.Name.Equals(key, StringComparison.OrdinalIgnoreCase)) return t;
+        foreach (var t in Tools)
+            if (t.Name.StartsWith(key, StringComparison.OrdinalIgnoreCase) || t.Heading.StartsWith(key, StringComparison.OrdinalIgnoreCase))
+                return t;
+        return null;
+    }
+
+    /// <summary>
+    /// What the guide says about one tool: every section whose heading starts with the tool's —
+    /// its description and, where there is one, its entry under Interactions — cut to
+    /// <paramref name="limit"/> characters. Empty for a tool the guide does not describe.
+    /// </summary>
+    public static string EntryFor(string? toolId, int limit = 1800)
+    {
+        if (Tool(toolId) is not { } tool) return "";
+        var lines = Guide.Split('\n');
+        var entry = new System.Text.StringBuilder();
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+            if (!line.StartsWith("### ") || !line[4..].StartsWith(tool.Heading, StringComparison.OrdinalIgnoreCase)) continue;
+            var end = i + 1;
+            while (end < lines.Length && !lines[end].TrimStart().StartsWith('#')) end++;
+            entry.AppendLine(string.Join('\n', lines[i..end].Select(l => l.TrimEnd())).Trim()).AppendLine();
+            i = end - 1;
+        }
+        var text = entry.ToString().Trim();
+        return text.Length <= limit ? text : text[..limit].TrimEnd() + "…";
+    }
+
+    /// <summary>
+    /// What a tab is for, in a sentence: the first of the guide's entry for its tool. From the
+    /// guide itself, so the two cannot disagree — the keyword matching this replaced gave the
+    /// Market Overview the Overview's description ("overview") and Item Valuation the Item
+    /// Browser's ("item").
+    /// </summary>
+    public static string TabIntent(string? tabTitleOrId)
+    {
+        var entry = EntryFor(Tool(tabTitleOrId)?.Id);
+        if (entry.Length == 0) return "";
+        var body = string.Join(' ', entry.Split('\n').Skip(1).TakeWhile(l => l.Trim().Length > 0).Select(l => l.Trim()));
+        var stop = body.IndexOf(". ", StringComparison.Ordinal);
+        return stop < 0 ? body : body[..(stop + 1)];
     }
 }

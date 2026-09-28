@@ -42,12 +42,12 @@ var failures = new List<string>();
 
 failures.AddRange(Scenario.Run("Claude, 5-minute cache",
     handler => Seam(typeof(ClaudeProvider), handler),
-    () => new ClaudeProvider("not-a-real-key"),
+    () => new ClaudeProvider("not-a-real-key", "claude-test-model"),
     new FakeAnthropic(), (h, _) => ((FakeAnthropic)h).Verify()));
 
 failures.AddRange(Scenario.Run("Claude, 1-hour cache",
     handler => Seam(typeof(ClaudeProvider), handler),
-    () => new ClaudeProvider("not-a-real-key", cacheTtl: "1h"),
+    () => new ClaudeProvider("not-a-real-key", "claude-test-model", cacheTtl: "1h"),
     new FakeAnthropic(), (h, _) => ((FakeAnthropic)h).Verify(expectHourOnStable: true)));
 
 failures.AddRange(Scenario.Run("OpenAI-compatible",

@@ -18,6 +18,7 @@ public sealed class SpeechInputService : IDisposable
     private SpeechInputProvider _provider             = SpeechInputProvider.None;
     private string              _apiKey               = "";
     private string              _localModel           = "tiny";
+    private string              _cloudModel           = "";
     private string              _language             = "en";
     private string              _microphoneDeviceName = "";
 
@@ -64,12 +65,15 @@ public sealed class SpeechInputService : IDisposable
         Errors?.Log("SpeechInput", context, message, null);
     }
 
-    public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "", string language = "en")
+    /// <param name="cloudModel">OpenAI's transcription model, as its list names it.</param>
+    public void Configure(SpeechInputProvider provider, string apiKey, string localModel, string microphoneDeviceName = "",
+                          string language = "en", string cloudModel = "")
     {
         var reopen = provider != _provider || (microphoneDeviceName ?? "") != _microphoneDeviceName;
         _provider             = provider;
         _apiKey               = apiKey ?? "";
         _localModel           = string.IsNullOrWhiteSpace(localModel) ? "tiny" : localModel;
+        _cloudModel           = (cloudModel ?? "").Trim();
         _language             = language ?? "en";
         _microphoneDeviceName = microphoneDeviceName ?? "";
 
@@ -486,7 +490,7 @@ public sealed class SpeechInputService : IDisposable
         {
             return _provider switch
             {
-                SpeechInputProvider.OpenAiWhisper => await _cloud.TranscribeAsync(wav, _apiKey, ct),
+                SpeechInputProvider.OpenAiWhisper => await _cloud.TranscribeAsync(wav, _apiKey, _cloudModel, ct),
                 SpeechInputProvider.LocalWhisper  => await _local.TranscribeAsync(wav, _localModel, _language, ct),
                 _                                  => null,
             };
@@ -504,7 +508,7 @@ public sealed class SpeechInputService : IDisposable
                 Telemetry?.ServiceCall(
                     kind:       "stt",
                     provider:   _provider.ToString(),
-                    model:      _provider == SpeechInputProvider.LocalWhisper ? _localModel : "whisper-1",
+                    model:      _provider == SpeechInputProvider.LocalWhisper ? _localModel : _cloudModel,
                     isLocal:    _provider == SpeechInputProvider.LocalWhisper,
                     unitKind:   "seconds",
                     units:      seconds,

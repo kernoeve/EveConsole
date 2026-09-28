@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-// â”€â”€ Public result types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Public result types ───────────────────────────────────────────────────────
 
 public sealed record WalletMonthRow(
     string  Month,
@@ -147,7 +147,7 @@ public sealed record StandingProjectGridRow(
     /// read as "gone since" rather than merely absent. Null where none ever was.</summary>
     DateTimeOffset? LastDone = null);
 
-// â”€â”€ Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Service ───────────────────────────────────────────────────────────────────
 
 public class CorpActivityService
 {
@@ -524,7 +524,7 @@ public class CorpActivityService
         var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT m."CharacterId",
                    COALESCE(SUM(m."Quantity" * COALESCE(r."Value", 0)), 0) AS "Amount"
-            FROM "EsiCorpMiningLedger" m
+            FROM "EsiCorpMiningLedgerDays" m
             LEFT JOIN "ReprocessingValues" r ON r."TypeId" = m."TypeId"
             WHERE m."CorporationId" = {corpId}
               AND m."LastUpdated" >= {sinceStr}
@@ -622,7 +622,7 @@ public class CorpActivityService
         var miningRows = await db.Database.SqlQuery<MonthCountRaw>($"""
             SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month",
                    CAST(SUM("Quantity") AS BIGINT) AS "Count"
-            FROM "EsiCorpMiningLedger"
+            FROM "EsiCorpMiningLedgerDays"
             WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {cutoff}
             GROUP BY "Month"
             """).ToListAsync(ct);
@@ -632,7 +632,7 @@ public class CorpActivityService
         var miningValueRows = await db.Database.SqlQuery<MonthMoneyRaw>($"""
             SELECT substr(CAST(m."LastUpdated" AS TEXT), 1, 7) AS "Month",
                    COALESCE(SUM(m."Quantity" * COALESCE(v."Value", 0.0)), 0) AS "Value"
-            FROM "EsiCorpMiningLedger" m
+            FROM "EsiCorpMiningLedgerDays" m
             LEFT JOIN "ReprocessingValues" v ON v."TypeId" = m."TypeId"
             WHERE m."CorporationId" = {corpId} AND m."LastUpdated" >= {cutoff}
             GROUP BY "Month"
@@ -680,12 +680,20 @@ public class CorpActivityService
                           (decimal)g.Where(k => k.IsLoss == 1).Sum(k => values.GetValueOrDefault(k.KillMailId))));
         }
 
-        // Distinct active players per month.
+        // Distinct active members per month: characters who did something the corp can see
+        // while they were in it.
         //
-        // Deliberately as broad as the stored data allows: any dated activity attributable
-        // to a character counts. There is no login signal available — ESI exposes corp
-        // member last-logon but this app does not store it — so this measures "did
-        // something the corp can see", not "logged in".
+        // ⚠️ Members only. This used to count every wallet and contract counterparty, which is
+        // anyone the corp deals with: market buyers, contract partners, users of its structures,
+        // mission agents, other corporations. Measured on live data: a small store corp showed
+        // over ten times its membership, and a large corp about a fifth more than were active.
+        //
+        // Two kinds of source. Most rows below show membership themselves — a login seen by
+        // member tracking, a killmail or mining ledger row that records the corp, a contract
+        // issued from the corp, a corp job, the corp's tax on a member's income — and they count
+        // former members too, for the months they were in. A wallet or contract counterparty
+        // shows nothing either way, so it counts only for a current member who had joined by
+        // that month.
         //
         // Only corp-wide sources are used. Per-character tables (personal mining ledger,
         // skill queue, mail, notifications, planetary colonies, game/chat logs) exist only
@@ -695,22 +703,23 @@ public class CorpActivityService
         var playerRows = await db.Database.SqlQuery<MonthCountRaw>($"""
             SELECT "Month", COUNT(DISTINCT "CharId") AS "Count"
             FROM (
-              -- Any wallet movement with the character as a counterparty: ratting bounties,
-              -- industry and reprocessing tax, donations (which is how mining is billed),
-              -- contract payments, project payouts, medals — rather than a fixed RefType list.
-              SELECT substr(CAST("Date" AS TEXT), 1, 7) AS "Month", "FirstPartyId" AS "CharId"
-              FROM "EsiWalletJournal"
-              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
-                AND "Date" >= {cutoff} AND "FirstPartyId" IS NOT NULL AND "FirstPartyId" != {corpId}
-              UNION
+              -- The corp's cut of a member's NPC-paid income — bounties, ESS, missions, daily
+              -- goals and the like. Only its own members pay a corp tax; the payer is CONCORD, a
+              -- navy or another NPC, and the member is the second party.
               SELECT substr(CAST("Date" AS TEXT), 1, 7) AS "Month", "SecondPartyId" AS "CharId"
               FROM "EsiWalletJournal"
-              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
-                AND "Date" >= {cutoff} AND "SecondPartyId" IS NOT NULL AND "SecondPartyId" != {corpId}
+              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation' AND "Date" >= {cutoff}
+                AND "RefType" IN ('bounty_prizes','ess_escrow_transfer','daily_goal_payouts',
+                                  'agent_mission_reward','agent_mission_time_bonus_reward',
+                                  'corporate_reward_payout','project_discovery_reward',
+                                  'campaign_objective_isk_reward','freelance_jobs_reward')
               UNION
+              -- Mined at a corp structure while in the corp: the ledger records the miner's corp,
+              -- and anyone with access can mine there.
               SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month", "CharacterId" AS "CharId"
-              FROM "EsiCorpMiningLedger"
-              WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {cutoff}
+              FROM "EsiCorpMiningLedgerDays"
+              WHERE "CorporationId" = {corpId} AND "RecordedCorporationId" = {corpId}
+                AND "LastUpdated" >= {cutoff}
               UNION
               SELECT substr(CAST(d."KillMailTime" AS TEXT), 1, 7) AS "Month", a."CharacterId" AS "CharId"
               FROM "KillMailDetails" d
@@ -733,16 +742,12 @@ public class CorpActivityService
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
                 AND "StartDate" >= {cutoff} AND "InstallerId" != 0
               UNION
-              -- Issued or accepted a corp contract
+              -- Issued a contract while in the corp. A contract assigned to the corp from outside
+              -- records the issuer's own corp, and is left to the counterparties below.
               SELECT substr(CAST("DateIssued" AS TEXT), 1, 7) AS "Month", "IssuerId" AS "CharId"
               FROM "EsiContracts"
               WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
-                AND "DateIssued" >= {cutoff} AND "IssuerId" != 0
-              UNION
-              SELECT substr(CAST("DateAccepted" AS TEXT), 1, 7) AS "Month", "AcceptorId" AS "CharId"
-              FROM "EsiContracts"
-              WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
-                AND "DateAccepted" >= {cutoff} AND "AcceptorId" IS NOT NULL AND "AcceptorId" != 0
+                AND "DateIssued" >= {cutoff} AND "IssuerId" != 0 AND "IssuerCorporationId" = {corpId}
               UNION
               -- Created a corp project
               SELECT substr(CAST("Created" AS TEXT), 1, 7) AS "Month", "CreatorId" AS "CharId"
@@ -759,6 +764,30 @@ public class CorpActivityService
               SELECT substr(CAST("LogonDate" AS TEXT), 1, 7) AS "Month", "CharacterId" AS "CharId"
               FROM "EsiCorpMemberSessions"
               WHERE "CorporationId" = {corpId} AND "LogonDate" >= {cutoff}
+              UNION
+              -- Anyone else the corp's wallet or contracts name: buyers, sellers, donors, contract
+              -- partners, people paid by the corp, users of its structures. The row cannot tell a
+              -- member from a customer, so it counts only for someone in the corp now who had
+              -- joined by that month (the join date is member tracking's, where it is polled).
+              SELECT x."Month", x."CharId"
+              FROM (
+                SELECT substr(CAST("Date" AS TEXT), 1, 7) AS "Month", "FirstPartyId" AS "CharId"
+                FROM "EsiWalletJournal"
+                WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation' AND "Date" >= {cutoff}
+                UNION
+                SELECT substr(CAST("Date" AS TEXT), 1, 7) AS "Month", "SecondPartyId" AS "CharId"
+                FROM "EsiWalletJournal"
+                WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation' AND "Date" >= {cutoff}
+                UNION
+                SELECT substr(CAST("DateAccepted" AS TEXT), 1, 7) AS "Month", "AcceptorId" AS "CharId"
+                FROM "EsiContracts"
+                WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation' AND "DateAccepted" >= {cutoff}
+              ) x
+              JOIN "EsiCorpMembers" m
+                ON m."CorporationId" = {corpId} AND m."CharacterId" = x."CharId"
+              LEFT JOIN "EsiCorpMemberTracking" t
+                ON t."CorporationId" = {corpId} AND t."CharacterId" = x."CharId"
+              WHERE t."StartDate" IS NULL OR x."Month" >= substr(CAST(t."StartDate" AS TEXT), 1, 7)
             )
             WHERE "CharId" IS NOT NULL AND "CharId" > 0
             GROUP BY "Month"
@@ -916,7 +945,7 @@ public class CorpActivityService
                 l."TypeId",
                 COALESCE(t."Name", CAST(l."TypeId" AS TEXT)) AS "TypeName",
                 CAST(SUM(l."Quantity") AS BIGINT) AS "Quantity"
-            FROM "EsiCorpMiningLedger" l
+            FROM "EsiCorpMiningLedgerDays" l
             LEFT JOIN "SdeTypes" t ON t."TypeId" = l."TypeId"
             WHERE l."CorporationId" = {corpId}
               AND l."LastUpdated" >= {sinceStr}
@@ -950,7 +979,7 @@ public class CorpActivityService
             SELECT DISTINCT
                 CAST(substr(CAST("LastUpdated" AS TEXT), 1, 4) AS INTEGER) AS "Year",
                 CAST(substr(CAST("LastUpdated" AS TEXT), 6, 2) AS INTEGER) AS "Month"
-            FROM "EsiCorpMiningLedger"
+            FROM "EsiCorpMiningLedgerDays"
             WHERE "CorporationId" = {corpId}
             ORDER BY "Year" DESC, "Month" DESC
             """).ToListAsync(ct);
@@ -980,7 +1009,7 @@ public class CorpActivityService
             .ToDictionaryAsync(c => c.Id, c => c.Name, ct);
         foreach (var kv in chars) result[kv.Key] = kv.Value;
 
-        // Player-owned structures (IDs > 1 trillion) won't resolve via /universe/names/ â€”
+        // Player-owned structures (IDs > 1 trillion) won't resolve via /universe/names/ —
         // check the local structure name cache first, then try ESI if we have an auth char.
         var structureIds = idList.Where(id => !result.ContainsKey(id) && id > 1_000_000_000_000L).ToList();
         if (structureIds.Count > 0)
@@ -1100,7 +1129,7 @@ public class CorpActivityService
         }
     }
 
-    // â”€â”€ Tie-inclusive Top 10 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Tie-inclusive Top 10 ─────────────────────────────────────────────────
 
     private static List<RankedPlayerRow> ApplyTop10WithTies(
         List<PlayerRaw> rawRows, IReadOnlySet<long>? excludeIds)
@@ -1344,7 +1373,7 @@ public class CorpActivityService
         return rows.Select(r => new WalletTypeRow(r.RefType, r.Count, (decimal)r.Amount)).ToList();
     }
 
-    // â”€â”€ 24h Activity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 24h Activity ──────────────────────────────────────────────────────────
 
     /// <param name="CharacterId">Carried so the name can be a link. Every query behind this
     /// already groups by it — it was simply dropped when the name was resolved.</param>
@@ -1392,21 +1421,25 @@ public class CorpActivityService
               AND "SecondPartyId" IS NOT NULL
             """).ToListAsync(ct);
 
+        // ⚠️ Members only, as on Monthly Activity. Anyone with access pays tax on a corp
+        // structure or mines at its refinery, so a tax payer counts only while in the corp and a
+        // miner only where the ledger records this corp as theirs.
         var industryIds = await db.Database.SqlQuery<IdRaw>($"""
             SELECT DISTINCT "FirstPartyId" AS "Id"
             FROM "EsiWalletJournal"
             WHERE "OwnerId" = {corpId} AND "OwnerType" = 'corporation'
               AND "RefType" IN ('industry_job_tax','manufacturing_tax','reprocessing_tax')
               AND "Date" >= {cutoff}
-              AND "FirstPartyId" IS NOT NULL
-              AND "FirstPartyId" != {corpId}
+              AND "FirstPartyId" IN (SELECT "CharacterId" FROM "EsiCorpMembers"
+                                     WHERE "CorporationId" = {corpId})
             """).ToListAsync(ct);
 
         var miningCutoff = SqlCutoff(DateTimeOffset.UtcNow.AddHours(-48));
         var miningIds = await db.Database.SqlQuery<IdRaw>($"""
             SELECT DISTINCT "CharacterId" AS "Id"
-            FROM "EsiCorpMiningLedger"
-            WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {miningCutoff}
+            FROM "EsiCorpMiningLedgerDays"
+            WHERE "CorporationId" = {corpId} AND "RecordedCorporationId" = {corpId}
+              AND "LastUpdated" >= {miningCutoff}
             """).ToListAsync(ct);
 
         var killAttackerIds = await db.Database.SqlQuery<IdRaw>($"""
@@ -1499,7 +1532,7 @@ public class CorpActivityService
         var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT m."CharacterId",
                    COALESCE(SUM(m."Quantity" * COALESCE(r."Value", 0)), 0) AS "Amount"
-            FROM "EsiCorpMiningLedger" m
+            FROM "EsiCorpMiningLedgerDays" m
             LEFT JOIN "ReprocessingValues" r ON r."TypeId" = m."TypeId"
             WHERE m."CorporationId" = {corpId}
               AND m."LastUpdated" >= {cutoff}
@@ -1612,7 +1645,7 @@ public class CorpActivityService
         }).ToList();
     }
 
-    //â”€â”€ Private raw SQL DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //── Private raw SQL DTOs ──────────────────────────────────────────────────
 
     // ── Wallet journal detail (ungrouped rows) ────────────────────────────────
 
@@ -2287,13 +2320,15 @@ public class CorpActivityService
             .ToList();
     }
 
+    /// <summary>Systems whose name contains <paramref name="query"/>. Wormhole systems only when
+    /// asked for: most pickers mean New Eden, but an industry park can be in J-space.</summary>
     public async Task<List<SdeSystemResult>> SearchSdeSystemsAsync(
-        string query, CancellationToken ct = default)
+        string query, CancellationToken ct = default, bool includeWormholes = false)
     {
         if (query.Length < 2) return [];
         using var db = _dbFactory.CreateDbContext();
         return await db.SdeSolarSystems
-            .Where(s => EF.Functions.Like(s.Name, $"%{query}%") && !s.IsWormhole)
+            .Where(s => EF.Functions.Like(s.Name, $"%{query}%") && (includeWormholes || !s.IsWormhole))
             .OrderBy(s => s.Name)
             .Take(40)
             .Select(s => new SdeSystemResult(s.SolarSystemId, s.Name))

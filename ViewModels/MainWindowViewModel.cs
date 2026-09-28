@@ -1059,6 +1059,14 @@ public class MainWindowViewModel : ReactiveObject
                                                         corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
 
+        // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
+        // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
+        IndyParksVm.ParksChanged += () =>
+        {
+            _ = ProductionCalcVm.LoadParksAsync();
+            _ = WorklistVm.IndustryVm.ReloadParksAsync();
+        };
+
         // One wiring for every killmail row in the app — browser, corp activity, system
         // page, entity viewers.
         EntityNavigator.Instance.OpenEntity = (kind, id) =>
@@ -1073,6 +1081,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
+        EntityNavigator.Instance.OpenNotification = id => { OpenTool("notifications"); NotificationsVm.ShowNotification(id); };
         // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
         // the system page still returns to it. A region is now territory you zoom to on the
         // one continuous universe map.
@@ -1160,6 +1169,10 @@ public class MainWindowViewModel : ReactiveObject
         ExplorerVm           = new EsiExplorerViewModel(connString);
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
         AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
+        // A model a paid service has added gets a rate row of its own when the tool is opened.
+        AgentUsageVm.SyncListedRates = ct => agentService.Telemetry is { } telemetry
+            ? EveConsole.Agent.ListedRates.SyncAsync(agentService.Settings, telemetry, ct)
+            : Task.FromResult(0);
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
@@ -1189,7 +1202,8 @@ public class MainWindowViewModel : ReactiveObject
         var s = agentService.Settings;
         ttsService.Configure(s);
         speechInputService.Configure(s.SpeechInputProvider, s.OpenAiApiKey,
-                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage);
+                                     s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage,
+                                     s.OpenAiTranscriptionModel ?? "");
 
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 

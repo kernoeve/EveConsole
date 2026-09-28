@@ -78,7 +78,7 @@ public class AppDbContext : DbContext
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
     public DbSet<CorpMiningObserver>    EsiCorpMiningObservers   => Set<CorpMiningObserver>();
-    public DbSet<CorpMiningLedgerEntry> EsiCorpMiningLedger      => Set<CorpMiningLedgerEntry>();
+    public DbSet<CorpMiningLedgerEntry> EsiCorpMiningLedgerDays  => Set<CorpMiningLedgerEntry>();
     public DbSet<CorpProject>            EsiCorpProjects            => Set<CorpProject>();
     public DbSet<CorpProjectContributor> EsiCorpProjectContributors => Set<CorpProjectContributor>();
     public DbSet<CorpTop10Exclude>       CorpTop10Excludes          => Set<CorpTop10Exclude>();
@@ -285,6 +285,10 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        // ⚠️ An index the hand-written schema also creates — App.axaml.cs, AgentTelemetrySchema,
+        // SdeImportService, PostgresSchema — takes that name here with HasDatabaseName. Left to
+        // EF's own naming, a fresh database got the same index twice, since CREATE INDEX IF NOT
+        // EXISTS compares names, not columns: 14 of them on either engine until 2026-09-27.
         // ── Dynamic tables ───────────────────────────────────────────────
         mb.Entity<Character>(e =>
         {
@@ -344,7 +348,7 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.ConfigId, x.OrderId });
             e.Property(x => x.ConfigId).ValueGeneratedNever();
             e.Property(x => x.OrderId).ValueGeneratedNever();
-            e.HasIndex(x => new { x.ConfigId, x.TypeId, x.IsBuyOrder }); });
+            e.HasIndex(x => new { x.ConfigId, x.TypeId, x.IsBuyOrder }).HasDatabaseName("IX_MarketRawOrders_TypeId"); });
 
         // ── SDE build metadata — single row, always Id = 1 ──────────────
         mb.Entity<SdeBuildInfo>(e => {
@@ -464,7 +468,7 @@ public class AppDbContext : DbContext
         mb.Entity<SdeAgent>(e => {
             e.HasKey(x => x.AgentId);
             e.Property(x => x.AgentId).ValueGeneratedNever();
-            e.HasIndex(x => x.LocationId);
+            e.HasIndex(x => x.LocationId).HasDatabaseName("IX_SdeAgents_Location");
             e.ToTable("SdeAgents"); });
 
         mb.Entity<SdeAgentType>(e => {
@@ -489,7 +493,7 @@ public class AppDbContext : DbContext
         mb.Entity<SdeCelestial>(e => {
             e.HasKey(x => x.ItemId);
             e.Property(x => x.ItemId).ValueGeneratedNever();
-            e.HasIndex(x => x.SolarSystemId); });
+            e.HasIndex(x => x.SolarSystemId).HasDatabaseName("IX_SdeCelestials_System"); });
 
         mb.Entity<SdeStation>(e => {
             e.HasKey(x => x.StationId);
@@ -908,7 +912,8 @@ public class AppDbContext : DbContext
         mb.Entity<CorpMemberSession>(e => {
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).ValueGeneratedOnAdd();
-            e.HasIndex(x => new { x.CorporationId, x.CharacterId, x.LogonDate }).IsUnique();
+            e.HasIndex(x => new { x.CorporationId, x.CharacterId, x.LogonDate }).IsUnique()
+             .HasDatabaseName("IX_EsiCorpMemberSessions_Key");
             e.ToTable("EsiCorpMemberSessions"); });
 
         mb.Entity<CorpMemberRole>(e => {
@@ -956,7 +961,8 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             // One module per slot: the unique index is what stops a double-click leaving two
             // modules in the same hole.
-            e.HasIndex(x => new { x.StructureId, x.Band, x.SlotIndex }).IsUnique();
+            e.HasIndex(x => new { x.StructureId, x.Band, x.SlotIndex }).IsUnique()
+             .HasDatabaseName("IX_StructureFittings_Slot");
             e.ToTable("StructureFittings"); });
 
         mb.Entity<EveRefStructure>(e => {
@@ -994,13 +1000,18 @@ public class AppDbContext : DbContext
             e.Property(x => x.ObserverId).ValueGeneratedNever();
             e.ToTable("EsiCorpMiningObservers"); });
 
+        // A new table rather than a new key on the old one: SQLite cannot change a primary key,
+        // and the carry-over in App.axaml.cs / PostgresSchema moves the old rows across once.
+        // The date third, so replacing an observer's recent days is a range on the key.
         mb.Entity<CorpMiningLedgerEntry>(e => {
-            e.HasKey(x => new { x.CorporationId, x.ObserverId, x.CharacterId, x.TypeId });
+            e.HasKey(x => new { x.CorporationId, x.ObserverId, x.LastUpdated, x.CharacterId,
+                                x.RecordedCorporationId, x.TypeId });
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.Property(x => x.ObserverId).ValueGeneratedNever();
             e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.RecordedCorporationId).ValueGeneratedNever();
             e.Property(x => x.TypeId).ValueGeneratedNever();
-            e.ToTable("EsiCorpMiningLedger"); });
+            e.ToTable("EsiCorpMiningLedgerDays"); });
 
         mb.Entity<CorpProject>(e => {
             e.HasKey(x => new { x.CorporationId, x.ProjectId });
@@ -1082,7 +1093,7 @@ public class AppDbContext : DbContext
 
         mb.Entity<StoreWebEvent>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.StoreId, x.Seq });
+            e.HasIndex(x => new { x.StoreId, x.Seq }).HasDatabaseName("IX_StoreWebEvents_Store_Seq");
             e.ToTable("StoreWebEvents"); });
 
         mb.Entity<StoreWebAsset>(e => {
@@ -1170,8 +1181,9 @@ public class AppDbContext : DbContext
         mb.Entity<IntelReport>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
-            e.HasIndex(x => new { x.SystemId, x.ReportedAt });    // the overlays' query
-            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }); });
+            e.HasIndex(x => new { x.SystemId, x.ReportedAt })     // the overlays' query
+             .HasDatabaseName("IX_IntelReports_System_Time");
+            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time"); });
 
         mb.Entity<NameLookupMiss>(e => {
             e.HasKey(x => x.Name);
@@ -1199,15 +1211,15 @@ public class AppDbContext : DbContext
         mb.Entity<AlarmSeenKey>(e => {
             e.HasKey(x => new { x.AlarmId, x.MatchKey });
             // Pruning walks the ledger oldest-first per alarm.
-            e.HasIndex(x => new { x.AlarmId, x.FirstSeenAt }); });
+            e.HasIndex(x => new { x.AlarmId, x.FirstSeenAt }).HasDatabaseName("IX_AlarmSeenKeys_Alarm_Seen"); });
 
         mb.Entity<AlarmEvent>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.AlarmId, x.FiredAt }); });
+            e.HasIndex(x => new { x.AlarmId, x.FiredAt }).HasDatabaseName("IX_AlarmEvents_Alarm_Fired"); });
 
         mb.Entity<AlarmAlert>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.Dismissed, x.CreatedAt }); });
+            e.HasIndex(x => new { x.Dismissed, x.CreatedAt }).HasDatabaseName("IX_AlarmAlerts_Dismissed_Created"); });
 
         mb.Entity<AlarmSnooze>(e => {
             e.HasKey(x => new { x.AlarmId, x.ScopeKey }); });
@@ -1219,14 +1231,14 @@ public class AppDbContext : DbContext
         mb.Entity<AgentInteraction>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.StartedAt);
-            e.HasIndex(x => new { x.ConversationId, x.StartedAt }); });
+            e.HasIndex(x => new { x.ConversationId, x.StartedAt }).HasDatabaseName("IX_AgentInteractions_Conversation"); });
 
         mb.Entity<AgentToolCall>(e => {
             e.HasKey(x => x.Id);
             // ⚠️ InteractionId first: this is read as "the calls belonging to that turn", and a
             // time-first index would not serve it. See the KillMailAttackers note — the same
             // column order mistake took an entity tab from 1.7s to over ten minutes.
-            e.HasIndex(x => new { x.InteractionId, x.Sequence });
+            e.HasIndex(x => new { x.InteractionId, x.Sequence }).HasDatabaseName("IX_AgentToolCalls_Interaction");
             e.HasIndex(x => x.OccurredAt); });
 
         mb.Entity<ServiceUsage>(e => {
@@ -1236,7 +1248,7 @@ public class AppDbContext : DbContext
 
         mb.Entity<ServiceRate>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.Kind, x.Provider, x.Model }).IsUnique();
+            e.HasIndex(x => new { x.Kind, x.Provider, x.Model }).IsUnique().HasDatabaseName("IX_ServiceRates_Key");
             // ⚠️ Explicit precision. A rate is 0.000003 USD per token, and the provider default
             // for decimal would round that to nothing on some engines.
             e.Property(x => x.InputPerUnit)     .HasPrecision(18, 10);

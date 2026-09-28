@@ -6,9 +6,32 @@ using LibVLCSharp.Shared;
 
 namespace EveConsole.Services;
 
+/// <summary>
+/// Speech through OpenAI's speech API — OpenAI's own service, or any server that speaks the same
+/// API: Kokoro-FastAPI, Chatterbox-TTS-Server, Orpheus-FastAPI, usually on another machine's GPU.
+///
+/// <para>⚠️ One utterance at a time, and it RETURNS WHEN IT HAS FINISHED PLAYING and THROWS WHEN
+/// IT COULD NOT SPEAK. It used to stop whatever was playing before starting — so each sentence of
+/// a streamed answer cut off the one before it — and to swallow every failure into a debug line,
+/// so a voice that had stopped working was recorded as speech that worked. TtsService's queue
+/// orders the sentences now, and needs the failure to know when to hand over to another voice.</para>
+/// </summary>
 public sealed class OpenAiTtsService : IDisposable
 {
-    private static readonly HttpClient _http = new();
+    public const string OpenAiEndpoint = "https://api.openai.com/v1";
+
+    /// <summary>
+    /// ⚠️ A short connect timeout: a server that is switched off must be given up on in seconds,
+    /// or the voice falls silent mid-answer while it waits. The overall timeout is generous —
+    /// a long sentence on a busy GPU can take a while to synthesise.
+    ///
+    /// <para>⚠️ Not readonly, and only so a harness can put a client over a fake service in its
+    /// place (see ElevenLabsTtsService._http). Nothing in the application assigns it.</para>
+    /// </summary>
+    private static HttpClient _http = new(new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds(3) })
+    {
+        Timeout = TimeSpan.FromSeconds(90),
+    };
 
     // LibVLC instance — created once; null if native libs are unavailable.
     private static readonly LibVLC? _vlc;
@@ -28,29 +51,53 @@ public sealed class OpenAiTtsService : IDisposable
 
     public static bool IsVlcAvailable => _vlc is not null;
 
-    public static readonly IReadOnlyList<string> Voices =
+    // ⚠️ The one list of names written here, because OpenAI publishes no list of its voices to
+    // ask — its models come from its own list (see ModelListing). These are the voices its
+    // text-to-speech guide names, checked 27 September 2026; tts-1 and tts-1-hd take only the
+    // first nine. A voice OpenAI adds later needs adding here.
+    private static readonly string[] OlderModelVoices =
         ["alloy", "ash", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"];
+    private static readonly string[] NewerModelVoices =
+        [.. OlderModelVoices, "ballad", "verse", "marin", "cedar"];
 
-    public static readonly IReadOnlyList<string> Models =
-        ["tts-1", "tts-1-hd", "gpt-4o-mini-tts"];
+    /// <summary>The voices OpenAI documents for <paramref name="model"/>.</summary>
+    public static IReadOnlyList<string> VoicesFor(string? model) =>
+        (model ?? "").StartsWith("tts-1", StringComparison.OrdinalIgnoreCase) ? OlderModelVoices : NewerModelVoices;
 
-    private string _apiKey = "";
-    private string _voice  = "nova";
-    private string _model  = "tts-1";
-    private double _speed  = 1.0;
-    private int    _volume = 100; // VLC 0–200 (100 = normal)
+    private string _endpoint = OpenAiEndpoint;
+    private string _apiKey   = "";
+    private string _voice    = "";
+    private string _model    = "";
+    private double _speed    = 1.0;
+    private int    _volume   = 100; // VLC 0–200 (100 = normal)
 
     private MediaPlayer? _player;
     private readonly object _playerLock = new();
     private CancellationTokenSource _cts = new();
 
-    public void Configure(string apiKey, string voice, string model, double speed)
+    /// <summary>OpenAI's own service, which needs a key.</summary>
+    public bool IsOpenAi => _endpoint == OpenAiEndpoint;
+
+    /// <summary>WAV from every server, OpenAI's too — see PrepareAsync.</summary>
+    private const string Format = "wav";
+
+    public void Configure(string apiKey, string voice, string model, double speed) =>
+        Configure(OpenAiEndpoint, apiKey, voice, model, speed);
+
+    /// <param name="endpoint">Up to and including /v1: "http://gpu-box:8880/v1".</param>
+    public void Configure(string endpoint, string apiKey, string voice, string model, double speed)
     {
-        _apiKey = apiKey ?? "";
-        _voice  = string.IsNullOrEmpty(voice) ? "nova"  : voice;
-        _model  = string.IsNullOrEmpty(model) ? "tts-1" : model;
-        _speed  = speed is < 0.25 or > 4.0   ? 1.0     : speed;
+        _endpoint = string.IsNullOrWhiteSpace(endpoint) ? OpenAiEndpoint : endpoint.Trim().TrimEnd('/');
+        _apiKey   = apiKey ?? "";
+        _voice    = (voice ?? "").Trim();
+        _model    = (model ?? "").Trim();
+        _speed    = speed is < 0.25 or > 4.0 ? 1.0 : speed;
+        // No defaults: OpenAI's voice and model are chosen on the settings tab, and a local
+        // server's are whatever it calls them.
     }
+
+    /// <summary>OpenAI's service needs a voice and a model chosen; a server of our own decides for itself.</summary>
+    private bool IsSetUp => !IsOpenAi || (_voice.Length > 0 && _model.Length > 0);
 
     // volume: 0.0 – 1.0 maps to VLC 0–100 (normal output, no amplification)
     public void SetVolume(float volume)
@@ -59,6 +106,7 @@ public sealed class OpenAiTtsService : IDisposable
         lock (_playerLock) { try { if (_player is not null) _player.Volume = _volume; } catch { } }
     }
 
+    /// <summary>Stops what is playing, and anything this call's token was handed to.</summary>
     public void Stop()
     {
         var old = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
@@ -67,51 +115,166 @@ public sealed class OpenAiTtsService : IDisposable
         lock (_playerLock) { try { _player?.Stop(); } catch { } }
     }
 
-    public async Task SpeakAsync(string text)
+    /// <summary>What a server of our own is asked to say, unheard, to show it can still speak.</summary>
+    internal const string ProbeText = "Ready.";
+
+    /// <summary>
+    /// Whether the voice can speak, at no cost. OpenAI's service: the free model list, with the
+    /// key. A server of our own: one word, made and not played.
+    ///
+    /// <para>⚠️ Not merely "does it answer". A server that has lost its GPU — a system update
+    /// can do that to a running container — or never loaded its model still answers everything
+    /// except the one request that matters. Trusting that would bring the voice back every ten
+    /// minutes, only for it to fail on the first sentence and announce the handover all over
+    /// again. One word costs nothing on a GPU of our own.</para>
+    /// </summary>
+    public async Task<bool> IsAvailableAsync(CancellationToken ct = default)
     {
-        if (_vlc is null || string.IsNullOrEmpty(_apiKey)) return;
-        var stripped = StripMarkdown(text);
-        if (string.IsNullOrWhiteSpace(stripped)) return;
-
-        Stop();
-        var ct = _cts.Token;
-
+        if (_vlc is null) return false;
+        if (IsOpenAi && (string.IsNullOrEmpty(_apiKey) || !IsSetUp)) return false;
         try
         {
-            var body = JsonSerializer.Serialize(new
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            if (!IsOpenAi)
             {
-                model           = _model,
-                input           = stripped,
-                voice           = _voice,
-                speed           = _speed,
-                response_format = "mp3",
-            });
+                // ⚠️ Generous: the first request after a server starts pays its warm-up and the
+                // preparing of the voice — measured at 12 s for Chatterbox Turbo on an RTX 3080
+                // that then speaks far faster — and a check that gave up sooner started the app
+                // on the next voice, only to "return" five minutes later.
+                timeout.CancelAfter(TimeSpan.FromSeconds(30));
+                await SynthesizeAsync(ProbeText, timeout.Token);
+                return true;
+            }
 
-            using var req = new HttpRequestMessage(HttpMethod.Post,
-                "https://api.openai.com/v1/audio/speech");
+            timeout.CancelAfter(TimeSpan.FromSeconds(5));
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"{_endpoint}/models");
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-            req.Content = new StringContent(body, Encoding.UTF8, "application/json");
-
-            using var resp = await _http.SendAsync(req,
-                HttpCompletionOption.ResponseContentRead, ct);
-            resp.EnsureSuccessStatusCode();
-
-            var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
-            if (ct.IsCancellationRequested) return;
-
-            await PlayAsync(bytes, ct);
+            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, timeout.Token);
+            return resp.IsSuccessStatusCode;
         }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[OpenAI TTS] {ex.Message}");
-        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return false; }   // timed out
+        catch (HttpRequestException)      { return false; }
+        catch (InvalidOperationException) { return false; }   // answered, with no audio
     }
+
+    /// <summary>Speaks one utterance and returns when it has finished playing. Throws when it
+    /// could not; returns quietly when stopped.</summary>
+    public async Task SpeakAsync(string text, CancellationToken ct = default)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
+        var token = linked.Token;
+        try
+        {
+            var play = await PrepareAsync(text, token);
+            await play(token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { /* stopped */ }
+    }
+
+    /// <summary>
+    /// Makes the audio for an utterance WITHOUT playing it, and returns what plays it — so the
+    /// next sentence can be made while this one plays. Throws when it could not be made; the
+    /// returned player returns quietly when stopped.
+    /// </summary>
+    public async Task<Func<CancellationToken, Task>> PrepareAsync(string text, CancellationToken ct = default)
+    {
+        if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
+        if (IsOpenAi && string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No OpenAI API key is set.");
+        if (!IsSetUp) throw new InvalidOperationException("No OpenAI voice or model is chosen for this voice — choose them in Settings.");
+        var stripped = StripMarkdown(text);
+        if (string.IsNullOrWhiteSpace(stripped)) return _ => Task.CompletedTask;
+
+        var made  = System.Diagnostics.Stopwatch.StartNew();
+        var bytes = await SynthesizeAsync(stripped, ct);
+        // ⚠️ Every voice's speech comes at whatever level its model makes — Chatterbox's about
+        // 6 dB over Kokoro's — so each is brought to Kokoro's. OpenAI's too, which is why it is
+        // asked for WAV rather than the MP3 it sent before: the levelling reads WAV.
+        bytes = SpeechLoudness.Level(bytes);
+        LastAudio = bytes;
+        LastSynthesis = made.Elapsed;
+        return playCt => PlayMadeAsync(bytes, playCt);
+    }
+
+    private async Task PlayMadeAsync(byte[] bytes, CancellationToken ct)
+    {
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _cts.Token);
+        try { await PlayAsync(bytes, linked.Token); }
+        catch (OperationCanceledException) when (linked.Token.IsCancellationRequested) { /* stopped */ }
+    }
+
+    /// <summary>The last audio made, as it will be played — for a harness to measure.</summary>
+    internal byte[]? LastAudio { get; private set; }
+
+    /// <summary>How long the last utterance took to make, before it could start playing — on a
+    /// server, the wait before an answer's first sentence (the rest are made during the one before).</summary>
+    public TimeSpan? LastSynthesis { get; private set; }
+
+    /// <summary>The audio for <paramref name="input"/>. Throws when the service refused, or sent nothing.</summary>
+    private async Task<byte[]> SynthesizeAsync(string input, CancellationToken ct)
+    {
+        // ⚠️ WAV from every server: Orpheus-FastAPI makes nothing else, Chatterbox and
+        // Kokoro-FastAPI make it too, and OpenAI's service does — larger than its MP3, about
+        // 50 KB a second of speech, which is what levelling it costs.
+        var body = JsonSerializer.Serialize(new
+        {
+            model           = _model,
+            input,
+            voice           = _voice,
+            speed           = _speed,
+            response_format = Format,
+        });
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint}/audio/speech");
+        if (_apiKey.Length > 0) req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseContentRead, ct);
+        if (!resp.IsSuccessStatusCode)
+        {
+            var detail = await resp.Content.ReadAsStringAsync(CancellationToken.None);
+            throw new HttpRequestException(
+                $"{(IsOpenAi ? "OpenAI" : _endpoint)} answered {(int)resp.StatusCode} {resp.ReasonPhrase}: {Reason(detail)}");
+        }
+
+        var bytes = await resp.Content.ReadAsByteArrayAsync(ct);
+        if (bytes.Length == 0) throw new InvalidOperationException("The voice server returned no audio.");
+        return bytes;
+    }
+
+    /// <summary>
+    /// The reason inside an error answer — FastAPI servers send {"detail": "…"}, OpenAI
+    /// {"error": {"message": "…"}} — or the answer itself. It ends up in front of the person
+    /// setting the voice up: "Voice file 'Taylor' not found." says what to fix, the raw JSON less so.
+    /// </summary>
+    private static string Reason(string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            var root = doc.RootElement;
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("detail", out var detail) && detail.ValueKind == JsonValueKind.String)
+                    return Short(detail.GetString()!);
+                if (root.TryGetProperty("error", out var error))
+                {
+                    if (error.ValueKind == JsonValueKind.String) return Short(error.GetString()!);
+                    if (error.ValueKind == JsonValueKind.Object && error.TryGetProperty("message", out var message)
+                        && message.ValueKind == JsonValueKind.String)
+                        return Short(message.GetString()!);
+                }
+            }
+        }
+        catch (JsonException) { }
+        return Short(body);
+    }
+
+    private static string Short(string s) => s.Length > 200 ? s[..200] + "…" : s;
 
     private async Task PlayAsync(byte[] bytes, CancellationToken ct)
     {
         // Write to a temp file so VLC can read it reliably without stream lifecycle issues.
-        var temp = Path.Combine(Path.GetTempPath(), $"aura_{Guid.NewGuid():N}.mp3");
+        var temp = Path.Combine(Path.GetTempPath(), $"aura_{Guid.NewGuid():N}.{Format}");
         await File.WriteAllBytesAsync(temp, bytes, CancellationToken.None);
 
         try
@@ -130,8 +293,9 @@ public sealed class OpenAiTtsService : IDisposable
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
-            player.EndReached      += OnEnd;
-            player.EncounteredError += OnEnd;
+            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException("The audio could not be played."));
+            player.EndReached       += OnEnd;
+            player.EncounteredError += OnError;
 
             try
             {
@@ -141,11 +305,12 @@ public sealed class OpenAiTtsService : IDisposable
             catch (OperationCanceledException)
             {
                 player.Stop();
+                throw;
             }
             finally
             {
-                player.EndReached      -= OnEnd;
-                player.EncounteredError -= OnEnd;
+                player.EndReached       -= OnEnd;
+                player.EncounteredError -= OnError;
                 lock (_playerLock)
                 {
                     if (_player == player) _player = null;

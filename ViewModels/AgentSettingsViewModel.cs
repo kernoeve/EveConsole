@@ -1,6 +1,7 @@
 using EveConsole.Agent;
 using EveConsole.Services;
 using ReactiveUI;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Linq;
 
@@ -29,6 +30,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(TtsVolumeHelpText));
             this.RaisePropertyChanged(nameof(MicHelpText));
             this.RaisePropertyChanged(nameof(PttHelpText));
+            this.RaisePropertyChanged(nameof(DefaultName));
+            foreach (var voice in Voices) voice.RefreshLabel();
         }
     }
 
@@ -69,7 +72,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string HeaderTitleText     => $"{DisplayAgentName} Agent";
     public string EnableCheckboxText  => $"Enable {DisplayAgentName} AI companion";
     public string EnableHelpText      =>
-        $"When enabled, the {DisplayAgentName} panel is available from the title bar. Requires a configured provider below.";
+        $"When enabled, the {DisplayAgentName} panel is available from the title bar. Requires a model set up below — with its key, or its server's address.";
     public string HistoryHelpText     =>
         $"History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {DisplayAgentName} panel.";
     public string SummarizationHelpText =>
@@ -97,33 +100,335 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isEnabled, value);
     }
 
-    // ── provider selection ─────────────────────────────────────────────────────
-    public IReadOnlyList<AgentProviderType> Providers { get; } =
-        Enum.GetValues<AgentProviderType>();
+    // ── Models ─────────────────────────────────────────────────────────────────
+    //
+    // Every model the agent can think with, and the roles that use them: the conversation, the
+    // questions that need the capsuleer's data, and the summaries. One model in both roles is how
+    // the agent always worked, and is what an older settings file becomes.
 
-    private AgentProviderType _selectedProvider;
-    public AgentProviderType SelectedProvider
+    public System.Collections.ObjectModel.ObservableCollection<ModelProfileVm> Models { get; } = [];
+
+    private ModelProfileVm? _selectedModel;
+    public ModelProfileVm? SelectedModel
     {
-        get => _selectedProvider;
+        get => _selectedModel;
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedProvider, value);
-            this.RaisePropertyChanged(nameof(ShowClaude));
-            this.RaisePropertyChanged(nameof(ShowOpenAi));
-            this.RaisePropertyChanged(nameof(ShowLocal));
+            this.RaiseAndSetIfChanged(ref _selectedModel, value);
+            this.RaisePropertyChanged(nameof(HasSelectedModel));
+            _ = value?.ModelList.LoadAsync();   // the service's models, to choose from
         }
     }
 
-    public bool ShowClaude => _selectedProvider == AgentProviderType.Claude;
-    public bool ShowOpenAi => _selectedProvider == AgentProviderType.OpenAI;
-    public bool ShowLocal  => _selectedProvider == AgentProviderType.Local;
+    public bool HasSelectedModel => _selectedModel is not null;
+
+    /// <summary>At least one model stays: the conversation needs one.</summary>
+    public bool CanRemoveModel => _selectedModel is not null && Models.Count > 1;
+
+    public ICommand AddModelCommand    { get; }
+    public ICommand RemoveModelCommand { get; }
+
+    private void AddModel()
+    {
+        var model = new ModelProfileVm(this, new ModelProfile
+        {
+            Provider = AgentProviderType.Local,
+            Endpoint = "http://localhost:11434",
+        });
+        Models.Add(model);
+        AddChoice(model);
+        SelectedModel = model;
+    }
+
+    private void RemoveModel()
+    {
+        if (_selectedModel is not { } model || Models.Count <= 1) return;
+        var index = Models.IndexOf(model);
+        Models.Remove(model);
+
+        // A role that named it: the conversation takes the first model left; the others go back
+        // to "same as conversation" or to no fallback.
+        if (_conversationModelId   == model.Id) _conversationModelId   = Models[0].Id;
+        if (_conversationFallbackId == model.Id) _conversationFallbackId = "";
+        if (_analystModelId        == model.Id) _analystModelId        = "";
+        if (_analystFallbackId     == model.Id) _analystFallbackId     = "";
+        if (_summaryModelId        == model.Id) _summaryModelId        = "";
+
+        RemoveChoice(model);
+        SelectedModel = Models[Math.Min(index, Models.Count - 1)];
+    }
+
+    /// <summary>A model's name or service changed: the tags that depend on it follow. The lists
+    /// update themselves — the entries are the models.</summary>
+    public void OnModelsChanged() => this.RaisePropertyChanged(nameof(RoleSummary));
+
+    // What each role's list offers. The models are the entries; "None" and "Same as conversation"
+    // are fixed ones in front.
+    private readonly FixedModelChoice _none = new("None — the role simply fails");
+    private readonly FixedModelChoice _same = new("Same as the conversation");
+
+    public System.Collections.ObjectModel.ObservableCollection<ModelChoice> ConversationChoices { get; } = [];
+    public System.Collections.ObjectModel.ObservableCollection<ModelChoice> AnalystChoices      { get; } = [];
+    public System.Collections.ObjectModel.ObservableCollection<ModelChoice> FallbackChoices     { get; } = [];
+
+    /// <summary>
+    /// The lists from scratch, as the tab opens. The selections are read again, by id.
+    ///
+    /// <para>⚠️ Only then. A list emptied and refilled while the tab is open leaves each role's
+    /// dropdown blank: emptying it sends null back through the binding, the role's setter rightly
+    /// refuses it, and the binding then takes the role as unchanged and never shows it again. The
+    /// role was kept, but all five dropdowns read as cleared. A model added or removed changes the
+    /// lists by that one entry instead (AddChoice, RemoveChoice).</para>
+    /// </summary>
+    private void RebuildChoices()
+    {
+        ConversationChoices.Clear();
+        AnalystChoices.Clear();
+        FallbackChoices.Clear();
+        AnalystChoices.Add(_same);
+        FallbackChoices.Add(_none);
+        foreach (var m in Models)
+        {
+            ConversationChoices.Add(m);
+            AnalystChoices.Add(m);
+            FallbackChoices.Add(m);
+        }
+        RaiseRoles();
+        this.RaisePropertyChanged(nameof(CanRemoveModel));
+    }
+
+    /// <summary>A model added: one more entry in each role's list, and every selection left as it is.</summary>
+    private void AddChoice(ModelProfileVm model)
+    {
+        ConversationChoices.Add(model);
+        AnalystChoices.Add(model);
+        FallbackChoices.Add(model);
+        RaiseRoles();
+        this.RaisePropertyChanged(nameof(CanRemoveModel));
+    }
+
+    /// <summary>A model removed: its entry out of each list. The roles that named it have been
+    /// moved on already, and are shown as they now are.</summary>
+    private void RemoveChoice(ModelProfileVm model)
+    {
+        ConversationChoices.Remove(model);
+        AnalystChoices.Remove(model);
+        FallbackChoices.Remove(model);
+        RaiseRoles();
+        this.RaisePropertyChanged(nameof(CanRemoveModel));
+    }
+
+    private void RaiseRoles()
+    {
+        this.RaisePropertyChanged(nameof(SelectedConversationModel));
+        this.RaisePropertyChanged(nameof(SelectedConversationFallback));
+        this.RaisePropertyChanged(nameof(SelectedAnalystModel));
+        this.RaisePropertyChanged(nameof(SelectedAnalystFallback));
+        this.RaisePropertyChanged(nameof(SelectedSummaryModel));
+        this.RaisePropertyChanged(nameof(IsSplit));
+        this.RaisePropertyChanged(nameof(RoleSummary));
+    }
+
+    private ModelChoice? Find(string id, FixedModelChoice empty) =>
+        id.Length == 0 ? empty : Models.FirstOrDefault(m => m.Id == id) ?? (ModelChoice)empty;
+
+    // ── Roles ───────────────────────────────────────────────────────────────────
+
+    private string _conversationModelId = "";
+    public ModelChoice? SelectedConversationModel
+    {
+        get => Models.FirstOrDefault(m => m.Id == _conversationModelId) ?? Models.FirstOrDefault();
+        set
+        {
+            // ⚠️ Null comes back through the binding whenever the list is rebuilt; it is not a choice.
+            if (value is not ModelProfileVm m || m.Id == _conversationModelId) return;
+            _conversationModelId = m.Id;
+            RaiseRoles();
+        }
+    }
+
+    private string _conversationFallbackId = "";
+    public ModelChoice? SelectedConversationFallback
+    {
+        get => Find(_conversationFallbackId, _none);
+        set
+        {
+            if (value is null || value.Id == _conversationFallbackId) return;
+            _conversationFallbackId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    private bool _conversationAnnounce = true;
+    public bool ConversationAnnounce
+    {
+        get => _conversationAnnounce;
+        set => this.RaiseAndSetIfChanged(ref _conversationAnnounce, value);
+    }
+
+    private string _analystModelId = "";
+    public ModelChoice? SelectedAnalystModel
+    {
+        get => Find(_analystModelId, _same);
+        set
+        {
+            if (value is null || value.Id == _analystModelId) return;
+            _analystModelId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    private string _analystFallbackId = "";
+    public ModelChoice? SelectedAnalystFallback
+    {
+        get => Find(_analystFallbackId, _none);
+        set
+        {
+            if (value is null || value.Id == _analystFallbackId) return;
+            _analystFallbackId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    private bool _analystAnnounce = true;
+    public bool AnalystAnnounce
+    {
+        get => _analystAnnounce;
+        set => this.RaiseAndSetIfChanged(ref _analystAnnounce, value);
+    }
+
+    private string _summaryModelId = "";
+    public ModelChoice? SelectedSummaryModel
+    {
+        get => Find(_summaryModelId, _same);
+        set
+        {
+            if (value is null || value.Id == _summaryModelId) return;
+            _summaryModelId = value.Id;
+            RaiseRoles();
+        }
+    }
+
+    /// <summary>Data questions go to a model of their own — so there is routing to describe.</summary>
+    public bool IsSplit => _analystModelId.Length > 0 && _analystModelId != _conversationModelId;
+
+    /// <summary>What the roles come to, in a sentence, under the Roles box.</summary>
+    public string RoleSummary
+    {
+        get
+        {
+            var conversation = (SelectedConversationModel as ModelProfileVm)?.ToProfile().Label ?? "the first model";
+            if (!IsSplit)
+                return $"{conversation} does everything: the conversation, the app's tools and every question about your data, with the whole prompt.";
+            var analyst = Models.FirstOrDefault(m => m.Id == _analystModelId)?.ToProfile().Label ?? "?";
+            return $"{conversation} talks with you and works the app, with a prompt about half the size and no access to your data. " +
+                   $"Before each message it is asked, in one word, whether the message needs your data; if it does, {analyst} answers it " +
+                   "instead, with the database and ESI. If a data question slips through, the conversation model hands it over itself. " +
+                   "Start a message with /data or /chat to send it one way or the other regardless.";
+        }
+    }
+
+    private string _handOffWhen = AgentSettings.DefaultHandOffWhen;
+    /// <summary>Finishes "Send a message to the data model when…" — what the router is told.</summary>
+    public string HandOffWhen
+    {
+        get => _handOffWhen;
+        set => this.RaiseAndSetIfChanged(ref _handOffWhen, value);
+    }
+
+    public ICommand ResetHandOffWhenCommand { get; }
+
+    // ── When a model changes ──────────────────────────────────────────────────
+
+    private string _modelFailoverMessage = "";
+    public string ModelFailoverMessage
+    {
+        get => _modelFailoverMessage;
+        set => this.RaiseAndSetIfChanged(ref _modelFailoverMessage, value);
+    }
+
+    private string _modelReturnMessage = "";
+    public string ModelReturnMessage
+    {
+        get => _modelReturnMessage;
+        set => this.RaiseAndSetIfChanged(ref _modelReturnMessage, value);
+    }
+
+    private int _modelSwitchGapMinutes = 10;
+    public int ModelSwitchGapMinutes
+    {
+        get => _modelSwitchGapMinutes;
+        set => this.RaiseAndSetIfChanged(ref _modelSwitchGapMinutes, Math.Clamp(value, 0, 240));
+    }
+
+    private int _modelPreferredUpMinutes = 5;
+    public int ModelPreferredUpMinutes
+    {
+        get => _modelPreferredUpMinutes;
+        set => this.RaiseAndSetIfChanged(ref _modelPreferredUpMinutes, Math.Clamp(value, 0, 240));
+    }
+
+    /// <summary>
+    /// Asks one model for a sentence, as it stands on the tab — unsaved, with the keys as typed.
+    /// A model of our own costs nothing to ask; a paid one, a few tokens, recorded like any other.
+    /// </summary>
+    public async Task<(bool Ok, string Message)> TestModelAsync(ModelProfileVm vm)
+    {
+        var profile = vm.ToProfile();
+        var keys    = new AgentSettings
+        {
+            ClaudeApiKey   = _claudeApiKey.Trim(),
+            ClaudeCacheTtl = _claudeCacheTtl,
+            OpenAiApiKey   = _openAiApiKey.Trim(),
+        };
+        if (AgentService.BuildProvider(profile, keys) is not { } provider)
+            return (false, profile.Provider switch
+            {
+                _ when profile.ModelName.Length == 0 => "Choose a model first.",
+                AgentProviderType.Claude => "It needs the Claude key, above.",
+                AgentProviderType.OpenAI => "It needs the OpenAI key, above.",
+                _                        => "It needs the server's address.",
+            });
+
+        var telemetry = _service.Telemetry;
+        telemetry?.Begin("settings-test", provider.ProviderName, profile.ModelName, 0);
+        var failure = "";
+        var reply   = new System.Text.StringBuilder();
+        var watch   = System.Diagnostics.Stopwatch.StartNew();
+        TimeSpan? first = null;
+        try
+        {
+            // A model of our own may have to load onto the GPU first.
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+            await foreach (var chunk in provider.StreamAsync(
+                               "You are being tested. Reply with one short sentence.",
+                               [new AgentMessage(MessageRole.User, "Say hello.")],
+                               tools: null, onUsage: u => telemetry?.Usage(u), ct: timeout.Token).ConfigureAwait(false))
+            {
+                if (chunk.Length > 0) first ??= watch.Elapsed;
+                reply.Append(chunk);
+            }
+
+            var text = reply.ToString().Trim();
+            if (text.Length == 0) { failure = "no answer"; return (false, "It answered with nothing."); }
+            if (text.Length > 90) text = text[..90] + "…";
+            return (true, $"Answered in {(first ?? watch.Elapsed).TotalSeconds:0.0} s: \"{text}\"");
+        }
+        catch (OperationCanceledException) { failure = "timed out"; return (false, "No answer within 90 seconds."); }
+        catch (Exception ex) { failure = ex.Message; return (false, ex.GetBaseException().Message); }
+        finally { telemetry?.Complete(reply.Length, failure); }
+    }
 
     // ── Claude ─────────────────────────────────────────────────────────────────
     private string _claudeApiKey = "";
     public string ClaudeApiKey
     {
         get => _claudeApiKey;
-        set => this.RaiseAndSetIfChanged(ref _claudeApiKey, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _claudeApiKey, value);
+            if (_selectedModel?.Provider == AgentProviderType.Claude) _selectedModel.KeyChanged();
+        }
     }
 
     // ── Claude prompt-cache lifetime ────────────────────────────────────────────
@@ -142,41 +447,18 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         }
     }
 
-    private string _claudeModel = "";
-    public string ClaudeModel
-    {
-        get => _claudeModel;
-        set => this.RaiseAndSetIfChanged(ref _claudeModel, value);
-    }
-
     // ── OpenAI ─────────────────────────────────────────────────────────────────
     private string _openAiApiKey = "";
     public string OpenAiApiKey
     {
         get => _openAiApiKey;
-        set => this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
-    }
-
-    private string _openAiModel = "";
-    public string OpenAiModel
-    {
-        get => _openAiModel;
-        set => this.RaiseAndSetIfChanged(ref _openAiModel, value);
-    }
-
-    // ── Local LLM ──────────────────────────────────────────────────────────────
-    private string _localEndpoint = "";
-    public string LocalEndpoint
-    {
-        get => _localEndpoint;
-        set => this.RaiseAndSetIfChanged(ref _localEndpoint, value);
-    }
-
-    private string _localModel = "";
-    public string LocalModel
-    {
-        get => _localModel;
-        set => this.RaiseAndSetIfChanged(ref _localModel, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
+            if (_selectedModel?.Provider == AgentProviderType.OpenAI) _selectedModel.KeyChanged();
+            if (_selectedVoice?.Provider == TtsProvider.OpenAi) _selectedVoice.KeyChanged();
+            if (_speechInputProvider == SpeechInputProvider.OpenAiWhisper) _relistTranscription.OnNext(System.Reactive.Unit.Default);
+        }
     }
 
     // ── context management ─────────────────────────────────────────────────────
@@ -194,93 +476,129 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _summarizationThreshold, value);
     }
 
-    // ── TTS provider selection ─────────────────────────────────────────────────
-    public IReadOnlyList<TtsProvider> TtsProviders { get; } = Enum.GetValues<TtsProvider>();
+    // ── Voices ─────────────────────────────────────────────────────────────────
+    //
+    // A list, in order of preference: the first that can speak is used, and when it fails the
+    // next takes over. Each voice can carry a name of its own — the voice is part of who the
+    // capsuleer is talking to — which stands in for the agent's name while that voice speaks.
 
-    private TtsProvider _ttsProvider;
-    public TtsProvider TtsProvider
+    private bool _speechOn;
+    public bool SpeechOn
     {
-        get => _ttsProvider;
+        get => _speechOn;
+        set => this.RaiseAndSetIfChanged(ref _speechOn, value);
+    }
+
+    public System.Collections.ObjectModel.ObservableCollection<VoiceProfileVm> Voices { get; } = [];
+
+    private VoiceProfileVm? _selectedVoice;
+    public VoiceProfileVm? SelectedVoice
+    {
+        get => _selectedVoice;
         set
         {
-            this.RaiseAndSetIfChanged(ref _ttsProvider, value);
-            this.RaisePropertyChanged(nameof(ShowOpenAiTtsSettings));
-            this.RaisePropertyChanged(nameof(ShowElevenLabsTtsSettings));
-            this.RaisePropertyChanged(nameof(ShowKokoroTtsSettings));
-            this.RaisePropertyChanged(nameof(ShowPiperTtsSettings));
+            this.RaiseAndSetIfChanged(ref _selectedVoice, value);
+            this.RaisePropertyChanged(nameof(HasSelectedVoice));
+            _ = value?.LoadListsAsync();        // its engine's models and voices, to choose from
         }
     }
 
-    public bool ShowOpenAiTtsSettings       => _ttsProvider == TtsProvider.OpenAi;
-    public bool ShowElevenLabsTtsSettings   => _ttsProvider == TtsProvider.ElevenLabs;
-    public bool ShowKokoroTtsSettings       => _ttsProvider == TtsProvider.Kokoro;
-    public bool ShowPiperTtsSettings        => _ttsProvider == TtsProvider.Piper;
+    public bool HasSelectedVoice => _selectedVoice is not null;
 
-    // ── OpenAI TTS ─────────────────────────────────────────────────────────────
-    public IReadOnlyList<string> OpenAiTtsVoices => TtsService.OpenAiVoices;
-    public IReadOnlyList<string> OpenAiTtsModels => TtsService.OpenAiModels;
+    public ICommand AddVoiceCommand      { get; }
+    public ICommand RemoveVoiceCommand   { get; }
+    public ICommand MoveVoiceUpCommand   { get; }
+    public ICommand MoveVoiceDownCommand { get; }
 
-    private string _openAiTtsVoice = "nova";
-    public string OpenAiTtsVoice
+    /// <summary>The agent's own name, which a voice without a name of its own goes by.</summary>
+    public string DefaultName => DisplayAgentName;
+
+    private void AddVoice()
     {
-        get => _openAiTtsVoice;
-        set => this.RaiseAndSetIfChanged(ref _openAiTtsVoice, value);
+        // A new voice starts as Kokoro — free and bundled — and goes to the end: a fallback,
+        // until it is moved up.
+        var vm = new VoiceProfileVm(this, _tts, new VoiceProfile());
+        Voices.Add(vm);
+        Renumber();
+        SelectedVoice = vm;
     }
 
-    private string _openAiTtsModel = "tts-1";
-    public string OpenAiTtsModel
+    private void RemoveVoice()
     {
-        get => _openAiTtsModel;
-        set => this.RaiseAndSetIfChanged(ref _openAiTtsModel, value);
+        if (_selectedVoice is not { } vm) return;
+        var at = Voices.IndexOf(vm);
+        Voices.Remove(vm);
+        Renumber();
+        SelectedVoice = Voices.Count == 0 ? null : Voices[Math.Min(at, Voices.Count - 1)];
     }
 
-    private double _openAiTtsSpeed = 1.0;
-    public double OpenAiTtsSpeed
+    private void MoveVoice(int by)
     {
-        get => _openAiTtsSpeed;
-        set => this.RaiseAndSetIfChanged(ref _openAiTtsSpeed, value);
+        if (_selectedVoice is not { } vm) return;
+        var from = Voices.IndexOf(vm);
+        var to   = from + by;
+        if (from < 0 || to < 0 || to >= Voices.Count) return;
+        Voices.Move(from, to);
+        Renumber();
+        SelectedVoice = vm;
     }
 
-    // ── ElevenLabs TTS ────────────────────────────────────────────────────────
-    public IReadOnlyList<string> ElevenLabsModels => TtsService.ElevenLabsModels;
+    private void Renumber()
+    {
+        for (var i = 0; i < Voices.Count; i++) Voices[i].Position = i + 1;
+    }
+
+    // ── When the voice changes ─────────────────────────────────────────────────
+
+    private bool _announceVoiceChanges = true;
+    public bool AnnounceVoiceChanges
+    {
+        get => _announceVoiceChanges;
+        set => this.RaiseAndSetIfChanged(ref _announceVoiceChanges, value);
+    }
+
+    private string _voiceHandoverMessage = "";
+    public string VoiceHandoverMessage
+    {
+        get => _voiceHandoverMessage;
+        set => this.RaiseAndSetIfChanged(ref _voiceHandoverMessage, value);
+    }
+
+    private string _voiceReturnMessage = "";
+    public string VoiceReturnMessage
+    {
+        get => _voiceReturnMessage;
+        set => this.RaiseAndSetIfChanged(ref _voiceReturnMessage, value);
+    }
+
+    private int _voiceSwitchGapMinutes = 10;
+    public int VoiceSwitchGapMinutes
+    {
+        get => _voiceSwitchGapMinutes;
+        set => this.RaiseAndSetIfChanged(ref _voiceSwitchGapMinutes, Math.Max(0, value));
+    }
+
+    private int _voicePreferredUpMinutes = 5;
+    public int VoicePreferredUpMinutes
+    {
+        get => _voicePreferredUpMinutes;
+        set => this.RaiseAndSetIfChanged(ref _voicePreferredUpMinutes, Math.Max(0, value));
+    }
+
+    // ── Keys the voices share with the rest of the agent ─────────────────────────
 
     private string _elevenLabsApiKey = "";
     public string ElevenLabsApiKey
     {
         get => _elevenLabsApiKey;
-        set => this.RaiseAndSetIfChanged(ref _elevenLabsApiKey, value);
-    }
-
-    private string _elevenLabsVoiceId = "21m00Tcm4TlvDq8ikWAM";
-    public string ElevenLabsVoiceId
-    {
-        get => _elevenLabsVoiceId;
-        set => this.RaiseAndSetIfChanged(ref _elevenLabsVoiceId, value);
-    }
-
-    private string _elevenLabsModel = "eleven_turbo_v2_5";
-    public string ElevenLabsModel
-    {
-        get => _elevenLabsModel;
-        set => this.RaiseAndSetIfChanged(ref _elevenLabsModel, value);
-    }
-
-    // ── Kokoro local TTS ──────────────────────────────────────────────────────
-    public IReadOnlyList<string> KokoroVoiceLabels =>
-        KokoroTtsService.Voices.Select(v => v.Label).ToList();
-
-    private string _kokoroVoiceId = "af_heart";
-
-    public string? SelectedKokoroVoiceLabel
-    {
-        get => KokoroTtsService.Voices.FirstOrDefault(v => v.Id == _kokoroVoiceId).Label;
         set
         {
-            var match = KokoroTtsService.Voices.FirstOrDefault(v => v.Label == value);
-            _kokoroVoiceId = match.Id ?? _kokoroVoiceId;
-            this.RaisePropertyChanged();
+            this.RaiseAndSetIfChanged(ref _elevenLabsApiKey, value);
+            if (_selectedVoice?.Provider == TtsProvider.ElevenLabs) _selectedVoice.KeyChanged();
         }
     }
+
+    // ── Kokoro's model: one, however many Kokoro voices are listed ───────────────
 
     public bool IsKokoroModelDownloaded => _tts?.Kokoro.IsReady == true;
 
@@ -300,53 +618,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     public ICommand DownloadKokoroModelCommand { get; }
 
-    // ── Piper local TTS ───────────────────────────────────────────────────────
-    public IReadOnlyList<string> PiperVoiceLabels =>
-        PiperTtsService.VoiceCatalogue.Select(v => $"{v.Label}  [{v.Size}]").ToList();
-
-    private string _piperVoiceKey = "en_US-libritts_r-medium";
-
-    public string? SelectedPiperVoiceLabel
-    {
-        get => PiperTtsService.VoiceCatalogue
-            .Select(v => $"{v.Label}  [{v.Size}]")
-            .FirstOrDefault(label => PiperTtsService.VoiceCatalogue
-                .Any(v => v.Key == _piperVoiceKey && $"{v.Label}  [{v.Size}]" == label));
-        set
-        {
-            var match = PiperTtsService.VoiceCatalogue
-                .FirstOrDefault(v => $"{v.Label}  [{v.Size}]" == value);
-            if (match != default)
-            {
-                _piperVoiceKey = match.Key;
-                this.RaisePropertyChanged(nameof(IsPiperVoiceDownloaded));
-            }
-            this.RaisePropertyChanged();
-        }
-    }
-
-    public bool IsPiperBinaryAvailable => _tts?.Piper.IsBinaryAvailable == true;
-
-    public bool IsPiperVoiceDownloaded =>
-        !string.IsNullOrEmpty(_piperVoiceKey) &&
-        Directory.Exists(PiperTtsService.GetVoiceModelPath(_piperVoiceKey));
-
-    private bool _isDownloadingPiper;
-    public bool IsDownloadingPiper
-    {
-        get => _isDownloadingPiper;
-        private set => this.RaiseAndSetIfChanged(ref _isDownloadingPiper, value);
-    }
-
-    private string _piperDownloadStatus = "";
-    public string PiperDownloadStatus
-    {
-        get => _piperDownloadStatus;
-        private set => this.RaiseAndSetIfChanged(ref _piperDownloadStatus, value);
-    }
-
-    public ICommand DownloadPiperVoiceCommand  { get; }
-
     // ── Speech input (push-to-talk) ───────────────────────────────────────────
     public IReadOnlyList<SpeechInputProvider> SpeechInputProviders { get; } =
         Enum.GetValues<SpeechInputProvider>();
@@ -363,7 +634,48 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(ShowMicrophoneSettings));
             if (value != SpeechInputProvider.None && _microphoneDevices.Count == 0)
                 RefreshMicrophoneDevices();
+            if (value == SpeechInputProvider.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
         }
+    }
+
+    /// <summary>
+    /// A rate row for each model a service listed that has none (see ListedRates): so a model can be
+    /// priced as itself, not as the service's "(any model)" rate, without the capsuleer adding it.
+    /// </summary>
+    internal void AddListedRates((string Kind, string Provider) rate, IReadOnlyList<ModelListing> listed)
+    {
+        if (_service.Telemetry is not { } telemetry) return;
+        var ids = listed.Select(l => l.Id).ToList();
+        _ = Task.Run(async () =>
+        {
+            // And each new row its published rate, where LiteLLM's list has one (see PublishedRates).
+            if (await telemetry.AddListedRatesAsync(rate.Kind, rate.Provider, ids) > 0)
+                await telemetry.ApplyPublishedRatesAsync();
+        });
+    }
+
+    // ── OpenAI's transcription model: from its list, never a name written here ──
+
+    private string _transcriptionModel = "";
+    public string TranscriptionModel
+    {
+        get => _transcriptionModel;
+        set { this.RaiseAndSetIfChanged(ref _transcriptionModel, value); TranscriptionList.ValueChanged(); }
+    }
+
+    /// <summary>OpenAI's transcription models for the key, newest first.</summary>
+    public ServiceListChoice TranscriptionList { get; }
+
+    /// <summary>The key being typed: the list is asked for once it settles.</summary>
+    private readonly System.Reactive.Subjects.Subject<System.Reactive.Unit> _relistTranscription = new();
+
+    private ServiceListChoice.Source TranscriptionSource()
+    {
+        var key = _openAiApiKey.Trim();
+        return key.Length == 0
+            ? ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's transcription models.", "none")
+            : new(null, $"openai-stt|{key.Length}:{key.GetHashCode()}",   // not the key itself
+                  ct => EveConsole.Agent.Providers.OpenAiCompatibleProvider.ListOpenAiTranscriptionModelsAsync(key, ct));
     }
 
     public bool ShowLocalWhisperSettings => _speechInputProvider == SpeechInputProvider.LocalWhisper;
@@ -483,8 +795,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     public ICommand DownloadModelCommand { get; }
 
-    public ICommand TestVoiceCommand { get; }
-
     // ── feedback ───────────────────────────────────────────────────────────────
     private string _saveStatus = "";
     public string SaveStatus
@@ -501,11 +811,22 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _service                  = service;
         _tts                      = tts;
         _speech                   = speech;
-        TestVoiceCommand          = ReactiveCommand.Create(TestVoice);
         DownloadModelCommand      = ReactiveCommand.Create(DownloadModel);
         DownloadKokoroModelCommand = ReactiveCommand.Create(DownloadKokoroModel);
-        DownloadPiperVoiceCommand  = ReactiveCommand.Create(DownloadPiperVoice);
+        AddVoiceCommand            = ReactiveCommand.Create(AddVoice);
+        RemoveVoiceCommand         = ReactiveCommand.Create(RemoveVoice);
+        MoveVoiceUpCommand         = ReactiveCommand.Create(() => MoveVoice(-1));
+        MoveVoiceDownCommand       = ReactiveCommand.Create(() => MoveVoice(+1));
+        AddModelCommand            = ReactiveCommand.Create(AddModel);
+        RemoveModelCommand         = ReactiveCommand.Create(RemoveModel);
+        ResetHandOffWhenCommand    = ReactiveCommand.Create(() => { HandOffWhen = AgentSettings.DefaultHandOffWhen; });
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
+        TranscriptionList         = new ServiceListChoice(() => _transcriptionModel, id => TranscriptionModel = id, TranscriptionSource,
+            n => $"{n} transcription models your key can use, newest first.", () => "OpenAI lists no transcription models for this key.",
+            "models", "Type the model's name instead.", listed => AddListedRates(ListedRates.OpenAiTranscribe, listed));
+        _relistTranscription.Throttle(TimeSpan.FromMilliseconds(700))
+                            .ObserveOnUi("transcription list")
+                            .Subscribe(settled => _ = TranscriptionList.LoadAsync());
         LoadFromService();
         SaveCommand               = ReactiveCommand.Create(Save);
 
@@ -534,30 +855,50 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _userName               = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
         _userGuidance           = s.UserGuidance ?? "";
         _isEnabled              = s.Enabled;
-        _selectedProvider       = s.Provider;
         _claudeApiKey           = s.ClaudeApiKey;
-        _claudeModel            = s.ClaudeModel;
         _claudeCacheTtl         = s.ClaudeCacheTtl == "1h" ? "1h" : "5m";
         _openAiApiKey           = s.OpenAiApiKey;
-        _openAiModel            = s.OpenAiModel;
-        _localEndpoint          = s.LocalEndpoint;
-        _localModel             = s.LocalModel;
         _persistHistory         = s.PersistHistory;
         _summarizationThreshold = s.SummarizationThreshold;
 
-        _ttsProvider      = s.TtsProvider;
-        _openAiTtsVoice   = s.OpenAiTtsVoice;
-        _openAiTtsModel   = s.OpenAiTtsModel;
-        _openAiTtsSpeed   = s.OpenAiTtsSpeed;
+        s.NormalizeModels();
+        Models.Clear();
+        foreach (var model in s.Models) Models.Add(new ModelProfileVm(this, model));
+        _selectedModel           = Models.FirstOrDefault();
+        _conversationModelId     = s.ConversationRole.ModelId;
+        _conversationFallbackId  = s.ConversationRole.FallbackId;
+        _conversationAnnounce    = s.ConversationRole.Announce;
+        _analystModelId          = s.AnalystRole.ModelId;
+        _analystFallbackId       = s.AnalystRole.FallbackId;
+        _analystAnnounce         = s.AnalystRole.Announce;
+        _summaryModelId          = s.SummaryModelId;
+        // The words in force, the default's when none of the capsuleer's own are stored.
+        _handOffWhen             = s.HandOffWhenText;
+        _modelFailoverMessage    = s.ModelFailoverMessageText;
+        _modelReturnMessage      = s.ModelReturnMessageText;
+        _modelSwitchGapMinutes   = s.ModelSwitchGapMinutes;
+        _modelPreferredUpMinutes = s.ModelPreferredUpMinutes;
+        RebuildChoices();
+        _ = _selectedModel?.ModelList.LoadAsync();   // the first model's list, as the tab opens on it
 
-        _elevenLabsApiKey  = s.ElevenLabsApiKey;
-        _elevenLabsVoiceId = s.ElevenLabsVoiceId;
-        _elevenLabsModel   = s.ElevenLabsModel;
-
-        _kokoroVoiceId = string.IsNullOrEmpty(s.KokoroVoice) ? "af_heart" : s.KokoroVoice;
-        _piperVoiceKey = string.IsNullOrEmpty(s.PiperVoice)  ? "en_US-libritts_r-medium" : s.PiperVoice;
+        s.NormalizeVoices();
+        _speechOn                = s.SpeechOn;
+        _elevenLabsApiKey        = s.ElevenLabsApiKey;
+        _announceVoiceChanges    = s.AnnounceVoiceChanges;
+        _voiceHandoverMessage    = s.VoiceHandoverMessageText;
+        _voiceReturnMessage      = s.VoiceReturnMessageText;
+        _voiceSwitchGapMinutes   = s.VoiceSwitchGapMinutes;
+        _voicePreferredUpMinutes = s.VoicePreferredUpMinutes;
+        Voices.Clear();
+        foreach (var profile in s.Voices) Voices.Add(new VoiceProfileVm(this, _tts, profile));
+        Renumber();
+        _selectedVoice = Voices.FirstOrDefault();
+        _ = _selectedVoice?.LoadListsAsync();
 
         _speechInputProvider      = s.SpeechInputProvider;
+        s.NormalizeTranscription();
+        _transcriptionModel       = s.OpenAiTranscriptionModel ?? "";
+        if (_speechInputProvider == SpeechInputProvider.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
         _whisperLocalModel        = s.WhisperLocalModel;
         _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
         _selectedMicrophoneDevice = string.IsNullOrEmpty(s.MicrophoneDeviceName) ? SystemDefaultMicrophone : s.MicrophoneDeviceName;
@@ -576,32 +917,50 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             UserName     = string.IsNullOrWhiteSpace(_userName) ? AgentSettings.DefaultUserName : _userName.Trim(),
             UserGuidance = (_userGuidance ?? "").Trim(),
             Enabled       = _isEnabled,
-            Provider      = _selectedProvider,
             ClaudeApiKey  = _claudeApiKey.Trim(),
-            ClaudeModel   = string.IsNullOrWhiteSpace(_claudeModel)    ? "claude-sonnet-4-6"          : _claudeModel.Trim(),
             ClaudeCacheTtl = _claudeCacheTtl,
             OpenAiApiKey  = _openAiApiKey.Trim(),
-            OpenAiModel   = string.IsNullOrWhiteSpace(_openAiModel)    ? "gpt-5"                      : _openAiModel.Trim(),
-            LocalEndpoint = string.IsNullOrWhiteSpace(_localEndpoint)  ? "http://localhost:11434"      : _localEndpoint.Trim(),
-            LocalModel    = string.IsNullOrWhiteSpace(_localModel)     ? "llama3.1"                   : _localModel.Trim(),
+
+            Models           = [.. Models.Select(m => m.ToProfile())],
+            ConversationRole = new() { ModelId = _conversationModelId, FallbackId = _conversationFallbackId, Announce = _conversationAnnounce },
+            AnalystRole      = new() { ModelId = _analystModelId,      FallbackId = _analystFallbackId,      Announce = _analystAnnounce },
+            SummaryModelId   = _summaryModelId,
+            // Only the capsuleer's own words are stored; a default's are stored as nothing, so
+            // a better default reaches them too (see DefaultWording).
+            HandOffWhen             = AgentSettings.HandOffWhenWording.Store(_handOffWhen),
+            ModelFailoverMessage    = AgentSettings.ModelFailoverWording.Store(_modelFailoverMessage),
+            ModelReturnMessage      = AgentSettings.ModelReturnWording.Store(_modelReturnMessage),
+            ModelSwitchGapMinutes   = _modelSwitchGapMinutes,
+            ModelPreferredUpMinutes = _modelPreferredUpMinutes,
+
+            // The old single-model fields are carried as they are; the file gets them written
+            // back from the data model when it is saved, for an older build.
+            Provider      = _service.Settings.Provider,
+            ClaudeModel   = _service.Settings.ClaudeModel,
+            OpenAiModel   = _service.Settings.OpenAiModel,
+            LocalEndpoint = _service.Settings.LocalEndpoint,
+            LocalModel    = _service.Settings.LocalModel,
+
             PersistHistory         = _persistHistory,
             SummarizationThreshold = _summarizationThreshold < 1000 ? 1000 : _summarizationThreshold,
 
-            TtsProvider    = _ttsProvider,
-            OpenAiTtsVoice = _openAiTtsVoice,
-            OpenAiTtsModel = _openAiTtsModel,
-            OpenAiTtsSpeed = _openAiTtsSpeed,
+            SpeechOn                = _speechOn,
+            Voices                  = [.. Voices.Select(v => v.ToProfile())],
+            ElevenLabsApiKey        = _elevenLabsApiKey.Trim(),
+            AnnounceVoiceChanges    = _announceVoiceChanges,
+            VoiceHandoverMessage    = AgentSettings.VoiceHandoverWording.Store(_voiceHandoverMessage),
+            VoiceReturnMessage      = AgentSettings.VoiceReturnWording.Store(_voiceReturnMessage),
+            VoiceSwitchGapMinutes   = _voiceSwitchGapMinutes,
+            VoicePreferredUpMinutes = _voicePreferredUpMinutes,
 
-            ElevenLabsApiKey  = _elevenLabsApiKey.Trim(),
-            ElevenLabsVoiceId = _elevenLabsVoiceId.Trim(),
-            ElevenLabsModel   = _elevenLabsModel,
-
-            KokoroVoice = _kokoroVoiceId,
-            PiperVoice  = _piperVoiceKey,
+            // Kept as they are: the panel sets these, and a Save here must not reset them.
+            TtsVolume = _service.Settings.TtsVolume,
+            PanelOpen = _service.Settings.PanelOpen,
 
             SpeechInputProvider   = _speechInputProvider,
             WhisperLocalModel     = _whisperLocalModel,
             WhisperLanguage       = string.IsNullOrWhiteSpace(_whisperLanguage) ? "en" : _whisperLanguage.Trim(),
+            OpenAiTranscriptionModel = (_transcriptionModel ?? "").Trim(),
             // The empty name is what the recorder reads as "the system default".
             MicrophoneDeviceName  = _selectedMicrophoneDevice is null or SystemDefaultMicrophone ? "" : _selectedMicrophoneDevice,
             PushToTalkKey         = GlobalHotkeyService.KeyOptions
@@ -612,31 +971,23 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         // when _service.Configure raises the Settings property-changed (which re-evaluates
         // HasSpeechInput and HasTts on AgentPanelViewModel).
         _speech?.Configure(settings.SpeechInputProvider, settings.OpenAiApiKey,
-                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage);
+                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage,
+                           settings.OpenAiTranscriptionModel ?? "");
         _tts?.Configure(settings);
         _service.Configure(settings);
 
         SaveStatus = "Saved.";
     }
 
-    private void TestVoice()
+    /// <summary>
+    /// Speaks with one voice as it stands on the tab, unsaved — on its own, not through the list,
+    /// so a test neither fails over nor disturbs the voice a conversation is using.
+    /// </summary>
+    public Task<VoiceTestResult> TestVoiceAsync(VoiceProfileVm voice)
     {
-        if (_tts is null) return;
-        _tts.Configure(new AgentSettings
-        {
-            TtsProvider       = _ttsProvider,
-            OpenAiApiKey      = _openAiApiKey.Trim(),
-            OpenAiTtsVoice    = _openAiTtsVoice,
-            OpenAiTtsModel    = _openAiTtsModel,
-            OpenAiTtsSpeed    = _openAiTtsSpeed,
-            ElevenLabsApiKey  = _elevenLabsApiKey.Trim(),
-            ElevenLabsVoiceId = _elevenLabsVoiceId.Trim(),
-            ElevenLabsModel   = _elevenLabsModel,
-            KokoroVoice       = _kokoroVoiceId,
-            PiperVoice        = _piperVoiceKey,
-        });
-        var name = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim();
-        _tts.SpeakAsync($"{name} voice test. Your AI companion is ready, Capsuleer.");
+        if (_tts is null) return Task.FromResult(new VoiceTestResult(false, "Speech is not available."));
+        var keys = new AgentSettings { OpenAiApiKey = _openAiApiKey.Trim(), ElevenLabsApiKey = _elevenLabsApiKey.Trim() };
+        return _tts.TestVoiceAsync(voice.ToProfile(), keys, $"{voice.SpokenName} voice test. Your AI companion is ready, Capsuleer.");
     }
 
     private void DownloadKokoroModel()
@@ -649,7 +1000,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         {
             try
             {
-                await _tts.Kokoro.LoadAsync(); // KokoroSharp handles download + caching internally
+                await _tts.Kokoro.LoadAsync(); // downloads the model into the data folder the first time
                 KokoroModelStatus = "Kokoro model ready.";
                 this.RaisePropertyChanged(nameof(IsKokoroModelDownloaded));
             }
@@ -660,34 +1011,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             finally
             {
                 IsDownloadingKokoroModel = false;
-            }
-        });
-    }
-
-    private void DownloadPiperVoice()
-    {
-        if (IsDownloadingPiper || _tts is null) return;
-        IsDownloadingPiper = true;
-        PiperDownloadStatus = $"Downloading voice '{_piperVoiceKey}'…";
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                _tts.Piper.Configure(_piperVoiceKey);
-                await _tts.Piper.DownloadVoiceAsync(
-                    new Progress<string>(msg => PiperDownloadStatus = msg),
-                    CancellationToken.None);
-                this.RaisePropertyChanged(nameof(IsPiperVoiceDownloaded));
-                PiperDownloadStatus = "Voice model ready.";
-            }
-            catch (Exception ex)
-            {
-                PiperDownloadStatus = $"Download failed: {ex.Message}";
-            }
-            finally
-            {
-                IsDownloadingPiper = false;
             }
         });
     }

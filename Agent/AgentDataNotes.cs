@@ -66,7 +66,8 @@ public static class AgentDataNotes
         - EsiCorpMembers is the CURRENT roster of a corporation the capsuleer has roles in, and it
           is the right answer to "is X still in the corp", "who has left", "which of these buyers
           are still with us". EsiCorpMemberTracking adds when each member joined and last logged
-          in. Someone absent from EsiCorpMembers who appears in older data has left.
+          in, but its rows outlive a departure (UpdatedAt stops advancing), so it is not a roster.
+          Someone absent from EsiCorpMembers who appears in older data has left.
 
         - ⚠️ CharacterAffiliations is a FIRST-SEEN CACHE from INTEL REPORTS ONLY, and it is both
           stale and sparse. A row is written the first time a character id appears in a parsed
@@ -172,6 +173,11 @@ public static class AgentDataNotes
           Keepstar — absence there is not evidence.
         - For where a character is NOW and what they are flying, CharacterStatuses is better: it
           is polled from ESI, covers every authenticated character, and carries the current ship.
+
+        ## Corp moon mining
+        - EsiCorpMiningLedgerDays holds a row per day a character mined an ore at a corp refinery:
+          Quantity is that day's total, so SUM it over a period; LastUpdated is the DATE (00:00 UTC).
+          RecordedCorporationId is the miner's corp that day — outsiders with access mine there too.
 
         ## Two general traps
         - ⚠️ Anything keyed by ConfigId, GroupId or OwnerType holds a row PER key. Joining without
