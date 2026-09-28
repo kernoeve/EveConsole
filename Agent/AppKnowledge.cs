@@ -283,7 +283,11 @@ public static class AppKnowledge
         system, constellation or region with an ADM threshold), matched against live ESI projects
         to show remaining quantity and payout and whether each is active; the Overview alerts when
         one lapses. "+ Add Project" defines one; each row has "Edit" and "Delete"; right-click for
-        "Clone item" and, on a deliver-item project, "Open Item in Item Browser".
+        "Clone item" and, on a deliver-item project, "Open Item in Item Browser". Players Active
+        counts members only: characters seen acting while in the corp (a login, a kill or loss,
+        moon mining, a corp job or contract, the corp's tax on their bounties or missions), plus
+        wallet and contract counterparties who are members now — never its customers, the users
+        of its structures or other corporations.
 
         ### Killmails
         Browse corporation and personal killmails with a detailed kill report view.

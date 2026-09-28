@@ -66,7 +66,8 @@ public static class AgentDataNotes
         - EsiCorpMembers is the CURRENT roster of a corporation the capsuleer has roles in, and it
           is the right answer to "is X still in the corp", "who has left", "which of these buyers
           are still with us". EsiCorpMemberTracking adds when each member joined and last logged
-          in. Someone absent from EsiCorpMembers who appears in older data has left.
+          in, but its rows outlive a departure (UpdatedAt stops advancing), so it is not a roster.
+          Someone absent from EsiCorpMembers who appears in older data has left.
 
         - ⚠️ CharacterAffiliations is a FIRST-SEEN CACHE from INTEL REPORTS ONLY, and it is both
           stale and sparse. A row is written the first time a character id appears in a parsed
