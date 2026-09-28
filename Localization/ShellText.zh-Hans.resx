@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavGroupGeneral" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="NavGroupAssets" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="NavGroupStructures" xml:space="preserve">
+    <value>建筑 / 导航</value>
+  </data>
+  <data name="NavGroupIndustry" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="NavGroupMarket" xml:space="preserve">
+    <value>市场 / 贸易</value>
+  </data>
+  <data name="NavGroupFinance" xml:space="preserve">
+    <value>财务</value>
+  </data>
+  <data name="NavGroupCorp" xml:space="preserve">
+    <value>军团 / 互动</value>
+  </data>
+  <data name="NavGroupCommunication" xml:space="preserve">
+    <value>通讯</value>
+  </data>
+  <data name="NavGroupData" xml:space="preserve">
+    <value>数据 / 日志</value>
+  </data>
+  <data name="NavOverview" xml:space="preserve">
+    <value>概览</value>
+  </data>
+  <data name="NavWorklist" xml:space="preserve">
+    <value>工作清单</value>
+  </data>
+  <data name="NavCharacters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="NavAssets" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="NavItemBrowser" xml:space="preserve">
+    <value>物品浏览器</value>
+  </data>
+  <data name="NavInventoryLevels" xml:space="preserve">
+    <value>库存水平</value>
+  </data>
+  <data name="NavStructureBrowser" xml:space="preserve">
+    <value>建筑浏览器</value>
+  </data>
+  <data name="NavUniverseMap" xml:space="preserve">
+    <value>星图</value>
+  </data>
+  <data name="NavJumpPlanner" xml:space="preserve">
+    <value>跳跃规划</value>
+  </data>
+  <data name="NavIndustryJobs" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="NavIndyParks" xml:space="preserve">
+    <value>工业园区</value>
+  </data>
+  <data name="NavProductionCalc" xml:space="preserve">
+    <value>生产计算器</value>
+  </data>
+  <data name="NavPriceOverrides" xml:space="preserve">
+    <value>价格覆盖</value>
+  </data>
+  <data name="NavIndustryOpportunities" xml:space="preserve">
+    <value>工业机会</value>
+  </data>
+  <data name="NavMarketOverview" xml:space="preserve">
+    <value>市场概览</value>
+  </data>
+  <data name="NavItemValuation" xml:space="preserve">
+    <value>物品估值</value>
+  </data>
+  <data name="NavLpMarketValues" xml:space="preserve">
+    <value>LP 市场价值</value>
+  </data>
+  <data name="NavMarketLevels" xml:space="preserve">
+    <value>市场存量</value>
+  </data>
+  <data name="NavContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="NavTradeOpportunities" xml:space="preserve">
+    <value>贸易机会</value>
+  </data>
+  <data name="NavStandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="NavOrderTracker" xml:space="preserve">
+    <value>订单跟踪</value>
+  </data>
+  <data name="NavSalesTracker" xml:space="preserve">
+    <value>销售跟踪</value>
+  </data>
+  <data name="NavSalePosting" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="NavStores" xml:space="preserve">
+    <value>商店</value>
+  </data>
+  <data name="NavNetWorth" xml:space="preserve">
+    <value>净资产</value>
+  </data>
+  <data name="NavIncomeExpense" xml:space="preserve">
+    <value>收入与支出</value>
+  </data>
+  <data name="NavWallet" xml:space="preserve">
+    <value>钱包</value>
+  </data>
+  <data name="NavCorpActivity" xml:space="preserve">
+    <value>军团活动</value>
+  </data>
+  <data name="NavKillmails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="NavPlayerEntities" xml:space="preserve">
+    <value>玩家实体</value>
+  </data>
+  <data name="NavNpcEntities" xml:space="preserve">
+    <value>NPC 实体</value>
+  </data>
+  <data name="NavEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="NavNotifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="NavBackgroundProcesses" xml:space="preserve">
+    <value>后台进程</value>
+  </data>
+  <data name="NavEsiExplorer" xml:space="preserve">
+    <value>ESI 浏览器</value>
+  </data>
+  <data name="NavErrorLog" xml:space="preserve">
+    <value>错误日志</value>
+  </data>
+  <data name="NavAiUsage" xml:space="preserve">
+    <value>AI 用量</value>
+  </data>
+  <data name="NavGameLog" xml:space="preserve">
+    <value>游戏日志</value>
+  </data>
+  <data name="NavChatLog" xml:space="preserve">
+    <value>聊天日志</value>
+  </data>
+  <data name="TabUniverse" xml:space="preserve">
+    <value>星图</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>警报</value>
+  </data>
+  <data name="TabScheduler" xml:space="preserve">
+    <value>计划任务</value>
+  </data>
+  <data name="TabTrade" xml:space="preserve">
+    <value>贸易</value>
+  </data>
+  <data name="TabIndustryOpps" xml:space="preserve">
+    <value>工业机会</value>
+  </data>
+  <data name="TabInvLevels" xml:space="preserve">
+    <value>库存水平</value>
+  </data>
+  <data name="TabSaleListingBuild" xml:space="preserve">
+    <value>销售清单（制造）</value>
+  </data>
+  <data name="TabSaleListingMarket" xml:space="preserve">
+    <value>销售清单（市场）</value>
+  </data>
+  <data name="TipScheduler" xml:space="preserve">
+    <value>计划任务</value>
+  </data>
+  <data name="TipSettings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="TipAbout" xml:space="preserve">
+    <value>关于 EVE Console</value>
+  </data>
+  <data name="TipVersion" xml:space="preserve">
+    <value>你正在运行的版本。</value>
+  </data>
+  <data name="TipReleasePage" xml:space="preserve">
+    <value>在 GitHub 上打开发布页面</value>
+  </data>
+</root>

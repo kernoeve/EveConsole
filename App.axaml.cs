@@ -32,7 +32,17 @@ public class App : Application
 
     public override void Initialize()
     {
-        LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers());
+        LiveCharts.Configure(config =>
+        {
+            config.AddSkiaSharp().AddDefaultMappers();
+
+            // Charts draw their text with Skia, outside Avalonia's font fallback. LiveCharts finds
+            // a face for a character its own lacks, but by the character alone — and Chinese,
+            // Japanese and Korean share characters with different shapes, so a Chinese label
+            // could come out in a Japanese face. The language's own face, when it has one.
+            if (EveConsole.Localization.Languages.ChartTypeface() is { } face)
+                config.HasTextSettings(new TextSettings { DefaultTypeface = face });
+        });
         AvaloniaXamlLoader.Load(this);
 
         // ⚠️ After the XAML is loaded and before any window exists. The palette lives in the

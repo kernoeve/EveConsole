@@ -142,6 +142,19 @@ public sealed class AgentService : ReactiveObject
                 $"Never pad — stop when the answer is complete.",
         };
 
+        // ── The interface language ───────────────────────────────────────────
+        //
+        // Empty in English, so the English prompt — and the cached prefix built on it — is
+        // exactly what it was. ⚠️ Names stay as the database has them: the SDE import keeps
+        // English only, and a name the model translated itself would be its guess at what the
+        // game's own translation says, not the name the capsuleer sees in game.
+        var language = EveConsole.Localization.Languages.Active is { Code: not "en" } lang
+            ? "\n\n## Language\n" +
+              $"The capsuleer's EVE Console is in {lang.EnglishName} ({lang.NativeName}). Reply in that " +
+              "language unless they write to you in another. Item, ship, structure and place names come " +
+              "from the database in English: give them as they are rather than translating them."
+            : "";
+
         // ── The parts only the model that reads the data is told ─────────────
         //
         // ⚠️ The conversation model, when data questions go to a model of their own, gets
@@ -293,7 +306,7 @@ public sealed class AgentService : ReactiveObject
             ## When an alarm fires
             You will sometimes receive a message beginning "ALARM FIRED". That is an alarm the capsuleer set up reaching you — it is the prompt itself, not a request to investigate. Report what it says in a sentence or two, using the detail supplied. Do not call tools to verify it, and do not ask what they would like you to do about it.
 
-            {verbosityInstruction}
+            {verbosityInstruction}{language}
 
             ## Tone and format
             You are displayed in a narrow side panel. Prefer plain text over markdown.

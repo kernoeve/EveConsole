@@ -17,7 +17,8 @@ public partial class SettingsWindow : Window
         InitializeComponent();
     }
 
-    // Select a tab by its header text (e.g. "Alerts").
+    // Select a tab by its header text — pass the same resource the header is built from
+    // (SettingsText.TabAlerts), never the English words, or it finds nothing in any other language.
     public void SelectTab(string header)
     {
         var tab = Tabs.Items.OfType<TabItem>().FirstOrDefault(t => (t.Header as string) == header);
@@ -198,22 +199,17 @@ public partial class SettingsWindow : Window
 
         dbVm.RequestRestart = () =>
         {
-            // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This process
-            // is still alive for a moment after Process.Start, so without the release the new
-            // instance sees the lock held, focuses this window and exits — and then this one exits
-            // too, leaving nothing running. The argument makes the newcomer wait for the handover
-            // rather than treat it as a rival.
-            SingleInstance.Release();
-
             // ⚠️ Through AppLauncher rather than MainModule.FileName, which under an AppImage names
             // the binary inside a temporary mount: starting that directly skips the AppImage's own
             // runtime, and the replacement comes up without the environment its bundled libraries
-            // are found through.
-            AppLauncher.Start(SingleInstance.RestartingArgument);
-
-            // ⚠️ Not Environment.Exit: on Linux that ran libc's atexit handlers from the UI thread
-            // and did not come back, leaving a client that ignored SIGTERM too. See AppLauncher.
-            AppLauncher.ExitNow();
+            // are found through. It hands the single-instance lock over and keeps --profile; see
+            // AppLauncher.Restart.
+            //
+            // It used to exit whether or not the replacement started, which left nothing running;
+            // now a failed start stays up and says so. The work is recorded either way and runs at
+            // the next start.
+            if (AppLauncher.Restart() is { } error)
+                dbVm.StatusText = $"Could not restart ({error}). Close EVE Console and open it again to finish.";
         };
     }
 }

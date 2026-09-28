@@ -118,6 +118,16 @@ same check enforces that.)
 
 ---
 
+## Interface text and translations
+
+Text people read goes in `Localization/<Area>Text.resx`, not straight into the XAML or the code, so
+the app can be translated: `{x:Static loc:SettingsText.ThemeLabel}` in XAML, `SettingsText.ThemeLabel`
+in code. Whole sentences with placeholders, never pieces glued together. Translations sit beside the
+English as `<Area>Text.<language>.resx`, and `tools/LocCheck` checks them on every pull request.
+Both are covered in [Localization/README.md](Localization/README.md).
+
+---
+
 ## Building and running
 
 See [Getting started](README.md#getting-started) in the README for requirements and the build

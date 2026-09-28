@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="TabEsiTokens" xml:space="preserve">
+    <value>ESI Tokens</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>Characters</value>
+  </data>
+  <data name="TabSde" xml:space="preserve">
+    <value>SDE</value>
+    <comment>CCP's Static Data Export; usually left as SDE.</comment>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>Market</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>Price History</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>Industry</value>
+  </data>
+  <data name="TabTimers" xml:space="preserve">
+    <value>Timers</value>
+  </data>
+  <data name="TabPolling" xml:space="preserve">
+    <value>Polling</value>
+    <comment>How often the app asks ESI for new data.</comment>
+  </data>
+  <data name="TabGameLogs" xml:space="preserve">
+    <value>Game Logs</value>
+  </data>
+  <data name="TabChatLogs" xml:space="preserve">
+    <value>Chat Logs</value>
+  </data>
+  <data name="TabMapData" xml:space="preserve">
+    <value>Map Data</value>
+  </data>
+  <data name="TabKillMails" xml:space="preserve">
+    <value>Kill Mails</value>
+  </data>
+  <data name="TabCorpTop10" xml:space="preserve">
+    <value>Corp Top 10 / Summary</value>
+  </data>
+  <data name="TabAiAgent" xml:space="preserve">
+    <value>AI Agent</value>
+  </data>
+  <data name="TabAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="TabPersonalisation" xml:space="preserve">
+    <value>Personalisation</value>
+  </data>
+  <data name="TabVoice" xml:space="preserve">
+    <value>Voice (TTS)</value>
+  </data>
+  <data name="TabSpeechInput" xml:space="preserve">
+    <value>Speech Input (STT)</value>
+  </data>
+  <data name="TabSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="TabAlerts" xml:space="preserve">
+    <value>Alerts</value>
+    <comment>Desktop pop-up alerts.</comment>
+  </data>
+  <data name="TabDatabase" xml:space="preserve">
+    <value>Database</value>
+  </data>
+  <data name="TabDataRetention" xml:space="preserve">
+    <value>Data Retention</value>
+  </data>
+  <data name="TabUpdates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="AppearanceHeader" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="ThemeLabel" xml:space="preserve">
+    <value>Theme:</value>
+  </data>
+  <data name="UiScaleLabel" xml:space="preserve">
+    <value>UI scale:</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>Language:</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>System default ({0})</value>
+    <comment>{0} is the language the system setting comes to, in that language's own name.</comment>
+  </data>
+  <data name="LanguagePreview" xml:space="preserve">
+    <value>{0} (preview)</value>
+    <comment>{0} is a language's own name. Preview: not fully translated yet.</comment>
+  </data>
+  <data name="LanguagePreviewNote" xml:space="preserve">
+    <value>Preview: parts of the app are not translated yet and show in English.</value>
+  </data>
+  <data name="LanguageRestartNote" xml:space="preserve">
+    <value>The new language is used from the next start.</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>Restart now</value>
+  </data>
+  <data name="RestartFailed" xml:space="preserve">
+    <value>Could not restart: {0}</value>
+    <comment>{0} is the reason, in English.</comment>
+  </data>
+  <data name="AppearanceNote" xml:space="preserve">
+    <value>Theme and scale apply at once to every window and dialog, and the language from the next start. All three are remembered for this client only — a second client on the same database keeps its own. The scale is also on the status bar, at the right end, for a quick change.</value>
+  </data>
+  <data name="EveTimeLinkHeader" xml:space="preserve">
+    <value>EVE Time Link</value>
+  </data>
+  <data name="EveTimeLinkNote" xml:space="preserve">
+    <value>Clicking the EVE clock in the title bar opens this site. Pick one of the suggestions or choose Custom URL and enter your own.</value>
+  </data>
+  <data name="OpenLabel" xml:space="preserve">
+    <value>Open:</value>
+  </data>
+  <data name="CustomUrlOption" xml:space="preserve">
+    <value>Custom URL…</value>
+    <comment>An entry in the list of sites; must match the name used in EveTimeLinkNote.</comment>
+  </data>
+  <data name="EveTimeLinkEffective" xml:space="preserve">
+    <value>Clicking the clock opens: {0}</value>
+    <comment>{0} is a web address.</comment>
+  </data>
+  <data name="ServerStatusHeader" xml:space="preserve">
+    <value>Server Status Link</value>
+  </data>
+  <data name="ServerStatusNote" xml:space="preserve">
+    <value>Clicking the Tranquility indicator beside the clock opens CCP's official service status page. Not configurable — no other site carries the same information.</value>
+    <comment>Tranquility is the name of EVE's main server.</comment>
+  </data>
+</root>

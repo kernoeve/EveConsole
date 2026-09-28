@@ -4,9 +4,10 @@
         xmlns:models="clr-namespace:EveConsole.Models"
         xmlns:agent="clr-namespace:EveConsole.Agent"
         xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
-        Title="Settings"
+        Title="{x:Static loc:SettingsText.WindowTitle}"
         Width="940" Height="820"
         MinWidth="700" MinHeight="600"
         WindowStartupLocation="CenterOwner"
@@ -43,7 +44,7 @@
   <TabControl x:Name="Tabs" Margin="8">
 
     <!-- ══ ESI Tokens ══════════════════════════════════════════════════════ -->
-    <TabItem Header="ESI Tokens">
+    <TabItem Header="{x:Static loc:SettingsText.TabEsiTokens}">
       <Grid RowDefinitions="*,8,*,Auto" Margin="0 8 0 0">
 
         <!-- Characters row -->
@@ -258,7 +259,7 @@
     <!-- ══ Characters ════════════════════════════════════════════════════════ -->
     <!-- What each character is used for: industry slots and skill-queue alerts. Moved out of the
          Industry tab, since the skill queue column is not about industry at all. -->
-    <TabItem Header="Characters">
+    <TabItem Header="{x:Static loc:SettingsText.TabCharacters}">
       <!-- Horizontal scrolling off explicitly: the grid sizes its Free / total column with a star,
            and an unbounded width would push the columns after it out of view. -->
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
@@ -315,7 +316,7 @@
     </TabItem>
 
     <!-- ══ SDE ══════════════════════════════════════════════════════════════ -->
-    <TabItem Header="SDE">
+    <TabItem Header="{x:Static loc:SettingsText.TabSde}">
       <ScrollViewer>
         <StackPanel Margin="0 12 0 0" Spacing="14">
 
@@ -380,7 +381,7 @@
     </TabItem>
 
     <!-- ══ Market ════════════════════════════════════════════════════════════ -->
-    <TabItem Header="Market">
+    <TabItem Header="{x:Static loc:SettingsText.TabMarket}">
       <Grid RowDefinitions="*,Auto,Auto" Margin="0 8 0 0">
 
         <Grid Grid.Row="0" ColumnDefinitions="*,8,300">
@@ -725,7 +726,7 @@
     </TabItem>
 
   <!-- ── Price History ──────────────────────────────────────────────────── -->
-  <TabItem Header="Price History">
+  <TabItem Header="{x:Static loc:SettingsText.TabPriceHistory}">
     <ScrollViewer>
       <StackPanel Spacing="16" Margin="24 16">
 
@@ -786,7 +787,7 @@
   </TabItem>
 
     <!-- ══ Industry ══════════════════════════════════════════════════════════ -->
-    <TabItem Header="Industry">
+    <TabItem Header="{x:Static loc:SettingsText.TabIndustry}">
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="12" Margin="0 0 4 0">
 
@@ -853,7 +854,7 @@
     </TabItem>
 
     <!-- ══ Timers ════════════════════════════════════════════════════════════ -->
-    <TabItem Header="Timers">
+    <TabItem Header="{x:Static loc:SettingsText.TabTimers}">
       <Grid RowDefinitions="*,Auto" Margin="0 8 0 0">
 
         <ScrollViewer Grid.Row="0">
@@ -996,7 +997,7 @@
     </TabItem>
 
     <!-- ══ Polling ══════════════════════════════════════════════════════════════ -->
-    <TabItem Header="Polling">
+    <TabItem Header="{x:Static loc:SettingsText.TabPolling}">
       <ScrollViewer Margin="0 8 0 0">
         <StackPanel Spacing="14">
 
@@ -1166,7 +1167,7 @@
     </TabItem>
 
     <!-- ══ Game Logs ══════════════════════════════════════════════════════════ -->
-    <TabItem Header="Game Logs">
+    <TabItem Header="{x:Static loc:SettingsText.TabGameLogs}">
       <ScrollViewer Margin="0 8 0 0">
         <StackPanel Spacing="14">
 
@@ -1302,7 +1303,7 @@
     </TabItem>
 
     <!-- ══ Chat Logs ══════════════════════════════════════════════════════════ -->
-    <TabItem Header="Chat Logs">
+    <TabItem Header="{x:Static loc:SettingsText.TabChatLogs}">
       <ScrollViewer Margin="0 8 0 0">
         <StackPanel Spacing="14">
 
@@ -1469,7 +1470,7 @@
     </TabItem>
 
     <!-- ══ Map Data ══════════════════════════════════════════════════════════ -->
-    <TabItem Header="Map Data">
+    <TabItem Header="{x:Static loc:SettingsText.TabMapData}">
       <ScrollViewer Margin="0 8 0 0">
         <StackPanel Spacing="14" x:DataType="vm:MapStatsSettingsViewModel" DataContext="{Binding MapStatsVm}">
 
@@ -1537,7 +1538,7 @@
     </TabItem>
 
     <!-- ══ Kill Mails ═════════════════════════════════════════════════════════ -->
-    <TabItem Header="Kill Mails">
+    <TabItem Header="{x:Static loc:SettingsText.TabKillMails}">
       <ScrollViewer Margin="0 8 0 0">
         <StackPanel Spacing="14" x:DataType="vm:ZkillboardSettingsViewModel" DataContext="{Binding ZkbVm}">
 
@@ -1673,7 +1674,7 @@
     </TabItem>
 
     <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
-    <TabItem Header="Corp Top 10 / Summary">
+    <TabItem Header="{x:Static loc:SettingsText.TabCorpTop10}">
       <Grid ColumnDefinitions="*,8,*" Margin="0 8 0 0" DataContext="{Binding CorpTop10Vm}">
 
         <!-- Left: what every section is called. Scrolls, because twelve fields and a
@@ -1807,7 +1808,7 @@
     </TabItem>
 
     <!-- ══ Agent ═══════════════════════════════════════════════════════════════ -->
-    <TabItem Header="AI Agent">
+    <TabItem Header="{x:Static loc:SettingsText.TabAiAgent}">
       <!-- Four sub-tabs over one view model and ONE save bar: the tab had grown to two hundred
            lines of sections, and Save applies to all of them, so it stays outside the sub-tabs
            where it is visible whichever one is showing. -->
@@ -1815,7 +1816,7 @@
             x:DataType="vm:AgentSettingsViewModel" DataContext="{Binding AgentVm}">
         <TabControl Grid.Row="0" Padding="0">
 
-        <TabItem Header="Agent">
+        <TabItem Header="{x:Static loc:SettingsText.TabAgent}">
           <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="12" Margin="0 0 8 0">
                 <!-- Master enable -->
@@ -2089,7 +2090,7 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Personalisation">
+        <TabItem Header="{x:Static loc:SettingsText.TabPersonalisation}">
           <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="12" Margin="0 0 8 0">
                 <!-- Personalisation -->
@@ -2135,7 +2136,7 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Voice (TTS)">
+        <TabItem Header="{x:Static loc:SettingsText.TabVoice}">
           <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="12" Margin="0 0 8 0">
 
@@ -2427,7 +2428,7 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Speech Input (STT)">
+        <TabItem Header="{x:Static loc:SettingsText.TabSpeechInput}">
           <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Spacing="12" Margin="0 0 8 0">
                 <!-- Speech Input (push-to-talk) -->
@@ -2570,7 +2571,7 @@
     </TabItem>
 
   <!-- ── Slack ─────────────────────────────────────────────────────────── -->
-  <TabItem Header="Slack">
+  <TabItem Header="{x:Static loc:SettingsText.TabSlack}">
     <ScrollViewer>
       <StackPanel Spacing="16" Margin="24 16">
 
@@ -2765,7 +2766,7 @@
   </TabItem>
 
   <!-- ── Alerts ────────────────────────────────────────────────────────── -->
-  <TabItem Header="Alerts">
+  <TabItem Header="{x:Static loc:SettingsText.TabAlerts}">
     <ScrollViewer>
       <StackPanel Spacing="20" Margin="24 16">
 
@@ -2911,7 +2912,7 @@
   </TabItem>
 
     <!-- ══ Database ════════════════════════════════════════════════════════════ -->
-    <TabItem Header="Database">
+    <TabItem Header="{x:Static loc:SettingsText.TabDatabase}">
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="12" DataContext="{Binding DatabaseVm}">
 
@@ -3363,7 +3364,7 @@
     </TabItem>
 
     <!-- ══ Data Retention ══════════════════════════════════════════════════ -->
-    <TabItem Header="Data Retention">
+    <TabItem Header="{x:Static loc:SettingsText.TabDataRetention}">
       <ScrollViewer Margin="0 8 0 0" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="14" x:DataType="vm:DataRetentionSettingsViewModel"
                     DataContext="{Binding RetentionVm}">
@@ -3634,7 +3635,7 @@
     </TabItem>
 
     <!-- ══ Updates ═════════════════════════════════════════════════════════ -->
-    <TabItem Header="Updates">
+    <TabItem Header="{x:Static loc:SettingsText.TabUpdates}">
       <StackPanel Margin="16" Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
 
         <CheckBox IsChecked="{Binding UpdateVm.AutoCheck}"
@@ -3665,19 +3666,19 @@
     </TabItem>
 
     <!-- ══ Other ══════════════════════════════════════════════════════════════ -->
-    <TabItem Header="Other">
+    <TabItem Header="{x:Static loc:SettingsText.TabOther}">
       <ScrollViewer Margin="0 8 0 0">
         <StackPanel Spacing="14" x:DataType="vm:OtherSettingsViewModel" DataContext="{Binding OtherVm}">
 
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Appearance" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{x:Static loc:SettingsText.AppearanceHeader}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <Grid ColumnDefinitions="Auto,*">
-                  <TextBlock Grid.Column="0" Text="Theme:" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ThemeLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
                              VerticalAlignment="Center" Margin="0 0 10 0" />
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{Binding Themes}"
@@ -3685,15 +3686,34 @@
                 </Grid>
 
                 <Grid ColumnDefinitions="Auto,*">
-                  <TextBlock Grid.Column="0" Text="UI scale:" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.UiScaleLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
                              VerticalAlignment="Center" Margin="0 0 10 0" />
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{Binding UiScales}"
                             SelectedItem="{Binding SelectedUiScale}" />
                 </Grid>
 
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.LanguageLabel}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                            ItemsSource="{Binding LanguageChoices}"
+                            SelectedItem="{Binding SelectedLanguage}" />
+                </Grid>
+
+                <!-- A language shows from the next start, so a change offers one. -->
+                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding LanguageNeedsRestart}">
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.LanguageRestartNote}" FontSize="11"
+                             Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <Button Grid.Column="1" Content="{x:Static loc:SettingsText.RestartNow}" Command="{Binding RestartCommand}" Padding="14 4" />
+                </Grid>
+                <TextBlock Text="{Binding RestartError}" FontSize="11" Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap"
+                           IsVisible="{Binding RestartError, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="{x:Static loc:SettingsText.LanguagePreviewNote}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                           TextWrapping="Wrap" IsVisible="{Binding LanguageIsPreview}" />
+
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="Both apply immediately to every window and dialog, and are remembered for this client only — a second client on the same database keeps its own. The scale is also on the status bar, at the right end, for a quick change." />
+                           Text="{x:Static loc:SettingsText.AppearanceNote}" />
               </StackPanel>
             </StackPanel>
           </Border>
@@ -3701,15 +3721,15 @@
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="EVE Time Link" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{x:Static loc:SettingsText.EveTimeLinkHeader}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="Clicking the EVE clock in the title bar opens this site. Pick one of the suggestions or choose Custom URL and enter your own." />
+                           Text="{x:Static loc:SettingsText.EveTimeLinkNote}" />
 
                 <Grid ColumnDefinitions="Auto,*">
-                  <TextBlock Grid.Column="0" Text="Open:" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.OpenLabel}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                              VerticalAlignment="Center" Margin="0 0 10 0" />
                   <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                             ItemsSource="{Binding EveTimeSiteOptions}"
@@ -3720,7 +3740,7 @@
                          Watermark="https://example.com/"
                          IsVisible="{Binding IsCustomSelected}" />
 
-                <TextBlock Text="{Binding EffectiveUrl, StringFormat='Clicking the clock opens: {0}'}"
+                <TextBlock Text="{Binding EffectiveUrlText}"
                            FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
               </StackPanel>
             </StackPanel>
@@ -3729,12 +3749,12 @@
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
-                <TextBlock Text="Server Status Link" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Text="{x:Static loc:SettingsText.ServerStatusHeader}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
-                           Text="Clicking the Tranquility indicator beside the clock opens CCP's official service status page. Not configurable — no other site carries the same information." />
+                           Text="{x:Static loc:SettingsText.ServerStatusNote}" />
                 <TextBlock Text="https://status.eveonline.com/" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
               </StackPanel>
             </StackPanel>

@@ -522,7 +522,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 await dialog.ShowDialog(this);
             });
 
-        vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, "Alerts");
+        vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
 
         // Normally already done during startup, while the splash was up; the cached task makes this
         // a no-op in that case.
@@ -711,7 +711,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// </summary>
     private void OnSdeUpdateLinkClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "SDE");
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabSde);
     }
 
     /// <summary>
@@ -753,7 +753,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     // ESI Tokens page, so that is where it goes.
     private void OnStatusWarningClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "ESI Tokens");
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabEsiTokens);
     }
 
     // ── Tab detach (right-click → Open in New Window) ─────────────────────────
@@ -949,8 +949,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 using var ms = new MemoryStream();
                 bmp.Save(ms);
 
-                var title  = tabName == "current" ? (vm?.SelectedTab?.Title ?? "") : tabName;
-                var intent = EveConsole.Agent.AppKnowledge.TabIntent(title);
+                // ⚠️ Named from the tab's id, not its title: the title is in the interface
+                // language, and the agent's guide knows every tool by its English name.
+                var current = tabName == "current" ? vm?.SelectedTab : null;
+                var title   = current is not null ? OnScreenName(current) ?? "" : tabName;
+                var intent  = EveConsole.Agent.AppKnowledge.TabIntent(current?.Id ?? title);
                 var desc   = $"Screenshot of the {title} tab.";
                 if (!string.IsNullOrEmpty(intent)) desc += $" ({intent})";
 

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="TabEsiTokens" xml:space="preserve">
+    <value>ESI 令牌</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="TabSde" xml:space="preserve">
+    <value>SDE</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>价格历史</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="TabTimers" xml:space="preserve">
+    <value>计时器</value>
+  </data>
+  <data name="TabPolling" xml:space="preserve">
+    <value>轮询</value>
+  </data>
+  <data name="TabGameLogs" xml:space="preserve">
+    <value>游戏日志</value>
+  </data>
+  <data name="TabChatLogs" xml:space="preserve">
+    <value>聊天日志</value>
+  </data>
+  <data name="TabMapData" xml:space="preserve">
+    <value>地图数据</value>
+  </data>
+  <data name="TabKillMails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="TabCorpTop10" xml:space="preserve">
+    <value>军团前十 / 摘要</value>
+  </data>
+  <data name="TabAiAgent" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="TabAgent" xml:space="preserve">
+    <value>助手</value>
+  </data>
+  <data name="TabPersonalisation" xml:space="preserve">
+    <value>个性化</value>
+  </data>
+  <data name="TabVoice" xml:space="preserve">
+    <value>语音（TTS）</value>
+  </data>
+  <data name="TabSpeechInput" xml:space="preserve">
+    <value>语音输入（STT）</value>
+  </data>
+  <data name="TabSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="TabAlerts" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="TabDatabase" xml:space="preserve">
+    <value>数据库</value>
+  </data>
+  <data name="TabDataRetention" xml:space="preserve">
+    <value>数据保留</value>
+  </data>
+  <data name="TabUpdates" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="AppearanceHeader" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="ThemeLabel" xml:space="preserve">
+    <value>主题：</value>
+  </data>
+  <data name="UiScaleLabel" xml:space="preserve">
+    <value>界面缩放：</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>语言：</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>跟随系统（{0}）</value>
+  </data>
+  <data name="LanguagePreview" xml:space="preserve">
+    <value>{0}（预览）</value>
+  </data>
+  <data name="LanguagePreviewNote" xml:space="preserve">
+    <value>预览：应用的部分内容尚未翻译，将以英文显示。</value>
+  </data>
+  <data name="LanguageRestartNote" xml:space="preserve">
+    <value>新语言将在下次启动时生效。</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="RestartFailed" xml:space="preserve">
+    <value>无法重启：{0}</value>
+  </data>
+  <data name="AppearanceNote" xml:space="preserve">
+    <value>主题和缩放会立即应用到所有窗口和对话框，语言则从下次启动时生效。这三项设置只保存在此客户端——使用同一数据库的其他客户端各自保留自己的设置。缩放也可以在状态栏右端快速调整。</value>
+  </data>
+  <data name="EveTimeLinkHeader" xml:space="preserve">
+    <value>EVE 时间链接</value>
+  </data>
+  <data name="EveTimeLinkNote" xml:space="preserve">
+    <value>点击标题栏中的 EVE 时钟会打开此网站。请从建议中选择一个，或选择“自定义网址”并输入你自己的网址。</value>
+  </data>
+  <data name="OpenLabel" xml:space="preserve">
+    <value>打开：</value>
+  </data>
+  <data name="CustomUrlOption" xml:space="preserve">
+    <value>自定义网址…</value>
+  </data>
+  <data name="EveTimeLinkEffective" xml:space="preserve">
+    <value>点击时钟将打开：{0}</value>
+  </data>
+  <data name="ServerStatusHeader" xml:space="preserve">
+    <value>服务器状态链接</value>
+  </data>
+  <data name="ServerStatusNote" xml:space="preserve">
+    <value>点击时钟旁的 Tranquility（宁静）指示器会打开 CCP 官方服务状态页面。此项不可配置——没有其他网站提供相同的信息。</value>
+  </data>
+</root>
