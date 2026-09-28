@@ -407,6 +407,14 @@ public class App : Application
                 catch { }
             };
 
+            // The move out of the install folder runs before there is a log to write to; what it
+            // could not do is said here, once per start until it succeeds.
+            if (AppConfig.DataMoveProblem is { } moveProblem)
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("AppConfig", "data not moved out of the install folder", moveProblem); }
+                catch { }
+            }
+
             esiClient.AfterTokenRefreshed = async (ownerId, ownerType, scopes, refreshToken) =>
             {
                 var joined = string.Join(' ', scopes);
@@ -672,27 +680,46 @@ public class App : Application
                     new InvalidOperationException(
                         $"database is at {dbVersion}, this client is {AppVersion.Number}"));
 
-                if (splash is not null)
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
                 {
-                    splash.ReportProgress(0, "Stopping — version mismatch");
-                    await new FatalDialog("This build does not match the database", message)
-                        .ShowDialog(splash);
+                    splash?.ReportProgress(0, "Stopping — version mismatch");
 
-                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
-                        stopping.Shutdown();
-                    else
-                        Environment.Exit(1);
+                    // ⚠️ A database AHEAD of this build is the one mismatch this client can fix by
+                    // itself, and it is the one every client meets when another upgrades a shared
+                    // database first. The updater lives in the main window, which a stopped client
+                    // never reaches, so this looks for the release there and then and offers it.
+                    // The other direction is another client's to fix: a plain stop, as before.
+                    Avalonia.Controls.Window dialog = dbV > appV
+                        ? new UpdateRequiredDialog(message, dbV!, errorLogger)
+                        : new FatalDialog("This build does not match the database", message);
+
+                    // A tray start has no splash to own it, and used to end here without a word.
+                    await ShowAndWaitAsync(dialog, splash);
+                    stopping.Shutdown();
                 }
                 else
                 {
                     // Headless, or anything else with nowhere to draw. ⚠️ A non-zero code, so a
-                    // service manager sees a failed start rather than a clean one.
+                    // service manager sees a failed start rather than a clean one. Whether an update
+                    // exists is the next thing whoever reads this will need, so it is said here too.
                     Console.Error.WriteLine(message);
+                    if (dbV > appV)
+                        Console.Error.WriteLine(await AppUpdater.DescribeForLogAsync(dbV!, errorLogger));
                     Environment.Exit(1);
                 }
 
                 return;
             }
+        }
+
+        static Task ShowAndWaitAsync(Avalonia.Controls.Window dialog, Avalonia.Controls.Window? owner)
+        {
+            if (owner is not null) return dialog.ShowDialog(owner);
+            var closed = new TaskCompletionSource();
+            dialog.Closed += (_, _) => closed.TrySetResult();
+            dialog.WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterScreen;
+            dialog.Show();
+            return closed.Task;
         }
 
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
@@ -1587,6 +1614,7 @@ public class App : Application
                         "RegionId"            INTEGER NOT NULL DEFAULT 0,
                         "ItemsPulled"         INTEGER NOT NULL DEFAULT 0,
                         "ItemsStatus"         INTEGER NOT NULL DEFAULT 0,
+                        "StatusChangedAfter"  TEXT,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ContractId")
                     )
                     """);
@@ -1594,6 +1622,9 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "RegionId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsPulled" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "ItemsStatus" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                // What dates a deletion, which ESI does not — see ContractLag. Mirrored for
+                // PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "EsiContracts" ADD COLUMN "StatusChangedAfter" TEXT"""); } catch { }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiContractItems" (

@@ -453,6 +453,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         Dictionary<long, long> runsByItem = [];
         List<DeliveredOutput> deliveredItems  = [];
         List<DeliveredPrint>  deliveredPrints = [];
+        List<ContractMove>    contractMoves   = [];
         if (anyAssets)
         {
             assetRows = (await db.EsiAssets
@@ -487,6 +488,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             deliveredItems = await DeliveryLag.ItemsAsync(db, ct, allTypes);
             if (bpTypeIds.Count > 0)
                 deliveredPrints = await DeliveryLag.PrintsAsync(db, ct, bpTypeIds.ToList());
+
+            // And what contracts have moved since the asset poll — out with one made, back with
+            // one deleted, in with one accepted. See ContractLag.
+            contractMoves = await ContractLag.MovesAsync(db, ct, allTypes);
         }
 
         // ── Industry jobs: active manufacturing (1) and reactions (9, plus legacy 11) ──
@@ -628,6 +633,18 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     if (!ownerFilter.Contains(p.OwnerId)) continue;
                     if (stationFilter != null && !stationFilter.Contains(p.Site)) continue;
                     assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
+                }
+
+                // Contracts last, and never below zero — see ContractLag. The same packaging rule
+                // as the rows above. ⚠️ Blueprint types are left to the snapshot: they are counted
+                // in runs here, and a contract line says how many copies, never their runs.
+                foreach (var m in contractMoves)
+                {
+                    if (!wanted.Contains(m.TypeId) || bpTypeIds.Contains(m.TypeId)) continue;
+                    if (!ownerFilter.Contains(m.OwnerId)) continue;
+                    if (stationFilter != null && !stationFilter.Contains(m.Site)) continue;
+                    if ((packagedOnly || group.PackagedOnly) && m.IsSingleton) continue;
+                    assets[m.TypeId] = Math.Max(0, assets.GetValueOrDefault(m.TypeId) + m.Units);
                 }
             }
 

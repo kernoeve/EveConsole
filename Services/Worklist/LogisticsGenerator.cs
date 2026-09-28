@@ -250,6 +250,16 @@ public class LogisticsGenerator(
             stock[(d.Site, d.TypeId)] = stock.GetValueOrDefault((d.Site, d.TypeId)) + d.Units;
         }
 
+        // And what contracts have moved since: nothing is hauled from a station for goods already
+        // on a contract, and goods a courier has just delivered are not hauled there again. Never
+        // below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            stock[(m.Site, m.TypeId)] = Math.Max(0, stock.GetValueOrDefault((m.Site, m.TypeId)) + m.Units);
+        }
+
         // The same view of stock the demand service nets against — running jobs included, so a
         // sub-assembly already in a machine has nothing hauled for it — and the same loader the
         // job and purchase generators use, so all three agree on what exists.

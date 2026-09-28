@@ -155,6 +155,15 @@ public class IndustryJobGenerator(
             pile[(d.Site, d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.Site, d.TypeId, d.OwnerId)) + d.Units;
         }
 
+        // The same for contracts: material put on a contract since the poll is gone from the
+        // site, material bought on one is there. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        {
+            if (!siteIds.Contains(m.Site) || !Ours(m.OwnerType, m.OwnerId)) continue;
+            var pile = m.OwnerType == "corporation" ? stock.Corp : stock.Personal;
+            pile[(m.Site, m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.Site, m.TypeId, m.OwnerId)) + m.Units);
+        }
+
         // Everything in scope, wherever it sits — assets and running jobs. Separate from the
         // per-site view above and asking a different question: the site view decides whether a
         // job can start now, this one decides whether the material exists at all — a haul or a

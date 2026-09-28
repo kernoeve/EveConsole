@@ -252,6 +252,17 @@ public class ContractRecord
     // say why — a 404 — and so a row an older build marked pulled without ever calling can be
     // told from one ESI actually answered.
     public int    ItemsStatus         { get; set; }
+
+    /// <summary>
+    /// The contract was still in its previous status as of this time: this owner's last
+    /// successful contracts poll before the one that saw the change, less the five minutes ESI
+    /// may serve a copy for. The change came after it. Null until a poll sees a change, for a
+    /// row first seen already settled, and when that previous poll failed.
+    ///
+    /// <para>⚠️ What dates a deletion. ESI gives a deleted contract no date at all, and the goods
+    /// it held are back in the hangar from that moment — see ContractLag.</para>
+    /// </summary>
+    public DateTimeOffset? StatusChangedAfter { get; set; }
 }
 
 // One line item on a contract (offered or requested). Shared across owner rows by ContractId.

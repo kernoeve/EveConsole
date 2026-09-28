@@ -633,7 +633,9 @@
                   <Border Classes="rowline" Background="Transparent"
                           DoubleTapped="OnKillRowDoubleTapped"
                           ToolTip.Tip="Double-click to open in the Killmail Browser">
-                    <Grid ColumnDefinitions="70,50,*,160,160" Margin="4">
+                    <!-- ⚠️ Proportional name columns, and every cell clipped. Two fixed 160s left the location column
+                         nothing on a narrow panel (150% UI scale), and it was drawn over the victim's logo (#124). -->
+                    <Grid ColumnDefinitions="70,50,*,1.25*,1.25*" Margin="4">
 
                       <StackPanel Grid.Column="0" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
                         <TextBlock Text="{Binding DateText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
@@ -652,11 +654,11 @@
                            row still reads like the ones in Corp Activity and the Killmail
                            tool rather than a one-off; the ship keeps its name on the render's
                            tooltip, as it does there. -->
-                      <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0">
-                        <StackPanel Orientation="Horizontal" Spacing="3">
-                          <TextBlock Text="{Binding SecurityText}" FontSize="10" FontWeight="SemiBold"
+                      <StackPanel Grid.Column="2" Spacing="1" VerticalAlignment="Center" Margin="0 0 6 0" ClipToBounds="True">
+                        <Grid ColumnDefinitions="Auto,*">
+                          <TextBlock Text="{Binding SecurityText}" Margin="0 0 3 0" FontSize="10" FontWeight="SemiBold"
                                      ToolTip.Tip="{Binding SecurityTip}" Foreground="{Binding SecurityColor}" />
-                          <Panel>
+                          <Panel Grid.Column="1">
                             <Button Classes="link" Command="{Binding OpenSystemCommand}"
                                     IsVisible="{Binding HasSystemLink}">
                               <TextBlock Text="{Binding SystemName}" Classes="linktext" FontSize="10"
@@ -667,7 +669,7 @@
                                        FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Panel>
-                        </StackPanel>
+                        </Grid>
                         <TextBlock Text="{Binding ConstellationName}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                                    TextTrimming="CharacterEllipsis"
                                    IsVisible="{Binding ConstellationName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -689,7 +691,7 @@
                           <Image Source="{Binding VictimLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" />
                         </Button>
-                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                        <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                           <Button Classes="link" Command="{Binding OpenVictimCommand}">
                             <TextBlock Text="{Binding VictimName}" Classes="linktext" FontSize="10"
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
@@ -713,7 +715,7 @@
                           <Image Source="{Binding FbLogo}" Width="32" Height="32"
                                  Stretch="Uniform" VerticalAlignment="Center" />
                         </Button>
-                        <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                        <StackPanel ClipToBounds="True" Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                           <Button Classes="link" Command="{Binding OpenFbCommand}">
                             <TextBlock Text="{Binding FbName}" Classes="linktext" FontSize="10"
                                        Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"

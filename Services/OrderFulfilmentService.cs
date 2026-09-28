@@ -191,8 +191,25 @@ public class OrderFulfilmentService(
             .Select(g => new { TypeId = g.Key, Units = g.Sum(a => (long)a.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => x.Units, ct);
 
-        // Jobs that have not yet delivered. A delivered job's output is already in assets, so
-        // counting it here as well would promise the same units twice.
+        // ⚠️ And what the asset poll has not caught up with. Assets are polled hourly: a contract
+        // written for one order takes the goods out of the hangar at once, and until the next
+        // poll the snapshot still shows them — so the next order in line read "in stock" off a
+        // hull already on its way to someone else, and its buyer was mailed as much. A delivered
+        // job is the other half: it stops counting as in build within minutes, while its output
+        // is in no asset row for up to an hour. Arrivals first, then what left, never below zero
+        // — see ContractLag.
+        bool Ours(string ownerType, long ownerId) => ownerType == "corporation"
+            ? ours.Corporations.Contains(ownerId)
+            : ours.Characters.Contains(ownerId);
+        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, typeIds))
+            if (Ours(d.OwnerType, d.OwnerId))
+                stock[d.TypeId] = stock.GetValueOrDefault(d.TypeId) + d.Units;
+        foreach (var m in await ContractLag.MovesAsync(db, ct, typeIds))
+            if (Ours(m.OwnerType, m.OwnerId))
+                stock[m.TypeId] = Math.Max(0, stock.GetValueOrDefault(m.TypeId) + m.Units);
+
+        // Jobs that have not yet delivered. A delivered job's output is in assets — or credited
+        // above until it is — so counting it here as well would promise the same units twice.
         var openJobs = await db.EsiIndustryJobs
             .Where(j => j.ProductTypeId != null
                      && typeIds.Contains(j.ProductTypeId!.Value)
