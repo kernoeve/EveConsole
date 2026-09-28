@@ -889,6 +889,15 @@ public class CorpMiningObserver
     public DateTimeOffset LastUpdated { get; set; }
 }
 
+/// <summary>
+/// One day of moon mining seen by a corp refinery: a character, the corporation they were in
+/// then (anyone with access can mine there), an ore, and that day's total.
+///
+/// <para>⚠️ A DAY per row, and every day kept. ESI answers with one row per character, ore and
+/// date, going back about 90 days. The first table was keyed without the date and kept only each
+/// miner's newest day per ore, so every earlier day was dropped and monthly mining read low. A
+/// poll now replaces the days ESI sent and keeps the ones that have aged out of it.</para>
+/// </summary>
 public class CorpMiningLedgerEntry
 {
     public long   CorporationId         { get; set; }
@@ -897,6 +906,10 @@ public class CorpMiningLedgerEntry
     public int    TypeId                { get; set; }
     public long   Quantity              { get; set; }
     public long   RecordedCorporationId { get; set; }
+
+    /// <summary>The mining DATE, at 00:00 UTC. ESI sends a bare date, which the JSON reader
+    /// makes midnight in the polling machine's zone; it is stored the same from every machine,
+    /// either side of a clock change, because it is part of the key.</summary>
     public DateTimeOffset LastUpdated   { get; set; }
 }
 

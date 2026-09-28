@@ -78,7 +78,7 @@ public class AppDbContext : DbContext
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
     public DbSet<CorpMiningExtraction>  EsiCorpMiningExtractions => Set<CorpMiningExtraction>();
     public DbSet<CorpMiningObserver>    EsiCorpMiningObservers   => Set<CorpMiningObserver>();
-    public DbSet<CorpMiningLedgerEntry> EsiCorpMiningLedger      => Set<CorpMiningLedgerEntry>();
+    public DbSet<CorpMiningLedgerEntry> EsiCorpMiningLedgerDays  => Set<CorpMiningLedgerEntry>();
     public DbSet<CorpProject>            EsiCorpProjects            => Set<CorpProject>();
     public DbSet<CorpProjectContributor> EsiCorpProjectContributors => Set<CorpProjectContributor>();
     public DbSet<CorpTop10Exclude>       CorpTop10Excludes          => Set<CorpTop10Exclude>();
@@ -994,13 +994,18 @@ public class AppDbContext : DbContext
             e.Property(x => x.ObserverId).ValueGeneratedNever();
             e.ToTable("EsiCorpMiningObservers"); });
 
+        // A new table rather than a new key on the old one: SQLite cannot change a primary key,
+        // and the carry-over in App.axaml.cs / PostgresSchema moves the old rows across once.
+        // The date third, so replacing an observer's recent days is a range on the key.
         mb.Entity<CorpMiningLedgerEntry>(e => {
-            e.HasKey(x => new { x.CorporationId, x.ObserverId, x.CharacterId, x.TypeId });
+            e.HasKey(x => new { x.CorporationId, x.ObserverId, x.LastUpdated, x.CharacterId,
+                                x.RecordedCorporationId, x.TypeId });
             e.Property(x => x.CorporationId).ValueGeneratedNever();
             e.Property(x => x.ObserverId).ValueGeneratedNever();
             e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.Property(x => x.RecordedCorporationId).ValueGeneratedNever();
             e.Property(x => x.TypeId).ValueGeneratedNever();
-            e.ToTable("EsiCorpMiningLedger"); });
+            e.ToTable("EsiCorpMiningLedgerDays"); });
 
         mb.Entity<CorpProject>(e => {
             e.HasKey(x => new { x.CorporationId, x.ProjectId });

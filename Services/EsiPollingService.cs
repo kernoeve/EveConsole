@@ -3844,8 +3844,26 @@ public class EsiPollingService : ReactiveObject
             return FromResult(r);
         }
 
+        var observers = r.Data!.DistinctBy(o => o.ObserverId).ToList();
+
+        // Every ledger is fetched before the database is touched, so the transaction below never
+        // waits on ESI. An observer whose ledger fails keeps what is stored for it.
+        var ledgers = new List<(long ObserverId, List<CorpMiningLedgerEntry> Days)>();
+        foreach (var observer in observers)
+        {
+            var ledger = await _esi.ExecuteCorpAllPagesAsync<EsiCorpMiningLedgerEntry>(
+                corpId, $"{NewApiBase}corporation/{corpId}/mining/observers/{observer.ObserverId}", ct,
+                extraHeaders: s_miningHeaders);
+            if (!ledger.IsSuccess) continue;
+            ledgers.Add((observer.ObserverId, MiningLedgerDays(corpId, observer.ObserverId, ledger.Data!)));
+        }
+
+        // ⚠️ One transaction: ExecuteDelete commits on its own, and without this a reader could
+        // land between an observer's days being deleted and their replacements going in.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         await db.EsiCorpMiningObservers.Where(o => o.CorporationId == corpId).ExecuteDeleteAsync(ct);
-        db.EsiCorpMiningObservers.AddRange(r.Data!.Select(o => new CorpMiningObserver
+        db.EsiCorpMiningObservers.AddRange(observers.Select(o => new CorpMiningObserver
         {
             CorporationId = corpId,
             ObserverId    = o.ObserverId,
@@ -3853,35 +3871,60 @@ public class EsiPollingService : ReactiveObject
             LastUpdated   = o.LastUpdated,
         }));
 
-        foreach (var observer in r.Data!)
-        {
-            var ledger = await _esi.ExecuteCorpAllPagesAsync<EsiCorpMiningLedgerEntry>(
-                corpId, $"{NewApiBase}corporation/{corpId}/mining/observers/{observer.ObserverId}", ct,
-                extraHeaders: s_miningHeaders);
-            if (!ledger.IsSuccess) continue;
-
-            await db.EsiCorpMiningLedger
-                .Where(l => l.CorporationId == corpId && l.ObserverId == observer.ObserverId)
-                .ExecuteDeleteAsync(ct);
-
-            var deduped = ledger.Data!
-                .GroupBy(l => (l.CharacterId, l.TypeId))
-                .Select(g => g.OrderByDescending(l => l.LastUpdated).First());
-
-            db.EsiCorpMiningLedger.AddRange(deduped.Select(l => new CorpMiningLedgerEntry
-            {
-                CorporationId         = corpId,
-                ObserverId            = observer.ObserverId,
-                CharacterId           = l.CharacterId,
-                TypeId                = l.TypeId,
-                Quantity              = l.Quantity,
-                RecordedCorporationId = l.RecordedCorporationId,
-                LastUpdated           = l.LastUpdated,
-            }));
-        }
+        foreach (var (observerId, days) in ledgers)
+            await ReplaceMiningLedgerDaysAsync(db, corpId, observerId, days, ct);
 
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return FromResult(r);
+    }
+
+    /// <summary>
+    /// An observer's ledger as ESI sent it, one entry per character, the corp they were in, ore
+    /// and day.
+    ///
+    /// <para>⚠️ ESI's last_updated is a bare date, and the JSON reader makes it midnight in THIS
+    /// machine's zone — 06:00 UTC on a machine six hours behind, 22:00 the day before on one two
+    /// hours ahead. It is part of the key, so it is taken as that date at 00:00 UTC, the same from
+    /// every machine and either side of a clock change.</para>
+    ///
+    /// <para>A row repeated across pages is the same row, so the larger quantity is kept rather
+    /// than the two added.</para>
+    /// </summary>
+    internal static List<CorpMiningLedgerEntry> MiningLedgerDays(
+        long corpId, long observerId, IEnumerable<EsiCorpMiningLedgerEntry> rows) =>
+        rows.GroupBy(l => (l.CharacterId, l.RecordedCorporationId, l.TypeId,
+                           Day: new DateTimeOffset(l.LastUpdated.Year, l.LastUpdated.Month, l.LastUpdated.Day,
+                                                   0, 0, 0, TimeSpan.Zero)))
+            .Select(g => new CorpMiningLedgerEntry
+            {
+                CorporationId         = corpId,
+                ObserverId            = observerId,
+                CharacterId           = g.Key.CharacterId,
+                RecordedCorporationId = g.Key.RecordedCorporationId,
+                TypeId                = g.Key.TypeId,
+                LastUpdated           = g.Key.Day,
+                Quantity              = g.Max(l => l.Quantity),
+            })
+            .ToList();
+
+    /// <summary>
+    /// Replaces the days an observer's ledger covers and keeps every day before them, for the
+    /// caller to save. ESI goes back about 90 days, so a day it has stopped sending is history
+    /// only this table still holds. From the earliest day it did send, its answer is the whole
+    /// truth, and a row stored for one of those days that it no longer lists goes. An empty
+    /// ledger replaces nothing.
+    /// </summary>
+    internal static async Task ReplaceMiningLedgerDaysAsync(
+        AppDbContext db, long corpId, long observerId, List<CorpMiningLedgerEntry> days, CancellationToken ct)
+    {
+        if (days.Count == 0) return;
+        var from = days.Min(d => d.LastUpdated);
+        await db.Database.ExecuteSqlAsync($"""
+            DELETE FROM "EsiCorpMiningLedgerDays"
+            WHERE "CorporationId" = {corpId} AND "ObserverId" = {observerId} AND "LastUpdated" >= {from}
+            """, ct);
+        db.EsiCorpMiningLedgerDays.AddRange(days);
     }
 
     // This endpoint uses X-Compatibility-Date header (new ESI versioning) instead of a /v1/ URL prefix.

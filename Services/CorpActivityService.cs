@@ -524,7 +524,7 @@ public class CorpActivityService
         var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT m."CharacterId",
                    COALESCE(SUM(m."Quantity" * COALESCE(r."Value", 0)), 0) AS "Amount"
-            FROM "EsiCorpMiningLedger" m
+            FROM "EsiCorpMiningLedgerDays" m
             LEFT JOIN "ReprocessingValues" r ON r."TypeId" = m."TypeId"
             WHERE m."CorporationId" = {corpId}
               AND m."LastUpdated" >= {sinceStr}
@@ -622,7 +622,7 @@ public class CorpActivityService
         var miningRows = await db.Database.SqlQuery<MonthCountRaw>($"""
             SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month",
                    CAST(SUM("Quantity") AS BIGINT) AS "Count"
-            FROM "EsiCorpMiningLedger"
+            FROM "EsiCorpMiningLedgerDays"
             WHERE "CorporationId" = {corpId} AND "LastUpdated" >= {cutoff}
             GROUP BY "Month"
             """).ToListAsync(ct);
@@ -632,7 +632,7 @@ public class CorpActivityService
         var miningValueRows = await db.Database.SqlQuery<MonthMoneyRaw>($"""
             SELECT substr(CAST(m."LastUpdated" AS TEXT), 1, 7) AS "Month",
                    COALESCE(SUM(m."Quantity" * COALESCE(v."Value", 0.0)), 0) AS "Value"
-            FROM "EsiCorpMiningLedger" m
+            FROM "EsiCorpMiningLedgerDays" m
             LEFT JOIN "ReprocessingValues" v ON v."TypeId" = m."TypeId"
             WHERE m."CorporationId" = {corpId} AND m."LastUpdated" >= {cutoff}
             GROUP BY "Month"
@@ -717,7 +717,7 @@ public class CorpActivityService
               -- Mined at a corp structure while in the corp: the ledger records the miner's corp,
               -- and anyone with access can mine there.
               SELECT substr(CAST("LastUpdated" AS TEXT), 1, 7) AS "Month", "CharacterId" AS "CharId"
-              FROM "EsiCorpMiningLedger"
+              FROM "EsiCorpMiningLedgerDays"
               WHERE "CorporationId" = {corpId} AND "RecordedCorporationId" = {corpId}
                 AND "LastUpdated" >= {cutoff}
               UNION
@@ -945,7 +945,7 @@ public class CorpActivityService
                 l."TypeId",
                 COALESCE(t."Name", CAST(l."TypeId" AS TEXT)) AS "TypeName",
                 CAST(SUM(l."Quantity") AS BIGINT) AS "Quantity"
-            FROM "EsiCorpMiningLedger" l
+            FROM "EsiCorpMiningLedgerDays" l
             LEFT JOIN "SdeTypes" t ON t."TypeId" = l."TypeId"
             WHERE l."CorporationId" = {corpId}
               AND l."LastUpdated" >= {sinceStr}
@@ -979,7 +979,7 @@ public class CorpActivityService
             SELECT DISTINCT
                 CAST(substr(CAST("LastUpdated" AS TEXT), 1, 4) AS INTEGER) AS "Year",
                 CAST(substr(CAST("LastUpdated" AS TEXT), 6, 2) AS INTEGER) AS "Month"
-            FROM "EsiCorpMiningLedger"
+            FROM "EsiCorpMiningLedgerDays"
             WHERE "CorporationId" = {corpId}
             ORDER BY "Year" DESC, "Month" DESC
             """).ToListAsync(ct);
@@ -1437,7 +1437,7 @@ public class CorpActivityService
         var miningCutoff = SqlCutoff(DateTimeOffset.UtcNow.AddHours(-48));
         var miningIds = await db.Database.SqlQuery<IdRaw>($"""
             SELECT DISTINCT "CharacterId" AS "Id"
-            FROM "EsiCorpMiningLedger"
+            FROM "EsiCorpMiningLedgerDays"
             WHERE "CorporationId" = {corpId} AND "RecordedCorporationId" = {corpId}
               AND "LastUpdated" >= {miningCutoff}
             """).ToListAsync(ct);
@@ -1532,7 +1532,7 @@ public class CorpActivityService
         var rows     = await db.Database.SqlQuery<PlayerRaw>($"""
             SELECT m."CharacterId",
                    COALESCE(SUM(m."Quantity" * COALESCE(r."Value", 0)), 0) AS "Amount"
-            FROM "EsiCorpMiningLedger" m
+            FROM "EsiCorpMiningLedgerDays" m
             LEFT JOIN "ReprocessingValues" r ON r."TypeId" = m."TypeId"
             WHERE m."CorporationId" = {corpId}
               AND m."LastUpdated" >= {cutoff}

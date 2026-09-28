@@ -174,6 +174,11 @@ public static class AgentDataNotes
         - For where a character is NOW and what they are flying, CharacterStatuses is better: it
           is polled from ESI, covers every authenticated character, and carries the current ship.
 
+        ## Corp moon mining
+        - EsiCorpMiningLedgerDays holds a row per day a character mined an ore at a corp refinery:
+          Quantity is that day's total, so SUM it over a period; LastUpdated is the DATE (00:00 UTC).
+          RecordedCorporationId is the miner's corp that day — outsiders with access mine there too.
+
         ## Two general traps
         - ⚠️ Anything keyed by ConfigId, GroupId or OwnerType holds a row PER key. Joining without
           filtering multiplies every SUM by however many exist, and the result looks plausible.

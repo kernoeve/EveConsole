@@ -718,6 +718,45 @@ public static class PostgresSchema
         """
         ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "TokenError" TEXT NOT NULL DEFAULT ''
         """,
+
+        // ── Corp moon-mining ledger, one row per day ─────────────────────────
+        //
+        // Replaces "EsiCorpMiningLedger", which was keyed without the date and so held only each
+        // miner's newest day per ore — see CorpMiningLedgerEntry. The old rows move across once
+        // and the old table goes. Each date is put back at 00:00 UTC: the old reader stored ESI's
+        // bare date as midnight in the polling machine's zone, and rounding to the NEAREST
+        // midnight undoes that on either side of UTC, where truncating would not east of it.
+        // Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "EsiCorpMiningLedgerDays" (
+            "CorporationId"         BIGINT      NOT NULL,
+            "ObserverId"            BIGINT      NOT NULL,
+            "LastUpdated"           TIMESTAMPTZ NOT NULL,
+            "CharacterId"           BIGINT      NOT NULL,
+            "RecordedCorporationId" BIGINT      NOT NULL,
+            "TypeId"                INTEGER     NOT NULL,
+            "Quantity"              BIGINT      NOT NULL,
+            CONSTRAINT "PK_EsiCorpMiningLedgerDays" PRIMARY KEY
+                ("CorporationId", "ObserverId", "LastUpdated", "CharacterId", "RecordedCorporationId", "TypeId")
+        )
+        """,
+        """
+        DO $$
+        BEGIN
+            IF to_regclass('"EsiCorpMiningLedger"') IS NOT NULL THEN
+                INSERT INTO "EsiCorpMiningLedgerDays"
+                    ("CorporationId", "ObserverId", "LastUpdated", "CharacterId",
+                     "RecordedCorporationId", "TypeId", "Quantity")
+                SELECT "CorporationId", "ObserverId",
+                       date_trunc('day', ("LastUpdated" AT TIME ZONE 'UTC') + interval '12 hours')
+                           AT TIME ZONE 'UTC',
+                       "CharacterId", "RecordedCorporationId", "TypeId", "Quantity"
+                FROM "EsiCorpMiningLedger"
+                ON CONFLICT DO NOTHING;
+                DROP TABLE "EsiCorpMiningLedger";
+            END IF;
+        END $$
+        """,
     ];
 
     /// <summary>

@@ -2174,18 +2174,43 @@ public class App : Application
                     )
                     """);
 
+                // One row per character, the corp they were in, ore and DAY — see
+                // CorpMiningLedgerEntry. It replaces "EsiCorpMiningLedger", which was keyed without
+                // the date and so held only each miner's newest day per ore.
                 db.Database.ExecuteSqlRaw("""
-                    CREATE TABLE IF NOT EXISTS "EsiCorpMiningLedger" (
+                    CREATE TABLE IF NOT EXISTS "EsiCorpMiningLedgerDays" (
                         "CorporationId"         INTEGER NOT NULL,
                         "ObserverId"            INTEGER NOT NULL,
+                        "LastUpdated"           TEXT    NOT NULL,
                         "CharacterId"           INTEGER NOT NULL,
+                        "RecordedCorporationId" INTEGER NOT NULL DEFAULT 0,
                         "TypeId"                INTEGER NOT NULL,
                         "Quantity"              INTEGER NOT NULL DEFAULT 0,
-                        "RecordedCorporationId" INTEGER NOT NULL DEFAULT 0,
-                        "LastUpdated"           TEXT    NOT NULL,
-                        PRIMARY KEY ("CorporationId", "ObserverId", "CharacterId", "TypeId")
+                        PRIMARY KEY ("CorporationId", "ObserverId", "LastUpdated", "CharacterId",
+                                     "RecordedCorporationId", "TypeId")
                     )
                     """);
+
+                // Carry the old table's rows over, then drop it. Each date is put back at 00:00
+                // UTC by rounding to the NEAREST midnight, as on PostgreSQL: the old reader stored
+                // ESI's bare date as midnight in the polling machine's zone — with that offset
+                // here, or converted to UTC in a database copied back from a server, where the
+                // date's first ten characters can be the day before. SQLite reads the offset.
+                try
+                {
+                    db.Database.ExecuteSqlRaw("""
+                        INSERT OR IGNORE INTO "EsiCorpMiningLedgerDays"
+                            ("CorporationId", "ObserverId", "LastUpdated", "CharacterId",
+                             "RecordedCorporationId", "TypeId", "Quantity")
+                        SELECT "CorporationId", "ObserverId",
+                               COALESCE(date("LastUpdated", '+12 hours'), substr("LastUpdated", 1, 10))
+                                   || ' 00:00:00+00:00',
+                               "CharacterId", "RecordedCorporationId", "TypeId", "Quantity"
+                        FROM "EsiCorpMiningLedger"
+                        """);
+                    db.Database.ExecuteSqlRaw("""DROP TABLE "EsiCorpMiningLedger" """);
+                }
+                catch { /* no old table — a fresh install, or already carried over */ }
 
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiCorpProjects" (
