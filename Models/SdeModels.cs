@@ -125,6 +125,48 @@ public class SdeDogmaEffect
     public bool   IsOffensive  { get; set; }
     public bool   IsAssistance { get; set; }
     public bool   Published    { get; set; }
+
+    // ── What the fitting engine runs on ────────────────────────────────────────
+    // 0 passive, 1 active, 2 target, 3 area, 4 online, 5 overload, 6 dungeon, 7 system.
+    public int    EffectCategory           { get; set; }
+    public bool   IsWarpSafe               { get; set; }
+    public bool   DisallowAutoRepeat       { get; set; }
+    // Which of the owning item's attributes hold the cycle time, cap use, optimal, falloff,
+    // tracking and the target resistance the effect is reduced by. Null where it has none.
+    public int?   DurationAttributeId      { get; set; }
+    public int?   DischargeAttributeId     { get; set; }
+    public int?   RangeAttributeId         { get; set; }
+    public int?   FalloffAttributeId       { get; set; }
+    public int?   TrackingSpeedAttributeId { get; set; }
+    public int?   ResistanceAttributeId    { get; set; }
+    public int?   FittingUsageChanceAttributeId { get; set; }
+}
+
+/// <summary>
+/// One entry of a dogma effect's <c>modifierInfo</c>: "while this effect is on, change attribute
+/// X of whatever <see cref="Domain"/> and <see cref="Func"/> select, by attribute Y of the item
+/// carrying the effect, using <see cref="Operation"/>". The fitting engine is these rows run in
+/// order; an effect with none needs code of its own.
+/// </summary>
+public class SdeDogmaEffectModifier
+{
+    public int     EffectId             { get; set; }
+    /// <summary>Position within the effect's list, which is the key and nothing more.</summary>
+    public int     Ordinal              { get; set; }
+    /// <summary>ItemModifier, LocationModifier, LocationGroupModifier,
+    /// LocationRequiredSkillModifier, OwnerRequiredSkillModifier or EffectStopper.</summary>
+    public string  Func                 { get; set; } = "";
+    /// <summary>itemID, shipID, charID, otherID, structureID, target or targetID.</summary>
+    public string  Domain               { get; set; } = "";
+    /// <summary>-1 pre-assign, 0 pre-multiply, 2 mod-add, 3 mod-sub, 4 post-multiply,
+    /// 5 post-divide, 6 post-percent, 7 post-assign, 9 skill-level-based. Null for EffectStopper.</summary>
+    public int?    Operation            { get; set; }
+    public int?    ModifiedAttributeId  { get; set; }
+    public int?    ModifyingAttributeId { get; set; }
+    public int?    GroupId              { get; set; }
+    public int?    SkillTypeId          { get; set; }
+    /// <summary>The effect an EffectStopper switches off.</summary>
+    public int?    StoppedEffectId      { get; set; }
 }
 
 public class SdeTypeDogmaAttribute

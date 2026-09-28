@@ -240,6 +240,55 @@ public static class PostgresSchema
         """
         ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "ChargeRechargeTimeId" INTEGER NULL
         """,
+
+        // What the fitting engine runs on: each effect's category and the attributes that hold
+        // its cycle time, cap use, range and resistance, and its modifierInfo as rows. Mirrored
+        // for SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "EffectCategory" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "IsWarpSafe" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "DisallowAutoRepeat" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "DurationAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "DischargeAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "RangeAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "FalloffAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "TrackingSpeedAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "ResistanceAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "FittingUsageChanceAttributeId" INTEGER NULL
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" (
+            "EffectId"             INTEGER NOT NULL,
+            "Ordinal"              INTEGER NOT NULL,
+            "Func"                 TEXT    NOT NULL,
+            "Domain"               TEXT    NOT NULL,
+            "Operation"            INTEGER NULL,
+            "ModifiedAttributeId"  INTEGER NULL,
+            "ModifyingAttributeId" INTEGER NULL,
+            "GroupId"              INTEGER NULL,
+            "SkillTypeId"          INTEGER NULL,
+            "StoppedEffectId"      INTEGER NULL,
+            CONSTRAINT "PK_SdeDogmaEffectModifiers" PRIMARY KEY ("EffectId", "Ordinal")
+        )
+        """,
         """
         ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
         """,

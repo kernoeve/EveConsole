@@ -142,6 +142,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeDogmaAttributeCategory> SdeDogmaAttributeCategories => Set<SdeDogmaAttributeCategory>();
     public DbSet<SdeDogmaAttribute>     SdeDogmaAttributes     => Set<SdeDogmaAttribute>();
     public DbSet<SdeDogmaEffect>        SdeDogmaEffects        => Set<SdeDogmaEffect>();
+    public DbSet<SdeDogmaEffectModifier> SdeDogmaEffectModifiers => Set<SdeDogmaEffectModifier>();
     public DbSet<SdeTypeDogmaAttribute> SdeTypeDogmaAttributes => Set<SdeTypeDogmaAttribute>();
     public DbSet<SdeTypeDogmaEffect>    SdeTypeDogmaEffects    => Set<SdeTypeDogmaEffect>();
     public DbSet<SdeBlueprint>          SdeBlueprints          => Set<SdeBlueprint>();
@@ -383,6 +384,11 @@ public class AppDbContext : DbContext
         mb.Entity<SdeDogmaEffect>(e => {
             e.HasKey(x => x.EffectId);
             e.Property(x => x.EffectId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeDogmaEffectModifier>(e => {
+            e.HasKey(x => new { x.EffectId, x.Ordinal });
+            e.Property(x => x.EffectId).ValueGeneratedNever();
+            e.Property(x => x.Ordinal).ValueGeneratedNever(); });
 
         mb.Entity<SdeTypeDogmaAttribute>(e => {
             e.HasKey(x => new { x.TypeId, x.AttributeId });

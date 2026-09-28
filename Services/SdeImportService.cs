@@ -362,7 +362,9 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeTypes" ("TypeId" INTEGER NOT NULL PRIMARY KEY, "GroupId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL, "Volume" REAL NOT NULL, "Mass" REAL NOT NULL, "Capacity" REAL NOT NULL, "PortionSize" INTEGER NOT NULL, "BasePrice" REAL, "MarketGroupId" INTEGER, "IconId" INTEGER, "GraphicId" INTEGER, "FactionId" INTEGER, "RaceId" INTEGER, "MetaGroupId" INTEGER, "Published" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeDogmaAttributeCategories" ("CategoryId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeDogmaAttributes" ("AttributeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "DisplayName" TEXT NOT NULL, "CategoryId" INTEGER, "DefaultValue" REAL NOT NULL, "HighIsGood" INTEGER NOT NULL, "Stackable" INTEGER NOT NULL, "UnitId" INTEGER, "Published" INTEGER NOT NULL)""",
-            """CREATE TABLE IF NOT EXISTS "SdeDogmaEffects" ("EffectId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "DisplayName" TEXT NOT NULL, "Description" TEXT NOT NULL, "IsOffensive" INTEGER NOT NULL, "IsAssistance" INTEGER NOT NULL, "Published" INTEGER NOT NULL)""",
+            """CREATE TABLE IF NOT EXISTS "SdeDogmaEffects" ("EffectId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "DisplayName" TEXT NOT NULL, "Description" TEXT NOT NULL, "IsOffensive" INTEGER NOT NULL, "IsAssistance" INTEGER NOT NULL, "Published" INTEGER NOT NULL, "EffectCategory" INTEGER NOT NULL DEFAULT 0, "IsWarpSafe" INTEGER NOT NULL DEFAULT 0, "DisallowAutoRepeat" INTEGER NOT NULL DEFAULT 0, "DurationAttributeId" INTEGER, "DischargeAttributeId" INTEGER, "RangeAttributeId" INTEGER, "FalloffAttributeId" INTEGER, "TrackingSpeedAttributeId" INTEGER, "ResistanceAttributeId" INTEGER, "FittingUsageChanceAttributeId" INTEGER)""",
+            // The rules the fitting engine runs: one row per modifierInfo entry of each effect.
+            """CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" ("EffectId" INTEGER NOT NULL, "Ordinal" INTEGER NOT NULL, "Func" TEXT NOT NULL, "Domain" TEXT NOT NULL, "Operation" INTEGER, "ModifiedAttributeId" INTEGER, "ModifyingAttributeId" INTEGER, "GroupId" INTEGER, "SkillTypeId" INTEGER, "StoppedEffectId" INTEGER, CONSTRAINT "PK_SdeDogmaEffectModifiers" PRIMARY KEY ("EffectId", "Ordinal"))""",
             """CREATE TABLE IF NOT EXISTS "SdeTypeDogmaAttributes" ("TypeId" INTEGER NOT NULL, "AttributeId" INTEGER NOT NULL, "Value" REAL NOT NULL, PRIMARY KEY ("TypeId", "AttributeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeTypeDogmaEffects" ("TypeId" INTEGER NOT NULL, "EffectId" INTEGER NOT NULL, "IsDefault" INTEGER NOT NULL, PRIMARY KEY ("TypeId", "EffectId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeBlueprints" ("TypeId" INTEGER NOT NULL PRIMARY KEY, "MaxProductionLimit" INTEGER NOT NULL)""",
@@ -463,6 +465,17 @@ public class SdeImportService
             """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "DataType" INTEGER""",
             """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "DisplayWhenZero" INTEGER NOT NULL DEFAULT 0""",
             """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "ChargeRechargeTimeId" INTEGER""",
+            // -- SdeDogmaEffects: what the fitting engine runs on (10)
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "EffectCategory" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "IsWarpSafe" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "DisallowAutoRepeat" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "DurationAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "DischargeAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "RangeAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "FalloffAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "TrackingSpeedAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "ResistanceAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "FittingUsageChanceAttributeId" INTEGER""",
             // -- SdeFactions (4)
             """ALTER TABLE "SdeFactions" ADD COLUMN "IconId" INTEGER""",
             """ALTER TABLE "SdeFactions" ADD COLUMN "ShortDescription" TEXT NOT NULL DEFAULT ''""",
@@ -753,13 +766,40 @@ public class SdeImportService
             EffectId    = kv.Key,
             // New SDE uses "name"; old SDE used "effectName"
             Name        = kv.Value.name ?? kv.Value.effectName ?? "",
-            DisplayName = kv.Value.displayNameID?.en ?? kv.Value.name ?? kv.Value.effectName ?? "",
-            Description = kv.Value.descriptionID?.en ?? "",
+            DisplayName = kv.Value.displayName?.en ?? kv.Value.displayNameID?.en ?? kv.Value.name ?? kv.Value.effectName ?? "",
+            Description = kv.Value.description?.en ?? kv.Value.descriptionID?.en ?? "",
             IsOffensive = kv.Value.isOffensive,
             IsAssistance = kv.Value.isAssistance,
             Published   = kv.Value.published,
+            EffectCategory           = kv.Value.effectCategoryID ?? kv.Value.effectCategory ?? 0,
+            IsWarpSafe               = kv.Value.isWarpSafe,
+            DisallowAutoRepeat       = kv.Value.disallowAutoRepeat,
+            DurationAttributeId      = kv.Value.durationAttributeID,
+            DischargeAttributeId     = kv.Value.dischargeAttributeID,
+            RangeAttributeId         = kv.Value.rangeAttributeID,
+            FalloffAttributeId       = kv.Value.falloffAttributeID,
+            TrackingSpeedAttributeId = kv.Value.trackingSpeedAttributeID,
+            ResistanceAttributeId    = kv.Value.resistanceAttributeID,
+            FittingUsageChanceAttributeId = kv.Value.fittingUsageChanceAttributeID,
         });
-        await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, "Dogma Effects", raw.Count, p, 0.52, 0.54, ct);
+        await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, "Dogma Effects", raw.Count, p, 0.52, 0.53, ct);
+
+        // modifierInfo, one row per entry. The order within an effect is kept as the key, which
+        // is all it is: the engine applies modifiers by operation, not by position.
+        var mods = raw.SelectMany(kv => (kv.Value.modifierInfo ?? []).Select((m, i) => new SdeDogmaEffectModifier
+        {
+            EffectId             = kv.Key,
+            Ordinal              = i,
+            Func                 = m.func   ?? "",
+            Domain               = m.domain ?? "",
+            Operation            = m.operation,
+            ModifiedAttributeId  = m.modifiedAttributeID,
+            ModifyingAttributeId = m.modifyingAttributeID,
+            GroupId              = m.groupID,
+            SkillTypeId          = m.skillTypeID,
+            StoppedEffectId      = m.effectID,
+        }));
+        await SaveBatchesAsync(db, db.SdeDogmaEffectModifiers, mods, "Dogma Effect Modifiers", -1, p, 0.53, 0.54, ct);
     }
 
     private async Task ImportTypeDogmaAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1847,9 +1887,38 @@ public class SdeImportService
         public string?          effectName    { get; set; }
         public LocalizedString? displayNameID { get; set; }
         public LocalizedString? descriptionID { get; set; }
+        // New SDE: the localized text dropped the "ID" suffix.
+        public LocalizedString? displayName   { get; set; }
+        public LocalizedString? description   { get; set; }
         public bool             isOffensive   { get; set; }
         public bool             isAssistance  { get; set; }
         public bool             published     { get; set; }
+
+        // New SDE "effectCategoryID"; old SDE "effectCategory".
+        public int?             effectCategoryID { get; set; }
+        public int?             effectCategory   { get; set; }
+        public bool             isWarpSafe         { get; set; }
+        public bool             disallowAutoRepeat { get; set; }
+        public int?             durationAttributeID      { get; set; }
+        public int?             dischargeAttributeID     { get; set; }
+        public int?             rangeAttributeID         { get; set; }
+        public int?             falloffAttributeID       { get; set; }
+        public int?             trackingSpeedAttributeID { get; set; }
+        public int?             resistanceAttributeID    { get; set; }
+        public int?             fittingUsageChanceAttributeID { get; set; }
+        public List<ModifierInfoYaml>? modifierInfo { get; set; }
+    }
+
+    private class ModifierInfoYaml
+    {
+        public string? func                 { get; set; }
+        public string? domain               { get; set; }
+        public int?    operation            { get; set; }
+        public int?    modifiedAttributeID  { get; set; }
+        public int?    modifyingAttributeID { get; set; }
+        public int?    groupID              { get; set; }
+        public int?    skillTypeID          { get; set; }
+        public int?    effectID             { get; set; }
     }
 
     private class TypeDogmaYaml
