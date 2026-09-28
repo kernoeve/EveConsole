@@ -82,8 +82,12 @@ public class DataRetentionService
         // corporations' kills and losses are history you look back on; everyone else's — the
         // zKillboard feed, fights you only watched — are the bulk of the space and the part worth
         // trimming. See KillmailScope.
+        //
+        // ⚠️ Others go down to a week, and start there, at the user's request: they are 98% of the
+        // kills on a measured database, and the month-over-month floor above is for the history
+        // the Characters / Corps rule keeps.
         OurKillmails   = new RetentionRule(prefs, "retention.killmails.ours",   defaultDays: 365, minimumDays: 30);
-        OtherKillmails = new RetentionRule(prefs, "retention.killmails.others", defaultDays: 90,  minimumDays: 30);
+        OtherKillmails = new RetentionRule(prefs, "retention.killmails.others", defaultDays: 7,   minimumDays: 7);
         CarryOverKillmailRule(prefs);
 
         // ⚠️ A week is a real floor here, not a formality. The whole point of these rows is to
