@@ -407,6 +407,14 @@ public class App : Application
                 catch { }
             };
 
+            // The move out of the install folder runs before there is a log to write to; what it
+            // could not do is said here, once per start until it succeeds.
+            if (AppConfig.DataMoveProblem is { } moveProblem)
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("AppConfig", "data not moved out of the install folder", moveProblem); }
+                catch { }
+            }
+
             esiClient.AfterTokenRefreshed = async (ownerId, ownerType, scopes, refreshToken) =>
             {
                 var joined = string.Join(' ', scopes);

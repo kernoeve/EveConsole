@@ -230,7 +230,7 @@ If you would rather not build it, grab a release: an installer on Windows, and o
 
 On first launch, a **Welcome** dialog appears and the Settings window opens on the **ESI Tokens** tab — click **Add Character** there to authorize a character via EVE's SSO.
 
-Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EveConsole\EveConsole.db` on Windows or `~/.local/share/EveConsole/EveConsole.db` on Linux.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
+Your data stays on your machine.  By default that is a SQLite file at `%LOCALAPPDATA%\EVE Console Data\EveConsole.db` on Windows (kept apart from the program, which installing and updating replace) or `~/.local/share/EveConsole/EveConsole.db` on Linux.  The Database tab in Settings can move it, rename it, or switch you over to a PostgreSQL server if you want several clients sharing one.
 
 See the [documentation](https://docs.eveconsole.com/getting-started/) for full install and setup steps.
 

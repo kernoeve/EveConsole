@@ -41,6 +41,11 @@ class Program
         // with special args and exit before the UI starts).
         VelopackApp.Build().Run();
 
+        // ⚠️ First of all, before a profile, a lock file or a setting is touched: the data moves
+        // out of Velopack's install folder, whose installer and uninstaller delete everything in
+        // it. Once, by the installed copy — see AppConfig.MoveDataOutOfInstallFolder.
+        AppConfig.MoveDataOutOfInstallFolder();
+
         // ⚠️ Before anything asks where anything is. Every path in the app comes from
         // AppConfig.AppDataDir, and this is what moves it; a single read beforehand would be a
         // read against the ordinary directory, which is the one this switch exists to leave alone.

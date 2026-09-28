@@ -128,7 +128,7 @@ the build cannot carry itself.
 
 Run the app with `--profile <name>` — `--profile dev`, and in an IDE it goes in the run
 configuration's program arguments — and it keeps everything in
-`%LocalAppData%\EveConsole\Profiles\<name>` (`~/.local/share/EveConsole/Profiles/<name>` on Linux)
+`%LocalAppData%\EVE Console Data\Profiles\<name>` (`~/.local/share/EveConsole/Profiles/<name>` on Linux)
 instead of the ordinary data directory: its own config, its own database, its own remembered
 settings and caches. A path works too, for a profile somewhere else entirely. Nothing is shared
 with the installed copy and nothing is copied in — the profile starts empty, the way a fresh
