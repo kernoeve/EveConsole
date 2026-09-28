@@ -240,6 +240,11 @@ public class HoboImportService
     /// </remarks>
     internal static void EnsureHoboSchema(AppDbContext db)
     {
+        // ⚠️ SQLite only. These statements are in SQLite's spelling, and a server's schema is
+        // EnsureCreated plus PostgresSchema: the ALTER below once gave servers an int4 Revision
+        // where the model has a long.
+        if (DbEngine.IsPostgres) return;
+
         var ddl = new[]
         {
             """CREATE TABLE IF NOT EXISTS "HoboBuildInfos" ("Id" INTEGER NOT NULL PRIMARY KEY, "ImportedAt" TEXT NOT NULL, "Revision" INTEGER NOT NULL DEFAULT 0)""",

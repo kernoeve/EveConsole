@@ -757,6 +757,25 @@ public static class PostgresSchema
             END IF;
         END $$
         """,
+
+        // ── Hoboleaks build info ─────────────────────────────────────────────
+        //
+        // Revision arrived after PostgreSQL support and reached servers only through the Hobo
+        // import's own ALTER, spelled for SQLite: INTEGER, which is int4 here where the model has
+        // a long. Added as the model has it, and an int4 one widened once.
+        """
+        ALTER TABLE "HoboBuildInfos" ADD COLUMN IF NOT EXISTS "Revision" BIGINT NOT NULL DEFAULT 0
+        """,
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns
+                       WHERE table_schema = current_schema() AND table_name = 'HoboBuildInfos'
+                         AND column_name = 'Revision' AND data_type = 'integer') THEN
+                ALTER TABLE "HoboBuildInfos" ALTER COLUMN "Revision" TYPE BIGINT;
+            END IF;
+        END $$
+        """,
     ];
 
     /// <summary>
@@ -830,6 +849,25 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_OccurredAt" ON "ServiceUsage" ("OccurredAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_ServiceUsage_Kind_OccurredAt" ON "ServiceUsage" ("Kind", "OccurredAt")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ServiceRates_Key" ON "ServiceRates" ("Kind", "Provider", "Model")""",
+
+        // EF's own names for indexes created above under these. The model uses these names now
+        // (HasDatabaseName), so the copies exist only where EF built the database before it did —
+        // a fresh install got each index twice. Dropping one loses nothing: the index it copies
+        // stays under the other name. Mirrored for SQLite in App.axaml.cs.
+        """DROP INDEX IF EXISTS "IX_AgentInteractions_ConversationId_StartedAt" """,
+        """DROP INDEX IF EXISTS "IX_AgentToolCalls_InteractionId_Sequence" """,
+        """DROP INDEX IF EXISTS "IX_AlarmAlerts_Dismissed_CreatedAt" """,
+        """DROP INDEX IF EXISTS "IX_AlarmEvents_AlarmId_FiredAt" """,
+        """DROP INDEX IF EXISTS "IX_AlarmSeenKeys_AlarmId_FirstSeenAt" """,
+        """DROP INDEX IF EXISTS "IX_EsiCorpMemberSessions_CorporationId_CharacterId_LogonDate" """,
+        """DROP INDEX IF EXISTS "IX_IntelReports_Obsolete_ReportedAt" """,
+        """DROP INDEX IF EXISTS "IX_IntelReports_SystemId_ReportedAt" """,
+        """DROP INDEX IF EXISTS "IX_MarketRawOrders_ConfigId_TypeId_IsBuyOrder" """,
+        """DROP INDEX IF EXISTS "IX_SdeAgents_LocationId" """,
+        """DROP INDEX IF EXISTS "IX_SdeCelestials_SolarSystemId" """,
+        """DROP INDEX IF EXISTS "IX_ServiceRates_Kind_Provider_Model" """,
+        """DROP INDEX IF EXISTS "IX_StoreWebEvents_StoreId_Seq" """,
+        """DROP INDEX IF EXISTS "IX_StructureFittings_StructureId_Band_SlotIndex" """,
     ];
 
     /// <summary>

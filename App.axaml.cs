@@ -3411,6 +3411,28 @@ public class App : Application
                 // provider, and a missing table there breaks a screen that has nothing to do with
                 // the agent.
                 AgentTelemetrySchema.Ensure(db);
+
+                // EF's own names for indexes this block creates under its own. The model uses
+                // those names now (HasDatabaseName), so these exist only where EF built the file
+                // before it did, each a copy of an index that stays. Mirrored in PostgresSchema.
+                foreach (var sql in new[]
+                {
+                    """DROP INDEX IF EXISTS "IX_AgentInteractions_ConversationId_StartedAt" """,
+                    """DROP INDEX IF EXISTS "IX_AgentToolCalls_InteractionId_Sequence" """,
+                    """DROP INDEX IF EXISTS "IX_AlarmAlerts_Dismissed_CreatedAt" """,
+                    """DROP INDEX IF EXISTS "IX_AlarmEvents_AlarmId_FiredAt" """,
+                    """DROP INDEX IF EXISTS "IX_AlarmSeenKeys_AlarmId_FirstSeenAt" """,
+                    """DROP INDEX IF EXISTS "IX_EsiCorpMemberSessions_CorporationId_CharacterId_LogonDate" """,
+                    """DROP INDEX IF EXISTS "IX_IntelReports_Obsolete_ReportedAt" """,
+                    """DROP INDEX IF EXISTS "IX_IntelReports_SystemId_ReportedAt" """,
+                    """DROP INDEX IF EXISTS "IX_MarketRawOrders_ConfigId_TypeId_IsBuyOrder" """,
+                    """DROP INDEX IF EXISTS "IX_SdeAgents_LocationId" """,
+                    """DROP INDEX IF EXISTS "IX_SdeCelestials_SolarSystemId" """,
+                    """DROP INDEX IF EXISTS "IX_ServiceRates_Kind_Provider_Model" """,
+                    """DROP INDEX IF EXISTS "IX_StoreWebEvents_StoreId_Seq" """,
+                    """DROP INDEX IF EXISTS "IX_StructureFittings_StructureId_Band_SlotIndex" """,
+                })
+                    db.Database.ExecuteSqlRaw(sql);
             }
 
             // ⚠️ Outside the engine branch, because the rate list is DATA rather than schema and
