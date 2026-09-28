@@ -134,7 +134,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Build costs price blueprint copies off actual contracts (per run and by ME), and take the cheaper of building or buying each component
 - Tranquility status sits in the header, and ESI polling pauses on its own while the server is down
 - Database tab reports the size of every table, and can shrink, move or rename the database
-- Data retention rules for the error log, killmails, price history, game logs and chat, swept in the background at least daily
+- Data retention rules for the error log, killmails (your own characters' and corporations' kept on a separate window from everyone else's), price history, game logs and chat, swept in the background at least daily
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
 - Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
 - Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops

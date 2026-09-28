@@ -123,8 +123,10 @@ public partial class SettingsWindow : Window
 
     private void OnPurgeErrorLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.ErrorLog.PurgeNowAsync();
-    private void OnPurgeKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _ = Retention?.Killmails.PurgeNowAsync();
+    private void OnPurgeOurKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.OurKillmails.PurgeNowAsync();
+    private void OnPurgeOtherKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.OtherKillmails.PurgeNowAsync();
     private void OnPurgePriceHistoryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.PriceHistory.PurgeNowAsync();
     private void OnPurgeGameLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

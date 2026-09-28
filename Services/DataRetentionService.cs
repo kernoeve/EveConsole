@@ -74,10 +74,17 @@ public class DataRetentionService
         // week is generous. Killmails and price history feed month-over-month comparisons, so a
         // month is the shortest window that leaves them meaningful.
         ErrorLog     = new RetentionRule(prefs, "retention.errorlog",     defaultDays: 30,  minimumDays: 7);
-        Killmails    = new RetentionRule(prefs, "retention.killmails",    defaultDays: 90,  minimumDays: 30);
         PriceHistory = new RetentionRule(prefs, "retention.pricehistory", defaultDays: 90,  minimumDays: 30);
         GameLog      = new RetentionRule(prefs, "retention.gamelog",      defaultDays: 365, minimumDays: 30);
         ChatMessages = new RetentionRule(prefs, "retention.chat",         defaultDays: 90,  minimumDays: 30);
+
+        // Killmails in two halves, because they are not worth the same. Your own characters' and
+        // corporations' kills and losses are history you look back on; everyone else's — the
+        // zKillboard feed, fights you only watched — are the bulk of the space and the part worth
+        // trimming. See KillmailScope.
+        OurKillmails   = new RetentionRule(prefs, "retention.killmails.ours",   defaultDays: 365, minimumDays: 30);
+        OtherKillmails = new RetentionRule(prefs, "retention.killmails.others", defaultDays: 90,  minimumDays: 30);
+        CarryOverKillmailRule(prefs);
 
         // ⚠️ A week is a real floor here, not a formality. The whole point of these rows is to
         // read back WHY an answer was poor, and that is usually noticed days later.
@@ -96,7 +103,8 @@ public class DataRetentionService
     }
 
     public RetentionRule ErrorLog       { get; }
-    public RetentionRule Killmails      { get; }
+    public RetentionRule OurKillmails   { get; }
+    public RetentionRule OtherKillmails { get; }
     public RetentionRule PriceHistory   { get; }
     public RetentionRule GameLog        { get; }
     public RetentionRule ChatMessages   { get; }
@@ -165,8 +173,32 @@ public class DataRetentionService
 
     // ── Killmails ─────────────────────────────────────────────────────────────
 
+    /// <summary>Whose killmails a rule covers.</summary>
+    public enum KillmailScope
+    {
+        /// <summary>A kill or loss of one of your characters, or of a corporation you have added:
+        /// victim or attacker, or a kill ESI or zKillboard handed to one of them as its own.</summary>
+        Ours,
+
+        /// <summary>Everything else.</summary>
+        Others,
+    }
+
+    /// <summary>Killmails deleted per transaction. Small enough that SQLite's single writer is
+    /// free again within a second or so, large enough that a run of millions is not dominated by
+    /// round trips.</summary>
+    private const int KillmailBatch = 2_000;
+
+    public Task<int> PurgeOurKillmailsAsync(
+        int days, IProgress<(int Done, int Total)>? progress = null, CancellationToken ct = default)
+        => PurgeKillmailsAsync(KillmailScope.Ours, Math.Max(OurKillmails.MinimumDays, days), progress, ct);
+
+    public Task<int> PurgeOtherKillmailsAsync(
+        int days, IProgress<(int Done, int Total)>? progress = null, CancellationToken ct = default)
+        => PurgeKillmailsAsync(KillmailScope.Others, Math.Max(OtherKillmails.MinimumDays, days), progress, ct);
+
     /// <summary>
-    /// Removes killmails older than the window, and everything hanging off them.
+    /// Removes one side's killmails older than the window, and everything hanging off them.
     ///
     /// <para>⚠️ This is the one place in the app that deletes killmails. Every import path is
     /// additive-only by rule — skip if already stored, never update or delete — because a killmail
@@ -174,36 +206,134 @@ public class DataRetentionService
     /// choosing to stop keeping old ones, which is why it is off by default and gated behind a
     /// checkbox they have to tick.</para>
     ///
-    /// <para>Children go first, so an interruption leaves orphaned children (harmless, and cleaned
-    /// up by the next run) rather than details with no attackers — which would render as corrupt
-    /// kills in the browser.</para>
+    /// <para>⚠️ Sorted in memory, not in SQL. Asked as one query — kills whose victim and attackers
+    /// are NOT IN ours — PostgreSQL ran past five minutes on 2.45 million kills without finishing.
+    /// Read this way it takes under a second on the same data: our kills come through the indexes
+    /// that lead with a character or corporation id, the old kills through the one on time, and
+    /// the rest is a set lookup.</para>
+    ///
+    /// <para>Deleted in batches, each in a transaction of its own and children first, so a kill is
+    /// removed whole or not at all, SQLite's writer is never held for the length of a run that can
+    /// reach millions of kills, and progress can be reported as it goes.</para>
     /// </summary>
-    public async Task<int> PurgeKillmailsAsync(int days, CancellationToken ct = default)
+    private async Task<int> PurgeKillmailsAsync(
+        KillmailScope scope, int days, IProgress<(int Done, int Total)>? progress, CancellationToken ct)
     {
-        days = Math.Max(Killmails.MinimumDays, days);
-        var cutoff = TimestampCutoff(days);
-
-        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        await using var db = await _dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
         // No timeout: KillMailItems alone runs to tens of millions of rows, and a partial delete
         // interrupted by a timeout is worse than a slow one.
         db.Database.SetCommandTimeout(0);
 
-        const string Doomed = """
-            SELECT "KillMailId" FROM "KillMailDetails" WHERE "KillMailTime" < {0}
-            """;
+        var doomed = await KillmailsToPurgeAsync(db, scope, TimestampCutoff(days), ct).ConfigureAwait(false);
+        progress?.Report((0, doomed.Count));
 
-        await db.Database.ExecuteSqlRawAsync(
-            $"""DELETE FROM "KillMailItems"     WHERE "KillMailId" IN ({Doomed})""", [cutoff], ct);
-        await db.Database.ExecuteSqlRawAsync(
-            $"""DELETE FROM "KillMailAttackers" WHERE "KillMailId" IN ({Doomed})""", [cutoff], ct);
-        await db.Database.ExecuteSqlRawAsync(
-            $"""DELETE FROM "EsiKillMailRefs"   WHERE "KillMailId" IN ({Doomed})""", [cutoff], ct);
-        await db.Database.ExecuteSqlRawAsync(
-            $"""DELETE FROM "ZkbKillFlags"      WHERE "KillMailId" IN ({Doomed})""", [cutoff], ct);
+        var removed = 0;
+        foreach (var batch in doomed.Chunk(KillmailBatch))
+        {
+            ct.ThrowIfCancellationRequested();
 
-        return await db.Database.ExecuteSqlInterpolatedAsync(
-            $"""DELETE FROM "KillMailDetails" WHERE "KillMailTime" < {cutoff}""", ct);
+            // Our own ids, so embedded rather than parameterised: a list of ints carries nothing
+            // but digits.
+            var ids = string.Join(",", batch);
+
+            await using var tx = await db.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+#pragma warning disable EF1002 // interpolated parts are table names from this list and ints from our own table, never input
+            foreach (var child in new[] { "KillMailItems", "KillMailAttackers", "EsiKillMailRefs", "ZkbKillFlags" })
+                await db.Database.ExecuteSqlRawAsync(
+                    $"""DELETE FROM "{child}" WHERE "KillMailId" IN ({ids})""", ct).ConfigureAwait(false);
+            removed += await db.Database.ExecuteSqlRawAsync(
+                $"""DELETE FROM "KillMailDetails" WHERE "KillMailId" IN ({ids})""", ct).ConfigureAwait(false);
+#pragma warning restore EF1002
+            await tx.CommitAsync(ct).ConfigureAwait(false);
+
+            progress?.Report((removed, doomed.Count));
+        }
+        return removed;
+    }
+
+    /// <summary>The killmails on one side that are older than the cutoff.</summary>
+    internal static async Task<List<int>> KillmailsToPurgeAsync(
+        AppDbContext db, KillmailScope scope, DateTimeOffset cutoff, CancellationToken ct)
+    {
+        // ⚠️ Raw SQL for the date: a DateTimeOffset in a LINQ Where does not translate on SQLite.
+        var old = await db.Database
+            .SqlQueryRaw<int>("""SELECT "KillMailId" AS "Value" FROM "KillMailDetails" WHERE "KillMailTime" < {0}""", cutoff)
+            .ToListAsync(ct).ConfigureAwait(false);
+        if (old.Count == 0) return old;
+
+        var ours = await OurKillmailIdsAsync(db, ct).ConfigureAwait(false);
+        return old.Where(id => ours.Contains(id) == (scope == KillmailScope.Ours)).ToList();
+    }
+
+    /// <summary>
+    /// Every killmail that is one of ours: a character of yours or a corporation you have added,
+    /// as victim or attacker — or a kill ESI or zKillboard handed to one of them as its own.
+    ///
+    /// <para>⚠️ Every corporation in the table, not only personal ones, and not only those whose
+    /// token works today. A corporation is only ever added by signing in for it, so every row is
+    /// one the user chose to track; a token the SSO later refuses is cleared, and keying on it
+    /// would hand a corporation's whole history to the shorter rule the day its director's token
+    /// lapsed. Characters the same way.</para>
+    ///
+    /// <para>The references are belt and braces. A kill handed to one of ours is victim- or
+    /// attacker-side one of ours already; counting them as well means the corp activity pages,
+    /// which read killmails through those references, can never lose one to the other rule.</para>
+    /// </summary>
+    internal static async Task<HashSet<int>> OurKillmailIdsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var chars = await db.Characters.AsNoTracking().Select(c => c.Id).ToListAsync(ct).ConfigureAwait(false);
+        var corps = await db.Corporations.AsNoTracking().Select(c => (long)c.Id).ToListAsync(ct).ConfigureAwait(false);
+
+        var ours = new HashSet<int>();
+        if (chars.Count + corps.Count == 0) return ours;
+        var owners = chars.Concat(corps).ToList();
+
+        // Attackers through the two indexes that lead with the id asked for — never a scan of the
+        // attackers table, which runs to millions of rows.
+        if (chars.Count > 0)
+            ours.UnionWith(await db.KillMailAttackers.AsNoTracking()
+                .Where(a => a.CharacterId != null && chars.Contains(a.CharacterId.Value))
+                .Select(a => a.KillMailId).ToListAsync(ct).ConfigureAwait(false));
+        if (corps.Count > 0)
+            ours.UnionWith(await db.KillMailAttackers.AsNoTracking()
+                .Where(a => a.CorporationId != null && corps.Contains(a.CorporationId.Value))
+                .Select(a => a.KillMailId).ToListAsync(ct).ConfigureAwait(false));
+
+        // Victims: one row a kill, so a single pass.
+        ours.UnionWith(await db.KillMailDetails.AsNoTracking()
+            .Where(d => chars.Contains(d.VictimCharId) || corps.Contains(d.VictimCorpId))
+            .Select(d => d.KillMailId).ToListAsync(ct).ConfigureAwait(false));
+
+        ours.UnionWith(await db.EsiKillMailRefs.AsNoTracking()
+            .Where(r => owners.Contains(r.OwnerId))
+            .Select(r => r.KillMailId).ToListAsync(ct).ConfigureAwait(false));
+        return ours;
+    }
+
+    /// <summary>
+    /// The single killmail rule these two replaced applied to every kill alike. Whoever had it on
+    /// keeps exactly that: both new rules start from its setting, window and last run, so nothing
+    /// is kept longer or purged sooner than before until they choose otherwise.
+    ///
+    /// <para>Once either new rule has been written the old one is never read again — and it is
+    /// left in place, so a build from before the split still finds the setting it knows.</para>
+    /// </summary>
+    private void CarryOverKillmailRule(AppPreferencesService prefs)
+    {
+        const string Old = "retention.killmails";
+        if (prefs.Get("retention.killmails.ours.enabled") is not null
+            || prefs.Get("retention.killmails.others.enabled") is not null
+            || prefs.Get($"{Old}.enabled") is null) return;
+
+        var days = (int)prefs.GetLong($"{Old}.days", 90);
+        var last = prefs.Get($"{Old}.lastrun");
+        foreach (var rule in new[] { OurKillmails, OtherKillmails })
+        {
+            rule.Days = days;
+            if (DateTimeOffset.TryParse(last, out var t)) rule.LastRunUtc = t;
+            rule.Enabled = prefs.GetBool($"{Old}.enabled");
+        }
     }
 
     // ── Price history ─────────────────────────────────────────────────────────
@@ -345,9 +475,10 @@ public class DataRetentionService
     /// <summary>Runs every enabled rule whose interval has elapsed, and stamps each one.</summary>
     public async Task PurgeDueAsync(CancellationToken ct = default)
     {
-        await RunIfDue(ErrorLog,     PurgeErrorLogAsync);
-        await RunIfDue(Killmails,    PurgeKillmailsAsync);
-        await RunIfDue(PriceHistory, PurgePriceHistoryAsync);
+        await RunIfDue(ErrorLog,       PurgeErrorLogAsync);
+        await RunIfDue(OurKillmails,   (d, c) => PurgeOurKillmailsAsync(d, null, c));
+        await RunIfDue(OtherKillmails, (d, c) => PurgeOtherKillmailsAsync(d, null, c));
+        await RunIfDue(PriceHistory,   PurgePriceHistoryAsync);
         await RunIfDue(GameLog,      PurgeGameLogAsync);
         await RunIfDue(ChatMessages, PurgeChatMessagesAsync);
         await RunIfDue(AgentTelemetry, PurgeAgentTelemetryAsync);
