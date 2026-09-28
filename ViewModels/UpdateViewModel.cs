@@ -4,7 +4,6 @@ using System.Reflection;
 using EveConsole.Services;
 using ReactiveUI;
 using Velopack;
-using Velopack.Sources;
 
 namespace EveConsole.ViewModels;
 
@@ -13,7 +12,6 @@ namespace EveConsole.ViewModels;
 // (declining is remembered so we re-prompt only for the next version).
 public class UpdateViewModel : ReactiveObject
 {
-    private const string RepoUrl        = "https://github.com/kernoeve/EveConsole";
     // ⚠️ Both local, not in the shared preference table. Whether THIS installation checks for
     // updates, and which version it has already said no to, are facts about a machine — one client
     // declining v1.6 used to hide the notice from every other client on the database, including
@@ -28,7 +26,7 @@ public class UpdateViewModel : ReactiveObject
     {
         _prefs       = prefs;
         _errorLogger = errorLogger;
-        _mgr         = new UpdateManager(new GithubSource(RepoUrl, null, false));
+        _mgr         = AppUpdater.CreateManager();
 
         // ⚠️ Asked once, here. Whether this is an installed build is knowable at startup,
         // and reading it from the update check's side effect meant the badge stayed blank
@@ -75,8 +73,8 @@ public class UpdateViewModel : ReactiveObject
     /// tag is "v0.9.13", so adding another would 404.</para>
     /// </summary>
     public string ReleaseUrl => UpdateAvailable && LatestVersionText.StartsWith('v')
-        ? $"{RepoUrl}/releases/tag/{LatestVersionText}"
-        : $"{RepoUrl}/releases";
+        ? $"{AppUpdater.RepoUrl}/releases/tag/{LatestVersionText}"
+        : $"{AppUpdater.RepoUrl}/releases";
 
     /// <summary>
     /// What the title bar says next to the version: whether this build is current.
@@ -195,7 +193,7 @@ public class UpdateViewModel : ReactiveObject
             StatusText = "Downloading update…";
             await _mgr.DownloadUpdatesAsync(_pending);
             StatusText = "Restarting to apply…";
-            _mgr.ApplyUpdatesAndRestart(_pending);   // exits the process
+            _mgr.ApplyUpdatesAndRestart(_pending, AppUpdater.RestartArgs());   // exits the process
         }
         catch (Exception ex)
         {
