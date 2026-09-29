@@ -297,7 +297,7 @@
                   <DataGridTextColumn Header="{x:Static loc:SettingsText.ColFreeTotal}" Binding="{Binding Slots}" FontSize="11" Width="*"
                                       IsReadOnly="True" />
 
-                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColSkillQueue}" Width="90" SortMemberPath="SkillQueue"
+                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColSkillQueue}" Width="110" SortMemberPath="SkillQueue"
                                           IsReadOnly="True" ClipboardContentBinding="{Binding SkillQueue}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:IndyCharRow">
@@ -483,10 +483,14 @@
                              FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
                 </StackPanel>
 
-                <Expander Header="{x:Static loc:SettingsText.SectionFindLocationByName}" Margin="0 6 0 0"
+                <Expander Margin="0 6 0 0"
                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                           Background="{DynamicResource SurfaceRaisedBrush}"
                           IsVisible="{Binding !MarketVm.Selected.IsEsiRegion}">
+                  <!-- Wraps: the side panel is 300 wide, and the name runs longer in other languages. -->
+                  <Expander.Header>
+                    <TextBlock Text="{x:Static loc:SettingsText.SectionFindLocationByName}" TextWrapping="Wrap" />
+                  </Expander.Header>
                   <StackPanel Spacing="6" Margin="0 8 0 0">
                     <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                                Text="{x:Static loc:SettingsText.SearchForAStationNote}"
@@ -608,7 +612,7 @@
                        Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 8" />
 
             <!-- Asset Value -->
-            <Grid Grid.Row="1" ColumnDefinitions="160,*,8,140" Margin="0 0 0 6">
+            <Grid Grid.Row="1" ColumnDefinitions="190,*,8,140" Margin="0 0 0 6">
               <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.AssetValueLabel}"
                          FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1"
@@ -634,7 +638,7 @@
             </Grid>
 
             <!-- Manufacturing Cost -->
-            <Grid Grid.Row="2" ColumnDefinitions="160,*,8,140" Margin="0 0 0 8">
+            <Grid Grid.Row="2" ColumnDefinitions="190,*,8,140" Margin="0 0 0 8">
               <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ManufacturingCostLabel}"
                          FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1"
@@ -660,7 +664,7 @@
             </Grid>
 
             <!-- Missing Price Markup -->
-            <Grid Grid.Row="3" ColumnDefinitions="160,120,Auto,*" Margin="0 0 0 8">
+            <Grid Grid.Row="3" ColumnDefinitions="190,120,Auto,*" Margin="0 0 0 8">
               <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.MissingPriceMarkupLabel}"
                          FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
               <NumericUpDown Grid.Column="1"
@@ -1378,7 +1382,7 @@
                           IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
                 </StackPanel>
 
-                <Grid ColumnDefinitions="*,70" Margin="8 0 8 0">
+                <Grid ColumnDefinitions="*,84" Margin="8 0 8 0">
                   <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ChannelLabel}" FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" />
                   <TextBlock Grid.Column="1" Text="{x:Static loc:SettingsText.IntelLabel}"   FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}"
                              HorizontalAlignment="Center" />
@@ -1390,7 +1394,7 @@
                     <ItemsControl ItemsSource="{Binding ChatLogVm.Channels}" Margin="8">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ChatChannelViewModel">
-                          <Grid ColumnDefinitions="*,70" Margin="0 1">
+                          <Grid ColumnDefinitions="*,84" Margin="0 1">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Content="{Binding Name}"
                                       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" />
                             <CheckBox Grid.Column="1" IsChecked="{Binding IsIntel}"
@@ -2990,7 +2994,7 @@
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                            Text="{x:Static loc:SettingsText.EveConsoleNeedsToNote}" />
 
-                <Grid ColumnDefinitions="90,*,60,90" RowDefinitions="Auto,Auto,Auto" Margin="0 4 0 0">
+                <Grid ColumnDefinitions="110,*,60,90" RowDefinitions="Auto,Auto,Auto" Margin="0 4 0 0">
                   <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.HostLabel}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                              VerticalAlignment="Center" />
                   <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding PgHost}" FontSize="12"
@@ -3220,11 +3224,14 @@
                            Text="{x:Static loc:SettingsText.AServersDatabaseCannotNote}" />
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Button Content="{x:Static loc:SettingsText.CheckForPgDump}"
-                          Click="OnCheckPgDumpClick"
+                  <!-- ⚠️ The text as a TextBlock, not as Content: a button draws a string's "_" as an
+                       access key, and "pg_dump" showed as "pgdump". -->
+                  <Button Click="OnCheckPgDumpClick"
                           Padding="12 5" FontSize="12"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
-                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1">
+                    <TextBlock Text="{x:Static loc:SettingsText.CheckForPgDump}" />
+                  </Button>
                   <TextBlock Text="{Binding PgDumpStatusText}"
                              IsVisible="{Binding HasPgDumpStatus}"
                              Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" VerticalAlignment="Center"
@@ -3350,7 +3357,7 @@
                     <DataGridTextColumn Header="{x:Static loc:SettingsText.ColIndexes}" Binding="{Binding IndexText}" Width="90"  />
                     <DataGridTextColumn Header="{x:Static loc:SettingsText.ColTotal}"   Binding="{Binding TotalText}" Width="90"
                                         SortMemberPath="SharePercent" />
-                    <DataGridTextColumn Header="{x:Static loc:SettingsText.ColShare}"   Binding="{Binding ShareText}" Width="70"
+                    <DataGridTextColumn Header="{x:Static loc:SettingsText.ColShare}"   Binding="{Binding ShareText}" Width="80"
                                         SortMemberPath="SharePercent" />
                     <DataGridTextColumn Header="{x:Static loc:SettingsText.ColMethod}"  Binding="{Binding Method}"    Width="80"  />
                   </DataGrid.Columns>

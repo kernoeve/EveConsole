@@ -235,7 +235,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColEstDate}"      Binding="{Binding EstDate}"     Width="100" />
-        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPri}"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="46" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPri}"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="60" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColPurchasePrice}" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColStatus}"         Binding="{Binding Status}"      Width="100" />
         <DataGridTextColumn Header="{x:Static loc:SalesText.ColCompleted}"      Binding="{Binding CompletedOn}" Width="100" />

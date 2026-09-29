@@ -323,7 +323,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColBuySell}"        Binding="{Binding Direction}"    Width="50" />
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColBuySell}"        Binding="{Binding Direction}"    Width="68" />
                 <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColLocation}" Width="200" SortMemberPath="LocationName" ClipboardContentBinding="{Binding LocationName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
