@@ -79,6 +79,10 @@ public sealed record Valuation(
 /// same station on the same basis, so the three columns are comparable. Valuing the list "as
 /// reprocessed" turns the items into their materials first, batch by batch, and keeps whatever
 /// could not be reprocessed as items.</para>
+///
+/// <para>A list copied from the game client names its items in the client's language, whatever
+/// language this app is in: a name the English does not know is looked up among the SDE's names
+/// in the client's other languages (<see cref="SdeName"/>).</para>
 /// </summary>
 public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
 {
@@ -149,7 +153,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         PriceBasis basis, bool reprocess, CancellationToken ct = default)
     {
         await EnsureTypesAsync(ct);
-        var (items, unparsed) = Resolve(text);
+        var (items, unparsed) = Resolve(text, await OtherLanguageNamesAsync(text, ct));
         if (reprocess) items = await ReprocessAsync(items, ct);
 
         var typeIds = items.Where(i => i.TypeId > 0).Select(i => i.TypeId).Distinct().ToList();
@@ -195,13 +199,17 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>The pasted lines as items: names resolved and merged by type, names the SDE does
-    /// not know kept flagged so the count stays honest, and the lines nothing could be made of.</summary>
-    private (List<ValuedItem> Items, List<string> Unparsed) Resolve(string text)
+    /// not know kept flagged so the count stays honest, and the lines nothing could be made of.
+    /// <paramref name="otherLanguages"/> holds the names found in the client's other languages.</summary>
+    private (List<ValuedItem> Items, List<string> Unparsed) Resolve(string text, IReadOnlyDictionary<string, SdeType> otherLanguages)
     {
         var quantities = new Dictionary<int, long>();
         var order      = new List<int>();
         var unknown    = new List<(string Name, long Quantity)>();
         var unparsed   = new List<string>();
+
+        bool Known(string name, out SdeType type) =>
+            _byName!.TryGetValue(name, out type!) || otherLanguages.TryGetValue(name, out type!);
 
         foreach (var candidate in ItemListParser.Parse(text))
         {
@@ -213,11 +221,11 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
                 if (reading.Source is "fit module" or "fit charge")
                 {
                     if (taken && !asFit) continue;
-                    if (_byName!.TryGetValue(reading.Name, out var part)) { Add(part.TypeId, reading.Quantity); taken = true; asFit = true; }
+                    if (Known(reading.Name, out var part)) { Add(part.TypeId, reading.Quantity); taken = true; asFit = true; }
                     continue;
                 }
                 if (taken) break;
-                if (_byName!.TryGetValue(reading.Name, out var type)) { Add(type.TypeId, reading.Quantity); taken = true; }
+                if (Known(reading.Name, out var type)) { Add(type.TypeId, reading.Quantity); taken = true; }
             }
             if (!taken)
             {
@@ -362,7 +370,38 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
     public async Task<bool> NamesAnItemAsync(string text, CancellationToken ct = default)
     {
         await EnsureTypesAsync(ct);
-        return ItemListParser.Parse(text).Any(c => c.Readings.Any(r => _byName!.ContainsKey(r.Name)));
+        return ItemListParser.Parse(text).Any(c => c.Readings.Any(r => _byName!.ContainsKey(r.Name)))
+            || (await OtherLanguageNamesAsync(text, ct)).Count > 0;
+    }
+
+    /// <summary>The text's names the English list does not know, found among the SDE's names in the
+    /// client's other languages: a list copied from a German client names its items in German. By
+    /// exact name, as the client writes them, in one query for the lot, and only for lines no
+    /// reading of which is English, so an English list costs nothing. ⚠️ Looked up, not loaded:
+    /// every language's type names in memory would be several hundred thousand strings kept for a
+    /// rare paste.</summary>
+    private async Task<IReadOnlyDictionary<string, SdeType>> OtherLanguageNamesAsync(string text, CancellationToken ct)
+    {
+        var found = new Dictionary<string, SdeType>(StringComparer.OrdinalIgnoreCase);
+        var missing = ItemListParser.Parse(text)
+            .Where(c => !c.Readings.Any(r => _byName!.ContainsKey(r.Name)))
+            .SelectMany(c => c.Readings)
+            .Select(r => r.Name)
+            .Where(n => n.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (missing.Count == 0) return found;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var rows = await db.SdeNames.AsNoTracking()
+            .Where(n => n.Kind == SdeNameKind.Type && missing.Contains(n.Name))
+            .Select(n => new { n.Id, n.Name })
+            .ToListAsync(ct);
+        // The lower type id wins a name two types share, as in the English list.
+        foreach (var row in rows.OrderBy(r => r.Id))
+            if (_byId!.TryGetValue((int)row.Id, out var type))
+                found.TryAdd(row.Name, type);
+        return found;
     }
 
     /// <summary>The type list by name and by id, once. Names are unique in the SDE except for a
