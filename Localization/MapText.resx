@@ -25,7 +25,7 @@
     <comment>Label in JumpPlannerView.</comment>
   </data>
   <data name="LimitsWhereTheRouteNote" xml:space="preserve">
-    <value>Limits where the route may stop, not where it may start or end. Station systems means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess.</value>
+    <value>Limits where the route may stop, not where it may start or end. Stations &amp; structures means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess.</value>
     <comment>Note in JumpPlannerView.</comment>
   </data>
   <data name="WaypointsLabel" xml:space="preserve">
