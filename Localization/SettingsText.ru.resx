@@ -158,10 +158,10 @@
     <value>Доступна более новая сборка статических данных EVE.</value>
   </data>
   <data name="LoadedLabel" xml:space="preserve">
-    <value>Загружено:</value>
+    <value>Текущая:</value>
   </data>
   <data name="LatestLabel" xml:space="preserve">
-    <value>Последняя:</value>
+    <value>Новая:</value>
   </data>
   <data name="UpdateNow" xml:space="preserve">
     <value>Обновить сейчас</value>
@@ -1142,7 +1142,7 @@
     <value>План навыков опустеет в течение</value>
   </data>
   <data name="Days" xml:space="preserve">
-    <value>дней</value>
+    <value>д</value>
   </data>
   <data name="SaveAlerts" xml:space="preserve">
     <value>Сохранить оповещения</value>
@@ -3020,13 +3020,13 @@ EVE Console сразу перезапустится, потому что баз�
     <value>Графика</value>
   </data>
   <data name="ImportStageSkins" xml:space="preserve">
-    <value>SKIN</value>
+    <value>Окраски</value>
   </data>
   <data name="ImportStageSkinTypes" xml:space="preserve">
-    <value>Типы SKIN</value>
+    <value>Типы окрасок</value>
   </data>
   <data name="ImportStageSkinLicenses" xml:space="preserve">
-    <value>Лицензии SKIN</value>
+    <value>Лицензии на окраски</value>
   </data>
   <data name="ImportRowsProgress" xml:space="preserve">
     <value>строк: {0:N0}</value>

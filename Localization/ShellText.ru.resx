@@ -218,7 +218,7 @@
     <value>Причина</value>
   </data>
   <data name="RestoreFromABackup" xml:space="preserve">
-    <value>Восстановить из резервной копии</value>
+    <value>Восстановление из резервной копии</value>
   </data>
   <data name="TheMostRecentIsNote" xml:space="preserve">
     <value>Выбрана самая свежая копия. Всё, что было записано после её создания, нужно будет снова получить опросом.</value>
@@ -272,7 +272,7 @@
     <value>Текущая:</value>
   </data>
   <data name="LatestLabel" xml:space="preserve">
-    <value>Последняя:</value>
+    <value>Новая:</value>
   </data>
   <data name="TheAppWillDownloadNote" xml:space="preserve">
     <value>Приложение загрузит обновление и перезапустится, чтобы установить его.</value>

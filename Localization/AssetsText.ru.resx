@@ -32,7 +32,7 @@
     <value>Место</value>
   </data>
   <data name="HintTypeToSearch" xml:space="preserve">
-    <value>Введите для поиска…</value>
+    <value>Введите текст для поиска…</value>
   </data>
   <data name="IncludeLabel" xml:space="preserve">
     <value>Учитывать</value>
@@ -179,10 +179,10 @@
     <value>Имущество</value>
   </data>
   <data name="ColIndJobs" xml:space="preserve">
-    <value>Пром. проекты</value>
+    <value>Проекты</value>
   </data>
   <data name="ColBuyOrders" xml:space="preserve">
-    <value>Ордера на покупку</value>
+    <value>Ордера</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
     <value>Контракты</value>
@@ -347,13 +347,13 @@
     <value>Ваши LP</value>
   </data>
   <data name="ColLpEstValue" xml:space="preserve">
-    <value>Оценка ценности LP</value>
+    <value>Ценность LP</value>
   </data>
   <data name="TipItemValueLessIsk" xml:space="preserve">
     <value>Стоимость предмета за вычетом ISK и требуемых предметов в пересчёте на LP; всё приведено к одной единице.</value>
   </data>
   <data name="ColRequiredItems" xml:space="preserve">
-    <value>Требуемые предметы</value>
+    <value>Требуется</value>
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Рыночные ордера</value>
@@ -383,7 +383,7 @@
     <value>Радиус</value>
   </data>
   <data name="ColMinQty" xml:space="preserve">
-    <value>Мин. кол-во</value>
+    <value>Мин. кол.</value>
   </data>
   <data name="TabPriceHistory" xml:space="preserve">
     <value>История цен</value>
@@ -519,7 +519,7 @@ Warrior II 5
     <value>Всего</value>
   </data>
   <data name="ColVsBest" xml:space="preserve">
-    <value>к лучшему</value>
+    <value>от лучш.</value>
   </data>
   <data name="TabMarketCompare" xml:space="preserve">
     <value>Сравнение рынков</value>
@@ -642,7 +642,7 @@ Warrior II 5
     <value>Производство</value>
   </data>
   <data name="SeriesContract" xml:space="preserve">
-    <value>Контракты</value>
+    <value>Контракт</value>
   </data>
   <data name="SeriesReprocessed" xml:space="preserve">
     <value>Переработка</value>
@@ -978,7 +978,7 @@ Warrior II 5
     <value>ID сектора</value>
   </data>
   <data name="AssetColSecurity" xml:space="preserve">
-    <value>Безопасность</value>
+    <value>Статус безопасности</value>
   </data>
   <data name="AssetColIsStation" xml:space="preserve">
     <value>Это станция</value>

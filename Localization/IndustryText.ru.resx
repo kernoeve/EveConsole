@@ -35,7 +35,7 @@
     <value>Предметы</value>
   </data>
   <data name="SuccessChance" xml:space="preserve">
-    <value>Вероятность успеха</value>
+    <value>Шанс успеха</value>
   </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>Осталось времени</value>
@@ -116,7 +116,7 @@
     <value>Открыть в разделе «Просмотр предметов»</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Стоимость производства</value>
+    <value>Стоим. произв.</value>
   </data>
   <data name="ColSellPrice" xml:space="preserve">
     <value>Цена продажи</value>
@@ -128,19 +128,19 @@
     <value>Маржа</value>
   </data>
   <data name="ColBuildTime" xml:space="preserve">
-    <value>Время производства</value>
+    <value>Время произв.</value>
   </data>
   <data name="ColSlotDays" xml:space="preserve">
     <value>Слото-дни</value>
   </data>
   <data name="ColProfitSlotDay" xml:space="preserve">
-    <value>Прибыль / слото-день</value>
+    <value>Прибыль/слото-день</value>
   </data>
   <data name="ColUnitsSold30d" xml:space="preserve">
-    <value>Продано за 30 д, ед.</value>
+    <value>Прод. 30 д, ед.</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>Продано за 30 д, ISK</value>
+    <value>Прод. 30 д, ISK</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Поиск возможностей производства…</value>
@@ -410,7 +410,7 @@
     <value>Материал</value>
   </data>
   <data name="ColQuantity" xml:space="preserve">
-    <value>Количество</value>
+    <value>Кол-во</value>
   </data>
   <data name="ColMissing" xml:space="preserve">
     <value>Нехватка</value>
@@ -419,7 +419,7 @@
     <value>Цена за ед.</value>
   </data>
   <data name="ColTotalCost" xml:space="preserve">
-    <value>Общая стоимость</value>
+    <value>Всего</value>
   </data>
   <data name="TabIntermediates" xml:space="preserve">
     <value>Полуфабрикаты</value>
@@ -431,16 +431,16 @@
     <value>Нужно</value>
   </data>
   <data name="ColProduced" xml:space="preserve">
-    <value>Произведено</value>
+    <value>Выпуск</value>
   </data>
   <data name="ColLeftover" xml:space="preserve">
     <value>Остаток</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Стоимость производства</value>
+    <value>Себест.</value>
   </data>
   <data name="ColLeftoverValue" xml:space="preserve">
-    <value>Стоимость остатка</value>
+    <value>Стоим. остатка</value>
   </data>
   <data name="TabLeftovers" xml:space="preserve">
     <value>Остатки</value>
@@ -449,7 +449,7 @@
     <value>Источник</value>
   </data>
   <data name="ColTotalValue" xml:space="preserve">
-    <value>Общая стоимость</value>
+    <value>Всего</value>
   </data>
   <data name="TabFinalProducts" xml:space="preserve">
     <value>Конечная продукция</value>
@@ -461,7 +461,7 @@
     <value>Стоим. мат.</value>
   </data>
   <data name="ColJobCost" xml:space="preserve">
-    <value>Стоим. проекта</value>
+    <value>За проекты</value>
   </data>
   <data name="ColUnitCost" xml:space="preserve">
     <value>Стоим. за ед.</value>

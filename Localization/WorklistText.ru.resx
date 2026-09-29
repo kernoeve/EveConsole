@@ -23,7 +23,7 @@
     <value>Показывать и строки, скрытые кнопкой «Отложить», пока не истечёт срок откладывания.</value>
   </data>
   <data name="HintState" xml:space="preserve">
-    <value>Состояние</value>
+    <value>Статус</value>
   </data>
   <data name="TipReadyBlockedOrWaiting" xml:space="preserve">
     <value>Готово, заблокировано или ожидает</value>
@@ -119,7 +119,7 @@
     <value>Потребности станций</value>
   </data>
   <data name="ColWhy" xml:space="preserve">
-    <value>Причина</value>
+    <value>Зачем</value>
   </data>
   <data name="TipWhatIsAskingForThis" xml:space="preserve">
     <value>Для чего это нужно</value>
@@ -146,7 +146,7 @@
     <value>Нехватка</value>
   </data>
   <data name="ColShortValue" xml:space="preserve">
-    <value>Стоимость нехватки</value>
+    <value>Нехватка, ISK</value>
   </data>
   <data name="ColShortVolume" xml:space="preserve">
     <value>Объём нехватки</value>
@@ -335,7 +335,7 @@
     <value>Узкое место по чертежам — это необходимость ЖДАТЬ, пока освободится оригинал, а не интенсивная работа одного из них. Упорядочивание по использованию ставит решение выше проблемы: формула, которая работает на пределе на восьми оригиналах, никогда ничего не блокировала — именно покупка восьмого это и решила. В списке — от 5% времени «все заняты» и выше или от 15% для предметов с единственным BPO, где эта мера вырождается в простое использование. Наведите указатель на заголовок столбца, чтобы узнать, что он означает.</value>
   </data>
   <data name="Product" xml:space="preserve">
-    <value>Продукт</value>
+    <value>Продукция</value>
   </data>
   <data name="TipWhatThisBlueprintOr" xml:space="preserve">
     <value>Что производит этот чертёж или формула. Нажмите, чтобы открыть «Просмотр предметов».</value>
@@ -500,10 +500,10 @@
     <value>Завершён</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Стоимость производства</value>
+    <value>Стоим. произв.</value>
   </data>
   <data name="ColMarketValue" xml:space="preserve">
-    <value>Рыночная стоимость</value>
+    <value>Рын. стоимость</value>
   </data>
   <data name="ColPotentialProfit" xml:space="preserve">
     <value>Возможная прибыль</value>
@@ -599,10 +599,10 @@
     <value>Действие</value>
   </data>
   <data name="TriggerBelow" xml:space="preserve">
-    <value>Срабатывать ниже (%)</value>
+    <value>Если ниже (%)</value>
   </data>
   <data name="FillUpTo" xml:space="preserve">
-    <value>Пополнять до (%)</value>
+    <value>Поднять до (%)</value>
   </data>
   <data name="HintPickAGroup" xml:space="preserve">
     <value>Выберите группу…</value>
@@ -632,13 +632,13 @@
     <value>Действие</value>
   </data>
   <data name="ColTriggerBelow" xml:space="preserve">
-    <value>Срабатывать ниже (%)</value>
+    <value>Если ниже (%)</value>
   </data>
   <data name="ColFillTo" xml:space="preserve">
-    <value>Пополнять до (%)</value>
+    <value>Поднять до (%)</value>
   </data>
   <data name="ColFinal" xml:space="preserve">
-    <value>Конечная</value>
+    <value>Конеч.</value>
   </data>
   <data name="TipThisGroupIsSold" xml:space="preserve">
     <value>Эту группу продают или используют в полётах, а не как сырьё. Работа, которая её разблокирует, ставится выше работы, которая лишь пополняет буфер.</value>
@@ -659,7 +659,7 @@
     <value>Не обязательно в промпарке…</value>
   </data>
   <data name="AcceptsSurplus" xml:space="preserve">
-    <value>Принимает излишки</value>
+    <value>Приём излишков</value>
   </data>
   <data name="TipSpareStockOfThis" xml:space="preserve">
     <value>Лишний запас этой группы собирается здесь, когда он не нужен ни одной станции.</value>
@@ -680,7 +680,7 @@
     <value>Группа запасов</value>
   </data>
   <data name="ColAcceptsSurplus" xml:space="preserve">
-    <value>Принимает излишки</value>
+    <value>Приём излишков</value>
   </data>
   <data name="TabOther" xml:space="preserve">
     <value>Прочее</value>
@@ -785,7 +785,7 @@
     <value>Проект</value>
   </data>
   <data name="KindAssetSafety" xml:space="preserve">
-    <value>Безопасность активов</value>
+    <value>Безоп. активов</value>
   </data>
   <data name="KindSkillQueue" xml:space="preserve">
     <value>План навыков</value>
@@ -827,7 +827,7 @@
     <value>Готово</value>
   </data>
   <data name="StateBlocked" xml:space="preserve">
-    <value>Заблокировано</value>
+    <value>Заблок.</value>
   </data>
   <data name="StateWaiting" xml:space="preserve">
     <value>Ожидает</value>

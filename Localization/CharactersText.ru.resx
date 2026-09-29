@@ -35,7 +35,7 @@
     <value>Корабль</value>
   </data>
   <data name="ColPodValue" xml:space="preserve">
-    <value>Стоимость капсулы</value>
+    <value>Капсула, ISK</value>
   </data>
   <data name="ColHomeStation" xml:space="preserve">
     <value>Станция прописки</value>
@@ -125,7 +125,7 @@
     <value>Нейронное перераспределение</value>
   </data>
   <data name="LastRemapLabel" xml:space="preserve">
-    <value>Последнее перераспределение:</value>
+    <value>Последний раз:</value>
   </data>
   <data name="TabClones" xml:space="preserve">
     <value>Клоны</value>
@@ -323,7 +323,7 @@
     <value>Система {0}</value>
   </data>
   <data name="SummaryLocationNumbered" xml:space="preserve">
-    <value>Местоположение {0}</value>
+    <value>Место {0}</value>
   </data>
   <data name="SummaryTypeNumbered" xml:space="preserve">
     <value>Тип {0}</value>

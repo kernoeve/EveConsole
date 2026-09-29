@@ -56,7 +56,7 @@
     <value>Модель</value>
   </data>
   <data name="ColCalls" xml:space="preserve">
-    <value>Запросы</value>
+    <value>Запр.</value>
   </data>
   <data name="ColInput" xml:space="preserve">
     <value>Вход</value>
@@ -74,7 +74,7 @@
     <value>Единицы</value>
   </data>
   <data name="ColAvg" xml:space="preserve">
-    <value>Сред.</value>
+    <value>Ср.</value>
   </data>
   <data name="ColErrors" xml:space="preserve">
     <value>Ошибки</value>
@@ -89,7 +89,7 @@
     <value>Время</value>
   </data>
   <data name="ColTook" xml:space="preserve">
-    <value>Длительность</value>
+    <value>Время</value>
   </data>
   <data name="ColActivity" xml:space="preserve">
     <value>Действия</value>
@@ -98,7 +98,7 @@
     <value>Ошибка</value>
   </data>
   <data name="First" xml:space="preserve">
-    <value>⏮ Первая</value>
+    <value>⏮ В начало</value>
   </data>
   <data name="Prev" xml:space="preserve">
     <value>◀ Назад</value>
@@ -107,7 +107,7 @@
     <value>Вперёд ▶</value>
   </data>
   <data name="Last" xml:space="preserve">
-    <value>Последняя ⏭</value>
+    <value>В конец ⏭</value>
   </data>
   <data name="TabRates" xml:space="preserve">
     <value>Тарифы</value>
@@ -239,7 +239,7 @@
     <value>Магазин</value>
   </data>
   <data name="ColOffers" xml:space="preserve">
-    <value>Предложения</value>
+    <value>Предлож.</value>
   </data>
   <data name="ColLastChecked" xml:space="preserve">
     <value>Последняя проверка</value>
@@ -296,13 +296,13 @@
     <value>Условие</value>
   </data>
   <data name="ColEnabled" xml:space="preserve">
-    <value>Включена</value>
+    <value>Вкл.</value>
   </data>
   <data name="ColEvery" xml:space="preserve">
     <value>Интервал</value>
   </data>
   <data name="ColLastFired" xml:space="preserve">
-    <value>Последнее срабатывание</value>
+    <value>Посл. срабатывание</value>
   </data>
   <data name="ColFired" xml:space="preserve">
     <value>Сраб.</value>

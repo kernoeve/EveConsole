@@ -47,7 +47,7 @@
     <value>От:</value>
   </data>
   <data name="DateFromLabel" xml:space="preserve">
-    <value>От:</value>
+    <value>С:</value>
   </data>
   <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
     <value>Открыть в справочнике</value>
@@ -74,7 +74,7 @@
     <value>Отправитель:</value>
   </data>
   <data name="ThruLabel" xml:space="preserve">
-    <value>До:</value>
+    <value>По:</value>
   </data>
   <data name="SortLabel" xml:space="preserve">
     <value>Сортировка:</value>
@@ -98,7 +98,7 @@
     <value>Отправитель</value>
   </data>
   <data name="ColSenderType" xml:space="preserve">
-    <value>Тип отправителя</value>
+    <value>Тип отпр.</value>
   </data>
   <data name="ColRead" xml:space="preserve">
     <value>Статус</value>

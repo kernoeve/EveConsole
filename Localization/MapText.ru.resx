@@ -14,7 +14,7 @@
     <value>Калибровка гипердвигателей</value>
   </data>
   <data name="JumpFuelConservationLabel" xml:space="preserve">
-    <value>Топливоснабжение гипердвигателей</value>
+    <value>Топливоснабжение гипердв.</value>
   </data>
   <data name="JumpThroughLabel" xml:space="preserve">
     <value>Прыжки через</value>
@@ -50,7 +50,7 @@
     <value>Откуда</value>
   </data>
   <data name="ColFittingSource" xml:space="preserve">
-    <value>Источник</value>
+    <value>Откуда</value>
   </data>
   <data name="TipOpenThisSystem" xml:space="preserve">
     <value>Открыть эту систему</value>
@@ -239,10 +239,10 @@
     <value>Статус</value>
   </data>
   <data name="ColActivity" xml:space="preserve">
-    <value>Деятельность</value>
+    <value>Вид работ</value>
   </data>
   <data name="ColProduct" xml:space="preserve">
-    <value>Продукт</value>
+    <value>Продукция</value>
   </data>
   <data name="ColRuns" xml:space="preserve">
     <value>Прогоны</value>
@@ -893,7 +893,7 @@
     <value>Реакции</value>
   </data>
   <data name="JobActivityNumbered" xml:space="preserve">
-    <value>Деятельность {0}</value>
+    <value>Вид работ {0}</value>
   </data>
   <data name="EveRefFieldName" xml:space="preserve">
     <value>название</value>
@@ -1498,7 +1498,7 @@
     <value>уязвима</value>
   </data>
   <data name="IncursionEstablished" xml:space="preserve">
-    <value>закрепление</value>
+    <value>подготовка</value>
   </data>
   <data name="IncursionMobilizing" xml:space="preserve">
     <value>мобилизация</value>
@@ -1561,7 +1561,7 @@
     <value>{0} сооружений игроков</value>
   </data>
   <data name="BadgeMoreStructures" xml:space="preserve">
-    <value>+ ещё {0}</value>
+    <value>ещё {0}</value>
   </data>
   <data name="RouteStartHighSec" xml:space="preserve">
     <value>Начальная система находится в хай-секе, закрытом для кораблей большого тоннажа, — гипердвигатель не может стартовать оттуда.</value>

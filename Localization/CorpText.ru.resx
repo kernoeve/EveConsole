@@ -62,10 +62,10 @@
     <value>Пром. налог</value>
   </data>
   <data name="ColProjPayouts" xml:space="preserve">
-    <value>Выплаты по проектам</value>
+    <value>Выпл. проектов</value>
   </data>
   <data name="ColMinedValue" xml:space="preserve">
-    <value>Стоимость добычи</value>
+    <value>Стоим. добычи</value>
   </data>
   <data name="ColKills" xml:space="preserve">
     <value>Победы</value>
@@ -107,7 +107,7 @@
     <value>Тип</value>
   </data>
   <data name="ColCount" xml:space="preserve">
-    <value>Количество</value>
+    <value>Кол-во</value>
   </data>
   <data name="ColAmount" xml:space="preserve">
     <value>Сумма</value>
@@ -194,7 +194,7 @@
     <value>Количество</value>
   </data>
   <data name="ColReprocessedValue" xml:space="preserve">
-    <value>Стоимость при переработке</value>
+    <value>Стоим. при перераб.</value>
   </data>
   <data name="TabKillmails" xml:space="preserve">
     <value>Отчёты о боях</value>
@@ -452,7 +452,7 @@
     <value>Кол-во</value>
   </data>
   <data name="ColRequires" xml:space="preserve">
-    <value>Требует</value>
+    <value>Требуется</value>
   </data>
   <data name="TabFactionWarfare" xml:space="preserve">
     <value>Межгосударственные войны</value>
@@ -755,7 +755,7 @@
     <value>через веб-хук</value>
   </data>
   <data name="SlackNoDestination" xml:space="preserve">
-    <value>Канал или веб-хук Slack не настроен.</value>
+    <value>Не настроен ни канал Slack, ни веб-хук.</value>
   </data>
   <data name="Top10AlreadyPosted" xml:space="preserve">
     <value>Этот список топ-10 уже был опубликован в Slack {0}.</value>
@@ -1604,7 +1604,7 @@
     <value>Тип агента</value>
   </data>
   <data name="FactLocator" xml:space="preserve">
-    <value>Поисковый сервис</value>
+    <value>Розыск пилотов</value>
   </data>
   <data name="FactNo" xml:space="preserve">
     <value>Нет</value>

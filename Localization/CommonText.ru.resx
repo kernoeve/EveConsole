@@ -161,7 +161,7 @@
     <value>Середина</value>
   </data>
   <data name="JobReady" xml:space="preserve">
-    <value>Готово</value>
+    <value>Готов</value>
   </data>
   <data name="DurationDaysHoursMinutes" xml:space="preserve">
     <value>{0} д {1} ч {2} мин</value>

@@ -56,7 +56,7 @@
     <value>Цена</value>
   </data>
   <data name="Reward" xml:space="preserve">
-    <value>Вознаграждение</value>
+    <value>Вознагр.</value>
   </data>
   <data name="Collateral" xml:space="preserve">
     <value>Залог</value>
@@ -104,10 +104,10 @@
     <value>Кол-во</value>
   </data>
   <data name="ColMarketValue" xml:space="preserve">
-    <value>Рыночная стоимость</value>
+    <value>Рын. стоимость</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Стоимость производства</value>
+    <value>Стоим. произв.</value>
   </data>
   <data name="ColDetails" xml:space="preserve">
     <value>Подробности</value>
@@ -242,7 +242,7 @@
     <value>Медианное предложение — по тем же учтённым предложениям, что и среднее. Выделяется, когда оно заметно ниже среднего: значит, несколько очень выгодных предложений поднимают среднее выше того, что приносит типичное предложение.</value>
   </data>
   <data name="ColBestOffer" xml:space="preserve">
-    <value>Лучшее предложение</value>
+    <value>Лучшее предл.</value>
   </data>
   <data name="ColBestItem" xml:space="preserve">
     <value>Лучший предмет</value>
@@ -332,13 +332,13 @@
     <value>Рын. цена</value>
   </data>
   <data name="ColStMin" xml:space="preserve">
-    <value>Мин. станции</value>
+    <value>Мин. цена</value>
   </data>
   <data name="ColStAvg" xml:space="preserve">
-    <value>Сред. станции</value>
+    <value>Сред. цена</value>
   </data>
   <data name="ColStMax" xml:space="preserve">
-    <value>Макс. станции</value>
+    <value>Макс. цена</value>
   </data>
   <data name="ColBuildPrice" xml:space="preserve">
     <value>Стоим. произв.</value>
@@ -551,7 +551,7 @@
     <value>Объём (m³)</value>
   </data>
   <data name="ColTotalCost" xml:space="preserve">
-    <value>Общая стоимость</value>
+    <value>Общ. стоимость</value>
   </data>
   <data name="ColTotalProfit" xml:space="preserve">
     <value>Общая прибыль</value>
@@ -611,7 +611,7 @@
     <value>{0} ISK за единицу при производстве</value>
   </data>
   <data name="AskingEsi" xml:space="preserve">
-    <value>Запрос в ESI…</value>
+    <value>Запрос к ESI…</value>
   </data>
   <data name="ItemsHttpError" xml:space="preserve">
     <value>На запрос предметов ESI ответил HTTP {0}.</value>

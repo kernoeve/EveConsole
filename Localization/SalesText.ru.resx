@@ -377,13 +377,13 @@
     <value>Выполнен</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Стоимость производства</value>
+    <value>Стоим. произв.</value>
   </data>
   <data name="ColProfit" xml:space="preserve">
-    <value>Прибыль</value>
+    <value>Приб.</value>
   </data>
   <data name="ColProfit2" xml:space="preserve">
-    <value>Прибыль, %</value>
+    <value>Приб. %</value>
   </data>
   <data name="SalesTracker" xml:space="preserve">
     <value>Учёт продаж →</value>
@@ -449,13 +449,13 @@
     <value>В наличии</value>
   </data>
   <data name="ColStockOvr" xml:space="preserve">
-    <value>Наличие вручн.</value>
+    <value>Налич. вручн.</value>
   </data>
   <data name="ColInBuild" xml:space="preserve">
-    <value>В производстве</value>
+    <value>В произв.</value>
   </data>
   <data name="ColBuildOvr" xml:space="preserve">
-    <value>Произв. вручн.</value>
+    <value>Пр-во вручн.</value>
   </data>
   <data name="ColReserved" xml:space="preserve">
     <value>Резерв</value>
@@ -464,22 +464,22 @@
     <value>Резерв вручн.</value>
   </data>
   <data name="ColBuildCost2" xml:space="preserve">
-    <value>Стоим. произв.</value>
+    <value>Себест.</value>
   </data>
   <data name="ColMktValue" xml:space="preserve">
-    <value>Рын. стоимость</value>
+    <value>Рынок</value>
   </data>
   <data name="ColContract2" xml:space="preserve">
     <value>Контракт</value>
   </data>
   <data name="ColSalePrice" xml:space="preserve">
-    <value>Цена продажи</value>
+    <value>Цена прод.</value>
   </data>
   <data name="ColProfit3" xml:space="preserve">
     <value>Прибыль</value>
   </data>
   <data name="ColProfit4" xml:space="preserve">
-    <value>Прибыль, %</value>
+    <value>Приб. %</value>
   </data>
   <data name="ColReadyEst" xml:space="preserve">
     <value>Готово (ожид.)</value>
@@ -578,7 +578,7 @@
     <value>Сумма продажи</value>
   </data>
   <data name="ColBuildPrice" xml:space="preserve">
-    <value>Стоимость производства</value>
+    <value>Стоим. произв.</value>
   </data>
   <data name="ColMarketPrice" xml:space="preserve">
     <value>Рыночная цена</value>
@@ -626,7 +626,7 @@
     <value>Когда</value>
   </data>
   <data name="ColDirection" xml:space="preserve">
-    <value>Направление</value>
+    <value>Направл.</value>
   </data>
   <data name="ColWho" xml:space="preserve">
     <value>Кто</value>

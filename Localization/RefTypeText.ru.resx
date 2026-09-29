@@ -29,7 +29,7 @@
     <value>Залог за задание агента выплачен</value>
   </data>
   <data name="AgentMissionCollateralRefunded" xml:space="preserve">
-    <value>Залог за задание агента возвращен</value>
+    <value>Залог за задание агента возвращён</value>
   </data>
   <data name="AgentMissionReward" xml:space="preserve">
     <value>Вознаграждение за выполнение задания агента</value>
@@ -125,7 +125,7 @@
     <value>Залог за контракт</value>
   </data>
   <data name="ContractCollateralDepositedCorp" xml:space="preserve">
-    <value>Залог за контракт размещен (корп.)</value>
+    <value>Залог за контракт размещён (корп.)</value>
   </data>
   <data name="ContractCollateralPayout" xml:space="preserve">
     <value>Выплата залога за контракт</value>
@@ -158,10 +158,10 @@
     <value>Вознаграждение за контракт</value>
   </data>
   <data name="ContractRewardDeposited" xml:space="preserve">
-    <value>Вознаграждение за контракт размещен (корп.)</value>
+    <value>Вознаграждение за контракт размещено</value>
   </data>
   <data name="ContractRewardDepositedCorp" xml:space="preserve">
-    <value>Вознаграждение за контракт размещен (корп.)</value>
+    <value>Вознаграждение за контракт размещено (корп.)</value>
   </data>
   <data name="ContractRewardRefund" xml:space="preserve">
     <value>Возмещение награды за контракт</value>
@@ -170,7 +170,7 @@
     <value>Налог с продаж на контракт</value>
   </data>
   <data name="Copying" xml:space="preserve">
-    <value>Kопирование</value>
+    <value>Копирование</value>
   </data>
   <data name="CorporateRewardPayout" xml:space="preserve">
     <value>Выплата корпоративной награды</value>
@@ -179,10 +179,10 @@
     <value>Налог на корпоративную премию</value>
   </data>
   <data name="CorporationAccountWithdrawal" xml:space="preserve">
-    <value>Списание средств со счета корпорации</value>
+    <value>Списание средств со счёта корпорации</value>
   </data>
   <data name="CorporationBulkPayment" xml:space="preserve">
-    <value>Массовый платеж корпорации</value>
+    <value>Массовый платёж корпорации</value>
   </data>
   <data name="CorporationDividendPayment" xml:space="preserve">
     <value>Выплата дивидендов по корпорации</value>
@@ -194,7 +194,7 @@
     <value>Стоимость изменения логотипа корпорации</value>
   </data>
   <data name="CorporationPayment" xml:space="preserve">
-    <value>Корпоративный платеж</value>
+    <value>Корпоративный платёж</value>
   </data>
   <data name="CorporationRegistrationFee" xml:space="preserve">
     <value>Акциз за регистрацию корпорации</value>
@@ -269,16 +269,16 @@
     <value>Плата за аренду заводской ячейки</value>
   </data>
   <data name="FluxPayout" xml:space="preserve">
-    <value>Выплата Flux</value>
+    <value>Выплата по реализованному предложению гиперсети</value>
   </data>
   <data name="FluxTax" xml:space="preserve">
-    <value>Налог Flux</value>
+    <value>Счёт за использование гиперсетевого реле</value>
   </data>
   <data name="FluxTicketRepayment" xml:space="preserve">
-    <value>Возврат за билет Flux</value>
+    <value>Возврат гиперузлов за просроченное предложение гиперсети</value>
   </data>
   <data name="FluxTicketSale" xml:space="preserve">
-    <value>Продажа билета Flux</value>
+    <value>Операция с гиперузлом</value>
   </data>
   <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
     <value>Плата за трансляцию внешних заказов</value>
@@ -347,7 +347,7 @@
     <value>Налог на производство</value>
   </data>
   <data name="MarketEscrow" xml:space="preserve">
-    <value>Платеж за покупку (внесен на счет посредника)</value>
+    <value>Платёж за покупку (внесён на счёт посредника)</value>
   </data>
   <data name="MarketFinePaid" xml:space="preserve">
     <value>Рыночный сбор оплачен</value>
@@ -428,22 +428,22 @@
     <value>Активирован сертификат ISK</value>
   </data>
   <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
-    <value>Cнятие ареста с имущества</value>
+    <value>Снятие ареста с имущества</value>
   </data>
   <data name="RepairBill" xml:space="preserve">
-    <value>Счет за ремонт</value>
+    <value>Счёт за ремонт</value>
   </data>
   <data name="ReprocessingTax" xml:space="preserve">
     <value>Налог на переработку</value>
   </data>
   <data name="ResearchingMaterialProductivity" xml:space="preserve">
-    <value>Исследование экономии материалов</value>
+    <value>Повышение материалоэффективности производства</value>
   </data>
   <data name="ResearchingTechnology" xml:space="preserve">
     <value>Технология исследования</value>
   </data>
   <data name="ResearchingTimeProductivity" xml:space="preserve">
-    <value>Исследование экономии времени</value>
+    <value>Повышение скорости производства</value>
   </data>
   <data name="ResourceWarsReward" xml:space="preserve">
     <value>Награда в войне за ресурсы</value>
@@ -467,7 +467,7 @@
     <value>Плата за захват подъёмника</value>
   </data>
   <data name="SovereignityBill" xml:space="preserve">
-    <value>Счет за поддержание права владения</value>
+    <value>Счёт за поддержание права владения</value>
   </data>
   <data name="StorePurchase" xml:space="preserve">
     <value>Покупка в магазине</value>
