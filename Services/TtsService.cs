@@ -333,7 +333,7 @@ public sealed class TtsService : IDisposable
         if (_muted || !IsSpeaking) return;
 
         // Made ready to be said, for every engine alike: markdown and emoji out, and system names
-        // the way capsuleers say them — "C-FD0D" as "C tac F D zero D". Done here, on the way
+        // the way capsuleers say them — "QZ-X77" as "Q Z tac X seven seven". Done here, on the way
         // out, so the text shown is unaffected.
         text = SpeechText.Prepare(text);
         if (string.IsNullOrWhiteSpace(text)) return;   // it was nothing but a 👍

@@ -7,7 +7,7 @@ namespace EveConsole.Agent.Tools.Actions;
 /// Opens the universe map on a system or a region.
 ///
 /// One tool rather than two, because a system and a region are resolved by the same search —
-/// the capsuleer says "show me Delve" or "show me 1DQ1-A" without labelling which is which,
+/// the capsuleer says "show me The Forge" or "show me Jita" without labelling which is which,
 /// and asking the model to pick the right tool first would just move that guess earlier. The
 /// <c>view</c> argument only matters when it disagrees with what the name resolved to: naming
 /// a system with <c>view: "region"</c> zooms out to the region containing it.

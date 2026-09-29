@@ -16,7 +16,7 @@ namespace EveConsole.ViewModels;
 
 public enum MapLevel { Universe, Region, System }
 
-/// <summary>One hop in the "Universe › Tenerifis › C-FD0D" trail.</summary>
+/// <summary>One hop in the "Universe › The Forge › Jita" trail.</summary>
 public class CrumbVm : ReactiveObject
 {
     public string                      Text      { get; }
@@ -1210,8 +1210,8 @@ public class UniverseViewModel : ReactiveObject
     /// Largest value among the nodes the map is actually about.
     ///
     /// Scaling to the whole universe made every region except the busiest look uniformly cold —
-    /// Tenerifis tops out at 6.4% manufacturing and rendered green-yellow because Jita sits at
-    /// 17%, using two colour bands across 81 systems instead of five. Anchoring to what is on
+    /// a null-sec region topping out at 6.4% manufacturing rendered green-yellow because Jita sits
+    /// at 17%, using two colour bands across all its systems instead of five. Anchoring to what is on
     /// screen spreads the ramp across the map in front of you, and the legend names the value
     /// it corresponds to so the absolute number is never lost.
     ///
