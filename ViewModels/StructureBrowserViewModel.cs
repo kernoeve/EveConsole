@@ -14,11 +14,12 @@ using EveConsole.Localization;
 namespace EveConsole.ViewModels;
 
 /// <summary>
-/// One choice in the system or type picker. <see cref="Label"/> is both what is shown and what
-/// the box matches typing against; <see cref="Id"/> is what gets saved, so picking "Jita — The
-/// Forge" stores 30000142 rather than a string the next reader would have to resolve again.
+/// One choice in the system or type picker. <see cref="Label"/> is what is shown, in the interface
+/// language, and what the box matches typing against along with <see cref="English"/>;
+/// <see cref="Id"/> is what gets saved, so picking "Jita — The Forge" stores 30000142 rather than
+/// a string the next reader would have to resolve again.
 /// </summary>
-public sealed record PickOption(int Id, string Label)
+public sealed record PickOption(int Id, string Label, string English = "")
 {
     public override string ToString() => Label;
 }
@@ -45,6 +46,16 @@ public class StructureRow
     public long ConstellationId { get; init; }
     public long RegionId        { get; init; }
     public long TypeId          { get; init; }
+
+    // ── Shown ─────────────────────────────────────────────────────────────────
+    //
+    // The SDE names in the interface language, for the grid and the filter suggestions. The
+    // English above is what the filters match as well, and what the constellation link finds its
+    // constellation by. Structure names are the players' own, and stay as they are.
+    public string TypeLabel          => SdeNames.Type(TypeId, TypeName);
+    public string SystemLabel        => SdeNames.SolarSystem(SystemId, SystemName);
+    public string ConstellationLabel => SdeNames.Constellation(ConstellationId, Constellation);
+    public string RegionLabel        => SdeNames.Region(RegionId, Region);
 
     // ── Links ─────────────────────────────────────────────────────────────────
     //
@@ -88,7 +99,10 @@ public class FittingRow : ReactiveObject
 /// <summary>An asset sitting in the selected structure, at any depth.</summary>
 public class StructureAssetRow
 {
+    /// <summary>English: what a row copied out of the grid carries — item lists get pasted into
+    /// appraisal tools. <see cref="TypeLabel"/> is what the grid shows.</summary>
     public string TypeName  { get; init; } = "";
+    public string TypeLabel => SdeNames.Type(TypeId, TypeName);
     public string Location  { get; init; } = "";
     /// <summary>The container it is inside, empty when it sits directly in the structure. Without
     /// this a hangar full of cans reads as one flat list and there is no telling what is where.</summary>
@@ -270,10 +284,13 @@ public class StructureBrowserViewModel : ReactiveObject
         if (needle.Length == 0)
             return Task.FromResult<IEnumerable<object>>([]);
 
+        // The name shown and the English both: either may be typed, or pasted from elsewhere.
         var matches = SystemOptions
-            .Where(o => o.Label.Contains(needle, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(o => o.Label.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(o => o.Label, StringComparer.OrdinalIgnoreCase)
+            .Where(o => o.Label.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                     || o.English.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(o => o.Label.StartsWith(needle, StringComparison.OrdinalIgnoreCase)
+                       || o.English.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(o => o.Label, StringComparer.CurrentCulture)
             .Take(SystemMatchLimit)
             .Cast<object>()
             .ToList();
@@ -520,7 +537,8 @@ public class StructureBrowserViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _moduleFilter, value); ApplyModuleFilter(); }
     }
 
-    /// <summary>Everything fittable in the open slot, before the text filter narrows it.</summary>
+    /// <summary>Everything fittable in the open slot, before the text filter narrows it. English,
+    /// as the service returns it: the filter matches the English as well as the name shown.</summary>
     private List<FittingOption> _allModuleOptions = [];
 
     private void ApplyModuleFilter()
@@ -530,9 +548,11 @@ public class StructureBrowserViewModel : ReactiveObject
         var needle = ModuleFilter.Trim();
         foreach (var o in _allModuleOptions)
             if (needle.Length == 0 ||
-                o.Name.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
+                SdeNames.Matches(SdeNameKind.Type, o.TypeId, o.Name, needle) ||
                 o.GroupName.Contains(needle, StringComparison.OrdinalIgnoreCase))
-                ModuleOptions.Add(o);
+                // Listed, and named by the status line once fitted, as the interface names it.
+                // Only the TypeId is ever written.
+                ModuleOptions.Add(o with { Name = SdeNames.Type(o.TypeId, o.Name) });
     }
 
     /// <summary>
@@ -556,7 +576,11 @@ public class StructureBrowserViewModel : ReactiveObject
         SelectedModule = null;
         PickerOpen   = true;
 
-        _allModuleOptions = await _fittingOptions.OptionsAsync(slot.Band, (int)row.TypeId);
+        // Grouped as the service groups them, and in the order of the names shown within each.
+        _allModuleOptions = (await _fittingOptions.OptionsAsync(slot.Band, (int)row.TypeId))
+            .OrderBy(o => o.GroupName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(o => SdeNames.Type(o.TypeId, o.Name), StringComparer.CurrentCulture)
+            .ToList();
         ApplyModuleFilter();
 
         DetailStatus = _allModuleOptions.Count == 0
@@ -789,6 +813,10 @@ public class StructureBrowserViewModel : ReactiveObject
         Busy = true;
         try
         {
+            // The filter suggestions are the names shown, built once per load — and the first load
+            // runs at startup, usually before the SDE names are in.
+            await SdeNames.EnsureLoadedAsync();
+
             // Compute nearest celestials for anything pending (local-only, fast) so the column fills
             // after an SDE import without a full ESI resolve.
             try { await _polling.RefreshNearestCelestialsAsync(); } catch { }
@@ -927,10 +955,10 @@ public class StructureBrowserViewModel : ReactiveObject
             // predating an SDE import, would be quietly erased by opening the tab and pressing Save.
             _editSystem = row.SystemId == 0
                 ? null
-                : Ensure(SystemOptions, v => SystemOptions = v, (int)row.SystemId, row.SystemName);
+                : Ensure(SystemOptions, v => SystemOptions = v, (int)row.SystemId, row.SystemLabel);
             _editType = row.TypeId == 0
                 ? NoType
-                : Ensure(TypeOptions, v => TypeOptions = v, (int)row.TypeId, row.TypeName);
+                : Ensure(TypeOptions, v => TypeOptions = v, (int)row.TypeId, row.TypeLabel);
 
             _editSystemText = _editSystem?.Label ?? "";
             this.RaisePropertyChanged(nameof(EditSystem));
@@ -958,12 +986,17 @@ public class StructureBrowserViewModel : ReactiveObject
                 .Select(a => new { a.LocationFlag, a.TypeId })
                 .ToListAsync();
 
+            // A type as the interface names it, for the fitting list and ring, the container paths
+            // and the jobs. An asset row's own item keeps the English (see StructureAssetRow).
+            string Shown(int typeId) =>
+                SdeNames.Type(typeId, typeNames.GetValueOrDefault(typeId, string.Format(MapText.TypeNumbered, typeId)));
+
             foreach (var f in fitted.OrderBy(f => f.LocationFlag))
                 Fitting.Add(new FittingRow
                 {
                     Slot       = f.LocationFlag,
                     TypeId     = f.TypeId,
-                    TypeName   = typeNames.GetValueOrDefault(f.TypeId, string.Format(MapText.TypeNumbered, f.TypeId)),
+                    TypeName   = Shown(f.TypeId),
                     FromAssets = true,
                 });
 
@@ -982,7 +1015,7 @@ public class StructureBrowserViewModel : ReactiveObject
                 {
                     Slot     = slot,
                     TypeId   = f.TypeId,
-                    TypeName = typeNames.GetValueOrDefault(f.TypeId, string.Format(MapText.TypeNumbered, f.TypeId)),
+                    TypeName = Shown(f.TypeId),
                 });
             }
 
@@ -1069,7 +1102,7 @@ public class StructureBrowserViewModel : ReactiveObject
                 {
                     if (!byItem.TryGetValue(id, out var parent)) break;
 
-                    parts.Insert(0, typeNames.GetValueOrDefault(parent.TypeId, string.Format(MapText.TypeNumbered, parent.TypeId)));
+                    parts.Insert(0, Shown(parent.TypeId));
                     if (DivisionName(ownerId, ownerType, flag) is { } division)
                         parts.Insert(1, division);
 
@@ -1138,9 +1171,7 @@ public class StructureBrowserViewModel : ReactiveObject
             {
                 Activity = ActivityName(j.ActivityId),
                 // Nullable: research and copying jobs produce no item type.
-                Product  = j.ProductTypeId is { } pid
-                             ? typeNames.GetValueOrDefault(pid, string.Format(MapText.TypeNumbered, pid))
-                             : "—",
+                Product  = j.ProductTypeId is { } pid ? Shown(pid) : "—",
                 ProductTypeId = j.ProductTypeId ?? 0,
                 Runs      = j.Runs,
                 Status    = JobStatusLabel(j.Status),
@@ -1247,9 +1278,12 @@ public class StructureBrowserViewModel : ReactiveObject
 
                 if (typeId > 0) wanted.Add(typeId);
 
+                // The ring only ever shows the name (its tooltip); the slot keeps the TypeId.
                 slots.Add(new EveConsole.Controls.FittingSlot(
                     band, i, typeId,
-                    typeId > 0 ? typeNames.GetValueOrDefault(typeId, string.Format(MapText.TypeNumbered, typeId)) : "",
+                    typeId > 0
+                        ? SdeNames.Type(typeId, typeNames.GetValueOrDefault(typeId, string.Format(MapText.TypeNumbered, typeId)))
+                        : "",
                     Icon: null,
                     FromAssets: fromAssets));
             }
@@ -1462,21 +1496,32 @@ public class StructureBrowserViewModel : ReactiveObject
             // the selection handler blocks the UI for the whole load rather than yielding.
             var (systems, types) = await Task.Run(async () =>
             {
+                // Built once, at startup, and the labels keep the names they are built with — so
+                // the names are waited for first.
+                await SdeNames.EnsureLoadedAsync();
+
                 await using var db = await _dbFactory.CreateDbContextAsync();
 
                 var regs = await db.SdeRegions.AsNoTracking()
                     .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
+                static string Place(string system, string region) =>
+                    region.Length > 0 ? $"{system} — {region}" : system;
+
+                // Shown in the interface language, and matched in English too.
                 var sys = (await db.SdeSolarSystems.AsNoTracking()
                         .Select(s => new { s.SolarSystemId, s.Name, s.RegionId })
                         .ToListAsync())
-                    .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
                     .Select(s =>
                     {
                         var region = regs.GetValueOrDefault(s.RegionId, "");
                         return new PickOption(
-                            s.SolarSystemId, region.Length > 0 ? $"{s.Name} — {region}" : s.Name);
+                            s.SolarSystemId,
+                            Place(SdeNames.SolarSystem(s.SolarSystemId, s.Name),
+                                  region.Length > 0 ? SdeNames.Region(s.RegionId, region) : ""),
+                            Place(s.Name, region));
                     })
+                    .OrderBy(o => o.Label, StringComparer.CurrentCulture)
                     .ToList();
 
                 // Category 65 is what makes a type a structure, the same test the non-structure
@@ -1486,8 +1531,8 @@ public class StructureBrowserViewModel : ReactiveObject
                               t => t.GroupId, g => g.GroupId, (t, g) => new { t.TypeId, t.Name, t.Published })
                         .Where(t => t.Published)
                         .ToListAsync())
-                    .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
-                    .Select(t => new PickOption(t.TypeId, t.Name))
+                    .Select(t => new PickOption(t.TypeId, SdeNames.Type(t.TypeId, t.Name), t.Name))
+                    .OrderBy(o => o.Label, StringComparer.CurrentCulture)
                     .ToList();
 
                 // A dropdown has no equivalent of clearing the text, so "unknown" has to be an
@@ -1713,7 +1758,11 @@ public class StructureBrowserViewModel : ReactiveObject
                   .Select(u => u.Name).FirstOrDefaultAsync() ?? string.Format(MapText.CorpNumbered, row.OwnerId)
             : MapText.PreviewUnknownOwner;
 
-        return string.Format(MapText.AddPreviewResolved, row.Name, type, system, owner);
+        // Read before committing, so the type and system as the interface names them; the name
+        // and owner are the players' own.
+        return string.Format(MapText.AddPreviewResolved, row.Name,
+                             row.TypeId > 0 ? SdeNames.Type(row.TypeId, type) : type,
+                             SdeNames.SolarSystem(row.SolarSystemId, system), owner);
     }
 
     /// <summary>
@@ -1798,10 +1847,10 @@ public class StructureBrowserViewModel : ReactiveObject
                                   .Distinct().OrderBy(s => s))
                 col.Add(v);
         }
-        Fill(RegionSuggestions,        r => r.Region);
-        Fill(ConstellationSuggestions, r => r.Constellation);
-        Fill(SystemSuggestions,        r => r.SystemName);
-        Fill(TypeSuggestions,          r => r.TypeName);
+        Fill(RegionSuggestions,        r => r.RegionLabel);
+        Fill(ConstellationSuggestions, r => r.ConstellationLabel);
+        Fill(SystemSuggestions,        r => r.SystemLabel);
+        Fill(TypeSuggestions,          r => r.TypeLabel);
         Fill(CorpSuggestions,          r => r.CorpName);
         Fill(AllianceSuggestions,      r => r.AllianceName);
     }
@@ -1812,14 +1861,24 @@ public class StructureBrowserViewModel : ReactiveObject
             string.IsNullOrWhiteSpace(filter) ||
             value.Contains(filter.Trim(), StringComparison.OrdinalIgnoreCase);
 
+        // An SDE name matches as shown or in English: the suggestions offer the one shown, and the
+        // English gets pasted in from elsewhere.
+        static bool HasName(SdeNameKind kind, long id, string english, string filter) =>
+            string.IsNullOrWhiteSpace(filter) || SdeNames.Matches(kind, id, english, filter.Trim());
+
         bool Match(StructureRow r) =>
             (ShowUnknown || r.IsKnown) &&
-            Has(r.Region, RegionText) && Has(r.Constellation, ConstellationText) &&
-            Has(r.SystemName, SystemText) && Has(r.TypeName, TypeText) &&
+            HasName(SdeNameKind.Region,        r.RegionId,        r.Region,        RegionText) &&
+            HasName(SdeNameKind.Constellation, r.ConstellationId, r.Constellation, ConstellationText) &&
+            HasName(SdeNameKind.SolarSystem,   r.SystemId,        r.SystemName,    SystemText) &&
+            HasName(SdeNameKind.Type,          r.TypeId,          r.TypeName,      TypeText) &&
             Has(r.CorpName, CorpText) && Has(r.AllianceName, AllianceText);
 
         Rows.Clear();
-        foreach (var r in _all.Where(Match).OrderBy(r => r.Region).ThenBy(r => r.SystemName).ThenBy(r => r.Name))
+        foreach (var r in _all.Where(Match)
+                              .OrderBy(r => r.RegionLabel, StringComparer.CurrentCulture)
+                              .ThenBy(r => r.SystemLabel, StringComparer.CurrentCulture)
+                              .ThenBy(r => r.Name))
             Rows.Add(r);
         int hidden = _all.Count(r => !r.IsKnown);
         Status = ShowUnknown || hidden == 0

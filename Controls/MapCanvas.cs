@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Avalonia.Threading;
 using EveConsole.Services;
 using EveConsole.Localization;
 
@@ -106,6 +107,32 @@ public class MapCanvas : Control
         ClipToBounds = true;
         Focusable    = true;
     }
+
+    // ── Names in the interface language ──────────────────────────────────────
+    //
+    // Labels are laid out once per graph, so names that arrive after that — a slow first load, or
+    // an SDE import — would otherwise never reach the map. Listened to only while on screen: the
+    // event is static, and holding on would keep every closed map alive.
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        SdeNames.Changed += OnSdeNamesChanged;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        SdeNames.Changed -= OnSdeNamesChanged;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    /// <summary>Raised on a background thread, so the relayout is posted to the UI thread.</summary>
+    private void OnSdeNamesChanged() => Dispatcher.UIThread.Post(() =>
+    {
+        _built         = null;
+        _builtBoxGraph = null;
+        InvalidateVisual();
+    });
 
     // ── Brushes and pens (immutable, allocated once) ─────────────────────────
 
@@ -334,14 +361,14 @@ public class MapCanvas : Control
         _byId  = g.Nodes.ToDictionary(n => n.Id);
 
         _labels = g.Nodes.Where(n => !n.IsOutsideRegion).ToDictionary(n => n.Id, n =>
-            new FormattedText(n.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+            new FormattedText(n.Label, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                               Face, LabelSize, LabelBrush));
 
         _gateLabels = g.Nodes.Where(n => n.IsOutsideRegion).ToDictionary(n => n.Id, n =>
         (
-            Sys: new FormattedText(n.Name, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+            Sys: new FormattedText(n.Label, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
                                    Face, LabelSize, GateSysBrush),
-            Region: new FormattedText(n.RegionName, CultureInfo.CurrentCulture,
+            Region: new FormattedText(n.RegionLabel, CultureInfo.CurrentCulture,
                                       FlowDirection.LeftToRight, BoldFace, LabelSize - 1, GateRegionBrush)
         ));
 
@@ -351,13 +378,12 @@ public class MapCanvas : Control
         {
             // How far a region reaches, for the watermark's size. Measured from its own systems
             // rather than assumed, so Delve gets a bigger label than Pochven because it is bigger.
-            // Matched on RegionName because the system tier carries that and not a region id.
-            var byRegionName = g.Nodes.Where(n => n.Tier == 1 && n.RegionName.Length > 0)
-                                      .GroupBy(n => n.RegionName)
-                                      .ToDictionary(gr => gr.Key, gr => gr.ToList());
+            var byRegion = g.Nodes.Where(n => n.Tier == 1 && n.RegionId != 0)
+                                  .GroupBy(n => n.RegionId)
+                                  .ToDictionary(gr => gr.Key, gr => gr.ToList());
 
             foreach (var r in g.Nodes.Where(n => n.Tier == 0))
-                if (byRegionName.TryGetValue(r.Name, out var members) && members.Count > 0)
+                if (byRegion.TryGetValue(r.Id, out var members) && members.Count > 0)
                     _regionExtent[r.Id] = Math.Max(
                         (members.Max(m => m.X) - members.Min(m => m.X)) / 2,
                         (members.Max(m => m.Y) - members.Min(m => m.Y)) / 2);
@@ -450,7 +476,7 @@ public class MapCanvas : Control
         if (_boxLabels.TryGetValue(n.Id, out var cached)) return cached;
 
         var ink  = PickInk(style?.Fill ?? DefaultFill);
-        var name = new FormattedText(n.Name, CultureInfo.CurrentCulture,
+        var name = new FormattedText(n.Label, CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight, BoldFace, LabelSize, ink.Strong);
 
         FormattedText? caption = null;
@@ -594,7 +620,7 @@ public class MapCanvas : Control
             if (p.X < -1200 || p.Y < -400 || p.X > Bounds.Width + 1200 || p.Y > Bounds.Height + 400)
                 continue;
 
-            var text = new FormattedText(r.Name.ToUpperInvariant(), CultureInfo.CurrentCulture,
+            var text = new FormattedText(r.Label.ToUpperInvariant(), CultureInfo.CurrentCulture,
                                          FlowDirection.LeftToRight, BoldFace, fontSize, WatermarkBrush);
 
             ctx.DrawText(text, new Point(p.X - text.Width / 2, p.Y - text.Height / 2));
@@ -821,9 +847,9 @@ public class MapCanvas : Control
         var style  = Overlay is not null && Overlay.TryGetValue(n.Id, out var s) ? s : null;
         var detail = style?.Detail;
         // The box already names the region, so the tooltip explains the gesture instead.
-        if (n.IsOutsideRegion) detail = string.Format(MapText.TipDoubleClickToOpenRegion, n.RegionName);
+        if (n.IsOutsideRegion) detail = string.Format(MapText.TipDoubleClickToOpenRegion, n.RegionLabel);
 
-        DrawTooltipBox(ctx, n.Name, detail);
+        DrawTooltipBox(ctx, n.Label, detail);
     }
 
     /// <summary>The tooltip itself, shared by nodes and badges so both look and place the same.</summary>

@@ -85,7 +85,7 @@
           <AutoCompleteBox.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
                            VerticalAlignment="Center" />
               </StackPanel>

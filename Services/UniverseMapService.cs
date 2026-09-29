@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using EveConsole.Localization;
 
@@ -24,7 +25,21 @@ public sealed record MapNode(
     /// <summary>Which zoom tier this node belongs to on a continuous map: 0 draws when zoomed
     /// out, 1 when zoomed in. Both tiers live in one graph so zooming reveals detail rather
     /// than navigating to a different map.</summary>
-    int    Tier = 0);
+    int    Tier = 0,
+    /// <summary>The region a system belongs to — the one <see cref="RegionName"/> names — and a
+    /// region node's own id.</summary>
+    int    RegionId = 0)
+{
+    /// <summary>A region rather than a system: the universe map's nodes, and the zoomed-out tier
+    /// of the continuous one.</summary>
+    public bool IsRegion => Id == RegionId;
+
+    // ⚠️ What the map draws, in the interface language, and nothing else. Name, RegionName and
+    // ConstellationName stay English: the map view model finds regions and constellations by them.
+    public string Label              => IsRegion ? SdeNames.Region(Id, Name) : SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel        => SdeNames.Region(RegionId, RegionName);
+    public string ConstellationLabel => SdeNames.Constellation(ConstellationId, ConstellationName);
+}
 
 /// <summary>
 /// The largest hull that can dock somewhere in a system.
@@ -99,7 +114,11 @@ public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdg
 /// SystemId is 0 for a region.</summary>
 public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId)
 {
-    public override string ToString() => Name;
+    /// <summary>The name in the interface language, for the jump box. <see cref="Name"/> stays
+    /// English: the AI agent names places by it (open_map).</summary>
+    public string Label => SystemId > 0 ? SdeNames.SolarSystem(SystemId, Name) : SdeNames.Region(RegionId, Name);
+
+    public override string ToString() => Label;
 }
 
 public sealed record RegionSummary(
@@ -228,12 +247,24 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>
-    /// Regions and systems in one list for the jump box. Systems carry their security and
-    /// region so near-identical names can be told apart, and matches that start with the typed
-    /// text rank above ones that merely contain it.
+    /// Regions and systems in one list, matched and ranked on the English — the AI agent's
+    /// open_map, which opens the first match. Systems carry their security and region so
+    /// near-identical names can be told apart, and matches that start with the typed text rank
+    /// above ones that merely contain it.
+    /// </summary>
+    public Task<List<PlaceMatch>> SearchPlacesAsync(
+        string text, int limit = 30, CancellationToken ct = default) =>
+        SearchPlacesAsync(text, shownNames: false, limit, ct);
+
+    /// <summary>
+    /// The same search. With <paramref name="shownNames"/>, for the map's jump box: it also finds
+    /// a place by the name the interface shows for it, and ranks by that name.
+    ///
+    /// <para>⚠️ Never for the agent. It opens the FIRST match, so what it finds and in which order
+    /// must not move with the interface language.</para>
     /// </summary>
     public async Task<List<PlaceMatch>> SearchPlacesAsync(
-        string text, int limit = 30, CancellationToken ct = default)
+        string text, bool shownNames, int limit = 30, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         var q = text.Trim();
@@ -243,29 +274,53 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // so the % and _ wildcards are never exposed to what the user typed.
         var needle = q.ToLowerInvariant();
 
+        // Places whose shown name holds the text, by id — the SQL can only see the English.
+        // Always empty in English.
+        List<int> regionIds = [], systemIds = [];
+        if (shownNames)
+        {
+            await SdeNames.EnsureLoadedAsync(ct);
+            regionIds = [.. SdeNames.Find(SdeNameKind.Region, q).Select(id => (int)id)];
+            systemIds = [.. SdeNames.Find(SdeNameKind.SolarSystem, q).Select(id => (int)id)];
+        }
+
         using var db = dbFactory.CreateDbContext();
 
-        var regions = await db.SdeRegions.AsNoTracking()
-            .Where(r => r.RegionId < MaxKnownSpaceRegionId && r.Name.ToLower().Contains(needle))
+        var regionQuery = db.SdeRegions.AsNoTracking().Where(r => r.RegionId < MaxKnownSpaceRegionId);
+        regionQuery = regionIds.Count == 0
+            ? regionQuery.Where(r => r.Name.ToLower().Contains(needle))
+            : regionQuery.Where(r => r.Name.ToLower().Contains(needle) || regionIds.Contains(r.RegionId));
+
+        var regions = await regionQuery
             .Select(r => new { r.Name, r.RegionId })
             .Take(limit)
             .ToListAsync(ct);
 
-        var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Where(s => s.Name.ToLower().Contains(needle))
+        var systemQuery = systemIds.Count == 0
+            ? db.SdeSolarSystems.AsNoTracking().Where(s => s.Name.ToLower().Contains(needle))
+            : db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(needle) || systemIds.Contains(s.SolarSystemId));
+
+        var systems = await systemQuery
             .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
                   (s, r) => new { s.Name, s.SolarSystemId, s.RegionId, Region = r.Name, s.Security })
             .Take(limit * 2)
             .ToListAsync(ct);
 
+        // The jump box ranks by the name it shows, the agent by the English it asked in.
+        string Ranked(PlaceMatch p) => shownNames ? p.Label : p.Name;
+        var byName = shownNames ? StringComparer.CurrentCulture : StringComparer.OrdinalIgnoreCase;
+
         return regions
             .Select(r => new PlaceMatch(r.Name, MapText.GoToRegion, r.RegionId, 0))
             .Concat(systems.Select(s => new PlaceMatch(
-                s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
-            .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase))
+                s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {SdeNames.Region(s.RegionId, s.Region)}",
+                s.RegionId, s.SolarSystemId)))
+            .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase)
+                                 || Ranked(p).StartsWith(q, StringComparison.OrdinalIgnoreCase))
             .ThenBy(p => p.SystemId == 0 ? 0 : 1)   // regions before systems at equal rank
-            .ThenBy(p => p.Name.Length)
-            .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(p => Ranked(p).Length)
+            .ThenBy(p => Ranked(p), byName)
             .Take(limit)
             .ToList();
     }
@@ -317,7 +372,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         // Z is what puts galactic north at the top of the screen, since screen Y grows downward.
         var nodes = regions.Select(r => new MapNode(
             r.RegionId, r.Name, r.X, -r.Z,
-            systemSecurity.GetValueOrDefault(r.RegionId), r.IsWormhole, r.FactionId)).ToList();
+            systemSecurity.GetValueOrDefault(r.RegionId), r.IsWormhole, r.FactionId,
+            RegionId: r.RegionId)).ToList();
 
         var known = nodes.Select(n => n.Id).ToHashSet();
 
@@ -547,7 +603,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             s.SecurityClass, IsOutsideRegion: false, RegionName: s.RegionName,
             ConstellationId: s.ConstellationId,
             ConstellationName: constellationNames.GetValueOrDefault(s.ConstellationId, ""),
-            Tier: 1)).ToList();
+            Tier: 1, RegionId: s.RegionId)).ToList();
 
         var regionMeta = await db.SdeRegions.AsNoTracking()
             .Where(r => r.RegionId < MaxKnownSpaceRegionId)
@@ -564,7 +620,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
                     r.RegionId, r.Name,
                     members.Average(s => s.X), -members.Average(s => s.Y),
                     members.Average(s => s.Security), r.IsWormhole, r.FactionId,
-                    Tier: 0);
+                    Tier: 0, RegionId: r.RegionId);
             })
             .OfType<MapNode>()
             .ToList();
@@ -625,7 +681,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             IsOutsideRegion: x.S.RegionId != regionId,
             RegionName: x.RegionName,
             ConstellationId: x.S.ConstellationId,
-            ConstellationName: constellationNames.GetValueOrDefault(x.S.ConstellationId, ""))).ToList();
+            ConstellationName: constellationNames.GetValueOrDefault(x.S.ConstellationId, ""),
+            RegionId: x.S.RegionId)).ToList();
 
         var present = nodes.Select(n => n.Id).ToHashSet();
         var edges = all
@@ -1031,7 +1088,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         int    Gates,
         int    Stations,
         int    Planets,
-        int    Moons);
+        int    Moons,
+        int    ConstellationId = 0);
 
     public async Task<SystemDetail?> GetSystemDetailAsync(int systemId, CancellationToken ct = default)
     {
@@ -1061,7 +1119,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         return new SystemDetail(
             s.SolarSystemId, s.Name, s.Security, s.SecurityClass,
             constellation, region, s.RegionId, gates, stations,
-            celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1));
+            celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1),
+            ConstellationId: s.ConstellationId);
     }
 
     // ── System view ──────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using EveConsole.Localization;
 
@@ -13,7 +14,12 @@ public sealed record JumpShip(
     int    FuelTypeId,
     string FuelTypeName)
 {
-    public override string ToString() => Name;
+    /// <summary>The hull and its isotope as the interface names them; Name and FuelTypeName stay
+    /// English.</summary>
+    public string Label     => SdeNames.Type(TypeId, Name);
+    public string FuelLabel => SdeNames.Type(FuelTypeId, FuelTypeName);
+
+    public override string ToString() => Label;
 }
 
 /// <summary>
@@ -43,6 +49,7 @@ public sealed record JumpLeg(
     int    FromSystemId,
     string FromSystem,
     string FromRegion,
+    int    FromRegionId,
     double FromSecurity,
     int    ToSystemId,
     string ToSystem,
@@ -58,10 +65,12 @@ public sealed record MapPoint(int Id, double X, double Y, double Security);
 /// <summary>A system that could replace a midpoint, with how far it is either side of it.</summary>
 public sealed record JumpAlternative(
     int Id, string Name, string Region, double Security,
-    double InLy, double OutLy, double MapX, double MapY)
+    double InLy, double OutLy, double MapX, double MapY, int RegionId = 0)
 {
-    public string Detail => string.Format(MapText.AlternativeDetail, Region, InLy, OutLy);
-    public override string ToString() => Name;
+    /// <summary>The system as the interface names it; Name and Region stay English.</summary>
+    public string Label  => SdeNames.SolarSystem(Id, Name);
+    public string Detail => string.Format(MapText.AlternativeDetail, SdeNames.Region(RegionId, Region), InLy, OutLy);
+    public override string ToString() => Label;
 }
 
 public sealed record JumpRoute(
@@ -217,8 +226,10 @@ public sealed class JumpPlannerService
     }
 
     /// <summary>Every system by name, for the pickers — including high sec, so a route that
-    /// starts there can say why it cannot be flown rather than not finding the system.</summary>
-    public async Task<List<(int Id, string Name, string Region, double Security)>> SearchSystemsAsync(
+    /// starts there can say why it cannot be flown rather than not finding the system. Finds the
+    /// name the interface shows as well as the English, and ranks by the one shown; the names
+    /// returned are English.</summary>
+    public async Task<List<(int Id, string Name, string Region, int RegionId, double Security)>> SearchSystemsAsync(
         string term, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(term) || term.Length < 2) return [];
@@ -229,19 +240,33 @@ public sealed class JumpPlannerService
         // without exposing LIKE's % and _ wildcards to whatever the user typed.
         var needle = term.ToLowerInvariant();
 
+        // Systems whose shown name holds the text, by id — the SQL can only see the English.
+        // Always empty in English.
+        await SdeNames.EnsureLoadedAsync(ct);
+        var shownIds = SdeNames.Find(SdeNameKind.SolarSystem, term).Select(id => (int)id).ToList();
+
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        var systems = shownIds.Count == 0
+            ? db.SdeSolarSystems.AsNoTracking().Where(s => s.Name.ToLower().Contains(needle))
+            : db.SdeSolarSystems.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(needle) || shownIds.Contains(s.SolarSystemId));
+
         var hits = await (
-            from s in db.SdeSolarSystems.AsNoTracking()
+            from s in systems
             join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
-            where s.Name.ToLower().Contains(needle)
-            select new { s.SolarSystemId, s.Name, Region = r.Name, s.Security })
+            select new { s.SolarSystemId, s.Name, Region = r.Name, s.RegionId, s.Security })
             .Take(60).ToListAsync(ct);
 
+        // In English the shown name is the English, and this is the order it always was.
+        string Shown(int id, string name) => SdeNames.SolarSystem(id, name);
+
         return hits
-            .OrderBy(h => h.Name.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(h => h.Name.Length)
-            .ThenBy(h => h.Name)
-            .Select(h => (h.SolarSystemId, h.Name, h.Region, h.Security))
+            .OrderBy(h => h.Name.StartsWith(term, StringComparison.OrdinalIgnoreCase)
+                       || Shown(h.SolarSystemId, h.Name).StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(h => Shown(h.SolarSystemId, h.Name).Length)
+            .ThenBy(h => Shown(h.SolarSystemId, h.Name), StringComparer.CurrentCulture)
+            .Select(h => (h.SolarSystemId, h.Name, h.Region, h.RegionId, h.Security))
             .ToList();
     }
 
@@ -295,8 +320,9 @@ public sealed class JumpPlannerService
             get
             {
                 var parts = new List<string>(4);
-                if (Keepstar)         parts.Add("Keepstar");
-                if (Fortizar)         parts.Add("Fortizar");
+                // The hulls' own names, as the interface shows them.
+                if (Keepstar)         parts.Add(SdeNames.Type(IndustryMe.KeepstarTypeId, "Keepstar"));
+                if (Fortizar)         parts.Add(SdeNames.Type(IndustryMe.FortizarTypeId, "Fortizar"));
                 if (NpcStation)       parts.Add(MapText.BadgeNpcStation);
                 if (PlayerStructures > 0 && !Keepstar && !Fortizar)
                     parts.Add(Plurals.Format(MapText.ResourceManager,
@@ -493,14 +519,15 @@ public sealed class JumpPlannerService
         public int ToId   { get; set; }
     }
 
-    private Dictionary<int, (string Name, string Region)>? _systemNames;
+    private Dictionary<int, (string Name, string Region, int RegionId)>? _systemNames;
     private readonly SemaphoreSlim _nameGate = new(1, 1);
 
     /// <summary>
     /// Name and region for every system, including the high-sec ones a jump drive cannot enter —
     /// those are still drawn on the map as context and still worth identifying under the pointer.
+    /// English, with the region's id so the map can show its name.
     /// </summary>
-    public async Task<IReadOnlyDictionary<int, (string Name, string Region)>> SystemNamesAsync(
+    public async Task<IReadOnlyDictionary<int, (string Name, string Region, int RegionId)>> SystemNamesAsync(
         CancellationToken ct = default)
     {
         if (_systemNames is { } cached) return cached;
@@ -514,10 +541,10 @@ public sealed class JumpPlannerService
             var rows = await (
                 from s in db.SdeSolarSystems.AsNoTracking()
                 join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
-                select new { s.SolarSystemId, s.Name, Region = r.Name })
+                select new { s.SolarSystemId, s.Name, Region = r.Name, s.RegionId })
                 .ToListAsync(ct);
 
-            _systemNames = rows.ToDictionary(r => r.SolarSystemId, r => (r.Name, r.Region));
+            _systemNames = rows.ToDictionary(r => r.SolarSystemId, r => (r.Name, r.Region, r.RegionId));
             return _systemNames;
         }
         finally { _nameGate.Release(); }
@@ -632,7 +659,7 @@ public sealed class JumpPlannerService
 
             var p = points.GetValueOrDefault(n.Id);
             result.Add(new JumpAlternative(n.Id, n.Name, n.Region, n.Security, inLy, outLy,
-                                           p?.X ?? 0, p?.Y ?? 0));
+                                           p?.X ?? 0, p?.Y ?? 0, n.RegionId));
         }
 
         return result.OrderBy(r => r.InLy + r.OutLy).ToList();
@@ -758,7 +785,7 @@ public sealed class JumpPlannerService
             totalDist += d;
             totalFuel += f;
 
-            legs.Add(new JumpLeg(a.Id, a.Name, a.Region, a.Security,
+            legs.Add(new JumpLeg(a.Id, a.Name, a.Region, a.RegionId, a.Security,
                                  b.Id, b.Name, b.Region, b.RegionId, b.Security, d, f));
         }
 

@@ -100,11 +100,12 @@
           <Grid ColumnDefinitions="*,Auto">
             <!-- ValueMemberBinding keeps the text box holding just the system name, so the
                  region shown beside it in the list never ends up in the box (and never has to
-                 be stripped back off before the name is looked up). -->
+                 be stripped back off before the name is looked up). The name shown: Add finds
+                 a system by it as well as by the English. -->
             <AutoCompleteBox Grid.Column="0"
                              Text="{Binding SystemSearch}"
                              AsyncPopulator="{Binding SystemPopulator}"
-                             ValueMemberBinding="{Binding Name}"
+                             ValueMemberBinding="{Binding Label}"
                              FilterMode="None"
                              MinimumPrefixLength="2"
                              MinimumPopulateDelay="0:0:0.2"
@@ -114,9 +115,9 @@
               <AutoCompleteBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:SystemMatch">
                   <Grid ColumnDefinitions="*,Auto" MinWidth="240">
-                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                    <TextBlock Grid.Column="0" Text="{Binding Label}"
                                FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <TextBlock Grid.Column="1" Text="{Binding Region}"
+                    <TextBlock Grid.Column="1" Text="{Binding RegionLabel}"
                                FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="10 0 0 0"
                                VerticalAlignment="Center" />
                   </Grid>
@@ -141,7 +142,7 @@
                                VerticalAlignment="Center" Margin="0 0 8 0"
                                ToolTip.Tip="{x:Static loc:MapText.TipDragToReorder}" />
                     <StackPanel Grid.Column="1" Spacing="1">
-                      <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
+                      <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
                                  FontWeight="SemiBold" />
                       <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="{DynamicResource TextDimBrush}" />
                     </StackPanel>
@@ -204,7 +205,7 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="svc:JumpAlternative">
                   <StackPanel Spacing="1" Margin="0 1">
-                    <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
+                    <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
                                FontWeight="SemiBold" />
                     <TextBlock Text="{Binding Detail}" FontSize="9.5" Foreground="{DynamicResource TextDimBrush}" />
                   </StackPanel>
@@ -229,46 +230,48 @@
                 Background="{DynamicResource SurfaceBaseBrush}">
         <DataGrid.Columns>
           <DataGridTextColumn Header="#"        Binding="{Binding Number}"       Width="44" />
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColFrom}" Width="130" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
+          <!-- Names shown in the interface language; the clipboard keeps the English, so a route
+               copied out of here reads the same wherever it is pasted. -->
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColFrom}" Width="130" SortMemberPath="FromLabel" ClipboardContentBinding="{Binding From}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
                   <Button Classes="link" Click="OnOpenLegFrom" IsVisible="{Binding HasFromLink}"
                           ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
-                    <TextBlock Text="{Binding From}" Classes="linktext"
+                    <TextBlock Text="{Binding FromLabel}" Classes="linktext"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding From}" IsVisible="{Binding !HasFromLink}"
+                  <TextBlock Text="{Binding FromLabel}" IsVisible="{Binding !HasFromLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColJumpTo}" Width="130" SortMemberPath="To" ClipboardContentBinding="{Binding To}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColJumpTo}" Width="130" SortMemberPath="ToLabel" ClipboardContentBinding="{Binding To}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
                   <Button Classes="link" Click="OnOpenLegTo" IsVisible="{Binding HasToLink}"
                           ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
-                    <TextBlock Text="{Binding To}" Classes="linktext"
+                    <TextBlock Text="{Binding ToLabel}" Classes="linktext"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding To}" IsVisible="{Binding !HasToLink}"
+                  <TextBlock Text="{Binding ToLabel}" IsVisible="{Binding !HasToLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColRegion}" Width="160" SortMemberPath="ToRegion" ClipboardContentBinding="{Binding ToRegion}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColRegion}" Width="160" SortMemberPath="ToRegionLabel" ClipboardContentBinding="{Binding ToRegion}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
                   <Button Classes="link" Click="OnOpenLegRegion" IsVisible="{Binding HasRegionLink}"
                           ToolTip.Tip="{x:Static loc:MapText.TipFrameThisRegionOnThe}">
-                    <TextBlock Text="{Binding ToRegion}" Classes="linktext"
+                    <TextBlock Text="{Binding ToRegionLabel}" Classes="linktext"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding ToRegion}" IsVisible="{Binding !HasRegionLink}"
+                  <TextBlock Text="{Binding ToRegionLabel}" IsVisible="{Binding !HasRegionLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>

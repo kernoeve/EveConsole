@@ -151,57 +151,57 @@
         </DataGrid.Styles>
         <DataGrid.Columns>
           <DataGridTextColumn Header="{x:Static loc:MapText.ColStructure}" Binding="{Binding Name}" Width="2*" />
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColType}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColType}" SortMemberPath="TypeLabel" Width="*" ClipboardContentBinding="{Binding TypeLabel}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
                   <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
-                    <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                    <TextBlock Text="{Binding TypeLabel}" Classes="linktext"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasTypeLink}"
+                  <TextBlock Text="{Binding TypeLabel}" IsVisible="{Binding !HasTypeLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColSystem}" SortMemberPath="SystemName" Width="*" ClipboardContentBinding="{Binding SystemName}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColSystem}" SortMemberPath="SystemLabel" Width="*" ClipboardContentBinding="{Binding SystemLabel}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
                   <Button Classes="link" Click="OnOpenRowSystem" IsVisible="{Binding HasSystemLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenOnTheMap}">
-                    <TextBlock Text="{Binding SystemName}" Classes="linktext"
+                    <TextBlock Text="{Binding SystemLabel}" Classes="linktext"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding SystemName}" IsVisible="{Binding !HasSystemLink}"
+                  <TextBlock Text="{Binding SystemLabel}" IsVisible="{Binding !HasSystemLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColConstellation}" SortMemberPath="Constellation" Width="*" ClipboardContentBinding="{Binding Constellation}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColConstellation}" SortMemberPath="ConstellationLabel" Width="*" ClipboardContentBinding="{Binding ConstellationLabel}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
                   <Button Classes="link" Click="OnOpenRowConstellation" IsVisible="{Binding HasConstellationLink}" ToolTip.Tip="{x:Static loc:MapText.TipFrameThisConstellationOnThe}">
-                    <TextBlock Text="{Binding Constellation}" Classes="linktext"
+                    <TextBlock Text="{Binding ConstellationLabel}" Classes="linktext"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding Constellation}" IsVisible="{Binding !HasConstellationLink}"
+                  <TextBlock Text="{Binding ConstellationLabel}" IsVisible="{Binding !HasConstellationLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColRegion}" SortMemberPath="Region" Width="*" ClipboardContentBinding="{Binding Region}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColRegion}" SortMemberPath="RegionLabel" Width="*" ClipboardContentBinding="{Binding RegionLabel}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:StructureRow">
                 <Panel>
                   <Button Classes="link" Click="OnOpenRowRegion" IsVisible="{Binding HasRegionLink}" ToolTip.Tip="{x:Static loc:MapText.TipFrameThisRegionOnThe}">
-                    <TextBlock Text="{Binding Region}" Classes="linktext"
+                    <TextBlock Text="{Binding RegionLabel}" Classes="linktext"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                   </Button>
-                  <TextBlock Text="{Binding Region}" IsVisible="{Binding !HasRegionLink}"
+                  <TextBlock Text="{Binding RegionLabel}" IsVisible="{Binding !HasRegionLink}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Panel>
               </DataTemplate>
@@ -274,7 +274,7 @@
                            IsVisible="{Binding Selected.HasSystemLink}" />
                 <Button Classes="link" Click="OnOpenSelectedSystem"
                         IsVisible="{Binding Selected.HasSystemLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenOnTheMap}">
-                  <TextBlock Text="{Binding Selected.SystemName}" Classes="linktext"
+                  <TextBlock Text="{Binding Selected.SystemLabel}" Classes="linktext"
                              FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 </Button>
                 <TextBlock Text="  ·  " FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"
@@ -282,7 +282,7 @@
                 <Button Classes="link" Click="OnOpenSelectedRegion"
                         IsVisible="{Binding Selected.HasRegionLink}"
                         ToolTip.Tip="{x:Static loc:MapText.TipFrameThisRegionOnThe}">
-                  <TextBlock Text="{Binding Selected.Region}" Classes="linktext"
+                  <TextBlock Text="{Binding Selected.RegionLabel}" Classes="linktext"
                              FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 </Button>
               </StackPanel>
@@ -487,15 +487,18 @@
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <!-- The item as the interface names it, and copied as shown, like every grid's copy.
+                       English for appraisal tools is Item Valuation's Copy button. The same on the
+                       three tabs below. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColItem}" SortMemberPath="TypeLabel" Width="*" ClipboardContentBinding="{Binding TypeLabel}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
                           <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
-                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                            <TextBlock Text="{Binding TypeLabel}" Classes="linktext"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
-                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                          <TextBlock Text="{Binding TypeLabel}" IsVisible="{Binding !HasItemLink}"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Panel>
                       </DataTemplate>
@@ -531,15 +534,15 @@
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <!-- No owner column: it is always the corp that owns the structure. -->
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColItem}" SortMemberPath="TypeLabel" Width="*" ClipboardContentBinding="{Binding TypeLabel}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
                           <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
-                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                            <TextBlock Text="{Binding TypeLabel}" Classes="linktext"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
-                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                          <TextBlock Text="{Binding TypeLabel}" IsVisible="{Binding !HasItemLink}"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Panel>
                       </DataTemplate>
@@ -559,15 +562,15 @@
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColItem}" SortMemberPath="TypeLabel" Width="*" ClipboardContentBinding="{Binding TypeLabel}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
                           <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
-                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                            <TextBlock Text="{Binding TypeLabel}" Classes="linktext"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
-                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                          <TextBlock Text="{Binding TypeLabel}" IsVisible="{Binding !HasItemLink}"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Panel>
                       </DataTemplate>
@@ -586,15 +589,15 @@
                         Background="{DynamicResource SurfaceBaseBrush}" RowBackground="{DynamicResource SurfaceBaseBrush}" BorderThickness="0"
                         GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource SurfaceHoverBrush}">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColFighter}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                  <DataGridTemplateColumn Header="{x:Static loc:MapText.ColFighter}" SortMemberPath="TypeLabel" Width="*" ClipboardContentBinding="{Binding TypeLabel}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StructureAssetRow">
                         <Panel>
                           <Button Classes="link" Click="OnOpenAssetItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:MapText.TipOpenInTheItemBrowser}">
-                            <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                            <TextBlock Text="{Binding TypeLabel}" Classes="linktext"
                                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           </Button>
-                          <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                          <TextBlock Text="{Binding TypeLabel}" IsVisible="{Binding !HasItemLink}"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Panel>
                       </DataTemplate>

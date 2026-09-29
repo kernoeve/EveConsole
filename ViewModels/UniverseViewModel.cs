@@ -324,7 +324,8 @@ public class UniverseViewModel : ReactiveObject
 
     private async Task RefreshSuggestionsAsync(string text)
     {
-        var matches = await _map.SearchPlacesAsync(text);
+        // Finds what the map shows as well as the English that gets pasted in from elsewhere.
+        var matches = await _map.SearchPlacesAsync(text, shownNames: true);
         await OnUiAsync(() => Replace(Places, matches));
     }
 
@@ -376,6 +377,11 @@ public class UniverseViewModel : ReactiveObject
     {
         await OnUiAsync(() => Status = MapText.StatusLoadingUniverse);
 
+        // First run at startup, usually before the SDE names are in: waited for once, so the
+        // overlay captions and the crumbs do not stay English. The canvas redraws its own labels
+        // whenever names arrive.
+        await SdeNames.EnsureLoadedAsync();
+
         if (_regions.Count == 0) _regions = await _map.GetRegionsAsync();
 
         var graph = await _map.GetContinuousGraphAsync();
@@ -408,7 +414,10 @@ public class UniverseViewModel : ReactiveObject
         var name = _regions.FirstOrDefault(r => r.RegionId == regionId)?.Name
                    ?? regionId.ToString();
 
-        await OnUiAsync(() => Status = string.Format(MapText.StatusLoadingPlace, name));
+        // The English is the crumb's key (FocusRegionAsync finds the region by it); people read this.
+        var shown = SdeNames.Region(regionId, name);
+
+        await OnUiAsync(() => Status = string.Format(MapText.StatusLoadingPlace, shown));
 
         var graph = await _map.GetRegionGraphAsync(regionId);
         var (styles, legend) = await BuildOverlayAsync(graph, byRegion: false);
@@ -431,8 +440,8 @@ public class UniverseViewModel : ReactiveObject
             var inside  = graph.Nodes.Count(n => !n.IsOutsideRegion);
             var outside = graph.Nodes.Count - inside;
             Status = outside > 0
-                ? string.Format(MapText.StatusRegionSystemsAdjacent, name, inside, outside)
-                : string.Format(MapText.StatusRegionSystems, name, inside);
+                ? string.Format(MapText.StatusRegionSystemsAdjacent, shown, inside, outside)
+                : string.Format(MapText.StatusRegionSystems, shown, inside);
         });
     }
 
@@ -458,6 +467,8 @@ public class UniverseViewModel : ReactiveObject
     /// it. Bounds come from where that region's systems actually are, so the framing matches the
     /// territory instead of a fixed zoom around a centre point.
     /// </summary>
+    /// <param name="regionName">⚠️ The English name, which the graph's systems carry — never the
+    /// one shown.</param>
     public async Task FocusRegionAsync(string regionName)
     {
         if (Level != MapLevel.Universe || Graph is not { IsContinuous: true })
@@ -482,7 +493,7 @@ public class UniverseViewModel : ReactiveObject
             // resets the property when it consumes it, but this side would otherwise not change.
             FocusBounds = null;
             FocusBounds = new Rect(minX, minY, w, h);
-            Status      = string.Format(MapText.StatusPlaceSystems, regionName, members.Count);
+            Status      = string.Format(MapText.StatusPlaceSystems, members[0].RegionLabel, members.Count);
         });
     }
 
@@ -509,6 +520,7 @@ public class UniverseViewModel : ReactiveObject
     /// magnitude tighter. Reusing the region floor would zoom out to most of the region and make
     /// the two links indistinguishable.</para>
     /// </summary>
+    /// <param name="constellationName">⚠️ The English name, as for <see cref="FocusRegionAsync(string)"/>.</param>
     public async Task FocusConstellationAsync(string constellationName)
     {
         if (constellationName.Length == 0) return;
@@ -533,7 +545,7 @@ public class UniverseViewModel : ReactiveObject
             // property, so asking twice for the same target must still register as a change.
             FocusBounds = null;
             FocusBounds = new Rect(minX, minY, w, h);
-            Status      = string.Format(MapText.StatusPlaceSystems, constellationName, members.Count);
+            Status      = string.Format(MapText.StatusPlaceSystems, members[0].ConstellationLabel, members.Count);
         });
     }
 
@@ -605,7 +617,7 @@ public class UniverseViewModel : ReactiveObject
             _regionName = name.Region;
             Level       = MapLevel.System;
             BuildCrumbs();
-            Status = $"{name.Name} · {name.Region}";
+            Status = $"{SdeNames.SolarSystem(systemId, name.Name)} · {SdeNames.Region(name.RegionId, name.Region)}";
         });
     }
 
@@ -636,16 +648,18 @@ public class UniverseViewModel : ReactiveObject
         // The region map is no longer a step on the way down, and the crumb no longer opens one.
         // It returns to the single universe map, zoomed to that region — going back should undo
         // the zoom that got you here, not swap you onto a different map of the same place.
+        // Shown in the interface language; the English is what finds the region again.
         if (_regionName.Length > 0)
         {
             var name = _regionName;
-            Crumbs.Add(new CrumbVm(name, Level == MapLevel.Region, () => FocusRegionAsync(name)));
+            Crumbs.Add(new CrumbVm(SdeNames.Region(_regionId, name), Level == MapLevel.Region,
+                                   () => FocusRegionAsync(name)));
         }
 
         if (Level != MapLevel.System) return;
 
         var systemId = _systemId;
-        Crumbs.Add(new CrumbVm(_systemName, true, () => ShowSystemAsync(systemId)));
+        Crumbs.Add(new CrumbVm(SdeNames.SolarSystem(systemId, _systemName), true, () => ShowSystemAsync(systemId)));
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)
@@ -672,7 +686,7 @@ public class UniverseViewModel : ReactiveObject
         {
             var d = await _map.GetRegionDetailAsync(id);
             if (d is null) return;
-            title = d.Name;
+            title = SdeNames.Region(d.RegionId, d.Name);
             rows.Add(new(MapText.DetailSystems,        d.Systems.ToString("N0")));
             rows.Add(new(MapText.DetailConstellations, d.Constellations.ToString("N0")));
             rows.Add(new(MapText.DetailNpcStations,    d.Stations.ToString("N0")));
@@ -683,12 +697,12 @@ public class UniverseViewModel : ReactiveObject
         {
             var d = await _map.GetSystemDetailAsync(id);
             if (d is null) return;
-            title = d.Name;
+            title = SdeNames.SolarSystem(d.SystemId, d.Name);
             rows.Add(new(MapText.DetailSecurity, d.Security.ToString("F2")));
             if (!string.IsNullOrEmpty(d.SecurityClass))
                 rows.Add(new(MapText.DetailSecurityClass, d.SecurityClass));
-            rows.Add(new(MapText.Constellation,     d.Constellation));
-            rows.Add(new(MapText.Region,            d.Region));
+            rows.Add(new(MapText.Constellation,     SdeNames.Constellation(d.ConstellationId, d.Constellation)));
+            rows.Add(new(MapText.Region,            SdeNames.Region(d.RegionId, d.Region)));
             rows.Add(new(MapText.DetailStargates,   d.Gates.ToString("N0")));
             rows.Add(new(MapText.DetailNpcStations, d.Stations.ToString("N0")));
             rows.Add(new(MapText.Planets,           d.Planets.ToString("N0")));
@@ -904,10 +918,10 @@ public class UniverseViewModel : ReactiveObject
                 color,
                 // Naming the constellation makes the grouping readable without having to trace
                 // which blobs of colour belong together.
-                Caption: byRegion ? null : n.ConstellationName,
+                Caption: byRegion ? null : n.ConstellationLabel,
                 Detail: byRegion
                     ? string.Format(MapText.NodeSecurityRegionAverage, n.Security)
-                    : string.Format(MapText.NodeConstellationSecurity, n.ConstellationName, n.Security));
+                    : string.Format(MapText.NodeConstellationSecurity, n.ConstellationLabel, n.Security));
         }
     }
 
@@ -961,7 +975,9 @@ public class UniverseViewModel : ReactiveObject
             {
                 // A faction holding the space names it; nobody holding it reads as unclaimed —
                 // the service leaves the holder empty then, rather than writing a word to match.
-                var holder = s is not null && s.Holder.Length > 0 ? s.Holder : null;
+                var holder = s is not null && s.Holder.Length > 0
+                    ? s.FactionId is { } faction ? SdeNames.Faction(faction, s.Holder) : s.Holder
+                    : null;
                 styles[n.Id] = new MapNodeStyle(
                     unclaimed,
                     Caption: holder,
@@ -1128,7 +1144,9 @@ public class UniverseViewModel : ReactiveObject
         if (_stats is null) return;
 
         var fw       = await _stats.GetLatestFactionWarfareAsync();
-        var factions = await _stats.GetFactionNamesAsync();
+        // As shown — only ever the tooltip and legend text, looked up by id.
+        var factions = (await _stats.GetFactionNamesAsync())
+            .ToDictionary(kv => kv.Key, kv => SdeNames.Faction(kv.Key, kv.Value));
         var neutral  = Color.Parse("#2e2e3a");
 
         // Only four militias hold faction-warfare space, so fixed hues read better than

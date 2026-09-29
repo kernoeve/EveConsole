@@ -320,8 +320,9 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     /// the daily-cadence datasets, which dominate storage — see MapDataset.DailyCadence.</summary>
     /// <summary>Who holds a system and how well defended it is, for the sovereignty overlay.
     /// <see cref="Holder"/> is empty for a system nobody holds: the overlay names that in the
-    /// interface's own words, so there is no text here to compare against.</summary>
-    public sealed record SovOverlayEntry(long? AllianceId, string Holder, double? Adm);
+    /// interface's own words, so there is no text here to compare against. A faction holder is
+    /// English here and carries <see cref="FactionId"/>, which the overlay shows it by.</summary>
+    public sealed record SovOverlayEntry(long? AllianceId, string Holder, double? Adm, int? FactionId = null);
 
     /// <summary>
     /// Latest sovereignty snapshot joined to the newest ADM reading, with holder names resolved
@@ -371,7 +372,7 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
                 // no sovereignty structure, which is a real ADM value and would print "0.0"
                 // under every high-sec system instead of leaving the caption empty.
                 double? admValue = adm.TryGetValue(kv.Key, out var found) ? found : null;
-                return new SovOverlayEntry(s.AllianceId, holder, admValue);
+                return new SovOverlayEntry(s.AllianceId, holder, admValue, s.FactionId);
             });
     }
 

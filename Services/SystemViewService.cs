@@ -963,7 +963,7 @@ public class SystemViewService(
     public sealed record AgentRow(
         string Location, string Name, string Corporation, string Division,
         string AgentType, int Level, bool IsLocator,
-        long AgentId = 0, long CorporationId = 0, long StationId = 0);
+        long AgentId = 0, long CorporationId = 0, long StationId = 0, int DivisionId = 0);
 
     /// <summary>
     /// Agents stationed in a system, grouped by where they sit.
@@ -1012,7 +1012,8 @@ public class SystemViewService(
                 types.GetValueOrDefault(a.AgentTypeId, "") is var t && t is "BasicAgent" or "" ? "" : t,
                 a.Level,
                 a.IsLocator,
-                AgentId: a.AgentId, CorporationId: a.CorporationId, StationId: a.LocationId))
+                AgentId: a.AgentId, CorporationId: a.CorporationId, StationId: a.LocationId,
+                DivisionId: a.DivisionId))
             .OrderBy(a => a.Location, StringComparer.OrdinalIgnoreCase)
             .ThenBy(a => a.Level)
             .ThenBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
@@ -1021,7 +1022,8 @@ public class SystemViewService(
 
     // ── Gates ────────────────────────────────────────────────────────────────
 
-    public sealed record GateRow(int SystemId, string Name, double Security, string RegionName, bool OutOfRegion);
+    public sealed record GateRow(
+        int SystemId, string Name, double Security, string RegionName, bool OutOfRegion, int RegionId = 0);
 
     public async Task<List<GateRow>> GetGatesAsync(int systemId, CancellationToken ct = default)
     {
@@ -1047,7 +1049,8 @@ public class SystemViewService(
             .ToListAsync(ct);
 
         return rows
-            .Select(s => new GateRow(s.SolarSystemId, s.Name, s.Security, s.RegionName, s.RegionId != home))
+            .Select(s => new GateRow(s.SolarSystemId, s.Name, s.Security, s.RegionName, s.RegionId != home,
+                                     s.RegionId))
             .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }

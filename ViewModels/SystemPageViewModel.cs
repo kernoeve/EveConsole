@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using EveConsole.Models;
 using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -39,7 +40,7 @@ public abstract class IconRowVm : ReactiveObject
 
 public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
 {
-    public string TypeName { get; } = r.TypeName;
+    public string TypeName { get; } = SdeNames.Type(r.TypeId, r.TypeName);
     public string Owner    { get; } = r.Owner;
     public string Adm      { get; } = r.Adm is { } a ? $"{a:F1}" : "—";
     public string State    { get; } = r.State switch
@@ -70,8 +71,8 @@ public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
 
 public class CelestialVm(SystemViewService.CelestialRow r) : IconRowVm
 {
-    public string Name     { get; } = r.Name;
-    public string TypeName { get; } = r.TypeName;
+    public string Name     { get; } = r.Name;   // English: celestial names are not translated yet
+    public string TypeName { get; } = SdeNames.Type(r.TypeId, r.TypeName);
     public bool   IsPlanet { get; } = r.Kind == 0;
 
     protected override string? IconUrl => $"https://images.evetech.net/types/{r.TypeId}/icon?size=32";
@@ -104,9 +105,11 @@ public class SysStructureVm : IconRowVm
         Id          = r.StructureId;
         IsNpc       = r.IsNpc;
         TypeId      = r.TypeId;
-        Name        = r.Name;
-        TypeName    = r.TypeName;
-        Corporation = r.Corporation;
+        Name        = r.Name;   // English: player-named, and NPC station names are not translated yet
+        TypeName    = SdeNames.Type(r.TypeId, r.TypeName);
+        // An NPC station's owner is an NPC corporation; a player corporation simply has no
+        // other name, and comes back as it is.
+        Corporation = SdeNames.NpcCorporation(r.CorporationId, r.Corporation);
         Alliance    = r.Alliance;
         Location    = r.Location;
         Owner       = r.Owner;
@@ -149,11 +152,13 @@ public class SysStructureVm : IconRowVm
 /// <summary>One line of the celestial tree, indented by depth.</summary>
 public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
 {
+    // English: planets, moons, belts, gates and stations are not translated yet, and structures
+    // are player-named. Their types are.
     public string    Name      { get; } = n.Name;
-    public string    TypeName  { get; } = n.TypeName;
+    public string    TypeName  { get; } = SdeNames.Type(n.TypeId, n.TypeName);
     public string    Kind      { get; } = n.Kind;
     public string    Owner     { get; } = n.Owner;
-    public string    Corporation { get; } = n.Corporation;
+    public string    Corporation { get; } = SdeNames.NpcCorporation(n.CorporationId, n.Corporation);
     public string    Alliance    { get; } = n.Alliance;
 
     // Only the docked rows carry an owner or a viewer of their own; a planet is a place.
@@ -223,10 +228,10 @@ public class AgentVm
 
     public AgentVm(SystemViewService.AgentRow a)
     {
-        Location    = a.Location;
-        Name        = a.Name;
-        Corporation = a.Corporation;
-        Division    = a.Division;
+        Location    = a.Location;   // English: NPC station names are not translated yet
+        Name        = SdeNames.Agent(a.AgentId, a.Name);
+        Corporation = SdeNames.NpcCorporation(a.CorporationId, a.Corporation);
+        Division    = SdeNames.Get(SdeNameKind.NpcCorporationDivision, a.DivisionId, a.Division);
         AgentType   = a.AgentType;
         Level       = a.Level.ToString();
         Locator     = a.IsLocator ? MapText.AgentLocator : "";
@@ -298,7 +303,9 @@ public class IntelFaceVm : ReactiveObject
         _charId = charId; _corpId = corpId; _allianceId = allianceId;
         ShipTypeId = shipTypeId;
         Name    = name;
-        Ship    = ship ?? "";
+        // The hull as the interface names it, once the parser has recognised it; the raw line is
+        // still on the row's tooltip.
+        Ship    = ship is null ? "" : shipTypeId > 0 ? SdeNames.Type(shipTypeId, ship) : ship;
         HasShip = !string.IsNullOrEmpty(ship);
 
         // Fall back to the id when the name cache has not caught up: "Corporation 98000000" is
@@ -403,8 +410,8 @@ public class IntelRowVm(SystemViewService.IntelRow r)
 public class GateVm(SystemViewService.GateRow r)
 {
     public int    SystemId    { get; } = r.SystemId;
-    public string Name        { get; } = r.Name;
-    public string RegionName  { get; } = r.RegionName;
+    public string Name        { get; } = SdeNames.SolarSystem(r.SystemId, r.Name);
+    public string RegionName  { get; } = SdeNames.Region(r.RegionId, r.RegionName);
     public bool   OutOfRegion { get; } = r.OutOfRegion;
     /// <summary>The rounded band — the number that decides high / low / null.</summary>
     public string Security      { get; } = EveConsole.Services.SecurityColors.Text(r.Security);
@@ -517,8 +524,9 @@ public class SystemPageViewModel : ReactiveObject
     public bool HasPirateLink        => _pirateFactionId > 0 && LocalPirates.Length  > 0;
 
     public void OpenRegion() => EntityNavigator.Instance.Region(_regionId);
-    /// <summary>⚠️ By name — the map graph is keyed on constellation name, not id.</summary>
-    public void OpenConstellation() => EntityNavigator.Instance.Constellation(Constellation);
+    /// <summary>⚠️ By name — the map graph is keyed on constellation name, not id — and by the
+    /// English one: <see cref="Constellation"/> is what the page shows.</summary>
+    public void OpenConstellation() => EntityNavigator.Instance.Constellation(_header?.Constellation ?? "");
     public void OpenPirates() => EntityNavigator.Instance.Entity(EntityKind.Faction, _pirateFactionId);
 
     private string _holder = "";
@@ -721,6 +729,9 @@ public class SystemPageViewModel : ReactiveObject
     {
         var generation = ++_loadGeneration;
 
+        // The rows below take their names once, as they are built.
+        await SdeNames.EnsureLoadedAsync();
+
         var header    = await _svc.GetHeaderAsync(systemId);
         if (header is null) return;
 
@@ -743,16 +754,18 @@ public class SystemPageViewModel : ReactiveObject
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // The header keeps the English (the kill list above filters on it, and the
+            // constellation link finds its constellation by it); these are what the page shows.
             _header = header;
-            Name          = header.Name;
-            Region        = header.Region;
-            Constellation = header.Constellation;
+            Name          = SdeNames.SolarSystem(header.SystemId, header.Name);
+            Region        = SdeNames.Region(header.RegionId, header.Region);
+            Constellation = SdeNames.Constellation(header.ConstellationId, header.Constellation);
             Security      = EveConsole.Services.SecurityColors.Text(header.Security);
             SecurityTrue  = EveConsole.Services.SecurityColors.TrueText(header.Security);
             SecurityColor = EveConsole.Services.SecurityColors.Hex(header.Security);
             SecurityTip   = EveConsole.Services.SecurityColors.Tip(header.Security);
             SecurityClass = header.SecurityClass;
-            LocalPirates  = header.LocalPirates;
+            LocalPirates  = SdeNames.Faction(header.LocalPirateFactionId, header.LocalPirates);
 
             _regionId        = header.RegionId;
             _constellationId = header.ConstellationId;
@@ -823,8 +836,13 @@ public class SystemPageViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(HasPlayerStructures));
             this.RaisePropertyChanged(nameof(HasNpcStations));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
-            Fill(Gates, gates.Select(g => new GateVm(g)));
-            Fill(Agents, agents.Select(a => new AgentVm(a)));
+            // In the order of the names shown; the service sorts by the English.
+            Fill(Gates, gates.Select(g => new GateVm(g)).OrderBy(g => g.Name, StringComparer.CurrentCulture));
+            Fill(Agents, agents
+                .OrderBy(a => a.Location, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(a => a.Level)
+                .ThenBy(a => SdeNames.Agent(a.AgentId, a.Name), StringComparer.CurrentCulture)
+                .Select(a => new AgentVm(a)));
             Fill(Intel, intel.Select(i => new IntelRowVm(i)));
             HasIntel = intel.Count > 0;
             IntelSummary = intel.Count == 0
