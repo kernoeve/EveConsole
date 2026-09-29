@@ -26,15 +26,18 @@ public class TimerRowVm : ReactiveObject
     public string DisplayName { get; }
 
     /// <summary>
-    /// "s" for an endpoint polled on the scale of seconds, "min" otherwise. The location and
+    /// Seconds for an endpoint polled on the scale of seconds, minutes otherwise. The location and
     /// ship polls run every ten seconds against a five-second cache; shown in minutes they read
     /// "1 min (min: 1 min)", and saving that quietly made them a minute.
     /// </summary>
-    public string Unit    { get; }
+    private readonly bool _inSeconds;
+
+    /// <summary>The unit's symbol as the interface writes it: "s" or "min" in English.</summary>
+    public string Unit    => _inSeconds ? SettingsText.TimerUnitSeconds : SettingsText.TimerUnitMinutes;
     public int    Min     { get; }
     public string MinText => string.Format(SettingsText.TimerMinimum, Min, Unit);
 
-    private int UnitSeconds => Unit == "s" ? 1 : 60;
+    private int UnitSeconds => _inSeconds ? 1 : 60;
 
     /// <summary>The interval in <see cref="Unit"/>s.</summary>
     public int Interval
@@ -53,7 +56,7 @@ public class TimerRowVm : ReactiveObject
         _force           = force;
         Key              = info.Key;
         DisplayName      = info.DisplayName;
-        Unit             = info.MinSeconds < 60 || info.DefaultSeconds < 60 ? "s" : "min";
+        _inSeconds       = info.MinSeconds < 60 || info.DefaultSeconds < 60;
         Min              = (int)Math.Ceiling(info.MinSeconds / (double)UnitSeconds);
         _interval        = (int)Math.Round(svc.GetInterval(info.Key, info.DefaultSeconds) / (double)UnitSeconds);
         if (_interval < Min) _interval = Min;

@@ -2401,6 +2401,12 @@ L'application va redémarrer.</value>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(min. : {0} {1})</value>
   </data>
+  <data name="TimerUnitSeconds" xml:space="preserve">
+    <value>s</value>
+  </data>
+  <data name="TimerUnitMinutes" xml:space="preserve">
+    <value>min</value>
+  </data>
   <data name="TimerForceStarted" xml:space="preserve">
     <value>lancé</value>
   </data>

@@ -3153,7 +3153,15 @@ The application will restart.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(min: {0} {1})</value>
-    <comment>Polling tab, beside an interval: the smallest allowed. "min:" is short for minimum. {0} is the number, {1} its unit symbol (s or min).</comment>
+    <comment>Polling tab, beside an interval: the smallest allowed. "min:" is short for minimum. {0} is the number, {1} its unit symbol, TimerUnitSeconds or TimerUnitMinutes.</comment>
+  </data>
+  <data name="TimerUnitSeconds" xml:space="preserve">
+    <value>s</value>
+    <comment>Polling tab, after an interval box and as TimerMinimum's {1}: the symbol for seconds, as a short unit written after a number.</comment>
+  </data>
+  <data name="TimerUnitMinutes" xml:space="preserve">
+    <value>min</value>
+    <comment>Polling tab, after an interval box and as TimerMinimum's {1}: the symbol for minutes, as a short unit written after a number.</comment>
   </data>
   <data name="TimerForceStarted" xml:space="preserve">
     <value>started</value>

@@ -2401,6 +2401,12 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="TimerMinimum" xml:space="preserve">
     <value>（最小：{0} {1}）</value>
   </data>
+  <data name="TimerUnitSeconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="TimerUnitMinutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
   <data name="TimerForceStarted" xml:space="preserve">
     <value>已启动</value>
   </data>
