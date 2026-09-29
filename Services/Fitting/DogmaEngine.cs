@@ -289,15 +289,11 @@ public sealed class DogmaEngine
         return value;
     }
 
-    /// <summary>The stacking group a penalized multiplier joins when its effect does not say.
-    /// Percentage bonuses and plain multiplications share one; divisions and
-    /// pre-multiplications have groups of their own.</summary>
-    internal static string DefaultPenaltyGroup(int operation) => operation switch
-    {
-        OpPreMul              => "preMul",
-        OpPreDiv or OpPostDiv => "postDiv",
-        _                     => "default",
-    };
+    /// <summary>The stacking group a penalized multiplier joins when its modification does not
+    /// name one: its operation. Stacking penalties apply among modifiers of the same operation
+    /// on an attribute — two percentage bonuses reduce each other, a percentage bonus and a
+    /// plain multiplier do not.</summary>
+    internal static string DefaultPenaltyGroup(int operation) => operation.ToString();
 
     private static bool IsPenalized(Modification m, DogmaAttributeInfo? target)
     {
