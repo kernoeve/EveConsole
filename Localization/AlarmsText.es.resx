@@ -1,0 +1,1372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>Confirmar — detener el sonido</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>Sonido</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ Escuchar</value>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>Añadir sonido…</value>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>Repetir hasta que se confirme o hasta que la situación termine por sí sola</value>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>Palabras que decir (opcional)</value>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>déjalo vacío para decir lo que ha redactado la comprobación</value>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>Lo lee al instante la síntesis de voz (TTS), sin intervención del asistente: necesita una voz en Ajustes → Asistente, no un modelo, y funciona con el asistente desactivado. Aparece en la ventana del asistente como una línea de la propia aplicación. Marcadores: {alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>Instrucción adicional para el asistente (opcional)</value>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>p. ej., menciona qué sistema y sé breve</value>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>Al asistente se le indica qué se ha disparado y lo expresa con sus propias palabras. Hablará en voz alta si tienes configurada la síntesis de voz (TTS); si el asistente no está configurado, esto se registra como una alerta.</value>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>Usar el texto predeterminado de esta comprobación</value>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>Título</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>Mensaje</value>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>Marcadores: {alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>Nueva alarma</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>Sonido, cuadros de diálogo y avisos al asistente solo en este equipo. Las alertas se siguen registrando igualmente, y los demás clientes no se ven afectados.</value>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>Desarrollo inicial: esta herramienta aún está tomando forma, y su comportamiento, su diseño y los ajustes que guarda pueden cambiar.</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>asistente</value>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>Alertas abiertas</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>¿Para qué es esta alarma?</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Activada</value>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>Activa desde</value>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>siempre</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Hasta</value>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>Horas del reloj de este equipo, p. ej., de 18:00 a 02:00. En blanco significa siempre. Fuera de ellas, la alarma no se comprueba en absoluto.</value>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>Cuándo</value>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>Comprobación</value>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>empieza a escribir el nombre de un objeto…</value>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>empieza a escribir un nombre y luego pulsa Añadir…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>Tras dispararse</value>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>Comprobar cada (s)</value>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>Espera (s)</value>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>Una alarma solo anuncia lo que no ha anunciado antes, así que una condición que se sigue cumpliendo no se repite. «Continua» sigue activada hasta que la desactives; «Un solo disparo» se desactiva sola tras dispararse una vez. La espera añade además un intervalo mínimo.</value>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>Entonces</value>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>Añadir acción</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>tras</value>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>No hay acciones en esta fase: añade una o deja la fase sin marcar.</value>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>Selecciona una alarma o crea una.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>Probar sonidos</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>Disparos recientes (hora de EVE)</value>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>Nueva tarea</value>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>Las horas se indican en hora de EVE</value>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>Selecciona una tarea o crea una.</value>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>¿Qué hace esta tarea?</value>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>Tipo de tarea</value>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>Repetición</value>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>Cada</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>minutos</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>horas</value>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>Estos días</value>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>Día del mes</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Mes</value>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>Día</value>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>A las (HH:MM EVE)</value>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>Omitir si la aplicación estaba cerrada ese día</value>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>Publicar en</value>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Los canales del espacio de trabajo y los webhooks definidos en los ajustes de Slack, en una sola lista.</value>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>No publicar si las secciones dinámicas están vacías</value>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>Desactivado: el mensaje se envía digan lo que digan los datos. Activado: se retiene a menos que al menos una sección que lea de los datos (cualquiera salvo una sección de texto) tenga realmente algo que decir.</value>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>Añadir sección</value>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>Muestra las secciones tal como se publicarían, sin publicarlas.</value>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>Aún no hay nada que decir. Elige un tipo de sección y añádela: las secciones se envían en este orden, como un solo mensaje.</value>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>Qué decir. Aquí funciona el formato de Slack.</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>Listas que incluir</value>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>Mostrar solo la proporción del total, no el ISK</value>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>Cada lista muestra el importe y su proporción. Si se marca, se quita el importe, salvo en Muertes, cuyo número es un recuento y no un valor.</value>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>Doce meses de tendencias, dibujados como imagen y subidos debajo del mensaje.</value>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>Esta sección no se publicará. La tarea apunta a un webhook, y un webhook no puede llevar imágenes: elige arriba un canal del espacio de trabajo, o esta sección se omitirá cuando se ejecute la tarea.</value>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>Publicación</value>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>Con los precios y las cantidades exactamente como los muestra la herramienta Publicación de ventas. Sus bloques de publicación se unen en orden en esta única sección.</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>Tipo de proyecto</value>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>Informe</value>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>«Ausentes» es todo lo que no cubre ningún proyecto activo, incluido lo que la aplicación no ha podido comprobar. «Bajos» añade los que tienen menos del 10 % restante y pronto habrá que reemplazar.</value>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>Título de la sección</value>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>Sin título</value>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>Encabezados de columna</value>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>Columna de ISK restante</value>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>Columna de última finalización</value>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>Proyectos que incluir</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>Ninguno</value>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>Una fila por proyecto tal como está definido; un proyecto limitado a una región o constelación aparece aquí una vez y, al publicarse, se amplía a una fila por cada sistema que cumpla los requisitos. Lo que esté marcado al guardar es lo que se publica: un proyecto definido más adelante no se añadirá por sí solo.</value>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>Vista previa</value>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>Pulsa Vista previa para mostrar las secciones tal como se publicarían.</value>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>Alerta</value>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>Titular</value>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>Déjalo vacío para usar el nombre de la tarea.</value>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>Texto</value>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>Lo que debe decir la alerta.</value>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>Aparece en el Resumen y en la herramienta Alarmas hasta que se descarta, igual que la alerta de una alarma.</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>Descartar cambios</value>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>Devuelve el editor a lo que está guardado.</value>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>Ejecuta lo que hay en pantalla, de verdad, y cuenta como la ejecución programada.</value>
+  </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>Mes actual</value>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>Mes pasado</value>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>Entregar objeto</value>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>Destruir PNJ</value>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>Proyectos ausentes</value>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>Proyectos ausentes y bajos</value>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>Todos los proyectos</value>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>Listas Top 10</value>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>Resumen mensual corporativo</value>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>Publicación de ventas</value>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>Proyectos permanentes</value>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>Gráfico de tendencias de ISK de la corporación</value>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>Gráfico de tendencias de actividad de la corporación</value>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>Gráfico de muertes / pérdidas de la corporación</value>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>Gráfico de minería de la corporación</value>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>Texto</value>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>En curso: {0:MMMM yyyy}, con los datos actuales.</value>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:MMMM yyyy}, con los datos actuales.</value>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>No se han podido leer los proyectos: {0}</value>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>No hay proyectos de entregar objetos definidos para esta corporación.</value>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>No hay proyectos de destruir PNJ definidos para esta corporación.</value>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>¿Pasar a otra tarea y perderlos?</value>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>Publicar en Slack</value>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>Generar una alerta</value>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>Texto</value>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>Top 10 corporativo</value>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>Resumen mensual corporativo</value>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>Publicación de ventas</value>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>Proyectos permanentes</value>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>Gráfico de tendencias de ISK de la corporación</value>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>Gráfico de tendencias de actividad de la corporación</value>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>Gráfico de muertes / pérdidas de la corporación</value>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>Gráfico de minería de la corporación</value>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>Cada cierto tiempo</value>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>Días de la semana</value>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>Una vez al mes</value>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>Una vez al año</value>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>dom</value>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>lun</value>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>mar</value>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>mié</value>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>jue</value>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>vie</value>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>sáb</value>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>enero</value>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>febrero</value>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>marzo</value>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>abril</value>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>mayo</value>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>junio</value>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>julio</value>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>agosto</value>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>septiembre</value>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>octubre</value>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>noviembre</value>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>diciembre</value>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>Se mide desde la última ejecución. Si la aplicación ha estado cerrada más tiempo que el intervalo, se ejecuta una vez al abrirse, no una vez por cada periodo perdido.</value>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>Cada día marcado es una tarea diaria. Un día que pasa con la aplicación cerrada no se recupera después, así que es mejor justo después de medianoche que justo antes.</value>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>Se ejecuta una vez al mes, a partir de ese día y esa hora. Un día posterior al final de un mes corto se ejecuta el último día, así que el 31 también se ejecuta en febrero.</value>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>Se ejecuta una vez al año, a partir de ese día y esa hora. El 29 de febrero pasa al 28 en los tres de cada cuatro años que no lo tienen.</value>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>¿Actualizar y perderlos?</value>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>(sin nombre)</value>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>Nunca ejecutada</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>Última ejecución: {0:yyyy-MM-dd HH:mm} EVE</value>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>{0} tarea(s).</value>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Webhook: {0}</value>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>¿Empezar una tarea nueva y perderlos?</value>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>Nueva tarea.</value>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>Esta tarea</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>«{0}» tiene cambios sin guardar.</value>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>Ponle un nombre a la tarea.</value>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>La hora debe tener el formato HH:mm, en hora de EVE.</value>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>Elige al menos un día.</value>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>Todavía no hay canales ni webhooks: añade uno en Ajustes, Slack.</value>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>Elige dónde publicarlo.</value>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>Añade algo que decir.</value>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>Escribe lo que debe decir la alerta.</value>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita una corporación.</value>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita una publicación.</value>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita al menos una lista.</value>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>La sección {0} ({1}) está vacía.</value>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>La sección {0} ({1}) necesita al menos un proyecto marcado.</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Guardado.</value>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>No hay nada que descartar.</value>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>Descartado.</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Eliminado.</value>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>Nada que mostrar: esta tarea no tiene bloques.</value>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>Generando…</value>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0} — omitido: el destino es un webhook]</value>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0} — se sube como imagen]</value>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>(las secciones han salido vacías)</value>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>Generado, pero ninguna sección dinámica tenía nada que decir: esto no se publicaría.</value>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>{0:N0} caracteres.</value>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>Error en la vista previa: {0}</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Ejecutando…</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>Ejecutar ahora</value>
+  </data>
+  <data name="MonthsBackOne" xml:space="preserve">
+    <value>Hace {0} mes</value>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>Hace {0} meses</value>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>Desactivada</value>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>Activada · disparada {0}×</value>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>Activada</value>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>Hora de EVE</value>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>Hora local</value>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} (hora local)</value>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} EVE</value>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>«{0}» no es un nombre que conozca la aplicación: elige uno de la lista.</value>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>Ese tipo de archivo no es compatible.</value>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>Fase {0}</value>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>Continua</value>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>Un solo disparo</value>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>{0} alarma(s) · {1} alerta(s) abierta(s)</value>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>Nueva alarma</value>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…aquí va el detalle correspondiente</value>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>Esta alarma</value>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>La comprobación proporcionará el texto.</value>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>p. ej., «{0}», y debajo las coincidencias.</value>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>Elige primero una comprobación.</value>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>Ponle un nombre a la alarma.</value>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>«{0}» no es un objeto: elige uno de la lista.</value>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>Añade al menos una entrada en {0}.</value>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>«Activa desde» necesita una hora como 18:00.</value>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>«Hasta» necesita una hora como 18:00.</value>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>Alarma creada.</value>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>Alarma guardada.</value>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>Alarma eliminada.</value>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>Se han reproducido los sonidos de la alarma. Guarda primero para probar las demás acciones.</value>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>Alarma sonando — {0}</value>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>El sonido se repite hasta que lo confirmes.</value>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>Elige un sonido de alarma</value>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>Alarma</value>
+  </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>Fecha / hora</value>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>Se dispara en una fecha y hora concretas y, opcionalmente, se repite después a un intervalo fijo. Úsalo para recordatorios y cualquier cosa programada. Una repetición que venza mientras la aplicación está cerrada se dispara en el siguiente inicio en lugar de omitirse.</value>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>Informe de inteligencia</value>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>Se dispara cuando alguien notifica un piloto en un sistema que vigilas. Indica una lista de sistemas, o un sistema y un alcance en saltos para cubrir todo lo que lo rodea. Lee los canales de inteligencia que ya se analizan en Ajustes → Registros de chat.</value>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>Desacople de nave</value>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>Se dispara cuando uno de tus personajes desacopla. Opcionalmente, solo desde estaciones, estructuras, sistemas o regiones concretas, solo con cascos o clases de nave concretos y solo en un estado dado: equipada o sin equipar, con combustible de salto por debajo de una cifra o no, con munición por debajo de una cifra o no. Cada filtro restringe, así que se pueden configurar dos alarmas para cubrir desacoples distintos en lugar del mismo dos veces. El sondeo de ubicación detecta el desacople en unos diez segundos; lo que había a bordo se juzga a partir de la última instantánea de bienes, que ESI actualiza cada hora, y cada coincidencia indica su antigüedad.</value>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>Demasiado tiempo en el espacio (despertador)</value>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>Te despierta. Se dispara en hasta tres fases cuando uno de tus personajes desacopla con un casco o una clase de nave concretos y sigue en ese mismo sistema al cabo de unos segundos: un carguero o un carguero de salto amarrado mientras su piloto se queda dormido. O, si se marcan las llegadas por salto, cuando un casco con capacidad de salto ha llegado mediante motor de salto o puente y sigue en el espacio: los treinta segundos posteriores a un salto. Acoplar, salir del sistema o cerrar sesión lo termina. Pulsar el botón del cuadro de diálogo, o responder cualquier cosa al asistente, lo silencia durante un rato; cuando pasa ese tiempo y la nave sigue allí, las fases vuelven a empezar. Cada fase tiene sus propias acciones: TTS directo o el asistente para decir la frase de la fase, un cuadro de diálogo, un sonido que se repite hasta que se confirma. La repetición y la espera no se aplican.</value>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>Eventos de encargos de la tienda</value>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>Se dispara con lo que les ocurre a los encargos de la tienda por correo de EVE: un encargo nuevo (con la tienda, el comprador, el objeto, el precio y si hay existencias o hay que fabricarlo), un encargo que ya se puede servir desde existencias o que ya está en fabricación, un contrato emitido para él, el contrato aceptado (el encargo completado) o el encargo cancelado. Marca los tipos que quieras. No se avisa de los encargos añadidos a mano en Seguimiento de encargos. Se ejecuta en cuanto la tienda registra o actualiza un encargo.</value>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>Precio de mercado / contrato</value>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>Se dispara cuando un objeto se anuncia a un precio igual o inferior al que indiques: en el mercado, en contratos públicos o en ambos. Lee los mercados configurados en Ajustes → Mercado y los contratos públicos que ya se están barriendo, así que ve lo que estos cubren y nada más.</value>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>Consulta a la base de datos</value>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>Ejecuta un SELECT contra la base de datos local de EVE Console a intervalos y se dispara con las filas que devuelve, o cuando no devuelve ninguna. Úsalo cuando no encaje ninguna comprobación específica. Solo se permite SELECT.</value>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>Fecha y hora</value>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>Cuándo dispararse, en ISO 8601. Incluye un desfase (p. ej., 2026-08-04T18:00:00-05:00) o una Z final para UTC; una hora local sin más se interpreta como la hora local del equipo.</value>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>Repetir cada (segundos)</value>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>Opcional. Repetir con esta frecuencia después del primer disparo. Omítelo o pon 0 para un temporizador de una sola vez.</value>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>Sistemas</value>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>Nombres de sistemas que vigilar, separados por comas, p. ej., «Jita, Amarr». Se puede dejar vacío si se indica un alcance en saltos.</value>
+  </data>
+  <data name="IntelWithinJumpsLabel" xml:space="preserve">
+    <value>Alrededor de</value>
+  </data>
+  <data name="IntelWithinJumpsNote" xml:space="preserve">
+    <value>Opcional. El nombre de un sistema; se vigila todo lo que esté dentro del alcance en saltos de abajo. Se combina con la lista de arriba en lugar de sustituirla.</value>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>Saltos</value>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>Cuántos saltos por portal estelar se vigilan desde el sistema de «Alrededor de». 0 significa solo ese sistema. Máximo 15: más allá deja de ser un vecindario.</value>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>Mín. de jugadores</value>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>Solo se dispara cuando el informe es de al menos este número de pilotos. Predeterminado: 1.</value>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>Ignorar «sin visual»</value>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>Omitir los informes marcados como NV (sin visual): alguien que transmite un contacto que en realidad no puede ver.</value>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>Desacople desde</value>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>Opcional. Nombres de estaciones, estructuras, sistemas solares o regiones, en cualquier combinación. Coincide con un desacople desde cualquiera de ellos; déjalo vacío para cualquier lugar.</value>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>Pilotando</value>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>Opcional. Nombres de cascos («Rifter»), clases de nave («Crucero», «Titán») o «Pod» (cápsula), en cualquier combinación. Coincide con cualquiera de ellos; déjalo vacío para cualquier nave.</value>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>Equipamiento</value>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>«Sin equipar»: nada en ninguna ranura. «Equipada»: hay algo. Una cápsula o una lanzadera no tienen ranuras y no coinciden con ninguna de las dos. Se juzga a partir de la última instantánea de bienes, que ESI solo actualiza cada hora: puede ir hasta una hora por detrás de lo que hay a bordo ahora mismo.</value>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>Combustible de salto</value>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>Solo cascos con capacidad de salto; cualquier otro casco no coincide con ninguna de las dos opciones. Las unidades son del isótopo que consume el motor de salto del casco, sumando el almacén de combustible y la bodega de carga, según la última instantánea de bienes, que ESI solo actualiza cada hora, así que puede que el combustible cargado en la última hora aún no se cuente.</value>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>Munición</value>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>Por cada torreta o lanzador equipado: las cargas que puede usar que hay a bordo, las cargadas más las de la bodega, sumando todos los tipos compatibles. «Menos de»: a alguna arma le falta. «No menos de»: hay armas equipadas y a ninguna le falta. Una torreta de energía solo necesita un cristal. Una nave sin armas no coincide con ninguna de las dos. Según la última instantánea de bienes, que ESI solo actualiza cada hora: puede que la munición cargada en la última hora aún no se cuente.</value>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>unidades</value>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>Cualquiera</value>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>Sin equipar</value>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>Equipada</value>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>Menos de</value>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>No menos de</value>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>Llegadas por salto, no desacoples</value>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>Marcado: el reloj empieza cuando un casco con capacidad de salto llega a un sistema al que no lleva ningún portal estelar desde donde estaba (motor de salto o puente) y sigue en el espacio; solo se vigilan los cascos con motor de salto, y una lista «Pilotando» vacía significa todos ellos. Sin marcar: el reloj empieza con un desacople, con cualquier casco, y «Pilotando» debe indicar qué vigilar.</value>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>Nombres de cascos («Rhea») o clases de nave («Carguero», «Carguero de salto», «Nave de mercancías»), en cualquier combinación. Solo se vigilan estos o, para las llegadas por salto, déjalo vacío para todos los cascos con capacidad de salto.</value>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>Fase {0} tras</value>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>La primera fase, más suave. Desmárcala para omitirla.</value>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>Desmárcala para omitirla.</value>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>El último recurso: combínala con una acción Sonido configurada para repetirse hasta que se confirme. Desmárcala para omitirla.</value>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>segundos en el espacio</value>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>Silencio tras una confirmación</value>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>Cuánto tiempo la silencia una respuesta o el botón del cuadro de diálogo mientras la nave sigue desacoplada: lo bastante para esperar un puente de titán. Después, las fases vuelven a empezar.</value>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>minutos</value>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>Nuevo encargo realizado</value>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>Con la tienda, el comprador, el objeto, el precio y su estado al llegar.</value>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>Ya se puede servir desde existencias</value>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>Un encargo que el proceso de preparación encuentra ahora en existencias: haz el contrato.</value>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>Ya en fabricación</value>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>Un trabajo de industria que ahora se ha asignado al encargo.</value>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>Contrato emitido</value>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>Un contrato al comprador con el encargo, pendiente de aceptación.</value>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>Contrato aceptado — encargo completado</value>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>Encargo cancelado</value>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>Por correo del comprador, por un contrato rechazado o a mano.</value>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>Tienda</value>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>Opcional: solo esta tienda, por su nombre. En blanco para todas las tiendas.</value>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>Objeto</value>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>Nombre exacto del objeto, p. ej., «Sigil» o «Imperial Navy Slicer». Debe coincidir exactamente con el nombre del tipo; un nombre que no se resuelve no coincide con nada.</value>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>Precio unitario máx.</value>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>Se dispara cuando el precio por unidad es igual o inferior a este, en ISK.</value>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>Cantidad mín.</value>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>Solo se dispara cuando hay al menos esta cantidad a la venta en un mismo anuncio. Predeterminado: 1.</value>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>Dónde buscar. Predeterminado: ambos.</value>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>Opcional. Limita la parte del mercado a un mercado configurado, por su nombre, p. ej., «Jita». Omítelo para vigilarlos todos.</value>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>Contratos con varios objetos</value>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>Incluir contratos que contengan algo más que este objeto. Desactivado por defecto, porque entonces el precio pedido cubre también el resto del contenido y el precio por unidad resultante no es real.</value>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>ambos</value>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>mercado</value>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>contratos</value>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>SQL</value>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>El SELECT que se ejecuta. Solo se permite SELECT (o WITH…SELECT). Mantenlo pequeño y añade un LIMIT: se ejecuta en cada comprobación. Incluye una columna identificativa estable e indica su nombre en key_column.</value>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>Columna clave</value>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>Columna con un identificador estable y único para cada fila: un Id o similar. Es lo que evita que una fila se anuncie dos veces. No elijas nunca algo que cambie entre ejecuciones, o la alarma se disparará en cada comprobación. Por defecto se usa una columna llamada Id si la consulta la tiene; si no, se usa la fila entera como su propia clave.</value>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>Columna de etiqueta</value>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>Columna opcional que se usa como texto de la alerta. Por defecto, la fila entera.</value>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>Modo</value>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>«presente» (predeterminado) se dispara con las filas devueltas. «ausente» se dispara cuando la consulta no devuelve nada en absoluto, y se vuelve a activar cuando vuelve a haber filas: sirve para vigilar que algo esperado ha dejado de ocurrir.</value>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>presente</value>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>ausente</value>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…y {0} más</value>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>Hostil notificado</value>
+  </data>
+  <data name="IntelHostileReportsOne" xml:space="preserve">
+    <value>{0} informe de hostiles</value>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>{0} informes de hostiles</value>
+  </data>
+  <data name="IntelSaidReportedOne" xml:space="preserve">
+    <value>{0} hostil notificado en {1}.</value>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>{0} hostiles notificados en {1}.</value>
+  </data>
+  <data name="IntelSaidReportedAtOne" xml:space="preserve">
+    <value>{0} hostil notificado en {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>{0} hostiles notificados en {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>aquí</value>
+  </data>
+  <data name="IntelSaidJumpsOutOne" xml:space="preserve">
+    <value>a {0} salto</value>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>a {0} saltos</value>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>Pilotando {0}.</value>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0} y {1} más.</value>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>un sistema desconocido</value>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>una {0}</value>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>una {0}</value>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>una cápsula</value>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>una nave</value>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0} y {1}</value>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0} y más</value>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>Y {0} más.</value>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0} ha desacoplado con {1}</value>
+  </data>
+  <data name="UndocksOne" xml:space="preserve">
+    <value>{0} desacople</value>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>{0} desacoples</value>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0} ha desacoplado en {1} con {2}.</value>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0} ha desacoplado en {1} con {2} — {3}.</value>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>sin nada equipado</value>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>sin combustible</value>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>con poco combustible</value>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>sin munición</value>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>con poca munición</value>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>Despierta, {0}</value>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>La {1} de {0} llegó a {2} hace {3} y no ha acoplado. Pulsa «Estoy aquí» para silenciar esto durante {4} minutos mientras la nave siga fuera.</value>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>La {1} de {0} lleva {3} desacoplada en {2} y no ha vuelto a acoplar. Pulsa «Estoy aquí» para silenciar esto durante {4} minutos mientras la nave siga fuera.</value>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}, la {2} de {1} llegó a {3} hace {4} y todavía no ha acoplado. ¿Va todo bien?</value>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>Despierta, {0}. La {2} de {1} sigue en el espacio en {3}, {4} después de llegar. Acopla la nave ya.</value>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>¡{0}! La {2} de {1} lleva {4} parada en {3} desde que llegó. ¡Acopla la nave ya!</value>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}, la {2} de {1} lleva {4} desacoplada en {3}. ¿Va todo bien?</value>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>Despierta, {0}. La {2} de {1} desacopló en {3} hace {4} y sigue sin acoplar. Acopla la nave o respóndeme.</value>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>¡{0}! La {2} de {1} sigue desacoplada en {3} después de {4}. Despierta y acopla la nave ya.</value>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>cápsula</value>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>capsulista</value>
+  </data>
+  <data name="SpanSecondsOne" xml:space="preserve">
+    <value>{0} segundo</value>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0} segundos</value>
+  </data>
+  <data name="SpanMinutesOne" xml:space="preserve">
+    <value>{0} minuto</value>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0} minutos</value>
+  </data>
+  <data name="StoreEventsOne" xml:space="preserve">
+    <value>{0} evento de encargos de la tienda</value>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>{0} eventos de encargos de la tienda</value>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>Nuevo encargo: {0} para {1}</value>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>Encargo {0}: ya se puede servir desde existencias</value>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>Encargo {0}: ya está en fabricación</value>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>Encargo {0}: contrato emitido</value>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>Encargo {0}: {1:N0} de {2:N0} entregados</value>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>Encargo {0} completado</value>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>Encargo {0} cancelado</value>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>Nuevo encargo en {0}: {1} para {2}, {3}. Hay existencias: haz el contrato.</value>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>Nuevo encargo en {0}: {1} para {2}, {3}. En fabricación.</value>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>Nuevo encargo en {0}: {1} para {2}, {3}. Ya tiene contrato.</value>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>Nuevo encargo en {0}: {1} para {2}, {3}. Sin existencias ni fabricación en curso: hay que fabricarlo.</value>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>El encargo de {0} para {1} ya se puede servir desde existencias.</value>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>El encargo de {0} para {1} ya está en fabricación.</value>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>Encargo de {0} para {1}: contrato emitido, pendiente de aceptación.</value>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>Encargo de {0} para {1}: {2:N0} de {3:N0} con contrato emitido, pendientes de aceptación.</value>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>{0} ha aceptado un contrato por parte de {1}: {2:N0} de {3:N0} entregados.</value>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>{0} ha aceptado el contrato de {1}. Encargo completado.</value>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>Se ha cancelado el encargo de {0} para {1}.</value>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##} mil millones de ISK</value>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##} millones de ISK</value>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##} mil ISK</value>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0} desde {1:N0} ISK</value>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0} disponible</value>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>Objeto</value>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>Silenciar alarmas</value>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>Dejar de silenciar alarmas</value>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>Audio no disponible: no se ha podido cargar libvlc. Instala VLC y sus plugins (el paquete «vlc» en Arch y Fedora; «vlc» o «libvlc-dev» en Debian y Ubuntu) y reinicia. [{0}]</value>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>Audio no disponible: {0}</value>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>Carillón — suave</value>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>Carillón — tríada</value>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>Ping — cristal</value>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>Campana — latón</value>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>Campana — grave</value>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>Gong — grave</value>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>Alerta — doble</value>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>Alarma — urgente</value>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>Aviso — dos tonos</value>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>Aviso — claxon</value>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>Aviso — zumbador</value>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>Aviso — sirena</value>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>Aviso — bocina</value>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>No hay ningún sonido seleccionado.</value>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>No se ha encontrado el archivo de sonido personalizado: {0}</value>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>Falta un sonido incluido: {0}</value>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>No se ha podido extraer {0} en {1}: {2}</value>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLC no ha podido reproducir {0}. En Linux, esto suele deberse a que falta un paquete de plugins o a que no hay salida de audio (comprueba que otras aplicaciones reproducen sonido).</value>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>Error de reproducción: {0}</value>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>Estoy aquí</value>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>(El asistente no está configurado, así que esto se ha registrado como una alerta.)</value>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>Cada {0} hora(s)</value>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>Cada {0} minuto(s)</value>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0} a las {1}</value>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>El día {0} de cada mes a las {1}</value>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>El {1} de {0} de cada año a las {2}</value>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>Todos los días</value>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>Ningún día</value>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>Tipo de tarea desconocido: «{0}».</value>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>Nada que publicar: no hay secciones configuradas.</value>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>Nada que publicar: las secciones han salido vacías.</value>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>Nada que publicar: ninguna sección dinámica tenía nada que decir.</value>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>Publicado.</value>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slack lo ha rechazado: {0}</value>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>Se han publicado {0} de {1} mensajes ({2:N0} caracteres); Slack ha rechazado el siguiente: {3}.</value>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>Se han publicado {0:N0} caracteres en {1} mensajes.</value>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>Se han publicado {0:N0} caracteres.</value>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>{0} gráfico(s) subido(s).</value>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>{0} gráfico(s) con error: {1}.</value>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>{0} sección(es) de gráfico omitida(s): un webhook no puede llevar imágenes.</value>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>Nada que generar: la alerta no tiene texto.</value>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>Alerta programada</value>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>Alerta generada.</value>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>No se ha elegido ningún webhook.</value>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>Ese webhook se ha eliminado.</value>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##} cientos de millones de ISK</value>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##} decenas de miles de ISK</value>
+  </data>
+</root>
