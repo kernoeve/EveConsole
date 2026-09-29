@@ -7,6 +7,7 @@ using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -135,8 +136,8 @@ public class SaleListingViewModel : ReactiveObject
     // ── Filters (same as Sales Tracker) ─────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
     [
-        new("All",                               OwnerScope.All),
-        new("All Characters and Personal Corps", OwnerScope.CharsAndPersonalCorps),
+        new(SalesText.OwnerAll,                   OwnerScope.All),
+        new(SalesText.OwnerCharsAndPersonalCorps, OwnerScope.CharsAndPersonalCorps),
     ];
     private SalesOwnerOption _selectedOwner;
     public SalesOwnerOption SelectedOwner
@@ -147,9 +148,9 @@ public class SaleListingViewModel : ReactiveObject
 
     public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
     [
-        new("All types", null),
-        new("Market",    "Market"),
-        new("Contract",  "Contract"),
+        new(SalesText.TypeAll,          null),
+        new(SalesText.SaleTypeMarket,   "Market"),
+        new(SalesText.SaleTypeContract, "Contract"),
     ];
     private SalesTypeOption _selectedType;
     public SalesTypeOption SelectedType
@@ -176,7 +177,7 @@ public class SaleListingViewModel : ReactiveObject
         _errorLogger = errorLogger;
         _names       = names;
         _basis       = basis;
-        Title = basis == SaleCostBasis.BuildCost ? "Sale Listing — Build Cost" : "Sale Listing — Market Value";
+        Title = basis == SaleCostBasis.BuildCost ? SalesText.TitleSaleListingBuild : SalesText.TitleSaleListingMarket;
 
         _selectedOwner = OwnerOptions[1];
         _selectedType  = SaleTypeOptions[0];
@@ -204,7 +205,7 @@ public class SaleListingViewModel : ReactiveObject
     {
         if (IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             var result = await SalesQuery.LoadAsync(_dbFactory, _names, _errorLogger);
@@ -245,7 +246,7 @@ public class SaleListingViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
         _ = Task.WhenAll(list.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
-        StatusText = list.Count == 0 ? "No sales match the filters." : $"{list.Count:N0} sale(s)";
+        StatusText = list.Count == 0 ? SalesText.NoSalesMatch : string.Format(SalesText.StatusSaleCount, list.Count);
     }
 
     private static bool TryDate(string s, out DateTime date)

@@ -4,6 +4,7 @@ using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -60,8 +61,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     // ── Mode ──────────────────────────────────────────────────────────────────
 
     public List<TradeModeOption> ModeOptions { get; } = [
-        new("Buy Sell → Sell to Buy Order",   TradeMode.SellToBuyOrder),
-        new("Buy Sell → Undercut Sell Order",  TradeMode.UndercutSellOrder),
+        new(MarketText.ModeSellToBuyOrder,    TradeMode.SellToBuyOrder),
+        new(MarketText.ModeUndercutSellOrder, TradeMode.UndercutSellOrder),
     ];
 
     private TradeModeOption _selectedMode;
@@ -202,7 +203,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     public ObservableCollection<TradeRow> Results { get; } = [];
 
-    private string _statusText = "Select source and destination stations, then click Calculate.";
+    // The button is named through its own entry, so the hint cannot drift from its label.
+    private string _statusText = string.Format(MarketText.StatusSelectStations, MarketText.Calculate);
     public string StatusText
     {
         get => _statusText;
@@ -271,17 +273,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     {
         if (SourceStation is null || DestinationStation is null)
         {
-            StatusText = "Please select both a source and destination station.";
+            StatusText = MarketText.ErrSelectBothStations;
             return;
         }
         if (SourceStation.LocationId == DestinationStation.LocationId)
         {
-            StatusText = "Source and destination must be different stations.";
+            StatusText = MarketText.ErrSameStation;
             return;
         }
         if (!double.TryParse(CargoM3, out var cargoM3) || cargoM3 <= 0)
         {
-            StatusText = "Please enter a valid cargo size in m³.";
+            StatusText = MarketText.ErrInvalidCargo;
             return;
         }
 
@@ -290,7 +292,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(IskCap, out var cap) || cap <= 0)
             {
-                StatusText = "Please enter a valid ISK cap (or leave blank for no limit).";
+                StatusText = MarketText.ErrInvalidIskCap;
                 return;
             }
             iskCap = cap;
@@ -301,7 +303,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinIskVolume, out var mv) || mv < 0)
             {
-                StatusText = "Please enter a valid minimum ISK volume (or leave blank for no filter).";
+                StatusText = MarketText.ErrInvalidMinIskVolume;
                 return;
             }
             minIskVol = mv;
@@ -312,7 +314,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
             {
-                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                StatusText = MarketText.ErrInvalidMinUnitVolume;
                 return;
             }
             minUnitVol = uv;
@@ -321,7 +323,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         Results.Clear();
         HasSummary = false;
         SummaryVolume = SummaryCost = SummaryProfit = "";
-        StatusText = "Calculating…";
+        StatusText = MarketText.StatusCalculating;
         IsCalculating = true;
 
         try
@@ -336,8 +338,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
             if (needsVolume && !destRegionId.HasValue)
             {
-                StatusText = "Could not resolve the destination station's region — " +
-                             "ensure market data has been loaded for that location so the volume filter can work.";
+                StatusText = MarketText.ErrNoDestinationRegion;
                 return;
             }
 
@@ -355,16 +356,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 SummaryCost    = FormatIsk(totalCost);
                 SummaryProfit  = FormatIsk(totalProfit);
                 HasSummary     = true;
-                StatusText     = $"{list.Count} item type{(list.Count == 1 ? "" : "s")}  ·  {totalVol:N1} m³ loaded";
+                StatusText     = Plurals.Format(MarketText.ResourceManager,
+                                     nameof(MarketText.StatusItemTypesLoadedOther), list.Count, totalVol);
             }
             else
             {
-                StatusText = "No profitable opportunities found for this route.";
+                StatusText = MarketText.StatusNoOpportunities;
             }
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
         finally
         {

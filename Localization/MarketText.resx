@@ -992,4 +992,376 @@
     <value>Reversed</value>
     <comment>A contract's status.</comment>
   </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>All Time</value>
+    <comment>Period choice: no start date, everything held.</comment>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>Last 365 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Last 90 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Last 30 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Last 7 Days</value>
+    <comment>Period choice on the Market Overview.</comment>
+  </data>
+  <data name="RegionNumbered" xml:space="preserve">
+    <value>Region {0}</value>
+    <comment>A region whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
+  <data name="SeriesSalesIsk" xml:space="preserve">
+    <value>Sales ISK</value>
+    <comment>Chart line on the Market Overview summary: the ISK value of each day's sales.</comment>
+  </data>
+  <data name="StatusAllRegions" xml:space="preserve">
+    <value>all regions</value>
+    <comment>Start of the Market Overview status line when no region is picked (lower case); the period follows after " · ".</comment>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>Other</value>
+    <comment>Pie chart slice holding everything too small to show on its own.</comment>
+  </data>
+  <data name="GroupNumbered" xml:space="preserve">
+    <value>Group {0}</value>
+    <comment>A market group whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="NoMarketDataForSelection" xml:space="preserve">
+    <value>No market data for this selection.</value>
+    <comment>Status line: nothing held for the chosen region and period.</comment>
+  </data>
+  <data name="StatusMarketGroupCount" xml:space="preserve">
+    <value>{0:N0} market group(s)</value>
+    <comment>Status line. {0} is how many market groups are listed.</comment>
+  </data>
+  <data name="StatusTypeCount" xml:space="preserve">
+    <value>{0:N0} type(s)</value>
+    <comment>Status line. {0} is how many item types are listed.</comment>
+  </data>
+  <data name="NoOrdersForSelection" xml:space="preserve">
+    <value>No orders for this selection.</value>
+    <comment>Status line: no market orders for the chosen region.</comment>
+  </data>
+  <data name="StatusAllItemsAlreadyInGroup" xml:space="preserve">
+    <value>All items from '{0}' are already in the group.</value>
+    <comment>Status line. {0} is the fit, market group or blueprint the items came from.</comment>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>TypeId {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
+  <data name="StatusAddedItemsSkipped" xml:space="preserve">
+    <value>Added {0} item(s) from '{1}'; {2} already present, skipped.</value>
+    <comment>Status line. {0} is how many items were added, {1} the fit, market group or blueprint they came from, {2} how many were already in the group.</comment>
+  </data>
+  <data name="StatusAddedItems" xml:space="preserve">
+    <value>Added {0} item(s) from '{1}'.</value>
+    <comment>Status line. {0} is how many items were added, {1} the fit, market group or blueprint they came from.</comment>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>Loading items in '{0}'…</value>
+    <comment>Status line while a market group's items load. {0} is the market group.</comment>
+  </data>
+  <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
+    <value>No published items found under '{0}'.</value>
+    <comment>Status line. {0} is a market group.</comment>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+    <comment>Status line: the user said no.</comment>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>No group selected.</value>
+    <comment>Status line: items can only be added to a group.</comment>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>Calculating materials…</value>
+    <comment>Status line while a blueprint's materials are worked out.</comment>
+  </data>
+  <data name="StatusCalculationError" xml:space="preserve">
+    <value>Calculation error: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
+    <value>No materials found for that blueprint.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="SourceAssetDefault" xml:space="preserve">
+    <value>— Asset Default —</value>
+    <comment>Market price source choice in the group dialog: the asset-value market source set in Settings.</comment>
+  </data>
+  <data name="CollectionDefaultChoice" xml:space="preserve">
+    <value>— Default —</value>
+    <comment>Collection choice in the group dialog: no collection of its own, so the group sits under Default.</comment>
+  </data>
+  <data name="CollectionDefault" xml:space="preserve">
+    <value>Default</value>
+    <comment>Name of the collection that holds every group not put in a collection of its own.</comment>
+  </data>
+  <data name="StatusNoGroups" xml:space="preserve">
+    <value>No groups configured. Click '{0}' to create one.</value>
+    <comment>Status line when nothing is set up. {0} is the label of the Add Group button.</comment>
+  </data>
+  <data name="StatusGroupsAndItems" xml:space="preserve">
+    <value>{0} group(s), {1} item(s)</value>
+    <comment>Status line. {0} is how many groups, {1} how many items.</comment>
+  </data>
+  <data name="DataFromHoursAgo" xml:space="preserve">
+    <value>Data from {0}h {1}m ago</value>
+    <comment>How old the market data is. {0} is hours, {1} minutes (h and m are their abbreviations).</comment>
+  </data>
+  <data name="DataFromMinutesAgo" xml:space="preserve">
+    <value>Data from {0}m ago</value>
+    <comment>How old the market data is. {0} is minutes (m is its abbreviation).</comment>
+  </data>
+  <data name="DataFromJustNow" xml:space="preserve">
+    <value>Data from just now</value>
+    <comment>How old the market data is: under a minute.</comment>
+  </data>
+  <data name="StatusNoCachedOrders" xml:space="preserve">
+    <value>No cached orders — run market pricing to populate.</value>
+    <comment>Shown when no market orders are held for the groups' stations.</comment>
+  </data>
+  <data name="StatusGroupCount" xml:space="preserve">
+    <value>{0} group(s)</value>
+    <comment>Status line. {0} is how many groups.</comment>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>Collection '{0}' deleted.</value>
+    <comment>Status line. {0} is the collection's name.</comment>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>Collection '{0}' added.</value>
+    <comment>Status line. {0} is the collection's name.</comment>
+  </data>
+  <data name="ModeSellToBuyOrder" xml:space="preserve">
+    <value>Buy Sell → Sell to Buy Order</value>
+    <comment>Trade mode: buy from sell orders at the source, sell into buy orders at the destination.</comment>
+  </data>
+  <data name="ModeUndercutSellOrder" xml:space="preserve">
+    <value>Buy Sell → Undercut Sell Order</value>
+    <comment>Trade mode: buy from sell orders at the source, list below the cheapest sell order at the destination.</comment>
+  </data>
+  <data name="StatusSelectStations" xml:space="preserve">
+    <value>Select source and destination stations, then click {0}.</value>
+    <comment>Status line before the first run. {0} is the label of the Calculate button.</comment>
+  </data>
+  <data name="ErrSelectBothStations" xml:space="preserve">
+    <value>Please select both a source and destination station.</value>
+    <comment>Status line: a station is missing.</comment>
+  </data>
+  <data name="ErrSameStation" xml:space="preserve">
+    <value>Source and destination must be different stations.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="ErrInvalidCargo" xml:space="preserve">
+    <value>Please enter a valid cargo size in m³.</value>
+    <comment>Status line: the cargo box does not hold a number above zero.</comment>
+  </data>
+  <data name="ErrInvalidIskCap" xml:space="preserve">
+    <value>Please enter a valid ISK cap (or leave blank for no limit).</value>
+    <comment>Status line: the ISK cap box does not hold a number above zero.</comment>
+  </data>
+  <data name="ErrInvalidMinIskVolume" xml:space="preserve">
+    <value>Please enter a valid minimum ISK volume (or leave blank for no filter).</value>
+    <comment>Status line: the minimum 30-day ISK volume box does not hold a number.</comment>
+  </data>
+  <data name="ErrInvalidMinUnitVolume" xml:space="preserve">
+    <value>Please enter a valid minimum unit volume (or leave blank for no filter).</value>
+    <comment>Status line: the minimum 30-day unit volume box does not hold a number.</comment>
+  </data>
+  <data name="StatusCalculating" xml:space="preserve">
+    <value>Calculating…</value>
+    <comment>Status line while trade opportunities are worked out.</comment>
+  </data>
+  <data name="ErrNoDestinationRegion" xml:space="preserve">
+    <value>Could not resolve the destination station's region — ensure market data has been loaded for that location so the volume filter can work.</value>
+    <comment>Status line: the volume filters need the destination's region.</comment>
+  </data>
+  <data name="StatusNoOpportunities" xml:space="preserve">
+    <value>No profitable opportunities found for this route.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="PeriodPast30Days" xml:space="preserve">
+    <value>Past 30 Days</value>
+    <comment>Period choice on the LP Market Values history.</comment>
+  </data>
+  <data name="PeriodPast90Days" xml:space="preserve">
+    <value>Past 90 Days</value>
+    <comment>Period choice on the LP Market Values history.</comment>
+  </data>
+  <data name="PeriodPast365Days" xml:space="preserve">
+    <value>Past 365 Days</value>
+    <comment>Period choice on the LP Market Values history.</comment>
+  </data>
+  <data name="StatusRecalculatingLp" xml:space="preserve">
+    <value>Recalculating LP values…</value>
+    <comment>Status line while loyalty point values are recalculated.</comment>
+  </data>
+  <data name="StatusRecalculationFailed" xml:space="preserve">
+    <value>Recalculation failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusNoLpValues" xml:space="preserve">
+    <value>No LP values yet — they are calculated when market prices refresh.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>A corporation whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="StatusCorpsValued" xml:space="preserve">
+    <value>{0:N0} corporation(s) valued — updated {1:d MMM HH:mm}</value>
+    <comment>Status line. {0} is how many corporations, {1} when the values were last worked out.</comment>
+  </data>
+  <data name="HistoryNoneForCorp" xml:space="preserve">
+    <value>No history yet for {0} in this period. A point is recorded each time values are recalculated.</value>
+    <comment>History tab. {0} is an NPC corporation.</comment>
+  </data>
+  <data name="SeriesIskPerLp" xml:space="preserve">
+    <value>ISK per LP</value>
+    <comment>Chart line and axis title: ISK per loyalty point.</comment>
+  </data>
+  <data name="HistoryRange" xml:space="preserve">
+    <value>{0:N0} day(s) — {1:N2} to {2:N2} ISK/LP</value>
+    <comment>History tab. {0} is how many days are charted, {1} the lowest and {2} the highest ISK per loyalty point.</comment>
+  </data>
+  <data name="TipStationNotTracked" xml:space="preserve">
+    <value>This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market.</value>
+    <comment>Tooltip on a standing buy order's price when its station is not a market source.</comment>
+  </data>
+  <data name="TipOutbidBy" xml:space="preserve">
+    <value>Outbid by {0:N2} ISK — the station's best bid is {1:N2}.</value>
+    <comment>Tooltip on a standing buy order's price. {0} is how much higher the best rival bid is, {1} that bid (ISK).</comment>
+  </data>
+  <data name="TipNoOtherBids" xml:space="preserve">
+    <value>No other buy orders for this item here.</value>
+    <comment>Tooltip on a standing buy order's price.</comment>
+  </data>
+  <data name="OrderStateMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>A standing buy order's status: no live buy order matches it.</comment>
+  </data>
+  <data name="OrderStateOutbid" xml:space="preserve">
+    <value>Outbid</value>
+    <comment>A standing buy order's status: live, but another buyer bids more.</comment>
+  </data>
+  <data name="OrderStateActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>A standing buy order's status: live and healthy.</comment>
+  </data>
+  <data name="NoteNoLiveOrder" xml:space="preserve">
+    <value>No live buy order at this location</value>
+    <comment>Note column of a standing buy order.</comment>
+  </data>
+  <data name="NoteOutbidBy" xml:space="preserve">
+    <value>Outbid by {0:N2} ISK (station best {1:N2})</value>
+    <comment>Note column. {0} is how much higher the best rival bid is, {1} that bid (ISK).</comment>
+  </data>
+  <data name="NoteBelowVolume" xml:space="preserve">
+    <value>Below {0:N0}% of original volume</value>
+    <comment>Note column. {0} is a percentage.</comment>
+  </data>
+  <data name="NoteUnderDuration" xml:space="preserve">
+    <value>Under {0:N0}% of its duration left</value>
+    <comment>Note column. {0} is a percentage.</comment>
+  </data>
+  <data name="NoteNeedsAttention" xml:space="preserve">
+    <value>{0} — needs attention</value>
+    <comment>Note column. {0} is one or more of the notes above, joined by semicolons.</comment>
+  </data>
+  <data name="StatusNoStandingOrders" xml:space="preserve">
+    <value>No standing buy orders defined yet.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="StatusCountDefined" xml:space="preserve">
+    <value>{0:N0} defined</value>
+    <comment>Part of the status line, joined to the others by " · ". {0} is how many standing buy orders are defined.</comment>
+  </data>
+  <data name="StatusCountMissing" xml:space="preserve">
+    <value>{0:N0} missing</value>
+    <comment>Part of the status line. {0} is how many standing buy orders have no live order.</comment>
+  </data>
+  <data name="StatusCountOutbid" xml:space="preserve">
+    <value>{0:N0} outbid</value>
+    <comment>Part of the status line. {0} is how many standing buy orders are outbid.</comment>
+  </data>
+  <data name="StatusCountRunningLow" xml:space="preserve">
+    <value>{0:N0} running low</value>
+    <comment>Part of the status line. {0} is how many standing buy orders have little volume left.</comment>
+  </data>
+  <data name="StatusCountExpiringSoon" xml:space="preserve">
+    <value>{0:N0} expiring soon</value>
+    <comment>Part of the status line. {0} is how many standing buy orders are close to expiring.</comment>
+  </data>
+  <data name="StatusAllHealthy" xml:space="preserve">
+    <value>all healthy</value>
+    <comment>Part of the status line: no standing buy order needs attention.</comment>
+  </data>
+  <data name="StatusStandingOrderExists" xml:space="preserve">
+    <value>A standing order for {0} at {1} already exists.</value>
+    <comment>Status line. {0} is an item, {1} a station or structure.</comment>
+  </data>
+  <data name="ConfirmAddLargeGroup" xml:space="preserve">
+    <value>The selected group contains {0} items. Are you sure you want to add them all?</value>
+    <comment>Asked before adding a large market group. {0} is how many items (always more than 100).</comment>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>Add Collection</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>COLLECTION NAME</value>
+    <comment>Label over the name box in the collection dialog.</comment>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>Rename Collection</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="TitleEditStandingBuyOrder" xml:space="preserve">
+    <value>Edit Standing Buy Order</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="ErrPickItemType" xml:space="preserve">
+    <value>Pick an item type from the search results.</value>
+    <comment>Error in the standing buy order dialog.</comment>
+  </data>
+  <data name="ErrPickStation" xml:space="preserve">
+    <value>Pick a station or structure from the search results.</value>
+    <comment>Error in the standing buy order dialog.</comment>
+  </data>
+  <data name="ConfirmDeleteStandingOrder" xml:space="preserve">
+    <value>Are you sure you want to delete this standing buy order?</value>
+    <comment>Asked before a standing buy order is deleted.</comment>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>Add Group</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>Edit Group</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>Group name is required.</value>
+    <comment>Error in the group dialog.</comment>
+  </data>
+  <data name="StatusItemTypesLoadedOne" xml:space="preserve">
+    <value>{0} item type  ·  {1:N1} m³ loaded</value>
+    <comment>Trade Opportunities status line after a run, one item type. {0} is how many item types are in the shopping list, {1} the cargo volume they fill.</comment>
+  </data>
+  <data name="StatusItemTypesLoadedOther" xml:space="preserve">
+    <value>{0} item types  ·  {1:N1} m³ loaded</value>
+    <comment>Trade Opportunities status line after a run, several item types. {0} is how many item types are in the shopping list, {1} the cargo volume they fill.</comment>
+  </data>
 </root>

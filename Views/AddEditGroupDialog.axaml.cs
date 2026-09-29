@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -50,7 +51,7 @@ public partial class AddEditGroupDialog : Window
                 { collIdx = i; break; }
         CollectionBox.SelectedIndex = collIdx;
 
-        Title = existingName == null ? "Add Group" : "Edit Group";
+        Title = existingName == null ? MarketText.TitleAddGroup : MarketText.TitleEditGroup;
     }
 
     private void OnOkClick(object? sender, RoutedEventArgs e)
@@ -58,7 +59,7 @@ public partial class AddEditGroupDialog : Window
         var name = NameBox.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(name))
         {
-            ErrorText.Text = "Group name is required.";
+            ErrorText.Text = MarketText.ErrGroupNameRequired;
             return;
         }
 

@@ -2047,4 +2047,56 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Select a region or choose Everywhere.</value>
     <comment>Error in the posting dialog.</comment>
   </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Whose sales to show: every owner.</comment>
+  </data>
+  <data name="TitleSaleListingBuild" xml:space="preserve">
+    <value>Sale Listing — Build Cost</value>
+    <comment>Header of the Sale Listing tool that measures profit against build cost.</comment>
+  </data>
+  <data name="TitleSaleListingMarket" xml:space="preserve">
+    <value>Sale Listing — Market Value</value>
+    <comment>Header of the Sale Listing tool that measures profit against market value.</comment>
+  </data>
+  <data name="StatusSaleCount" xml:space="preserve">
+    <value>{0:N0} sale(s)</value>
+    <comment>Status line. {0} is how many sales are listed.</comment>
+  </data>
+  <data name="PostTypeSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>A post block's type: a summary rendered from the posting's items.</comment>
+  </data>
+  <data name="PostTypeDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>A post block's type: the item-by-item detail rendered from the posting. Also the name a new posting's first block starts with.</comment>
+  </data>
+  <data name="PostTypeStatic" xml:space="preserve">
+    <value>Static</value>
+    <comment>A post block's type: fixed text the user writes.</comment>
+  </data>
+  <data name="TextColourLabel" xml:space="preserve">
+    <value>TEXT COLOUR</value>
+    <comment>Label over the colour field of a Static post block, which colours all of its text.</comment>
+  </data>
+  <data name="HeaderColourLabel" xml:space="preserve">
+    <value>HEADER COLOUR</value>
+    <comment>Label over the colour field of a Summary or Detail post block, which colours its header.</comment>
+  </data>
+  <data name="SourceStock" xml:space="preserve">
+    <value>Stock</value>
+    <comment>Where an open order's units are coming from: stock already on hand.</comment>
+  </data>
+  <data name="SourceInProduction" xml:space="preserve">
+    <value>In production</value>
+    <comment>Where an open order's units are coming from: an industry job.</comment>
+  </data>
+  <data name="SourceContracted" xml:space="preserve">
+    <value>Contracted</value>
+    <comment>Where an open order's units are coming from: a contract already made out to the buyer.</comment>
+  </data>
+  <data name="SourceUnsourced" xml:space="preserve">
+    <value>Unsourced</value>
+    <comment>Where an open order's units are coming from: nothing yet.</comment>
+  </data>
 </root>

@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -100,10 +101,10 @@ public class LpMarketValuesViewModel : ReactiveObject
 
     public static LpHistoryPeriod[] Periods { get; } =
     [
-        new("Past 30 Days",  30),
-        new("Past 90 Days",  90),
-        new("Past 365 Days", 365),
-        new("All Time",      -1),
+        new(MarketText.PeriodPast30Days,  30),
+        new(MarketText.PeriodPast90Days,  90),
+        new(MarketText.PeriodPast365Days, 365),
+        new(MarketText.PeriodAllTime,     -1),
     ];
 
     public LpMarketValuesViewModel(IDbContextFactory<AppDbContext> dbFactory,
@@ -148,7 +149,7 @@ public class LpMarketValuesViewModel : ReactiveObject
         if (_valueService is null || IsRecalculating) return;
 
         IsRecalculating = true;
-        Status = "Recalculating LP values…";
+        Status = MarketText.StatusRecalculatingLp;
         try
         {
             await _valueService.RecalculateAsync();
@@ -157,7 +158,7 @@ public class LpMarketValuesViewModel : ReactiveObject
             // it keeps showing the figures from before the run.
             await LoadHistoryAsync();
         }
-        catch (Exception ex) { Status = $"Recalculation failed: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(MarketText.StatusRecalculationFailed, ex.Message); }
         finally { IsRecalculating = false; }
     }
 
@@ -173,7 +174,7 @@ public class LpMarketValuesViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
     }
 
-    private string _status = "Loading…";
+    private string _status = CommonText.Loading;
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
     public bool HasCorps => Corps.Count > 0;
@@ -193,7 +194,7 @@ public class LpMarketValuesViewModel : ReactiveObject
                 {
                     Corps.Clear();
                     this.RaisePropertyChanged(nameof(HasCorps));
-                    Status = "No LP values yet — they are calculated when market prices refresh.";
+                    Status = MarketText.StatusNoLpValues;
                 });
                 return;
             }
@@ -217,7 +218,7 @@ public class LpMarketValuesViewModel : ReactiveObject
             var rows = values
                 .Select(v => new LpCorpValueVm(
                     v.CorporationId,
-                    names.GetValueOrDefault(v.CorporationId, $"Corp {v.CorporationId}"),
+                    names.GetValueOrDefault(v.CorporationId, string.Format(MarketText.CorpNumbered, v.CorporationId)),
                     v.IskPerLp, v.MedianIskPerLp, v.ValuedOffers, v.TotalOffers, v.BestIskPerLp,
                     v.BestTypeId, typeNames.GetValueOrDefault(v.BestTypeId, ""),
                     held.GetValueOrDefault(v.CorporationId),
@@ -238,12 +239,12 @@ public class LpMarketValuesViewModel : ReactiveObject
                 foreach (var r in rows.OrderBy(r => r.CorporationName)) HistoryCorps.Add(r);
                 SelectedHistoryCorp ??= HistoryCorps.FirstOrDefault();
 
-                Status = $"{rows.Count:N0} corporation(s) valued — updated {rows.Max(r => r.ComputedAt).ToLocalTime():d MMM HH:mm}";
+                Status = string.Format(MarketText.StatusCorpsValued, rows.Count, rows.Max(r => r.ComputedAt).ToLocalTime());
             });
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -320,8 +321,7 @@ public class LpMarketValuesViewModel : ReactiveObject
                 if (rows.Count == 0)
                 {
                     Series = []; XAxes = []; YAxes = [];
-                    HistoryStatus = $"No history yet for {corp.CorporationName} in this period. "
-                                  + "A point is recorded each time values are recalculated.";
+                    HistoryStatus = string.Format(MarketText.HistoryNoneForCorp, corp.CorporationName);
                     return;
                 }
 
@@ -334,7 +334,7 @@ public class LpMarketValuesViewModel : ReactiveObject
                 [
                     new LineSeries<DateTimePoint>
                     {
-                        Name           = "ISK per LP",
+                        Name           = MarketText.SeriesIskPerLp,
                         Values         = points,
                         Stroke         = new SolidColorPaint(SKColors.Gold, 2),
                         Fill           = null,
@@ -357,20 +357,19 @@ public class LpMarketValuesViewModel : ReactiveObject
                 [
                     new Axis
                     {
-                        Name            = "ISK per LP",
+                        Name            = MarketText.SeriesIskPerLp,
                         LabelsPaint     = ChartPaint.AccentLabels,
                         SeparatorsPaint = ChartPaint.Separators,
                         Labeler         = v => Math.Abs(v) >= 100 ? v.ToString("N0") : v.ToString("N2"),
                     },
                 ];
 
-                HistoryStatus = $"{rows.Count:N0} day(s) — {rows.Min(r => r.IskPerLp):N2} to "
-                              + $"{rows.Max(r => r.IskPerLp):N2} ISK/LP";
+                HistoryStatus = string.Format(MarketText.HistoryRange, rows.Count, rows.Min(r => r.IskPerLp), rows.Max(r => r.IskPerLp));
             });
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => HistoryStatus = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => HistoryStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 }

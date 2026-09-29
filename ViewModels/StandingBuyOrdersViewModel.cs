@@ -4,6 +4,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -63,11 +64,11 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
                                            : r.IsLocationTracked ? Palette.TextPrimary : Palette.TextFaint;
 
     public string? PriceTooltip { get; } = !r.IsLocationTracked
-        ? "This station isn't a configured market source, so competing bids are unknown. Add it under Settings → Market."
+        ? MarketText.TipStationNotTracked
         : r.IsOutbid
-            ? $"Outbid by {r.OutbidBy:N2} ISK — the station's best bid is {r.CompetingBestBid:N2}."
+            ? string.Format(MarketText.TipOutbidBy, r.OutbidBy, r.CompetingBestBid)
             : r.CompetingBestBid is null
-                ? "No other buy orders for this item here."
+                ? MarketText.TipNoOtherBids
                 : null;
 
     /// <summary>"Outbid" beats "Active" because it is the more actionable truth: the
@@ -75,9 +76,9 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// that state onto the Overview panel, which has no price column of its own.
     /// Volume and expiry stay out of here — those are already shown as their own
     /// columns, whereas the competing bid is not.</summary>
-    public string Status { get; } = r.MatchStatus != "matched" ? "Missing"
-                                  : r.IsOutbid                 ? "Outbid"
-                                  : "Active";
+    public string Status { get; } = r.MatchStatus != "matched" ? MarketText.OrderStateMissing
+                                  : r.IsOutbid                 ? MarketText.OrderStateOutbid
+                                  : MarketText.OrderStateActive;
 
     /// <summary>Colour cue: red when the order isn't there at all, amber when it is
     /// but is running out — either of volume or of time — green otherwise.</summary>
@@ -111,19 +112,19 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
 
     private static string BuildNote(StandingBuyOrderRow r)
     {
-        if (r.MatchStatus != "matched") return "No live buy order at this location";
+        if (r.MatchStatus != "matched") return MarketText.NoteNoLiveOrder;
 
         var parts = new List<string>();
         // Outbid leads: the other two mean the order is running out, this one means it
         // is not working at all.
         if (r.IsOutbid)
-            parts.Add($"Outbid by {r.OutbidBy:N2} ISK (station best {r.CompetingBestBid:N2})");
+            parts.Add(string.Format(MarketText.NoteOutbidBy, r.OutbidBy, r.CompetingBestBid));
         if (r.IsLow)
-            parts.Add($"Below {StandingBuyOrderService.LowRemainingThresholdPercent:N0}% of original volume");
+            parts.Add(string.Format(MarketText.NoteBelowVolume, StandingBuyOrderService.LowRemainingThresholdPercent));
         if (r.IsExpiringSoon)
-            parts.Add($"Under {StandingBuyOrderService.LowTimeThresholdPercent:N0}% of its duration left");
+            parts.Add(string.Format(MarketText.NoteUnderDuration, StandingBuyOrderService.LowTimeThresholdPercent));
 
-        return parts.Count == 0 ? "" : string.Join("; ", parts) + " — needs attention";
+        return parts.Count == 0 ? "" : string.Format(MarketText.NoteNeedsAttention, string.Join("; ", parts));
     }
 }
 
@@ -161,7 +162,7 @@ public class StandingBuyOrdersViewModel : ReactiveObject
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
 
         foreach (var c in new IReactiveCommand[] { AddCommand, EditCommand, DeleteCommand, RefreshCommand })
-            c.ThrownExceptions.Subscribe(ex => StatusText = $"Error: {ex.Message}");
+            c.ThrownExceptions.Subscribe(ex => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         _ = LoadAsync();
     }
@@ -187,7 +188,7 @@ public class StandingBuyOrdersViewModel : ReactiveObject
 
     private async Task LoadAsync()
     {
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         var keep = Selected?.DbId;
 
         var rows = await _service.BuildGridRowsAsync();
@@ -201,7 +202,7 @@ public class StandingBuyOrdersViewModel : ReactiveObject
 
         if (rows.Count == 0)
         {
-            StatusText = "No standing buy orders defined yet.";
+            StatusText = MarketText.StatusNoStandingOrders;
             return;
         }
 
@@ -214,12 +215,12 @@ public class StandingBuyOrdersViewModel : ReactiveObject
         var low      = rows.Count(r => r.IsLow);
         var expiring = rows.Count(r => r.IsExpiringSoon);
 
-        var parts = new List<string> { $"{rows.Count:N0} defined" };
-        if (missing > 0)  parts.Add($"{missing:N0} missing");
-        if (outbid > 0)   parts.Add($"{outbid:N0} outbid");
-        if (low > 0)      parts.Add($"{low:N0} running low");
-        if (expiring > 0) parts.Add($"{expiring:N0} expiring soon");
-        if (missing == 0 && outbid == 0 && low == 0 && expiring == 0) parts.Add("all healthy");
+        var parts = new List<string> { string.Format(MarketText.StatusCountDefined, rows.Count) };
+        if (missing > 0)  parts.Add(string.Format(MarketText.StatusCountMissing, missing));
+        if (outbid > 0)   parts.Add(string.Format(MarketText.StatusCountOutbid, outbid));
+        if (low > 0)      parts.Add(string.Format(MarketText.StatusCountRunningLow, low));
+        if (expiring > 0) parts.Add(string.Format(MarketText.StatusCountExpiringSoon, expiring));
+        if (missing == 0 && outbid == 0 && low == 0 && expiring == 0) parts.Add(MarketText.StatusAllHealthy);
 
         StatusText = string.Join("  ·  ", parts);
     }
@@ -232,7 +233,7 @@ public class StandingBuyOrdersViewModel : ReactiveObject
 
         if (!await _service.AddAsync(result))
         {
-            StatusText = $"A standing order for {result.TypeName} at {result.LocationName} already exists.";
+            StatusText = string.Format(MarketText.StatusStandingOrderExists, result.TypeName, result.LocationName);
             return;
         }
         await LoadAsync();

@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -36,7 +37,7 @@ public partial class StandingBuyOrderDialog : Window
 
         if (existing is null) return;
 
-        Title = "Edit Standing Buy Order";
+        Title = MarketText.TitleEditStandingBuyOrder;
 
         _selectedTypeId   = existing.TypeId;
         _selectedTypeName = existing.TypeName;
@@ -133,12 +134,12 @@ public partial class StandingBuyOrderDialog : Window
     {
         if (_selectedTypeId is null)
         {
-            ShowError("Pick an item type from the search results.");
+            ShowError(MarketText.ErrPickItemType);
             return;
         }
         if (_selectedLocationId is null)
         {
-            ShowError("Pick a station or structure from the search results.");
+            ShowError(MarketText.ErrPickStation);
             return;
         }
 
