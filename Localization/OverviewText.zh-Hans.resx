@@ -606,7 +606,7 @@
     <value>读取跳跃疲劳</value>
   </data>
   <data name="ScopeReadFreelanceJobs" xml:space="preserve">
-    <value>读取自由职业项目</value>
+    <value>读取自由任务</value>
   </data>
   <data name="ScopeReadFwStats" xml:space="preserve">
     <value>读取势力战争统计</value>
@@ -615,7 +615,7 @@
     <value>读取忠诚点</value>
   </data>
   <data name="ScopeReadMedals" xml:space="preserve">
-    <value>读取勋章</value>
+    <value>读取奖章</value>
   </data>
   <data name="ScopeReadNotifications" xml:space="preserve">
     <value>读取通知</value>

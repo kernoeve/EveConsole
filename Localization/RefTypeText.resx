@@ -193,11 +193,11 @@
     <comment>A wallet journal entry's type: ESI's ref_type "contract_deposit_sales_tax".</comment>
   </data>
   <data name="ContractPrice" xml:space="preserve">
-    <value>Contract Income</value>
+    <value>Contract Price</value>
     <comment>A wallet journal entry's type: ESI's ref_type "contract_price".</comment>
   </data>
   <data name="ContractPricePaymentCorp" xml:space="preserve">
-    <value>Corp Contract</value>
+    <value>Contract Price Payment (Corp)</value>
     <comment>A wallet journal entry's type: ESI's ref_type "contract_price_payment_corp".</comment>
   </data>
   <data name="ContractReversal" xml:space="preserve">

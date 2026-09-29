@@ -150,3 +150,9 @@ welcome — this list is where they belong, so every screen picks them up.
 | Active (contract filter) | 有效 | Not 进行中, which is In Progress in the same list. |
 | loan (contract type) | 租借 | |
 | public / private (availability) | 公开 / 私人 | |
+| escrow (market, contract) | 契约金 | The client's word. |
+| freelance job / project | 自由任务 | The client's word. |
+| medal | 奖章 | The client's word. |
+| Project Discovery | 探索计划 | The client's word. |
+| SKIN / Paragon Hub (cosmetic market) | 涂装 / 派瑞根中心 | The client's words. |
+| PLEX / New Eden Store | 伊甸币 / 商城 | The client's words. |

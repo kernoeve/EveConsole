@@ -47,7 +47,7 @@
     <value>卖单</value>
   </data>
   <data name="BuyEscrowLabel" xml:space="preserve">
-    <value>买单托管金</value>
+    <value>买单契约金</value>
   </data>
   <data name="ContractCollatLabel" xml:space="preserve">
     <value>合同保证金</value>
@@ -320,7 +320,7 @@
     <value>卖单</value>
   </data>
   <data name="LineBuyEscrow" xml:space="preserve">
-    <value>买单托管金</value>
+    <value>买单契约金</value>
   </data>
   <data name="LineContractCollateral" xml:space="preserve">
     <value>合同保证金</value>

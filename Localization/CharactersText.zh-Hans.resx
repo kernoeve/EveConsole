@@ -143,7 +143,7 @@
     <value>没有跳跃克隆。</value>
   </data>
   <data name="TabMedals" xml:space="preserve">
-    <value>勋章</value>
+    <value>奖章</value>
   </data>
   <data name="TabTitles" xml:space="preserve">
     <value>头衔</value>
@@ -218,10 +218,10 @@
     <value>无法加载摘要：{0}</value>
   </data>
   <data name="NoMedalsOnRecord" xml:space="preserve">
-    <value>此角色没有勋章记录。</value>
+    <value>此角色没有奖章记录。</value>
   </data>
   <data name="MedalCountOther" xml:space="preserve">
-    <value>{0} 枚勋章</value>
+    <value>{0} 枚奖章</value>
   </data>
   <data name="StatusSelectCharacterToView" xml:space="preserve">
     <value>选择一个角色以查看其数据。</value>
@@ -272,7 +272,7 @@
     <value>位置 {0}（{1}）</value>
   </data>
   <data name="MedalNumbered" xml:space="preserve">
-    <value>勋章 #{0}</value>
+    <value>奖章 #{0}</value>
   </data>
   <data name="FactionNumbered" xml:space="preserve">
     <value>势力 #{0}</value>

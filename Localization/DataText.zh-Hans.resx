@@ -806,7 +806,7 @@
     <value>忠诚点</value>
   </data>
   <data name="TableMedals" xml:space="preserve">
-    <value>勋章</value>
+    <value>奖章</value>
   </data>
   <data name="TableTitles" xml:space="preserve">
     <value>头衔</value>
@@ -833,7 +833,7 @@
     <value>军团头衔</value>
   </data>
   <data name="TableCorpMedals" xml:space="preserve">
-    <value>军团勋章</value>
+    <value>军团奖章</value>
   </data>
   <data name="TableCorpStructures" xml:space="preserve">
     <value>军团建筑</value>
@@ -1340,7 +1340,7 @@
     <value>忠诚点</value>
   </data>
   <data name="EndpointMedals" xml:space="preserve">
-    <value>勋章</value>
+    <value>奖章</value>
   </data>
   <data name="EndpointStandings" xml:space="preserve">
     <value>声望</value>
