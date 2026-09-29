@@ -759,7 +759,7 @@ public class StructureBrowserViewModel : ReactiveObject
             var cons  = await db.SdeConstellations.AsNoTracking().ToDictionaryAsync(c => c.ConstellationId, c => c.Name);
             var regs  = await db.SdeRegions.AsNoTracking().ToDictionaryAsync(r => r.RegionId, r => r.Name);
             // Resolve the nearest-celestial name live from the celestial table (by stored id) so
-            // updated names (e.g. "Stargate to C-FD0D" after a re-import) show without recomputing.
+            // updated names (e.g. "Stargate to Jita" after a re-import) show without recomputing.
             var nearIds = structs.Where(s => s.NearestCelestialId != 0)
                                  .Select(s => s.NearestCelestialId).Distinct().ToList();
             var nearNames = await db.SdeCelestials.AsNoTracking()

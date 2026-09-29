@@ -1083,7 +1083,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 // ⚠️ The headquarters is NOT one of the "Stations" beside it, and the two
                 // disagreeing is the normal case rather than a fault. A militia corporation owns
                 // no station and is still based somewhere: Malakim Zealots run out of an
-                // Archangels station in G-0Q86.
+                // Archangels station in Curse.
                 if (hqName.Length > 0) facts.Add(new("Headquarters", hqName, EntityKind.Station, hqId));
 
                 facts.Add(new("Stations", r.Stations.ToString("N0")));

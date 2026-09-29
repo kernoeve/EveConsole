@@ -668,7 +668,7 @@ public class MapCanvas : Control
     private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));
 
     // ⚠️ Lifted from #7f93a8. Muted grey-blue on a dark map, drawn 2.5px thin, read as nothing at
-    // all — RH0-EG holds a Sotiyo and looked like a system with no structure. "Dockable, but
+    // all — a system holding only a Sotiyo looked like one with no structure. "Dockable, but
     // nothing that takes a capital" is worth knowing, so the lowest rank still has to be seen.
     private static readonly IBrush DockSubcap  = new ImmutableSolidColorBrush(Color.Parse("#a8bdd4"));
 

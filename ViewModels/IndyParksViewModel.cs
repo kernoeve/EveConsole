@@ -2201,8 +2201,8 @@ public class IndyParksViewModel : ReactiveObject
         // entry names, and marked as the user's rather than ESI's.
         //
         // ⚠️ The system is deliberately NOT taken from the park entry. A park's structures need not
-        // all be in the park's own system: of the fourteen entries in the C-FD0D park here, two
-        // link to structures in 78R-PI and RH0-EG. So SolarSystemId, the owner and the position
+        // all be in the park's own system: of the fourteen entries in one real park, two link to
+        // structures in two other systems. So SolarSystemId, the owner and the position
         // stay empty until something that actually knows — ESI, or the EVE Ref snapshot — fills
         // them in. The resolve kicked off below is what asks.
         var linkedIds = pendingRigs

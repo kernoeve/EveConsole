@@ -51,7 +51,7 @@ public sealed class IntelCondition : IAlarmCondition
             systems = new
             {
                 type        = "string",
-                description = "Comma-separated system names to watch, e.g. \"C-FD0D, Y-ORBJ\". " +
+                description = "Comma-separated system names to watch, e.g. \"Jita, Amarr\". " +
                               "May be left empty if a jump range is given instead.",
             },
             within_jumps_of = new

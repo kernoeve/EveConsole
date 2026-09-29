@@ -5,27 +5,28 @@ namespace EveConsole.Monitoring;
 /// <summary>
 /// Parses intel-channel messages into "who is where, and how many".
 ///
-/// ─── Verified against ~60,000 real messages in east.imperium / west.imperium ───
+/// ─── Verified against ~60,000 real intel-channel messages ───
 /// The client does not write link markup to the log, so a system link and a character
 /// link both arrive as bare text. What it does write is a SPACE ON EITHER SIDE of every
 /// link, which means adjacent links are separated by TWO spaces:
 ///
-///     JK-Q77  kingtut Tut  Nyssa Onzo  Offgrid Booster
-///     ZD1-Z2  Sevra  Chiefi nv
+///     QZ-X77  ann Example  Bo Sample  Offgrid Booster
+///     XQ1-Z2  Tester  Sampler nv
 ///
 /// That double space is the only structural signal in the format and it does most of the
 /// work here: it splits the line into chunks that are each one entity plus whatever the
 /// reporter typed after it. Within a chunk, tokens are matched longest-run-first.
 ///
-/// Observed variation, all of which this handles:
-///   system first        ZD1-Z2  Sevra  Chiefi nv
-///   name first          Galactiona  CX65-5          Offgrid Booster  JK-Q77*
-///   count only          +5  HY-RWO                  GM-0K7 +8
-///   count either side   Y-ORBJ 6+                   9-980U*  Alphonse Cruz +13
-///   trailing star       KW-OAM*  D2EZ-X*            (reporter convention, not part of the name)
-///   trailing period     3L3N-X  jsh666 +3. Naga, Flycatcher...
-///   several names       HY-RWO  Al-Punchy  Atlan da Gonozol  Evel Knieve  Jason Aiderona +2
-///   non-English text    击杀：kingtut Tut (黑豹级*)   短吻鳄级 10+ GHZ-SJ*
+/// Observed variation, all of which this handles (systems and pilots invented; the shapes
+/// are the real ones):
+///   system first        XQ1-Z2  Tester  Sampler nv
+///   name first          Examplia  QX65-9            Offgrid Booster  QZ-X77*
+///   count only          +5  ZQ-XWZ                  XZ-0Q7 +8
+///   count either side   Q-XZWQ 6+                   9-97XQ*  Ann Other +13
+///   trailing star       ZX-QQW*  Q2XZ-X*            (reporter convention, not part of the name)
+///   trailing period     3Q3X-Z  xyz404 +3. Naga, Flycatcher...
+///   several names       ZQ-XWZ  Al-Example  Bo da Sample  Cy Tester  Dee Placeholder +2
+///   non-English text    击杀：ann Example (黑豹级*)   短吻鳄级 10+ QXZ-ZW*
 ///   bare plus, no digit + stabber / VNI               (ignored — no number to add)
 ///
 /// "clr", "clear" and "nv" lines name a system but report no one, so they fail the
@@ -55,7 +56,7 @@ public static class IntelRules
     private const int MaxNameTokens = 3;
 
     /// <summary>Reporters mark systems with a trailing star and end sentences with punctuation;
-    /// neither is part of the name. Brackets show up as "Sevra (Loki)".</summary>
+    /// neither is part of the name. Brackets show up as "Tester (Loki)".</summary>
     private static readonly char[] Trim = ['*', '.', ',', ':', ';', '!', '?', '(', ')', '[', ']', '"', '\''];
 
     /// <summary>
@@ -214,7 +215,7 @@ public static class IntelRules
     /// <summary>
     /// Every token run that could be a character name, for the caller to resolve in one batch.
     /// Runs that already match a system are skipped: a system name is never also asked about as
-    /// a character, which is what keeps "C-FD0D Some Pilot C-FD0D" from being resolved twice.
+    /// a character, which is what keeps "QZ-X77 Some Pilot QZ-X77" from being resolved twice.
     /// </summary>
     public static IReadOnlyList<string> NameCandidates(string message, Func<string, bool> isSystem)
     {
@@ -247,9 +248,9 @@ public static class IntelRules
     {
         if (string.IsNullOrWhiteSpace(message)) return null;
 
-        // A question is a request for intel, not a report of it — "C-FD0D* Update?" asks whether
+        // A question is a request for intel, not a report of it — "QZ-X77* Update?" asks whether
         // anyone has eyes on a system, and reads to the parser exactly like a sighting with no
-        // one in it. Only a count rescues it: "ZD1-Z2 +3?" is someone unsure of the number, and
+        // one in it. Only a count rescues it: "XQ1-Z2 +3?" is someone unsure of the number, and
         // that is still a sighting.
         var isQuestion = message.TrimEnd().EndsWith('?');
 
@@ -265,7 +266,7 @@ public static class IntelRules
         var note   = new List<string>();
         var plus   = 0;
 
-        // A hull named before any pilot — "Loki  Sevra", or a bare list of hulls — waits for the
+        // A hull named before any pilot — "Loki  Tester", or a bare list of hulls — waits for the
         // next pilot to attach to.
         string? pendingShip = null;
 
@@ -320,10 +321,10 @@ public static class IntelRules
                     {
                         if (pilots.Count > 0 && ships[^1] is null)
                         {
-                            ships[^1]  = run;                       // "Sevra (Loki)"
+                            ships[^1]  = run;                       // "Tester (Loki)"
                             pilots[^1] = pilots[^1] with { Ship = run };
                         }
-                        else pendingShip ??= run;                   // "Loki  Sevra"
+                        else pendingShip ??= run;                   // "Loki  Tester"
 
                         i      += len;
                         matched = true;
@@ -347,15 +348,15 @@ public static class IntelRules
 
         if (system is null) return null;
 
-        // Asked, not reported. Checked before the count so a question naming a pilot — "ZD1-Z2
-        // Sevra?" — is dropped too; that is somebody wondering whether Sevra is still there.
+        // Asked, not reported. Checked before the count so a question naming a pilot — "XQ1-Z2
+        // Tester?" — is dropped too; that is somebody wondering whether Tester is still there.
         if (isQuestion && plus == 0) return null;
 
         // A named pilot counts as one; "+3" means three more on top of whoever was named, and on
         // its own means three unnamed.
         var count = names.Count + plus;
 
-        // "ZD1-Z2 clr" — a system, nobody in it, and the word for it. Reported rather than
+        // "XQ1-Z2 clr" — a system, nobody in it, and the word for it. Reported rather than
         // dropped so the caller can retire the standing sightings for that system: somebody has
         // looked, and whoever was there has gone.
         if (count == 0)

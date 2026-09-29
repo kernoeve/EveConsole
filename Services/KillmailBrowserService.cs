@@ -416,7 +416,7 @@ public class KillmailBrowserService(
         // Ship name
         string shipName = typeNames.TryGetValue(detail.VictimShipTypeId, out var vsn) ? vsn : detail.VictimShipTypeId.ToString();
 
-        // Nearest celestial + distance, e.g. "Stargate (6-IAFR) (3599.69 km)" — matches
+        // Nearest celestial + distance, e.g. "Stargate (Jita) (3599.69 km)" — matches
         // what zKillboard shows. Positions are raw ESI meters on both sides, so directly
         // comparable; skipped entirely when the killmail has no recorded position.
         var locationText = "";
