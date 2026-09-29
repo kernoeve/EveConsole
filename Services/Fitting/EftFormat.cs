@@ -164,9 +164,17 @@ public static class EftFormat
         return fit;
     }
 
-    /// <summary>Active if the module can be activated, else online — what a pilot undocks with.</summary>
+    /// <summary>
+    /// Active if the module can be activated, else online — what a pilot fights with. Cloaks and
+    /// cynosural field generators are the exception: running one changes the ship's numbers in
+    /// ways nobody reading a fit wants (a cloak halves scan resolution, a cyno stops the ship), so
+    /// they start online and are switched on by hand.
+    /// </summary>
     public static ModuleState DefaultState(DogmaData data, DogmaTypeInfo type) =>
-        CanActivate(data, type) ? ModuleState.Active : ModuleState.Online;
+        CanActivate(data, type) && !StartsOnline.Contains(type.GroupId) ? ModuleState.Active : ModuleState.Online;
+
+    /// <summary>Cloaking Device and Cynosural Field Generator (standard, covert and industrial).</summary>
+    private static readonly HashSet<int> StartsOnline = [330, 658];
 
     /// <summary>
     /// Whether the module is switched on and off in space: its own cycling (default) effect is an
