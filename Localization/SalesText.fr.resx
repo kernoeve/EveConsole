@@ -329,7 +329,7 @@
     <value>Ouvrir dans l'explorateur d'entités</value>
   </data>
   <data name="ColOrder" xml:space="preserve">
-    <value>N° de commande</value>
+    <value>Commande</value>
   </data>
   <data name="ColLabels" xml:space="preserve">
     <value>Étiquettes</value>
@@ -365,7 +365,7 @@
     <value>Date est.</value>
   </data>
   <data name="ColPri" xml:space="preserve">
-    <value>Prio.</value>
+    <value>Prio</value>
   </data>
   <data name="ColPurchasePrice" xml:space="preserve">
     <value>Prix d'achat</value>
@@ -377,13 +377,13 @@
     <value>Clôturée le</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Coût de construction</value>
+    <value>Coût de constr.</value>
   </data>
   <data name="ColProfit" xml:space="preserve">
-    <value>Bénéfice</value>
+    <value>Bénéf.</value>
   </data>
   <data name="ColProfit2" xml:space="preserve">
-    <value>Bénéfice %</value>
+    <value>Bénéf. %</value>
   </data>
   <data name="SalesTracker" xml:space="preserve">
     <value>Suivi des ventes →</value>
@@ -464,10 +464,10 @@
     <value>Rés. perso.</value>
   </data>
   <data name="ColBuildCost2" xml:space="preserve">
-    <value>Coût de construction</value>
+    <value>Coût constr.</value>
   </data>
   <data name="ColMktValue" xml:space="preserve">
-    <value>Val. marchande</value>
+    <value>Val. marché</value>
   </data>
   <data name="ColContract2" xml:space="preserve">
     <value>Contrat</value>
@@ -479,7 +479,7 @@
     <value>Bénéfice</value>
   </data>
   <data name="ColProfit4" xml:space="preserve">
-    <value>Bénéfice %</value>
+    <value>Bénéf. %</value>
   </data>
   <data name="ColReadyEst" xml:space="preserve">
     <value>Prêt (est.)</value>
@@ -578,7 +578,7 @@
     <value>Vente totale</value>
   </data>
   <data name="ColBuildPrice" xml:space="preserve">
-    <value>Prix de construction</value>
+    <value>Prix de constr.</value>
   </data>
   <data name="ColMarketPrice" xml:space="preserve">
     <value>Prix du marché</value>
@@ -1146,7 +1146,7 @@ Cliquez pour ouvrir le contrat {0} dans l'outil Contrats.</value>
     <value>Sélectionnez d'abord une annonce.</value>
   </data>
   <data name="SlackNotConfigured" xml:space="preserve">
-    <value>Aucun canal ni webhook Slack configuré.</value>
+    <value>Aucun canal Slack ni webhook configuré.</value>
   </data>
   <data name="SlackAlreadyPosted" xml:space="preserve">
     <value>L'annonce « {0} » a déjà été publiée sur Slack {1}.
@@ -1172,7 +1172,7 @@ Cliquez pour ouvrir le contrat {0} dans l'outil Contrats.</value>
     <value>Rien à publier — tous les blocs de publication étaient vides.</value>
   </data>
   <data name="SlackPosted" xml:space="preserve">
-    <value>Publiée dans {0} — {1:t}</value>
+    <value>Publiée sur {0} — {1:t}</value>
   </data>
   <data name="SelectSectionFirst" xml:space="preserve">
     <value>Sélectionnez d'abord une section (ou un objet d'une section).</value>

@@ -251,7 +251,7 @@
     <value>Rapports de victimes</value>
   </data>
   <data name="ScopeLabel" xml:space="preserve">
-    <value>Portée : </value>
+    <value>Périmètre : </value>
   </data>
   <data name="CoverageLabel" xml:space="preserve">
     <value>Couverture : </value>

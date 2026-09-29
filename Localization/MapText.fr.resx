@@ -11,10 +11,10 @@
     <value>Coque</value>
   </data>
   <data name="JumpDriveCalibrationLabel" xml:space="preserve">
-    <value>Étalonnage du propulseur hyperspatial</value>
+    <value>Étalonnage du propulseur</value>
   </data>
   <data name="JumpFuelConservationLabel" xml:space="preserve">
-    <value>Économie de carburant de saut hyperspatial</value>
+    <value>Économie de carburant de saut</value>
   </data>
   <data name="JumpThroughLabel" xml:space="preserve">
     <value>Escales autorisées</value>
@@ -602,19 +602,19 @@
     <value>Production</value>
   </data>
   <data name="TipServiceManufacturing" xml:space="preserve">
-    <value>Usine PNJ, ou usine de production ou chantier naval Standup</value>
+    <value>Usine PNJ, ou Standup Manufacturing Plant, Standup Capital Shipyard ou Standup Supercapital Shipyard</value>
   </data>
   <data name="ServiceResearch" xml:space="preserve">
     <value>Recherche / invention</value>
   </data>
   <data name="TipServiceResearch" xml:space="preserve">
-    <value>Laboratoire PNJ, ou laboratoire de recherche ou d'invention Standup</value>
+    <value>Laboratoire PNJ, ou Standup Research Lab ou Standup Invention Lab</value>
   </data>
   <data name="ServiceReprocessing" xml:space="preserve">
     <value>Retraitement</value>
   </data>
   <data name="TipServiceReprocessing" xml:space="preserve">
-    <value>Usine de retraitement ou raffinerie PNJ, ou usine de retraitement Standup</value>
+    <value>Usine de retraitement ou raffinerie PNJ, ou Usine de retraitement 'Standup'</value>
   </data>
   <data name="ServiceReactions" xml:space="preserve">
     <value>Réactions</value>
@@ -626,13 +626,13 @@
     <value>Centre médical</value>
   </data>
   <data name="TipServiceCloning" xml:space="preserve">
-    <value>Installation PNJ de clonage ou de clone hyperspatial, ou centre de clonage Standup</value>
+    <value>Installation PNJ de clonage ou de clone hyperspatial, ou Centre de clonage 'Standup'</value>
   </data>
   <data name="ServiceMarket" xml:space="preserve">
     <value>Marché</value>
   </data>
   <data name="TipServiceMarket" xml:space="preserve">
-    <value>Marché PNJ, ou centre d'affaires Standup</value>
+    <value>Marché PNJ, ou Centre d'affaires 'Standup'</value>
   </data>
   <data name="DockSupers" xml:space="preserve">
     <value>Supercapitaux — Keepstar uniquement</value>

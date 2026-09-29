@@ -98,7 +98,7 @@
     <value>Expéditeur</value>
   </data>
   <data name="ColSenderType" xml:space="preserve">
-    <value>Type d'expéditeur</value>
+    <value>Type d'expéd.</value>
   </data>
   <data name="ColRead" xml:space="preserve">
     <value>Lue</value>

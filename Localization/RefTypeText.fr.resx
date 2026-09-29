@@ -53,13 +53,13 @@
     <value>Services rendus - Agent</value>
   </data>
   <data name="AgentsPreward" xml:space="preserve">
-    <value>Récompense anticipée - Agent</value>
+    <value>Pré-récompense - Agent</value>
   </data>
   <data name="AirCareerProgramReward" xml:space="preserve">
     <value>Récompense du programme de carrières de l'AIR</value>
   </data>
   <data name="AllianceMaintainanceFee" xml:space="preserve">
-    <value>Frais d'entretien - Alliance</value>
+    <value>Frais de maintenance - Alliance</value>
   </data>
   <data name="AllianceRegistrationFee" xml:space="preserve">
     <value>Frais d'inscription - Alliance</value>
@@ -200,22 +200,22 @@
     <value>Frais d'inscription - Corporation</value>
   </data>
   <data name="CosmeticMarketComponentItemPurchase" xml:space="preserve">
-    <value>Achat d'élément de design - Centre Paragon</value>
+    <value>Achat d'élément de design du centre Paragon</value>
   </data>
   <data name="CosmeticMarketSkinPurchase" xml:space="preserve">
-    <value>Achat de SKIN - Centre Paragon</value>
+    <value>Achat de SKIN du centre Paragon</value>
   </data>
   <data name="CosmeticMarketSkinSale" xml:space="preserve">
-    <value>Vente de SKIN - Centre Paragon</value>
+    <value>Vente de SKIN au centre Paragon</value>
   </data>
   <data name="CosmeticMarketSkinSaleBrokerFee" xml:space="preserve">
-    <value>Frais de courtage de vente de SKIN - Centre Paragon</value>
+    <value>Frais d'annonce au centre Paragon</value>
   </data>
   <data name="CosmeticMarketSkinSaleTax" xml:space="preserve">
-    <value>Taxe de vente de SKIN - Centre Paragon</value>
+    <value>Frais de vendeur au centre Paragon</value>
   </data>
   <data name="CosmeticMarketSkinTransaction" xml:space="preserve">
-    <value>Transaction de SKIN - Centre Paragon</value>
+    <value>Transaction de SKIN du centre Paragon</value>
   </data>
   <data name="CourierMissionEscrow" xml:space="preserve">
     <value>Dépôt fiduciaire de mission de courrier</value>
@@ -224,7 +224,7 @@
     <value>Frais CSPA</value>
   </data>
   <data name="Cspaofflinerefund" xml:space="preserve">
-    <value>Remboursement des frais CSPA (hors ligne)</value>
+    <value>Remboursement hors-ligne CSPA</value>
   </data>
   <data name="DailyChallengeReward" xml:space="preserve">
     <value>Récompense de défi quotidien</value>
@@ -269,16 +269,16 @@
     <value>Frais de location d'un créneau d'usine</value>
   </data>
   <data name="FluxPayout" xml:space="preserve">
-    <value>Paiement Flux</value>
+    <value>Crédit relais Hypernet terminé</value>
   </data>
   <data name="FluxTax" xml:space="preserve">
-    <value>Taxe Flux</value>
+    <value>Coût du relais Hypernet</value>
   </data>
   <data name="FluxTicketRepayment" xml:space="preserve">
-    <value>Remboursement de ticket Flux</value>
+    <value>Remboursement d'Hyper nœud pour l'offre Hypernet arrivée à expiration</value>
   </data>
   <data name="FluxTicketSale" xml:space="preserve">
-    <value>Vente de ticket Flux</value>
+    <value>Transaction d'Hyper nœuds</value>
   </data>
   <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
     <value>Frais de diffusion des missions freelance</value>
@@ -437,13 +437,13 @@
     <value>Impôt de retraitement</value>
   </data>
   <data name="ResearchingMaterialProductivity" xml:space="preserve">
-    <value>Recherche en efficacité matérielle</value>
+    <value>Recherche efficacité de matériaux</value>
   </data>
   <data name="ResearchingTechnology" xml:space="preserve">
     <value>Recherche en technologie</value>
   </data>
   <data name="ResearchingTimeProductivity" xml:space="preserve">
-    <value>Recherche en gain de temps</value>
+    <value>Recherche gain de temps</value>
   </data>
   <data name="ResourceWarsReward" xml:space="preserve">
     <value>Récompense des Guerres de ressources</value>
@@ -455,7 +455,7 @@
     <value>Récompense de défi saisonnier</value>
   </data>
   <data name="SecurityProcessingFee" xml:space="preserve">
-    <value>Frais de traitement de sécurité</value>
+    <value>Frais de traitement d'insignes de sécurité</value>
   </data>
   <data name="Shares" xml:space="preserve">
     <value>Actions</value>

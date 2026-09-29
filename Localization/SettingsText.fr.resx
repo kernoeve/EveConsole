@@ -155,7 +155,7 @@
     <value>Mise à jour des données statiques d'EVE</value>
   </data>
   <data name="ANewerEveStaticNote" xml:space="preserve">
-    <value>Une version plus récente des données statiques d'EVE est disponible.</value>
+    <value>Une nouvelle version des données statiques d'EVE est disponible.</value>
   </data>
   <data name="LoadedLabel" xml:space="preserve">
     <value>Chargée :</value>
@@ -248,7 +248,7 @@
     <value>Libres / total</value>
   </data>
   <data name="ColSkillQueue" xml:space="preserve">
-    <value>File de compétences</value>
+    <value>File compét.</value>
   </data>
   <data name="TipCharacterSkillQueueShould" xml:space="preserve">
     <value>La file de compétences du personnage doit rester active. Décochez pour un alt dont la file est vide exprès : ni les alertes de la vue d'ensemble ni la liste de tâches ne le signaleront.</value>
@@ -332,7 +332,7 @@
     <value>Filtre (%)</value>
   </data>
   <data name="Enabled" xml:space="preserve">
-    <value>Activé</value>
+    <value>Activée</value>
   </data>
   <data name="LastRefreshLabel" xml:space="preserve">
     <value>Dernière actualisation :</value>
@@ -617,7 +617,7 @@
     <value>Activer l'import des destructions zKillboard</value>
   </data>
   <data name="Scope" xml:space="preserve">
-    <value>Portée</value>
+    <value>Périmètre</value>
   </data>
   <data name="MyCharactersCorpOnly" xml:space="preserve">
     <value>Mes personnages et ma corporation uniquement</value>

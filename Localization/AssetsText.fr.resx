@@ -182,7 +182,7 @@
     <value>Travaux ind.</value>
   </data>
   <data name="ColBuyOrders" xml:space="preserve">
-    <value>Ordres d'achat</value>
+    <value>Ord. d'achat</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
     <value>Contrats</value>
@@ -518,7 +518,7 @@ Modifier la liste la fait réapparaître.</value>
     <value>Total</value>
   </data>
   <data name="ColVsBest" xml:space="preserve">
-    <value>vs meilleur</value>
+    <value>Écart</value>
   </data>
   <data name="TabMarketCompare" xml:space="preserve">
     <value>Comparaison des marchés</value>
@@ -608,7 +608,7 @@ Modifier la liste la fait réapparaître.</value>
     <value>365 derniers jours</value>
   </data>
   <data name="FallbackGroupName" xml:space="preserve">
-    <value>Groupe #{0}</value>
+    <value>Groupe n° {0}</value>
   </data>
   <data name="ErrLoadingTree" xml:space="preserve">
     <value>Erreur de chargement de l'arborescence : {0}</value>
@@ -680,7 +680,7 @@ Modifier la liste la fait réapparaître.</value>
     <value>Prix de base</value>
   </data>
   <data name="FallbackBlueprintName" xml:space="preserve">
-    <value>Plan #{0}</value>
+    <value>Plan n° {0}</value>
   </data>
   <data name="ActivityManufacturing" xml:space="preserve">
     <value>Production</value>
@@ -701,7 +701,7 @@ Modifier la liste la fait réapparaître.</value>
     <value>Recherche TE</value>
   </data>
   <data name="FallbackSkillName" xml:space="preserve">
-    <value>Compétence #{0}</value>
+    <value>Compétence n° {0}</value>
   </data>
   <data name="ActivityMaterialResearch" xml:space="preserve">
     <value>Recherche en efficacité matérielle</value>
@@ -812,13 +812,13 @@ Modifier la liste la fait réapparaître.</value>
     <value>Contrats</value>
   </data>
   <data name="IncludePackagedOnly" xml:space="preserve">
-    <value>emballés seulement</value>
+    <value>emballés uniquement</value>
   </data>
   <data name="IncludeNone" xml:space="preserve">
     <value>Rien</value>
   </data>
   <data name="ErrImportFailed" xml:space="preserve">
-    <value>Échec de l'importation : {0}</value>
+    <value>Échec de l'import : {0}</value>
   </data>
   <data name="DefaultCollection" xml:space="preserve">
     <value>Par défaut</value>

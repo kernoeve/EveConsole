@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="OwnerType" xml:space="preserve">
-    <value>Type de propriétaire</value>
+    <value>Type de propr.</value>
   </data>
   <data name="Owner" xml:space="preserve">
     <value>Propriétaire</value>
@@ -35,7 +35,7 @@
     <value>Objets</value>
   </data>
   <data name="SuccessChance" xml:space="preserve">
-    <value>Probabilité de réussite</value>
+    <value>Taux de réussite</value>
   </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>Temps restant</value>
@@ -131,7 +131,7 @@
     <value>Temps de prod.</value>
   </data>
   <data name="ColSlotDays" xml:space="preserve">
-    <value>Jours-créneau</value>
+    <value>Jour-créneau</value>
   </data>
   <data name="ColProfitSlotDay" xml:space="preserve">
     <value>Bénéf./jour-créneau</value>
@@ -437,7 +437,7 @@
     <value>Surplus</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Valeur constr.</value>
+    <value>Val. constr.</value>
   </data>
   <data name="ColLeftoverValue" xml:space="preserve">
     <value>Valeur surplus</value>
@@ -455,7 +455,7 @@
     <value>Produits finaux</value>
   </data>
   <data name="ColReq" xml:space="preserve">
-    <value>Demandé</value>
+    <value>Dem.</value>
   </data>
   <data name="ColMatCost" xml:space="preserve">
     <value>Coût mat.</value>

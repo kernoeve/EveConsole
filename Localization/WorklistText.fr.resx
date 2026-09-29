@@ -119,7 +119,7 @@
     <value>Besoins des stations</value>
   </data>
   <data name="ColWhy" xml:space="preserve">
-    <value>Pourquoi</value>
+    <value>Motif</value>
   </data>
   <data name="TipWhatIsAskingForThis" xml:space="preserve">
     <value>Ce qui en fait la demande</value>
@@ -146,10 +146,10 @@
     <value>Manque</value>
   </data>
   <data name="ColShortValue" xml:space="preserve">
-    <value>Valeur manquante</value>
+    <value>Val. manquante</value>
   </data>
   <data name="ColShortVolume" xml:space="preserve">
-    <value>Volume manquant</value>
+    <value>Vol. manquant</value>
   </data>
   <data name="ColOrderJobs" xml:space="preserve">
     <value>Commandes</value>
@@ -500,7 +500,7 @@
     <value>Fin</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Coût de construction</value>
+    <value>Coût de constr.</value>
   </data>
   <data name="ColMarketValue" xml:space="preserve">
     <value>Valeur marchande</value>
@@ -632,7 +632,7 @@
     <value>Action</value>
   </data>
   <data name="ColTriggerBelow" xml:space="preserve">
-    <value>Déclencher sous (%)</value>
+    <value>Seuil (%)</value>
   </data>
   <data name="ColFillTo" xml:space="preserve">
     <value>Remplir à (%)</value>
@@ -788,7 +788,7 @@
     <value>Protection des biens</value>
   </data>
   <data name="KindSkillQueue" xml:space="preserve">
-    <value>File d'attente de compétences</value>
+    <value>File d'apprentissage</value>
   </data>
   <data name="KindCorpProject" xml:space="preserve">
     <value>Projet de corporation</value>
@@ -815,7 +815,7 @@
     <value>Projet de corporation</value>
   </data>
   <data name="KindTipAssetSafety" xml:space="preserve">
-    <value>Protection des biens</value>
+    <value>Système de protection des biens</value>
   </data>
   <data name="KindTipSkillQueue" xml:space="preserve">
     <value>File d'attente de compétences</value>
@@ -1844,7 +1844,7 @@
     <value>À {0} : {1:N0} unités à décomprimer — {2} et {3} de plus.</value>
   </data>
   <data name="SourceAssetSafety" xml:space="preserve">
-    <value>Protection des biens</value>
+    <value>Système de protection des biens</value>
   </data>
   <data name="StationWithIdLower" xml:space="preserve">
     <value>station {0}</value>

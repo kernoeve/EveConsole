@@ -104,10 +104,10 @@
     <value>Qté</value>
   </data>
   <data name="ColMarketValue" xml:space="preserve">
-    <value>Valeur marchande</value>
+    <value>Val. marché</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Valeur constr.</value>
+    <value>Val. constr.</value>
   </data>
   <data name="ColDetails" xml:space="preserve">
     <value>Détails</value>
@@ -788,7 +788,7 @@
     <value>Type {0}</value>
   </data>
   <data name="SeriesSalesIsk" xml:space="preserve">
-    <value>Ventes (ISK)</value>
+    <value>ISK des ventes</value>
   </data>
   <data name="StatusAllRegions" xml:space="preserve">
     <value>toutes les régions</value>
@@ -947,7 +947,7 @@
     <value>ISK par PL</value>
   </data>
   <data name="HistoryRange" xml:space="preserve">
-    <value>{0:N0} jour(s) — de {1:N2} à {2:N2} ISK/PL</value>
+    <value>{0:N0} jour(s) — de {1:N2} à {2:N2} ISK/PL</value>
   </data>
   <data name="TipStationNotTracked" xml:space="preserve">
     <value>Cette station n'est pas une source de marché configurée : les offres concurrentes sont donc inconnues. Ajoutez-la dans Paramètres → Marché.</value>

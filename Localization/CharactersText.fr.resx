@@ -35,13 +35,13 @@
     <value>Vaisseau</value>
   </data>
   <data name="ColPodValue" xml:space="preserve">
-    <value>Valeur capsule</value>
+    <value>Val. capsule</value>
   </data>
   <data name="ColHomeStation" xml:space="preserve">
     <value>Station d'origine</value>
   </data>
   <data name="ColSkillQueue" xml:space="preserve">
-    <value>File de compétences</value>
+    <value>File compét.</value>
   </data>
   <data name="TipEntriesInTheQueue" xml:space="preserve">
     <value>Nombre d'entrées dans la file, et temps restant avant la fin de la dernière.</value>
@@ -125,7 +125,7 @@
     <value>Reprogrammation neurale</value>
   </data>
   <data name="LastRemapLabel" xml:space="preserve">
-    <value>Dernière reprogrammation :</value>
+    <value>Dern. reprogrammation :</value>
   </data>
   <data name="TabClones" xml:space="preserve">
     <value>Clones</value>

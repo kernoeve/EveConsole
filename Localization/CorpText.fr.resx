@@ -356,13 +356,13 @@
     <value>Ce mois-ci</value>
   </data>
   <data name="Change" xml:space="preserve">
-    <value>Évolution</value>
+    <value>Variation</value>
   </data>
   <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
-    <value>Évolution par rapport au mois précédent</value>
+    <value>Variation par rapport au mois précédent</value>
   </data>
   <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
-    <value>Évolution en pourcentage par rapport au mois précédent</value>
+    <value>Variation en pourcentage par rapport au mois précédent</value>
   </data>
   <data name="FmtRows" xml:space="preserve">
     <value>{0:N0} lignes</value>
@@ -452,7 +452,7 @@
     <value>Qté</value>
   </data>
   <data name="ColRequires" xml:space="preserve">
-    <value>Requiert</value>
+    <value>Objets requis</value>
   </data>
   <data name="TabFactionWarfare" xml:space="preserve">
     <value>Guerre de factions</value>
@@ -485,7 +485,7 @@
     <value>Renseignements</value>
   </data>
   <data name="ColWhen" xml:space="preserve">
-    <value>Quand</value>
+    <value>Date</value>
   </data>
   <data name="ColShip" xml:space="preserve">
     <value>Vaisseau</value>
