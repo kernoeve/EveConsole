@@ -208,14 +208,18 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     {
         public static readonly ZkbPeriod None = new(0, 0, 0, 0, 0, 0, null);
         public bool IsEmpty => ShipsDestroyed == 0 && ShipsLost == 0;
+
+        /// <summary>Kills and losses with no one else involved, in the period.</summary>
+        public long SoloKills  { get; init; }
+        public long SoloLosses { get; init; }
+
+        /// <summary>The average number of pilots on its kills in the period, or null when
+        /// zKillboard gives no breakdown to work it from.</summary>
+        public double? AvgGangSize { get; init; }
     }
 
-    /// <summary>The summary zKillboard shows above an entity's kill list.</summary>
-    /// <param name="DangerRatio">Percent of its fights it was the killer rather than the killed —
-    /// zKillboard's "Dangerous" against "Snuggly".</param>
-    /// <param name="GangRatio">Percent of its kills made with others rather than solo.</param>
-    public sealed record ZkbStats(ZkbPeriod AllTime, ZkbPeriod Recent, ZkbPeriod Weekly,
-        int? DangerRatio, int? GangRatio, double? AvgGangSize, long SoloKills, long SoloLosses);
+    /// <summary>The summary zKillboard shows above an entity's kill list, for each period.</summary>
+    public sealed record ZkbStats(ZkbPeriod AllTime, ZkbPeriod Recent, ZkbPeriod Weekly);
 
     /// <summary>An entity's zKillboard stats, or why there are none.</summary>
     /// <param name="Stats">Null with no <paramref name="Problem"/>: zKillboard has no record of it.</param>
@@ -223,14 +227,20 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
 
     /// <summary>
     /// An entity's summary from <c>/api/stats/{character|corporation|alliance}ID/{id}/</c>: kills,
-    /// losses, points and ISK for all time, the last 90 days and the last 7, with ranks, and the
-    /// danger and gang ratios — what zKillboard shows above an entity's kill list.
+    /// losses, points and ISK for all time, the last 90 days and the last 7, with ranks, solo kills
+    /// and losses and the average gang — what zKillboard shows above an entity's kill list, and
+    /// what its danger and gang ratios are worked out from for each period.
     ///
     /// <para>Shapes measured 2026-09-28. It answers with a 302 to <c>…/kills/</c>, which the
-    /// client follows. The periods are <c>rankings.{alltime,recent,weekly}.all</c>, each with
-    /// <c>metrics</c> and usually <c>ranks</c> — but a quiet entity's period can have metrics and
-    /// no ranks, or be an empty list, or be missing. An id it has no record of is answered, with a
-    /// 200, as <c>{"error":"Invalid type or id"}</c>.</para>
+    /// client follows. All time is the totals at the root, ranked by
+    /// <c>rankings.alltime.all.ranks</c>; 90 and 7 days are <c>rankings.{recent,weekly}.all</c>,
+    /// each with <c>metrics</c> and usually <c>ranks</c> — but a quiet entity's period can have
+    /// metrics and no ranks, or be an empty list, or be missing. An id it has no record of is
+    /// answered, with a 200, as <c>{"error":"Invalid type or id"}</c>.</para>
+    ///
+    /// <para>Figures are read where zKillboard's own entity page reads them (its
+    /// view/overview.php), so the panel and that page agree — but for a quiet entity's solo
+    /// counts, which that page misses (see Period below).</para>
     /// </summary>
     public async Task<EntityStats> GetEntityStatsAsync(
         string entityType, long entityId, CancellationToken ct = default)
@@ -281,24 +291,60 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
                                    Rank(ranks, "iskDestroyed"), Rank(ranks, "iskLost"))
                     : null);
 
-            ZkbPeriod? Period(string key)
+            // zKillboard's own average: each attacker-count bucket's kills at its lower bound, solo
+            // as one, rounded half away from zero as PHP rounds. Measured against its all-time
+            // avgGangSize: 13.7 for a large alliance, 37.6 for a pilot. The buckets exist per
+            // period, as labels, recentLabels and weeklyLabels.
+            static double? AvgGang(JsonElement labels)
             {
-                var all = Obj(Obj(Obj(root, "rankings"), key), "all");
-                return all.ValueKind == JsonValueKind.Object ? From(Obj(all, "metrics"), Obj(all, "ranks")) : null;
+                if (labels.ValueKind != JsonValueKind.Object) return null;
+                (string Key, int Size)[] buckets =
+                    [("solo", 1), ("#:2+", 2), ("#:5+", 5), ("#:10+", 10), ("#:25+", 25), ("#:50+", 50), ("#:100+", 100), ("#:1000+", 1000)];
+                long kills = 0;
+                double weighted = 0;
+                foreach (var (key, size) in buckets)
+                {
+                    var count = L(Obj(labels, key), "shipsDestroyed");
+                    kills    += count;
+                    weighted += (double)size * count;
+                }
+                return kills == 0 ? null : Math.Round(weighted / kills, 1, MidpointRounding.AwayFromZero);
             }
 
-            // All time from the rankings, which carry the ranks; failing that, the totals at the
-            // root, which every entity with a record has.
-            var allTime = Period("alltime") ?? From(root, default);
+            // 90 and 7 days: figures and ranks from that period's rankings, solo kills and losses
+            // from its solo rankings. Those leave out a quiet entity even when it has solo kills (a
+            // pilot measured with 18 had no solo row at all), so failing them, the period's own solo
+            // bucket, which is zKillboard's count of the same kills.
+            ZkbPeriod Period(string key, string labelsKey)
+            {
+                var period = Obj(Obj(root, "rankings"), key);
+                var all    = Obj(period, "all");
+                if (all.ValueKind != JsonValueKind.Object) return ZkbPeriod.None;
+
+                var labels = Obj(root, labelsKey);
+                var solo   = Obj(Obj(period, "solo"), "metrics") is { ValueKind: JsonValueKind.Object } ranked
+                    ? ranked : Obj(labels, "solo");
+                return From(Obj(all, "metrics"), Obj(all, "ranks")) with
+                {
+                    SoloKills   = L(solo, "shipsDestroyed"),
+                    SoloLosses  = L(solo, "shipsLost"),
+                    AvgGangSize = AvgGang(labels),
+                };
+            }
+
+            // All time: the totals at the root, which zKillboard's page shows and works its
+            // published ratios out from, with the ranks from the all-time rankings.
+            var allTime = From(root, Obj(Obj(Obj(Obj(root, "rankings"), "alltime"), "all"), "ranks")) with
+            {
+                SoloKills   = L(root, "soloKills"),
+                SoloLosses  = L(root, "soloLosses"),
+                AvgGangSize = AvgGang(Obj(root, "labels")),
+            };
 
             return new EntityStats(new ZkbStats(
                 allTime,
-                Period("recent") ?? ZkbPeriod.None,
-                Period("weekly") ?? ZkbPeriod.None,
-                root.TryGetProperty("dangerRatio", out var dr) && dr.ValueKind == JsonValueKind.Number ? (int)Math.Round(dr.GetDouble()) : null,
-                root.TryGetProperty("gangRatio",   out var gr) && gr.ValueKind == JsonValueKind.Number ? (int)Math.Round(gr.GetDouble()) : null,
-                root.TryGetProperty("avgGangSize", out var ag) && ag.ValueKind == JsonValueKind.Number ? ag.GetDouble() : null,
-                L(root, "soloKills"), L(root, "soloLosses")), null);
+                Period("recent", "recentLabels"),
+                Period("weekly", "weeklyLabels")), null);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {

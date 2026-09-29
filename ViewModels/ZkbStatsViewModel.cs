@@ -10,7 +10,8 @@ public sealed record ZkbStatRow(string Destroyed, string DestroyedRank, string L
 
 /// <summary>
 /// The zKillboard panel in an entity's header: ships, points and ISK destroyed and lost, with
-/// ranks, for all time, the last 90 days or the last 7 — and the danger and gang ratios under it.
+/// ranks, for all time, the last 90 days or the last 7 — and under them the danger and gang
+/// ratios for the same period.
 ///
 /// <para>zKillboard's own figures, never counted here: the database holds only the kills something
 /// brought in, which for anyone but our own is a sample, and a header counting that sample read
@@ -59,21 +60,61 @@ public class ZkbStatsVm : ReactiveObject
     private bool _hasFigures;
     public bool HasFigures { get => _hasFigures; private set => this.RaiseAndSetIfChanged(ref _hasFigures, value); }
 
-    // ── Danger and gang — zKillboard gives these for all time only ─────────────
+    // ── Danger and gang, for the period shown ─────────────────────────────────
+    //
+    // Worked out as zKillboard's own entity page works them out (its view/overview.php), which
+    // draws both bars for each period. For all time they match the dangerRatio and gangRatio its
+    // API publishes (34 and 92 for a large alliance, 68 and 99 for a pilot), bar the one case
+    // noted under gang below.
 
-    public bool   HasDanger   => _stats.DangerRatio is not null;
-    public double DangerValue => _stats.DangerRatio ?? 0;
-    public string DangerText  => $"Dangerous {_stats.DangerRatio ?? 0}%";
-    public string SnugglyText => $"{100 - (_stats.DangerRatio ?? 0)}% Snuggly";
+    private bool _hasDanger;
+    public bool HasDanger { get => _hasDanger; private set => this.RaiseAndSetIfChanged(ref _hasDanger, value); }
 
-    public bool   HasGang   => _stats.GangRatio is not null;
-    public double GangValue => _stats.GangRatio ?? 0;
-    public string GangText  => $"Gang {_stats.GangRatio ?? 0}%";
-    public string SoloText  => $"{100 - (_stats.GangRatio ?? 0)}% Solo";
+    private double _dangerValue;
+    public double DangerValue { get => _dangerValue; private set => this.RaiseAndSetIfChanged(ref _dangerValue, value); }
 
-    public string GangDetail =>
-        (_stats.AvgGangSize is { } avg ? $"average gang {avg:0.#} · " : "")
-        + $"{_stats.SoloKills:N0} solo kill(s), {_stats.SoloLosses:N0} solo loss(es)";
+    private string _dangerText = "", _snugglyText = "";
+    public string DangerText  { get => _dangerText;  private set => this.RaiseAndSetIfChanged(ref _dangerText, value); }
+    public string SnugglyText { get => _snugglyText; private set => this.RaiseAndSetIfChanged(ref _snugglyText, value); }
+
+    private bool _hasGang;
+    public bool HasGang { get => _hasGang; private set => this.RaiseAndSetIfChanged(ref _hasGang, value); }
+
+    private double _gangValue;
+    public double GangValue { get => _gangValue; private set => this.RaiseAndSetIfChanged(ref _gangValue, value); }
+
+    private string _gangText = "", _soloText = "", _gangDetail = "";
+    public string GangText   { get => _gangText;   private set => this.RaiseAndSetIfChanged(ref _gangText, value); }
+    public string SoloText   { get => _soloText;   private set => this.RaiseAndSetIfChanged(ref _soloText, value); }
+    public string GangDetail { get => _gangDetail; private set => this.RaiseAndSetIfChanged(ref _gangDetail, value); }
+
+    private void ShowRatios(ZkillboardApiClient.ZkbPeriod p)
+    {
+        // Dangerous: ships and points destroyed, against those and ships and points lost, rounded
+        // down. The division comes first, as in zKillboard, so a share on a whole number rounds
+        // down the same way: 29 of 100 is 28.999… that way, and 28%.
+        HasDanger = p.ShipsDestroyed + p.ShipsLost > 0;
+        var destroyed = (double)p.ShipsDestroyed + p.PointsDestroyed;
+        var lost      = (double)p.ShipsLost + p.PointsLost;
+        var danger = HasDanger ? (int)Math.Floor(destroyed / (lost + destroyed) * 100) : 0;
+        DangerValue = danger;
+        DangerText  = $"Dangerous {danger}%";
+        SnugglyText = $"{100 - danger}% Snuggly";
+
+        // Gang: the share of the period's kills that were not solo; no solo kill is all gang, as
+        // zKillboard's page shows it. (The all-time gangRatio its API publishes guesses from the
+        // points a kill was worth instead, for an entity with no solo kill ever.) A period with
+        // no kills has no gang bar here; zKillboard's page draws one anyway, at 100% for 90 days
+        // and 0% for 7.
+        HasGang = p.ShipsDestroyed > 0;
+        var gang = HasGang ? 100 - (int)Math.Floor(100 * ((double)p.SoloKills / p.ShipsDestroyed)) : 0;
+        GangValue = gang;
+        GangText  = $"Gang {gang}%";
+        SoloText  = $"{100 - gang}% Solo";
+
+        GangDetail = (p.AvgGangSize is { } avg ? $"average gang {avg:0.#} · " : "")
+                   + $"{p.SoloKills:N0} solo kill(s), {p.SoloLosses:N0} solo loss(es)";
+    }
 
     private static readonly ZkbStatRow Blank = new("", "", "", "", "");
 
@@ -104,6 +145,7 @@ public class ZkbStatsVm : ReactiveObject
                        _           => "No kills or losses on zKillboard.",
                    };
         HasFigures = !p.IsEmpty;
+        ShowRatios(p);
 
         this.RaisePropertyChanged(nameof(IsAllTime));
         this.RaisePropertyChanged(nameof(IsRecent));

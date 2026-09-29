@@ -200,7 +200,7 @@
                   <TextBlock Grid.Row="3" Grid.Column="5" Classes="num eff"       Text="{Binding Isk.Efficiency}"/>
                 </Grid>
 
-                <!-- All time only: zKillboard gives the ratios for nothing narrower. -->
+                <!-- For the period chosen above, by zKillboard's own formulas — see ZkbStatsVm. -->
                 <Grid ColumnDefinitions="92,*,80" IsVisible="{Binding HasDanger}">
                   <TextBlock Grid.Column="0" Text="{Binding DangerText}" FontSize="10" Foreground="{DynamicResource BadBrush}"
                              VerticalAlignment="Center"/>
@@ -219,7 +219,8 @@
                   <TextBlock Grid.Column="2" Text="{Binding SoloText}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </Grid>
-                <TextBlock Text="{Binding GangDetail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+                <TextBlock Text="{Binding GangDetail}" IsVisible="{Binding HasFigures}"
+                           FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
               </StackPanel>
             </StackPanel>
           </StackPanel>
