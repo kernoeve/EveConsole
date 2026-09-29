@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -13,7 +14,7 @@ public sealed class GlobalHotkeyService : IDisposable
     // WinVk: Windows Virtual Key code.  X11Keysym: X11 keysym constant.
     public static readonly IReadOnlyList<(string Name, int WinVk, uint X11Keysym)> KeyOptions =
     [
-        ("Disabled",    0,     0x0000),
+        (SettingsText.PttKeyDisabled,    0,     0x0000),
         ("F13",         0x7C,  0xFFCA),
         ("F14",         0x7D,  0xFFCB),
         ("F15",         0x7E,  0xFFCC),

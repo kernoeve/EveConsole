@@ -503,18 +503,18 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 if (!ok) return;
             }
 
-            var stopError = OperatingSystem.IsWindows()
+            var stop = OperatingSystem.IsWindows()
                 ? WindowsServiceControl.StopAndDisable()
-                : OperatingSystem.IsLinux() ? SystemdServiceControl.StopAndDisable() : null;
+                : OperatingSystem.IsLinux() ? SystemdServiceControl.StopAndDisable() : ServiceResult.Done;
 
-            if (stopError is not null)
+            if (!stop.Succeeded)
             {
                 // ⚠️ Nothing has been written yet, so stopping here really does abort. Carrying on
                 // would leave a worker running against one database and this client opening
                 // another, which is the exact state this check exists to prevent.
-                StatusText = stopError == "Cancelled."
+                StatusText = stop.Outcome == ServiceOutcome.Cancelled
                     ? SettingsText.DbSaveCancelled
-                    : string.Format(SettingsText.DbServiceStopFailed, stopError);
+                    : string.Format(SettingsText.DbServiceStopFailed, stop.Error);
                 return;
             }
         }
@@ -531,13 +531,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
             // back through AppConfig, so it has to be the new one by then.
             StatusText = SettingsText.DbServiceUpdating;
 
-            var syncError = WindowsServiceControl.Repoint();
-            if (syncError is not null)
+            var sync = WindowsServiceControl.Repoint();
+            if (!sync.Succeeded)
             {
                 // The settings are saved — that was the user's instruction and it stands. What is
                 // refused is the restart, because a client on the new database beside a service on
-                // the old one is worth stopping to look at.
-                StatusText = string.Format(SettingsText.DbServiceRepointFailed, syncError);
+                // the old one is worth stopping to look at. (A dismissed prompt included: its
+                // Error reads "Cancelled.")
+                StatusText = string.Format(SettingsText.DbServiceRepointFailed, sync.Error);
                 this.RaisePropertyChanged(nameof(EngineChanged));
                 this.RaisePropertyChanged(nameof(CanSaveDbChoice));
                 return;

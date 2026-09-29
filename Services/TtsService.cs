@@ -1,5 +1,6 @@
 using System.Text.Json;
 using EveConsole.Agent;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -654,7 +655,7 @@ public sealed class TtsService : IDisposable
     public Task<VoiceTestResult> TestVoiceAsync(VoiceProfile profile, AgentSettings keys, string text)
     {
         if (_muted)
-            return Task.FromResult(new VoiceTestResult(false, "Speech is muted — unmute it in the agent panel to hear the test."));
+            return Task.FromResult(new VoiceTestResult(false, SettingsText.VoiceTestMuted));
 
         var voice  = BuildVoice(profile.Clone(), keys);
         voice.SetVolume(_volume);
@@ -667,10 +668,10 @@ public sealed class TtsService : IDisposable
                 var why = await SpeakOrWhyNotAsync(voice, spoken, generation);
                 result.TrySetResult(
                     why is not null   ? new VoiceTestResult(false, why)
-                  : Stale(generation) ? new VoiceTestResult(false, "Stopped before it finished.")
+                  : Stale(generation) ? new VoiceTestResult(false, SettingsText.VoiceTestStopped)
                   : voice.LastSynthesis is { } made
-                      ? new VoiceTestResult(true, $"Spoke. It took {made.TotalSeconds:0.0} s to make before it could play — the wait before an answer's first sentence; each after it is made while the one before plays.")
-                      : new VoiceTestResult(true, "Spoke."));
+                      ? new VoiceTestResult(true, string.Format(SettingsText.VoiceTestSpokeTook, made.TotalSeconds))
+                      : new VoiceTestResult(true, SettingsText.VoiceTestSpoke));
             }
             catch (Exception ex) { result.TrySetResult(new VoiceTestResult(false, ex.GetBaseException().Message)); }
             finally { voice.Dispose(); }

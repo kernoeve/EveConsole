@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Agent;
 
 /// <summary>
@@ -15,7 +17,7 @@ public sealed record ModelListing(string Id, string Name, bool Listed = true)
 {
     /// <summary>As the list shows it.</summary>
     public string Label =>
-        !Listed        ? $"{Id}  — not in the list now"
+        !Listed        ? string.Format(SettingsText.ModelNotInListNow, Id)
       : Name == Id     ? Id
       :                  $"{Name}  ({Id})";
 }

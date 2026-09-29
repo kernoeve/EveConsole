@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -99,7 +100,7 @@ public sealed class DatabaseSizeService
         foreach (var table in tables)
         {
             ct.ThrowIfCancellationRequested();
-            progress?.Report($"Measuring {table} ({++done} of {tables.Count})…");
+            progress?.Report(string.Format(SettingsText.DbSizeMeasuringTable, table, ++done, tables.Count));
 
             try { raw.Add(Measure(conn, table, ct)); }
             catch (OperationCanceledException) { throw; }

@@ -267,25 +267,26 @@ public class PollingSettingsViewModel : ReactiveObject
     {
         ServiceBusy = true;
 
-        string? error;
+        ServiceResult result;
 
         if (OperatingSystem.IsLinux())
         {
             ServiceStatus = SettingsText.SvcChangingStartup;
-            error = await SystemdSetStartsAtLoginAsync(automatic);
+            result = await SystemdSetStartsAtLoginAsync(automatic);
         }
         else if (OperatingSystem.IsWindows())
         {
             ServiceStatus = SettingsText.SvcChangingStartupApprove;
-            error = await WindowsSetStartsWithWindowsAsync(automatic);
+            result = await WindowsSetStartsWithWindowsAsync(automatic);
         }
         else { ServiceBusy = false; return; }
 
         ServiceBusy = false;
         RefreshServiceState();
 
-        if (error is not null && error != "Cancelled.")
-            ServiceStatus = string.Format(SettingsText.SvcChangeStartupFailed, error);
+        // A dismissed prompt changed nothing, which the refreshed state already says.
+        if (result.IsFailure)
+            ServiceStatus = string.Format(SettingsText.SvcChangeStartupFailed, result.Error);
     }
 
     /// <summary>Points the existing service at this copy and restarts it.</summary>
@@ -293,25 +294,25 @@ public class PollingSettingsViewModel : ReactiveObject
     {
         ServiceBusy = true;
 
-        string? error;
+        ServiceResult result;
 
         if (OperatingSystem.IsLinux())
         {
             ServiceStatus = SettingsText.SvcRepointing;
-            error = await Task.Run(SystemdServiceControl.Repoint);
+            result = await Task.Run(SystemdServiceControl.Repoint);
         }
         else if (OperatingSystem.IsWindows())
         {
             ServiceStatus = SettingsText.SvcRepointingApprove;
-            error = await Task.Run(WindowsServiceControl.Repoint);
+            result = await Task.Run(WindowsServiceControl.Repoint);
         }
         else { ServiceBusy = false; return; }
 
         ServiceBusy = false;
         RefreshServiceState();
 
-        if (error is not null && error != "Cancelled.")
-            ServiceStatus = string.Format(SettingsText.SvcRepointFailed, error);
+        if (result.IsFailure)
+            ServiceStatus = string.Format(SettingsText.SvcRepointFailed, result.Error);
     }
 
     /// <summary>
@@ -436,25 +437,27 @@ public class PollingSettingsViewModel : ReactiveObject
         ServiceBusy   = true;
         ServiceStatus = ServiceIsSystemd ? SettingsText.SvcInstalling : SettingsText.SvcInstallingApprove;
 
-        string? error;
+        ServiceResult result;
 
         if (OperatingSystem.IsLinux())
         {
             // `systemctl enable --now` installs and starts in one step, so there is nothing to
             // start afterwards.
-            error = await Task.Run(SystemdServiceControl.Install);
+            result = await Task.Run(SystemdServiceControl.Install);
         }
         else if (OperatingSystem.IsWindows())
         {
-            error = await WindowsInstallAsync();
+            result = await WindowsInstallAsync();
         }
         else { ServiceBusy = false; return; }
 
         ServiceBusy = false;
         RefreshServiceState();
 
-        if (error is not null)
-            ServiceStatus = error == "Cancelled." ? SettingsText.SvcNotInstalled : string.Format(SettingsText.SvcInstallFailed, error);
+        if (!result.Succeeded)
+            ServiceStatus = result.Outcome == ServiceOutcome.Cancelled
+                ? SettingsText.SvcNotInstalled
+                : string.Format(SettingsText.SvcInstallFailed, result.Error);
     }
 
     public async Task UninstallServiceAsync()
@@ -462,17 +465,17 @@ public class PollingSettingsViewModel : ReactiveObject
         ServiceBusy   = true;
         ServiceStatus = ServiceIsSystemd ? SettingsText.SvcRemoving : SettingsText.SvcRemovingApprove;
 
-        string? error;
+        ServiceResult result;
 
-        if (OperatingSystem.IsLinux())        error = await Task.Run(SystemdServiceControl.Uninstall);
-        else if (OperatingSystem.IsWindows()) error = await Task.Run(WindowsServiceControl.Uninstall);
+        if (OperatingSystem.IsLinux())        result = await Task.Run(SystemdServiceControl.Uninstall);
+        else if (OperatingSystem.IsWindows()) result = await Task.Run(WindowsServiceControl.Uninstall);
         else { ServiceBusy = false; return; }
 
         ServiceBusy = false;
         RefreshServiceState();
 
-        if (error is not null && error != "Cancelled.")
-            ServiceStatus = string.Format(SettingsText.SvcRemoveFailed, error);
+        if (result.IsFailure)
+            ServiceStatus = string.Format(SettingsText.SvcRemoveFailed, result.Error);
     }
 
     public async Task SetServiceRunningAsync(bool run)
@@ -482,7 +485,7 @@ public class PollingSettingsViewModel : ReactiveObject
 
         if (OperatingSystem.IsLinux())
         {
-            var systemdError = await SystemdSetRunningAsync(run);
+            var systemd = await SystemdSetRunningAsync(run);
 
             ServiceBusy = false;
             RefreshServiceState();
@@ -490,9 +493,9 @@ public class PollingSettingsViewModel : ReactiveObject
             // ⚠️ The journal, not just the exit status. systemctl reports that starting failed and
             // says nothing about why; the reason is always one command away and never in front of
             // the person who needs it.
-            if (systemdError is not null)
-                ServiceStatus = (run ? string.Format(SettingsText.SvcStartFailed, systemdError)
-                                     : string.Format(SettingsText.SvcStopFailed, systemdError))
+            if (!systemd.Succeeded)
+                ServiceStatus = (run ? string.Format(SettingsText.SvcStartFailed, systemd.Error)
+                                     : string.Format(SettingsText.SvcStopFailed, systemd.Error))
                               + "\n\n" + SystemdServiceControl.RecentLog();
 
             return;
@@ -500,19 +503,20 @@ public class PollingSettingsViewModel : ReactiveObject
 
         if (!OperatingSystem.IsWindows()) { ServiceBusy = false; return; }
 
-        var error = await WindowsSetRunningAsync(run);
+        var result = await WindowsSetRunningAsync(run);
 
         ServiceBusy = false;
         RefreshServiceState();
 
         // ⚠️ "Access denied" here means the start/stop grant did not take during installation. That
         // is survivable and has a specific remedy, so it gets said rather than being folded into a
-        // generic failure somebody would read as a broken service.
-        if (error is not null)
-            ServiceStatus = error.Contains("denied", StringComparison.OrdinalIgnoreCase)
+        // generic failure somebody would read as a broken service. Recognised by the Win32 error
+        // code (see WindowsServiceControl), never by the words: Windows translates those.
+        if (!result.Succeeded)
+            ServiceStatus = result.Outcome == ServiceOutcome.AccessDenied
                 ? SettingsText.SvcAccessDenied
-                : run ? string.Format(SettingsText.SvcStartFailed, error)
-                      : string.Format(SettingsText.SvcStopFailed, error);
+                : run ? string.Format(SettingsText.SvcStartFailed, result.Error)
+                      : string.Format(SettingsText.SvcStopFailed, result.Error);
     }
 
     // ── Doing the work, one method per platform ───────────────────────────────
@@ -525,33 +529,33 @@ public class PollingSettingsViewModel : ReactiveObject
     // makes its whole body, lambdas included, that platform's, which is simply what is true.
 
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static async Task<string?> WindowsInstallAsync()
+    private static async Task<ServiceResult> WindowsInstallAsync()
     {
-        var error = await Task.Run(WindowsServiceControl.Install);
+        var result = await Task.Run(WindowsServiceControl.Install);
 
         // Started for them: installing a service and leaving it stopped is a switch that did half
         // of what it said. A failure to start is not reported here — the refreshed status says it.
-        if (error is null) await Task.Run(() => WindowsServiceControl.StartService());
+        if (result.Succeeded) await Task.Run(() => WindowsServiceControl.StartService());
 
-        return error;
+        return result;
     }
 
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static Task<string?> WindowsSetRunningAsync(bool run) => Task.Run(() => run
+    private static Task<ServiceResult> WindowsSetRunningAsync(bool run) => Task.Run(() => run
         ? WindowsServiceControl.StartService()
         : WindowsServiceControl.StopService());
 
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static Task<string?> WindowsSetStartsWithWindowsAsync(bool automatic) =>
+    private static Task<ServiceResult> WindowsSetStartsWithWindowsAsync(bool automatic) =>
         Task.Run(() => WindowsServiceControl.SetStartsWithWindows(automatic));
 
     [System.Runtime.Versioning.SupportedOSPlatform("linux")]
-    private static Task<string?> SystemdSetRunningAsync(bool run) => Task.Run(() => run
+    private static Task<ServiceResult> SystemdSetRunningAsync(bool run) => Task.Run(() => run
         ? SystemdServiceControl.Start()
         : SystemdServiceControl.Stop());
 
     [System.Runtime.Versioning.SupportedOSPlatform("linux")]
-    private static Task<string?> SystemdSetStartsAtLoginAsync(bool on) =>
+    private static Task<ServiceResult> SystemdSetStartsAtLoginAsync(bool on) =>
         Task.Run(() => SystemdServiceControl.SetStartsAtLogin(on));
 
     public ObservableCollection<CharacterOption> StructureNameChars { get; } = [];

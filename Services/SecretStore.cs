@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -53,14 +54,11 @@ public static class SecretStore
     public static string Description => Available switch
     {
         SecretProtection.Dpapi =>
-            "The password is encrypted by Windows for your account on this machine. Copying "
-            + "config.json elsewhere does not carry a usable password.",
+            SettingsText.DbSecretDpapi,
         SecretProtection.LibSecret =>
-            "The password is held in your desktop keyring; config.json contains only a reference "
-            + "to it.",
+            SettingsText.DbSecretLibSecret,
         _ =>
-            "No keyring was found, so the password is stored in config.json as typed. Install "
-            + "libsecret-tools (secret-tool) to have it kept in the keyring instead.",
+            SettingsText.DbSecretNone,
     };
 
     /// <summary>

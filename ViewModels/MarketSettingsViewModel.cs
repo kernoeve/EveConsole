@@ -680,7 +680,7 @@ public class MarketSettingsViewModel : ReactiveObject
         try
         {
             await SaveAsync();
-            await Task.Run(async () => await _svc.RefreshConfigAsync(Selected.Id));
+            var refreshed = await Task.Run(async () => await _svc.RefreshConfigAsync(Selected.Id));
 
             var updated = await _db.MarketPricingConfigs.AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == Selected.Id);
@@ -693,7 +693,9 @@ public class MarketSettingsViewModel : ReactiveObject
             }
             await LoadStationFilterOptionsAsync(Selected);
 
-            Status = Selected.LastStatus.StartsWith("OK")
+            // ⚠️ By the outcome the service returns, not by the status starting with "OK": that
+            // word is translated now, and stored in whichever language the refresh ran under.
+            Status = refreshed
                 ? string.Format(SettingsText.MarketRefreshComplete, Selected.LastRefreshedText, Selected.LastStatus)
                 : string.Format(SettingsText.MarketRefreshFailed, Selected.LastStatus);
         }

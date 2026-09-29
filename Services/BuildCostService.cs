@@ -4,6 +4,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -50,7 +51,7 @@ public class BuildCostService
     private readonly AppErrorLogger       _errorLogger;
     private readonly ApiActivityLog       _log;
 
-    public string StatusText { get; private set; } = "Build costs: not yet calculated";
+    public string StatusText { get; private set; } = SettingsText.BuildCostNotCalculated;
 
     // Fired after each RecalculateAllAsync completes; MarketPricingService subscribes to
     // re-run the price-gap fill so fresh build costs are immediately reflected in prices.
@@ -79,16 +80,16 @@ public class BuildCostService
     {
         try
         {
-            StatusText = "Build costs: fetching ESI data…";
+            StatusText = SettingsText.BuildCostFetching;
             await FetchAdjustedPricesAsync(ct);
             await FetchCostIndicesAsync(ct);
-            StatusText = "Build costs: calculating…";
+            StatusText = SettingsText.BuildCostCalculating;
             await RecalculateAllAsync(ct);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            StatusText = $"Build costs: error — {ex.Message[..Math.Min(60, ex.Message.Length)]}";
+            StatusText = string.Format(SettingsText.BuildCostError, ex.Message[..Math.Min(60, ex.Message.Length)]);
             _errorLogger.Log("BuildCostService", "RunAfterMarketRefreshAsync", ex);
         }
     }
@@ -183,7 +184,7 @@ public class BuildCostService
             .FirstOrDefaultAsync(p => p.IsDefault, ct);
         if (defaultPark is null)
         {
-            StatusText = "Build costs: no default park set — mark a park as default in Indy Parks";
+            StatusText = SettingsText.BuildCostNoDefaultPark;
             return;
         }
 
@@ -1032,7 +1033,7 @@ public class BuildCostService
             var cyclic  = builtTypes.Where(t => !ordered.Contains(t)).ToList();
             order.AddRange(cyclic);
             if (cyclic.Count > 0)
-                StatusText = $"Build costs: calculating… ({cyclic.Count} in a dependency cycle, costed last)";
+                StatusText = string.Format(SettingsText.BuildCostCalculatingCycle, cyclic.Count);
 
             foreach (var typeId in order)
             {
@@ -1130,7 +1131,7 @@ public class BuildCostService
         await tx.CommitAsync(ct);
 
         handle.Complete(true, results.Count, $"{results.Count:N0} items");
-        StatusText = $"Build costs: last updated {DateTimeOffset.Now:t} ({results.Count:N0} items)";
+        StatusText = string.Format(SettingsText.BuildCostUpdated, DateTimeOffset.Now, results.Count);
 
         if (AfterRecalculate is not null)
         {

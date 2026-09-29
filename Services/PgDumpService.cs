@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Npgsql;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -46,9 +47,7 @@ public sealed class PgDumpService
         var path = FindExecutable();
         if (path is null)
             return new PgDumpAvailability(null, 0, 0,
-                "pg_dump was not found. It comes with the PostgreSQL client tools — "
-                + "postgresql-client on Debian or Ubuntu, postgresql on Arch, or the Windows "
-                + "installer's command line tools.");
+                SettingsText.PgDumpNotFound);
 
         var clientMajor = await MajorVersionAsync(path, ct);
         int serverMajor;
@@ -63,18 +62,15 @@ public sealed class PgDumpService
         catch (Exception ex)
         {
             return new PgDumpAvailability(path, clientMajor, 0,
-                $"Found pg_dump {clientMajor} at {path}, but could not reach the server to check "
-                + $"its version: {ex.Message}");
+                string.Format(SettingsText.PgDumpServerUnreachable, clientMajor, path, ex.Message));
         }
 
         if (clientMajor < serverMajor)
             return new PgDumpAvailability(path, clientMajor, serverMajor,
-                $"pg_dump {clientMajor} at {path} is older than the server ({serverMajor}) and "
-                + "will refuse to dump it. Install client tools of version "
-                + $"{serverMajor} or newer.");
+                string.Format(SettingsText.PgDumpTooOld, clientMajor, path, serverMajor));
 
         return new PgDumpAvailability(path, clientMajor, serverMajor,
-            $"pg_dump {clientMajor} at {path}; server {serverMajor}.");
+            string.Format(SettingsText.PgDumpFound, clientMajor, path, serverMajor));
     }
 
     /// <summary>
@@ -119,10 +115,10 @@ public sealed class PgDumpService
 
         if (!string.IsNullOrEmpty(b.Password)) psi.Environment["PGPASSWORD"] = b.Password;
 
-        progress?.Report("Running pg_dump…");
+        progress?.Report(SettingsText.PgDumpRunning);
 
         using var proc = Process.Start(psi)
-            ?? throw new InvalidOperationException($"Could not start {exePath}.");
+            ?? throw new InvalidOperationException(string.Format(SettingsText.PgCouldNotStart, exePath));
 
         var stderr = await proc.StandardError.ReadToEndAsync(ct);
         await proc.WaitForExitAsync(ct);
@@ -133,8 +129,8 @@ public sealed class PgDumpService
             // like a backup and be counted as one by the retention sweep.
             try { if (File.Exists(file)) File.Delete(file); } catch { }
 
-            var why = string.IsNullOrWhiteSpace(stderr) ? $"exit code {proc.ExitCode}" : stderr.Trim();
-            throw new InvalidOperationException($"pg_dump failed: {why}");
+            var why = string.IsNullOrWhiteSpace(stderr) ? string.Format(SettingsText.PgExitCode, proc.ExitCode) : stderr.Trim();
+            throw new InvalidOperationException(string.Format(SettingsText.PgDumpFailed, why));
         }
 
         return file;

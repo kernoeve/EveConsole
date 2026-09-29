@@ -755,16 +755,24 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     }
 
     // ── Push-to-talk global key ────────────────────────────────────────────────
-    public IReadOnlyList<string> PushToTalkKeyNames { get; } =
-        GlobalHotkeyService.KeyOptions.Select(k => k.Name).ToList();
+    /// <summary>The keys offered, by the virtual-key code the settings keep (0 for none), with the
+    /// words shown for each. Chosen by the code, never by the name: "Disabled" is translated.</summary>
+    public IReadOnlyList<Choice<int>> PushToTalkKeyNames { get; } =
+        GlobalHotkeyService.KeyOptions.Select(k => new Choice<int>(k.WinVk, k.Name)).ToList();
 
-    private string _selectedPushToTalkKeyName =
-        GlobalHotkeyService.KeyOptions[0].Name; // "Disabled"
+    /// <summary>The Win32 virtual-key code, as saved; 0 = disabled.</summary>
+    private int _pushToTalkKey;
 
-    public string SelectedPushToTalkKeyName
+    public Choice<int> SelectedPushToTalkKeyName
     {
-        get => _selectedPushToTalkKeyName;
-        set => this.RaiseAndSetIfChanged(ref _selectedPushToTalkKeyName, value);
+        get => PushToTalkKeyNames.FirstOrDefault(k => k.Value == _pushToTalkKey) ?? PushToTalkKeyNames[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _pushToTalkKey = value.Value;
+            this.RaisePropertyChanged();
+        }
     }
 
     public ICommand RefreshMicDevicesCommand { get; }
@@ -789,16 +797,20 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     /// <summary>Where the local model runs, once it has loaded.</summary>
     public string LocalWhisperRuntime => _speech?.LocalWhisper.LoadedRuntime ?? "";
 
-    public IReadOnlyList<string> LocalWhisperModelLabels =>
-        LocalWhisperService.Models.Select(m => m.Label).ToList();
+    /// <summary>The local models, by the id the settings keep, with the words shown for each —
+    /// chosen by the id, never by the words, which are translated.</summary>
+    public IReadOnlyList<Choice<string>> LocalWhisperModelLabels { get; } =
+        [.. LocalWhisperService.Models.Select(m => new Choice<string>(m.Id, m.Label))];
 
-    public string? SelectedWhisperModelLabel
+    public Choice<string>? SelectedWhisperModelLabel
     {
-        get => LocalWhisperService.Models.FirstOrDefault(m => m.Id == _whisperLocalModel).Label;
+        get => LocalWhisperModelLabels.FirstOrDefault(m => m.Value == _whisperLocalModel);
         set
         {
-            var match = LocalWhisperService.Models.FirstOrDefault(m => m.Label == value);
-            WhisperLocalModel = match.Id ?? _whisperLocalModel;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            WhisperLocalModel = value.Value;
+            this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSelectedModelDownloaded));
         }
     }
@@ -938,7 +950,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _whisperLocalModel        = s.WhisperLocalModel;
         _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
         _microphoneDevice         = s.MicrophoneDeviceName ?? "";
-        _selectedPushToTalkKeyName = GlobalHotkeyService.VkName(s.PushToTalkKey) ?? GlobalHotkeyService.KeyOptions[0].Name;
+        // A key the list does not offer reads, and is saved, as none — as it always was.
+        _pushToTalkKey = GlobalHotkeyService.KeyOptions.Any(k => k.WinVk == s.PushToTalkKey) ? s.PushToTalkKey : 0;
 
         if (s.SpeechInputProvider != SpeechInputKind.None)
             RefreshMicrophoneDevices();
@@ -999,8 +1012,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             OpenAiTranscriptionModel = (_transcriptionModel ?? "").Trim(),
             // The empty name is what the recorder reads as "the system default".
             MicrophoneDeviceName  = _microphoneDevice,
-            PushToTalkKey         = GlobalHotkeyService.KeyOptions
-                .FirstOrDefault(k => k.Name == _selectedPushToTalkKeyName).WinVk,
+            PushToTalkKey         = _pushToTalkKey,
         };
 
         // Configure speech and TTS FIRST so their IsAvailable/HasTts are already true

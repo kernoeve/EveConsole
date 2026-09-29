@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EveConsole.Localization;
 
 namespace EveConsole.Agent;
 
@@ -99,6 +100,21 @@ public sealed class AgentSettings
     // ── Texts the capsuleer may reword ─────────────────────────────────────────────
     // Each is stored empty while it is the default, and read through its …Text property: a
     // better default then reaches everyone who never changed theirs. See DefaultWording.
+    //
+    // ⚠️ What is said aloud and shown in the chat — a model or a voice changing — is in the
+    // interface's language, from SettingsText. The router's rule is not: the model reads it, and
+    // text for the model stays English.
+
+    /// <summary>
+    /// A spoken default from the resources: the interface language's words now, and the English
+    /// as an earlier default. A settings file saved before the interface was translated may hold
+    /// the English word for word; that is still the default, not the capsuleer's own words, and
+    /// must not stay English for good in another language.
+    /// </summary>
+    /// <param name="earlier">Earlier English defaults, word for word, as DefaultWording asks.</param>
+    private static DefaultWording Spoken(string key, params string[] earlier) => new(
+        SettingsText.ResourceManager.GetString(key, SettingsText.Culture) ?? "",
+        [SettingsText.ResourceManager.GetString(key, System.Globalization.CultureInfo.InvariantCulture) ?? "", .. earlier]);
 
     /// <summary>
     /// When a message goes to the data model, in the capsuleer's own words; empty for the
@@ -125,16 +141,14 @@ public sealed class AgentSettings
 
     [JsonIgnore] public string ModelFailoverMessageText => ModelFailoverWording.Use(ModelFailoverMessage);
 
-    public static readonly DefaultWording ModelFailoverWording = new(
-        "{user}, the primary model I use for {purpose} has become unavailable, so I'm falling over to {fallback}.");
+    public static readonly DefaultWording ModelFailoverWording = Spoken(nameof(SettingsText.AgentModelFailoverDefault));
 
     /// <summary>Said when the role's own model is back and has taken over again; empty for the default.</summary>
     public string ModelReturnMessage { get; set; } = "";
 
     [JsonIgnore] public string ModelReturnMessageText => ModelReturnWording.Use(ModelReturnMessage);
 
-    public static readonly DefaultWording ModelReturnWording = new(
-        "{user}, the primary model I use for {purpose} is back, so I've switched back to {primary}.");
+    public static readonly DefaultWording ModelReturnWording = Spoken(nameof(SettingsText.AgentModelReturnDefault));
 
     /// <summary>As for voices: at least this long between one change and the next voluntary one.
     /// A model that stops answering is always replaced at once.</summary>
@@ -261,16 +275,14 @@ public sealed class AgentSettings
 
     [JsonIgnore] public string VoiceHandoverMessageText => VoiceHandoverWording.Use(VoiceHandoverMessage);
 
-    public static readonly DefaultWording VoiceHandoverWording = new(
-        "Sorry, {previous} had to step away. I'm {current}, and I'll pick up from here.");
+    public static readonly DefaultWording VoiceHandoverWording = Spoken(nameof(SettingsText.AgentVoiceHandoverDefault));
 
     /// <summary>Spoken by the preferred voice when it returns; empty for the default.</summary>
     public string VoiceReturnMessage { get; set; } = "";
 
     [JsonIgnore] public string VoiceReturnMessageText => VoiceReturnWording.Use(VoiceReturnMessage);
 
-    public static readonly DefaultWording VoiceReturnWording = new(
-        "{current} here, back with you. Thank you, {previous}.");
+    public static readonly DefaultWording VoiceReturnWording = Spoken(nameof(SettingsText.AgentVoiceReturnDefault));
 
     /// <summary>
     /// Each text the capsuleer may reword as it is stored: empty where it holds a default's words,
@@ -403,14 +415,14 @@ public sealed class ModelProfile
 
     public string Describe()
     {
-        var model = ModelName.Length > 0 ? ModelName : "no model chosen";
+        var model = ModelName.Length > 0 ? ModelName : SettingsText.ModelNoneChosen;
         return Provider switch
         {
             AgentProviderType.Claude => $"Claude — {model}",
             AgentProviderType.OpenAI => $"OpenAI — {model}",
             _ => Uri.TryCreate(Endpoint.Trim(), UriKind.Absolute, out var uri)
-                ? $"Local — {model} on {uri.Host}"
-                : $"Local — {model}",
+                ? string.Format(SettingsText.ModelDescribeLocalOn, model, uri.Host)
+                : string.Format(SettingsText.ModelDescribeLocal, model),
         };
     }
 }
@@ -485,8 +497,10 @@ public sealed class VoiceProfile
         TtsProvider.Kokoro      => $"Kokoro — {KokoroVoice}",
         TtsProvider.Piper       => $"Piper — {PiperVoice}",
         TtsProvider.OpenAi      => $"OpenAI — {OpenAiVoice}",
-        TtsProvider.ElevenLabs  => $"ElevenLabs — {(ElevenLabsVoiceName.Length > 0 ? ElevenLabsVoiceName : ElevenLabsVoiceId.Length > 0 ? ElevenLabsVoiceId : "no voice chosen")}",
-        TtsProvider.LocalServer => $"Local server — {(ServerModel.Length > 0 ? ServerModel : ServerUrl)}{(ServerVoice.Length > 0 ? $" ({ServerVoice})" : "")}",
+        TtsProvider.ElevenLabs  => $"ElevenLabs — {(ElevenLabsVoiceName.Length > 0 ? ElevenLabsVoiceName : ElevenLabsVoiceId.Length > 0 ? ElevenLabsVoiceId : SettingsText.VoiceNoneChosen)}",
+        TtsProvider.LocalServer => ServerVoice.Length > 0
+            ? string.Format(SettingsText.VoiceDescribeLocalServerVoice, ServerModel.Length > 0 ? ServerModel : ServerUrl, ServerVoice)
+            : string.Format(SettingsText.VoiceDescribeLocalServer, ServerModel.Length > 0 ? ServerModel : ServerUrl),
         _                       => Provider.ToString(),
     };
 }

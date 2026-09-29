@@ -6,6 +6,7 @@ using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using YamlDotNet.Serialization;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -22,10 +23,7 @@ public class SdeCompatibilityException : Exception
         MissingFiles = missing;
     }
     private static string BuildMessage(IReadOnlyList<string> missing) =>
-        $"EVE Console needs to be updated before it can refresh the SDE. " +
-        $"The following required file(s) were not found in the archive " +
-        $"(CCP may have restructured the SDE format): {string.Join(", ", missing)}. " +
-        $"Your existing SDE data has NOT been cleared.";
+        string.Format(SettingsText.SdeIncompatible, string.Join(", ", missing));
 }
 
 public class SdeImportService
@@ -82,7 +80,7 @@ public class SdeImportService
     /// </exception>
     public async Task<IReadOnlyList<string>> ImportAsync(IProgress<SdeImportProgress> progress, CancellationToken ct)
     {
-        Report(progress, "Preparing", "Fetching build info…", 0.01);
+        Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeFetchingBuildInfo, 0.01);
         var buildInfo = await GetLatestBuildInfoAsync(ct);
 
         var tempPath = await DownloadAsync(progress, ct);
@@ -105,14 +103,14 @@ public class SdeImportService
             // Schema first, and outside the transaction: the statements are all IF NOT EXISTS, they
             // describe the shape rather than the contents, and a new column is wanted whether or
             // not the rows that follow survive.
-            Report(progress, "Preparing", "Creating schema…",            0.30);
+            Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeCreatingSchema, 0.30);
             EnsureSdeSchema(db);
 
             // Read before the wipe destroys it. This is what the verification at the end compares
             // against, so a table that quietly stops being filled reads as "races held 11 rows and
             // now holds none" rather than merely "races is empty" — which on a first import is the
             // plain truth and no cause for alarm.
-            Report(progress, "Preparing", "Reading current row counts…", 0.305);
+            Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeReadingRowCounts, 0.305);
             var tables = BulkImport.TablesFor(db, "Sde", "SdeBuildInfos");
             var before = await BulkImport.CountAsync(db, tables, ct);
 
@@ -131,7 +129,7 @@ public class SdeImportService
             await using var undo = await BulkImportUndo.CreateAsync(db, "sde", tables,
                 (stage, detail, frac) => progress.Report(new SdeImportProgress(stage, detail, frac)), ct);
 
-            Report(progress, "Preparing", "Clearing existing SDE data…", 0.31);
+            Report(progress, SettingsText.ImportStagePreparing, SettingsText.SdeClearing, 0.31);
             await BulkImport.ClearAsync(db, tables, ct);
 
             db.ChangeTracker.AutoDetectChangesEnabled = false;
@@ -181,7 +179,7 @@ public class SdeImportService
 
             // Inside the transaction, so "this import lost a table" is still a decision and not
             // merely a note about something that has already happened.
-            Report(progress, "Verifying", "Checking row counts…", 0.99);
+            Report(progress, SettingsText.ImportStageVerifying, SettingsText.ImportCheckingRowCounts, 0.99);
             var (lost, warnings) = BulkImport.Compare(
                 before, await BulkImport.CountAsync(db, tables, ct));
 
@@ -200,7 +198,7 @@ public class SdeImportService
             foreach (var line in warnings)
                 _errors.Log("SdeImport", "Verification", line);
 
-            Report(progress, "Done", "SDE import complete.", 1.0);
+            Report(progress, SettingsText.ImportStageDone, SettingsText.SdeImportComplete, 1.0);
             return warnings;
         }
         finally
@@ -241,10 +239,11 @@ public class SdeImportService
             .ToList();
 
         // Universe: new flat map files OR old nested universe/ directory — either is fine.
-        bool hasUniverse = archive.GetEntry($"{fsdRoot}mapRegions.yaml") is not null
+        const string regionsFile = "mapRegions.yaml";
+        bool hasUniverse = archive.GetEntry(fsdRoot + regionsFile) is not null
             || archive.Entries.Any(e => e.FullName.Contains("/universe/", StringComparison.Ordinal));
         if (!hasUniverse)
-            missing.Add("mapRegions.yaml (universe data)");
+            missing.Add(string.Format(SettingsText.SdeUniverseDataFile, regionsFile));
 
         if (missing.Count > 0)
             throw new SdeCompatibilityException(missing);
@@ -260,10 +259,10 @@ public class SdeImportService
         };
         var missingOptional = optional.Where(f => archive.GetEntry($"{fsdRoot}{f}") is null).ToList();
         if (missingOptional.Count > 0)
-            p.Report(new SdeImportProgress("Preparing",
-                $"Optional files not found (will be skipped): {string.Join(", ", missingOptional)}", 0.315));
+            p.Report(new SdeImportProgress(SettingsText.ImportStagePreparing,
+                string.Format(SettingsText.SdeOptionalMissing, string.Join(", ", missingOptional)), 0.315));
         else
-            p.Report(new SdeImportProgress("Preparing", "All SDE files present.", 0.315));
+            p.Report(new SdeImportProgress(SettingsText.ImportStagePreparing, SettingsText.SdeAllFilesPresent, 0.315));
     }
 
     // Returns the prefix to prepend before a filename. New flat SDE returns ""; old nested returns "fsd/" or "sde/fsd/".
@@ -272,7 +271,7 @@ public class SdeImportService
         // New SDE format: flat — files at root level (e.g. "categories.yaml")
         if (archive.GetEntry("categories.yaml") != null)
         {
-            p.Report(new SdeImportProgress("Preparing", "New flat SDE format detected", 0.31));
+            p.Report(new SdeImportProgress(SettingsText.ImportStagePreparing, SettingsText.SdeFlatFormat, 0.31));
             return "";
         }
 
@@ -282,11 +281,11 @@ public class SdeImportService
         {
             if (!e.FullName.EndsWith(probe, StringComparison.OrdinalIgnoreCase)) continue;
             var prefix = e.FullName[..^"categories.yaml".Length];  // includes "fsd/"
-            p.Report(new SdeImportProgress("Preparing", $"Old nested SDE format, prefix: \"{prefix}\"", 0.31));
+            p.Report(new SdeImportProgress(SettingsText.ImportStagePreparing, string.Format(SettingsText.SdeNestedFormat, prefix), 0.31));
             return prefix;
         }
 
-        p.Report(new SdeImportProgress("Warning", "Could not detect ZIP root — assuming flat", 0.31));
+        p.Report(new SdeImportProgress(SettingsText.ImportStageWarning, SettingsText.SdeRootNotDetected, 0.31));
         return "";
     }
 
@@ -319,7 +318,7 @@ public class SdeImportService
             var detail = total > 0
                 ? $"{downloaded / 1_048_576:N0} MB / {total / 1_048_576:N0} MB"
                 : $"{downloaded / 1_048_576:N0} MB";
-            Report(progress, "Downloading SDE", detail, frac * 0.30);
+            Report(progress, SettingsText.ImportStageDownloadingSde, detail, frac * 0.30);
         }
 
         return tempPath;
@@ -574,23 +573,23 @@ public class SdeImportService
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}categories.yaml");
-        if (entry is null) { Report(p, "Categories", "NOT FOUND in ZIP — skipped", 0.32); return; }
-        Report(p, "Categories", "Parsing…", 0.32);
+        if (entry is null) { Report(p, SettingsText.ImportStageCategories, SettingsText.SdeNotFoundInZip, 0.32); return; }
+        Report(p, SettingsText.ImportStageCategories, SettingsText.ImportParsing, 0.32);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, CategoryYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeCategory { CategoryId = kv.Key, Name = kv.Value.name?.en ?? "", Published = kv.Value.published, IconId = kv.Value.iconID });
-        await SaveBatchesAsync(db, db.SdeCategories, rows, "Categories", raw.Count, p, 0.32, 0.33, ct);
+        await SaveBatchesAsync(db, db.SdeCategories, rows, SettingsText.ImportStageCategories, raw.Count, p, 0.32, 0.33, ct);
     }
 
     private async Task ImportGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}groups.yaml");
-        if (entry is null) { Report(p, "Groups", "NOT FOUND in ZIP — skipped", 0.33); return; }
-        Report(p, "Groups", "Parsing…", 0.33);
+        if (entry is null) { Report(p, SettingsText.ImportStageGroups, SettingsText.SdeNotFoundInZip, 0.33); return; }
+        Report(p, SettingsText.ImportStageGroups, SettingsText.ImportParsing, 0.33);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, GroupYaml>>(reader) ?? [];
-        Report(p, "Groups", $"Parsed {raw.Count:N0} groups from YAML — saving…", 0.335);
+        Report(p, SettingsText.ImportStageGroups, string.Format(SettingsText.SdeParsedGroups, raw.Count), 0.335);
         var rows = raw.Select(kv => new SdeGroup
         {
             GroupId    = kv.Key,
@@ -603,15 +602,15 @@ public class SdeImportService
             FittableNonSingleton = kv.Value.fittableNonSingleton,
             UseBasePrice         = kv.Value.useBasePrice,
         });
-        await SaveBatchesAsync(db, db.SdeGroups, rows, "Groups", raw.Count, p, 0.335, 0.35, ct);
+        await SaveBatchesAsync(db, db.SdeGroups, rows, SettingsText.ImportStageGroups, raw.Count, p, 0.335, 0.35, ct);
     }
 
     private async Task ImportMarketGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}marketGroups.yaml");
-        if (entry is null) { Report(p, "Market Groups", "NOT FOUND in ZIP — skipped", 0.35); return; }
-        Report(p, "Market Groups", "Parsing…", 0.35);
+        if (entry is null) { Report(p, SettingsText.ImportStageMarketGroups, SettingsText.SdeNotFoundInZip, 0.35); return; }
+        Report(p, SettingsText.ImportStageMarketGroups, SettingsText.ImportParsing, 0.35);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, MarketGroupYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeMarketGroup
@@ -621,18 +620,18 @@ public class SdeImportService
             Description = kv.Value.descriptionID?.en ?? kv.Value.description?.en ?? "",
             IconId = kv.Value.iconID, HasTypes = kv.Value.hasTypes,
         });
-        await SaveBatchesAsync(db, db.SdeMarketGroups, rows, "Market Groups", raw.Count, p, 0.35, 0.36, ct);
+        await SaveBatchesAsync(db, db.SdeMarketGroups, rows, SettingsText.ImportStageMarketGroups, raw.Count, p, 0.35, 0.36, ct);
     }
 
     private async Task ImportTypesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}types.yaml");
-        if (entry is null) { Report(p, "Types", "NOT FOUND in ZIP — skipped", 0.36); return; }
-        Report(p, "Types", "Parsing types.yaml (large)…", 0.36);
+        if (entry is null) { Report(p, SettingsText.ImportStageTypes, SettingsText.SdeNotFoundInZip, 0.36); return; }
+        Report(p, SettingsText.ImportStageTypes, ParsingLarge("types.yaml"), 0.36);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, TypeYaml>>(reader) ?? [];
-        Report(p, "Types", $"Parsed {raw.Count:N0} types from YAML — saving…", 0.37);
+        Report(p, SettingsText.ImportStageTypes, string.Format(SettingsText.SdeParsedTypes, raw.Count), 0.37);
         var rows = raw.Select(kv => new SdeType
         {
             TypeId        = kv.Key,
@@ -661,7 +660,7 @@ public class SdeImportService
             MetaGroupId   = kv.Value.metaGroupID,
             Published     = kv.Value.published,
         });
-        await SaveBatchesAsync(db, db.SdeTypes, rows, "Types", raw.Count, p, 0.37, 0.50, ct);
+        await SaveBatchesAsync(db, db.SdeTypes, rows, SettingsText.ImportStageTypes, raw.Count, p, 0.37, 0.50, ct);
     }
 
     private async Task ImportDogmaAttributeCategoriesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -671,9 +670,9 @@ public class SdeImportService
         var bsdRoot = fsdRoot.Length == 0 ? "" : fsdRoot.Replace("fsd/", "bsd/");
         var entry = zip.GetEntry($"{fsdRoot}dogmaAttributeCategories.yaml")
                  ?? zip.GetEntry($"{bsdRoot}dgmAttributeCategories.yaml");
-        if (entry is null) { Report(p, "Attr Categories", "NOT FOUND — skipped", 0.495); return; }
+        if (entry is null) { Report(p, SettingsText.ImportStageAttrCategories, SettingsText.SdeNotFoundSkipped, 0.495); return; }
 
-        Report(p, "Attr Categories", "Parsing…", 0.495);
+        Report(p, SettingsText.ImportStageAttrCategories, SettingsText.ImportParsing, 0.495);
         List<SdeDogmaAttributeCategory> rows;
         try
         {
@@ -703,15 +702,15 @@ public class SdeImportService
             catch { return; }
         }
 
-        await SaveBatchesAsync(db, db.SdeDogmaAttributeCategories, rows, "Attr Categories", rows.Count, p, 0.495, 0.50, ct);
+        await SaveBatchesAsync(db, db.SdeDogmaAttributeCategories, rows, SettingsText.ImportStageAttrCategories, rows.Count, p, 0.495, 0.50, ct);
     }
 
     private async Task ImportDogmaAttributesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}dogmaAttributes.yaml");
-        if (entry is null) { Report(p, "Dogma Attributes", "NOT FOUND in ZIP — skipped", 0.50); return; }
-        Report(p, "Dogma Attributes", "Parsing…", 0.50);
+        if (entry is null) { Report(p, SettingsText.ImportStageDogmaAttributes, SettingsText.SdeNotFoundInZip, 0.50); return; }
+        Report(p, SettingsText.ImportStageDogmaAttributes, SettingsText.ImportParsing, 0.50);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, DogmaAttributeYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeDogmaAttribute
@@ -737,15 +736,15 @@ public class SdeImportService
             DisplayWhenZero = kv.Value.displayWhenZero,
             ChargeRechargeTimeId = kv.Value.chargeRechargeTimeID,
         });
-        await SaveBatchesAsync(db, db.SdeDogmaAttributes, rows, "Dogma Attributes", raw.Count, p, 0.50, 0.52, ct);
+        await SaveBatchesAsync(db, db.SdeDogmaAttributes, rows, SettingsText.ImportStageDogmaAttributes, raw.Count, p, 0.50, 0.52, ct);
     }
 
     private async Task ImportDogmaEffectsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}dogmaEffects.yaml");
-        if (entry is null) { Report(p, "Dogma Effects", "NOT FOUND in ZIP — skipped", 0.52); return; }
-        Report(p, "Dogma Effects", "Parsing…", 0.52);
+        if (entry is null) { Report(p, SettingsText.ImportStageDogmaEffects, SettingsText.SdeNotFoundInZip, 0.52); return; }
+        Report(p, SettingsText.ImportStageDogmaEffects, SettingsText.ImportParsing, 0.52);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, DogmaEffectYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeDogmaEffect
@@ -759,15 +758,15 @@ public class SdeImportService
             IsAssistance = kv.Value.isAssistance,
             Published   = kv.Value.published,
         });
-        await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, "Dogma Effects", raw.Count, p, 0.52, 0.54, ct);
+        await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, SettingsText.ImportStageDogmaEffects, raw.Count, p, 0.52, 0.54, ct);
     }
 
     private async Task ImportTypeDogmaAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}typeDogma.yaml");
-        if (entry is null) { Report(p, "Type Dogma", "NOT FOUND in ZIP — skipped", 0.54); return; }
-        Report(p, "Type Dogma", "Parsing typeDogma.yaml (large)…", 0.54);
+        if (entry is null) { Report(p, SettingsText.ImportStageTypeDogma, SettingsText.SdeNotFoundInZip, 0.54); return; }
+        Report(p, SettingsText.ImportStageTypeDogma, ParsingLarge("typeDogma.yaml"), 0.54);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, TypeDogmaYaml>>(reader) ?? [];
 
@@ -780,16 +779,16 @@ public class SdeImportService
                 { TypeId = kv.Key, EffectId = e.effectID, IsDefault = e.isDefault }))
             .DistinctBy(x => (x.TypeId, x.EffectId));
 
-        await SaveBatchesAsync(db, db.SdeTypeDogmaAttributes, attrs, "Type Dogma Attributes", -1, p, 0.54, 0.63, ct);
-        await SaveBatchesAsync(db, db.SdeTypeDogmaEffects,    effs,  "Type Dogma Effects",    -1, p, 0.63, 0.67, ct);
+        await SaveBatchesAsync(db, db.SdeTypeDogmaAttributes, attrs, SettingsText.ImportStageTypeDogmaAttributes, -1, p, 0.54, 0.63, ct);
+        await SaveBatchesAsync(db, db.SdeTypeDogmaEffects,    effs,  SettingsText.ImportStageTypeDogmaEffects,    -1, p, 0.63, 0.67, ct);
     }
 
     private async Task ImportBlueprintsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}blueprints.yaml");
-        if (entry is null) { Report(p, "Blueprints", "NOT FOUND in ZIP — skipped", 0.67); return; }
-        Report(p, "Blueprints", "Parsing blueprints.yaml…", 0.67);
+        if (entry is null) { Report(p, SettingsText.ImportStageBlueprints, SettingsText.SdeNotFoundInZip, 0.67); return; }
+        Report(p, SettingsText.ImportStageBlueprints, Parsing("blueprints.yaml"), 0.67);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, BlueprintYaml>>(reader) ?? [];
 
@@ -811,10 +810,10 @@ public class SdeImportService
                     new SdeBlueprintSkill { TypeId = kv.Key, Activity = act.Key, SkillTypeId = sk.typeID, Level = sk.level })))
             .DistinctBy(x => (x.TypeId, x.Activity, x.SkillTypeId));
 
-        await SaveBatchesAsync(db, db.SdeBlueprints,         bps,    "Blueprints",         raw.Count, p, 0.67, 0.69, ct);
-        await SaveBatchesAsync(db, db.SdeBlueprintMaterials, mats,   "Blueprint Materials", -1,        p, 0.69, 0.72, ct);
-        await SaveBatchesAsync(db, db.SdeBlueprintProducts,  prods,  "Blueprint Products",  -1,        p, 0.72, 0.74, ct);
-        await SaveBatchesAsync(db, db.SdeBlueprintSkills,    skills, "Blueprint Skills",    -1,        p, 0.74, 0.76, ct);
+        await SaveBatchesAsync(db, db.SdeBlueprints,         bps,    SettingsText.ImportStageBlueprints,         raw.Count, p, 0.67, 0.69, ct);
+        await SaveBatchesAsync(db, db.SdeBlueprintMaterials, mats,   SettingsText.ImportStageBlueprintMaterials, -1,        p, 0.69, 0.72, ct);
+        await SaveBatchesAsync(db, db.SdeBlueprintProducts,  prods,  SettingsText.ImportStageBlueprintProducts,  -1,        p, 0.72, 0.74, ct);
+        await SaveBatchesAsync(db, db.SdeBlueprintSkills,    skills, SettingsText.ImportStageBlueprintSkills,    -1,        p, 0.74, 0.76, ct);
     }
 
     private static string RomanNumeral(int n)
@@ -884,7 +883,7 @@ public class SdeImportService
     private async Task ImportUniverseFlatAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Universe", "Parsing mapRegions.yaml…", 0.76);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("mapRegions.yaml"), 0.76);
         var regEntry = zip.GetEntry($"{fsdRoot}mapRegions.yaml")!;
         using (var r = OpenEntry(regEntry))
         {
@@ -903,10 +902,10 @@ public class SdeImportService
                 Y = kv.Value.position?.y ?? 0,
                 Z = kv.Value.position?.z ?? 0,
             });
-            await SaveBatchesAsync(db, db.SdeRegions, rows, "Regions", raw.Count, p, 0.76, 0.78, ct);
+            await SaveBatchesAsync(db, db.SdeRegions, rows, SettingsText.ImportStageRegions, raw.Count, p, 0.76, 0.78, ct);
         }
 
-        Report(p, "Universe", "Parsing mapConstellations.yaml…", 0.78);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("mapConstellations.yaml"), 0.78);
         var constEntry = zip.GetEntry($"{fsdRoot}mapConstellations.yaml");
         if (constEntry != null)
         {
@@ -922,10 +921,10 @@ public class SdeImportService
                 Y = kv.Value.position?.y ?? 0,
                 Z = kv.Value.position?.z ?? 0,
             });
-            await SaveBatchesAsync(db, db.SdeConstellations, rows, "Constellations", raw.Count, p, 0.78, 0.80, ct);
+            await SaveBatchesAsync(db, db.SdeConstellations, rows, SettingsText.ImportStageConstellations, raw.Count, p, 0.78, 0.80, ct);
         }
 
-        Report(p, "Universe", "Parsing mapSolarSystems.yaml…", 0.80);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("mapSolarSystems.yaml"), 0.80);
         var sysNames = new Dictionary<int, string>();
         // Collected while the systems are parsed, but merged into the celestial list further
         // down, which is where that list comes into existence.
@@ -963,7 +962,7 @@ public class SdeImportService
                 VisualEffect  = kv.Value.visualEffect ?? "",
                 StarId        = kv.Value.starID,
             });
-            await SaveBatchesAsync(db, db.SdeSolarSystems, rows, "Solar Systems", raw.Count, p, 0.80, 0.82, ct);
+            await SaveBatchesAsync(db, db.SdeSolarSystems, rows, SettingsText.ImportStageSolarSystems, raw.Count, p, 0.80, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
 
             // Stars are their own top-level file, mapStars.yaml — not a field on the system,
@@ -986,7 +985,7 @@ public class SdeImportService
             }
         }
 
-        Report(p, "Universe", "Parsing mapStargates.yaml…", 0.82);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("mapStargates.yaml"), 0.82);
         var celestials = new List<SdeCelestial>();
         celestials.AddRange(stars);
         var sgEntry = zip.GetEntry($"{fsdRoot}mapStargates.yaml");
@@ -1001,7 +1000,7 @@ public class SdeImportService
                     SolarSystemId         = kv.Value.solarSystemID,
                     DestinationStargateId = kv.Value.destination!.stargateID,
                 });
-            await SaveBatchesAsync(db, db.SdeStargates, rows, "Stargates", raw.Count, p, 0.82, 0.83, ct);
+            await SaveBatchesAsync(db, db.SdeStargates, rows, SettingsText.ImportStageStargates, raw.Count, p, 0.82, 0.83, ct);
             foreach (var (gid, g) in raw)
                 if (g.position is { } gp)
                 {
@@ -1015,7 +1014,7 @@ public class SdeImportService
 
         // Planets and moons are separate top-level files in the flat SDE. Moons carry celestialIndex
         // (of their planet) + orbitIndex (moon number), so both can be named from the system name.
-        Report(p, "Universe", "Parsing mapPlanets.yaml…", 0.83);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("mapPlanets.yaml"), 0.83);
         var planetEntry = zip.GetEntry($"{fsdRoot}mapPlanets.yaml");
         if (planetEntry != null)
         {
@@ -1028,7 +1027,7 @@ public class SdeImportService
                         Name = $"{sysNames.GetValueOrDefault(pl.solarSystemID, "")} {RomanNumeral(pl.celestialIndex)}".Trim() });
         }
 
-        Report(p, "Universe", "Parsing mapMoons.yaml…", 0.84);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("mapMoons.yaml"), 0.84);
         var moonEntry = zip.GetEntry($"{fsdRoot}mapMoons.yaml");
         if (moonEntry != null)
         {
@@ -1044,7 +1043,7 @@ public class SdeImportService
         // Asteroid belts. CCP has shipped these under more than one name across SDE revisions,
         // so the candidates are tried in turn rather than assuming one — a missing file simply
         // means no belts, which is also the correct outcome for an SDE that omits them.
-        Report(p, "Universe", "Parsing asteroid belts…", 0.845);
+        Report(p, SettingsText.ImportStageUniverse, SettingsText.SdeParsingBelts, 0.845);
         foreach (var candidate in AsteroidBeltFiles)
         {
             var beltEntry = zip.GetEntry($"{fsdRoot}{candidate}");
@@ -1064,11 +1063,11 @@ public class SdeImportService
             break;
         }
 
-        await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.85, 0.87, ct);
+        await SaveBatchesAsync(db, db.SdeCelestials, celestials, SettingsText.ImportStageCelestials, celestials.Count, p, 0.85, 0.87, ct);
 
         // Equinox planetary production. The reagent is unnamed here — it is decided by the
         // planet's type, Lava yielding Magmatic Gas and Ice yielding Superionic Ice.
-        Report(p, "Universe", "Parsing planetResources.yaml…", 0.868);
+        Report(p, SettingsText.ImportStageUniverse, Parsing("planetResources.yaml"), 0.868);
         var resEntry = zip.GetEntry($"{fsdRoot}planetResources.yaml");
         if (resEntry != null)
         {
@@ -1083,7 +1082,7 @@ public class SdeImportService
                 ReagentCycleTime = kv.Value.reagent?.cycle_period      ?? 0,
                 SecuredCapacity  = kv.Value.reagent?.secured_capacity  ?? 0,
             });
-            await SaveBatchesAsync(db, db.SdePlanetResources, rows, "Planet Resources",
+            await SaveBatchesAsync(db, db.SdePlanetResources, rows, SettingsText.ImportStagePlanetResources,
                 raw.Count, p, 0.868, 0.87, ct);
         }
     }
@@ -1098,7 +1097,7 @@ public class SdeImportService
     private async Task ImportAgentsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Agents", "Parsing agentTypes.yaml…", 0.872);
+        Report(p, SettingsText.ImportStageAgents, Parsing("agentTypes.yaml"), 0.872);
         var typeEntry = zip.GetEntry($"{fsdRoot}agentTypes.yaml");
         if (typeEntry != null)
         {
@@ -1106,10 +1105,10 @@ public class SdeImportService
             var raw = _yaml.Deserialize<Dictionary<int, AgentTypeYaml>>(r) ?? [];
             await SaveBatchesAsync(db, db.SdeAgentTypes,
                 raw.Select(kv => new SdeAgentType { AgentTypeId = kv.Key, Name = kv.Value.name ?? "" }),
-                "Agent Types", raw.Count, p, 0.872, 0.873, ct);
+                SettingsText.ImportStageAgentTypes, raw.Count, p, 0.872, 0.873, ct);
         }
 
-        Report(p, "Agents", "Parsing npcCorporationDivisions.yaml…", 0.873);
+        Report(p, SettingsText.ImportStageAgents, Parsing("npcCorporationDivisions.yaml"), 0.873);
         var divEntry = zip.GetEntry($"{fsdRoot}npcCorporationDivisions.yaml");
         if (divEntry != null)
         {
@@ -1123,10 +1122,10 @@ public class SdeImportService
                     // where it exists.
                     Name = kv.Value.name?.en ?? kv.Value.internalName ?? "",
                 }),
-                "Corp Divisions", raw.Count, p, 0.873, 0.874, ct);
+                SettingsText.ImportStageCorpDivisions, raw.Count, p, 0.873, 0.874, ct);
         }
 
-        Report(p, "Agents", "Parsing npcCharacters.yaml…", 0.874);
+        Report(p, SettingsText.ImportStageAgents, Parsing("npcCharacters.yaml"), 0.874);
         var charEntry = zip.GetEntry($"{fsdRoot}npcCharacters.yaml");
         if (charEntry is null) return;
 
@@ -1148,7 +1147,7 @@ public class SdeImportService
             })
             .ToList();
 
-        await SaveBatchesAsync(db, db.SdeAgents, agents, "Agents", agents.Count, p, 0.874, 0.88, ct);
+        await SaveBatchesAsync(db, db.SdeAgents, agents, SettingsText.ImportStageAgents, agents.Count, p, 0.874, 0.88, ct);
     }
 
     private class AgentTypeYaml
@@ -1199,7 +1198,7 @@ public class SdeImportService
     private async Task ImportUniverseNestedAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Universe", "Scanning entries…", 0.76);
+        Report(p, SettingsText.ImportStageUniverse, SettingsText.SdeScanningEntries, 0.76);
         var uniMarker = $"{fsdRoot}universe/";
         int rootDepth = fsdRoot.Split('/', StringSplitOptions.RemoveEmptyEntries).Length;
         int regionDepth = rootDepth + 4;
@@ -1222,7 +1221,7 @@ public class SdeImportService
             }
         }
 
-        Report(p, "Universe", $"Found {regionEntries.Count} regions, {constellationEntries.Count} constellations, {systemEntries.Count} systems", 0.76);
+        Report(p, SettingsText.ImportStageUniverse, string.Format(SettingsText.SdeFoundUniverse, regionEntries.Count, constellationEntries.Count, systemEntries.Count), 0.76);
 
         int typeIdx   = rootDepth + 1;
         int regionIdx = rootDepth + 2;
@@ -1241,7 +1240,7 @@ public class SdeImportService
             regionIdByName[rName] = y.regionID;
             regions.Add(new SdeRegion { RegionId = y.regionID, Name = rName, FactionId = y.factionID, IsWormhole = parts[typeIdx] == "wormhole" });
         }
-        await SaveBatchesAsync(db, db.SdeRegions, regions, "Regions", regions.Count, p, 0.76, 0.78, ct);
+        await SaveBatchesAsync(db, db.SdeRegions, regions, SettingsText.ImportStageRegions, regions.Count, p, 0.76, 0.78, ct);
 
         var constIdByKey = new Dictionary<(string, string), int>();
         var constellations = new List<SdeConstellation>(constellationEntries.Count);
@@ -1256,7 +1255,7 @@ public class SdeImportService
             constIdByKey[(rName, cName)] = y.constellationID;
             constellations.Add(new SdeConstellation { ConstellationId = y.constellationID, RegionId = regionId, Name = cName, IsWormhole = parts[typeIdx] == "wormhole" });
         }
-        await SaveBatchesAsync(db, db.SdeConstellations, constellations, "Constellations", constellations.Count, p, 0.78, 0.80, ct);
+        await SaveBatchesAsync(db, db.SdeConstellations, constellations, SettingsText.ImportStageConstellations, constellations.Count, p, 0.78, 0.80, ct);
 
         var systems    = new List<SdeSolarSystem>(systemEntries.Count);
         var stargates  = new List<SdeStargate>();
@@ -1285,9 +1284,9 @@ public class SdeImportService
             }
             AddPlanetCelestials(celestials, y.solarSystemID, sysName, y.planets);
         }
-        await SaveBatchesAsync(db, db.SdeSolarSystems, systems,    "Solar Systems", systems.Count,    p, 0.80, 0.83, ct);
-        await SaveBatchesAsync(db, db.SdeStargates,    stargates,  "Stargates",     stargates.Count,  p, 0.83, 0.85, ct);
-        await SaveBatchesAsync(db, db.SdeCelestials,   celestials, "Celestials",    celestials.Count, p, 0.85, 0.87, ct);
+        await SaveBatchesAsync(db, db.SdeSolarSystems, systems,    SettingsText.ImportStageSolarSystems, systems.Count,    p, 0.80, 0.83, ct);
+        await SaveBatchesAsync(db, db.SdeStargates,    stargates,  SettingsText.ImportStageStargates,     stargates.Count,  p, 0.83, 0.85, ct);
+        await SaveBatchesAsync(db, db.SdeCelestials,   celestials, SettingsText.ImportStageCelestials,    celestials.Count, p, 0.85, 0.87, ct);
     }
 
     private async Task ImportStationsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1297,7 +1296,7 @@ public class SdeImportService
         var newEntry = zip.GetEntry($"{fsdRoot}npcStations.yaml");
         if (newEntry != null)
         {
-            Report(p, "Stations", "Parsing npcStations.yaml…", 0.87);
+            Report(p, SettingsText.ImportStageStations, Parsing("npcStations.yaml"), 0.87);
             using var reader = OpenEntry(newEntry);
             var raw = _yaml.Deserialize<Dictionary<int, NpcStationYaml>>(reader) ?? [];
 
@@ -1310,7 +1309,7 @@ public class SdeImportService
                 .Select(s => new { s.SolarSystemId, s.ConstellationId, s.RegionId, s.Security })
                 .ToDictionaryAsync(s => s.SolarSystemId, ct);
 
-            Report(p, "Stations", $"Fetching {raw.Count:N0} station names from ESI…", 0.875);
+            Report(p, SettingsText.ImportStageStations, string.Format(SettingsText.SdeFetchingStationNames, raw.Count), 0.875);
             var names = await FetchEsiNamesAsync(raw.Keys.ToList(), "station", ct);
             var rows = raw.Select(kv =>
             {
@@ -1338,7 +1337,7 @@ public class SdeImportService
                     Z = kv.Value.position?.z ?? 0,
                 };
             });
-            await SaveBatchesAsync(db, db.SdeStations, rows, "Stations", raw.Count, p, 0.875, 0.89, ct);
+            await SaveBatchesAsync(db, db.SdeStations, rows, SettingsText.ImportStageStations, raw.Count, p, 0.875, 0.89, ct);
             await ImportStationServicesAsync(zip, fsdRoot, db, p, ct);
             return;
         }
@@ -1346,8 +1345,8 @@ public class SdeImportService
         // Old SDE: bsd/staStations.yaml (list, has names)
         var bsdRoot  = fsdRoot.Length == 0 ? "" : fsdRoot.Replace("fsd/", "bsd/");
         var oldEntry = zip.GetEntry($"{bsdRoot}staStations.yaml");
-        if (oldEntry is null) { Report(p, "Stations", "NOT FOUND in ZIP — skipped", 0.87); return; }
-        Report(p, "Stations", "Parsing staStations.yaml…", 0.87);
+        if (oldEntry is null) { Report(p, SettingsText.ImportStageStations, SettingsText.SdeNotFoundInZip, 0.87); return; }
+        Report(p, SettingsText.ImportStageStations, Parsing("staStations.yaml"), 0.87);
         using var oldReader = OpenEntry(oldEntry);
         var oldRaw = _yaml.Deserialize<List<StationYaml>>(oldReader) ?? [];
         var oldRows = oldRaw.Select(s => new SdeStation
@@ -1357,7 +1356,7 @@ public class SdeImportService
             CorporationId = s.corporationID, StationTypeId = s.stationTypeID,
             Security = s.security, ReprocessingEfficiency = s.reprocessingEfficiency, ReprocessingTax = s.reprocessingStationsTake,
         });
-        await SaveBatchesAsync(db, db.SdeStations, oldRows, "Stations", oldRaw.Count, p, 0.87, 0.89, ct);
+        await SaveBatchesAsync(db, db.SdeStations, oldRows, SettingsText.ImportStageStations, oldRaw.Count, p, 0.87, 0.89, ct);
     }
 
     // Calls POST /universe/names/ in batches of 1000 to resolve entity names from IDs.
@@ -1396,8 +1395,8 @@ public class SdeImportService
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}factions.yaml");
-        if (entry is null) { Report(p, "Factions", "NOT FOUND in ZIP — skipped", 0.89); return; }
-        Report(p, "Factions", "Parsing…", 0.89);
+        if (entry is null) { Report(p, SettingsText.ImportStageFactions, SettingsText.SdeNotFoundInZip, 0.89); return; }
+        Report(p, SettingsText.ImportStageFactions, SettingsText.ImportParsing, 0.89);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, FactionYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeFaction
@@ -1411,15 +1410,15 @@ public class SdeImportService
             SizeFactor       = kv.Value.sizeFactor ?? 0,
             UniqueName       = kv.Value.uniqueName,
         });
-        await SaveBatchesAsync(db, db.SdeFactions, rows, "Factions", raw.Count, p, 0.89, 0.91, ct);
+        await SaveBatchesAsync(db, db.SdeFactions, rows, SettingsText.ImportStageFactions, raw.Count, p, 0.89, 0.91, ct);
     }
 
     private async Task ImportNpcCorporationsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}npcCorporations.yaml");
-        if (entry is null) { Report(p, "NPC Corporations", "NOT FOUND in ZIP — skipped", 0.91); return; }
-        Report(p, "NPC Corporations", "Parsing…", 0.91);
+        if (entry is null) { Report(p, SettingsText.ImportStageNpcCorporations, SettingsText.SdeNotFoundInZip, 0.91); return; }
+        Report(p, SettingsText.ImportStageNpcCorporations, SettingsText.ImportParsing, 0.91);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, NpcCorpYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeNpcCorporation
@@ -1446,7 +1445,7 @@ public class SdeImportService
             SecondaryActivityId = kv.Value.secondaryActivityID,
             Deleted       = kv.Value.deleted,
         });
-        await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, "NPC Corporations", raw.Count, p, 0.91, 0.93, ct);
+        await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, SettingsText.ImportStageNpcCorporations, raw.Count, p, 0.91, 0.93, ct);
     }
 
     /// <summary>
@@ -1460,8 +1459,8 @@ public class SdeImportService
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}industryModifierSources.yaml");
-        if (entry is null) { Report(p, "Industry Modifiers", "NOT FOUND in ZIP — skipped", 0.93); return; }
-        Report(p, "Industry Modifiers", "Parsing…", 0.93);
+        if (entry is null) { Report(p, SettingsText.ImportStageIndustryModifiers, SettingsText.SdeNotFoundInZip, 0.93); return; }
+        Report(p, SettingsText.ImportStageIndustryModifiers, SettingsText.ImportParsing, 0.93);
 
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, Dictionary<string, Dictionary<string, List<IndustryModifierYaml>>>>>(reader) ?? [];
@@ -1481,15 +1480,15 @@ public class SdeImportService
             .GroupBy(r => (r.TypeId, r.Activity, r.BonusKind, r.DogmaAttributeId))
             .Select(g => g.OrderByDescending(r => r.FilterId ?? 0).First());
 
-        await SaveBatchesAsync(db, db.SdeIndustryModifierSources, rows, "Industry Modifiers", raw.Count, p, 0.93, 0.94, ct);
+        await SaveBatchesAsync(db, db.SdeIndustryModifierSources, rows, SettingsText.ImportStageIndustryModifiers, raw.Count, p, 0.93, 0.94, ct);
     }
 
     private async Task ImportRacesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}races.yaml");
-        if (entry is null) { Report(p, "Races", "NOT FOUND in ZIP — skipped", 0.93); return; }
-        Report(p, "Races", "Parsing…", 0.93);
+        if (entry is null) { Report(p, SettingsText.ImportStageRaces, SettingsText.SdeNotFoundInZip, 0.93); return; }
+        Report(p, SettingsText.ImportStageRaces, SettingsText.ImportParsing, 0.93);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, RaceYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeRace
@@ -1500,15 +1499,15 @@ public class SdeImportService
             IconId      = kv.Value.iconID,
             ShipTypeId  = kv.Value.shipTypeID,
         });
-        await SaveBatchesAsync(db, db.SdeRaces, rows, "Races", raw.Count, p, 0.93, 0.94, ct);
+        await SaveBatchesAsync(db, db.SdeRaces, rows, SettingsText.ImportStageRaces, raw.Count, p, 0.93, 0.94, ct);
     }
 
     private async Task ImportMetaGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}metaGroups.yaml");
-        if (entry is null) { Report(p, "Meta Groups", "NOT FOUND in ZIP — skipped", 0.94); return; }
-        Report(p, "Meta Groups", "Parsing…", 0.94);
+        if (entry is null) { Report(p, SettingsText.ImportStageMetaGroups, SettingsText.SdeNotFoundInZip, 0.94); return; }
+        Report(p, SettingsText.ImportStageMetaGroups, SettingsText.ImportParsing, 0.94);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, MetaGroupYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeMetaGroup
@@ -1520,15 +1519,15 @@ public class SdeImportService
             IconSuffix  = kv.Value.iconSuffix ?? "",
             ColorHex    = kv.Value.color?.Hex ?? "",
         });
-        await SaveBatchesAsync(db, db.SdeMetaGroups, rows, "Meta Groups", raw.Count, p, 0.94, 0.96, ct);
+        await SaveBatchesAsync(db, db.SdeMetaGroups, rows, SettingsText.ImportStageMetaGroups, raw.Count, p, 0.94, 0.96, ct);
     }
 
     private async Task ImportCertificatesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}certificates.yaml");
-        if (entry is null) { Report(p, "Certificates", "NOT FOUND in ZIP — skipped", 0.96); return; }
-        Report(p, "Certificates", "Parsing…", 0.96);
+        if (entry is null) { Report(p, SettingsText.ImportStageCertificates, SettingsText.SdeNotFoundInZip, 0.96); return; }
+        Report(p, SettingsText.ImportStageCertificates, SettingsText.ImportParsing, 0.96);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, CertificateYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeCertificate
@@ -1538,30 +1537,30 @@ public class SdeImportService
             Name        = kv.Value.name?.en        ?? "",
             Description = kv.Value.description?.en ?? "",
         });
-        await SaveBatchesAsync(db, db.SdeCertificates, rows, "Certificates", raw.Count, p, 0.96, 0.97, ct);
+        await SaveBatchesAsync(db, db.SdeCertificates, rows, SettingsText.ImportStageCertificates, raw.Count, p, 0.96, 0.97, ct);
     }
 
     private async Task ImportTypeMaterialsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}typeMaterials.yaml");
-        if (entry is null) { Report(p, "Type Materials", "NOT FOUND in ZIP — skipped", 0.97); return; }
-        Report(p, "Type Materials", "Parsing…", 0.97);
+        if (entry is null) { Report(p, SettingsText.ImportStageTypeMaterials, SettingsText.SdeNotFoundInZip, 0.97); return; }
+        Report(p, SettingsText.ImportStageTypeMaterials, SettingsText.ImportParsing, 0.97);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, TypeMaterialsYaml>>(reader) ?? [];
         var rows = raw.SelectMany(kv =>
             (kv.Value.materials ?? []).Select(m => new SdeTypeMaterial
                 { TypeId = kv.Key, MaterialTypeId = m.materialTypeID, Quantity = m.quantity }))
             .DistinctBy(x => (x.TypeId, x.MaterialTypeId));
-        await SaveBatchesAsync(db, db.SdeTypeMaterials, rows, "Type Materials", -1, p, 0.97, 0.975, ct);
+        await SaveBatchesAsync(db, db.SdeTypeMaterials, rows, SettingsText.ImportStageTypeMaterials, -1, p, 0.97, 0.975, ct);
     }
 
     private async Task ImportPlanetSchematicsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}planetSchematics.yaml");
-        if (entry is null) { Report(p, "PI Schematics", "NOT FOUND in ZIP — skipped", 0.975); return; }
-        Report(p, "PI Schematics", "Parsing…", 0.975);
+        if (entry is null) { Report(p, SettingsText.ImportStagePiSchematics, SettingsText.SdeNotFoundInZip, 0.975); return; }
+        Report(p, SettingsText.ImportStagePiSchematics, SettingsText.ImportParsing, 0.975);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, PlanetSchematicYaml>>(reader) ?? [];
         var schematics = raw.Select(kv => new SdePlanetSchematic
@@ -1575,16 +1574,16 @@ public class SdeImportService
             (kv.Value.types ?? []).Select(t => new SdePlanetSchematicType
                 { SchematicId = kv.Key, TypeId = t.Key, IsInput = t.Value.isInput, Quantity = t.Value.quantity }))
             .DistinctBy(x => (x.SchematicId, x.TypeId));
-        await SaveBatchesAsync(db, db.SdePlanetSchematics,     schematics, "PI Schematics",      raw.Count, p, 0.975, 0.985, ct);
-        await SaveBatchesAsync(db, db.SdePlanetSchematicTypes, types,      "PI Schematic Types",  -1,        p, 0.985, 0.987, ct);
+        await SaveBatchesAsync(db, db.SdePlanetSchematics,     schematics, SettingsText.ImportStagePiSchematics,      raw.Count, p, 0.975, 0.985, ct);
+        await SaveBatchesAsync(db, db.SdePlanetSchematicTypes, types,      SettingsText.ImportStagePiSchematicTypes,  -1,        p, 0.985, 0.987, ct);
     }
 
     private async Task ImportDogmaUnitsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}dogmaUnits.yaml");
-        if (entry is null) { Report(p, "Dogma Units", "NOT FOUND in ZIP — skipped", 0.987); return; }
-        Report(p, "Dogma Units", "Parsing…", 0.987);
+        if (entry is null) { Report(p, SettingsText.ImportStageDogmaUnits, SettingsText.SdeNotFoundInZip, 0.987); return; }
+        Report(p, SettingsText.ImportStageDogmaUnits, SettingsText.ImportParsing, 0.987);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, DogmaUnitYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeDogmaUnit
@@ -1593,15 +1592,15 @@ public class SdeImportService
             Name        = kv.Value.name ?? "",
             DisplayName = kv.Value.displayName?.en ?? "",
         });
-        await SaveBatchesAsync(db, db.SdeDogmaUnits, rows, "Dogma Units", raw.Count, p, 0.987, 0.989, ct);
+        await SaveBatchesAsync(db, db.SdeDogmaUnits, rows, SettingsText.ImportStageDogmaUnits, raw.Count, p, 0.987, 0.989, ct);
     }
 
     private async Task ImportIconsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}icons.yaml");
-        if (entry is null) { Report(p, "Icons", "NOT FOUND in ZIP — skipped", 0.989); return; }
-        Report(p, "Icons", "Parsing icons.yaml (large)…", 0.989);
+        if (entry is null) { Report(p, SettingsText.ImportStageIcons, SettingsText.SdeNotFoundInZip, 0.989); return; }
+        Report(p, SettingsText.ImportStageIcons, ParsingLarge("icons.yaml"), 0.989);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, IconYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeIcon
@@ -1609,15 +1608,15 @@ public class SdeImportService
             IconId   = kv.Key,
             IconFile = kv.Value.iconFile ?? "",
         });
-        await SaveBatchesAsync(db, db.SdeIcons, rows, "Icons", raw.Count, p, 0.989, 0.992, ct);
+        await SaveBatchesAsync(db, db.SdeIcons, rows, SettingsText.ImportStageIcons, raw.Count, p, 0.989, 0.992, ct);
     }
 
     private async Task ImportGraphicsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}graphics.yaml");
-        if (entry is null) { Report(p, "Graphics", "NOT FOUND in ZIP — skipped", 0.992); return; }
-        Report(p, "Graphics", "Parsing graphics.yaml (large)…", 0.992);
+        if (entry is null) { Report(p, SettingsText.ImportStageGraphics, SettingsText.SdeNotFoundInZip, 0.992); return; }
+        Report(p, SettingsText.ImportStageGraphics, ParsingLarge("graphics.yaml"), 0.992);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, GraphicYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeGraphic
@@ -1625,15 +1624,15 @@ public class SdeImportService
             GraphicId   = kv.Key,
             GraphicFile = kv.Value.graphicFile,
         });
-        await SaveBatchesAsync(db, db.SdeGraphics, rows, "Graphics", raw.Count, p, 0.992, 0.995, ct);
+        await SaveBatchesAsync(db, db.SdeGraphics, rows, SettingsText.ImportStageGraphics, raw.Count, p, 0.992, 0.995, ct);
     }
 
     private async Task ImportSkinsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}skins.yaml");
-        if (entry is null) { Report(p, "Skins", "NOT FOUND in ZIP — skipped", 0.995); return; }
-        Report(p, "Skins", "Parsing…", 0.995);
+        if (entry is null) { Report(p, SettingsText.ImportStageSkins, SettingsText.SdeNotFoundInZip, 0.995); return; }
+        Report(p, SettingsText.ImportStageSkins, SettingsText.ImportParsing, 0.995);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, SkinYaml>>(reader) ?? [];
         var skinRows = raw.Select(kv => new SdeSkin
@@ -1646,16 +1645,16 @@ public class SdeImportService
         var typeRows = raw.SelectMany(kv =>
             (kv.Value.types ?? []).Select(typeId => new SdeSkinType { SkinId = kv.Key, TypeId = typeId }))
             .DistinctBy(x => (x.SkinId, x.TypeId));
-        await SaveBatchesAsync(db, db.SdeSkins,     skinRows, "Skins",      raw.Count, p, 0.995, 0.997, ct);
-        await SaveBatchesAsync(db, db.SdeSkinTypes, typeRows, "Skin Types", -1,        p, 0.997, 0.999, ct);
+        await SaveBatchesAsync(db, db.SdeSkins,     skinRows, SettingsText.ImportStageSkins,      raw.Count, p, 0.995, 0.997, ct);
+        await SaveBatchesAsync(db, db.SdeSkinTypes, typeRows, SettingsText.ImportStageSkinTypes, -1,        p, 0.997, 0.999, ct);
     }
 
     private async Task ImportSkinLicensesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         var entry = zip.GetEntry($"{fsdRoot}skinLicenses.yaml");
-        if (entry is null) { Report(p, "Skin Licenses", "NOT FOUND in ZIP — skipped", 0.999); return; }
-        Report(p, "Skin Licenses", "Parsing…", 0.999);
+        if (entry is null) { Report(p, SettingsText.ImportStageSkinLicenses, SettingsText.SdeNotFoundInZip, 0.999); return; }
+        Report(p, SettingsText.ImportStageSkinLicenses, SettingsText.ImportParsing, 0.999);
         using var reader = OpenEntry(entry);
         var raw = _yaml.Deserialize<Dictionary<int, SkinLicenseYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeSkinLicense
@@ -1664,7 +1663,7 @@ public class SdeImportService
             SkinId        = kv.Value.skinID,
             Duration      = kv.Value.duration,
         });
-        await SaveBatchesAsync(db, db.SdeSkinLicenses, rows, "Skin Licenses", raw.Count, p, 0.999, 1.0, ct);
+        await SaveBatchesAsync(db, db.SdeSkinLicenses, rows, SettingsText.ImportStageSkinLicenses, raw.Count, p, 0.999, 1.0, ct);
     }
 
     // -----------------------------------------------------------------------
@@ -1699,7 +1698,7 @@ public class SdeImportService
                 var frac   = estimatedTotal > 0
                     ? Math.Clamp(fracStart + (fracEnd - fracStart) * ((double)saved / estimatedTotal), fracStart, fracEnd)
                     : fracStart;
-                var detail = estimatedTotal > 0 ? $"{saved:N0} / {estimatedTotal:N0}" : $"{saved:N0} rows";
+                var detail = estimatedTotal > 0 ? $"{saved:N0} / {estimatedTotal:N0}" : string.Format(SettingsText.ImportRowsProgress, saved);
                 p.Report(new SdeImportProgress(stage, detail, frac));
             }
         }
@@ -1712,15 +1711,18 @@ public class SdeImportService
             saved += buffer.Count;
         }
 
-        p.Report(new SdeImportProgress(stage, $"{saved:N0} rows saved", fracEnd));
+        p.Report(new SdeImportProgress(stage, string.Format(SettingsText.ImportRowsSaved, saved), fracEnd));
 
         // ⚠️ A stage that stores NOTHING from a file that exists is a silent failure, and this
         // import is a wipe followed by a refill: whatever it fails to store is simply gone. Ten
         // tables came back empty after a clean import — races, meta groups, certificates, type
         // materials, planet schematics, dogma units, icons, graphics, skins and skin licences —
         // and nothing anywhere said so. Type materials alone is reprocessing.
+        //
+        // Logged under the table's name rather than the stage's: the stage is shown to the person
+        // importing, in their language, and the error log stays in English.
         if (saved == 0)
-            _errors.Log("SdeImport", stage,
+            _errors.Log("SdeImport", db.Model.FindEntityType(typeof(T))?.GetTableName() ?? typeof(T).Name,
                 estimatedTotal > 0
                     ? $"Stored 0 of {estimatedTotal:N0} row(s) parsed. The file was read and nothing reached the database."
                     : "Stored 0 rows: the file was found but parsed to nothing.");
@@ -1744,6 +1746,11 @@ public class SdeImportService
 
     private static void Report(IProgress<SdeImportProgress> p, string stage, string detail, double frac)
         => p.Report(new SdeImportProgress(stage, detail, frac));
+
+    // Progress details that name a file: "Parsing mapRegions.yaml…".
+    private static string Parsing(string file)         => string.Format(SettingsText.ImportParsingFile, file);
+    private static string ParsingLarge(string file)    => string.Format(SettingsText.ImportParsingFileLarge, file);
+    private static string NotFoundSkipped(string file) => string.Format(SettingsText.SdeFileNotFoundSkipped, file);
 
     // -----------------------------------------------------------------------
     // YAML DTOs — property names match SDE YAML keys exactly (case-sensitive)
@@ -2029,7 +2036,7 @@ public class SdeImportService
         var svcEntry = zip.GetEntry($"{fsdRoot}stationServices.yaml");
         if (svcEntry is not null)
         {
-            Report(p, "Station services", "Parsing stationServices.yaml…", 0.89);
+            Report(p, SettingsText.ImportStageStationServices, Parsing("stationServices.yaml"), 0.89);
             using var reader = OpenEntry(svcEntry);
             var raw = _yaml.Deserialize<Dictionary<int, StationServiceYaml>>(reader) ?? [];
             db.SdeStationServices.AddRange(raw.Select(kv => new SdeStationService
@@ -2039,18 +2046,18 @@ public class SdeImportService
             }));
             await db.SaveChangesAsync(ct);
             db.ChangeTracker.Clear();
-            Report(p, "Station services", $"{raw.Count:N0} services", 0.892);
+            Report(p, SettingsText.ImportStageStationServices, string.Format(SettingsText.SdeServicesCount, raw.Count), 0.892);
         }
-        else Report(p, "Station services", "stationServices.yaml NOT FOUND — skipped", 0.892);
+        else Report(p, SettingsText.ImportStageStationServices, NotFoundSkipped("stationServices.yaml"), 0.892);
 
         var opEntry = zip.GetEntry($"{fsdRoot}stationOperations.yaml");
         if (opEntry is null)
         {
-            Report(p, "Station operations", "stationOperations.yaml NOT FOUND — skipped", 0.895);
+            Report(p, SettingsText.ImportStageStationOperations, NotFoundSkipped("stationOperations.yaml"), 0.895);
             return;
         }
 
-        Report(p, "Station operations", "Parsing stationOperations.yaml…", 0.893);
+        Report(p, SettingsText.ImportStageStationOperations, Parsing("stationOperations.yaml"), 0.893);
         using var opReader = OpenEntry(opEntry);
         var ops = _yaml.Deserialize<Dictionary<int, StationOperationYaml>>(opReader) ?? [];
 
@@ -2077,7 +2084,7 @@ public class SdeImportService
 
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
-        Report(p, "Station operations", $"{ops.Count:N0} operations", 0.895);
+        Report(p, SettingsText.ImportStageStationOperations, string.Format(SettingsText.SdeOperationsCount, ops.Count), 0.895);
     }
 
     private class StationServiceYaml   { public LocalizedString? serviceName   { get; set; } }

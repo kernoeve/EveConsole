@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -61,39 +62,39 @@ public static class DatabaseRelocationService
         try
         {
             if (!File.Exists(source))
-                return new RelocationResult(true, false, "The database file could not be found.");
+                return new RelocationResult(true, false, SettingsText.DbRelocateNotFound);
 
             if (File.Exists(target))
                 return new RelocationResult(true, false,
-                    $"A file already exists at {target}. The database was left where it was.");
+                    string.Format(SettingsText.DbRelocateTargetExists, target));
 
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
 
             // ⚠️ The step whose absence lost data. Everything committed must be in the main file
             // before it goes anywhere.
-            progress?.Invoke(5, "Preparing database…");
+            progress?.Invoke(5, SettingsText.DbPreparingDatabase);
             SqliteMaintenance.Checkpoint(source);
 
-            progress?.Invoke(15, "Moving database…");
+            progress?.Invoke(15, SettingsText.DbRelocateMoving);
             File.Move(source, target);
 
             // The old sidecars describe a database that is no longer at that path.
             SqliteMaintenance.DeleteSidecars(source);
 
             // Checked before the config is repointed, while putting it back is still trivial.
-            progress?.Invoke(85, "Verifying…");
+            progress?.Invoke(85, SettingsText.DbVerifying);
             if (!Verify(target, out var problem))
             {
                 TryMoveBack(target, source);
                 return new RelocationResult(true, false,
-                    $"The moved database failed verification ({problem}) and was put back at {source}.");
+                    string.Format(SettingsText.DbRelocateVerifyFailed, problem, source));
             }
 
-            progress?.Invoke(95, "Updating configuration…");
+            progress?.Invoke(95, SettingsText.DbRelocateUpdatingConfig);
             AppConfig.SetDbPath(target);
 
-            progress?.Invoke(100, "Database moved.");
-            return new RelocationResult(true, true, $"Database moved to {target}.");
+            progress?.Invoke(100, SettingsText.DbRelocateDone);
+            return new RelocationResult(true, true, string.Format(SettingsText.DbRelocateMovedTo, target));
         }
         catch (Exception ex)
         {
@@ -101,7 +102,7 @@ public static class DatabaseRelocationService
             // destination — so the database is at one of the two paths and the config still names
             // the one it started at.
             return new RelocationResult(true, false,
-                $"The database could not be moved — it was left at {source}. ({ex.Message})");
+                string.Format(SettingsText.DbRelocateFailed, source, ex.Message));
         }
     }
 
@@ -138,7 +139,7 @@ public static class DatabaseRelocationService
             tables.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table'";
             if (Convert.ToInt64(tables.ExecuteScalar() ?? 0L) == 0)
             {
-                problem = "it contains no tables";
+                problem = SettingsText.DbVerifyNoTables;
                 return false;
             }
 

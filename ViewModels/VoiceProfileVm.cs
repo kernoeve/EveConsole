@@ -206,17 +206,20 @@ public sealed class VoiceProfileVm : ReactiveObject
 
     // ── Kokoro ────────────────────────────────────────────────────────────────
 
-    public IReadOnlyList<string> KokoroVoiceLabels { get; } = [.. KokoroTtsService.Voices.Select(v => v.Label)];
+    /// <summary>Kokoro's voices, by the id the profile keeps, with the words shown for each —
+    /// chosen by the id, never by the words, which are translated.</summary>
+    public IReadOnlyList<Choice<string>> KokoroVoiceLabels { get; } =
+        [.. KokoroTtsService.Voices.Select(v => new Choice<string>(v.Id, v.Label))];
 
     private string _kokoroVoiceId;
-    public string? SelectedKokoroVoiceLabel
+    public Choice<string>? SelectedKokoroVoiceLabel
     {
-        get => KokoroTtsService.Voices.FirstOrDefault(v => v.Id == _kokoroVoiceId).Label;
+        get => KokoroVoiceLabels.FirstOrDefault(v => v.Value == _kokoroVoiceId);
         set
         {
-            var match = KokoroTtsService.Voices.FirstOrDefault(v => v.Label == value);
-            if (match.Id is null || match.Id == _kokoroVoiceId) return;
-            _kokoroVoiceId = match.Id;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null || value.Value == _kokoroVoiceId) return;
+            _kokoroVoiceId = value.Value;
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(Label));
         }
@@ -224,19 +227,20 @@ public sealed class VoiceProfileVm : ReactiveObject
 
     // ── Piper ─────────────────────────────────────────────────────────────────
 
-    public IReadOnlyList<string> PiperVoiceLabels { get; } =
-        [.. PiperTtsService.VoiceCatalogue.Select(v => $"{v.Label}  [{v.Size}]")];
+    /// <summary>Piper's voices, by the key the profile keeps, each shown with the size of its
+    /// download — chosen by the key, never by the words, which are translated.</summary>
+    public IReadOnlyList<Choice<string>> PiperVoiceLabels { get; } =
+        [.. PiperTtsService.VoiceCatalogue.Select(v => new Choice<string>(v.Key, $"{v.Label}  [{v.Size}]"))];
 
     private string _piperVoiceKey;
-    public string? SelectedPiperVoiceLabel
+    public Choice<string>? SelectedPiperVoiceLabel
     {
-        get => PiperTtsService.VoiceCatalogue.Where(v => v.Key == _piperVoiceKey)
-                                             .Select(v => $"{v.Label}  [{v.Size}]").FirstOrDefault();
+        get => PiperVoiceLabels.FirstOrDefault(v => v.Value == _piperVoiceKey);
         set
         {
-            var match = PiperTtsService.VoiceCatalogue.FirstOrDefault(v => $"{v.Label}  [{v.Size}]" == value);
-            if (match.Key is null || match.Key == _piperVoiceKey) return;
-            _piperVoiceKey = match.Key;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null || value.Value == _piperVoiceKey) return;
+            _piperVoiceKey = value.Value;
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsPiperVoiceDownloaded));
             this.RaisePropertyChanged(nameof(Label));

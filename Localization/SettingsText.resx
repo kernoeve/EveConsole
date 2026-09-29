@@ -3311,4 +3311,936 @@ The application will restart.</value>
     <value>Could not restart ({0}). Close EVE Console and open it again to finish.</value>
     <comment>Database tab status. {0} is the reason, in English.</comment>
   </data>
+  <data name="DbRelocateNotFound" xml:space="preserve">
+    <value>The database file could not be found.</value>
+    <comment>Settings → Database status after a move requested there, run at the next start: the database file was missing.</comment>
+  </data>
+  <data name="DbRelocateTargetExists" xml:space="preserve">
+    <value>A file already exists at {0}. The database was left where it was.</value>
+    <comment>Settings → Database status: a move was refused. {0} is the destination path.</comment>
+  </data>
+  <data name="DbPreparingDatabase" xml:space="preserve">
+    <value>Preparing database…</value>
+    <comment>Startup splash progress while a requested database move or shrink begins.</comment>
+  </data>
+  <data name="DbRelocateMoving" xml:space="preserve">
+    <value>Moving database…</value>
+    <comment>Startup splash progress while a requested database move runs.</comment>
+  </data>
+  <data name="DbVerifying" xml:space="preserve">
+    <value>Verifying…</value>
+    <comment>Startup splash progress: the moved or shrunk database is being checked.</comment>
+  </data>
+  <data name="DbRelocateVerifyFailed" xml:space="preserve">
+    <value>The moved database failed verification ({0}) and was put back at {1}.</value>
+    <comment>Settings → Database status. {0} is the reason the check failed (an error message, or DbVerifyNoTables), {1} the path the database was put back at.</comment>
+  </data>
+  <data name="DbRelocateUpdatingConfig" xml:space="preserve">
+    <value>Updating configuration…</value>
+    <comment>Startup splash progress: the settings are being pointed at the moved database.</comment>
+  </data>
+  <data name="DbRelocateDone" xml:space="preserve">
+    <value>Database moved.</value>
+    <comment>Startup splash progress: the move finished.</comment>
+  </data>
+  <data name="DbRelocateMovedTo" xml:space="preserve">
+    <value>Database moved to {0}.</value>
+    <comment>Settings → Database status after a move. {0} is the new path.</comment>
+  </data>
+  <data name="DbRelocateFailed" xml:space="preserve">
+    <value>The database could not be moved — it was left at {0}. ({1})</value>
+    <comment>Settings → Database status. {0} is the path the database stayed at, {1} the error message.</comment>
+  </data>
+  <data name="DbVerifyNoTables" xml:space="preserve">
+    <value>it contains no tables</value>
+    <comment>Reason put into DbRelocateVerifyFailed: the moved file holds no tables.</comment>
+  </data>
+  <data name="DbShrinkFileNotFound" xml:space="preserve">
+    <value>Database file not found.</value>
+    <comment>Settings → Database status after a shrink requested there, run at the next start.</comment>
+  </data>
+  <data name="DbShrinkBackingUp" xml:space="preserve">
+    <value>Backing up database…</value>
+    <comment>Startup splash progress: a safety copy is taken before the shrink.</comment>
+  </data>
+  <data name="DbShrinkShrinking" xml:space="preserve">
+    <value>Shrinking database — this may take a while…</value>
+    <comment>Startup splash progress during the shrink.</comment>
+  </data>
+  <data name="DbShrinkVerifyFailed" xml:space="preserve">
+    <value>Shrink finished but the database failed verification: {0}. A copy taken beforehand is at {1}.</value>
+    <comment>Settings → Database status. {0} is what the check reported (SQLite's words, DbVerifyNoResult or DbShrinkVerifyNoTables), {1} the path of the safety copy.</comment>
+  </data>
+  <data name="DbShrinkDone" xml:space="preserve">
+    <value>Database shrunk.</value>
+    <comment>Startup splash progress: the shrink finished.</comment>
+  </data>
+  <data name="DbShrinkResult" xml:space="preserve">
+    <value>Database shrunk from {0} to {1} — {2} freed.</value>
+    <comment>Settings → Database status after a shrink. {0} is the size before, {1} after, {2} the space freed (sizes such as "1.25 GB").</comment>
+  </data>
+  <data name="DbShrinkFailed" xml:space="preserve">
+    <value>Shrink failed — the database was left unchanged. A copy taken beforehand is at {0}. ({1})</value>
+    <comment>Settings → Database status. {0} is the path of the safety copy, {1} the error message.</comment>
+  </data>
+  <data name="DbVerifyNoResult" xml:space="preserve">
+    <value>no result</value>
+    <comment>Reason put into DbShrinkVerifyFailed: SQLite's integrity check gave no answer.</comment>
+  </data>
+  <data name="DbShrinkVerifyNoTables" xml:space="preserve">
+    <value>the rebuilt file contains no tables</value>
+    <comment>Reason put into DbShrinkVerifyFailed.</comment>
+  </data>
+  <data name="PgRestoreSkippedMissing" xml:space="preserve">
+    <value>Restore skipped: {0} is no longer there.</value>
+    <comment>Settings → Database status after a restore requested there, run at the next start. {0} is the backup file's path.</comment>
+  </data>
+  <data name="PgRestoreSkippedNoConnection" xml:space="preserve">
+    <value>Restore skipped: no PostgreSQL connection is configured.</value>
+    <comment>Settings → Database status after a requested restore.</comment>
+  </data>
+  <data name="PgRestoreLooking" xml:space="preserve">
+    <value>Looking for pg_restore…</value>
+    <comment>Startup splash progress while a requested PostgreSQL restore begins. pg_restore is a program name.</comment>
+  </data>
+  <data name="PgRestoreFailed" xml:space="preserve">
+    <value>Restore failed: {0}</value>
+    <comment>Settings → Database status after a requested restore. {0} is the reason.</comment>
+  </data>
+  <data name="PgRestoreNotBesideDump" xml:space="preserve">
+    <value>Restore failed: pg_restore was not found beside pg_dump at {0}.</value>
+    <comment>Settings → Database status. pg_restore and pg_dump are program names; {0} is pg_dump's path.</comment>
+  </data>
+  <data name="PgRestoreRestoring" xml:space="preserve">
+    <value>Restoring {0} into {1}…</value>
+    <comment>Startup splash progress. {0} is the backup file's name, {1} the database's name.</comment>
+  </data>
+  <data name="PgCouldNotStart" xml:space="preserve">
+    <value>Could not start {0}.</value>
+    <comment>Reason shown after "Restore failed:" or "Backup error:". {0} is the path of the program that would not start.</comment>
+  </data>
+  <data name="PgRestoreFinished" xml:space="preserve">
+    <value>Restore finished.</value>
+    <comment>Startup splash progress.</comment>
+  </data>
+  <data name="PgExitCode" xml:space="preserve">
+    <value>exit code {0}</value>
+    <comment>Reason shown when pg_dump or pg_restore failed without saying why. {0} is the program's exit code (a number).</comment>
+  </data>
+  <data name="PgRestoreFailedEmpty" xml:space="preserve">
+    <value>Restore failed and the database is empty: {0}</value>
+    <comment>Settings → Database status. {0} is pg_restore's own error text, or PgExitCode.</comment>
+  </data>
+  <data name="PgDumpNotFound" xml:space="preserve">
+    <value>pg_dump was not found. It comes with the PostgreSQL client tools — postgresql-client on Debian or Ubuntu, postgresql on Arch, or the Windows installer's command line tools.</value>
+    <comment>Settings → Database → PostgreSQL Backups, after Check for pg_dump. pg_dump, postgresql-client and postgresql are program and package names.</comment>
+  </data>
+  <data name="PgDumpServerUnreachable" xml:space="preserve">
+    <value>Found pg_dump {0} at {1}, but could not reach the server to check its version: {2}</value>
+    <comment>Settings → Database → PostgreSQL Backups. {0} is pg_dump's major version (a number), {1} its path, {2} the error message.</comment>
+  </data>
+  <data name="PgDumpTooOld" xml:space="preserve">
+    <value>pg_dump {0} at {1} is older than the server ({2}) and will refuse to dump it. Install client tools of version {2} or newer.</value>
+    <comment>Settings → Database → PostgreSQL Backups. {0} is pg_dump's major version, {1} its path, {2} the server's major version (numbers); {2} appears twice.</comment>
+  </data>
+  <data name="PgDumpFound" xml:space="preserve">
+    <value>pg_dump {0} at {1}; server {2}.</value>
+    <comment>Settings → Database → PostgreSQL Backups: pg_dump can be used. {0} is its major version, {1} its path, {2} the server's major version.</comment>
+  </data>
+  <data name="PgDumpRunning" xml:space="preserve">
+    <value>Running pg_dump…</value>
+    <comment>Progress while a PostgreSQL backup runs. pg_dump is a program name.</comment>
+  </data>
+  <data name="PgDumpFailed" xml:space="preserve">
+    <value>pg_dump failed: {0}</value>
+    <comment>Reason shown after "Backup error:". pg_dump is a program name; {0} is its own error text, or PgExitCode.</comment>
+  </data>
+  <data name="DbSecretDpapi" xml:space="preserve">
+    <value>The password is encrypted by Windows for your account on this machine. Copying config.json elsewhere does not carry a usable password.</value>
+    <comment>Settings → Database → PostgreSQL Server: how the saved password is kept, on Windows. config.json is a file name.</comment>
+  </data>
+  <data name="DbSecretLibSecret" xml:space="preserve">
+    <value>The password is held in your desktop keyring; config.json contains only a reference to it.</value>
+    <comment>Settings → Database → PostgreSQL Server: how the saved password is kept, on Linux with a desktop keyring. config.json is a file name.</comment>
+  </data>
+  <data name="DbSecretNone" xml:space="preserve">
+    <value>No keyring was found, so the password is stored in config.json as typed. Install libsecret-tools (secret-tool) to have it kept in the keyring instead.</value>
+    <comment>Settings → Database → PostgreSQL Server: no keyring was found. config.json is a file name; libsecret-tools and secret-tool are package and program names.</comment>
+  </data>
+  <data name="DbSizeMeasuringTable" xml:space="preserve">
+    <value>Measuring {0} ({1} of {2})…</value>
+    <comment>Settings → Database → Storage Breakdown progress. {0} is a table's name, {1} its position, {2} the number of tables.</comment>
+  </data>
+  <data name="DbSizeReadingTables" xml:space="preserve">
+    <value>Reading table sizes…</value>
+    <comment>Settings → Database → Storage Breakdown progress on PostgreSQL.</comment>
+  </data>
+  <data name="DbSizeReadTables" xml:space="preserve">
+    <value>Read {0:N0} tables.</value>
+    <comment>Settings → Database → Storage Breakdown progress: done. "Read" is past tense. {0} is the number of tables.</comment>
+  </data>
+  <data name="PgRestoreDone" xml:space="preserve">
+    <value>Restored {0} — {1:N0} tables.</value>
+    <comment>Settings → Database status after a requested restore. {0} is the backup file's name, {1} the number of tables now in the database.</comment>
+  </data>
+  <data name="PgRestoreDoneWithErrors" xml:space="preserve">
+    <value>Restored {0} — {1:N0} tables, {2:N0} ignorable error(s) during DROP.</value>
+    <comment>Settings → Database status after a requested restore. {0} is the backup file's name, {1} the number of tables now in the database, {2} how many errors pg_restore reported while dropping objects that were not there. DROP is an SQL command.</comment>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+    <comment>The reason given when the person dismissed a Windows administrator prompt or the Slack sign-in, shown after e.g. "Failed: ".</comment>
+  </data>
+  <data name="SvcWindowsOnly" xml:space="preserve">
+    <value>Windows only.</value>
+    <comment>Settings → Polling → background service: the reason an action failed, shown after e.g. "Install failed — ".</comment>
+  </data>
+  <data name="SvcNoAppPath" xml:space="preserve">
+    <value>Could not determine this application's path.</value>
+    <comment>Settings → Polling → background service: the reason an action failed, shown after e.g. "Install failed — ".</comment>
+  </data>
+  <data name="SvcElevatedNotStarted" xml:space="preserve">
+    <value>The elevated step did not start.</value>
+    <comment>Settings → Polling → background service: the reason an action failed. The elevated step is the copy of the app that runs with administrator rights.</comment>
+  </data>
+  <data name="SvcElevatedFailed" xml:space="preserve">
+    <value>The elevated step failed (exit {0}). See the error log.</value>
+    <comment>Settings → Polling → background service: the reason an action failed. {0} is the exit code (a number).</comment>
+  </data>
+  <data name="SvcDaemonReloadFailed" xml:space="preserve">
+    <value>systemctl daemon-reload failed: {0}</value>
+    <comment>Settings → Polling → background service (Linux): the reason an action failed. "systemctl daemon-reload" is a command; {0} is its own output.</comment>
+  </data>
+  <data name="SvcEnableFailed" xml:space="preserve">
+    <value>systemctl enable failed: {0}</value>
+    <comment>Settings → Polling → background service (Linux): the reason installing failed. "systemctl enable" is a command; {0} is its own output.</comment>
+  </data>
+  <data name="SvcRepointNotInstalled" xml:space="preserve">
+    <value>Not installed.</value>
+    <comment>Settings → Polling → background service (Linux): the reason updating the unit failed — there is no unit.</comment>
+  </data>
+  <data name="SvcCouldNotRun" xml:space="preserve">
+    <value>could not run {0}</value>
+    <comment>Settings → Polling → background service (Linux): the reason an action failed, shown after e.g. "Start failed — ". {0} is a program name such as systemctl.</comment>
+  </data>
+  <data name="MarketStatusOk" xml:space="preserve">
+    <value>OK</value>
+    <comment>Settings → Market: a price source's last refresh worked (Fuzzwork). Stored with the source and shown as its status.</comment>
+  </data>
+  <data name="MarketStatusOkOrders" xml:space="preserve">
+    <value>OK ({0:N0} orders fetched)</value>
+    <comment>Settings → Market: a price source's last refresh worked. {0} is the number of market orders fetched. Stored with the source and shown as its status.</comment>
+  </data>
+  <data name="MarketNoSdeTypes" xml:space="preserve">
+    <value>No SDE types loaded — run an SDE import first.</value>
+    <comment>Settings → Market: why a price source's refresh failed. Stored with the source and shown as its status.</comment>
+  </data>
+  <data name="MarketEsiError" xml:space="preserve">
+    <value>ESI error {0}: {1}</value>
+    <comment>Settings → Market: why a price source's refresh failed. {0} is the HTTP status code, {1} ESI's own error text. Stored with the source and shown as its status.</comment>
+  </data>
+  <data name="MarketNoAuthChar" xml:space="preserve">
+    <value>No auth character set for Player Structure source.</value>
+    <comment>Settings → Market: why a Player Structure price source's refresh failed. Stored with the source and shown as its status.</comment>
+  </data>
+  <data name="BuildCostNotCalculated" xml:space="preserve">
+    <value>Build costs: not yet calculated</value>
+    <comment>Settings → Market → Build Costs status, and the main window status bar.</comment>
+  </data>
+  <data name="BuildCostFetching" xml:space="preserve">
+    <value>Build costs: fetching ESI data…</value>
+    <comment>Settings → Market → Build Costs status while prices and cost indices are fetched from ESI.</comment>
+  </data>
+  <data name="BuildCostCalculating" xml:space="preserve">
+    <value>Build costs: calculating…</value>
+    <comment>Settings → Market → Build Costs status while build costs are recalculated.</comment>
+  </data>
+  <data name="BuildCostError" xml:space="preserve">
+    <value>Build costs: error — {0}</value>
+    <comment>Settings → Market → Build Costs status. {0} is the start of the error message.</comment>
+  </data>
+  <data name="BuildCostNoDefaultPark" xml:space="preserve">
+    <value>Build costs: no default park set — mark a park as default in Indy Parks</value>
+    <comment>Settings → Market → Build Costs status. Indy Parks is the name of a tool in the app; a park is a set of industry structures.</comment>
+  </data>
+  <data name="BuildCostCalculatingCycle" xml:space="preserve">
+    <value>Build costs: calculating… ({0} in a dependency cycle, costed last)</value>
+    <comment>Settings → Market → Build Costs status. {0} is the number of items whose materials depend on each other in a loop.</comment>
+  </data>
+  <data name="BuildCostUpdated" xml:space="preserve">
+    <value>Build costs: last updated {0:t} ({1:N0} items)</value>
+    <comment>Settings → Market → Build Costs status after a recalculation. {0} is the time, {1} the number of items costed.</comment>
+  </data>
+  <data name="GameLogStatusNotStarted" xml:space="preserve">
+    <value>Game logs: Not started</value>
+    <comment>Settings → Game Logs status line, also in Background Processes.</comment>
+  </data>
+  <data name="GameLogStatusStopped" xml:space="preserve">
+    <value>Game logs: Stopped</value>
+    <comment>Settings → Game Logs status line.</comment>
+  </data>
+  <data name="GameLogStatusError" xml:space="preserve">
+    <value>Game logs: Error — {0}</value>
+    <comment>Settings → Game Logs status line. {0} is the start of the error message.</comment>
+  </data>
+  <data name="GameLogStatusDisabled" xml:space="preserve">
+    <value>Game logs: Disabled</value>
+    <comment>Settings → Game Logs status line: the importer is switched off.</comment>
+  </data>
+  <data name="GameLogStatusNoFolder" xml:space="preserve">
+    <value>Game logs: no folder found</value>
+    <comment>Settings → Game Logs status line.</comment>
+  </data>
+  <data name="GameLogStatusUnreachable" xml:space="preserve">
+    <value>Game logs: watching, {0} unreachable folder(s)</value>
+    <comment>Settings → Game Logs status line. {0} is the number of log folders that could not be reached.</comment>
+  </data>
+  <data name="GameLogStatusNew" xml:space="preserve">
+    <value>Game logs: +{0:N0} new</value>
+    <comment>Settings → Game Logs status line. {0} is the number of new log lines stored this pass.</comment>
+  </data>
+  <data name="GameLogStatusWatching" xml:space="preserve">
+    <value>Game logs: watching</value>
+    <comment>Settings → Game Logs status line: running, nothing new.</comment>
+  </data>
+  <data name="GameLogScanningFolders" xml:space="preserve">
+    <value>Scanning folders…</value>
+    <comment>Settings → Game Logs → Import Past Logs progress.</comment>
+  </data>
+  <data name="LogImportFileProgress" xml:space="preserve">
+    <value>File {0:N0} of {1:N0} — {2}</value>
+    <comment>Settings → Game Logs / Chat Logs → import progress. {0} is the file's position, {1} the number of files, {2} the file's name.</comment>
+  </data>
+  <data name="GameLogImportCancelled" xml:space="preserve">
+    <value>Game logs: import cancelled after {0:N0} file(s), {1:N0} row(s)</value>
+    <comment>Settings → Game Logs → Import Past Logs result. {0} is the number of files read, {1} the number of log lines stored.</comment>
+  </data>
+  <data name="GameLogImportDone" xml:space="preserve">
+    <value>Game logs: imported {0:N0} row(s) from {1:N0} file(s)</value>
+    <comment>Settings → Game Logs → Import Past Logs result. {0} is the number of log lines stored, {1} the number of files.</comment>
+  </data>
+  <data name="GameLogImportFailed" xml:space="preserve">
+    <value>Game logs: import failed — {0}</value>
+    <comment>Settings → Game Logs → Import Past Logs result. {0} is the start of the error message.</comment>
+  </data>
+  <data name="ChatLogStatusDisabled" xml:space="preserve">
+    <value>Chat logs: Disabled</value>
+    <comment>Settings → Chat Logs status line: the importer is switched off.</comment>
+  </data>
+  <data name="ChatLogStatusStopped" xml:space="preserve">
+    <value>Chat logs: Stopped</value>
+    <comment>Settings → Chat Logs status line.</comment>
+  </data>
+  <data name="ChatLogStatusError" xml:space="preserve">
+    <value>Chat logs: Error — {0}</value>
+    <comment>Settings → Chat Logs status line. {0} is the start of the error message.</comment>
+  </data>
+  <data name="ChatLogScanningFolders" xml:space="preserve">
+    <value>Scanning chat log folders…</value>
+    <comment>Settings → Chat Logs progress while channels are discovered or past chat is imported.</comment>
+  </data>
+  <data name="ChatLogChannelsFound" xml:space="preserve">
+    <value>Found {0:N0} channel(s).</value>
+    <comment>Settings → Chat Logs → Discover Channels result. {0} is the number of channels.</comment>
+  </data>
+  <data name="ChatLogDiscoveryFailed" xml:space="preserve">
+    <value>Discovery failed — {0}</value>
+    <comment>Settings → Chat Logs → Discover Channels result. {0} is the start of the error message.</comment>
+  </data>
+  <data name="ChatLogStatusNoFolder" xml:space="preserve">
+    <value>Chat logs: no folder found</value>
+    <comment>Settings → Chat Logs status line.</comment>
+  </data>
+  <data name="ChatLogStatusNoChannels" xml:space="preserve">
+    <value>Chat logs: no channels selected</value>
+    <comment>Settings → Chat Logs status line: no channel is ticked, so nothing is stored.</comment>
+  </data>
+  <data name="ChatLogStatusNew" xml:space="preserve">
+    <value>Chat logs: +{0:N0} message(s)</value>
+    <comment>Settings → Chat Logs status line. {0} is the number of new messages stored this pass.</comment>
+  </data>
+  <data name="ChatLogStatusWatching" xml:space="preserve">
+    <value>Chat logs: watching {0} channel(s)</value>
+    <comment>Settings → Chat Logs status line. {0} is the number of channels being read.</comment>
+  </data>
+  <data name="ChatLogSelectChannelFirst" xml:space="preserve">
+    <value>Chat logs: select at least one channel first</value>
+    <comment>Settings → Chat Logs → Import Past Chat, when no channel is ticked.</comment>
+  </data>
+  <data name="ChatLogImportCancelled" xml:space="preserve">
+    <value>Chat logs: import cancelled after {0:N0} file(s), {1:N0} message(s)</value>
+    <comment>Settings → Chat Logs → Import Past Chat result. {0} is the number of files read, {1} the number of messages stored.</comment>
+  </data>
+  <data name="ChatLogImportDone" xml:space="preserve">
+    <value>Chat logs: imported {0:N0} message(s) from {1:N0} file(s)</value>
+    <comment>Settings → Chat Logs → Import Past Chat result. {0} is the number of messages stored, {1} the number of files.</comment>
+  </data>
+  <data name="ChatLogImportFailed" xml:space="preserve">
+    <value>Chat logs: import failed — {0}</value>
+    <comment>Settings → Chat Logs → Import Past Chat result. {0} is the start of the error message.</comment>
+  </data>
+  <data name="MapStatsPollIdle" xml:space="preserve">
+    <value>Map stats: idle</value>
+    <comment>Settings → Map Data: the current-hour poll's status line.</comment>
+  </data>
+  <data name="MapStatsPollStored" xml:space="preserve">
+    <value>Map stats: stored {0:N0} rows at {1:HH:mm}</value>
+    <comment>Settings → Map Data: the current-hour poll's status line. {0} is the number of rows stored, {1} the time.</comment>
+  </data>
+  <data name="MapStatsPollUpToDate" xml:space="preserve">
+    <value>Map stats: up to date at {0:HH:mm}</value>
+    <comment>Settings → Map Data: the current-hour poll's status line. {0} is the time.</comment>
+  </data>
+  <data name="MapStatsBackfillCancelled" xml:space="preserve">
+    <value>Cancelled</value>
+    <comment>Settings → Map Data → History: the backfill was stopped.</comment>
+  </data>
+  <data name="MapStatsBackfillComplete" xml:space="preserve">
+    <value>Complete</value>
+    <comment>Settings → Map Data → History: the backfill finished.</comment>
+  </data>
+  <data name="MapStatsCompacting" xml:space="preserve">
+    <value>Compacting existing map data…</value>
+    <comment>Settings → Map Data → History progress while older data is compacted.</comment>
+  </data>
+  <data name="MapStatsReclaiming" xml:space="preserve">
+    <value>Reclaiming disk space…</value>
+    <comment>Settings → Map Data → History progress while the database gives back freed space.</comment>
+  </data>
+  <data name="MapStatsCompactionComplete" xml:space="preserve">
+    <value>Compaction complete</value>
+    <comment>Settings → Map Data → History: compaction finished.</comment>
+  </data>
+  <data name="SdeIncompatible" xml:space="preserve">
+    <value>EVE Console needs to be updated before it can refresh the SDE. The following required file(s) were not found in the archive (CCP may have restructured the SDE format): {0}. Your existing SDE data has NOT been cleared.</value>
+    <comment>Settings → SDE, after "⚠ Update required — ". {0} is a list of file names. CCP is the company that makes EVE; SDE is EVE's Static Data Export.</comment>
+  </data>
+  <data name="ImportStagePreparing" xml:space="preserve">
+    <value>Preparing</value>
+    <comment>Settings → SDE / Hoboleaks import progress, shown as "stage — detail": the stage before the data is replaced.</comment>
+  </data>
+  <data name="SdeFetchingBuildInfo" xml:space="preserve">
+    <value>Fetching build info…</value>
+    <comment>Settings → SDE import progress detail: asking CCP which SDE build is the latest.</comment>
+  </data>
+  <data name="SdeCreatingSchema" xml:space="preserve">
+    <value>Creating schema…</value>
+    <comment>Settings → SDE import progress detail: making sure the SDE tables exist.</comment>
+  </data>
+  <data name="SdeReadingRowCounts" xml:space="preserve">
+    <value>Reading current row counts…</value>
+    <comment>Settings → SDE import progress detail: counting the rows held now, to compare after the import.</comment>
+  </data>
+  <data name="SdeClearing" xml:space="preserve">
+    <value>Clearing existing SDE data…</value>
+    <comment>Settings → SDE import progress detail.</comment>
+  </data>
+  <data name="ImportStageVerifying" xml:space="preserve">
+    <value>Verifying</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: checking the imported tables.</comment>
+  </data>
+  <data name="ImportCheckingRowCounts" xml:space="preserve">
+    <value>Checking row counts…</value>
+    <comment>Settings → SDE / Hoboleaks import progress detail: comparing each table's row count with before.</comment>
+  </data>
+  <data name="ImportStageDone" xml:space="preserve">
+    <value>Done</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: finished.</comment>
+  </data>
+  <data name="SdeOptionalMissing" xml:space="preserve">
+    <value>Optional files not found (will be skipped): {0}</value>
+    <comment>Settings → SDE import progress detail. {0} is a list of file names.</comment>
+  </data>
+  <data name="SdeAllFilesPresent" xml:space="preserve">
+    <value>All SDE files present.</value>
+    <comment>Settings → SDE import progress detail.</comment>
+  </data>
+  <data name="SdeFlatFormat" xml:space="preserve">
+    <value>New flat SDE format detected</value>
+    <comment>Settings → SDE import progress detail: the archive has the current layout, every file at the top level.</comment>
+  </data>
+  <data name="SdeNestedFormat" xml:space="preserve">
+    <value>Old nested SDE format, prefix: "{0}"</value>
+    <comment>Settings → SDE import progress detail: the archive has the older layout. {0} is the folder the files are in.</comment>
+  </data>
+  <data name="ImportStageWarning" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Settings → SDE import progress, stage: something unexpected that the import carries on through.</comment>
+  </data>
+  <data name="SdeRootNotDetected" xml:space="preserve">
+    <value>Could not detect ZIP root — assuming flat</value>
+    <comment>Settings → SDE import progress detail. ZIP is the archive format; "flat" means every file at the top level.</comment>
+  </data>
+  <data name="ImportStageDownloadingSde" xml:space="preserve">
+    <value>Downloading SDE</value>
+    <comment>Settings → SDE import progress, stage. The detail beside it is the amount downloaded.</comment>
+  </data>
+  <data name="ImportStageCategories" xml:space="preserve">
+    <value>Categories</value>
+    <comment>Settings → SDE import progress, stage: EVE's item categories. Use the game's own word.</comment>
+  </data>
+  <data name="SdeNotFoundInZip" xml:space="preserve">
+    <value>NOT FOUND in ZIP — skipped</value>
+    <comment>Settings → SDE import progress detail: this part's file is missing from the archive, so it is skipped.</comment>
+  </data>
+  <data name="ImportParsing" xml:space="preserve">
+    <value>Parsing…</value>
+    <comment>Settings → SDE import progress detail: reading this part's file.</comment>
+  </data>
+  <data name="ImportStageGroups" xml:space="preserve">
+    <value>Groups</value>
+    <comment>Settings → SDE import progress, stage: EVE's item groups. Use the game's own word.</comment>
+  </data>
+  <data name="SdeParsedGroups" xml:space="preserve">
+    <value>Parsed {0:N0} groups from YAML — saving…</value>
+    <comment>Settings → SDE import progress detail. {0} is the number of item groups read. YAML is a file format.</comment>
+  </data>
+  <data name="ImportStageMarketGroups" xml:space="preserve">
+    <value>Market Groups</value>
+    <comment>Settings → SDE import progress, stage: the market's item groups. Use the game's own words.</comment>
+  </data>
+  <data name="ImportStageTypes" xml:space="preserve">
+    <value>Types</value>
+    <comment>Settings → SDE import progress, stage: EVE's item types. Use the game's own word.</comment>
+  </data>
+  <data name="SdeParsedTypes" xml:space="preserve">
+    <value>Parsed {0:N0} types from YAML — saving…</value>
+    <comment>Settings → SDE import progress detail. {0} is the number of item types read. YAML is a file format.</comment>
+  </data>
+  <data name="ImportStageAttrCategories" xml:space="preserve">
+    <value>Attr Categories</value>
+    <comment>Settings → SDE import progress, stage: the categories of item attributes (short for attribute categories).</comment>
+  </data>
+  <data name="SdeNotFoundSkipped" xml:space="preserve">
+    <value>NOT FOUND — skipped</value>
+    <comment>Settings → SDE import progress detail: this part's file is missing, so it is skipped.</comment>
+  </data>
+  <data name="ImportStageDogmaAttributes" xml:space="preserve">
+    <value>Dogma Attributes</value>
+    <comment>Settings → SDE import progress, stage: item attributes. Dogma is CCP's name for the system that defines them.</comment>
+  </data>
+  <data name="ImportStageDogmaEffects" xml:space="preserve">
+    <value>Dogma Effects</value>
+    <comment>Settings → SDE import progress, stage: item effects. Dogma is CCP's name for the system that defines them.</comment>
+  </data>
+  <data name="ImportStageTypeDogma" xml:space="preserve">
+    <value>Type Dogma</value>
+    <comment>Settings → SDE import progress, stage: each item type's attributes and effects. Dogma is CCP's name for that system.</comment>
+  </data>
+  <data name="ImportStageTypeDogmaAttributes" xml:space="preserve">
+    <value>Type Dogma Attributes</value>
+    <comment>Settings → SDE import progress, stage: each item type's attributes.</comment>
+  </data>
+  <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
+    <value>Type Dogma Effects</value>
+    <comment>Settings → SDE import progress, stage: each item type's effects.</comment>
+  </data>
+  <data name="ImportStageBlueprints" xml:space="preserve">
+    <value>Blueprints</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: blueprints. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageBlueprintMaterials" xml:space="preserve">
+    <value>Blueprint Materials</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: the materials blueprints use.</comment>
+  </data>
+  <data name="ImportStageBlueprintProducts" xml:space="preserve">
+    <value>Blueprint Products</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: what blueprints make.</comment>
+  </data>
+  <data name="ImportStageBlueprintSkills" xml:space="preserve">
+    <value>Blueprint Skills</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: the skills blueprints need.</comment>
+  </data>
+  <data name="ImportStageUniverse" xml:space="preserve">
+    <value>Universe</value>
+    <comment>Settings → SDE import progress, stage: the map — regions, constellations, systems and what is in them.</comment>
+  </data>
+  <data name="ImportStageRegions" xml:space="preserve">
+    <value>Regions</value>
+    <comment>Settings → SDE import progress, stage: EVE's regions. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageConstellations" xml:space="preserve">
+    <value>Constellations</value>
+    <comment>Settings → SDE import progress, stage: EVE's constellations. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageSolarSystems" xml:space="preserve">
+    <value>Solar Systems</value>
+    <comment>Settings → SDE import progress, stage: EVE's solar systems. Use the game's own words.</comment>
+  </data>
+  <data name="ImportStageStargates" xml:space="preserve">
+    <value>Stargates</value>
+    <comment>Settings → SDE import progress, stage. Use the game's own word.</comment>
+  </data>
+  <data name="SdeParsingBelts" xml:space="preserve">
+    <value>Parsing asteroid belts…</value>
+    <comment>Settings → SDE import progress detail. Use the game's words for asteroid belts.</comment>
+  </data>
+  <data name="ImportStageCelestials" xml:space="preserve">
+    <value>Celestials</value>
+    <comment>Settings → SDE import progress, stage: planets, moons, belts and other objects in space.</comment>
+  </data>
+  <data name="ImportStagePlanetResources" xml:space="preserve">
+    <value>Planet Resources</value>
+    <comment>Settings → SDE import progress, stage: what each planet yields (planetary industry).</comment>
+  </data>
+  <data name="ImportStageAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Settings → SDE import progress, stage: EVE's NPC agents. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageAgentTypes" xml:space="preserve">
+    <value>Agent Types</value>
+    <comment>Settings → SDE import progress, stage: the kinds of NPC agent.</comment>
+  </data>
+  <data name="ImportStageCorpDivisions" xml:space="preserve">
+    <value>Corp Divisions</value>
+    <comment>Settings → SDE import progress, stage: the divisions of NPC corporations that agents work in.</comment>
+  </data>
+  <data name="SdeScanningEntries" xml:space="preserve">
+    <value>Scanning entries…</value>
+    <comment>Settings → SDE import progress detail: listing the files of the older archive layout.</comment>
+  </data>
+  <data name="SdeFoundUniverse" xml:space="preserve">
+    <value>Found {0} regions, {1} constellations, {2} systems</value>
+    <comment>Settings → SDE import progress detail. {0}, {1} and {2} are the numbers of regions, constellations and solar systems found.</comment>
+  </data>
+  <data name="ImportStageStations" xml:space="preserve">
+    <value>Stations</value>
+    <comment>Settings → SDE import progress, stage: NPC stations. Use the game's own word.</comment>
+  </data>
+  <data name="SdeFetchingStationNames" xml:space="preserve">
+    <value>Fetching {0:N0} station names from ESI…</value>
+    <comment>Settings → SDE import progress detail. {0} is the number of stations whose names are asked of ESI.</comment>
+  </data>
+  <data name="ImportStageFactions" xml:space="preserve">
+    <value>Factions</value>
+    <comment>Settings → SDE import progress, stage. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageNpcCorporations" xml:space="preserve">
+    <value>NPC Corporations</value>
+    <comment>Settings → SDE import progress, stage. Use the game's own words.</comment>
+  </data>
+  <data name="ImportStageIndustryModifiers" xml:space="preserve">
+    <value>Industry Modifiers</value>
+    <comment>Settings → SDE import progress, stage: what changes industry job times and costs.</comment>
+  </data>
+  <data name="ImportStageRaces" xml:space="preserve">
+    <value>Races</value>
+    <comment>Settings → SDE import progress, stage: EVE's races (Amarr, Caldari…). Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageMetaGroups" xml:space="preserve">
+    <value>Meta Groups</value>
+    <comment>Settings → SDE import progress, stage: Tech I, Tech II, Faction and so on. Use the game's own words.</comment>
+  </data>
+  <data name="ImportStageCertificates" xml:space="preserve">
+    <value>Certificates</value>
+    <comment>Settings → SDE import progress, stage: skill certificates. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageTypeMaterials" xml:space="preserve">
+    <value>Type Materials</value>
+    <comment>Settings → SDE / Hoboleaks import progress, stage: what each item reprocesses into.</comment>
+  </data>
+  <data name="ImportStagePiSchematics" xml:space="preserve">
+    <value>PI Schematics</value>
+    <comment>Settings → SDE import progress, stage: planetary interaction (PI) schematics. Use the game's own words.</comment>
+  </data>
+  <data name="ImportStagePiSchematicTypes" xml:space="preserve">
+    <value>PI Schematic Types</value>
+    <comment>Settings → SDE import progress, stage: the items each PI schematic uses and makes.</comment>
+  </data>
+  <data name="ImportStageDogmaUnits" xml:space="preserve">
+    <value>Dogma Units</value>
+    <comment>Settings → SDE import progress, stage: the units attributes are measured in.</comment>
+  </data>
+  <data name="ImportStageIcons" xml:space="preserve">
+    <value>Icons</value>
+    <comment>Settings → SDE import progress, stage.</comment>
+  </data>
+  <data name="ImportStageGraphics" xml:space="preserve">
+    <value>Graphics</value>
+    <comment>Settings → SDE import progress, stage.</comment>
+  </data>
+  <data name="ImportStageSkins" xml:space="preserve">
+    <value>Skins</value>
+    <comment>Settings → SDE import progress, stage: ship SKINs. Use the game's own word.</comment>
+  </data>
+  <data name="ImportStageSkinTypes" xml:space="preserve">
+    <value>Skin Types</value>
+    <comment>Settings → SDE import progress, stage: which ships each SKIN fits.</comment>
+  </data>
+  <data name="ImportStageSkinLicenses" xml:space="preserve">
+    <value>Skin Licenses</value>
+    <comment>Settings → SDE import progress, stage: SKIN licences. Use the game's own words.</comment>
+  </data>
+  <data name="ImportRowsProgress" xml:space="preserve">
+    <value>{0:N0} rows</value>
+    <comment>Settings → SDE / Hoboleaks import progress detail while a table is saved. {0} is the number of rows saved so far.</comment>
+  </data>
+  <data name="ImportRowsSaved" xml:space="preserve">
+    <value>{0:N0} rows saved</value>
+    <comment>Settings → SDE / Hoboleaks import progress detail: a table is saved. {0} is the number of rows.</comment>
+  </data>
+  <data name="ImportStageStationServices" xml:space="preserve">
+    <value>Station services</value>
+    <comment>Settings → SDE import progress, stage: the services NPC stations offer.</comment>
+  </data>
+  <data name="SdeServicesCount" xml:space="preserve">
+    <value>{0:N0} services</value>
+    <comment>Settings → SDE import progress detail. {0} is the number of station services read.</comment>
+  </data>
+  <data name="ImportStageStationOperations" xml:space="preserve">
+    <value>Station operations</value>
+    <comment>Settings → SDE import progress, stage: the kinds of NPC station and the services each has.</comment>
+  </data>
+  <data name="SdeOperationsCount" xml:space="preserve">
+    <value>{0:N0} operations</value>
+    <comment>Settings → SDE import progress detail. {0} is the number of station operations read.</comment>
+  </data>
+  <data name="HoboIncompatible" xml:space="preserve">
+    <value>EVE Console needs to be updated before it can refresh the Hoboleaks data. The following file(s) are no longer published in the Hoboleaks manifest: {0}. Your existing Hoboleaks data has NOT been cleared.</value>
+    <comment>Settings → SDE → Hoboleaks, after "⚠ Update required — ". {0} is a list of file names. Hoboleaks is the name of a website.</comment>
+  </data>
+  <data name="HoboCreatingSchema" xml:space="preserve">
+    <value>Creating Hobo schema…</value>
+    <comment>Settings → SDE → Hoboleaks import progress detail. Hobo is short for Hoboleaks, a website.</comment>
+  </data>
+  <data name="HoboReadingManifest" xml:space="preserve">
+    <value>Reading the Hoboleaks manifest…</value>
+    <comment>Settings → SDE → Hoboleaks import progress detail. The manifest is the website's list of its files.</comment>
+  </data>
+  <data name="HoboManifestUnreadable" xml:space="preserve">
+    <value>The Hoboleaks manifest could not be read, so no import was attempted. Your existing Hoboleaks data has NOT been changed.</value>
+    <comment>Settings → SDE → Hoboleaks, after "Error: ". The manifest is the website's list of its files.</comment>
+  </data>
+  <data name="ImportStageDownloading" xml:space="preserve">
+    <value>Downloading</value>
+    <comment>Settings → SDE → Hoboleaks import progress, stage. The detail beside it is a file name.</comment>
+  </data>
+  <data name="HoboClearing" xml:space="preserve">
+    <value>Clearing existing Hobo data…</value>
+    <comment>Settings → SDE → Hoboleaks import progress detail. Hobo is short for Hoboleaks, a website.</comment>
+  </data>
+  <data name="HoboManifestCurrent" xml:space="preserve">
+    <value>Manifest revision {0:N0}, all {1} files current.</value>
+    <comment>Settings → SDE → Hoboleaks import progress detail. {0} is the manifest's revision number, {1} the number of files read.</comment>
+  </data>
+  <data name="HoboManifestFlagged" xml:space="preserve">
+    <value>Manifest revision {0:N0}, {1} file(s) flagged — see Errors.</value>
+    <comment>Settings → SDE → Hoboleaks import progress detail. {0} is the manifest's revision number, {1} the number of files marked stale or deprecated. Errors is the name of the app's error log.</comment>
+  </data>
+  <data name="HoboParsedBlueprints" xml:space="preserve">
+    <value>Parsed {0:N0} blueprints — saving…</value>
+    <comment>Settings → SDE → Hoboleaks import progress detail. {0} is the number of blueprints read.</comment>
+  </data>
+  <data name="ImportStageBlueprintActivities" xml:space="preserve">
+    <value>Blueprint Activities</value>
+    <comment>Settings → SDE → Hoboleaks import progress, stage: what each blueprint can be used for (manufacturing, research…).</comment>
+  </data>
+  <data name="ImportStageRepackagedVolumes" xml:space="preserve">
+    <value>Repackaged Volumes</value>
+    <comment>Settings → SDE → Hoboleaks import progress, stage: items' volumes when repackaged.</comment>
+  </data>
+  <data name="ImportStageCompressibleTypes" xml:space="preserve">
+    <value>Compressible Types</value>
+    <comment>Settings → SDE → Hoboleaks import progress, stage: which ores and gases can be compressed, and into what.</comment>
+  </data>
+  <data name="ImportParsingFile" xml:space="preserve">
+    <value>Parsing {0}…</value>
+    <comment>Settings → SDE / Hoboleaks import progress detail: reading a file. {0} is the file's name, such as mapRegions.yaml.</comment>
+  </data>
+  <data name="ImportParsingFileLarge" xml:space="preserve">
+    <value>Parsing {0} (large)…</value>
+    <comment>Settings → SDE import progress detail: reading a large file, which takes a while. {0} is the file's name, such as types.yaml.</comment>
+  </data>
+  <data name="SdeFileNotFoundSkipped" xml:space="preserve">
+    <value>{0} NOT FOUND — skipped</value>
+    <comment>Settings → SDE import progress detail: an optional file is missing from the archive. {0} is the file's name.</comment>
+  </data>
+  <data name="SdeUniverseDataFile" xml:space="preserve">
+    <value>{0} (universe data)</value>
+    <comment>An entry in the list of missing files shown in SdeIncompatible. {0} is a file's name; universe data is the map of regions, constellations and systems.</comment>
+  </data>
+  <data name="ModelNoneChosen" xml:space="preserve">
+    <value>no model chosen</value>
+    <comment>Settings → AI Agent → Models: stands in for the model's name in a list entry such as "Claude — no model chosen", while none is chosen yet.</comment>
+  </data>
+  <data name="ModelDescribeLocalOn" xml:space="preserve">
+    <value>Local — {0} on {1}</value>
+    <comment>Settings → AI Agent → Models: a model on a server of the person's own, as the lists show it when it has no name. {0} is the model's name, {1} the server's host name. Also said aloud and shown in the chat when a model falls over.</comment>
+  </data>
+  <data name="ModelDescribeLocal" xml:space="preserve">
+    <value>Local — {0}</value>
+    <comment>Settings → AI Agent → Models: a model on a server of the person's own, as the lists show it when it has no name. {0} is the model's name.</comment>
+  </data>
+  <data name="PiperVoiceKeyNotFound" xml:space="preserve">
+    <value>Voice key '{0}' not found in HuggingFace model list.</value>
+    <comment>Settings → AI Agent → Voices (Piper) status. {0} is the voice's id; HuggingFace is the website the voices come from.</comment>
+  </data>
+  <data name="WhisperModelTiny" xml:space="preserve">
+    <value>Tiny (~75 MB)</value>
+    <comment>Settings → AI Agent → Speech Input: the smallest local speech-recognition model, and its download size.</comment>
+  </data>
+  <data name="WhisperModelBase" xml:space="preserve">
+    <value>Base (~142 MB)</value>
+    <comment>Settings → AI Agent → Speech Input: the base local speech-recognition model, and its download size.</comment>
+  </data>
+  <data name="WhisperModelSmall" xml:space="preserve">
+    <value>Small (~466 MB)</value>
+    <comment>Settings → AI Agent → Speech Input: the small local speech-recognition model, and its download size.</comment>
+  </data>
+  <data name="WhisperModelMedium" xml:space="preserve">
+    <value>Medium (~1.5 GB)</value>
+    <comment>Settings → AI Agent → Speech Input: the medium local speech-recognition model, and its download size.</comment>
+  </data>
+  <data name="WhisperNotLoadedYet" xml:space="preserve">
+    <value>not loaded yet</value>
+    <comment>Settings → AI Agent → Speech Input, after "The model runs on:": the local model has not been loaded yet.</comment>
+  </data>
+  <data name="PttKeyDisabled" xml:space="preserve">
+    <value>Disabled</value>
+    <comment>Settings → AI Agent → Speech Input → Global Push-to-Talk Key: the first choice, no key.</comment>
+  </data>
+  <data name="VoiceTestMuted" xml:space="preserve">
+    <value>Speech is muted — unmute it in the agent panel to hear the test.</value>
+    <comment>Settings → AI Agent → Voices, result of Test This Voice.</comment>
+  </data>
+  <data name="VoiceTestStopped" xml:space="preserve">
+    <value>Stopped before it finished.</value>
+    <comment>Settings → AI Agent → Voices, result of Test This Voice: speech was stopped part-way.</comment>
+  </data>
+  <data name="VoiceTestSpokeTook" xml:space="preserve">
+    <value>Spoke. It took {0:0.0} s to make before it could play — the wait before an answer's first sentence; each after it is made while the one before plays.</value>
+    <comment>Settings → AI Agent → Voices, result of Test This Voice. {0} is the number of seconds the voice took to make the sentence before it could play.</comment>
+  </data>
+  <data name="VoiceTestSpoke" xml:space="preserve">
+    <value>Spoke.</value>
+    <comment>Settings → AI Agent → Voices, result of Test This Voice: it worked.</comment>
+  </data>
+  <data name="SlackNoteToSelf" xml:space="preserve">
+    <value>Note to Self</value>
+    <comment>Settings → Slack: the channel list's name for your own direct-message channel with yourself. Use Slack's own name for it where it has one.</comment>
+  </data>
+  <data name="SlackUnknownError" xml:space="preserve">
+    <value>unknown error</value>
+    <comment>Settings → Slack: the reason shown when Slack refused a request without saying why, after "Failed: " or "Could not load channels: ".</comment>
+  </data>
+  <data name="AgentModelFailoverDefault" xml:space="preserve">
+    <value>{user}, the primary model I use for {purpose} has become unavailable, so I'm falling over to {fallback}.</value>
+    <comment>Settings → AI Agent → When a model changes → Falling over: the default wording, said aloud by the agent and shown in the chat, and editable there. Keep {user}, {purpose} and {fallback} as they are: {user} is the person's name, {purpose} what the model does ("our conversation" or "data access"), {fallback} the name of the model taking over. Spoken by the agent in the first person.</comment>
+  </data>
+  <data name="AgentModelReturnDefault" xml:space="preserve">
+    <value>{user}, the primary model I use for {purpose} is back, so I've switched back to {primary}.</value>
+    <comment>Settings → AI Agent → When a model changes → Coming back: the default wording, said aloud by the agent and shown in the chat, and editable there. Keep {user}, {purpose} and {primary} as they are: {user} is the person's name, {purpose} what the model does ("our conversation" or "data access"), {primary} the name of the model that is back.</comment>
+  </data>
+  <data name="AgentVoiceHandoverDefault" xml:space="preserve">
+    <value>Sorry, {previous} had to step away. I'm {current}, and I'll pick up from here.</value>
+    <comment>Settings → AI Agent → When the voice changes → Taking over: the default wording, said aloud by the voice taking over and kept in the conversation, and editable there. Keep {previous} and {current} as they are: the names of the voice that failed and of the one speaking.</comment>
+  </data>
+  <data name="AgentVoiceReturnDefault" xml:space="preserve">
+    <value>{current} here, back with you. Thank you, {previous}.</value>
+    <comment>Settings → AI Agent → When the voice changes → Coming back: the default wording, said aloud by the preferred voice when it returns, and editable there. Keep {current} and {previous} as they are: the names of the returning voice and of the one that stood in.</comment>
+  </data>
+  <data name="VoiceNoneChosen" xml:space="preserve">
+    <value>no voice chosen</value>
+    <comment>Settings → AI Agent → Voices: stands in for the voice's name in a list entry such as "ElevenLabs — no voice chosen", while none is chosen yet.</comment>
+  </data>
+  <data name="VoiceDescribeLocalServer" xml:space="preserve">
+    <value>Local server — {0}</value>
+    <comment>Settings → AI Agent → Voices: a voice on a speech server of the person's own, as the list shows it. {0} is the server's model name, or its address.</comment>
+  </data>
+  <data name="VoiceDescribeLocalServerVoice" xml:space="preserve">
+    <value>Local server — {0} ({1})</value>
+    <comment>Settings → AI Agent → Voices: a voice on a speech server of the person's own, as the list shows it. {0} is the server's model name, or its address; {1} the voice's name on the server.</comment>
+  </data>
+  <data name="ModelNotInListNow" xml:space="preserve">
+    <value>{0}  — not in the list now</value>
+    <comment>Settings → AI Agent: a model or voice chosen earlier that the service no longer lists. {0} is its id. The two spaces before the dash are deliberate.</comment>
+  </data>
+  <data name="KokoroVoiceAmericanFemaleDefault" xml:space="preserve">
+    <value>{0} (American Female — default)</value>
+    <comment>Settings → AI Agent → Voices (Kokoro) list entry. {0} is the voice's own name, such as Heart. American means the accent; this voice is the default.</comment>
+  </data>
+  <data name="KokoroVoiceAmericanFemale" xml:space="preserve">
+    <value>{0} (American Female)</value>
+    <comment>Settings → AI Agent → Voices (Kokoro) list entry. {0} is the voice's own name, such as Sky. American means the accent.</comment>
+  </data>
+  <data name="KokoroVoiceAmericanMale" xml:space="preserve">
+    <value>{0} (American Male)</value>
+    <comment>Settings → AI Agent → Voices (Kokoro) list entry. {0} is the voice's own name, such as Adam. American means the accent.</comment>
+  </data>
+  <data name="KokoroVoiceBritishFemale" xml:space="preserve">
+    <value>{0} (British Female)</value>
+    <comment>Settings → AI Agent → Voices (Kokoro) list entry. {0} is the voice's own name, such as Emma. British means the accent.</comment>
+  </data>
+  <data name="KokoroVoiceBritishMale" xml:space="preserve">
+    <value>{0} (British Male)</value>
+    <comment>Settings → AI Agent → Voices (Kokoro) list entry. {0} is the voice's own name, such as George. British means the accent.</comment>
+  </data>
+  <data name="PiperVoiceLabel" xml:space="preserve">
+    <value>{0} — {1}, {2}</value>
+    <comment>Settings → AI Agent → Voices (Piper) list entry. {0} is the voice's own name, such as Ryan; {1} what kind of voice it is (PiperKind…, such as "US Male"); {2} its quality (PiperQuality…).</comment>
+  </data>
+  <data name="PiperKindUs" xml:space="preserve">
+    <value>US</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: a voice with a US English accent.</comment>
+  </data>
+  <data name="PiperKindUsMale" xml:space="preserve">
+    <value>US Male</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: a male voice with a US English accent.</comment>
+  </data>
+  <data name="PiperKindUsFemale" xml:space="preserve">
+    <value>US Female</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: a female voice with a US English accent.</comment>
+  </data>
+  <data name="PiperKindGbMale" xml:space="preserve">
+    <value>GB Male</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: a male voice with a British English accent.</comment>
+  </data>
+  <data name="PiperKindGbFemale" xml:space="preserve">
+    <value>GB Female</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: a female voice with a British English accent.</comment>
+  </data>
+  <data name="PiperQualityMedium" xml:space="preserve">
+    <value>Medium</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: the voice's quality tier (between low and high).</comment>
+  </data>
+  <data name="PiperQualityHigh" xml:space="preserve">
+    <value>High</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: the voice's quality tier, the best.</comment>
+  </data>
+  <data name="PiperQualityMediumCompact" xml:space="preserve">
+    <value>Medium (compact)</value>
+    <comment>Settings → AI Agent → Voices (Piper), within PiperVoiceLabel: the medium quality tier, in a smaller download.</comment>
+  </data>
+  <data name="KokoroVoicesMissing" xml:space="preserve">
+    <value>Kokoro's voices are missing from {0}</value>
+    <comment>Settings → AI Agent → Voices (Kokoro): why the model could not load, after "Load failed: " or as a voice test's result. {0} is a folder path.</comment>
+  </data>
+  <data name="KokoroCouldNotLoad" xml:space="preserve">
+    <value>The Kokoro voice could not load: {0}</value>
+    <comment>Settings → AI Agent → Voices: result of Test This Voice for a Kokoro voice. {0} is the reason (an error message).</comment>
+  </data>
+  <data name="KokoroStillLoading" xml:space="preserve">
+    <value>The Kokoro voice is still downloading or loading its model.</value>
+    <comment>Settings → AI Agent → Voices: result of Test This Voice for a Kokoro voice whose model is not ready yet.</comment>
+  </data>
+  <data name="PiperNoVlc" xml:space="preserve">
+    <value>Audio playback (VLC) is not available.</value>
+    <comment>Settings → AI Agent → Voices: result of Test This Voice for a Piper voice. VLC is the name of the media player library used.</comment>
+  </data>
+  <data name="PiperVoiceNotLoaded" xml:space="preserve">
+    <value>The Piper voice '{0}' is not downloaded or could not load.</value>
+    <comment>Settings → AI Agent → Voices: result of Test This Voice for a Piper voice. {0} is the voice's id.</comment>
+  </data>
+  <data name="PiperNoAudio" xml:space="preserve">
+    <value>Piper produced no audio.</value>
+    <comment>Settings → AI Agent → Voices: result of Test This Voice for a Piper voice.</comment>
+  </data>
+  <data name="PiperPlaybackFailed" xml:space="preserve">
+    <value>The audio could not be played.</value>
+    <comment>Settings → AI Agent → Voices: result of Test This Voice for a Piper voice.</comment>
+  </data>
+  <data name="WhisperModelNotDownloaded" xml:space="preserve">
+    <value>The local speech model '{0}' has not been downloaded yet. Settings → AI Agent → Speech Input → Download Model.</value>
+    <comment>Agent panel, after "Transcription failed: ": the chosen local speech model has not been downloaded. {0} is the model's id (tiny, base…). The path at the end names the settings where it is downloaded; use the translated names of that tab and button.</comment>
+  </data>
 </root>

@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -27,7 +28,7 @@ public class MapStatsPollingService(
     /// without hammering: everything already stored is skipped before any request is made.</summary>
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(10);
 
-    public string StatusText { get; private set; } = "Map stats: idle";
+    public string StatusText { get; private set; } = SettingsText.MapStatsPollIdle;
 
     private CancellationTokenSource? _cts;
     private Task?                    _runTask;
@@ -86,8 +87,8 @@ public class MapStatsPollingService(
             (b, d) => MapStatsIngest.Incursions(b, d), ct);
 
         StatusText = stored > 0
-            ? $"Map stats: stored {stored:N0} rows at {DateTime.Now:HH:mm}"
-            : $"Map stats: up to date at {DateTime.Now:HH:mm}";
+            ? string.Format(SettingsText.MapStatsPollStored, stored, DateTime.Now)
+            : string.Format(SettingsText.MapStatsPollUpToDate, DateTime.Now);
     }
 
     /// <summary>Fetches one endpoint and stores it under the bucket its Last-Modified names.</summary>
