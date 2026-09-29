@@ -10,6 +10,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -86,7 +87,7 @@ public class CharacterViewModel : ReactiveObject
         }
     }
 
-    private string _statusMessage = "Add a character to get started.";
+    private string _statusMessage = OverviewText.TokensStatusStart;
     public string StatusMessage
     {
         get => _statusMessage;
@@ -287,7 +288,7 @@ public class CharacterViewModel : ReactiveObject
             // that happens, and an add or update that failed is worth being able to look up.
             cmd.ThrownExceptions.Subscribe(ex =>
             {
-                StatusMessage = $"Error: {ex.Message}";
+                StatusMessage = string.Format(CommonText.ErrorWithMessage, ex.Message);
                 _errors?.Log("CharacterViewModel", "add/update/remove", ex);
             });
         }
@@ -331,12 +332,12 @@ public class CharacterViewModel : ReactiveObject
             if (Characters.Count > 0)
             {
                 SelectedCharacter = Characters[0];
-                StatusMessage = $"Loaded {Characters.Count} character(s), {Corporations.Count} corporation(s).";
+                StatusMessage = string.Format(OverviewText.TokensLoaded, Characters.Count, Corporations.Count);
             }
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Startup load error: {ex.Message}";
+            StatusMessage = string.Format(OverviewText.TokensStartupError, ex.Message);
         }
     }
 
@@ -354,7 +355,7 @@ public class CharacterViewModel : ReactiveObject
 
         _authCts   = new CancellationTokenSource();
         IsAuthBusy = true;
-        StatusMessage = "Opening browser for character login…";
+        StatusMessage = OverviewText.TokensOpeningLogin;
         try
         {
             var scopes      = GetSelectedScopes();
@@ -365,9 +366,9 @@ public class CharacterViewModel : ReactiveObject
             var (granted, missing) = ScopesOf(tokens, scopes);
             var character = await UpsertCharacterAsync(characterId, tokens.RefreshToken, granted, tokens.ExpiresAt);
             SelectedCharacter = character;
-            StatusMessage = $"Character '{character.Name}' added.{ScopeShortfall(missing)}";
+            StatusMessage = string.Format(OverviewText.TokensCharacterAdded, character.Name) + ScopeShortfall(missing);
         }
-        catch (OperationCanceledException) { StatusMessage = "Login cancelled."; }
+        catch (OperationCanceledException) { StatusMessage = OverviewText.TokensLoginCancelled; }
         finally { IsAuthBusy = false; _authCts?.Dispose(); _authCts = null; }
     }
 
@@ -391,7 +392,7 @@ public class CharacterViewModel : ReactiveObject
 
         _authCts   = new CancellationTokenSource();
         IsAuthBusy = true;
-        StatusMessage = $"Opening browser to update '{target.Name}'…";
+        StatusMessage = string.Format(OverviewText.TokensOpeningUpdate, target.Name);
         try
         {
             var scopes      = GetSelectedScopes();
@@ -403,10 +404,9 @@ public class CharacterViewModel : ReactiveObject
                 IsAuthBusy = false;
                 var newInfo = await _esi.GetCharacterPublicAsync(characterId);
                 var newName = newInfo?.Name ?? characterId.ToString();
-                var msg = $"You authenticated as '{newName}', but '{target.Name}' was selected for update.\n\n" +
-                          $"Replace '{target.Name}' with '{newName}'?";
+                var msg = string.Format(OverviewText.TokensConfirmReplaceCharacter, newName, target.Name);
                 var confirmed = await ConfirmReplaceInteraction.Handle(msg);
-                if (!confirmed) { StatusMessage = "Update cancelled."; return; }
+                if (!confirmed) { StatusMessage = OverviewText.TokensUpdateCancelled; return; }
                 IsAuthBusy = true;
                 await RemoveCharacterEntityAsync(target);
             }
@@ -416,9 +416,9 @@ public class CharacterViewModel : ReactiveObject
             var (granted, missing) = ScopesOf(tokens, scopes);
             var character = await UpsertCharacterAsync(characterId, tokens.RefreshToken, granted, tokens.ExpiresAt);
             SelectedCharacter = character;
-            StatusMessage = $"Character '{character.Name}' updated.{ScopeShortfall(missing)}";
+            StatusMessage = string.Format(OverviewText.TokensCharacterUpdated, character.Name) + ScopeShortfall(missing);
         }
-        catch (OperationCanceledException) { StatusMessage = "Update cancelled."; }
+        catch (OperationCanceledException) { StatusMessage = OverviewText.TokensUpdateCancelled; }
         finally { IsAuthBusy = false; _authCts?.Dispose(); _authCts = null; }
     }
 
@@ -435,7 +435,7 @@ public class CharacterViewModel : ReactiveObject
         if (!proceed) return;
 
         await RunCorpAuthFlowAsync(targetCorp: null,
-            statusMsg: "Opening browser — log in as a character with director/accountant roles…");
+            statusMsg: OverviewText.TokensOpeningCorpLogin);
     }
 
     // -----------------------------------------------------------------------
@@ -456,7 +456,7 @@ public class CharacterViewModel : ReactiveObject
         if (!proceed) return;
 
         await RunCorpAuthFlowAsync(targetCorp: target,
-            statusMsg: $"Opening browser to update '{target.Name}'…");
+            statusMsg: string.Format(OverviewText.TokensOpeningUpdate, target.Name));
     }
 
     // Shared browser flow for both Add and Update corporation.
@@ -496,11 +496,9 @@ public class CharacterViewModel : ReactiveObject
             if (targetCorp is not null && charInfo.CorporationId != targetCorp.Id)
             {
                 IsAuthBusy = false;
-                var msg = $"The authenticated character belongs to '{esiCorp.Name}', " +
-                          $"but '{targetCorp.Name}' was selected for update.\n\n" +
-                          $"Replace '{targetCorp.Name}' with '{esiCorp.Name}'?";
+                var msg = string.Format(OverviewText.TokensConfirmReplaceCorp, esiCorp.Name, targetCorp.Name);
                 var confirmed = await ConfirmReplaceInteraction.Handle(msg);
-                if (!confirmed) { StatusMessage = "Update cancelled."; return; }
+                if (!confirmed) { StatusMessage = OverviewText.TokensUpdateCancelled; return; }
                 IsAuthBusy = true;
 
                 // DB first, then UI — matches the pattern in RemoveCorpAsync.
@@ -557,11 +555,11 @@ public class CharacterViewModel : ReactiveObject
             // without waiting for an app restart or token expiry.
             _esi.SetCorpTokens(corpEntity.Id, tokens);
 
-            var verb = isNew ? "added" : "updated";
-            StatusMessage = $"Corporation [{esiCorp.Ticker}] {esiCorp.Name} {verb} (auth via {charInfo.Name})."
+            StatusMessage = string.Format(isNew ? OverviewText.TokensCorpAdded : OverviewText.TokensCorpUpdated,
+                                          esiCorp.Ticker, esiCorp.Name, charInfo.Name)
                           + ScopeShortfall(ScopesOf(tokens, scopes).Missing);
         }
-        catch (OperationCanceledException) { StatusMessage = "Login cancelled."; }
+        catch (OperationCanceledException) { StatusMessage = OverviewText.TokensLoginCancelled; }
         finally { IsAuthBusy = false; _authCts?.Dispose(); _authCts = null; }
     }
 
@@ -574,7 +572,7 @@ public class CharacterViewModel : ReactiveObject
         if (SelectedCharacter is null) return;
 
         IsBusy = true;
-        StatusMessage = $"Loading skills for {SelectedCharacter.Name}…";
+        StatusMessage = string.Format(OverviewText.TokensLoadingSkills, SelectedCharacter.Name);
         try
         {
             var charId = SelectedCharacter.Id;
@@ -594,7 +592,7 @@ public class CharacterViewModel : ReactiveObject
                 foreach (var item in queue.OrderBy(q => q.QueuePosition))
                     SkillQueue.Add(new SkillQueueItemVm(
                         item.QueuePosition,
-                        names.GetValueOrDefault(item.SkillId, $"Unknown Skill ({item.SkillId})"),
+                        names.GetValueOrDefault(item.SkillId, string.Format(OverviewText.TokensUnknownSkill, item.SkillId)),
                         item.FinishedLevel,
                         item.FinishDate));
 
@@ -628,32 +626,35 @@ public class CharacterViewModel : ReactiveObject
         // The exception is a token the SSO has refused outright, which is the one thing here the
         // user has to act on: nothing is polled for this character until they re-authorise it.
         if (ch.TokenError.Length > 0)
-            return new CharacterListItem(ch, "Token Expired — re-authorise", RedBrush, ch.TokenError);
+            return new CharacterListItem(ch, OverviewText.TokensExpired, RedBrush, ch.TokenError);
         if (ch.GrantedScopes.Length == 0)
-            return new CharacterListItem(ch, "Not Authenticated", OrangeBrush);
+            return new CharacterListItem(ch, OverviewText.TokensNotAuthenticated, OrangeBrush);
 
         var grantedSet = new HashSet<string>(ch.GrantedScopes.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         var missing    = EsiAuthService.CharacterScopes.Count(s => !grantedSet.Contains(s));
 
         return missing == 0
-            ? new CharacterListItem(ch, "All Scopes Included", GreenBrush)
-            : new CharacterListItem(ch, $"{missing} scopes not granted", OrangeBrush);
+            ? new CharacterListItem(ch, OverviewText.TokensAllScopes, GreenBrush)
+            : new CharacterListItem(ch, ScopesNotGranted(missing), OrangeBrush);
     }
 
     private static CorpListItem MakeCorpListItem(Corporation corp)
     {
         if (corp.TokenError.Length > 0)
-            return new CorpListItem(corp, "Token Expired — re-authorise", RedBrush, corp.TokenError);
+            return new CorpListItem(corp, OverviewText.TokensExpired, RedBrush, corp.TokenError);
         if (corp.GrantedScopes.Length == 0)
-            return new CorpListItem(corp, "Not Authenticated", OrangeBrush);
+            return new CorpListItem(corp, OverviewText.TokensNotAuthenticated, OrangeBrush);
 
         var grantedSet = new HashSet<string>(corp.GrantedScopes.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         var missing    = EsiAuthService.CorporationScopes.Count(s => !grantedSet.Contains(s));
 
         return missing == 0
-            ? new CorpListItem(corp, "All Scopes Included", GreenBrush)
-            : new CorpListItem(corp, $"{missing} scopes not granted", OrangeBrush);
+            ? new CorpListItem(corp, OverviewText.TokensAllScopes, GreenBrush)
+            : new CorpListItem(corp, ScopesNotGranted(missing), OrangeBrush);
     }
+
+    private static string ScopesNotGranted(int missing) =>
+        Plurals.Format(OverviewText.ResourceManager, nameof(OverviewText.TokensScopesMissingOther), missing);
 
     /// <summary>
     /// Brings the token columns of every owner up to what the database holds now, and relabels
@@ -766,8 +767,7 @@ public class CharacterViewModel : ReactiveObject
     private static string ScopeShortfall(string[] missing) =>
         missing.Length == 0
             ? ""
-            : $"  EVE did not grant {missing.Length} requested scope(s): {string.Join(", ", missing)}. "
-            + "Re-add the character and approve the EVE consent screen to grant them.";
+            : "  " + string.Format(OverviewText.TokensScopeShortfall, missing.Length, string.Join(", ", missing));
 
     private void SetAllScopes(bool selected)
     {
@@ -793,7 +793,9 @@ public class CharacterViewModel : ReactiveObject
     {
         var granted = groups.Sum(g => g.Items.Count(i => i.IsGranted));
         var total   = groups.Sum(g => g.Items.Count);
-        return total == 0 ? "no scopes stored" : $"{granted} of {total} scopes granted";
+        return total == 0
+            ? OverviewText.TokensNoScopesStored
+            : Plurals.Format(OverviewText.ResourceManager, nameof(OverviewText.TokensScopesGrantedOther), total, granted);
     }
 
     // -----------------------------------------------------------------------
@@ -823,7 +825,7 @@ public class CharacterViewModel : ReactiveObject
         if (SelectedCharacterInSettings is null) return;
         var toRemove = SelectedCharacterInSettings;
         await RemoveCharacterEntityAsync(toRemove);
-        StatusMessage = $"Character '{toRemove.Name}' removed.";
+        StatusMessage = string.Format(OverviewText.TokensCharacterRemoved, toRemove.Name);
     }
 
     private async Task RemoveCorpAsync()
@@ -840,7 +842,7 @@ public class CharacterViewModel : ReactiveObject
         var corpItem = CorpListItems.FirstOrDefault(i => i.Corp == toRemove);
         if (corpItem is not null) CorpListItems.Remove(corpItem);
         Corporations.Remove(toRemove);
-        StatusMessage = $"Corporation '{toRemove.Name}' removed.";
+        StatusMessage = string.Format(OverviewText.TokensCorpRemoved, toRemove.Name);
     }
 
     // -----------------------------------------------------------------------

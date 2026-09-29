@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using EveConsole.Services;
 using Velopack;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -77,22 +78,22 @@ public partial class UpdateRequiredDialog : Window
         CloseButton.IsEnabled        = false;
         DownloadProgress.Value       = 0;
         DownloadProgress.IsVisible   = true;
-        StatusText.Text              = $"Downloading {target}…";
+        StatusText.Text              = string.Format(ShellText.UpdateDownloadingVersion, target);
         try
         {
             // ⚠️ Progress arrives on a download thread, not this one.
             await _mgr.DownloadUpdatesAsync(_found, p => Dispatcher.UIThread.Post(() =>
             {
                 DownloadProgress.Value = p;
-                StatusText.Text        = $"Downloading {target}… {p}%";
+                StatusText.Text        = string.Format(ShellText.UpdateDownloadingVersionPercent, target, p);
             }));
-            StatusText.Text = $"Installing {target} and restarting…";
+            StatusText.Text = string.Format(ShellText.UpdateInstallingVersion, target);
             _mgr.ApplyUpdatesAndRestart(_found, AppUpdater.RestartArgs());   // exits the process
         }
         catch (Exception ex)
         {
             _log.Log("Startup", $"update to {target} for a database ahead of this build", ex);
-            StatusText.Text            = $"The update failed: {ex.Message}. Get {target} from the releases page.";
+            StatusText.Text            = string.Format(ShellText.UpdateFailedGetRelease, ex.Message, target);
             DownloadProgress.IsVisible = false;
             UpdateButton.IsEnabled     = true;
             CloseButton.IsEnabled      = true;

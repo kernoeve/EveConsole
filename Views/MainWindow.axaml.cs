@@ -894,7 +894,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else if (onScreen is not null)
             sb.AppendLine("The Tool Reference has no entry for it: say only what its name makes plain, and that you have no description of it.");
 
-        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => t.Title).ToList();
+        // By the Tool Reference's names, like the tab on screen: a tab's title is in the interface
+        // language, and this is read by the model.
+        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => OnScreenName(t) ?? t.Title).ToList();
         if (otherTabs.Count > 0)
             sb.AppendLine($"Other tabs open behind it (not on screen): {string.Join(", ", otherTabs)}");
 

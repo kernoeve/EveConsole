@@ -68,24 +68,23 @@ public class MainWindowViewModel : ReactiveObject
                 await conn.OpenAsync();
                 await using var cmd = new Npgsql.NpgsqlCommand(
                     "SELECT pg_size_pretty(pg_database_size(current_database()))", conn);
-                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? "unknown";
+                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? ShellText.DbSizeUnknown;
 
-                DbEngineTip = $"PostgreSQL on {b.Host}\nDatabase: {b.Database}\nSize: {size}";
+                DbEngineTip = string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
             }
             else
             {
                 var path = AppConfig.GetDbPath();
                 var size = File.Exists(path)
                     ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
-                    : "file not found";
-                DbEngineTip = $"SQLite\n{path}\nSize: {size}";
+                    : ShellText.DbFileNotFound;
+                DbEngineTip = string.Format(ShellText.TipDbSqlite, path, size);
             }
         }
         catch (Exception ex)
         {
             // The label still names the engine; only the detail is missing.
-            DbEngineTip = $"{DbEngine.DisplayName} — could not read details: "
-                        + ex.Message.Split('\n')[0];
+            DbEngineTip = string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
         }
     }
 
@@ -114,7 +113,7 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _workerState, value);
     }
 
-    private string _workerTip = "Checking which client is doing the background work…";
+    private string _workerTip = ShellText.TipWorkerChecking;
     /// <summary>Host, pid and version of the holder, on hover.</summary>
     public string WorkerTip
     {
@@ -137,13 +136,10 @@ public class MainWindowViewModel : ReactiveObject
         // One process, no contest, nothing to report but itself.
         if (!DbEngine.IsPostgres)
         {
-            WorkerOwner = "this client";
+            WorkerOwner = ShellText.WorkerThisClient;
             WorkerState = WorkerOwnership.Mine;
-            WorkerTip   = "Background processes run in this client.\n\n"
-                        + $"Host: {Environment.MachineName}\n"
-                        + $"PID: {Environment.ProcessId}\n"
-                        + $"Version: {AppVersion.Number}\n\n"
-                        + "SQLite allows one client at a time, so there is nothing to hand over to.";
+            WorkerTip   = string.Format(ShellText.TipWorkerSqlite, ShellText.WorkerHeadlineMine,
+                                        Environment.MachineName, Environment.ProcessId, AppVersion.Number);
             return;
         }
 
@@ -154,48 +150,45 @@ public class MainWindowViewModel : ReactiveObject
         // lock is the only thing that actually knows.
         if (_workerLease.IsHolder)
         {
-            WorkerOwner = "this client";
+            WorkerOwner = ShellText.WorkerThisClient;
             WorkerState = WorkerOwnership.Mine;
             WorkerTip   = s is null
-                ? "Background processes run in this client."
-                : Describe("Background processes run in this client.", s);
+                ? ShellText.WorkerHeadlineMine
+                : Describe(ShellText.WorkerHeadlineMine, s);
             return;
         }
 
         if (s is null)
         {
-            WorkerOwner = "none";
+            WorkerOwner = ShellText.WorkerNone;
             WorkerState = WorkerOwnership.None;
-            WorkerTip   = "No client has claimed the background work.\n\n"
-                        + "ESI polling, build costs and backups are not running.";
+            WorkerTip   = ShellText.TipWorkerUnclaimed;
             return;
         }
 
         if (!WorkerLease.IsLive(s))
         {
-            WorkerOwner = "none";
+            WorkerOwner = ShellText.WorkerNone;
             WorkerState = WorkerOwnership.None;
-            WorkerTip   = Describe("Nothing is doing the background work — this is the last client that did.", s);
+            WorkerTip   = Describe(ShellText.WorkerHeadlineStale, s);
             return;
         }
 
         WorkerOwner = s.HostName;
         WorkerState = WorkerOwnership.Other;
-        WorkerTip   = Describe("Background processes run in another client.", s);
+        WorkerTip   = Describe(ShellText.WorkerHeadlineOther, s);
     }
 
     private static string Describe(string headline, BackgroundWorkerStatus s) =>
-        $"{headline}\n\n"
-      + $"Host: {s.HostName}{(s.Headless ? "  (headless)" : "")}\n"
-      + $"PID: {s.ProcessId}\n"
-      + $"Version: {s.Version}\n"
-      + $"Since: {s.LeaseTakenUtc.ToLocalTime():yyyy-MM-dd HH:mm}\n"
-      + $"Last heartbeat: {Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc)}";
+        string.Format(ShellText.TipWorkerDetails, headline,
+                      s.Headless ? string.Format(ShellText.WorkerHostHeadless, s.HostName) : s.HostName,
+                      s.ProcessId, s.Version, s.LeaseTakenUtc.ToLocalTime(),
+                      Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc));
 
     private static string Ago(TimeSpan t) =>
-        t < TimeSpan.FromMinutes(1) ? $"{Math.Max(0, (int)t.TotalSeconds)}s ago"
-      : t < TimeSpan.FromHours(1)   ? $"{(int)t.TotalMinutes} min ago"
-      :                               $"{(int)t.TotalHours} h ago";
+        t < TimeSpan.FromMinutes(1) ? string.Format(ShellText.AgoSeconds, Math.Max(0, (int)t.TotalSeconds))
+      : t < TimeSpan.FromHours(1)   ? string.Format(ShellText.AgoMinutes, (int)t.TotalMinutes)
+      :                               string.Format(ShellText.AgoHours, (int)t.TotalHours);
 
     // ── Whether this machine stays quiet for alarms ───────────────────────────
 
@@ -347,7 +340,7 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _alarmGleamOpacity, value);
     }
 
-    private string _alarmsTip = "Alarms";
+    private string _alarmsTip = ShellText.TabAlarms;
     public string AlarmsTip
     {
         get => _alarmsTip;
@@ -403,17 +396,11 @@ public class MainWindowViewModel : ReactiveObject
     /// </summary>
     private void RefreshAlarmsTip()
     {
-        var armed = _armedCount switch
-        {
-            0 => "Alarms — none armed",
-            1 => "Alarms — 1 armed",
-            _ => $"Alarms — {_armedCount} armed",
-        };
+        var armed = _armedCount == 0
+            ? ShellText.AlarmsNoneArmed
+            : Plurals.Format(ShellText.ResourceManager, nameof(ShellText.AlarmsArmedOther), _armedCount);
 
-        AlarmsTip = AlarmsMuted
-            ? armed + "\n\nMuted on this client: no sound, dialog or agent notification will be "
-                    + "raised here. Alerts are still recorded.\n\nRight-click to unmute."
-            : armed + "\n\nRight-click to mute this client.";
+        AlarmsTip = armed + "\n\n" + (AlarmsMuted ? ShellText.AlarmsMutedNote : ShellText.AlarmsMuteHint);
     }
 
     // ── My characters online (shown beside the EVE clock) ───────────────────────
@@ -510,21 +497,21 @@ public class MainWindowViewModel : ReactiveObject
 
             var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
 
-            var text = $"{online.Count} of {rows.Count} Online";
+            var text = string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count);
 
             var list = online.Select(r =>
             {
-                var system = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+                var system = string.IsNullOrWhiteSpace(r.System) ? ShellText.LocationUnknown : r.System;
 
                 // Docked: the station or structure, which says more than its system does. In
                 // space: the system, which is all there is to say.
                 var where = !r.Docked                              ? system
                           : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
-                          :                                          $"a structure in {system}";
+                          :                                          string.Format(ShellText.StructureInSystem, system);
 
                 // The hull is what the ship IS; ShipName is what the pilot called it. Show
                 // both only when the pilot bothered to rename it.
-                var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                var ship = string.IsNullOrWhiteSpace(r.Hull) ? ShellText.ShipUnknown : r.Hull;
                 if (!string.IsNullOrWhiteSpace(r.ShipName)
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
                     ship = $"{r.Hull} \"{r.ShipName}\"";
@@ -555,7 +542,7 @@ public class MainWindowViewModel : ReactiveObject
     public DataRetentionSettingsViewModel DataRetentionVm { get; private set; } = null!;
 
     public string EveTimeUrl    => _uiLinks?.EveTimeUrl ?? UiLinkSettings.EveOnlineTimeUrl;
-    public string EveTimeLinkTip => $"EVE time (UTC) — click to open {EveTimeUrl}";
+    public string EveTimeLinkTip => string.Format(ShellText.TipEveTimeLink, EveTimeUrl);
 
     // ── Theme (shown on the title bar, beside the alarm beacon) ─────────────────
 
@@ -566,9 +553,9 @@ public class MainWindowViewModel : ReactiveObject
     /// never disagree about what is on — either can change it, and both follow the event.</para>
     /// </summary>
     public string ThemeName => ThemeService.All
-        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? "Theme";
+        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? ShellText.ThemeFallback;
 
-    public string ThemeTip => $"Theme: {ThemeName} — click to change";
+    public string ThemeTip => string.Format(ShellText.TipTheme, ThemeName);
 
     private void OnThemeChanged()
     {
@@ -580,7 +567,7 @@ public class MainWindowViewModel : ReactiveObject
     /// theme so the bar and the Settings window can never disagree.</summary>
     public string UiScaleName => UiScaleService.Label;
 
-    public string UiScaleTip => $"UI scale: {UiScaleName} — click to change";
+    public string UiScaleTip => string.Format(ShellText.TipUiScale, UiScaleName);
 
     private void OnUiScaleChanged()
     {
@@ -590,7 +577,7 @@ public class MainWindowViewModel : ReactiveObject
 
     // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
 
-    private string _serverStatusText = "Online";
+    private string _serverStatusText = ShellText.ServerOnline;
     public string ServerStatusText { get => _serverStatusText; private set => this.RaiseAndSetIfChanged(ref _serverStatusText, value); }
 
     private IBrush _serverStatusColor = Palette.Good;
@@ -599,7 +586,7 @@ public class MainWindowViewModel : ReactiveObject
     private string _serverPlayersText = "";
     public string ServerPlayersText { get => _serverPlayersText; private set => this.RaiseAndSetIfChanged(ref _serverPlayersText, value); }
 
-    private string _serverStatusTip = "Tranquility server status";
+    private string _serverStatusTip = ShellText.TipServerStatus;
     public string ServerStatusTip { get => _serverStatusTip; private set => this.RaiseAndSetIfChanged(ref _serverStatusTip, value); }
 
     /// <summary>Mirrors EveServerStatusService onto the UI thread. The service raises
@@ -611,9 +598,10 @@ public class MainWindowViewModel : ReactiveObject
             ServerStatusText   = status.StatusText;
             ServerStatusColor  = status.StatusColor;
             ServerPlayersText  = status.PlayersText;
-            ServerStatusTip    = status.IsOnline
-                ? $"Tranquility is online{(status.Players > 0 ? $" — {status.Players:N0} players" : "")}"
-                : "Tranquility is offline — ESI polling is paused until it returns";
+            ServerStatusTip    = !status.IsOnline ? ShellText.TipTranquilityOffline
+                               : status.Players > 0
+                                   ? Plurals.Format(ShellText.ResourceManager, nameof(ShellText.TipTranquilityOnlinePlayersOther), status.Players)
+                                   : ShellText.TipTranquilityOnline;
         });
 
         status.PropertyChanged += (_, _) => Apply();
@@ -621,7 +609,7 @@ public class MainWindowViewModel : ReactiveObject
     }
 
 
-    private string _buildCostStatusText = "Build costs: not yet calculated";
+    private string _buildCostStatusText = ShellText.BuildCostsNotYet;
     public string BuildCostStatusText
     {
         get => _buildCostStatusText;

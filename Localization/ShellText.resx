@@ -278,7 +278,7 @@
   </data>
   <data name="UpToDate" xml:space="preserve">
     <value>up to date</value>
-    <comment>Text in MainWindow.</comment>
+    <comment>Title bar: the game data (SDE) loaded, or the version of the app running, is the newest there is. Keep short.</comment>
   </data>
   <data name="UpdateAvailable" xml:space="preserve">
     <value>update available</value>
@@ -377,11 +377,251 @@
     <comment>Note in WelcomeWindow.</comment>
   </data>
   <data name="ToPullInYourNote" xml:space="preserve">
-    <value>To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add Character there to log in through EVE's SSO.</value>
+    <value>To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add under Characters there to log in through EVE's SSO.</value>
     <comment>Note in WelcomeWindow.</comment>
   </data>
   <data name="GetStarted" xml:space="preserve">
     <value>Get Started</value>
     <comment>Button or option in WelcomeWindow.</comment>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>unknown</value>
+    <comment>Title bar, database tooltip: the database's size could not be read.</comment>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>file not found</value>
+    <comment>Title bar, database tooltip, in place of the size: the SQLite file does not exist.</comment>
+  </data>
+  <data name="TipDbUnreadable" xml:space="preserve">
+    <value>{0} — could not read details: {1}</value>
+    <comment>Title bar, database tooltip when its details cannot be read. {0} is the database engine (PostgreSQL or SQLite), {1} the error.</comment>
+  </data>
+  <data name="TipWorkerChecking" xml:space="preserve">
+    <value>Checking which client is doing the background work…</value>
+    <comment>Title bar, tooltip on "Background:" before it is known which client does the background work.</comment>
+  </data>
+  <data name="WorkerThisClient" xml:space="preserve">
+    <value>this client</value>
+    <comment>Title bar, after "Background:": this copy of the app does the background work. Keep short.</comment>
+  </data>
+  <data name="WorkerHeadlineMine" xml:space="preserve">
+    <value>Background processes run in this client.</value>
+    <comment>First line of the tooltip on "Background:".</comment>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Title bar, after "Background:": no copy of the app is doing the background work. Keep short.</comment>
+  </data>
+  <data name="WorkerHeadlineStale" xml:space="preserve">
+    <value>Nothing is doing the background work — this is the last client that did.</value>
+    <comment>First line of the tooltip on "Background:" when the client that held the work has stopped.</comment>
+  </data>
+  <data name="WorkerHeadlineOther" xml:space="preserve">
+    <value>Background processes run in another client.</value>
+    <comment>First line of the tooltip on "Background:" when another copy of the app (another machine) does the background work.</comment>
+  </data>
+  <data name="AgoSeconds" xml:space="preserve">
+    <value>{0}s ago</value>
+    <comment>In the "Background:" tooltip: when the worker last reported. {0} is a number of seconds. Keep short.</comment>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0} min ago</value>
+    <comment>In the "Background:" tooltip: when the worker last reported. {0} is a number of minutes. Keep short.</comment>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0} h ago</value>
+    <comment>In the "Background:" tooltip: when the worker last reported. {0} is a number of hours. Keep short.</comment>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>Alarms — none armed</value>
+    <comment>Tooltip on the alarm light in the title bar: no alarm is armed.</comment>
+  </data>
+  <data name="OnlineOfTotal" xml:space="preserve">
+    <value>{0} of {1} Online</value>
+    <comment>Title bar, beside the EVE clock: how many of the user's characters are logged in. {0} is how many are online, {1} how many characters there are.</comment>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>location unknown</value>
+    <comment>Title bar, online characters tooltip: where a character is, when it is not known.</comment>
+  </data>
+  <data name="StructureInSystem" xml:space="preserve">
+    <value>a structure in {0}</value>
+    <comment>Title bar, online characters tooltip: docked in a structure whose name is not known. {0} is the solar system.</comment>
+  </data>
+  <data name="ShipUnknown" xml:space="preserve">
+    <value>ship unknown</value>
+    <comment>Title bar, online characters tooltip: what ship a character is in, when it is not known.</comment>
+  </data>
+  <data name="TipEveTimeLink" xml:space="preserve">
+    <value>EVE time (UTC) — click to open {0}</value>
+    <comment>Tooltip on the EVE clock. {0} is the web address it opens.</comment>
+  </data>
+  <data name="ThemeFallback" xml:space="preserve">
+    <value>Theme</value>
+    <comment>Title bar: the theme menu's label when the theme has no name.</comment>
+  </data>
+  <data name="TipTheme" xml:space="preserve">
+    <value>Theme: {0} — click to change</value>
+    <comment>Tooltip on the theme menu in the title bar. {0} is the theme's name.</comment>
+  </data>
+  <data name="TipUiScale" xml:space="preserve">
+    <value>UI scale: {0} — click to change</value>
+    <comment>Tooltip on the UI scale menu in the title bar. {0} is the scale, like "100%".</comment>
+  </data>
+  <data name="ServerOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Title bar: the game server's state before it is first checked.</comment>
+  </data>
+  <data name="TipServerStatus" xml:space="preserve">
+    <value>Tranquility server status</value>
+    <comment>Tooltip on the game server's state before it is first checked. Tranquility is the EVE server's name.</comment>
+  </data>
+  <data name="TipTranquilityOffline" xml:space="preserve">
+    <value>Tranquility is offline — ESI polling is paused until it returns</value>
+    <comment>Tooltip on the game server's state. Tranquility is the EVE server's name.</comment>
+  </data>
+  <data name="BuildCostsNotYet" xml:space="preserve">
+    <value>Build costs: not yet calculated</value>
+    <comment>Status bar: build costs have not been worked out yet.</comment>
+  </data>
+  <data name="TipDbPostgres" xml:space="preserve">
+    <value>PostgreSQL on {0}
+Database: {1}
+Size: {2}</value>
+    <comment>Title bar, tooltip on the database. {0} is the server's host name, {1} the database's name, {2} its size (like "1.2 GB").</comment>
+  </data>
+  <data name="TipDbSqlite" xml:space="preserve">
+    <value>SQLite
+{0}
+Size: {1}</value>
+    <comment>Title bar, tooltip on the database. {0} is the database file's path, {1} its size (like "512 MB").</comment>
+  </data>
+  <data name="TipWorkerSqlite" xml:space="preserve">
+    <value>{0}
+
+Host: {1}
+PID: {2}
+Version: {3}
+
+SQLite allows one client at a time, so there is nothing to hand over to.</value>
+    <comment>Title bar, tooltip on "Background:" with a SQLite database. {0} is WorkerHeadlineMine, {1} this machine's name, {2} the process id, {3} the app's version.</comment>
+  </data>
+  <data name="TipWorkerUnclaimed" xml:space="preserve">
+    <value>No client has claimed the background work.
+
+ESI polling, build costs and backups are not running.</value>
+    <comment>Title bar, tooltip on "Background:" when no copy of the app is doing the background work.</comment>
+  </data>
+  <data name="TipWorkerDetails" xml:space="preserve">
+    <value>{0}
+
+Host: {1}
+PID: {2}
+Version: {3}
+Since: {4:yyyy-MM-dd HH:mm}
+Last heartbeat: {5}</value>
+    <comment>Title bar, tooltip on "Background:". {0} is one of the WorkerHeadline… lines, {1} the machine doing the work, {2} its process id, {3} its app version, {4} when it took the work on, {5} how long ago it last reported (like "12s ago").</comment>
+  </data>
+  <data name="WorkerHostHeadless" xml:space="preserve">
+    <value>{0}  (headless)</value>
+    <comment>In the "Background:" tooltip, after "Host:", when the worker runs with no window (as a service). {0} is the machine's name.</comment>
+  </data>
+  <data name="AlarmsArmedOne" xml:space="preserve">
+    <value>Alarms — {0} armed</value>
+    <comment>Tooltip on the alarm light in the title bar, one alarm armed. {0} is the number.</comment>
+  </data>
+  <data name="AlarmsArmedOther" xml:space="preserve">
+    <value>Alarms — {0} armed</value>
+    <comment>Tooltip on the alarm light in the title bar, several alarms armed. {0} is the number.</comment>
+  </data>
+  <data name="AlarmsMutedNote" xml:space="preserve">
+    <value>Muted on this client: no sound, dialog or agent notification will be raised here. Alerts are still recorded.
+
+Right-click to unmute.</value>
+    <comment>Tooltip on the alarm light, below the number armed, while alarms are muted on this machine.</comment>
+  </data>
+  <data name="AlarmsMuteHint" xml:space="preserve">
+    <value>Right-click to mute this client.</value>
+    <comment>Tooltip on the alarm light, below the number armed.</comment>
+  </data>
+  <data name="TipTranquilityOnline" xml:space="preserve">
+    <value>Tranquility is online</value>
+    <comment>Tooltip on the game server's state. Tranquility is the EVE server's name.</comment>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOne" xml:space="preserve">
+    <value>Tranquility is online — {0:N0} player</value>
+    <comment>Tooltip on the game server's state, one player online. Tranquility is the EVE server's name. {0} is the number of players.</comment>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOther" xml:space="preserve">
+    <value>Tranquility is online — {0:N0} players</value>
+    <comment>Tooltip on the game server's state, several players online. Tranquility is the EVE server's name. {0} is the number of players.</comment>
+  </data>
+  <data name="UpdateVersionUnknown" xml:space="preserve">
+    <value>unknown</value>
+    <comment>The version of the running app, when it cannot be read (Settings and the update dialog).</comment>
+  </data>
+  <data name="UpdateBadgeDevBuild" xml:space="preserve">
+    <value>dev build</value>
+    <comment>Title bar, beside the version: this copy was built from source, not installed from a release. Keep short.</comment>
+  </data>
+  <data name="UpdateLatestNotInstalled" xml:space="preserve">
+    <value>n/a — not an installed build</value>
+    <comment>Settings and the update dialog, "Latest:": not known, because this copy was not installed by the installer.</comment>
+  </data>
+  <data name="UpdateStatusChecking" xml:space="preserve">
+    <value>Checking for updates…</value>
+    <comment>Status of the app update check.</comment>
+  </data>
+  <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <value>Up to date.</value>
+    <comment>Status of the app update check: no newer version.</comment>
+  </data>
+  <data name="UpdateStatusAvailable" xml:space="preserve">
+    <value>An update is available.</value>
+    <comment>Status of the app update check.</comment>
+  </data>
+  <data name="UpdateStatusDownloading" xml:space="preserve">
+    <value>Downloading update…</value>
+    <comment>Status while the app update downloads.</comment>
+  </data>
+  <data name="UpdateStatusRestarting" xml:space="preserve">
+    <value>Restarting to apply…</value>
+    <comment>Status once the app update has downloaded, as the app restarts to install it.</comment>
+  </data>
+  <data name="UpdateBadgeAvailable" xml:space="preserve">
+    <value>{0} available</value>
+    <comment>Title bar, beside the version: a newer version of the app is out. {0} is that version, like "v0.9.16". Keep short.</comment>
+  </data>
+  <data name="UpdateDownloadingVersion" xml:space="preserve">
+    <value>Downloading {0}…</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app. {0} is the version being downloaded.</comment>
+  </data>
+  <data name="UpdateDownloadingVersionPercent" xml:space="preserve">
+    <value>Downloading {0}… {1}%</value>
+    <comment>Status while the update downloads. {0} is the version, {1} how much has downloaded, as a percentage.</comment>
+  </data>
+  <data name="UpdateInstallingVersion" xml:space="preserve">
+    <value>Installing {0} and restarting…</value>
+    <comment>Status once the update has downloaded. {0} is the version.</comment>
+  </data>
+  <data name="UpdateFailedGetRelease" xml:space="preserve">
+    <value>The update failed: {0}. Get {1} from the releases page.</value>
+    <comment>Status when the update failed. {0} is the error, {1} the version to install by hand.</comment>
+  </data>
+  <data name="RecoveryCouldNotRead" xml:space="preserve">
+    <value>EVE Console could not read its database at {0}. Nothing has been changed or deleted yet.</value>
+    <comment>Database recovery dialog, first paragraph. {0} is the database file's path.</comment>
+  </data>
+  <data name="RecoveryDamagedFileNote" xml:space="preserve">
+    <value>Whichever you choose, the damaged file is renamed rather than deleted — it keeps its folder, with ".damaged-" and the date added to the name — so it can be inspected or recovered later.</value>
+    <comment>Database recovery dialog. ".damaged-" is part of a file name: keep it as it is.</comment>
+  </data>
+  <data name="RecoveryQuarantineFailed" xml:space="preserve">
+    <value>Could not move the damaged file aside: {0}</value>
+    <comment>Database recovery dialog, error. {0} is the error.</comment>
+  </data>
+  <data name="RecoveryRestoreFailed" xml:space="preserve">
+    <value>Restore failed: {0}</value>
+    <comment>Database recovery dialog, error. {0} is the error.</comment>
   </data>
 </root>

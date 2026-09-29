@@ -1240,4 +1240,44 @@ Open in the Structure Browser</value>
     <value>Character</value>
     <comment>Notification sender filter: sent by a character.</comment>
   </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0} ago</value>
+    <comment>How long ago something happened: a notification's age, or "already posted to Slack 3 hours ago". {0} is the time, one unit ("45 seconds") or two ("3 hours and 14 minutes").</comment>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} and {1}</value>
+    <comment>A time in two units, inside TimeAgo: "3 hours and 14 minutes". {0} is the larger unit, {1} the smaller.</comment>
+  </data>
+  <data name="TimeAgoSecondsOne" xml:space="preserve">
+    <value>{0} second</value>
+    <comment>A number of seconds, inside TimeAgo ("1 second ago"), one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0} seconds</value>
+    <comment>A number of seconds, inside TimeAgo ("45 seconds ago"), several. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+    <comment>A number of minutes, inside TimeAgo, one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>A number of minutes, inside TimeAgo, several. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoHoursOne" xml:space="preserve">
+    <value>{0} hour</value>
+    <comment>A number of hours, inside TimeAgo, one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0} hours</value>
+    <comment>A number of hours, inside TimeAgo, several. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoDaysOne" xml:space="preserve">
+    <value>{0} day</value>
+    <comment>A number of days, inside TimeAgo, one. {0} is the number.</comment>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0} days</value>
+    <comment>A number of days, inside TimeAgo, several. {0} is the number.</comment>
+  </data>
 </root>

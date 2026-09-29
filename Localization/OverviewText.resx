@@ -360,4 +360,448 @@
     <value>Apply</value>
     <comment>Button or option in OverviewCustomizeWindow.</comment>
   </data>
+  <data name="BriefCharToCorp" xml:space="preserve">
+    <value>{0} to {1}</value>
+    <comment>Notification card on the Overview: an application to, or invitation into, a corporation. {0} is the character, {1} the corporation. Words around the placeholders are drawn dim.</comment>
+  </data>
+  <data name="BriefBy" xml:space="preserve">
+    <value>by {0}</value>
+    <comment>Notification card on the Overview: who did what the card's title says (created, closed, invited, cancelled, fired, revoked, destroyed). {0} is a character or corporation.</comment>
+  </data>
+  <data name="BriefCharLeftCorp" xml:space="preserve">
+    <value>{0} left {1}</value>
+    <comment>Notification card on the Overview: a member left a corporation. {0} is the character, {1} the corporation.</comment>
+  </data>
+  <data name="BriefBillAt" xml:space="preserve">
+    <value>{0} at {1}</value>
+    <comment>Notification card on the Overview: a corporation bill. {0} is the kind of bill, {1} where it is for (a station or structure).</comment>
+  </data>
+  <data name="BriefBillFor" xml:space="preserve">
+    <value>{0} for {1}</value>
+    <comment>Notification card on the Overview: a corporation bill. {0} is the kind of bill, {1} the alliance it is for.</comment>
+  </data>
+  <data name="BriefAmountDue" xml:space="preserve">
+    <value>{0} · due {1}</value>
+    <comment>Notification card on the Overview: a bill. {0} is the amount, {1} the date it is due.</comment>
+  </data>
+  <data name="BriefStandingFor" xml:space="preserve">
+    <value>{0} {1} for {2}</value>
+    <comment>Notification card on the Overview: a standing change. {0} is who the standing is with, {1} the change (like +0.05), {2} the character it is towards.</comment>
+  </data>
+  <data name="BriefReady" xml:space="preserve">
+    <value>Ready {0}</value>
+    <comment>Notification card on the Overview: a moon extraction started. {0} is when the chunk is ready.</comment>
+  </data>
+  <data name="BriefFractures" xml:space="preserve">
+    <value>Fractures {0}</value>
+    <comment>Notification card on the Overview: a moon extraction finished. {0} is when the chunk fractures by itself.</comment>
+  </data>
+  <data name="BriefOfOre" xml:space="preserve">
+    <value>{0} of ore</value>
+    <comment>Notification card on the Overview: a moon chunk fractured. {0} is a volume in m³.</comment>
+  </data>
+  <data name="BriefByAttacker" xml:space="preserve">
+    <value>by {0} {1}</value>
+    <comment>Notification card on the Overview: who is attacking. {0} is the attacker, {1} their corporation; either may be left out.</comment>
+  </data>
+  <data name="BriefShieldArmorHull" xml:space="preserve">
+    <value>Shield {0} · Armor {1} · Hull {2}</value>
+    <comment>Notification card on the Overview: what is left of a structure under attack. Each placeholder is a percentage.</comment>
+  </data>
+  <data name="BriefReinforcedUntil" xml:space="preserve">
+    <value>Reinforced until {0}</value>
+    <comment>Notification card on the Overview: a structure went into reinforcement. {0} is a date and time.</comment>
+  </data>
+  <data name="BriefQuantityLeft" xml:space="preserve">
+    <value>{0} left</value>
+    <comment>Notification card on the Overview: fuel or reagents running low. {0} is what remains, like "115 × Hydrogen Fuel Block".</comment>
+  </data>
+  <data name="BriefTimeLeft" xml:space="preserve">
+    <value>{0} left</value>
+    <comment>Notification card on the Overview: a structure anchoring or unanchoring. {0} is the time remaining.</comment>
+  </data>
+  <data name="BriefMovedTo" xml:space="preserve">
+    <value>to {0}</value>
+    <comment>Notification card on the Overview: items moved to asset safety. {0} is the station they were moved to.</comment>
+  </data>
+  <data name="BriefDeliveredFor" xml:space="preserve">
+    <value>{0} for {1}</value>
+    <comment>Notification card on the Overview: items delivered to a structure. {0} is what (like "5 × Tritanium"), {1} the character they were delivered for.</comment>
+  </data>
+  <data name="BriefDaysLeftOne" xml:space="preserve">
+    <value>{0} day left</value>
+    <comment>Notification card on the Overview: a structure about to be abandoned, one day to go. {0} is the number of days.</comment>
+  </data>
+  <data name="BriefDaysLeftOther" xml:space="preserve">
+    <value>{0} days left</value>
+    <comment>Notification card on the Overview: a structure about to be abandoned, several days to go. {0} is the number of days.</comment>
+  </data>
+  <data name="BriefStructuresByOne" xml:space="preserve">
+    <value>{0} structure by {1}</value>
+    <comment>Notification card on the Overview: structure paint bought for one structure. {0} is the number, {1} who bought it.</comment>
+  </data>
+  <data name="BriefStructuresByOther" xml:space="preserve">
+    <value>{0} structures by {1}</value>
+    <comment>Notification card on the Overview: structure paint bought for several structures. {0} is the number, {1} who bought it.</comment>
+  </data>
+  <data name="BriefTransferredTo" xml:space="preserve">
+    <value>to {0}</value>
+    <comment>Notification card on the Overview: a structure changed hands. {0} is the corporation that now owns it.</comment>
+  </data>
+  <data name="BriefStructureIn" xml:space="preserve">
+    <value>{0} in {1}</value>
+    <comment>Notification card on the Overview: an entosis capture started. {0} is the kind of structure, {1} the solar system.</comment>
+  </data>
+  <data name="BriefTowerAt" xml:space="preserve">
+    <value>{0} at {1}</value>
+    <comment>Notification card on the Overview: a starbase. {0} is its control tower type, {1} the moon it is at.</comment>
+  </data>
+  <data name="BriefKillRightOn" xml:space="preserve">
+    <value>on {0}</value>
+    <comment>Notification card on the Overview: a kill right earned. {0} is the character it is on.</comment>
+  </data>
+  <data name="BriefVersus" xml:space="preserve">
+    <value>{0} vs {1}</value>
+    <comment>Notification card on the Overview: the two sides of a war.</comment>
+  </data>
+  <data name="BriefFightingStarts" xml:space="preserve">
+    <value>Fighting starts {0}</value>
+    <comment>Notification card on the Overview: a war declared. {0} is when the fighting starts.</comment>
+  </data>
+  <data name="BriefEnds" xml:space="preserve">
+    <value>Ends {0}</value>
+    <comment>Notification card on the Overview: a war ending. {0} is when it ends.</comment>
+  </data>
+  <data name="BriefJoins" xml:space="preserve">
+    <value>{0} joins {1}</value>
+    <comment>Notification card on the Overview: an ally joined a war. {0} is the ally, {1} the side it joined.</comment>
+  </data>
+  <data name="BriefAgainst" xml:space="preserve">
+    <value>against {0}</value>
+    <comment>Notification card on the Overview: an ally joined a war. {0} is the side it is fighting.</comment>
+  </data>
+  <data name="BriefNewCapital" xml:space="preserve">
+    <value>New capital {0}</value>
+    <comment>Notification card on the Overview: an alliance moved its capital. {0} is the solar system.</comment>
+  </data>
+  <data name="NewsLess" xml:space="preserve">
+    <value>▲ Less</value>
+    <comment>Button under an expanded news item: show less of it.</comment>
+  </data>
+  <data name="NewsMore" xml:space="preserve">
+    <value>▼ More</value>
+    <comment>Button under a news item: show all of it.</comment>
+  </data>
+  <data name="PeriodLast24Hours" xml:space="preserve">
+    <value>Last 24 Hours</value>
+    <comment>Time range the Overview covers.</comment>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Last 7 Days</value>
+    <comment>Time range the Overview covers.</comment>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Last 30 Days</value>
+    <comment>Time range the Overview covers.</comment>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Last 90 Days</value>
+    <comment>Time range the Overview covers.</comment>
+  </data>
+  <data name="StepQueryingScope" xml:space="preserve">
+    <value>Querying scope</value>
+    <comment>Progress text while the Overview loads: working out which characters and corporations to show.</comment>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>No characters found.</value>
+    <comment>Status line on the Overview when no character has been added.</comment>
+  </data>
+  <data name="StepMarketTransactions" xml:space="preserve">
+    <value>Loading market transactions</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepMarketOrders" xml:space="preserve">
+    <value>Loading market orders</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepContracts" xml:space="preserve">
+    <value>Loading contracts</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepIndustryJobs" xml:space="preserve">
+    <value>Loading industry jobs</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepKillsLosses" xml:space="preserve">
+    <value>Counting kills and losses</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepPersonalKillmails" xml:space="preserve">
+    <value>Personal killmails</value>
+    <comment>Progress text while the Overview loads: the Personal Killmails section.</comment>
+  </data>
+  <data name="StepStandingProjects" xml:space="preserve">
+    <value>Standing projects</value>
+    <comment>Progress text while the Overview loads: the Standing Projects section.</comment>
+  </data>
+  <data name="StepWorklist" xml:space="preserve">
+    <value>Worklist</value>
+    <comment>Progress text while the Overview loads: the Worklist sections.</comment>
+  </data>
+  <data name="StepStandingBuyOrders" xml:space="preserve">
+    <value>Standing buy orders</value>
+    <comment>Progress text while the Overview loads: the Standing Buy Orders section.</comment>
+  </data>
+  <data name="StepOrders" xml:space="preserve">
+    <value>Orders</value>
+    <comment>Progress text while the Overview loads: the Orders section (orders customers placed).</comment>
+  </data>
+  <data name="StepJournal" xml:space="preserve">
+    <value>Loading journal data</value>
+    <comment>Progress text while the Overview loads: the wallet journal.</comment>
+  </data>
+  <data name="StepCharts" xml:space="preserve">
+    <value>Building charts</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepAlerts" xml:space="preserve">
+    <value>Evaluating alerts</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepNews" xml:space="preserve">
+    <value>Loading news</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StepNotifications" xml:space="preserve">
+    <value>Loading notifications</value>
+    <comment>Progress text while the Overview loads.</comment>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Loaded in {0:N0} ms — {1} owner(s), period: {2}</value>
+    <comment>Status line after the Overview loads. {0} is milliseconds, {1} how many characters and corporations, {2} the time range (like "Last 30 Days").</comment>
+  </data>
+  <data name="CharacterIdNumbered" xml:space="preserve">
+    <value>ID {0}</value>
+    <comment>A character whose name is not known yet. {0} is its id.</comment>
+  </data>
+  <data name="AlertSkillQueueEmpty" xml:space="preserve">
+    <value>{0}: Skill queue is empty.</value>
+    <comment>Overview alert. {0} is a character.</comment>
+  </data>
+  <data name="AlertSkillQueuePaused" xml:space="preserve">
+    <value>{0}: Skill queue is paused.</value>
+    <comment>Overview alert. {0} is a character.</comment>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}d {1}h</value>
+    <comment>Time left, short: days and hours. Keep short.</comment>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0}h {1}m</value>
+    <comment>Time left, short: hours and minutes. Keep short.</comment>
+  </data>
+  <data name="AlertSkillQueueEnds" xml:space="preserve">
+    <value>{0}: Skill queue ends in {1} (within {2}-day threshold).</value>
+    <comment>Overview alert. {0} is a character, {1} the time left (like "2d 4h"), {2} the number of days the user set as the warning threshold.</comment>
+  </data>
+  <data name="AlertAssetSafetyDeadline" xml:space="preserve">
+    <value>{0}: Items moved to Asset Safety on {1} — choose a destination by {2:d MMM HH:mm} ({3}d left) or the game picks one.</value>
+    <comment>Overview alert. {0} is a character, {1} the date the items were moved, {2} the deadline, {3} whole days left before it.</comment>
+  </data>
+  <data name="AlertAssetSafety" xml:space="preserve">
+    <value>{0}: Items moved to Asset Safety on {1}.</value>
+    <comment>Overview alert. {0} is a character, {1} the date the items were moved.</comment>
+  </data>
+  <data name="StatusPanelsFailed" xml:space="preserve">
+    <value>{0} failed, see the Error Log</value>
+    <comment>Added to the Overview's status line when sections failed to load. {0} is a list of the sections' internal names, as the Error Log records them.</comment>
+  </data>
+  <data name="AlertInactiveProjectsOne" xml:space="preserve">
+    <value>There is {0} standing project not currently active.</value>
+    <comment>Overview alert, one project. {0} is the number.</comment>
+  </data>
+  <data name="AlertInactiveProjectsOther" xml:space="preserve">
+    <value>There are {0} standing projects not currently active.</value>
+    <comment>Overview alert, several projects. {0} is the number.</comment>
+  </data>
+  <data name="AlertStandingBuyOrders" xml:space="preserve">
+    <value>Standing buy orders: {0}.</value>
+    <comment>Overview alert. {0} is what is wrong with them, a comma-separated list of the Sbo… phrases below ("1 is missing, 2 are outbid").</comment>
+  </data>
+  <data name="SboMissingOne" xml:space="preserve">
+    <value>{0} is missing</value>
+    <comment>Part of the standing buy orders alert, one order: it has no matching order on the market. {0} is the number.</comment>
+  </data>
+  <data name="SboMissingOther" xml:space="preserve">
+    <value>{0} are missing</value>
+    <comment>Part of the standing buy orders alert, several orders: they have no matching order on the market. {0} is the number.</comment>
+  </data>
+  <data name="SboOutbidOne" xml:space="preserve">
+    <value>{0} is outbid</value>
+    <comment>Part of the standing buy orders alert, one order. {0} is the number.</comment>
+  </data>
+  <data name="SboOutbidOther" xml:space="preserve">
+    <value>{0} are outbid</value>
+    <comment>Part of the standing buy orders alert, several orders. {0} is the number.</comment>
+  </data>
+  <data name="SboNearlyBoughtOutOne" xml:space="preserve">
+    <value>{0} is nearly bought out</value>
+    <comment>Part of the standing buy orders alert, one order: little of it is left to buy. {0} is the number.</comment>
+  </data>
+  <data name="SboNearlyBoughtOutOther" xml:space="preserve">
+    <value>{0} are nearly bought out</value>
+    <comment>Part of the standing buy orders alert, several orders: little of them is left to buy. {0} is the number.</comment>
+  </data>
+  <data name="SboCloseToExpiryOne" xml:space="preserve">
+    <value>{0} is close to expiry</value>
+    <comment>Part of the standing buy orders alert, one order. {0} is the number.</comment>
+  </data>
+  <data name="SboCloseToExpiryOther" xml:space="preserve">
+    <value>{0} are close to expiry</value>
+    <comment>Part of the standing buy orders alert, several orders. {0} is the number.</comment>
+  </data>
+  <data name="AlertUnriggedJobsOne" xml:space="preserve">
+    <value>{0} running job is using a facility not rigged for it.</value>
+    <comment>Overview alert, one industry job. {0} is the number.</comment>
+  </data>
+  <data name="AlertUnriggedJobsOther" xml:space="preserve">
+    <value>{0} running jobs are using a facility not rigged for them.</value>
+    <comment>Overview alert, several industry jobs. {0} is the number.</comment>
+  </data>
+  <data name="AlertJobsReadyOne" xml:space="preserve">
+    <value>You have {0} industry job ready to deliver.</value>
+    <comment>Overview alert, one job. {0} is the number.</comment>
+  </data>
+  <data name="AlertJobsReadyOther" xml:space="preserve">
+    <value>You have {0} industry jobs ready to deliver.</value>
+    <comment>Overview alert, several jobs. {0} is the number.</comment>
+  </data>
+  <data name="AlertContractsToYouOne" xml:space="preserve">
+    <value>{0} outstanding contract issued to you.</value>
+    <comment>Overview alert, one contract waiting on the user. {0} is the number.</comment>
+  </data>
+  <data name="AlertContractsToYouOther" xml:space="preserve">
+    <value>{0} outstanding contracts issued to you.</value>
+    <comment>Overview alert, several contracts waiting on the user. {0} is the number.</comment>
+  </data>
+  <data name="AlertContractsExpiringOne" xml:space="preserve">
+    <value>{0} contract is about to expire.</value>
+    <comment>Overview alert, one contract. {0} is the number.</comment>
+  </data>
+  <data name="AlertContractsExpiringOther" xml:space="preserve">
+    <value>{0} contracts are about to expire.</value>
+    <comment>Overview alert, several contracts. {0} is the number.</comment>
+  </data>
+  <data name="TokensStatusStart" xml:space="preserve">
+    <value>Add a character to get started.</value>
+    <comment>Status line under Settings → ESI Tokens before any character is added.</comment>
+  </data>
+  <data name="TokensLoaded" xml:space="preserve">
+    <value>Loaded {0} character(s), {1} corporation(s).</value>
+    <comment>Status line under Settings → ESI Tokens. {0} is how many characters, {1} how many corporations.</comment>
+  </data>
+  <data name="TokensStartupError" xml:space="preserve">
+    <value>Startup load error: {0}</value>
+    <comment>Status line under Settings → ESI Tokens. {0} is the error.</comment>
+  </data>
+  <data name="TokensOpeningLogin" xml:space="preserve">
+    <value>Opening browser for character login…</value>
+    <comment>Status line while EVE's login page opens in the browser.</comment>
+  </data>
+  <data name="TokensLoginCancelled" xml:space="preserve">
+    <value>Login cancelled.</value>
+    <comment>Status line under Settings → ESI Tokens.</comment>
+  </data>
+  <data name="TokensOpeningUpdate" xml:space="preserve">
+    <value>Opening browser to update '{0}'…</value>
+    <comment>Status line while EVE's login page opens to re-authorise a character or corporation. {0} is its name.</comment>
+  </data>
+  <data name="TokensUpdateCancelled" xml:space="preserve">
+    <value>Update cancelled.</value>
+    <comment>Status line under Settings → ESI Tokens.</comment>
+  </data>
+  <data name="TokensOpeningCorpLogin" xml:space="preserve">
+    <value>Opening browser — log in as a character with director/accountant roles…</value>
+    <comment>Status line while EVE's login page opens to add a corporation.</comment>
+  </data>
+  <data name="TokensLoadingSkills" xml:space="preserve">
+    <value>Loading skills for {0}…</value>
+    <comment>Status line. {0} is a character.</comment>
+  </data>
+  <data name="TokensUnknownSkill" xml:space="preserve">
+    <value>Unknown Skill ({0})</value>
+    <comment>A skill whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="TokensExpired" xml:space="preserve">
+    <value>Token Expired — re-authorise</value>
+    <comment>A character's or corporation's state in the Settings → ESI Tokens list: EVE refused its token.</comment>
+  </data>
+  <data name="TokensNotAuthenticated" xml:space="preserve">
+    <value>Not Authenticated</value>
+    <comment>A character's or corporation's state in the Settings → ESI Tokens list.</comment>
+  </data>
+  <data name="TokensAllScopes" xml:space="preserve">
+    <value>All Scopes Included</value>
+    <comment>A character's or corporation's state in the Settings → ESI Tokens list: every permission (ESI scope) was granted.</comment>
+  </data>
+  <data name="TokensNoScopesStored" xml:space="preserve">
+    <value>no scopes stored</value>
+    <comment>Scope summary in Settings → ESI Tokens when nothing is recorded.</comment>
+  </data>
+  <data name="TokensCharacterRemoved" xml:space="preserve">
+    <value>Character '{0}' removed.</value>
+    <comment>Status line. {0} is the character.</comment>
+  </data>
+  <data name="TokensCorpRemoved" xml:space="preserve">
+    <value>Corporation '{0}' removed.</value>
+    <comment>Status line. {0} is the corporation.</comment>
+  </data>
+  <data name="TokensCharacterAdded" xml:space="preserve">
+    <value>Character '{0}' added.</value>
+    <comment>Status line under Settings → ESI Tokens. {0} is the character. TokensScopeShortfall may follow it.</comment>
+  </data>
+  <data name="TokensCharacterUpdated" xml:space="preserve">
+    <value>Character '{0}' updated.</value>
+    <comment>Status line under Settings → ESI Tokens. {0} is the character. TokensScopeShortfall may follow it.</comment>
+  </data>
+  <data name="TokensCorpAdded" xml:space="preserve">
+    <value>Corporation [{0}] {1} added (auth via {2}).</value>
+    <comment>Status line under Settings → ESI Tokens. {0} is the corporation's ticker, {1} its name, {2} the character who logged in for it. TokensScopeShortfall may follow it.</comment>
+  </data>
+  <data name="TokensCorpUpdated" xml:space="preserve">
+    <value>Corporation [{0}] {1} updated (auth via {2}).</value>
+    <comment>Status line under Settings → ESI Tokens. {0} is the corporation's ticker, {1} its name, {2} the character who logged in for it. TokensScopeShortfall may follow it.</comment>
+  </data>
+  <data name="TokensScopeShortfall" xml:space="preserve">
+    <value>EVE did not grant {0} requested scope(s): {1}. Re-add the character and approve the EVE consent screen to grant them.</value>
+    <comment>Follows a status line under Settings → ESI Tokens when EVE granted fewer permissions than were asked for. {0} is how many are missing, {1} their ESI scope names.</comment>
+  </data>
+  <data name="TokensConfirmReplaceCharacter" xml:space="preserve">
+    <value>You authenticated as '{0}', but '{1}' was selected for update.
+
+Replace '{1}' with '{0}'?</value>
+    <comment>Question after logging in as a different character than the one being re-authorised. {0} is the character logged in as, {1} the one that was selected.</comment>
+  </data>
+  <data name="TokensConfirmReplaceCorp" xml:space="preserve">
+    <value>The authenticated character belongs to '{0}', but '{1}' was selected for update.
+
+Replace '{1}' with '{0}'?</value>
+    <comment>Question after logging in for a different corporation than the one being re-authorised. {0} is the corporation of the character logged in as, {1} the one that was selected.</comment>
+  </data>
+  <data name="TokensScopesMissingOne" xml:space="preserve">
+    <value>{0} scope not granted</value>
+    <comment>A character's or corporation's state in the Settings → ESI Tokens list, one permission (ESI scope) missing. {0} is the number.</comment>
+  </data>
+  <data name="TokensScopesMissingOther" xml:space="preserve">
+    <value>{0} scopes not granted</value>
+    <comment>A character's or corporation's state in the Settings → ESI Tokens list, several permissions (ESI scopes) missing. {0} is the number.</comment>
+  </data>
+  <data name="TokensScopesGrantedOne" xml:space="preserve">
+    <value>{1} of {0} scope granted</value>
+    <comment>Scope summary in Settings → ESI Tokens, one scope in all. {0} is the total, {1} how many of them were granted.</comment>
+  </data>
+  <data name="TokensScopesGrantedOther" xml:space="preserve">
+    <value>{1} of {0} scopes granted</value>
+    <comment>Scope summary in Settings → ESI Tokens, several scopes in all. {0} is the total, {1} how many of them were granted.</comment>
+  </data>
 </root>
