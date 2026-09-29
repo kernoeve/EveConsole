@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>Все персонажи</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="DoubleClickARowNote" xml:space="preserve">
+    <value>Дважды щёлкните строку, чтобы открыть её на вкладке «Подробно».</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="ColPodValue" xml:space="preserve">
+    <value>Стоимость капсулы</value>
+  </data>
+  <data name="ColHomeStation" xml:space="preserve">
+    <value>Станция прописки</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="TipEntriesInTheQueue" xml:space="preserve">
+    <value>Число навыков в плане и время до завершения последнего из них.</value>
+  </data>
+  <data name="ColTotalSp" xml:space="preserve">
+    <value>Всего СП</value>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="ColMfg" xml:space="preserve">
+    <value>Произв.</value>
+  </data>
+  <data name="TipManufacturingSlotsFreeOfTotal" xml:space="preserve">
+    <value>Свободные производственные слоты из общего числа</value>
+  </data>
+  <data name="ColRxn" xml:space="preserve">
+    <value>Реакц.</value>
+  </data>
+  <data name="TipReactionSlotsFreeOfTotal" xml:space="preserve">
+    <value>Свободные слоты реакций из общего числа</value>
+  </data>
+  <data name="ColSci" xml:space="preserve">
+    <value>Наука</value>
+  </data>
+  <data name="TipScienceSlotsFreeOf" xml:space="preserve">
+    <value>Свободные научные слоты из общего числа — копирование, исследование и модернизация</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Персонаж:</value>
+  </data>
+  <data name="TotalSpLabel" xml:space="preserve">
+    <value>Всего СП: </value>
+  </data>
+  <data name="UnallocatedLabel" xml:space="preserve">
+    <value>Нераспределено: </value>
+  </data>
+  <data name="SecStatusLabel" xml:space="preserve">
+    <value>Статус безопасности: </value>
+  </data>
+  <data name="TabSkills" xml:space="preserve">
+    <value>Навыки</value>
+  </data>
+  <data name="SkillGroups" xml:space="preserve">
+    <value>Группы навыков</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="TrainingQueue" xml:space="preserve">
+    <value>План освоения навыков</value>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Характеристики</value>
+  </data>
+  <data name="CharacterAttributes" xml:space="preserve">
+    <value>Характеристики персонажа</value>
+  </data>
+  <data name="Intelligence" xml:space="preserve">
+    <value>Интеллект</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>Память</value>
+  </data>
+  <data name="Charisma" xml:space="preserve">
+    <value>Харизма</value>
+  </data>
+  <data name="Perception" xml:space="preserve">
+    <value>Восприятие</value>
+  </data>
+  <data name="Willpower" xml:space="preserve">
+    <value>Сила воли</value>
+  </data>
+  <data name="NoAttributeDataAvailableNote" xml:space="preserve">
+    <value>Нет данных о характеристиках. Характеристики персонажа загружаются при опросе ESI.</value>
+  </data>
+  <data name="NeuralRemapping" xml:space="preserve">
+    <value>Нейронное перераспределение</value>
+  </data>
+  <data name="LastRemapLabel" xml:space="preserve">
+    <value>Последнее перераспределение:</value>
+  </data>
+  <data name="TabClones" xml:space="preserve">
+    <value>Клоны</value>
+  </data>
+  <data name="ActiveCloneImplants" xml:space="preserve">
+    <value>Имплантаты активного клона</value>
+  </data>
+  <data name="NoImplantsFittedInActive" xml:space="preserve">
+    <value>В активном клоне нет имплантатов.</value>
+  </data>
+  <data name="JumpClones" xml:space="preserve">
+    <value>Джамп-клоны</value>
+  </data>
+  <data name="NoJumpClones" xml:space="preserve">
+    <value>Джамп-клонов нет.</value>
+  </data>
+  <data name="TabMedals" xml:space="preserve">
+    <value>Медали</value>
+  </data>
+  <data name="TabTitles" xml:space="preserve">
+    <value>Должности</value>
+  </data>
+  <data name="NoTitlesHeldByThis" xml:space="preserve">
+    <value>У этого персонажа нет должностей.</value>
+  </data>
+  <data name="TabStandings" xml:space="preserve">
+    <value>Отношения</value>
+  </data>
+  <data name="NoStandingsDataAvailable" xml:space="preserve">
+    <value>Нет данных об отношениях.</value>
+  </data>
+  <data name="FmtUpdated" xml:space="preserve">
+    <value>Обновлено: {0:dd MMM yyyy HH:mm}</value>
+  </data>
+  <data name="TitleCharacterViewer" xml:space="preserve">
+    <value>Просмотр персонажей</value>
+  </data>
+  <data name="StatusOnline" xml:space="preserve">
+    <value>Онлайн</value>
+  </data>
+  <data name="StatusOffline" xml:space="preserve">
+    <value>Офлайн</value>
+  </data>
+  <data name="QueueEmptyShort" xml:space="preserve">
+    <value>пуст</value>
+  </data>
+  <data name="QueuePausedShort" xml:space="preserve">
+    <value>{0} · пауза</value>
+  </data>
+  <data name="SpanDone" xml:space="preserve">
+    <value>завершён</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0:F0} д</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0:F0} ч</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0:F0} мин</value>
+  </data>
+  <data name="SpMillions" xml:space="preserve">
+    <value>{0:F2} млн СП</value>
+  </data>
+  <data name="SpThousands" xml:space="preserve">
+    <value>{0:F0} тыс. СП</value>
+  </data>
+  <data name="SpPlain" xml:space="preserve">
+    <value>{0} СП</value>
+  </data>
+  <data name="QueuePaused" xml:space="preserve">
+    <value>Пауза</value>
+  </data>
+  <data name="QueueComplete" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="StandingTypeFaction" xml:space="preserve">
+    <value>Фракция</value>
+  </data>
+  <data name="StandingTypeCorp" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="StandingTypeAgent" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="SummaryStatusOne" xml:space="preserve">
+    <value>{0} персонаж. Данные взяты из опроса — «Обновить» на вкладке «Подробно» обновляет одного персонажа, опрос обновляет всех.</value>
+  </data>
+  <data name="SummaryStatusOther" xml:space="preserve">
+    <value>{0} персонажа. Данные взяты из опроса — «Обновить» на вкладке «Подробно» обновляет одного персонажа, опрос обновляет всех.</value>
+  </data>
+  <data name="SummaryStatusFew" xml:space="preserve">
+    <value>{0} персонажа. Данные взяты из опроса — «Обновить» на вкладке «Подробно» обновляет одного персонажа, опрос обновляет всех.</value>
+  </data>
+  <data name="SummaryStatusMany" xml:space="preserve">
+    <value>{0} персонажей. Данные взяты из опроса — «Обновить» на вкладке «Подробно» обновляет одного персонажа, опрос обновляет всех.</value>
+  </data>
+  <data name="SummaryLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить сводку: {0}</value>
+  </data>
+  <data name="NoMedalsOnRecord" xml:space="preserve">
+    <value>У этого персонажа нет медалей.</value>
+  </data>
+  <data name="MedalCountOne" xml:space="preserve">
+    <value>{0} медаль</value>
+  </data>
+  <data name="MedalCountOther" xml:space="preserve">
+    <value>{0} медали</value>
+  </data>
+  <data name="MedalCountFew" xml:space="preserve">
+    <value>{0} медали</value>
+  </data>
+  <data name="MedalCountMany" xml:space="preserve">
+    <value>{0} медалей</value>
+  </data>
+  <data name="StatusSelectCharacterToView" xml:space="preserve">
+    <value>Выберите персонажа, чтобы посмотреть его данные.</value>
+  </data>
+  <data name="StatusLoadingCharacter" xml:space="preserve">
+    <value>Загрузка: {0}…</value>
+  </data>
+  <data name="StatusCharacterSp" xml:space="preserve">
+    <value>{0} — {1:N0} СП</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>Ошибка загрузки ({0}): {1}</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Корпорация № {0}</value>
+  </data>
+  <data name="SkillGroupUnknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="SkillNumbered" xml:space="preserve">
+    <value>Навык № {0}</value>
+  </data>
+  <data name="AllSkills" xml:space="preserve">
+    <value>Все навыки</value>
+  </data>
+  <data name="QueueEmpty" xml:space="preserve">
+    <value>План пуст</value>
+  </data>
+  <data name="RemapNoData" xml:space="preserve">
+    <value>Нет данных о характеристиках</value>
+  </data>
+  <data name="RemapBonusOne" xml:space="preserve">
+    <value>Доступен {0} доп. сеанс перераспределения</value>
+  </data>
+  <data name="RemapBonusOther" xml:space="preserve">
+    <value>Доступно {0} доп. сеанса перераспределения</value>
+  </data>
+  <data name="RemapBonusFew" xml:space="preserve">
+    <value>Доступно {0} доп. сеанса перераспределения</value>
+  </data>
+  <data name="RemapBonusMany" xml:space="preserve">
+    <value>Доступно {0} доп. сеансов перераспределения</value>
+  </data>
+  <data name="RemapAvailableOn" xml:space="preserve">
+    <value>Перераспределение доступно: {0:dd MMM yyyy}</value>
+  </data>
+  <data name="RemapLastAvailableNow" xml:space="preserve">
+    <value>Последнее перераспределение: {0:dd MMM yyyy} — перераспределение доступно сейчас</value>
+  </data>
+  <data name="RemapAvailable" xml:space="preserve">
+    <value>Перераспределение доступно</value>
+  </data>
+  <data name="ImplantNumbered" xml:space="preserve">
+    <value>Имплантат № {0}</value>
+  </data>
+  <data name="CloneLocation" xml:space="preserve">
+    <value>Местоположение {0} ({1})</value>
+  </data>
+  <data name="MedalNumbered" xml:space="preserve">
+    <value>Медаль № {0}</value>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>Фракция № {0}</value>
+  </data>
+  <data name="AgentNumbered" xml:space="preserve">
+    <value>Агент № {0}</value>
+  </data>
+  <data name="EntityNumbered" xml:space="preserve">
+    <value>Объект № {0}</value>
+  </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0} (в космосе)</value>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>Станция {0}</value>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>Сооружение {0}</value>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>Система {0}</value>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>Местоположение {0}</value>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>Альянс {0}</value>
+  </data>
+  <data name="StatusSelectCharacter" xml:space="preserve">
+    <value>Выберите персонажа.</value>
+  </data>
+  <data name="DurationDaysOne" xml:space="preserve">
+    <value>{0} день</value>
+  </data>
+  <data name="DurationDaysOther" xml:space="preserve">
+    <value>{0} дня</value>
+  </data>
+  <data name="DurationDaysFew" xml:space="preserve">
+    <value>{0} дня</value>
+  </data>
+  <data name="DurationDaysMany" xml:space="preserve">
+    <value>{0} дней</value>
+  </data>
+  <data name="DurationHoursOne" xml:space="preserve">
+    <value>{0} час</value>
+  </data>
+  <data name="DurationHoursOther" xml:space="preserve">
+    <value>{0} часа</value>
+  </data>
+  <data name="DurationHoursFew" xml:space="preserve">
+    <value>{0} часа</value>
+  </data>
+  <data name="DurationHoursMany" xml:space="preserve">
+    <value>{0} часов</value>
+  </data>
+  <data name="DurationMinutesOne" xml:space="preserve">
+    <value>{0} минута</value>
+  </data>
+  <data name="DurationMinutesOther" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="DurationMinutesFew" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="DurationMinutesMany" xml:space="preserve">
+    <value>{0} минут</value>
+  </data>
+  <data name="QueueSkillsFinishOne" xml:space="preserve">
+    <value>{0} навык — завершение {1:dd MMM yyyy}</value>
+  </data>
+  <data name="QueueSkillsFinishOther" xml:space="preserve">
+    <value>{0} навыка — завершение {1:dd MMM yyyy}</value>
+  </data>
+  <data name="QueueSkillsFinishFew" xml:space="preserve">
+    <value>{0} навыка — завершение {1:dd MMM yyyy}</value>
+  </data>
+  <data name="QueueSkillsFinishMany" xml:space="preserve">
+    <value>{0} навыков — завершение {1:dd MMM yyyy}</value>
+  </data>
+  <data name="QueueSkillsPausedOne" xml:space="preserve">
+    <value>{0} навык (пауза)</value>
+  </data>
+  <data name="QueueSkillsPausedOther" xml:space="preserve">
+    <value>{0} навыка (пауза)</value>
+  </data>
+  <data name="QueueSkillsPausedFew" xml:space="preserve">
+    <value>{0} навыка (пауза)</value>
+  </data>
+  <data name="QueueSkillsPausedMany" xml:space="preserve">
+    <value>{0} навыков (пауза)</value>
+  </data>
+  <data name="DurationSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+</root>

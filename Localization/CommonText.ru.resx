@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>Добавление предмета</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>Поиск предмета</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Начните вводить название предмета…</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>Целевое количество</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Выберите предмет из списка выше.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>Добавление предметов из чертежа</value>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>Чертёж (поиск по названию продукции)</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Введите текст для поиска…</value>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>Уровень ME</value>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>Прогоны</value>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>Источник материалов</value>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>Этот чертёж</value>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>Вся цепочка</value>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>Промпарк (вся цепочка)</value>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>Добавить предметы</value>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>Свой цвет</value>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>Почта EVE отображается на почти чёрном фоне, поэтому очень тёмные цвета на нём почти не видны. Образец ниже показан на этом фоне, а не на фоне этого окна.</value>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2,12 млрд</value>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>Использовать этот цвет</value>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>Подтверждение</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>Открыть в браузере?</value>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>Эта ссылка откроет сайт в вашем браузере.</value>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>Больше не спрашивать</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>Добавление предметов из оснастки</value>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>Добавить в группу:</value>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>Оснастки</value>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>Состав оснастки</value>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>Добавить предметы</value>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Добавление предметов из группы рынка</value>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>Целевое кол-во на предмет</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>Выбрать цвет</value>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>Цвета почты EVE</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Свой…</value>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>Без цвета</value>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>Показать все уже используемые метки</value>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>Совпадений нет — нажмите Enter, чтобы создать метку.</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Загрузка…</value>
+  </data>
+  <data name="Checking" xml:space="preserve">
+    <value>Проверка…</value>
+  </data>
+  <data name="ErrorWithMessage" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="PriceTypeBuy" xml:space="preserve">
+    <value>Покупка</value>
+  </data>
+  <data name="PriceTypeSell" xml:space="preserve">
+    <value>Продажа</value>
+  </data>
+  <data name="PriceTypeSplit" xml:space="preserve">
+    <value>Середина</value>
+  </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0} д {1} ч {2} мин</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} мин {1} с</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>Звук</value>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>Озвучка напрямую (без помощника)</value>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>Сообщение помощнику</value>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>Оповещение</value>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>Окно</value>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>Нет результатов</value>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>Страница {0:N0} из {1:N0}  ·  {2:N0}</value>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— Без промпарка —</value>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>Сначала выберите чертёж.</value>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>Для подтверждения введите {0}:</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Введите название.</value>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>Загрузка групп рынка…</value>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>Выберите группу рынка, чтобы добавить её предметы.</value>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>Л</value>
+  </data>
+  <data name="FitBadgeCorp" xml:space="preserve">
+    <value>К</value>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>Загрузка оснасток из ESI…</value>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>Построение дерева…</value>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>Оснастки не найдены. Убедитесь, что у персонажей есть область доступа esi-fittings.read_fittings.v1.</value>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>ID типа {0}</value>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>Оснасток: {0}, типов кораблей: {1}</value>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>Разъёмы большой мощности</value>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>Разъёмы средней мощности</value>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>Разъёмы малой мощности</value>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>Модификаторы</value>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>Подсистемы</value>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>Дроны</value>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>Истребители</value>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>Груз</value>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>Ангар флота</value>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>d MMM</value>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>d MMM, HH:mm</value>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>d MMM, HH:mm</value>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>d MMM yyyy</value>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>d MMM yyyy, HH:mm</value>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>MMMM yyyy</value>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>MMM yy</value>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>d MMM HH:mm</value>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>d MMM HH:mm:ss</value>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>d MMM yyyy</value>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>d MMM yyyy HH:mm</value>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>d MMMM yyyy, HH:mm</value>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>dddd, d MMM yyyy  HH:mm</value>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:dd MMM yyyy}</value>
+  </data>
+</root>

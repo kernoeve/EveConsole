@@ -85,6 +85,8 @@ public static class Languages
             "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR",
             "Source Han Sans KR", "NanumGothic",
         ]),
+        // Cyrillic, which the bundled Inter covers.
+        new("ru", "Русский", "Russian", Preview: true, []),
     ];
 
     /// <summary>The language in force for this run.</summary>
