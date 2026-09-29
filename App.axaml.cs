@@ -150,9 +150,7 @@ public class App : Application
 
             while (await Task.WhenAny(work, Task.Delay(1000)) != work)
                 if (lastPct is > 5 and < 85)
-                    p.Report((lastPct,
-                        $"Shrinking database — {Elapsed(startedAt)} elapsed. " +
-                        "Please leave the application open."));
+                    p.Report((lastPct, string.Format(ShellText.SplashShrinking, Elapsed(startedAt))));
 
             await work;
         }
@@ -184,7 +182,7 @@ public class App : Application
             // window that is never shown fails the identical check.
             if (splash is not null)
             {
-                splash.ReportProgress(0, "Waiting — the database could not be opened");
+                splash.ReportProgress(0, ShellText.SplashWaitingDatabase);
                 await recovery.ShowDialog(splash);
             }
             else
@@ -263,8 +261,7 @@ public class App : Application
             {
                 var why = e.Exception.Message;
                 splash?.ReportProgress(100,
-                    "Startup failed — " + (why.Length > 160 ? why[..160] + "…" : why) +
-                    "  (full details in the error log)");
+                    string.Format(ShellText.SplashStartupFailed, why.Length > 160 ? why[..160] + "…" : why));
             }
             e.Handled = true;
         };
@@ -693,7 +690,7 @@ public class App : Application
 
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
                 {
-                    splash?.ReportProgress(0, "Stopping — version mismatch");
+                    splash?.ReportProgress(0, ShellText.SplashStoppingMismatch);
 
                     // ⚠️ A database AHEAD of this build is the one mismatch this client can fix by
                     // itself, and it is the one every client meets when another upgrades a shared
@@ -743,7 +740,7 @@ public class App : Application
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
         await Task.Run(() =>
         {
-        p.Report((5, "Initializing database…"));
+        p.Report((5, ShellText.SplashInitializingDatabase));
         // Ensure the database is created / migrated
         //
         // ⚠️ Only the client holding the worker lease reaches here with skipSchema false, and that
@@ -1381,7 +1378,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((20, "Building character tables…"));
+                p.Report((20, ShellText.SplashCharacterTables));
                 // ── Polled-data tables — drop old names, create Esi* names ──────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2014,7 +2011,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((45, "Building corporation tables…"));
+                p.Report((45, ShellText.SplashCorporationTables));
                 // ── Corp tables ───────────────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2330,7 +2327,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((65, "Building market tables…"));
+                p.Report((65, ShellText.SplashMarketTables));
                 // ── Market pricing ────────────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2420,7 +2417,7 @@ public class App : Application
                     WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
                     """);
 
-                p.Report((78, "Building industry tables…"));
+                p.Report((78, ShellText.SplashIndustryTables));
                 // ── Indy Parks ───────────────────────────────────────────────────────
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "IndyParks" (
@@ -2541,7 +2538,7 @@ public class App : Application
                     WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
                     """);
 
-                p.Report((90, "Finalizing schema…"));
+                p.Report((90, ShellText.SplashFinalizingSchema));
                 // ── Application error log ─────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -3536,7 +3533,7 @@ public class App : Application
         }
         }); // end Task.Run — schema migration complete
 
-        p.Report((80, "Loading settings…"));
+        p.Report((80, ShellText.SplashLoadingSettings));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
         try
@@ -3620,19 +3617,19 @@ public class App : Application
             return;
         }
 
-        p.Report((84, "Preparing tools…"));
+        p.Report((84, ShellText.SplashPreparingTools));
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
 
-        p.Report((88, "Starting background services…"));
+        p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
         // that is already usable — the old behaviour, but as a fallback rather than the norm.
-        p.Report((94, "Loading overview…"));
+        p.Report((94, ShellText.SplashLoadingOverview));
         await Task.WhenAny(mainVm.OverviewVm.EnsureLoadedAsync(), Task.Delay(TimeSpan.FromSeconds(20)));
 
-        p.Report((99, "Opening…"));
+        p.Report((99, ShellText.SplashOpening));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopFinal)
         {
             mainWindow             = new MainWindow();
@@ -3640,7 +3637,7 @@ public class App : Application
             desktopFinal.MainWindow   = mainWindow;
             desktopFinal.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
 
-            p.Report((100, "Ready."));
+            p.Report((100, ShellText.SplashReady));
             mainWindow.Show();
 
             await Task.Delay(250); // brief pause so the 100 % state is visible

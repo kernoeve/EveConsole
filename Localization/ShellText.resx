@@ -715,4 +715,68 @@ Update the client running the background processes to {1}, or close it and start
     <value>This build does not match the database</value>
     <comment>Heading of the dialog shown with VersionMismatchWorkerBehind, before the app stops.</comment>
   </data>
+  <data name="SplashShrinking" xml:space="preserve">
+    <value>Shrinking database — {0} elapsed. Please leave the application open.</value>
+    <comment>Splash screen while the database is compacted at startup. {0} is the time taken so far, as minutes:seconds.</comment>
+  </data>
+  <data name="SplashWaitingDatabase" xml:space="preserve">
+    <value>Waiting — the database could not be opened</value>
+    <comment>Splash screen when the database cannot be reached yet.</comment>
+  </data>
+  <data name="SplashStartupFailed" xml:space="preserve">
+    <value>Startup failed — {0}  (full details in the error log)</value>
+    <comment>Splash screen when startup fails. {0} is the reason, cut short; keep the two spaces before the bracket.</comment>
+  </data>
+  <data name="SplashStoppingMismatch" xml:space="preserve">
+    <value>Stopping — version mismatch</value>
+    <comment>Splash screen when this version cannot run against the database's version.</comment>
+  </data>
+  <data name="SplashInitializingDatabase" xml:space="preserve">
+    <value>Initializing database…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashCharacterTables" xml:space="preserve">
+    <value>Building character tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashCorporationTables" xml:space="preserve">
+    <value>Building corporation tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashMarketTables" xml:space="preserve">
+    <value>Building market tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashIndustryTables" xml:space="preserve">
+    <value>Building industry tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashFinalizingSchema" xml:space="preserve">
+    <value>Finalizing schema…</value>
+    <comment>Splash screen, a startup step: the last database changes.</comment>
+  </data>
+  <data name="SplashLoadingSettings" xml:space="preserve">
+    <value>Loading settings…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashPreparingTools" xml:space="preserve">
+    <value>Preparing tools…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashStartingServices" xml:space="preserve">
+    <value>Starting background services…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashLoadingOverview" xml:space="preserve">
+    <value>Loading overview…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashOpening" xml:space="preserve">
+    <value>Opening…</value>
+    <comment>Splash screen, the last startup step before the window opens.</comment>
+  </data>
+  <data name="SplashReady" xml:space="preserve">
+    <value>Ready.</value>
+    <comment>Splash screen, startup finished.</comment>
+  </data>
 </root>
