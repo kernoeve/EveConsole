@@ -167,9 +167,14 @@ public static class Languages
             CultureInfo.DefaultThreadCurrentCulture = formats;
             CultureInfo.CurrentCulture = formats;
         }
+        Formats = CultureInfo.CurrentCulture;
 
         if (Pseudo) PseudoLocalization.Install();
     }
+
+    /// <summary>The app's own formats for dates and numbers, as decided at startup: what
+    /// <see cref="LanguageScope.App"/> goes back to from inside a store's language.</summary>
+    public static CultureInfo Formats { get; private set; } = CultureInfo.CurrentCulture;
 
     /// <summary>
     /// The families the interface falls back to, in order, for characters its own font lacks —
