@@ -123,4 +123,8 @@ public class PriceHistoryRegion
 {
     public int    RegionId   { get; set; }
     public string RegionName { get; set; } = "";
+
+    /// <summary>The region in the interface language, for the pickers to show. Not mapped (it has
+    /// no setter); <see cref="RegionName"/> stays English, and is what the agent matches.</summary>
+    public string DisplayName => SdeNames.Region(RegionId, RegionName);
 }

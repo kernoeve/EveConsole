@@ -462,7 +462,7 @@
                           IsVisible="{Binding MarketVm.Selected.IsEsiRegion}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:SdeRegionOption">
-                      <TextBlock Text="{Binding Name}" />
+                      <TextBlock Text="{Binding DisplayName}" />
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -745,7 +745,7 @@
                   MaxHeight="200">
           <DataGrid.Columns>
             <DataGridTextColumn Header="{x:Static loc:SettingsText.ColRegionId}"   Binding="{ReflectionBinding RegionId}"   Width="100" />
-            <DataGridTextColumn Header="{x:Static loc:SettingsText.ColRegionName}" Binding="{ReflectionBinding RegionName}" Width="*" />
+            <DataGridTextColumn Header="{x:Static loc:SettingsText.ColRegionName}" Binding="{ReflectionBinding DisplayName}" Width="*" />
             <DataGridTemplateColumn Header="" Width="80">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="models:PriceHistoryRegion">
@@ -768,7 +768,7 @@
                     Width="260" PlaceholderText="{x:Static loc:SettingsText.HintSelectARegionToAdd}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:SdeRegionOption">
-                <TextBlock Text="{Binding Name}" />
+                <TextBlock Text="{Binding DisplayName}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>

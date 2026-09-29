@@ -134,15 +134,15 @@
               <DataGrid.Columns>
                 <!-- The name takes the width the figures leave, as the app's grids do. Ctrl+C on a row
                      copies what a column says it may; a templated column says nothing unless told. -->
-                <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColItem}" Width="*" MinWidth="240" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
+                <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColItem}" Width="*" MinWidth="240" SortMemberPath="DisplayName" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:ValueRowVm">
                       <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <Image Source="{Binding Icon}" Width="18" Height="18" IsVisible="{Binding HasType}" VerticalAlignment="Center" />
                         <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasType}" ToolTip.Tip="{x:Static loc:AssetsText.TipOpenInItemBrowser}">
-                          <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding DisplayName}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                         </Button>
-                        <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasType}" Foreground="{Binding NameColor}"
+                        <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasType}" Foreground="{Binding NameColor}"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                         <TextBlock Text="{Binding Section}" IsVisible="{Binding HasSection}" FontSize="9"
                                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
@@ -267,15 +267,15 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       FrozenColumnCount="1" CanUserReorderColumns="False">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColItem}" Width="*" MinWidth="240" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
+                <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColItem}" Width="*" MinWidth="240" SortMemberPath="DisplayName" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:CompareRowVm">
                       <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                         <Image Source="{Binding Icon}" Width="18" Height="18" IsVisible="{Binding HasType}" VerticalAlignment="Center" />
                         <Button Classes="link" Click="OnOpenCompareItem" IsVisible="{Binding HasType}" ToolTip.Tip="{x:Static loc:AssetsText.TipOpenInItemBrowser}">
-                          <TextBlock Text="{Binding Name}" Classes="linktext" TextTrimming="CharacterEllipsis" />
+                          <TextBlock Text="{Binding DisplayName}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                         </Button>
-                        <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasType}" Foreground="{DynamicResource WarnBrush}"
+                        <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasType}" Foreground="{DynamicResource WarnBrush}"
                                    TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                       </StackPanel>
                     </DataTemplate>

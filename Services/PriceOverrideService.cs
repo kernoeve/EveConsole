@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,8 +58,11 @@ public class PriceOverrideService(IDbContextFactory<AppDbContext> dbFactory)
     {
         if (string.IsNullOrWhiteSpace(text)) return [];
         await using var db = await dbFactory.CreateDbContextAsync(ct);
+        // The English, and the types whose name in the interface language holds what was typed.
+        // The results carry the English name, which an override is saved with.
+        var shown = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
         return await db.SdeTypes.AsNoTracking()
-            .Where(t => EF.Functions.Like(t.Name, $"%{text}%") && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, $"%{text}%") || shown.Contains(t.TypeId)) && t.Published)
             .OrderBy(t => t.Name)
             .Take(40)
             .Select(t => new InvTypeResult(t.TypeId, t.Name))

@@ -328,6 +328,10 @@ public class MarketViewerViewModel : ReactiveObject
     {
         try
         {
+            // Every name this tool shows is an SDE name in the interface language, so it waits for
+            // them once, before the first rows (at once in English). The loads all run after this.
+            await SdeNames.EnsureLoadedAsync();
+
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             // Regions we have data for (orders and/or any history).
@@ -338,10 +342,14 @@ public class MarketViewerViewModel : ReactiveObject
                 .Where(r => ids.Contains(r.RegionId))
                 .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
+            // By the name shown. Nothing but the id is kept of a choice.
             Regions.Clear();
             Regions.Add(new MarketRegionOption(MarketText.AllRegions, null));
-            foreach (var id in ids.OrderBy(i => names.TryGetValue(i, out var n) ? n : $"{i}"))
-                Regions.Add(new MarketRegionOption(names.TryGetValue(id, out var n) ? n : string.Format(MarketText.RegionNumbered, id), id));
+            foreach (var option in ids
+                         .Select(id => new MarketRegionOption(names.TryGetValue(id, out var n)
+                             ? SdeNames.Region(id, n) : string.Format(MarketText.RegionNumbered, id), id))
+                         .OrderBy(o => o.Label, StringComparer.CurrentCulture))
+                Regions.Add(option);
             _selectedRegion = Regions.FirstOrDefault();
             this.RaisePropertyChanged(nameof(SelectedRegion));
 
@@ -424,7 +432,9 @@ public class MarketViewerViewModel : ReactiveObject
                 .Select(x => x.TypeId).Distinct().ToList();
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => needIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
-            string TName(int id) => typeNames.TryGetValue(id, out var n) ? n : string.Format(MarketText.TypeNumbered, id);
+            // As shown on the slice. A click comes back with that same label, which is all the
+            // slice-to-item map below is keyed on.
+            string TName(int id) => typeNames.TryGetValue(id, out var n) ? SdeNames.Type(id, n) : string.Format(MarketText.TypeNumbered, id);
 
             var sellPie    = BuildTypePie(sellByType.Select(x => (TName(x.TypeId), x.Isk, x.TypeId)));
             SellCorpSeries = sellPie.Series;
@@ -439,7 +449,7 @@ public class MarketViewerViewModel : ReactiveObject
             // Sales by top-level market group — selected region and period.
             var groups = await db.Database.SqlQueryRaw<GroupSalesFlat>(
                 MgTopCte +
-                "SELECT mt.\"TopName\" AS \"Name\", SUM(h.\"Volume\" * h.\"Average\") AS Isk " +
+                "SELECT mt.\"TopId\" AS \"GroupId\", mt.\"TopName\" AS \"Name\", SUM(h.\"Volume\" * h.\"Average\") AS Isk " +
                 "FROM \"MarketTypeHistories\" h " +
                 "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = h.\"TypeId\" " +
                 "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
@@ -449,7 +459,7 @@ public class MarketViewerViewModel : ReactiveObject
                         .Where(x => x is not null)) + " "
                     : "") +
                 "GROUP BY mt.\"TopId\", mt.\"TopName\"").ToListAsync();
-            SalesGroupSeries = BuildPie(groups.Select(g => (g.Name, g.Isk)));
+            SalesGroupSeries = BuildPie(groups.Select(g => (SdeNames.MarketGroup(g.GroupId, g.Name), g.Isk)));
             HasSalesGroup    = SalesGroupSeries.Length > 0;
 
             // Daily sales ISK across the period.
@@ -598,7 +608,7 @@ public class MarketViewerViewModel : ReactiveObject
             {
                 oByG.TryGetValue(gid, out var o); sByG.TryGetValue(gid, out var s);
                 return new MarketGroupSummaryVm(
-                    names.TryGetValue(gid, out var n) ? n : string.Format(MarketText.GroupNumbered, gid),
+                    names.TryGetValue(gid, out var n) ? SdeNames.MarketGroup(gid, n) : string.Format(MarketText.GroupNumbered, gid),
                     o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
                     s?.Units ?? 0, s?.Isk ?? 0);
             }).OrderByDescending(g => g.SalesIskRaw).ToList();
@@ -662,7 +672,7 @@ public class MarketViewerViewModel : ReactiveObject
             {
                 oByT.TryGetValue(tid, out var o); sByT.TryGetValue(tid, out var s);
                 return new MarketTypeSummaryVm(
-                    typeNames.TryGetValue(tid, out var n) ? n : string.Format(MarketText.TypeNumbered, tid),
+                    typeNames.TryGetValue(tid, out var n) ? SdeNames.Type(tid, n) : string.Format(MarketText.TypeNumbered, tid),
                     o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
                     s?.Units ?? 0, s?.Isk ?? 0) { TypeId = tid };
             }).OrderByDescending(t => t.SalesIskRaw).ToList();
@@ -710,7 +720,7 @@ public class MarketViewerViewModel : ReactiveObject
 
             var vms = rows
                 .Select(x => new MarketOrderByTypeVm(
-                    typeNames.TryGetValue(x.TypeId, out var n) ? n : string.Format(MarketText.TypeNumbered, x.TypeId), x.Units, x.Isk)
+                    typeNames.TryGetValue(x.TypeId, out var n) ? SdeNames.Type(x.TypeId, n) : string.Format(MarketText.TypeNumbered, x.TypeId), x.Units, x.Isk)
                     { TypeId = x.TypeId })
                 .OrderByDescending(v => v.IskRaw).ToList();
 
@@ -746,7 +756,7 @@ public class MarketViewerViewModel : ReactiveObject
     }
     private sealed class GroupSalesFlat
     {
-        public string Name { get; set; } = ""; public double Isk { get; set; }
+        public int GroupId { get; set; } public string Name { get; set; } = ""; public double Isk { get; set; }
     }
     private sealed class DayIsk
     {

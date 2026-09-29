@@ -92,7 +92,12 @@ public class MarketSourceOptionVm(int? id, string label)
 public class TypeResultVm(int typeId, string name)
 {
     public int    TypeId { get; } = typeId;
+
+    /// <summary>English: what a pick is saved and searched by — a price override keeps it.</summary>
     public string Name   { get; } = name;
+
+    /// <summary>The name in the interface language, for a list of results to show.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
 }
 
 // ── Grid row hierarchy ────────────────────────────────────────────────────────
@@ -276,13 +281,15 @@ public class MarketItemRow : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
+    /// <param name="name">The type's English name, or a fallback; the row shows it in the
+    /// interface language. Nothing reads TypeName back: the row is saved and opened by TypeId.</param>
     public MarketItemRow(MarketLevelItem item, string name, MarketLevelService svc, Func<Task> delete,
         int groupMultiplier = 1)
     {
         ItemId   = item.Id;
         GroupId  = item.GroupId;
         TypeId   = item.TypeId;
-        TypeName = name;
+        TypeName = SdeNames.Type(item.TypeId, name);
         _targetQty       = item.TargetQuantity;
         _groupMultiplier = Math.Max(1, groupMultiplier);
         _svc             = svc;
@@ -598,18 +605,21 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var pick = await ShowMarketGroupPickerDialog();
         if (pick == null) return;
 
-        StatusText = string.Format(MarketText.StatusLoadingItemsIn, pick.GroupName);
+        // The group as the status lines name it; the pick itself carries the English.
+        var groupName = SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName);
+
+        StatusText = string.Format(MarketText.StatusLoadingItemsIn, groupName);
         var typeList = await _batchSvc.GetItemsInGroupTreeAsync(pick.MarketGroupId);
 
         if (typeList.Count == 0)
         {
-            StatusText = string.Format(MarketText.StatusNoPublishedItemsUnder, pick.GroupName);
+            StatusText = string.Format(MarketText.StatusNoPublishedItemsUnder, groupName);
             return;
         }
 
         if (typeList.Count > 100 && ShowConfirmLargeGroup != null)
         {
-            var confirmed = await ShowConfirmLargeGroup(pick.GroupName, typeList.Count);
+            var confirmed = await ShowConfirmLargeGroup(groupName, typeList.Count);
             if (!confirmed) { StatusText = MarketText.StatusCancelled; return; }
         }
 
@@ -618,7 +628,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         var itemsWithQty = typeList.ToDictionary(x => x.TypeId, _ => pick.TargetQty);
         var nameOverrides = typeList.ToDictionary(x => x.TypeId, x => x.Name);
-        await AddItemsBatchAsync(targetGroup, itemsWithQty, pick.GroupName, nameOverrides);
+        await AddItemsBatchAsync(targetGroup, itemsWithQty, groupName, nameOverrides);
     }
 
     // ── Blueprint add ─────────────────────────────────────────────────────────
@@ -661,7 +671,8 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var itemsWithQty  = mats.ToDictionary(kv => kv.Key,
                                               kv => (int)Math.Clamp(kv.Value.Qty, 0, int.MaxValue));
         var nameOverrides = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Name);
-        await AddItemsBatchAsync(targetGroup, itemsWithQty, pick.ProductName, nameOverrides);
+        await AddItemsBatchAsync(targetGroup, itemsWithQty,
+            SdeNames.Type(pick.ProductTypeId, pick.ProductName), nameOverrides);
     }
 
     // ── Shared batch-add helper ───────────────────────────────────────────────
@@ -748,6 +759,9 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task InitializeAsync()
     {
+        // The item rows are built once and keep their names, so they wait for the interface
+        // language's first (at once in English).
+        await SdeNames.EnsureLoadedAsync();
         await LoadMarketSourcesAsync();
         await LoadAvailableStationsAsync();
         await LoadGroupsAsync();
@@ -852,9 +866,10 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         HasAnyGroup = _allGroups.Count > 0;
     }
 
+    /// <summary>By the name shown.</summary>
     private static void SortItemsAlpha(MarketGroupRow group)
     {
-        var sorted = group.AllItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
+        var sorted = group.AllItems.OrderBy(i => i.TypeName, StringComparer.CurrentCulture).ToList();
         group.AllItems.Clear();
         group.AllItems.AddRange(sorted);
     }
@@ -1244,8 +1259,11 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         using var db = _dbFactory.CreateDbContext();
         var pattern = $"%{text}%";
+        // The English, and the types whose name in the interface language holds what was typed.
+        var shown = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
         var results = await db.SdeTypes
-            .Where(t => EF.Functions.Like(t.Name, pattern) && t.MarketGroupId != null && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, pattern) || shown.Contains(t.TypeId))
+                        && t.MarketGroupId != null && t.Published)
             .OrderBy(t => t.Name)
             .Take(50)
             .Select(t => new { t.TypeId, t.Name })

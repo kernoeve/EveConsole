@@ -4,6 +4,7 @@ using System.Text;
 using Avalonia.Media;
 using Avalonia.Threading;
 using EveConsole.Data;
+using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Avalonia.Media.Imaging;
@@ -42,6 +43,7 @@ public sealed class ValueRowVm : ReactiveObject
     public ValueRowVm(ItemValues v, double factor)
     {
         Name     = v.Item.Name;
+        DisplayName = ItemValuationViewModel.Shown(v.Item);
         TypeId   = v.Item.TypeId;
         Quantity = v.Item.Quantity;
         Section  = v.Item.Section;
@@ -65,7 +67,10 @@ public sealed class ValueRowVm : ReactiveObject
         }
     }
 
+    /// <summary>English, or the line as pasted when the SDE does not know it: what the Copy
+    /// button writes. <see cref="DisplayName"/> is what the grid shows.</summary>
     public string Name     { get; }
+    public string DisplayName { get; }
     public int    TypeId   { get; }
     public long   Quantity { get; }
     public string Section  { get; }
@@ -129,6 +134,7 @@ public sealed class CompareRowVm : ReactiveObject
     public CompareRowVm(ValuedItem item, IReadOnlyList<StationPrices> stations, double factor)
     {
         Name     = item.Name;
+        DisplayName = ItemValuationViewModel.Shown(item);
         TypeId   = item.TypeId;
         Quantity = item.Quantity;
         Blueprint = item.Blueprint;
@@ -146,7 +152,9 @@ public sealed class CompareRowVm : ReactiveObject
         }
     }
 
+    /// <summary>English, as on <see cref="ValueRowVm.Name"/>; the grid shows <see cref="DisplayName"/>.</summary>
     public string Name     { get; }
+    public string DisplayName { get; }
     public int    TypeId   { get; }
     public long   Quantity { get; }
     public double TotalVolume { get; }
@@ -388,12 +396,18 @@ public sealed class ItemValuationViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _filter, value ?? ""); ApplyFilter(); }
     }
 
+    /// <summary>Finds the name shown and the English — the list may well have been pasted in English.</summary>
     private void ApplyFilter()
     {
         var f = _filter.Trim();
-        ValueRows   = f.Length == 0 ? _allValueRows   : _allValueRows.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
-        CompareRows = f.Length == 0 ? _allCompareRows : _allCompareRows.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
+        ValueRows   = f.Length == 0 ? _allValueRows   : _allValueRows.Where(r => SdeNames.Matches(SdeNameKind.Type, r.TypeId, r.Name, f)).ToList();
+        CompareRows = f.Length == 0 ? _allCompareRows : _allCompareRows.Where(r => SdeNames.Matches(SdeNameKind.Type, r.TypeId, r.Name, f)).ToList();
     }
+
+    /// <summary>An item's name as the grids show it: in the interface language when the SDE knows
+    /// the item, and as pasted when it does not.</summary>
+    internal static string Shown(ValuedItem item) =>
+        item.TypeId > 0 ? SdeNames.Type(item.TypeId, item.Name) : item.Name;
 
     /// <summary>The stations the compare grid has columns for, primary first, as of the last result.</summary>
     public IReadOnlyList<MarketStation> CompareColumns { get; private set; } = [];
@@ -477,6 +491,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
             var basis     = SelectedBasis?.Basis ?? PriceBasis.Sell;
             var reprocess = SelectedTarget?.Reprocess ?? false;
             var valuation = await Task.Run(() => _service.ValueAsync(text, station, compare, basis, reprocess));
+            await SdeNames.EnsureLoadedAsync();   // the rows keep the names they are built with
             await Dispatcher.UIThread.InvokeAsync(() => Present(valuation));
         }
         catch (Exception ex)
@@ -563,6 +578,8 @@ public sealed class ItemValuationViewModel : ReactiveObject
             AssetsText.CopyColBuildUnit, AssetsText.CopyColBuildTotal, AssetsText.CopyColBuildPct,
             AssetsText.CopyColReprocessUnit, AssetsText.CopyColReprocessTotal, AssetsText.CopyColReprocessPct,
             AssetsText.CopyColNote));
+        // English item names in both tables, as always: a list copied from here is pasted into
+        // appraisal sites and back into this tool, which read English.
         foreach (var r in ValueRows)
             sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t{Num(r.Market.Unit)}\t{Num(r.Market.Total)}\t{r.Market.PctText}\t{Num(r.Build.Unit)}\t{Num(r.Build.Total)}\t{r.Build.PctText}\t{Num(r.Reprocess.Unit)}\t{Num(r.Reprocess.Total)}\t{r.Reprocess.PctText}\t{string.Join(" ", new[] { r.Section, r.Problem, r.Note }.Where(s => s.Length > 0))}");
         sb.AppendLine();

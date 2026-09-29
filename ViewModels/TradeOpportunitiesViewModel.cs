@@ -13,6 +13,8 @@ public record StationOption(long LocationId, string Name);
 public enum TradeMode { SellToBuyOrder, UndercutSellOrder }
 public record TradeModeOption(string Label, TradeMode Kind);
 
+/// <summary>A market group left out of the search. <paramref name="Name"/> is the name shown, in the
+/// interface language; the list is saved and matched by id.</summary>
 public record ExcludedMarketGroupVm(int MarketGroupId, string Name);
 
 public class TradeRow
@@ -138,7 +140,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         if (pick is null) return;
         if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
 
-        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
+            SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
         await SaveExcludedGroupsAsync();
     }
 
@@ -150,6 +153,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
+        // The names are shown once and kept, so they wait for the interface language's first.
+        await SdeNames.EnsureLoadedAsync();
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""");
@@ -171,7 +177,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         ExcludedMarketGroups.Clear();
         foreach (var id in ids)
             if (names.TryGetValue(id, out var name))
-                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, SdeNames.MarketGroup(id, name)));
     }
 
     private async Task SaveExcludedGroupsAsync()
@@ -346,6 +352,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 return;
             }
 
+            await SdeNames.EnsureLoadedAsync();   // the rows carry the names shown
             var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol);
             // Default display order — highest total profit first. Column headers allow re-sorting.
             foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
@@ -459,7 +466,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             result.Add(new TradeRow
             {
                 TypeId        = c.TypeId,
-                TypeName      = c.TypeName,
+                TypeName      = SdeNames.Type(c.TypeId, c.TypeName),   // shown only; the row goes by TypeId
                 BestSell      = c.BestSell,
                 DestPrice     = c.DestPrice,
                 ProfitPerUnit = c.ProfitPerUnit,

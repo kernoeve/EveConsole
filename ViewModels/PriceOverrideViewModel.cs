@@ -18,15 +18,21 @@ namespace EveConsole.ViewModels;
 public class PriceOverrideRow : ReactiveObject
 {
     public int    TypeId   { get; }
+
+    /// <summary>English: saved with the override.</summary>
     public string TypeName { get; }
+
+    /// <summary>The name in the interface language, which the grid shows and sorts on.</summary>
+    public string DisplayName { get; }
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
     public PriceOverrideRow(int typeId, string typeName, decimal? build, decimal? market, decimal? contract)
     {
-        TypeId   = typeId;
-        TypeName = typeName;
+        TypeId      = typeId;
+        TypeName    = typeName;
+        DisplayName = SdeNames.Type(typeId, typeName);
         _buildCostText     = Fmt(build);
         _marketValueText   = Fmt(market);
         _contractValueText = Fmt(contract);
@@ -122,9 +128,12 @@ public class PriceOverrideViewModel : ReactiveObject
     private async Task LoadAsync()
     {
         var all = await _svc.GetAllAsync();
+        await SdeNames.EnsureLoadedAsync();   // the rows keep the names they are built with
         Rows.Clear();
-        foreach (var o in all)
-            Rows.Add(new PriceOverrideRow(o.TypeId, o.TypeName, o.BuildCost, o.MarketValue, o.ContractValue));
+        foreach (var row in all
+                     .Select(o => new PriceOverrideRow(o.TypeId, o.TypeName, o.BuildCost, o.MarketValue, o.ContractValue))
+                     .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture))
+            Rows.Add(row);
         Status = Rows.Count == 0 ? IndustryText.OverrideStatusNone
                                  : string.Format(IndustryText.OverrideStatusCount, Rows.Count);
     }
@@ -141,7 +150,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = new PriceOverrideRow(result.TypeId, result.TypeName, null, null, null);
         Rows.Add(row);
         SelectedRow = row;
-        Status = string.Format(IndustryText.OverrideStatusAdded, result.TypeName, IndustryText.SaveRecalculate);
+        Status = string.Format(IndustryText.OverrideStatusAdded, row.DisplayName, IndustryText.SaveRecalculate);
     }
 
     private async Task DeleteSelectedAsync()
@@ -150,7 +159,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = SelectedRow;
         await _svc.DeleteAsync(row.TypeId);
         Rows.Remove(row);
-        Status = string.Format(IndustryText.OverrideStatusRemoved, row.TypeName);
+        Status = string.Format(IndustryText.OverrideStatusRemoved, row.DisplayName);
     }
 
     private async Task SaveAndRecalcAsync()

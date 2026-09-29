@@ -117,16 +117,16 @@
       </DataGrid.Styles>
 
       <DataGrid.Columns>
-        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColType}" SortMemberPath="TypeName" IsReadOnly="True" Width="2*" ClipboardContentBinding="{Binding TypeName}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColType}" SortMemberPath="DisplayName" IsReadOnly="True" Width="2*" ClipboardContentBinding="{Binding DisplayName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:PriceOverrideRow">
               <Panel>
                 <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
                         ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                  <TextBlock Text="{Binding DisplayName}" Classes="linktext"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
-                <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}"
+                <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasItemLink}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               </Panel>
             </DataTemplate>

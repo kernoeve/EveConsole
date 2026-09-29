@@ -32,8 +32,14 @@ public class SdeRegionOption
     public SdeRegionOption() { }
     public SdeRegionOption(int regionId, string name) { RegionId = regionId; Name = name; }
     public int    RegionId { get; init; }
+
+    /// <summary>English: saved as the source's or the price-history region's name.</summary>
     public string Name     { get; init; } = "";
-    public override string ToString() => Name;
+
+    /// <summary>The region in the interface language, which the pickers show and sort on.</summary>
+    public string DisplayName => SdeNames.Region(RegionId, Name);
+
+    public override string ToString() => DisplayName;
 }
 
 public class MarketPricingConfigVm : ReactiveObject
@@ -426,11 +432,14 @@ public class MarketSettingsViewModel : ReactiveObject
 
     private async Task LoadAsync()
     {
-        RegionOptions = await _db.SdeRegions.AsNoTracking()
-            .Where(r => !r.IsWormhole)
-            .OrderBy(r => r.Name)
-            .Select(r => new SdeRegionOption { RegionId = r.RegionId, Name = r.Name })
-            .ToListAsync();
+        // By the name shown, so the picker waits for the interface language's names first.
+        await SdeNames.EnsureLoadedAsync();
+        RegionOptions = (await _db.SdeRegions.AsNoTracking()
+                .Where(r => !r.IsWormhole)
+                .Select(r => new SdeRegionOption { RegionId = r.RegionId, Name = r.Name })
+                .ToListAsync())
+            .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture)
+            .ToList();
 
         var rows = await _db.MarketPricingConfigs.AsNoTracking()
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)

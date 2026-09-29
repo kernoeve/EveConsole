@@ -204,6 +204,10 @@ public class LpMarketValuesViewModel : ReactiveObject
                 .Where(c => corpIds.Contains(c.CorporationId))
                 .ToDictionaryAsync(c => c.CorporationId, c => c.Name);
 
+            // The rows carry the corporations' and items' names as shown (display only: they are
+            // opened and matched by id), so they wait for the interface language's first.
+            await SdeNames.EnsureLoadedAsync();
+
             var typeIds = values.Select(v => v.BestTypeId).Distinct().ToList();
             var typeNames = await db.SdeTypes.AsNoTracking()
                 .Where(t => typeIds.Contains(t.TypeId))
@@ -218,9 +222,11 @@ public class LpMarketValuesViewModel : ReactiveObject
             var rows = values
                 .Select(v => new LpCorpValueVm(
                     v.CorporationId,
-                    names.GetValueOrDefault(v.CorporationId, string.Format(MarketText.CorpNumbered, v.CorporationId)),
+                    SdeNames.NpcCorporation(v.CorporationId,
+                        names.GetValueOrDefault(v.CorporationId, string.Format(MarketText.CorpNumbered, v.CorporationId))),
                     v.IskPerLp, v.MedianIskPerLp, v.ValuedOffers, v.TotalOffers, v.BestIskPerLp,
-                    v.BestTypeId, typeNames.GetValueOrDefault(v.BestTypeId, ""),
+                    v.BestTypeId,
+                    typeNames.TryGetValue(v.BestTypeId, out var best) ? SdeNames.Type(v.BestTypeId, best) : "",
                     held.GetValueOrDefault(v.CorporationId),
                     v.ComputedAt))
                 // Corporations you hold LP with first — those are the rates that can be
@@ -236,7 +242,7 @@ public class LpMarketValuesViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(HasCorps));
 
                 HistoryCorps.Clear();
-                foreach (var r in rows.OrderBy(r => r.CorporationName)) HistoryCorps.Add(r);
+                foreach (var r in rows.OrderBy(r => r.CorporationName, StringComparer.CurrentCulture)) HistoryCorps.Add(r);
                 SelectedHistoryCorp ??= HistoryCorps.FirstOrDefault();
 
                 Status = string.Format(MarketText.StatusCorpsValued, rows.Count, rows.Max(r => r.ComputedAt).ToLocalTime());

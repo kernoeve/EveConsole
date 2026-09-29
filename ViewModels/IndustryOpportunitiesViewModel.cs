@@ -190,7 +190,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         if (pick is null) return;
         if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
 
-        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
+            SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
         await SaveExcludedGroupsAsync();
     }
 
@@ -202,6 +203,9 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
+        // The names are shown once and kept, so they wait for the interface language's first.
+        await SdeNames.EnsureLoadedAsync();
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "IndustryOpportunitiesSettings" WHERE "Id" = 1""");
@@ -223,7 +227,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         ExcludedMarketGroups.Clear();
         foreach (var id in ids)
             if (names.TryGetValue(id, out var name))
-                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, SdeNames.MarketGroup(id, name)));
     }
 
     private async Task SaveExcludedGroupsAsync()
@@ -406,6 +410,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
         try
         {
+            await SdeNames.EnsureLoadedAsync();   // the rows and the status line carry the names shown
             var candidates = await FetchCandidatesAsync(SelectedConfig.ConfigId);
 
             // Region is needed for the volume filters AND to price items that have no
@@ -610,7 +615,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             result.Add(new IndustryRow
             {
                 TypeId           = c.TypeId,
-                TypeName         = c.TypeName,
+                TypeName         = SdeNames.Type(c.TypeId, c.TypeName),   // shown only; the row goes by TypeId
                 BuildCost        = c.BuildCost,
                 SellPrice        = sellInto,
                 HasSellOrders    = hasSellOrders,
@@ -627,13 +632,16 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         return result;
     }
 
+    /// <summary>The region as the status line shows it, in the interface language.</summary>
     private async Task<string> GetRegionNameAsync(int regionId)
     {
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""");
         cmd.AddWithValue("@id", regionId);
-        return (await cmd.ExecuteScalarAsync()) as string ?? string.Format(IndustryText.OppsRegionNumbered, regionId);
+        return (await cmd.ExecuteScalarAsync()) is string name
+            ? SdeNames.Region(regionId, name)
+            : string.Format(IndustryText.OppsRegionNumbered, regionId);
     }
 
     // Resolves the region id used for the 30-day volume lookups from a market config.
