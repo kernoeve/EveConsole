@@ -1549,7 +1549,7 @@ public class StoreMailService(
         var parts = new List<string>();
         var sb    = new StringBuilder();
 
-        var room = UsableBodyBytes - Weigh(Wrap(store, "")) - Weigh(Head(heading));
+        var room = UsableBodyBytes - Weigh(Wrap(store, "")) - Weigh(Head(heading)) - PartExtras(heading);
         if (room < 1_000) room = 1_000;
 
         foreach (var block in blocks.SelectMany(b => AtLineEnds(b, room)))
@@ -1565,6 +1565,24 @@ public class StoreMailService(
         if (parts.Count == 0) parts.Add("");
 
         return parts;
+    }
+
+    /// <summary>
+    /// What a part adds after its blocks are measured that <see cref="HeadroomBytes"/> may not
+    /// cover: its "(2 of 5)" marker and, on the last one, the note that pages were left out, in
+    /// the words of the store's language. English needs about 165 of the 200 held back and
+    /// reserves nothing more; Russian's two bytes a letter, or three in Chinese, Japanese and
+    /// Korean, take the note past it, and a full last part would come out cut by
+    /// <see cref="Fit"/> — so the difference is reserved here.
+    /// </summary>
+    private static int PartExtras(string heading)
+    {
+        var marker = heading.Length == 0
+            ? Weigh(Head(string.Format(StoreText.PageOf, MaxParts, MaxParts)))
+            : Weigh(Head(string.Format(StoreText.HeadingPart, heading, MaxParts, MaxParts)));
+        var note = new[] { 1, 2, 5, 999 }.Max(n =>
+            Weigh(Dim(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PagesDidNotFitOther), n))));
+        return Math.Max(0, marker - Weigh(Head(heading)) + note - HeadroomBytes);
     }
 
     /// <summary>

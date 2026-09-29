@@ -401,8 +401,18 @@ public class StoresViewModel : ReactiveObject
     // example items are read in the new language, for the text the usage box starts from.
     private async Task SaveLanguageAsync(string language)
     {
+        var row = SelectedStore;
         await SaveAsync(s => s.Language = language, nudge: true);
         await LoadUsageNamesAsync(language);
+
+        // A box showing the stock message, because the store has none of its own saved, shows it
+        // in the new language — set straight on the field, so it is still not saved as the store's.
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (!_usageIsStock || !ReferenceEquals(SelectedStore, row)) return;
+            _customUsage = DefaultUsageText();
+            this.RaisePropertyChanged(nameof(CustomUsage));
+        });
         await MeasurePostingAsync();
     }
 
@@ -530,9 +540,14 @@ public class StoresViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _customUsage, value);
+            if (!_suppressSave) _usageIsStock = false;
             _ = SaveAsync(s => s.CustomUsage = value ?? "");
         }
     }
+
+    /// <summary>Whether the usage box holds the stock message only because the store has none of
+    /// its own saved: then it follows the store's language.</summary>
+    private bool _usageIsStock;
 
     /// <summary>Puts the stock message back in the box, discarding what was written.</summary>
     public void ResetUsage() => CustomUsage = DefaultUsageText();
@@ -1748,6 +1763,7 @@ public class StoresViewModel : ReactiveObject
                     CustomUsage        = store.CustomUsage.Length > 0
                                        ? store.CustomUsage
                                        : StoreMailService.DefaultUsageForEditing(store, usageNames);
+                    _usageIsStock      = store.CustomUsage.Length == 0;
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;
