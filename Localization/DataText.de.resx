@@ -1,0 +1,1540 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AiUsageCost" xml:space="preserve">
+    <value>KI-Nutzung &amp; Kosten</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>Bis</value>
+  </data>
+  <data name="HintToday" xml:space="preserve">
+    <value>(heute)</value>
+  </data>
+  <data name="GroupBy" xml:space="preserve">
+    <value>Gruppieren nach</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Dienst</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="EstimatedCostLabel" xml:space="preserve">
+    <value>Geschätzte Kosten</value>
+  </data>
+  <data name="AgentLabel" xml:space="preserve">
+    <value>KI-Assistent</value>
+  </data>
+  <data name="SpeechOutLabel" xml:space="preserve">
+    <value>Sprachausgabe</value>
+  </data>
+  <data name="SpeechInLabel" xml:space="preserve">
+    <value>Spracheingabe</value>
+  </data>
+  <data name="CallsLabel" xml:space="preserve">
+    <value>Aufrufe</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Zusammenfassung</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>Zeitraum</value>
+  </data>
+  <data name="ColService" xml:space="preserve">
+    <value>Dienst</value>
+  </data>
+  <data name="ColProvider" xml:space="preserve">
+    <value>Anbieter</value>
+  </data>
+  <data name="ColModel" xml:space="preserve">
+    <value>Modell</value>
+  </data>
+  <data name="ColCalls" xml:space="preserve">
+    <value>Aufrufe</value>
+  </data>
+  <data name="ColInput" xml:space="preserve">
+    <value>Eingabe</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>Ausgabe</value>
+  </data>
+  <data name="ColCacheRd" xml:space="preserve">
+    <value>Cache les.</value>
+  </data>
+  <data name="ColCacheWr" xml:space="preserve">
+    <value>Cache schr.</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="ColAvg" xml:space="preserve">
+    <value>Ø</value>
+  </data>
+  <data name="ColErrors" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>Kosten</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Zeit</value>
+  </data>
+  <data name="ColTook" xml:space="preserve">
+    <value>Dauer</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Aktivität</value>
+  </data>
+  <data name="ColError" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ Erste</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Zurück</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Weiter ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Letzte ⏭</value>
+  </data>
+  <data name="TabRates" xml:space="preserve">
+    <value>Tarife</value>
+  </data>
+  <data name="WhatEachServiceChargesNote" xml:space="preserve">
+    <value>Was jeder Dienst berechnet. Die Kosten werden in dem Moment daraus berechnet, in dem Sie hinsehen, und nie mit der Nutzung gespeichert – veröffentlichte Preise ändern sich, und eine Zahl, die vor sechs Monaten in ein Release eingebaut wurde, sieht verlässlich aus und ist falsch. Die Werte unten sind die Listenpreise zu dem Zeitpunkt, als diese Version erstellt wurde; korrigieren Sie alle, die sich geändert haben. Tarife werden in der Einheit eingegeben, in der sie der jeweilige Anbieter angibt; sie steht neben jeder Zeile. Ein Anbieter ohne Zeile hier gilt als ohne Preis, nicht als kostenlos – nur die als lokal markierten Zeilen sind wirklich kostenlos.</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Eingabe</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Ausgabe</value>
+  </data>
+  <data name="CacheRead" xml:space="preserve">
+    <value>Cache lesen</value>
+  </data>
+  <data name="CacheWrite" xml:space="preserve">
+    <value>Cache schreiben</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notizen</value>
+  </data>
+  <data name="SaveRates" xml:space="preserve">
+    <value>Tarife speichern</value>
+  </data>
+  <data name="TitleBackgroundProcesses" xml:space="preserve">
+    <value>Hintergrundprozesse</value>
+  </data>
+  <data name="TabEsiActivityLog" xml:space="preserve">
+    <value>ESI-Aktivitätsprotokoll</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Laufend</value>
+  </data>
+  <data name="NoCallsInProgress" xml:space="preserve">
+    <value>Keine laufenden Aufrufe.</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="Endpoint" xml:space="preserve">
+    <value>Endpunkt</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Zeitstempel</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Ergebnis</value>
+  </data>
+  <data name="TabEsiCallSchedule" xml:space="preserve">
+    <value>ESI-Abfrageplan</value>
+  </data>
+  <data name="TabCharacterCorporation" xml:space="preserve">
+    <value>Charakter / Corporation</value>
+  </data>
+  <data name="TokenLabel" xml:space="preserve">
+    <value>Token:</value>
+  </data>
+  <data name="SelectATokenToNote" xml:space="preserve">
+    <value>Wählen Sie ein Token aus, um seinen Abfrageplan zu sehen.</value>
+  </data>
+  <data name="LastCalled" xml:space="preserve">
+    <value>Zuletzt abgefragt</value>
+  </data>
+  <data name="NextCall" xml:space="preserve">
+    <value>Nächste Abfrage</value>
+  </data>
+  <data name="TimeUntil" xml:space="preserve">
+    <value>Verbleibend</value>
+  </data>
+  <data name="TabMarketRefresh" xml:space="preserve">
+    <value>Marktaktualisierung</value>
+  </data>
+  <data name="MarketSource" xml:space="preserve">
+    <value>Marktquelle</value>
+  </data>
+  <data name="LastRefresh" xml:space="preserve">
+    <value>Letzte Aktualisierung</value>
+  </data>
+  <data name="NextRefresh" xml:space="preserve">
+    <value>Nächste Aktualisierung</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>Preisverlauf</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="RefreshedTotal24h" xml:space="preserve">
+    <value>Aktualisiert / Gesamt (24 Std.)</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>Ausstehend</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="TabContractItems" xml:space="preserve">
+    <value>Vertragsgegenstände</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Quelle</value>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="ColItemsPulled" xml:space="preserve">
+    <value>Gegenstände abgerufen</value>
+  </data>
+  <data name="ColQueued" xml:space="preserve">
+    <value>Ausstehend</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Notiz</value>
+  </data>
+  <data name="ItemsArePulledOneNote" xml:space="preserve">
+    <value>Die Gegenstände werden Vertrag für Vertrag abgerufen, ein Aufruf je Vertrag: zuerst Ihre eigenen Verträge, danach die öffentlichen Angebote. Ein Vertrag wird einmal abgerufen und behalten.</value>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>LP-Shop</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>Shop</value>
+  </data>
+  <data name="ColOffers" xml:space="preserve">
+    <value>Angebote</value>
+  </data>
+  <data name="ColLastChecked" xml:space="preserve">
+    <value>Zuletzt geprüft</value>
+  </data>
+  <data name="LpStoreCataloguesComeNote" xml:space="preserve">
+    <value>Die Kataloge der LP-Shops stammen von einem öffentlichen ESI-Endpunkt, ein Aufruf pro NPC-Corporation, täglich durchlaufen. Bis der erste Durchlauf abgeschlossen ist, bleibt der Tab „LP-Shop“ eines Gegenstands verborgen, ob ihn jemand verkauft oder nicht – ein unvollständiger Katalog und ein echtes Fehlen sehen gleich aus.</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Umfang: </value>
+  </data>
+  <data name="CoverageLabel" xml:space="preserve">
+    <value>Abdeckung: </value>
+  </data>
+  <data name="ColStage" xml:space="preserve">
+    <value>Stufe</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Zustand</value>
+  </data>
+  <data name="ColDetail" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>Kanäle</value>
+  </data>
+  <data name="Parsing" xml:space="preserve">
+    <value>Auswertung</value>
+  </data>
+  <data name="Backlog" xml:space="preserve">
+    <value>Rückstand</value>
+  </data>
+  <data name="ParsingRunsStraightAfterNote" xml:space="preserve">
+    <value>Die Auswertung läuft direkt nach jedem Einlesen der Chatprotokolle, sodass eine Sichtung im selben Durchlauf auf die Karte gelangt, der die Nachricht gespeichert hat. Die Kanäle werden unter Einstellungen → Chatprotokolle gewählt; dort gibt es auch eine Schaltfläche, um den bereits auf der Festplatte liegenden Verlauf auszuwerten.</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>Alarme</value>
+  </data>
+  <data name="NextCheckLabel" xml:space="preserve">
+    <value>Nächste Prüfung: </value>
+  </data>
+  <data name="LastFiringLabel" xml:space="preserve">
+    <value>Zuletzt ausgelöst: </value>
+  </data>
+  <data name="ColAlarm" xml:space="preserve">
+    <value>Alarm</value>
+  </data>
+  <data name="ColCondition" xml:space="preserve">
+    <value>Bedingung</value>
+  </data>
+  <data name="ColEnabled" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="ColEvery" xml:space="preserve">
+    <value>Intervall</value>
+  </data>
+  <data name="ColLastFired" xml:space="preserve">
+    <value>Zuletzt ausgelöst</value>
+  </data>
+  <data name="ColFired" xml:space="preserve">
+    <value>Ausgelöst</value>
+  </data>
+  <data name="ColLastError" xml:space="preserve">
+    <value>Letzter Fehler</value>
+  </data>
+  <data name="EachAlarmIsCheckedNote" xml:space="preserve">
+    <value>Jeder Alarm wird in seinem eigenen Intervall geprüft, sodass die Schleife die Datenbank nur anfasst, wenn tatsächlich einer fällig ist. Ein Alarm meldet nur, was er noch nicht gemeldet hat – eine Bedingung, die erfüllt bleibt, wiederholt sich nicht –, deshalb erscheint eine Prüfung, die weiterhin zutrifft, hier als scharfgeschaltet statt als immer wieder ausgelöst.</value>
+  </data>
+  <data name="TabOrderFulfilment" xml:space="preserve">
+    <value>Bestellerfüllung</value>
+  </data>
+  <data name="OrderFulfilment" xml:space="preserve">
+    <value>Bestellerfüllung</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Zustand</value>
+  </data>
+  <data name="LastCheck" xml:space="preserve">
+    <value>Letzte Prüfung</value>
+  </data>
+  <data name="NextCheck" xml:space="preserve">
+    <value>Nächste Prüfung</value>
+  </data>
+  <data name="EveryThirtySecondsAndNote" xml:space="preserve">
+    <value>Alle dreißig Sekunden – und sofort, nachdem eine Abfrage Aufträge, Verträge oder Besitz hereinbringt – wird jede offene Bestellung in der Bestellverfolgung mit dem abgeglichen, was sie erfüllen könnte: Ein Vertrag, den einer Ihrer Charaktere oder eine Ihrer persönlichen Corporations nach Eingang der Bestellung an diesen Käufer ausgestellt hat, schließt sie direkt ab; andernfalls nicht reservierter vorhandener Bestand oder der früheste Industrieauftrag, der den Gegenstand herstellt – dessen Fertigstellungsdatum wird zum voraussichtlichen Datum der Bestellung. Bestand und Aufträge werden reserviert, sobald sie zugeordnet sind, sodass zwei Bestellungen nie dieselben Einheiten zählen, und ein Vertrag, der bereits mit einer Bestellung verknüpft ist, wird nie für eine andere wiederverwendet.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="ColSweep" xml:space="preserve">
+    <value>Durchlauf</value>
+  </data>
+  <data name="ColLastRun" xml:space="preserve">
+    <value>Letzter Lauf</value>
+  </data>
+  <data name="ColNextRun" xml:space="preserve">
+    <value>Nächster Lauf</value>
+  </data>
+  <data name="ColResult" xml:space="preserve">
+    <value>Ergebnis</value>
+  </data>
+  <data name="SweepNow" xml:space="preserve">
+    <value>Durchlauf starten</value>
+  </data>
+  <data name="CollectsPlayerStructureIdsNote" xml:space="preserve">
+    <value>Sammelt die IDs von Spielerstrukturen aus Besitz, Verträgen, Industrieaufträgen, Marktaufträgen und Kontobuchungen und ermittelt dann für jede Name, Typ, Besitzer und Position. Läuft stündlich; die öffentliche Strukturliste wird einmal täglich nach Strukturen durchgegangen, die hier noch niemand besucht hat. Zeilen, die unser eigener Besitz als Schiffe, Container oder Besitzsicherheit-Pakete ausweist, werden entfernt, statt als unbekannte Strukturen zu bleiben. Das Auflösen erfordert esi-universe.read_structures.v1 und eine Andockberechtigung, daher bleibt eine private Struktur unaufgelöst – genau diese lohnt es sich, im Strukturbrowser von Hand zu beschreiben.</value>
+  </data>
+  <data name="TabNameCache" xml:space="preserve">
+    <value>Namens-Cache</value>
+  </data>
+  <data name="CachedNames" xml:space="preserve">
+    <value>Zwischengespeicherte Namen</value>
+  </data>
+  <data name="WhatThisDoes" xml:space="preserve">
+    <value>Was dies tut</value>
+  </data>
+  <data name="ResolvesCharacterCorporationAndNote" xml:space="preserve">
+    <value>Löst Charakter-, Corporation- und Allianz-IDs, die irgendwo in der Datenbank vorkommen, in Namen auf, bevor eine Ansicht sie braucht. Läuft stündlich. Namen von EVE-Entitäten lassen sich nicht ändern, daher wird jeder Name einmal abgerufen und dauerhaft behalten.</value>
+  </data>
+  <data name="ChatLog" xml:space="preserve">
+    <value>Chatprotokoll</value>
+  </data>
+  <data name="HintNow" xml:space="preserve">
+    <value>(jetzt)</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Suchen</value>
+  </data>
+  <data name="HintSenderOrText" xml:space="preserve">
+    <value>Absender oder Text…</value>
+  </data>
+  <data name="HideSystem" xml:space="preserve">
+    <value>Systemmeldungen ausblenden</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Absender</value>
+  </data>
+  <data name="ColMessage" xml:space="preserve">
+    <value>Nachricht</value>
+  </data>
+  <data name="ColListener" xml:space="preserve">
+    <value>Zuhörer</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>Fehlerprotokoll</value>
+  </data>
+  <data name="ColClient" xml:space="preserve">
+    <value>Client</value>
+  </data>
+  <data name="ColContext" xml:space="preserve">
+    <value>Kontext</value>
+  </data>
+  <data name="ColInner" xml:space="preserve">
+    <value>Innerer Fehler</value>
+  </data>
+  <data name="SelectAnErrorToNote" xml:space="preserve">
+    <value>Wählen Sie einen Fehler aus, um seine Details zu sehen.</value>
+  </data>
+  <data name="EsiTables" xml:space="preserve">
+    <value>ESI-Tabellen</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Anwenden</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ Filter</value>
+  </data>
+  <data name="TipWriteEveryRowThat" xml:space="preserve">
+    <value>Alle Zeilen, die den Filtern entsprechen, in dieser Reihenfolge in eine CSV-Datei schreiben – alle, nicht nur die hier geladenen. Ctrl+C auf ausgewählten Zeilen kopiert sie mit einer Kopfzeile.</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Mehr laden</value>
+  </data>
+  <data name="TitleEsiDataExplorer" xml:space="preserve">
+    <value>ESI-Daten-Explorer</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>Spielprotokoll</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="HintNameOrText" xml:space="preserve">
+    <value>Name oder Text…</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>Ziel</value>
+  </data>
+  <data name="SelectAnEntryToNote" xml:space="preserve">
+    <value>Wählen Sie einen Eintrag aus, um alle Details zu sehen.</value>
+  </data>
+  <data name="CellYes" xml:space="preserve">
+    <value>ja</value>
+  </data>
+  <data name="CellStoreNone" xml:space="preserve">
+    <value>keiner</value>
+  </data>
+  <data name="TimeNeverLower" xml:space="preserve">
+    <value>nie</value>
+  </data>
+  <data name="CellNo" xml:space="preserve">
+    <value>nein</value>
+  </data>
+  <data name="EveryHours" xml:space="preserve">
+    <value>{0} Std.</value>
+  </data>
+  <data name="EveryMinutes" xml:space="preserve">
+    <value>{0} Min.</value>
+  </data>
+  <data name="EverySeconds" xml:space="preserve">
+    <value>{0} Sek.</value>
+  </data>
+  <data name="StatusBarLabel" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="HistoryNoTrackedItems" xml:space="preserve">
+    <value>Keine verfolgten Gegenstände</value>
+  </data>
+  <data name="HistoryCurrent" xml:space="preserve">
+    <value>Aktuell</value>
+  </data>
+  <data name="HistoryEmpty" xml:space="preserve">
+    <value>Leer</value>
+  </data>
+  <data name="HistoryFilling" xml:space="preserve">
+    <value>Wird gefüllt</value>
+  </data>
+  <data name="TimeNever" xml:space="preserve">
+    <value>Nie</value>
+  </data>
+  <data name="ScheduleDue" xml:space="preserve">
+    <value>Fällig</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} Std. {1:00} Min.</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} Min. {1:00} Sek.</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} Sek.</value>
+  </data>
+  <data name="LogCountFiltered" xml:space="preserve">
+    <value>{0:N0} von {1:N0} Einträgen angezeigt · die letzten 1.000 Aufrufe werden behalten</value>
+  </data>
+  <data name="RelayNothingReported" xml:space="preserve">
+    <value>○ Der Client mit den Hintergrundprozessen hat noch nichts gemeldet</value>
+  </data>
+  <data name="BarEsiCalls" xml:space="preserve">
+    <value>ESI-Aufrufe</value>
+  </data>
+  <data name="BarPriceHistory" xml:space="preserve">
+    <value>Preisverlauf</value>
+  </data>
+  <data name="BarContractItems" xml:space="preserve">
+    <value>Vertragsgegenstände</value>
+  </data>
+  <data name="BarLpStore" xml:space="preserve">
+    <value>LP-Shop</value>
+  </data>
+  <data name="BarKillmails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="StageKillmailDetails" xml:space="preserve">
+    <value>Details der Abschussberichte von ESI</value>
+  </data>
+  <data name="StageLiveCapture" xml:space="preserve">
+    <value>Live-Erfassung</value>
+  </data>
+  <data name="StageDailyDumpBackfill" xml:space="preserve">
+    <value>Nachladen aus Tagesdumps</value>
+  </data>
+  <data name="StagePostingToZkb" xml:space="preserve">
+    <value>Senden an zKillboard</value>
+  </data>
+  <data name="StageHourlySweep" xml:space="preserve">
+    <value>Stündlicher Durchlauf</value>
+  </data>
+  <data name="StagePublicListDaily" xml:space="preserve">
+    <value>Öffentliche Liste, täglich</value>
+  </data>
+  <data name="SourcePublicListings" xml:space="preserve">
+    <value>Öffentliche Angebote</value>
+  </data>
+  <data name="SourceCharacterAndCorporation" xml:space="preserve">
+    <value>Charakter und Corporation</value>
+  </data>
+  <data name="SourceRefused" xml:space="preserve">
+    <value>Verweigert</value>
+  </data>
+  <data name="StateFetching" xml:space="preserve">
+    <value>Wird abgerufen</value>
+  </data>
+  <data name="StateIdle" xml:space="preserve">
+    <value>Im Leerlauf</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>Aus</value>
+  </data>
+  <data name="StateFirehose" xml:space="preserve">
+    <value>Datenstrom</value>
+  </data>
+  <data name="StateIntervalPoll" xml:space="preserve">
+    <value>Intervallabfrage</value>
+  </data>
+  <data name="StateImporting" xml:space="preserve">
+    <value>Wird importiert</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>An</value>
+  </data>
+  <data name="StateSweeping" xml:space="preserve">
+    <value>Durchlauf läuft</value>
+  </data>
+  <data name="StateWatching" xml:space="preserve">
+    <value>Überwachung aktiv</value>
+  </data>
+  <data name="NextRunOnceADay" xml:space="preserve">
+    <value>einmal täglich</value>
+  </data>
+  <data name="ZkbLiveDisabled" xml:space="preserve">
+    <value>○ Deaktiviert – der zKillboard-Import ist ausgeschaltet</value>
+  </data>
+  <data name="ZkbLiveAllKills" xml:space="preserve">
+    <value>● Alle Abschüsse – Live-Erfassung über den R2Z2-Datenstrom</value>
+  </data>
+  <data name="ZkbLiveMine" xml:space="preserve">
+    <value>● Meine Charaktere &amp; Corp – Live-Erfassung per Intervallabfrage</value>
+  </data>
+  <data name="ZkbScopeAll" xml:space="preserve">
+    <value>Alle Abschüsse (im ganzen Universum)</value>
+  </data>
+  <data name="ZkbScopeMine" xml:space="preserve">
+    <value>Meine Charaktere &amp; Corp</value>
+  </data>
+  <data name="ZkbPostOff" xml:space="preserve">
+    <value>○ Aus – es werden keine Abschüsse an zKillboard gesendet</value>
+  </data>
+  <data name="ZkbCoverageThrough" xml:space="preserve">
+    <value>Tagesdumps importiert bis einschließlich {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbCoverageNone" xml:space="preserve">
+    <value>Noch kein Tagesdump importiert</value>
+  </data>
+  <data name="IntelDisabled" xml:space="preserve">
+    <value>○ Deaktiviert – der Import der Chatprotokolle ist ausgeschaltet</value>
+  </data>
+  <data name="IntelNoChannels" xml:space="preserve">
+    <value>○ Keine Intel-Kanäle – kreuzen Sie einen unter Einstellungen → Chatprotokolle an</value>
+  </data>
+  <data name="IntelParsing" xml:space="preserve">
+    <value>● Intel-Kanäle werden ausgewertet</value>
+  </data>
+  <data name="IntelWatching" xml:space="preserve">
+    <value>● Intel-Kanäle werden überwacht</value>
+  </data>
+  <data name="IntelChannelsNone" xml:space="preserve">
+    <value>keine</value>
+  </data>
+  <data name="IntelBacklogCount" xml:space="preserve">
+    <value>{0:N0} Nachricht(en) noch zu prüfen</value>
+  </data>
+  <data name="IntelCaughtUp" xml:space="preserve">
+    <value>Auf dem neuesten Stand</value>
+  </data>
+  <data name="StructuresSweeping" xml:space="preserve">
+    <value>● Durchlauf läuft – Strukturen werden gerade aufgelöst</value>
+  </data>
+  <data name="StructuresWatching" xml:space="preserve">
+    <value>● Überwachung aktiv – Durchlauf stündlich, öffentliche Liste täglich</value>
+  </data>
+  <data name="StructuresNotYet" xml:space="preserve">
+    <value>in dieser Sitzung noch nicht</value>
+  </data>
+  <data name="StructuresDueNow" xml:space="preserve">
+    <value>jetzt fällig</value>
+  </data>
+  <data name="StructuresNextAt" xml:space="preserve">
+    <value>{0:HH:mm:ss} ({1:N0} Min.)</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>○ Keine Alarme scharfgeschaltet – erstellen Sie einen im Tool „Alarme“</value>
+  </data>
+  <data name="AlarmsWatching" xml:space="preserve">
+    <value>● Überwachung aktiv – Alarme: {0}</value>
+  </data>
+  <data name="AlarmsNothingFired" xml:space="preserve">
+    <value>In dieser Sitzung wurde nichts ausgelöst</value>
+  </data>
+  <data name="NameCacheCount" xml:space="preserve">
+    <value>{0:N0} Name(n) zwischengespeichert</value>
+  </data>
+  <data name="ContractsPulledQueued" xml:space="preserve">
+    <value>{0:N0} / {1:N0} abgerufen · {2:N0} ausstehend</value>
+  </data>
+  <data name="ContractsRefusedCount" xml:space="preserve">
+    <value>{0:N0} verweigert (ESI antwortete mit 400/403/404 und hat keine Gegenstände dazu)</value>
+  </data>
+  <data name="ContractsRunning" xml:space="preserve">
+    <value>● Läuft – {0:N0} Verträge warten auf ihre Gegenstände</value>
+  </data>
+  <data name="ContractsIdleQueued" xml:space="preserve">
+    <value>○ Im Leerlauf – {0:N0} Verträge warten auf ihre Gegenstände</value>
+  </data>
+  <data name="ContractsIdleComplete" xml:space="preserve">
+    <value>○ Im Leerlauf – alle Gegenstände abgerufen</value>
+  </data>
+  <data name="ContractsNotePublic" xml:space="preserve">
+    <value>die öffentlichen Angebote der Regionen, durchsucht</value>
+  </data>
+  <data name="ContractsNoteOwned" xml:space="preserve">
+    <value>im Besitz Ihrer Charaktere und Corporations – zuerst Ihre eigenen, dann die für eine Corporation offenen</value>
+  </data>
+  <data name="ContractsNoteRefused" xml:space="preserve">
+    <value>angefragt und verweigert – ESI antwortete an jedem Endpunkt, der sie hatte, mit 400, 403 oder 404; zählt zu den abgerufenen</value>
+  </data>
+  <data name="LpStoreProgress" xml:space="preserve">
+    <value>{0:N0} / {1:N0} Corporations geprüft · {2:N0} verbleibend</value>
+  </data>
+  <data name="LpStoreOffers" xml:space="preserve">
+    <value>{0:N0} Angebot(e) aus {1:N0} Shop(s)</value>
+  </data>
+  <data name="LpStoreSweeping" xml:space="preserve">
+    <value>● Durchlauf läuft – noch {0:N0} Corporation(s) zu prüfen</value>
+  </data>
+  <data name="LpStoreIdleNoneChecked" xml:space="preserve">
+    <value>○ Im Leerlauf – noch keine Corporation geprüft; der erste Durchlauf beginnt kurz nach dem Start</value>
+  </data>
+  <data name="LpStoreIdleIncomplete" xml:space="preserve">
+    <value>○ Im Leerlauf – {0:N0} Corporation(s) noch nicht geprüft, Katalog unvollständig</value>
+  </data>
+  <data name="LpStoreIdleComplete" xml:space="preserve">
+    <value>○ Im Leerlauf – alle Corporations geprüft</value>
+  </data>
+  <data name="HistoryIdleCurrent" xml:space="preserve">
+    <value>○ Im Leerlauf – alle verfolgten Gegenstände aktuell</value>
+  </data>
+  <data name="TokenCorpName" xml:space="preserve">
+    <value>[Corp] {0}</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="LogCountOne" xml:space="preserve">
+    <value>{0:N0} Eintrag · die letzten 1.000 Aufrufe werden behalten</value>
+  </data>
+  <data name="LogCountOther" xml:space="preserve">
+    <value>{0:N0} Einträge · die letzten 1.000 Aufrufe werden behalten</value>
+  </data>
+  <data name="BadTokensOne" xml:space="preserve">
+    <value>{0} ungültiges Token</value>
+  </data>
+  <data name="BadTokensOther" xml:space="preserve">
+    <value>{0} ungültige Token</value>
+  </data>
+  <data name="HistoryRunningQueuedOne" xml:space="preserve">
+    <value>● Läuft – {0:N0} Gegenstand ausstehend</value>
+  </data>
+  <data name="HistoryRunningQueuedOther" xml:space="preserve">
+    <value>● Läuft – {0:N0} Gegenstände ausstehend</value>
+  </data>
+  <data name="HistoryIdleQueuedOne" xml:space="preserve">
+    <value>○ Im Leerlauf – {0:N0} Gegenstand für den nächsten Durchlauf vorgemerkt</value>
+  </data>
+  <data name="HistoryIdleQueuedOther" xml:space="preserve">
+    <value>○ Im Leerlauf – {0:N0} Gegenstände für den nächsten Durchlauf vorgemerkt</value>
+  </data>
+  <data name="OpContains" xml:space="preserve">
+    <value>Enthält</value>
+  </data>
+  <data name="OpDoesNotContain" xml:space="preserve">
+    <value>Enthält nicht</value>
+  </data>
+  <data name="OpEqual" xml:space="preserve">
+    <value>Gleich</value>
+  </data>
+  <data name="OpNotEqual" xml:space="preserve">
+    <value>Ungleich</value>
+  </data>
+  <data name="OpGreaterThan" xml:space="preserve">
+    <value>Größer als</value>
+  </data>
+  <data name="OpGreaterThanOrEqual" xml:space="preserve">
+    <value>Größer oder gleich</value>
+  </data>
+  <data name="OpLessThan" xml:space="preserve">
+    <value>Kleiner als</value>
+  </data>
+  <data name="OpLessThanOrEqual" xml:space="preserve">
+    <value>Kleiner oder gleich</value>
+  </data>
+  <data name="TableWalletBalances" xml:space="preserve">
+    <value>Kontostände</value>
+  </data>
+  <data name="TableWalletJournal" xml:space="preserve">
+    <value>Konto-Logbuch</value>
+  </data>
+  <data name="TableWalletTransactions" xml:space="preserve">
+    <value>Konto-Transaktionen</value>
+  </data>
+  <data name="TableSkills" xml:space="preserve">
+    <value>Skills</value>
+  </data>
+  <data name="TableSkillQueue" xml:space="preserve">
+    <value>Trainingswarteschlange</value>
+  </data>
+  <data name="TableAttributes" xml:space="preserve">
+    <value>Attribute</value>
+  </data>
+  <data name="TableFatigue" xml:space="preserve">
+    <value>Sprungerschöpfung</value>
+  </data>
+  <data name="TableCloneState" xml:space="preserve">
+    <value>Klonstatus</value>
+  </data>
+  <data name="TableJumpClones" xml:space="preserve">
+    <value>Sprungklone</value>
+  </data>
+  <data name="TableJumpCloneImplants" xml:space="preserve">
+    <value>Sprungklon-Implantate</value>
+  </data>
+  <data name="TableImplants" xml:space="preserve">
+    <value>Implantate</value>
+  </data>
+  <data name="TableAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="TableBlueprints" xml:space="preserve">
+    <value>Blaupausen</value>
+  </data>
+  <data name="TableIndustryJobs" xml:space="preserve">
+    <value>Industrieaufträge</value>
+  </data>
+  <data name="TableMarketOrders" xml:space="preserve">
+    <value>Marktaufträge</value>
+  </data>
+  <data name="TableContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="TableContacts" xml:space="preserve">
+    <value>Kontakte</value>
+  </data>
+  <data name="TableKillMails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="TableStandings" xml:space="preserve">
+    <value>Ansehen</value>
+  </data>
+  <data name="TableMining" xml:space="preserve">
+    <value>Bergbau</value>
+  </data>
+  <data name="TableNotifications" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="TablePlanetaryColonies" xml:space="preserve">
+    <value>Planetare Kolonien</value>
+  </data>
+  <data name="TableAgentResearch" xml:space="preserve">
+    <value>Forschungsagenten</value>
+  </data>
+  <data name="TableLoyaltyPoints" xml:space="preserve">
+    <value>Loyalitätspunkte</value>
+  </data>
+  <data name="TableMedals" xml:space="preserve">
+    <value>Orden</value>
+  </data>
+  <data name="TableTitles" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="TableRoles" xml:space="preserve">
+    <value>Rechte</value>
+  </data>
+  <data name="TableFittings" xml:space="preserve">
+    <value>Ausrüstungen</value>
+  </data>
+  <data name="TableFittingItems" xml:space="preserve">
+    <value>Ausrüstungsgegenstände</value>
+  </data>
+  <data name="TableCorpDivisions" xml:space="preserve">
+    <value>Corp-Abteilungen</value>
+  </data>
+  <data name="TableCorpMembers" xml:space="preserve">
+    <value>Corp-Mitglieder</value>
+  </data>
+  <data name="TableCorpMemberRoles" xml:space="preserve">
+    <value>Rechte der Corp-Mitglieder</value>
+  </data>
+  <data name="TableCorpTitles" xml:space="preserve">
+    <value>Corp-Titel</value>
+  </data>
+  <data name="TableCorpMedals" xml:space="preserve">
+    <value>Corp-Orden</value>
+  </data>
+  <data name="TableCorpStructures" xml:space="preserve">
+    <value>Corp-Strukturen</value>
+  </data>
+  <data name="TableCorpStarbases" xml:space="preserve">
+    <value>Corp-Sternenbasen</value>
+  </data>
+  <data name="TableCorpFacilities" xml:space="preserve">
+    <value>Corp-Anlagen</value>
+  </data>
+  <data name="TableApiCallRecords" xml:space="preserve">
+    <value>API-Aufrufe</value>
+  </data>
+  <data name="ExplorerSelectTable" xml:space="preserve">
+    <value>Wählen Sie eine Tabelle aus der Liste aus, um ihre Daten zu sehen.</value>
+  </data>
+  <data name="ExportCancel" xml:space="preserve">
+    <value>Export abbrechen</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>CSV exportieren</value>
+  </data>
+  <data name="ExplorerNoRows" xml:space="preserve">
+    <value>Keine Zeilen.</value>
+  </data>
+  <data name="ExplorerShowingRows" xml:space="preserve">
+    <value>{0:N0} von {1:N0} Zeilen angezeigt</value>
+  </data>
+  <data name="ExplorerRowsTotal" xml:space="preserve">
+    <value>{0:N0} Zeilen insgesamt</value>
+  </data>
+  <data name="ExportRunning" xml:space="preserve">
+    <value>Wird exportiert…</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Wird exportiert… {0:N0} Zeilen</value>
+  </data>
+  <data name="ExportDone" xml:space="preserve">
+    <value>{0:N0} Zeilen nach {1} exportiert</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Export nach {0:N0} Zeilen abgebrochen; die Datei wurde nicht behalten.</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Export fehlgeschlagen: {0}</value>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>Spalte…</value>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>Wert…</value>
+  </data>
+  <data name="KindAgent" xml:space="preserve">
+    <value>KI-Assistent</value>
+  </data>
+  <data name="KindSpeechOut" xml:space="preserve">
+    <value>Sprachausgabe</value>
+  </data>
+  <data name="KindSpeechIn" xml:space="preserve">
+    <value>Spracheingabe</value>
+  </data>
+  <data name="RatePer1MTokens" xml:space="preserve">
+    <value>pro 1 Mio. Token</value>
+  </data>
+  <data name="RatePer1MCharacters" xml:space="preserve">
+    <value>pro 1 Mio. Zeichen</value>
+  </data>
+  <data name="RatePerMinute" xml:space="preserve">
+    <value>pro Minute</value>
+  </data>
+  <data name="RatePerUnit" xml:space="preserve">
+    <value>pro Einheit</value>
+  </data>
+  <data name="RateAnyModel" xml:space="preserve">
+    <value>(jedes Modell)</value>
+  </data>
+  <data name="SecondsOneDecimal" xml:space="preserve">
+    <value>{0:0.0} Sek.</value>
+  </data>
+  <data name="CostLocal" xml:space="preserve">
+    <value>lokal</value>
+  </data>
+  <data name="CostNoRate" xml:space="preserve">
+    <value>kein Tarif</value>
+  </data>
+  <data name="UsageNothingRecorded" xml:space="preserve">
+    <value>In diesem Zeitraum wurde nichts erfasst.</value>
+  </data>
+  <data name="UsageServiceCalls" xml:space="preserve">
+    <value>{0:N0} Dienstaufruf(e)</value>
+  </data>
+  <data name="UsageCalls" xml:space="preserve">
+    <value>{0:N0} Aufruf(e)</value>
+  </data>
+  <data name="CaveatNoPrices" xml:space="preserve">
+    <value>es konnten keine Preise gelesen werden, daher sind alle Kosten oben null – {0}</value>
+  </data>
+  <data name="CaveatRowCeiling" xml:space="preserve">
+    <value>nur die letzten {0:N0} Zeilen wurden gelesen – grenzen Sie den Zeitraum ein, um eine echte Summe zu erhalten</value>
+  </data>
+  <data name="CaveatUnpriced" xml:space="preserve">
+    <value>{0:N0} Aufruf(e) haben keinen Tarif und sind NICHT in der Summe enthalten</value>
+  </data>
+  <data name="CaveatEstimated" xml:space="preserve">
+    <value>bei {0:N0} Aufruf(en) sind die Mengen geschätzt statt gemeldet</value>
+  </data>
+  <data name="EstimatedShort" xml:space="preserve">
+    <value>ca.</value>
+  </data>
+  <data name="ActivityRounds" xml:space="preserve">
+    <value>{0} Runden</value>
+  </data>
+  <data name="ActivityFailed" xml:space="preserve">
+    <value>fehlgeschlagen</value>
+  </data>
+  <data name="RatesNothingChanged" xml:space="preserve">
+    <value>Nichts geändert.</value>
+  </data>
+  <data name="RatesSaved" xml:space="preserve">
+    <value>{0} Tarif(e) gespeichert.</value>
+  </data>
+  <data name="PeriodWeekOf" xml:space="preserve">
+    <value>Woche ab {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="PeriodDay" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="PeriodWeek" xml:space="preserve">
+    <value>Woche</value>
+  </data>
+  <data name="PeriodMonth" xml:space="preserve">
+    <value>Monat</value>
+  </data>
+  <data name="KindAllServices" xml:space="preserve">
+    <value>Alle Dienste</value>
+  </data>
+  <data name="UnitTokens" xml:space="preserve">
+    <value>Token</value>
+  </data>
+  <data name="UnitCharacters" xml:space="preserve">
+    <value>Zeichen</value>
+  </data>
+  <data name="UnitSeconds" xml:space="preserve">
+    <value>Sekunden</value>
+  </data>
+  <data name="GameLogMinedResidue" xml:space="preserve">
+    <value>{0:N0} × {1} (Rückstand {2:N0})</value>
+  </data>
+  <data name="GameLogBounty" xml:space="preserve">
+    <value>{0:N0} ISK Kopfgeld</value>
+  </data>
+  <data name="GameLogFieldCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="GameLogFieldAmount" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="GameLogFieldSecondary" xml:space="preserve">
+    <value>Zweitwert</value>
+  </data>
+  <data name="GameLogFieldSource" xml:space="preserve">
+    <value>Quelle</value>
+  </data>
+  <data name="GameLogFieldSourceShip" xml:space="preserve">
+    <value>Quellschiff</value>
+  </data>
+  <data name="GameLogFieldSourceCorp" xml:space="preserve">
+    <value>Quell-Corp</value>
+  </data>
+  <data name="GameLogFieldSourceAlliance" xml:space="preserve">
+    <value>Quell-Allianz</value>
+  </data>
+  <data name="GameLogFieldTarget" xml:space="preserve">
+    <value>Ziel</value>
+  </data>
+  <data name="GameLogFieldTargetShip" xml:space="preserve">
+    <value>Zielschiff</value>
+  </data>
+  <data name="GameLogFieldTargetCorp" xml:space="preserve">
+    <value>Ziel-Corp</value>
+  </data>
+  <data name="GameLogFieldTargetAlliance" xml:space="preserve">
+    <value>Ziel-Allianz</value>
+  </data>
+  <data name="GameLogFieldWeapon" xml:space="preserve">
+    <value>Waffe</value>
+  </data>
+  <data name="GameLogFieldQuality" xml:space="preserve">
+    <value>Trefferqualität</value>
+  </data>
+  <data name="GameLogFieldFromSystem" xml:space="preserve">
+    <value>Von System</value>
+  </data>
+  <data name="GameLogFieldToSystem" xml:space="preserve">
+    <value>Nach System</value>
+  </data>
+  <data name="GameLogFieldLocation" xml:space="preserve">
+    <value>Standort</value>
+  </data>
+  <data name="GameLogFieldSourceFile" xml:space="preserve">
+    <value>Quelldatei</value>
+  </data>
+  <data name="GameLogFieldLine" xml:space="preserve">
+    <value>Zeile</value>
+  </data>
+  <data name="GameLogNoEntries" xml:space="preserve">
+    <value>Keine Einträge im Zeitraum.</value>
+  </data>
+  <data name="GameLogEntriesCapped" xml:space="preserve">
+    <value>{0:N0} Einträge (begrenzt – Zeitraum eingrenzen)</value>
+  </data>
+  <data name="ChatChannelCount" xml:space="preserve">
+    <value>Kanäle: {0:N0}</value>
+  </data>
+  <data name="ChatImportOff" xml:space="preserve">
+    <value>Der Import der Chatprotokolle ist ausgeschaltet – aktivieren Sie ihn unter Einstellungen → Chatprotokolle.</value>
+  </data>
+  <data name="ChatNoChannels" xml:space="preserve">
+    <value>Keine Kanäle ausgewählt – wählen Sie Kanäle unter Einstellungen → Chatprotokolle.</value>
+  </data>
+  <data name="ChatNothingImported" xml:space="preserve">
+    <value>Für die ausgewählten Kanäle wurde noch nichts importiert. Neue Nachrichten werden laufend erfasst; für ältere verwenden Sie „Älteren Chat importieren“ in den Einstellungen.</value>
+  </data>
+  <data name="ChatSelectChannel" xml:space="preserve">
+    <value>Wählen Sie einen Kanal aus.</value>
+  </data>
+  <data name="ChatNoMessages" xml:space="preserve">
+    <value>Keine Nachrichten im Zeitraum.</value>
+  </data>
+  <data name="ChatMessagesCapped" xml:space="preserve">
+    <value>{0:N0} Nachrichten (begrenzt – Zeitraum eingrenzen)</value>
+  </data>
+  <data name="ChatMessageCount" xml:space="preserve">
+    <value>{0:N0} Nachricht(en)</value>
+  </data>
+  <data name="ErrorClientWorker" xml:space="preserve">
+    <value>{0} (Hintergrunddienst)</value>
+  </data>
+  <data name="ErrorLogNone" xml:space="preserve">
+    <value>Keine Fehler im Zeitraum.</value>
+  </data>
+  <data name="ErrorLogCount" xml:space="preserve">
+    <value>{0:N0} Fehler</value>
+  </data>
+  <data name="ErrorInner" xml:space="preserve">
+    <value>Innerer Fehler: {0}</value>
+  </data>
+  <data name="GameLogAllTypes" xml:space="preserve">
+    <value>(alle Typen)</value>
+  </data>
+  <data name="GameLogFieldRaw" xml:space="preserve">
+    <value>Rohdaten:</value>
+  </data>
+  <data name="GameLogEntriesOne" xml:space="preserve">
+    <value>{0:N0} Eintrag</value>
+  </data>
+  <data name="GameLogEntriesOther" xml:space="preserve">
+    <value>{0:N0} Einträge</value>
+  </data>
+  <data name="ZkbFirehoseNotStarted" xml:space="preserve">
+    <value>zKillboard-Datenstrom: nicht gestartet</value>
+  </data>
+  <data name="ZkbFirehoseStopped" xml:space="preserve">
+    <value>zKillboard-Datenstrom: gestoppt</value>
+  </data>
+  <data name="ZkbFirehoseError" xml:space="preserve">
+    <value>zKillboard-Datenstrom: Fehler – {0}</value>
+  </data>
+  <data name="ZkbFirehoseDisabled" xml:space="preserve">
+    <value>zKillboard-Datenstrom: deaktiviert</value>
+  </data>
+  <data name="ZkbFirehoseIdle" xml:space="preserve">
+    <value>zKillboard-Datenstrom: im Leerlauf („{0}“ nutzt stattdessen die Intervallabfrage)</value>
+  </data>
+  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
+    <value>zKillboard-Datenstrom: zKillboard nicht erreichbar, neuer Versuch folgt</value>
+  </data>
+  <data name="ZkbFirehoseSequence" xml:space="preserve">
+    <value>zKillboard-Datenstrom: Sequenz {0:N0} – {1:N0} in dieser Sitzung importiert</value>
+  </data>
+  <data name="ZkbFirehoseSkipped" xml:space="preserve">
+    <value>zKillboard-Datenstrom: leere Sequenz {0:N0} übersprungen (neueste: {1:N0})</value>
+  </data>
+  <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
+    <value>zKillboard-Datenstrom: auf dem neuesten Stand (Sequenz {0:N0})</value>
+  </data>
+  <data name="ZkbFirehoseWaitingBackfill" xml:space="preserve">
+    <value>zKillboard-Datenstrom: wartet, bis das tägliche Nachladen abgeschlossen ist</value>
+  </data>
+  <data name="ZkbFirehoseResuming" xml:space="preserve">
+    <value>zKillboard-Datenstrom: wird ab {0:yyyy-MM-dd} fortgesetzt (Sequenz {1:N0}); frühere Tage kommen aus den Tagesdumps</value>
+  </data>
+  <data name="ZkbPollNotStarted" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: nicht gestartet</value>
+  </data>
+  <data name="ZkbPollStopped" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: gestoppt</value>
+  </data>
+  <data name="ZkbPollError" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: Fehler – {0}</value>
+  </data>
+  <data name="ZkbPollDisabled" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: deaktiviert</value>
+  </data>
+  <data name="ZkbPollIdle" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: im Leerlauf („{0}“ nutzt stattdessen den Datenstrom)</value>
+  </data>
+  <data name="ZkbPollNoOwners" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: keine verfolgten Charaktere/Corps</value>
+  </data>
+  <data name="ZkbPollAdded" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: +{0} neue Abschussreferenz(en) bei {1} Inhaber(n)</value>
+  </data>
+  <data name="ZkbPollWatching" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: Überwachung aktiv, Inhaber: {0}</value>
+  </data>
+  <data name="ZkbPollWatchingPending" xml:space="preserve">
+    <value>zKillboard-Live-Abfrage: Überwachung aktiv, Inhaber: {0} (nächste Prüfung ausstehend)</value>
+  </data>
+  <data name="ZkbBackfillNotStarted" xml:space="preserve">
+    <value>zKillboard-Nachladen: nicht gestartet</value>
+  </data>
+  <data name="ZkbBackfillStarting" xml:space="preserve">
+    <value>Wird gestartet…</value>
+  </data>
+  <data name="ZkbBackfillDay" xml:space="preserve">
+    <value>Tag {0:N0} von {1:N0} – {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbBackfillCancelled" xml:space="preserve">
+    <value>zKillboard-Nachladen: nach {0:N0} Tag(en) abgebrochen, Abschüsse: {1:N0}</value>
+  </data>
+  <data name="ZkbBackfillImported" xml:space="preserve">
+    <value>zKillboard-Nachladen: {1:N0} Tag(e) verarbeitet, importierte Abschüsse: {0:N0}</value>
+  </data>
+  <data name="ZkbBackfillFailed" xml:space="preserve">
+    <value>zKillboard-Nachladen: fehlgeschlagen – {0}</value>
+  </data>
+  <data name="ZkbGapFillDay" xml:space="preserve">
+    <value>Lückenfüllung {0:N0} von {1:N0} – {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillCancelled" xml:space="preserve">
+    <value>zKillboard-Lückenfüllung: abgebrochen, aufgeholt bis einschließlich {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillDone" xml:space="preserve">
+    <value>zKillboard-Lückenfüllung: aufgeholt bis einschließlich {0:yyyy-MM-dd}, Abschüsse: {1:N0}</value>
+  </data>
+  <data name="ZkbGapFillFailed" xml:space="preserve">
+    <value>zKillboard-Lückenfüllung: fehlgeschlagen – {0}</value>
+  </data>
+  <data name="ZkbPostingNotStarted" xml:space="preserve">
+    <value>Senden an zKillboard: nicht gestartet</value>
+  </data>
+  <data name="ZkbCoverageChecking" xml:space="preserve">
+    <value>wird geprüft…</value>
+  </data>
+  <data name="ZkbCoverageNoneYet" xml:space="preserve">
+    <value>noch keine – keine Abschüsse auf zKillboard bestätigt</value>
+  </data>
+  <data name="ZkbPostingOff" xml:space="preserve">
+    <value>Senden an zKillboard: aus</value>
+  </data>
+  <data name="ZkbPostingDisabled" xml:space="preserve">
+    <value>Senden an zKillboard: deaktiviert</value>
+  </data>
+  <data name="ZkbPostingError" xml:space="preserve">
+    <value>Senden an zKillboard: Fehler – {0}</value>
+  </data>
+  <data name="ZkbPostingNoConfirmed" xml:space="preserve">
+    <value>Senden an zKillboard: noch keine Abschüsse auf zKillboard bestätigt – laden Sie zuerst Verlauf nach</value>
+  </data>
+  <data name="ZkbPostingNoFullDay" xml:space="preserve">
+    <value>Senden an zKillboard: noch kein Tag vollständig von zKillboard importiert</value>
+  </data>
+  <data name="ZkbPostingNothing" xml:space="preserve">
+    <value>Senden an zKillboard: nichts zu senden (abgedeckt ab {0})</value>
+  </data>
+  <data name="ZkbPostingHalted" xml:space="preserve">
+    <value>Senden an zKillboard: angehalten – zKillboard hat diesen Client als nicht vertrauenswürdig abgelehnt</value>
+  </data>
+  <data name="NameCacheNotStarted" xml:space="preserve">
+    <value>Namens-Cache: nicht gestartet</value>
+  </data>
+  <data name="NameCacheError" xml:space="preserve">
+    <value>Namens-Cache: Fehler – {0}</value>
+  </data>
+  <data name="NameCacheIdleResolved" xml:space="preserve">
+    <value>○ Im Leerlauf – alle bekannten Entitäten aufgelöst</value>
+  </data>
+  <data name="NameCacheRunningCapped" xml:space="preserve">
+    <value>● Läuft – {0:N0} von {1:N0} in diesem Durchlauf (weitere ausstehend)</value>
+  </data>
+  <data name="NameCacheRunning" xml:space="preserve">
+    <value>● Läuft – {0:N0} von {1:N0} verbleibenden Namen</value>
+  </data>
+  <data name="NameCacheIdleAddedCapped" xml:space="preserve">
+    <value>○ Im Leerlauf – {0:N0} Name(n) in diesem Durchlauf hinzugefügt, weitere ausstehend</value>
+  </data>
+  <data name="NameCacheIdleAdded" xml:space="preserve">
+    <value>○ Im Leerlauf – {0:N0} Name(n) hinzugefügt, alle bekannten Entitäten aufgelöst</value>
+  </data>
+  <data name="IntelStatusIdle" xml:space="preserve">
+    <value>Intel: im Leerlauf</value>
+  </data>
+  <data name="IntelStatusParsingMore" xml:space="preserve">
+    <value>Intel: {0} wird ausgewertet – {1:N0} Sichtungen, noch {2:N0} Nachrichten</value>
+  </data>
+  <data name="IntelStatusParsing" xml:space="preserve">
+    <value>Intel: {0} wird ausgewertet – {1:N0} Sichtungen</value>
+  </data>
+  <data name="IntelStatusNothing" xml:space="preserve">
+    <value>Intel: noch nichts ausgewertet</value>
+  </data>
+  <data name="IntelStatusUpToDate" xml:space="preserve">
+    <value>Intel: aktuell – {0:N0} Sichtungen, neueste {1}</value>
+  </data>
+  <data name="IntelStatusUnavailable" xml:space="preserve">
+    <value>Intel: Status nicht verfügbar</value>
+  </data>
+  <data name="NotRunYet" xml:space="preserve">
+    <value>Noch nicht gelaufen</value>
+  </data>
+  <data name="OrderFulfilmentFailed" xml:space="preserve">
+    <value>Letzter Durchlauf fehlgeschlagen: {0}</value>
+  </data>
+  <data name="OrderFulfilmentNoPending" xml:space="preserve">
+    <value>Keine offenen Bestellungen</value>
+  </data>
+  <data name="OrderFulfilmentLinked" xml:space="preserve">
+    <value>{0:N0} von {1:N0} offenen Bestellung(en) haben eine Quelle</value>
+  </data>
+  <data name="LpStoreStatusIdle" xml:space="preserve">
+    <value>LP-Shop: im Leerlauf</value>
+  </data>
+  <data name="LpStoreStatusNoSde" xml:space="preserve">
+    <value>LP-Shop: keine NPC-Corporations im SDE – importieren Sie zuerst das SDE</value>
+  </data>
+  <data name="LpStoreStatusProgress" xml:space="preserve">
+    <value>LP-Shop: {0:N0}/{1:N0} Corps, {2:N0} Angebote…</value>
+  </data>
+  <data name="AlarmsStatusNoneArmed" xml:space="preserve">
+    <value>Keine Alarme scharfgeschaltet</value>
+  </data>
+  <data name="EndpointSkills" xml:space="preserve">
+    <value>Skills</value>
+  </data>
+  <data name="EndpointSkillQueue" xml:space="preserve">
+    <value>Trainingswarteschlange</value>
+  </data>
+  <data name="EndpointWalletBalance" xml:space="preserve">
+    <value>Kontostand</value>
+  </data>
+  <data name="EndpointWalletJournal" xml:space="preserve">
+    <value>Konto-Logbuch</value>
+  </data>
+  <data name="EndpointWalletTransactions" xml:space="preserve">
+    <value>Konto-Transaktionen</value>
+  </data>
+  <data name="EndpointIndustryJobs" xml:space="preserve">
+    <value>Industrieaufträge</value>
+  </data>
+  <data name="EndpointActiveOrders" xml:space="preserve">
+    <value>Aktive Aufträge</value>
+  </data>
+  <data name="EndpointOrderHistory" xml:space="preserve">
+    <value>Auftragsverlauf</value>
+  </data>
+  <data name="EndpointAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="EndpointBlueprints" xml:space="preserve">
+    <value>Blaupausen</value>
+  </data>
+  <data name="EndpointContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="EndpointAttributes" xml:space="preserve">
+    <value>Attribute</value>
+  </data>
+  <data name="EndpointClones" xml:space="preserve">
+    <value>Klone</value>
+  </data>
+  <data name="EndpointImplants" xml:space="preserve">
+    <value>Implantate</value>
+  </data>
+  <data name="EndpointJumpFatigue" xml:space="preserve">
+    <value>Sprungerschöpfung</value>
+  </data>
+  <data name="EndpointMiningLedger" xml:space="preserve">
+    <value>Bergbau-Bestandsbuch</value>
+  </data>
+  <data name="EndpointNotifications" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="EndpointContacts" xml:space="preserve">
+    <value>Kontakte</value>
+  </data>
+  <data name="EndpointKillMails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="EndpointPlanetaryInteraction" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="EndpointAgentResearch" xml:space="preserve">
+    <value>Forschungsagenten</value>
+  </data>
+  <data name="EndpointLoyaltyPoints" xml:space="preserve">
+    <value>Loyalitätspunkte</value>
+  </data>
+  <data name="EndpointMedals" xml:space="preserve">
+    <value>Orden</value>
+  </data>
+  <data name="EndpointStandings" xml:space="preserve">
+    <value>Ansehen</value>
+  </data>
+  <data name="EndpointTitles" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="EndpointRoles" xml:space="preserve">
+    <value>Rechte</value>
+  </data>
+  <data name="EndpointFittings" xml:space="preserve">
+    <value>Ausrüstungen</value>
+  </data>
+  <data name="EndpointEveMail" xml:space="preserve">
+    <value>EVE-Mail</value>
+  </data>
+  <data name="EndpointOnlineStatus" xml:space="preserve">
+    <value>Onlinestatus</value>
+  </data>
+  <data name="EndpointLocation" xml:space="preserve">
+    <value>Standort</value>
+  </data>
+  <data name="EndpointCurrentShip" xml:space="preserve">
+    <value>Aktuelles Schiff</value>
+  </data>
+  <data name="EndpointWalletBalances" xml:space="preserve">
+    <value>Kontostände</value>
+  </data>
+  <data name="EndpointDivisions" xml:space="preserve">
+    <value>Abteilungen</value>
+  </data>
+  <data name="EndpointStructures" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="EndpointStarbases" xml:space="preserve">
+    <value>Sternenbasen</value>
+  </data>
+  <data name="EndpointFacilities" xml:space="preserve">
+    <value>Anlagen</value>
+  </data>
+  <data name="EndpointMembers" xml:space="preserve">
+    <value>Mitglieder</value>
+  </data>
+  <data name="EndpointMemberTracking" xml:space="preserve">
+    <value>Mitgliederverfolgung</value>
+  </data>
+  <data name="EndpointCorpProjects" xml:space="preserve">
+    <value>Corp-Projekte</value>
+  </data>
+  <data name="EndpointMiningExtractions" xml:space="preserve">
+    <value>Mondextraktionen</value>
+  </data>
+  <data name="EndpointMiningObservers" xml:space="preserve">
+    <value>Bergbau-Beobachter &amp; Bestandsbuch</value>
+  </data>
+  <data name="EndpointMarketPriceRefresh" xml:space="preserve">
+    <value>Aktualisierung der Marktpreise</value>
+  </data>
+  <data name="EndpointBuildCostCalculation" xml:space="preserve">
+    <value>Berechnung der Baukosten</value>
+  </data>
+  <data name="EndpointPublicContracts" xml:space="preserve">
+    <value>Öffentliche Verträge</value>
+  </data>
+  <data name="EndpointContractItems" xml:space="preserve">
+    <value>Vertragsgegenstände</value>
+  </data>
+  <data name="StructureSweepNotRun" xml:space="preserve">
+    <value>In dieser Sitzung noch nicht gelaufen</value>
+  </data>
+  <data name="PublicStructuresSummary" xml:space="preserve">
+    <value>{0:N0} gelistet · {1:N0} bereits bekannt · {2:N0} neu aufzulösen</value>
+  </data>
+  <data name="StructureSweepFailed" xml:space="preserve">
+    <value>Fehlgeschlagen – {0}</value>
+  </data>
+  <data name="CallOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="StructureSweepCounts" xml:space="preserve">
+    <value>{0:N0} ID(s) geprüft · {1:N0} synchronisiert · {2:N0} bereinigt · {3:N0} Strukturen gespeichert, {4:N0} identifiziert</value>
+  </data>
+  <data name="StructureSweepSuperseded" xml:space="preserve">
+    <value>{0:N0} Ausrüstung(en) durch Besitzdaten ersetzt</value>
+  </data>
+  <data name="StructureSweepEveRef" xml:space="preserve">
+    <value>EVE Ref: {0:N0} bekannt, {1:N0} ergänzt</value>
+  </data>
+  <data name="StructureSweepLinked" xml:space="preserve">
+    <value>{0:N0} verknüpfte Park-Ausrüstung(en) aktualisiert</value>
+  </data>
+  <data name="ZkbPostingSubmitted" xml:space="preserve">
+    <value>Senden an zKillboard: {0:N0} gesendet, {1:N0} bereits auf zKillboard</value>
+  </data>
+  <data name="ZkbPostingSubmittedRejected" xml:space="preserve">
+    <value>Senden an zKillboard: {0:N0} gesendet, {1:N0} bereits auf zKillboard, {2:N0} abgelehnt</value>
+  </data>
+  <data name="LpStoreStatusDone" xml:space="preserve">
+    <value>LP-Shop: {0:N0} Shops, {1:N0} Angebote, {2:N0} ohne Shop – {3:t}</value>
+  </data>
+  <data name="LpStoreStatusDoneFailed" xml:space="preserve">
+    <value>LP-Shop: {0:N0} Shops, {1:N0} Angebote, {2:N0} ohne Shop, {3:N0} fehlgeschlagen – {4:t}</value>
+  </data>
+  <data name="AlarmsStatusNextCheck" xml:space="preserve">
+    <value>{0} scharfgeschaltet · nächste Prüfung {1}</value>
+  </data>
+  <data name="AlarmsNextCheckNow" xml:space="preserve">
+    <value>jetzt</value>
+  </data>
+  <data name="AlarmsNextCheckInSeconds" xml:space="preserve">
+    <value>in {0:F0} Sek.</value>
+  </data>
+  <data name="AlarmsNextCheckInMinutes" xml:space="preserve">
+    <value>in {0:F0} Min.</value>
+  </data>
+  <data name="AlarmsNextCheckInHours" xml:space="preserve">
+    <value>in {0:F0} Std.</value>
+  </data>
+  <data name="AlarmsStatusChecked" xml:space="preserve">
+    <value>{0} scharfgeschaltet · {1} geprüft</value>
+  </data>
+  <data name="AlarmsStatusCheckedFired" xml:space="preserve">
+    <value>{0} scharfgeschaltet · {1} geprüft · {2} ausgelöst</value>
+  </data>
+  <data name="BarEsiActiveQueued" xml:space="preserve">
+    <value>{0:N0} aktiv, {1:N0} wartend</value>
+  </data>
+  <data name="BarProcessing" xml:space="preserve">
+    <value>wird verarbeitet</value>
+  </data>
+  <data name="BarProcessingItemsOne" xml:space="preserve">
+    <value>{0:N0} Gegenstand wird verarbeitet</value>
+  </data>
+  <data name="BarProcessingItemsOther" xml:space="preserve">
+    <value>{0:N0} Gegenstände werden verarbeitet</value>
+  </data>
+  <data name="BarStarting" xml:space="preserve">
+    <value>wird gestartet</value>
+  </data>
+  <data name="BarContractsProgressOne" xml:space="preserve">
+    <value>{1:N0} von {0:N0} Vertrag</value>
+  </data>
+  <data name="BarContractsProgressOther" xml:space="preserve">
+    <value>{1:N0} von {0:N0} Verträgen</value>
+  </data>
+  <data name="BarCorporationsProgressOne" xml:space="preserve">
+    <value>{1:N0} von {0:N0} Corporation</value>
+  </data>
+  <data name="BarCorporationsProgressOther" xml:space="preserve">
+    <value>{1:N0} von {0:N0} Corporations</value>
+  </data>
+  <data name="BarFetching" xml:space="preserve">
+    <value>wird abgerufen</value>
+  </data>
+  <data name="BarFetchingProgress" xml:space="preserve">
+    <value>Abruf {0:N0} von {1:N0}</value>
+  </data>
+  <data name="BarFetchingProgressMore" xml:space="preserve">
+    <value>Abruf {0:N0} von {1:N0}, noch {2:N0} weitere</value>
+  </data>
+  <data name="KillmailsWithoutDetailsOne" xml:space="preserve">
+    <value>{0:N0} Abschussbericht noch ohne Details – die nächste Abfrage ruft bis zu 200 ab</value>
+  </data>
+  <data name="KillmailsWithoutDetailsOther" xml:space="preserve">
+    <value>{0:N0} Abschussberichte noch ohne Details – die nächste Abfrage ruft bis zu 200 ab</value>
+  </data>
+  <data name="KillmailsAllDetailed" xml:space="preserve">
+    <value>jeder der App bekannte Abschussbericht hat seine Details</value>
+  </data>
+  <data name="BarBackfill" xml:space="preserve">
+    <value>Nachladen</value>
+  </data>
+  <data name="BarBackfillProgress" xml:space="preserve">
+    <value>Nachladen {0:N0} von {1:N0}</value>
+  </data>
+  <data name="CallsNotRelayedOne" xml:space="preserve">
+    <value>({0} weiterer Aufruf nicht übermittelt)</value>
+  </data>
+  <data name="CallsNotRelayedOther" xml:space="preserve">
+    <value>({0} weitere Aufrufe nicht übermittelt)</value>
+  </data>
+</root>
