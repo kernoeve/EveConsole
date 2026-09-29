@@ -646,7 +646,7 @@ public class EsiClient
         catch { return null; }
     }
 
-    // Moon detail (public). Returns null on error. name is e.g. "X-1QGA VI - Moon 3".
+    // Moon detail (public). Returns null on error. name is e.g. "Jita IV - Moon 4".
     public async Task<EsiMoonDetail?> GetMoonAsync(int moonId, CancellationToken ct = default)
     {
         try { return await GetAsync<EsiMoonDetail>($"universe/moons/{moonId}/", ct); }

@@ -141,7 +141,7 @@ public class WorklistSettings(AppPreferencesService prefs)
     public long?  IndustryScopeId => prefs.GetLong(IndustryScopeIdKey, 0) is var id && id > 0 ? id : null;
     public string IndustryScopeName => prefs.Get(IndustryScopeNameKey) ?? "";
 
-    /// <summary>How the scope reads in a task's text, e.g. "in Tenerifis".</summary>
+    /// <summary>How the scope reads in a task's text, e.g. "in The Forge".</summary>
     public string IndustryScopeSuffix => IndustryScope == "Everywhere" || IndustryScopeName.Length == 0
         ? "" : $" in {IndustryScopeName}";
 

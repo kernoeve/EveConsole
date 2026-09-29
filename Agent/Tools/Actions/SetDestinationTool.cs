@@ -49,7 +49,7 @@ public sealed class SetDestinationTool : IAgentTool
             system = new
             {
                 type        = "string",
-                description = "Solar system name, e.g. \"Jita\" or \"1DQ1-A\". Case does not matter; a unique prefix is accepted.",
+                description = "Solar system name, e.g. \"Jita\". Case does not matter; a unique prefix is accepted.",
             },
             character = new
             {
@@ -169,7 +169,7 @@ public sealed class SetDestinationTool : IAgentTool
         return candidates.Count switch
         {
             1 => (candidates[0].Id, candidates[0].Name, null),
-            0 => (0, "", $"No solar system called '{name}'. Check the spelling — over a microphone, dashes and zeros are often the trouble (1DQ1-A, D-PNP9)."),
+            0 => (0, "", $"No solar system called '{name}'. Check the spelling — over a microphone, dashes and zeros are often the trouble."),
             _ => (0, "", $"'{name}' matches several systems: {string.Join(", ", candidates.Select(c => c.Name))}. Ask which."),
         };
     }
