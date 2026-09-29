@@ -35,6 +35,17 @@ public sealed record WeaponDamage(DogmaItem Item, WeaponKind Kind, DamageBreakdo
     public DamageBreakdown Dps => CycleSeconds > 0 ? Volley * (1 / CycleSeconds) : DamageBreakdown.Zero;
 }
 
+public enum TankLayer { Shield, Armor, Hull }
+
+/// <summary>One repair module: what one cycle restores and how long a cycle takes.</summary>
+public sealed record RepairModule(DogmaItem Item, TankLayer Layer, double Amount, double CycleSeconds)
+{
+    public double PerSecond => CycleSeconds > 0 ? Amount / CycleSeconds : 0;
+}
+
+/// <summary>Raw HP/s: shield regeneration at its peak, and what active modules repair per layer.</summary>
+public sealed record TankRates(double PassiveShield, double ShieldBoost, double ArmorRepair, double HullRepair);
+
 /// <summary>What a fit adds up to — the numbers a fitting window shows.</summary>
 public sealed class FitStats
 {
@@ -192,6 +203,58 @@ public sealed class FitStats
                 DamageOf(d) * (_e.Value(d, "damageMultiplier") * d.ActiveCount), CycleSeconds(d, fx)));
         }
         return list;
+    }
+
+    // ── Repair and regeneration ─────────────────────────────────────────────────
+
+    /// <summary>Seconds for the shield to recharge from empty to full, as the game quotes it.</summary>
+    public double ShieldRechargeSeconds => Ship("shieldRechargeRate") / 1000;
+
+    /// <summary>
+    /// Shield regeneration at its peak, in HP/s. Shields recharge along the same curve as the
+    /// capacitor, fastest at 25%: 2.5 × capacity ÷ recharge time. This is the number a passive
+    /// shield tank is built around.
+    /// </summary>
+    public double PassiveShieldRegen => ShieldRechargeSeconds > 0 ? 2.5 * Ship("shieldCapacity") / ShieldRechargeSeconds : 0;
+
+    /// <summary>
+    /// Every active repair module: shield boosters, armor and hull repairers, and their ancillary
+    /// forms. HP per cycle and cycle time; an ancillary armor repairer with nanite paste loaded
+    /// repairs its charged multiple.
+    /// </summary>
+    public IReadOnlyList<RepairModule> Repairs()
+    {
+        var list = new List<RepairModule>();
+        foreach (var m in ActiveModules)
+        {
+            if (CyclingEffect(m) is not { } fx) continue;
+            var cycle = CycleSeconds(m, fx);
+            switch (fx.Name)
+            {
+                case "shieldBoosting" or "fueledShieldBoosting":
+                    list.Add(new RepairModule(m, TankLayer.Shield, _e.Value(m, "shieldBonus"), cycle));
+                    break;
+                case "armorRepair":
+                    list.Add(new RepairModule(m, TankLayer.Armor, _e.Value(m, "armorDamageAmount"), cycle));
+                    break;
+                case "fueledArmorRepair":
+                    var paste = m.Charge is not null ? _e.Value(m, "chargedArmorDamageMultiplier") : 1;
+                    list.Add(new RepairModule(m, TankLayer.Armor, _e.Value(m, "armorDamageAmount") * (paste > 0 ? paste : 1), cycle));
+                    break;
+                case "structureRepair":
+                    list.Add(new RepairModule(m, TankLayer.Hull, _e.Value(m, "structureDamageAmount"), cycle));
+                    break;
+            }
+        }
+        return list;
+    }
+
+    /// <summary>Raw HP/s repaired per layer by <paramref name="repairs"/>, and shield regeneration at its peak.</summary>
+    public TankRates Tank(IReadOnlyList<RepairModule>? repairs = null)
+    {
+        repairs ??= Repairs();
+        double Sum(TankLayer l) => repairs.Where(r => r.Layer == l).Sum(r => r.PerSecond);
+        return new TankRates(PassiveShieldRegen, Sum(TankLayer.Shield), Sum(TankLayer.Armor), Sum(TankLayer.Hull));
     }
 
     public DamageBreakdown WeaponDps(IReadOnlyList<WeaponDamage>? weapons = null) =>
