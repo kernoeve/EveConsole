@@ -82,7 +82,7 @@ welcome — this list is where they belong, so every screen picks them up.
 | mining | 采矿 | |
 | ore / ice / moon ore | 矿石 / 冰矿 / 卫星矿石 | |
 | moon mining ledger | 月矿记录 | |
-| planetary industry | 行星开发 | |
+| planetary industry | 行星开发 | Decided: what players call PI. Not 行星工业, which is only ESI's name for the item category. |
 | market | 市场 | |
 | order (market) | 订单 | |
 | buy order / sell order | 买单 / 卖单 | |
