@@ -620,6 +620,14 @@
     <value>Held By</value>
     <comment>Column header in EntityTabView.</comment>
   </data>
+  <data name="FwRoleOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Entity browser, Faction Warfare tab of a faction, Role column: this faction owns the system — it is the one named in the Owner column, whose header is the same word.</comment>
+  </data>
+  <data name="FwRoleOccupier" xml:space="preserve">
+    <value>Occupier</value>
+    <comment>Entity browser, Faction Warfare tab of a faction, Role column: this faction holds a system another faction owns — it is the one named in the Held By column.</comment>
+  </data>
   <data name="ColContested" xml:space="preserve">
     <value>Contested</value>
     <comment>Column header in EntityTabView.</comment>
@@ -1375,6 +1383,14 @@
   <data name="StationsCount" xml:space="preserve">
     <value>{0:N0} station(s)</value>
     <comment>Entity browser, Stations tab of an NPC corporation. {0} is the number of stations.</comment>
+  </data>
+  <data name="CorpStationsOne" xml:space="preserve">
+    <value>{0:N0} station</value>
+    <comment>Entity browser, Corporations tab of a faction, Details column: how many stations one of its corporations owns, when that is one. {0} is the number.</comment>
+  </data>
+  <data name="CorpStationsOther" xml:space="preserve">
+    <value>{0:N0} stations</value>
+    <comment>Entity browser, Corporations tab of a faction, Details column: how many stations one of its corporations owns. {0} is the number.</comment>
   </data>
   <data name="NoStationsFound" xml:space="preserve">
     <value>No stations found.</value>

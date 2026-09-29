@@ -524,8 +524,13 @@ public class OverviewViewModel : ReactiveObject
 
         // Names in the interface language that arrive after the cards were built — a first load
         // slower than the wait for it, an SDE import — reach them on the next refresh: forgetting
-        // the signature makes that refresh build the cards again rather than keep them.
-        SdeNames.Changed += () => _notificationSignature = "";
+        // the signature makes that refresh build the cards again rather than keep them, and
+        // forgetting the personal kills' ids does the same for their rows.
+        SdeNames.Changed += () =>
+        {
+            _notificationSignature = "";
+            _lastPersonalKillIds   = [];
+        };
     }
 
 
@@ -1192,6 +1197,9 @@ public class OverviewViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(NoPersonalKills));
             return;
         }
+
+        // The rows take their hull and place names once, as they are built.
+        await SdeNames.EnsureLoadedAsync();
         _lastPersonalKillIds = ids;
 
         PersonalKills.Clear();
@@ -1214,6 +1222,10 @@ public class OverviewViewModel : ReactiveObject
 
         try
         {
+            // The rows name items and places as the interface does, and a rule's label is worded
+            // inside BuildMaintainGridRowsAsync, so the names are in before the first build.
+            await SdeNames.EnsureLoadedAsync();
+
             // Off() like every other query in this view model: awaited directly, SQLite's
             // synchronous-underneath async would run both this and the per-corp grid builds on
             // the UI thread.

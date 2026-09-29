@@ -466,6 +466,12 @@
   <data name="ColHeldBy" xml:space="preserve">
     <value>占领者</value>
   </data>
+  <data name="FwRoleOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="FwRoleOccupier" xml:space="preserve">
+    <value>占领者</value>
+  </data>
   <data name="ColContested" xml:space="preserve">
     <value>争夺状态</value>
   </data>
@@ -1028,6 +1034,9 @@
     <value>联盟</value>
   </data>
   <data name="StationsCount" xml:space="preserve">
+    <value>{0:N0} 个空间站</value>
+  </data>
+  <data name="CorpStationsOther" xml:space="preserve">
     <value>{0:N0} 个空间站</value>
   </data>
   <data name="NoStationsFound" xml:space="preserve">

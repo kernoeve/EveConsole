@@ -437,6 +437,9 @@ public sealed class MessageBlockVm : ReactiveObject
 
         if (_loadProjects is null || Corp is null || !IsProjects) return;
 
+        // The labels name items and places as the interface does, so those names are in first.
+        await SdeNames.EnsureLoadedAsync();
+
         List<Models.CorpStandingProject> list;
         try { list = [.. await _loadProjects(Corp.Id, ProjectType.Key)]; }
         catch (Exception ex) { ProjectsNote = string.Format(AlarmsText.ErrReadProjects, ex.Message); return; }
@@ -453,7 +456,8 @@ public sealed class MessageBlockVm : ReactiveObject
 
         foreach (var p in list)
         {
-            var choice = new ProjectChoice(p.Id, StandingProjectReport.Describe(p))
+            // Shown in the interface language; the section keeps the definition's id.
+            var choice = new ProjectChoice(p.Id, StandingProjectReport.DescribeShown(p))
             {
                 Selected = _fresh || _included.Contains(p.Id),
             };

@@ -105,11 +105,32 @@ public sealed record MonthlyActivityRow(
 // a ToString like "SdeSystemResult { SystemId = 30000142, Name = Jita }", which is exactly
 // what the Indy Parks system dropdown was showing. EntityMatch carries the same override for
 // the same reason.
-public sealed record SdeTypeResult(int TypeId, string Name) { public override string ToString() => Name; }
+//
+// Name is the English, and it is what a picker saves and matches on — so ToString stays English
+// too, being what a box writes into its text on a pick. DisplayName is the name in the interface
+// language, for a list's ItemTemplate to show and nothing else. A station has no other name: an
+// NPC station's is ESI's English, and structures are player-named.
+public sealed record SdeTypeResult(int TypeId, string Name)
+{
+    public string DisplayName => SdeNames.Type(TypeId, Name);
+    public override string ToString() => Name;
+}
 public sealed record SdeStationResult(long StationId, string Name) { public override string ToString() => Name; }
-public sealed record SdeSystemResult(int SystemId, string Name) { public override string ToString() => Name; }
-public sealed record SdeRegionResult(int RegionId, string Name) { public override string ToString() => Name; }
-public sealed record SdeConstellationResult(int ConstellationId, string Name) { public override string ToString() => Name; }
+public sealed record SdeSystemResult(int SystemId, string Name)
+{
+    public string DisplayName => SdeNames.SolarSystem(SystemId, Name);
+    public override string ToString() => Name;
+}
+public sealed record SdeRegionResult(int RegionId, string Name)
+{
+    public string DisplayName => SdeNames.Region(RegionId, Name);
+    public override string ToString() => Name;
+}
+public sealed record SdeConstellationResult(int ConstellationId, string Name)
+{
+    public string DisplayName => SdeNames.Constellation(ConstellationId, Name);
+    public override string ToString() => Name;
+}
 
 public sealed record StandingProjectGridRow(
     long   DbId,
@@ -151,10 +172,10 @@ public sealed record StandingProjectGridRow(
     /// <summary>When a project matching this line was last COMPLETED, so an absent one can be
     /// read as "gone since" rather than merely absent. Null where none ever was.</summary>
     DateTimeOffset? LastDone = null,
-    /// <summary>TargetDisplay as the screen words it, where only this service can: an ADM rule
+    /// <summary>TargetDisplay as a screen words it, where only this service can: an ADM rule
     /// with its region or constellation in the interface language. Empty on every other row —
-    /// StandingProjectRowVm words those from the ids. ⚠️ For the screen alone: the scheduled
-    /// posts and the worklist print TargetDisplay.</summary>
+    /// StandingProjectRowVm and the worklist's standing-project tasks word those from the ids.
+    /// ⚠️ For screens alone: the scheduled posts print TargetDisplay.</summary>
     string TargetShown = "");
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -2284,18 +2305,61 @@ public class CorpActivityService
     }
 
     // ── SDE search helpers ────────────────────────────────────────────────────
+    //
+    // The pickers' searches. Each finds a name typed in English — people paste them from websites
+    // and chat — or in the interface language, and returns the English: that is what a standing
+    // project, a buy order, an Indy Parks structure or the worklist's scope saves and is matched by.
+
+    /// <summary>How many results a picker search returns.</summary>
+    private const int PickerMax = 40;
+
+    /// <summary>
+    /// How many rows a search reads when the text also names something in the interface language:
+    /// enough that <see cref="RankPicks"/>, rather than the SQL's English order, picks the forty.
+    /// </summary>
+    private const int PickerShownMax = 200;
+
+    /// <summary>
+    /// The ids of one kind whose name in the interface language contains <paramref name="text"/>,
+    /// for a search to OR into SQL that sees only the English. Empty in English.
+    /// </summary>
+    private static async Task<List<int>> ShownIdsAsync(SdeNameKind kind, string text, CancellationToken ct)
+    {
+        await SdeNames.EnsureLoadedAsync(ct);
+        return [.. SdeNames.Find(kind, text).Select(id => (int)id)];
+    }
+
+    /// <summary>
+    /// A search's rows ranked again, on whichever of each row's two names holds the text: the name
+    /// itself first, then names starting with it, then the rest, shorter before longer. The SQL
+    /// can order only by the English, which would put a name typed in the interface language
+    /// wherever its English happens to sort — and past the cut. The callers list what comes back
+    /// in the order of the names shown.
+    /// </summary>
+    private static List<T> RankPicks<T>(List<T> rows, string text, Func<T, string> english, Func<T, string> shown) =>
+        [.. rows
+            .Select(r => (Row: r, Name: english(r).Contains(text, StringComparison.OrdinalIgnoreCase) ? english(r) : shown(r)))
+            .OrderBy(x => x.Name.Equals(text, StringComparison.OrdinalIgnoreCase)     ? 0
+                        : x.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 1
+                        : 2)
+            .ThenBy(x => x.Name.Length)
+            .ThenBy(x => x.Name, StringComparer.CurrentCulture)
+            .Take(PickerMax)
+            .Select(x => x.Row)];
 
     public async Task<List<SdeTypeResult>> SearchSdeTypesAsync(
         string query, CancellationToken ct = default)
     {
         if (query.Length < 2) return [];
+        var shown = await ShownIdsAsync(SdeNameKind.Type, query, ct);
         using var db = _dbFactory.CreateDbContext();
-        return await db.SdeTypes
-            .Where(t => EF.Functions.Like(t.Name, $"%{query}%") && t.Published)
+        var hits = await db.SdeTypes
+            .Where(t => (EF.Functions.Like(t.Name, $"%{query}%") || shown.Contains(t.TypeId)) && t.Published)
             .OrderBy(t => t.Name)
-            .Take(40)
+            .Take(shown.Count == 0 ? PickerMax : PickerShownMax)
             .Select(t => new SdeTypeResult(t.TypeId, t.Name))
             .ToListAsync(ct);
+        return shown.Count == 0 ? hits : RankPicks(hits, query, r => r.Name, r => r.DisplayName);
     }
 
     public async Task<List<SdeStationResult>> SearchSdeStationsAsync(
@@ -2304,6 +2368,7 @@ public class CorpActivityService
         if (query.Length < 2) return [];
         using var db = _dbFactory.CreateDbContext();
 
+        // English only: an NPC station's name is ESI's English, which the SDE does not translate.
         var npc = await db.SdeStations
             .Where(s => EF.Functions.Like(s.Name, $"%{query}%"))
             .OrderBy(s => s.Name).Take(40)
@@ -2338,39 +2403,46 @@ public class CorpActivityService
         string query, CancellationToken ct = default, bool includeWormholes = false)
     {
         if (query.Length < 2) return [];
+        var shown = await ShownIdsAsync(SdeNameKind.SolarSystem, query, ct);
         using var db = _dbFactory.CreateDbContext();
-        return await db.SdeSolarSystems
-            .Where(s => EF.Functions.Like(s.Name, $"%{query}%") && (includeWormholes || !s.IsWormhole))
+        var hits = await db.SdeSolarSystems
+            .Where(s => (EF.Functions.Like(s.Name, $"%{query}%") || shown.Contains(s.SolarSystemId))
+                        && (includeWormholes || !s.IsWormhole))
             .OrderBy(s => s.Name)
-            .Take(40)
+            .Take(shown.Count == 0 ? PickerMax : PickerShownMax)
             .Select(s => new SdeSystemResult(s.SolarSystemId, s.Name))
             .ToListAsync(ct);
+        return shown.Count == 0 ? hits : RankPicks(hits, query, r => r.Name, r => r.DisplayName);
     }
 
     public async Task<List<SdeRegionResult>> SearchSdeRegionsAsync(
         string query, CancellationToken ct = default)
     {
         if (query.Length < 2) return [];
+        var shown = await ShownIdsAsync(SdeNameKind.Region, query, ct);
         using var db = _dbFactory.CreateDbContext();
-        return await db.SdeRegions
-            .Where(r => EF.Functions.Like(r.Name, $"%{query}%") && !r.IsWormhole)
+        var hits = await db.SdeRegions
+            .Where(r => (EF.Functions.Like(r.Name, $"%{query}%") || shown.Contains(r.RegionId)) && !r.IsWormhole)
             .OrderBy(r => r.Name)
-            .Take(40)
+            .Take(shown.Count == 0 ? PickerMax : PickerShownMax)
             .Select(r => new SdeRegionResult(r.RegionId, r.Name))
             .ToListAsync(ct);
+        return shown.Count == 0 ? hits : RankPicks(hits, query, r => r.Name, r => r.DisplayName);
     }
 
     public async Task<List<SdeConstellationResult>> SearchSdeConstellationsAsync(
         string query, CancellationToken ct = default)
     {
         if (query.Length < 2) return [];
+        var shown = await ShownIdsAsync(SdeNameKind.Constellation, query, ct);
         using var db = _dbFactory.CreateDbContext();
-        return await db.SdeConstellations
-            .Where(c => EF.Functions.Like(c.Name, $"%{query}%") && !c.IsWormhole)
+        var hits = await db.SdeConstellations
+            .Where(c => (EF.Functions.Like(c.Name, $"%{query}%") || shown.Contains(c.ConstellationId)) && !c.IsWormhole)
             .OrderBy(c => c.Name)
-            .Take(40)
+            .Take(shown.Count == 0 ? PickerMax : PickerShownMax)
             .Select(c => new SdeConstellationResult(c.ConstellationId, c.Name))
             .ToListAsync(ct);
+        return shown.Count == 0 ? hits : RankPicks(hits, query, r => r.Name, r => r.DisplayName);
     }
 
     private async Task<List<SdeSystemResult>> GetSystemsInRegionAsync(
@@ -2720,8 +2792,8 @@ public class CorpActivityService
                         var scopeLabel = Scope(sp.ScopeEntityName);
 
                         // The same rule with its region or constellation in the interface language,
-                        // for the screen alone: the posts and the worklist print scopeLabel. An
-                        // alliance belongs to players, and has no other name.
+                        // for screens alone — the grid and the worklist's tasks; the posts print
+                        // scopeLabel. An alliance belongs to players, and has no other name.
                         var scopeShown = Scope(sp.ScopeEntityId is int scopeId
                             ? sp.ScopeType switch
                               {

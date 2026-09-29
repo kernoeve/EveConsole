@@ -138,14 +138,22 @@
                          Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" VerticalAlignment="Center" />
 
               <!-- Bulk add. Building a park a row at a time is the slow part of setting one up,
-                   and the real fitting arrives with the link, so rigs need no retyping. -->
+                   and the real fitting arrives with the link, so rigs need no retyping.
+                   The list names each system as the interface does; the pick carries the English
+                   the structures save, and the box, which nothing reads back, shows that too. -->
               <AutoCompleteBox Grid.Row="0" Grid.Column="2" Width="170" Margin="0 0 6 0"
                                Text="{Binding BulkSystemText}"
                                SelectedItem="{Binding BulkSystem}"
                                AsyncPopulator="{Binding SystemPopulator}"
                                FilterMode="None" MinimumPrefixLength="2"
                                MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
-                               FontSize="11" Watermark="{x:Static loc:IndustryText.HintSystem}" />
+                               FontSize="11" Watermark="{x:Static loc:IndustryText.HintSystem}">
+                <AutoCompleteBox.ItemTemplate>
+                  <DataTemplate x:DataType="services:SdeSystemResult">
+                    <TextBlock Text="{Binding DisplayName}" />
+                  </DataTemplate>
+                </AutoCompleteBox.ItemTemplate>
+              </AutoCompleteBox>
               <CheckBox Grid.Row="0" Grid.Column="3" Content="{x:Static loc:IndustryText.SkipMoonRefineries}" Margin="0 0 6 0"
                         IsChecked="{Binding SkipMoonRefineries}" FontSize="11"
                         VerticalAlignment="Center"
@@ -218,7 +226,10 @@
                            locks both. Only with neither is the class chosen by hand.
                            ⚠️ The box's text is the system name the park saves, and structures are
                            matched to systems and cost indices by it, so a pick puts the ENGLISH name
-                           in the box (ValueMemberBinding), whatever the list shows. -->
+                           in the box (ValueMemberBinding), while the list names each system as the
+                           interface does (the ItemTemplate: without one the list would show the
+                           ValueMemberBinding). A whole name typed as the interface shows it is
+                           swapped for the English too, by ResolveTypedSystemAsync. -->
                       <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0 0 0 10">
                         <AutoCompleteBox Grid.Column="0" x:CompileBindings="False"
                                          Text="{Binding SystemName}"
@@ -232,7 +243,13 @@
                                          Watermark="{x:Static loc:IndustryText.HintSolarSystem}"
                                          Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                                          CornerRadius="3" Foreground="{DynamicResource TextPrimaryBrush}"
-                                         FontSize="12" Padding="8 4" />
+                                         FontSize="12" Padding="8 4">
+                          <AutoCompleteBox.ItemTemplate>
+                            <DataTemplate x:DataType="services:SdeSystemResult">
+                              <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                          </AutoCompleteBox.ItemTemplate>
+                        </AutoCompleteBox>
                         <ComboBox Grid.Column="1"
                                   SelectedItem="{Binding SecurityLabel}"
                                   ItemsSource="{x:Static vm:IndyParksViewModel.SecurityLabels}"

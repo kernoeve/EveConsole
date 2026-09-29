@@ -1443,6 +1443,18 @@ public class IndyParksViewModel : ReactiveObject
                 .Select(s => new { s.SolarSystemId, s.Name, s.Security })
                 .FirstOrDefaultAsync();
 
+            // A system's whole name as the interface shows it is the same system, and the box then
+            // takes its English below, which is what the park saves and is matched by.
+            if (sys is null)
+            {
+                await SdeNames.EnsureLoadedAsync();
+                if (ShownSystemId(text) is int shownId)
+                    sys = await db.SdeSolarSystems.AsNoTracking()
+                        .Where(s => s.SolarSystemId == shownId)
+                        .Select(s => new { s.SolarSystemId, s.Name, s.Security })
+                        .FirstOrDefaultAsync();
+            }
+
             if (sys is not null)
                 hit = new ResolvedSystem(sys.SolarSystemId, sys.Name, SecurityClassFor(sys.SolarSystemId, sys.Security));
         }
@@ -1459,6 +1471,18 @@ public class IndyParksViewModel : ReactiveObject
             if (vm.SystemName != found.Name) vm.SystemName = found.Name;
             vm.SecurityClass = found.SecurityClass;
         });
+    }
+
+    /// <summary>The one system whose name in the interface language is <paramref name="text"/>,
+    /// ignoring case. Null when none is — part of a name is still being typed — and when two are,
+    /// since that says nothing about which was meant.</summary>
+    private static int? ShownSystemId(string text)
+    {
+        var ids = SdeNames.Find(SdeNameKind.SolarSystem, text)
+            .Where(id => string.Equals(SdeNames.SolarSystem(id, ""), text, StringComparison.OrdinalIgnoreCase))
+            .Take(2)
+            .ToList();
+        return ids.Count == 1 ? (int)ids[0] : null;
     }
 
     /// <summary>Which structure the visible search results belong to. The results list
@@ -1726,13 +1750,14 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Add every industrial structure in a system ────────────────────────
 
-    /// <summary>Feeds the system picker beside the bulk-add button.</summary>
+    /// <summary>Feeds the system picker beside the bulk-add button. Listed in the order of the
+    /// names shown, which the list's template shows; the pick carries the English.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> SystemPopulator =>
         async (text, ct) =>
         {
             if (_corpActivity is null) return Array.Empty<object>();
             var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     /// <summary>
@@ -1747,7 +1772,7 @@ public class IndyParksViewModel : ReactiveObject
         {
             if (_corpActivity is null) return Array.Empty<object>();
             var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct, includeWormholes: true);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     private object? _bulkSystem;

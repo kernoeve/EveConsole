@@ -107,13 +107,15 @@ public class StandingProjectGenerator(
         // threshold, and only the second kind goes away again when the ADM recovers.
         var byRule = r.DestDisplay.Length > 0;
 
-        // ⚠️ The row's names are English — the same row feeds the posted report — so the two
-        // SDE names in it are put in the interface language here, where they become the task's
-        // text: the item of a delivery, and a system, which a row names by id in
-        // ExpandedSystemId. A delivery's destination is a station, and an ADM rule's label is
-        // already a sentence around a region or constellation this row carries no id for; both
-        // stay as they are.
-        var target = r.ItemTypeId is int item ? SdeNames.Type(item, r.TargetDisplay)
+        // ⚠️ The row's names are English — the same row feeds the posted report — so its SDE
+        // names are put in the interface language here, where they become the task's text, the
+        // way the Corp Activity grid words the same row: the item of a delivery, and a system,
+        // which a row names by id in ExpandedSystemId. An ADM or alliance rule's label is a
+        // sentence around a region or constellation the row carries no id for, so it comes
+        // worded already, in TargetShown, by CorpActivityService, which has the id. A delivery's
+        // destination is a station, and stays as it is.
+        var target = r.TargetShown.Length > 0 ? r.TargetShown
+                   : r.ItemTypeId is int item ? SdeNames.Type(item, r.TargetDisplay)
                    : !byRule && r.ExpandedSystemId is int named ? SdeNames.SolarSystem(named, r.TargetDisplay)
                    : r.TargetDisplay;
         var dest   = !deliver && byRule && r.ExpandedSystemId is int system ? SdeNames.SolarSystem(system, r.DestDisplay)

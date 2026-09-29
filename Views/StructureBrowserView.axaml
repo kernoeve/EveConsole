@@ -426,8 +426,8 @@
                           <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="svc:FittingOption">
                               <StackPanel Spacing="0" Margin="0 1">
-                                <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
-                                <TextBlock Text="{Binding GroupName}" FontSize="9.5" Foreground="{DynamicResource TextDimBrush}" />
+                                <TextBlock Text="{Binding DisplayName}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding DisplayGroupName}" FontSize="9.5" Foreground="{DynamicResource TextDimBrush}" />
                               </StackPanel>
                             </DataTemplate>
                           </ListBox.ItemTemplate>

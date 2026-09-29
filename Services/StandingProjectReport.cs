@@ -241,17 +241,40 @@ public static class StandingProjectReport
 
     /// <summary>How a definition reads in the picker: one line per definition, unexpanded.</summary>
     public static string Describe(Models.CorpStandingProject p) =>
+        DescribeWith(p, p.ItemTypeName, p.SolarSystemName, p.ScopeEntityName);
+
+    /// <summary>
+    /// <see cref="Describe(Models.CorpStandingProject)"/> as a screen shows it: the item, the
+    /// system, and a rule's region or constellation in the interface language. A delivery's
+    /// station keeps ESI's English, and an alliance belongs to players and has no other name.
+    /// ⚠️ For showing only — a picker keeps the definition by its id.
+    /// </summary>
+    public static string DescribeShown(Models.CorpStandingProject p) =>
+        DescribeWith(p,
+            p.ItemTypeId    is int item   ? SdeNames.Type(item, p.ItemTypeName)             : p.ItemTypeName,
+            p.SolarSystemId is int system ? SdeNames.SolarSystem(system, p.SolarSystemName) : p.SolarSystemName,
+            p.ScopeEntityId is int scope
+                ? p.ScopeType switch
+                  {
+                      "region_adm"        => SdeNames.Region(scope, p.ScopeEntityName),
+                      "constellation_adm" => SdeNames.Constellation(scope, p.ScopeEntityName),
+                      _                   => p.ScopeEntityName,
+                  }
+                : p.ScopeEntityName);
+
+    /// <summary>The one line, with the names it is given.</summary>
+    private static string DescribeWith(Models.CorpStandingProject p, string item, string system, string scope) =>
         p.ProjectType == DeliverItem
-            ? $"{p.ItemTypeName}{(p.StationName.Length > 0 ? " → " + p.StationName : "")}"
+            ? $"{item}{(p.StationName.Length > 0 ? " → " + p.StationName : "")}"
             : p.ScopeType switch
             {
                 // ⚠️ Named by its RULE, not by the systems it currently picks. That set changes
                 // with sovereignty, and a picker that renamed itself every time ADM moved would
                 // be unrecognisable from one week to the next.
-                "region_adm"        => string.Format(CorpText.PickerScopeRegionAdm, p.ScopeEntityName, p.MinAdm ?? 0),
-                "constellation_adm" => string.Format(CorpText.PickerScopeConstellationAdm, p.ScopeEntityName, p.MinAdm ?? 0),
-                "alliance_sov"      => string.Format(CorpText.PickerScopeAllianceSov, p.ScopeEntityName, p.MinAdm ?? 0),
-                _                   => p.SolarSystemName,
+                "region_adm"        => string.Format(CorpText.PickerScopeRegionAdm, scope, p.MinAdm ?? 0),
+                "constellation_adm" => string.Format(CorpText.PickerScopeConstellationAdm, scope, p.MinAdm ?? 0),
+                "alliance_sov"      => string.Format(CorpText.PickerScopeAllianceSov, scope, p.MinAdm ?? 0),
+                _                   => system,
             };
 
     /// <summary>

@@ -80,9 +80,13 @@ public record LpOfferRow(string Item, int TypeId, int Quantity, int LpCost, long
     public string LpText  => LpCost.ToString("N0");
     public string IskText => IskCost > 0 ? IskCost.ToString("N0") : "—";
 }
+/// <param name="Contested">The system's state as the screen words it.</param>
+/// <param name="Role">Whether the faction owns the system or occupies it, as the screen words it.</param>
+/// <param name="State">ESI's word for the state — "contested", "captured"… ⚠️ Compare this,
+/// never Contested.</param>
 public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold,
                                 string Role, string Owner, string Occupier,
-                                long OwnerFactionId = 0, long OccupierFactionId = 0)
+                                long OwnerFactionId = 0, long OccupierFactionId = 0, string State = "")
 {
     /// <summary>Progress toward a flip. The raw pair means little without the ratio.</summary>
     public string ContestedPercent => Threshold > 0 ? $"{(double)Points / Threshold * 100:0.#}%" : "";
@@ -845,7 +849,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var rows = await db.Database.SqlQueryRaw<NpcOrderItemRow>("""
             SELECT o."IsBuyOrder", o."TypeId",
-                   COALESCE(t."Name", 'Type ' || o."TypeId") AS "Item",
+                   COALESCE(t."Name", '') AS "Item",
                    MIN(o."Price") AS "LowPrice",
                    MAX(o."Price") AS "HighPrice"
             FROM (SELECT DISTINCT "OrderId", "TypeId", "IsBuyOrder", "Price", "LocationId"
@@ -860,9 +864,14 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             """, AppDb.Param("@id", corpId)).ToListAsync(ct);
 
         // The items in the interface language, in the order they read.
-        return [.. rows.Select(r => r with { Item = SdeNames.Type(r.TypeId, r.Item) })
+        return [.. rows.Select(r => r with { Item = ItemShown(r.TypeId, r.Item) })
                        .OrderBy(r => r.Item, StringComparer.CurrentCulture)];
     }
+
+    /// <summary>An item as the entity tools show it: in the interface language, or by its number
+    /// when the SDE has no row for it — the queries leave the name blank rather than word that.</summary>
+    private static string ItemShown(int typeId, string english) =>
+        english.Length > 0 ? SdeNames.Type(typeId, english) : string.Format(CommonText.TypeNumbered, typeId);
 
     /// <summary>
     /// Which regions the order list above could have drawn on — the market configs actually
@@ -913,7 +922,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var offers = await db.Database.SqlQueryRaw<LpOfferRaw>("""
-            SELECT o."OfferId", COALESCE(t."Name", 'Type ' || o."TypeId") AS "Item",
+            SELECT o."OfferId", COALESCE(t."Name", '') AS "Item",
                    o."TypeId", o."Quantity", o."LpCost", o."IskCost"
             FROM "EsiLpStoreOffers" o
             LEFT JOIN "SdeTypes" t ON t."TypeId" = o."TypeId"
@@ -925,17 +934,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         // The items, offered and required, in the interface language. The offers keep their
         // order by LP cost.
         var required = (await db.Database.SqlQueryRaw<LpReqRaw>("""
-            SELECT i."OfferId", i."Quantity", i."TypeId", COALESCE(t."Name", 'Type ' || i."TypeId") AS "Item"
+            SELECT i."OfferId", i."Quantity", i."TypeId", COALESCE(t."Name", '') AS "Item"
             FROM "EsiLpStoreOfferItems" i
             LEFT JOIN "SdeTypes" t ON t."TypeId" = i."TypeId"
             WHERE i."CorporationId" = @id
             """, AppDb.Param("@id", corpId)).ToListAsync(ct))
             .GroupBy(r => r.OfferId)
             .ToDictionary(g => g.Key, g => string.Join(", ",
-                g.Select(x => $"{x.Quantity:N0} × {SdeNames.Type(x.TypeId, x.Item)}")));
+                g.Select(x => $"{x.Quantity:N0} × {ItemShown(x.TypeId, x.Item)}")));
 
         return offers.Select(o => new LpOfferRow(
-            SdeNames.Type(o.TypeId, o.Item), o.TypeId, o.Quantity, o.LpCost, o.IskCost,
+            ItemShown(o.TypeId, o.Item), o.TypeId, o.Quantity, o.LpCost, o.IskCost,
             required.GetValueOrDefault(o.OfferId, "—"))).ToList();
     }
 
@@ -943,25 +952,25 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<EntityMemberRow>> FactionCorpsAsync(long factionId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        // ⚠️ Every column EntityMemberRow declares has to be in the SELECT, even the ones this
-        // query has nothing to say about. The record gives Level, Division, Station and StationId
-        // C# defaults, but a default applies to a constructor called from C# — EF materialising a
-        // FromSql result demands the column exist and fails the whole query otherwise ("The
-        // required column 'Division' was not present"). The agent queries above selected all seven
-        // when they read this record too, which is why this was the only one that broke.
-        var rows = await db.Database.SqlQueryRaw<EntityMemberRow>("""
+        // The station count as a number, and the rows made here: the subtitle is a counted phrase,
+        // which takes a different form per number in some languages (Plurals). ⚠️ Not read straight
+        // into EntityMemberRow: EF materialising a FromSql result wants every column the record
+        // declares in the SELECT, defaults or not ("The required column 'Division' was not present").
+        var rows = await db.Database.SqlQueryRaw<FactionCorpRaw>("""
             SELECT n."CorporationId" AS "Id", n."Name",
-                   (SELECT COUNT(*) FROM "SdeStations" s WHERE s."CorporationId" = n."CorporationId")
-                       || ' station(s)' AS "Subtitle",
-                   0 AS "Level", '' AS "Division", '' AS "Station", 0 AS "StationId"
+                   CAST((SELECT COUNT(*) FROM "SdeStations" s WHERE s."CorporationId" = n."CorporationId")
+                        AS INTEGER) AS "Stations"
             FROM "SdeNpcCorporations" n
             WHERE n."FactionId" = @id
             """, AppDb.Param("@id", factionId)).ToListAsync(ct);
 
         // The corporations in the interface language, in the order they read.
-        return [.. rows.Select(r => r with { Name = SdeNames.NpcCorporation(r.Id, r.Name) })
+        return [.. rows.Select(r => new EntityMemberRow(r.Id, SdeNames.NpcCorporation(r.Id, r.Name),
+                           Plurals.Format(CorpText.ResourceManager, nameof(CorpText.CorpStationsOther), r.Stations)))
                        .OrderBy(r => r.Name, StringComparer.CurrentCulture)];
     }
+
+    private sealed record FactionCorpRaw(long Id, string Name, int Stations);
 
     /// <summary>
     /// Faction warfare systems, from the same snapshot the map overlay uses. Held systems
@@ -977,13 +986,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         // newest bucket only.
         var rows = await db.Database.SqlQueryRaw<WarfareRaw>("""
             SELECT fw."SystemId",
-                   COALESCE(ss."Name", 'System ' || fw."SystemId") AS "System",
+                   COALESCE(ss."Name",'')       AS "System",
                    COALESCE(r."RegionId", 0)    AS "RegionId",
                    COALESCE(r."Name",'')       AS "Region",
                    fw."ContestedState"          AS "Contested",
                    fw."VictoryPoints"           AS "Points",
                    fw."VictoryPointsThreshold"  AS "Threshold",
-                   CASE WHEN fw."OwnerFactionId" = @id THEN 'Owner' ELSE 'Occupier' END AS "Role",
                    fw."OwnerFactionId",
                    COALESCE(fo."Name",'')       AS "Owner",
                    fw."OccupierFactionId",
@@ -998,21 +1006,36 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
               AND (fw."OwnerFactionId" = @id OR fw."OccupierFactionId" = @id)
             """, AppDb.Param("@id", factionId)).ToListAsync(ct);
 
-        // The places and the factions in the interface language. Contested and captured systems
-        // first, then by region and system as they read.
+        // The places and the factions in the interface language, and the role and the state worded
+        // for the screen; ESI's word for the state rides along as State, which the sort reads.
+        // Contested and captured systems first, then by region and system as they read.
         return [.. rows
             .Select(r => new FactionWarfareRow(
-                SdeNames.SolarSystem(r.SystemId, r.System), SdeNames.Region(r.RegionId, r.Region),
-                r.Contested, r.Points, r.Threshold, r.Role,
+                r.System.Length > 0 ? SdeNames.SolarSystem(r.SystemId, r.System)
+                                    : string.Format(CorpText.FallbackSystemName, r.SystemId),
+                SdeNames.Region(r.RegionId, r.Region),
+                ContestedShown(r.Contested), r.Points, r.Threshold,
+                r.OwnerFactionId == factionId ? CorpText.FwRoleOwner : CorpText.FwRoleOccupier,
                 SdeNames.Faction(r.OwnerFactionId, r.Owner), SdeNames.Faction(r.OccupierFactionId, r.Occupier),
-                r.OwnerFactionId, r.OccupierFactionId))
-            .OrderBy(r => (r.Contested is "contested" or "captured") ? 0 : 1)
+                r.OwnerFactionId, r.OccupierFactionId, r.Contested))
+            .OrderBy(r => (r.State is "contested" or "captured") ? 0 : 1)
             .ThenBy(r => r.Region, StringComparer.CurrentCulture)
             .ThenBy(r => r.System, StringComparer.CurrentCulture)];
     }
 
+    /// <summary>A faction warfare system's state as shown, in the words the map's overlay uses for
+    /// the same states; ESI's own word for one they do not cover.</summary>
+    private static string ContestedShown(string state) => state switch
+    {
+        "captured"    => MapText.FwCaptured,
+        "contested"   => MapText.FwContested,
+        "uncontested" => MapText.FwUncontested,
+        "vulnerable"  => MapText.FwVulnerable,
+        _             => state,
+    };
+
     private sealed record WarfareRaw(int SystemId, string System, int RegionId, string Region, string Contested,
-                                     int Points, int Threshold, string Role,
+                                     int Points, int Threshold,
                                      int OwnerFactionId, string Owner, int OccupierFactionId, string Occupier);
 
     private record LpOfferRaw(int OfferId, string Item, int TypeId, int Quantity, int LpCost, long IskCost);

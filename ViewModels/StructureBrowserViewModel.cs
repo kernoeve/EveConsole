@@ -545,14 +545,14 @@ public class StructureBrowserViewModel : ReactiveObject
     {
         ModuleOptions.Clear();
 
+        // The module or its group, by the name shown or the English. The list shows DisplayName
+        // and DisplayGroupName; only the TypeId is ever written.
         var needle = ModuleFilter.Trim();
         foreach (var o in _allModuleOptions)
             if (needle.Length == 0 ||
-                SdeNames.Matches(SdeNameKind.Type, o.TypeId, o.Name, needle) ||
-                o.GroupName.Contains(needle, StringComparison.OrdinalIgnoreCase))
-                // Listed, and named by the status line once fitted, as the interface names it.
-                // Only the TypeId is ever written.
-                ModuleOptions.Add(o with { Name = SdeNames.Type(o.TypeId, o.Name) });
+                SdeNames.Matches(SdeNameKind.Type,  o.TypeId,  o.Name,      needle) ||
+                SdeNames.Matches(SdeNameKind.Group, o.GroupId, o.GroupName, needle))
+                ModuleOptions.Add(o);
     }
 
     /// <summary>
@@ -576,11 +576,8 @@ public class StructureBrowserViewModel : ReactiveObject
         SelectedModule = null;
         PickerOpen   = true;
 
-        // Grouped as the service groups them, and in the order of the names shown within each.
-        _allModuleOptions = (await _fittingOptions.OptionsAsync(slot.Band, (int)row.TypeId))
-            .OrderBy(o => o.GroupName, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(o => SdeNames.Type(o.TypeId, o.Name), StringComparer.CurrentCulture)
-            .ToList();
+        // In the service's order: by group, then module, as both are shown.
+        _allModuleOptions = await _fittingOptions.OptionsAsync(slot.Band, (int)row.TypeId);
         ApplyModuleFilter();
 
         DetailStatus = _allModuleOptions.Count == 0
@@ -602,7 +599,7 @@ public class StructureBrowserViewModel : ReactiveObject
         if (Selected is not { } row) return;
 
         await WriteSlotAsync(row.StructureId, slot, module.TypeId);
-        DetailStatus = string.Format(MapText.StatusFitted, module.Name);
+        DetailStatus = string.Format(MapText.StatusFitted, module.DisplayName);
     }
 
     private async Task ClearSlotAsync()

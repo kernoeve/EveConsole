@@ -106,12 +106,13 @@ public class FittingOptionService(IDbContextFactory<AppDbContext> dbFactory)
             }
         }
 
-        // ⚠️ Sorted by the English, which is what the Structure Browser's picker shows today. When
-        // it shows DisplayName and DisplayGroupName instead, sort by those, CurrentCulture.
+        // In the order of what the Structure Browser's picker shows — DisplayGroupName, then
+        // DisplayName — so the names are waited for first. CurrentCulture sorts Chinese by pinyin.
+        await SdeNames.EnsureLoadedAsync(ct);
         return options
             .Select(o => new FittingOption(o.TypeId, o.Name, o.GroupName, o.GroupId))
-            .OrderBy(o => o.GroupName, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(o => o.DisplayGroupName, StringComparer.CurrentCulture)
+            .ThenBy(o => o.DisplayName, StringComparer.CurrentCulture)
             .ToList();
     }
 }
