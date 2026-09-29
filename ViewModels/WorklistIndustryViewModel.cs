@@ -81,7 +81,7 @@ public sealed class IndyCharRow : ReactiveObject
             if (_manufacturing) parts.Add(WorklistText.ActivityManufacturing);
             if (_reactions)     parts.Add(WorklistText.ActivityReactions);
             if (_science)       parts.Add(WorklistText.ActivityScience);
-            return parts.Count == 0 ? WorklistText.ActivitiesNone : string.Join(", ", parts);
+            return parts.Count == 0 ? WorklistText.ActivitiesNone : string.Join(CommonText.ListSeparator, parts);
         }
     }
 
@@ -617,7 +617,7 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     /// <summary>The first few unlinked structures, for the park warning's parentheses.</summary>
     private static string UnlinkedNames(List<string> unlinked) =>
-        string.Join(", ", unlinked.Take(3)) + (unlinked.Count > 3 ? ", …" : "");
+        string.Join(CommonText.ListSeparator, unlinked.Take(3)) + (unlinked.Count > 3 ? CommonText.ListSeparator + "…" : "");
 
     /// <summary>
     /// Writes one character's activity switches back.

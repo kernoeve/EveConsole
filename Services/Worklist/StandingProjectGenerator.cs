@@ -96,7 +96,9 @@ public class StandingProjectGenerator(
     /// </summary>
     private static (string? Title, string Detail) Describe(StandingProjectGridRow r)
     {
-        var deliver = r.TypeDisplay == "Deliver Item";
+        // ⚠️ By the stored type, never TypeDisplay: that is translated, and a delivery read as
+        // "Deliver Item" would have been taken for destroy-NPC in any other language.
+        var deliver = r.ProjectType == StandingProjectReport.DeliverItem;
 
         // ⚠️ Two scopes reach here as different shapes, and the difference matters to the reader.
         // A definition naming one system carries it in TargetDisplay with no dest. An ADM rule

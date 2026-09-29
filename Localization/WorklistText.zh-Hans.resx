@@ -1327,4 +1327,7 @@
   <data name="TasksOther" xml:space="preserve">
     <value>{0:N0} 个工作项</value>
   </data>
+  <data name="BlockedNoBuyLocation" xml:space="preserve">
+    <value>“市场”标签页上未设置购买地点</value>
+  </data>
 </root>

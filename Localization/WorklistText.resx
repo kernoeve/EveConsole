@@ -2045,7 +2045,7 @@
     <comment>Why a Worklist purchase is blocked. {0} is the buy location; a market alt is a character assigned to buy there (Market tab).</comment>
   </data>
   <data name="BlockedNoBuyLocation" xml:space="preserve">
-    <value>No buy location set on the Industry tab</value>
+    <value>No buy location set on the Market tab</value>
     <comment>Why a Worklist purchase is blocked: no station is set to buy shortfalls at.</comment>
   </data>
   <data name="WantedByPlannedBuilds" xml:space="preserve">

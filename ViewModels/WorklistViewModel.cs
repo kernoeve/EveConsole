@@ -2181,7 +2181,7 @@ public class WorklistViewModel : ReactiveObject
                 if (!ShowNotReady && waiting > 0) hidden.Add(string.Format(WorklistText.HiddenWaiting, waiting));
                 if (!ShowSnoozed  && snoozed > 0) hidden.Add(string.Format(WorklistText.HiddenSnoozed, snoozed));
 
-                _hiddenTail = hidden.Count > 0 ? " " + string.Format(WorklistText.HiddenList, string.Join(", ", hidden)) : "";
+                _hiddenTail = hidden.Count > 0 ? " " + string.Format(WorklistText.HiddenList, string.Join(CommonText.ListSeparator, hidden)) : "";
                 UpdateStatus();
 
                 Errors = failed.Count == 0
