@@ -1,0 +1,355 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:fit="using:EveConsole.Services.Fitting"
+             xmlns:ctl="using:EveConsole.Controls"
+             xmlns:views="using:EveConsole.Views"
+             x:Class="EveConsole.Views.FitTabView"
+             x:DataType="vm:FitTabViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize"   Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Margin"     Value="0 14 0 4" />
+    </Style>
+    <Style Selector="TextBlock.big">
+      <Setter Property="FontSize"   Value="18" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="TextBlock.line">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.over">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="ProgressBar">
+      <Setter Property="Minimum"  Value="0" />
+      <Setter Property="Maximum"  Value="1" />
+      <Setter Property="Height"   Value="4" />
+      <Setter Property="MinHeight" Value="4" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="ProgressBar.over">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Button.tool">
+      <Setter Property="Padding"  Value="10 4" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <!-- Module state: grey when off, plain when online, lit when active, warm when overheated. -->
+    <Style Selector="Button.state">
+      <Setter Property="Width"    Value="40" />
+      <Setter Property="Padding"  Value="0 2" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.state.off">
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="Button.state.active">
+      <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+    </Style>
+    <Style Selector="Button.state.heated">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    </Style>
+    <Style Selector="Button.heat">
+      <Setter Property="Width"    Value="30" />
+      <Setter Property="Padding"  Value="0 2" />
+      <Setter Property="FontSize" Value="8" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.heat.on">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Button.remove">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6 0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- One fit: hull and pilot, the ring and the module list, and its numbers. -->
+  <Grid ColumnDefinitions="*,340" Background="{DynamicResource SurfaceBaseBrush}">
+    <DockPanel Grid.Column="0" Margin="14 10">
+
+      <!-- Hull, name, pilot -->
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0 0 0 8">
+        <Border Grid.Column="0" Width="64" Height="64" Margin="0 0 12 0" CornerRadius="3"
+                Background="{DynamicResource SurfaceRaisedBrush}">
+          <Image Source="{Binding ShipIcon}" Width="64" Height="64" />
+        </Border>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+          <TextBlock Text="{Binding ShipName}" Classes="big" IsVisible="{Binding HasShip}" />
+          <TextBlock Text="No hull yet — pick one from Items (Hulls)" FontSize="13"
+                     Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding !HasShip}" />
+          <TextBox Text="{Binding FitName}" Watermark="Fit name" MaxWidth="380" HorizontalAlignment="Left" FontSize="12" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="3">
+          <TextBlock Text="PILOT" Classes="section" Margin="0" />
+          <ComboBox ItemsSource="{Binding SkillSources}" SelectedItem="{Binding SelectedSkillSource}" MinWidth="180"
+                    ToolTip.Tip="Whose skills the numbers are calculated with" />
+        </StackPanel>
+      </Grid>
+
+      <TextBlock DockPanel.Dock="Bottom" Text="{Binding GameSourceText}" FontSize="11" IsVisible="{Binding HasGameSource}"
+                 Foreground="{DynamicResource InfoBrush}" Margin="0 4 0 0" />
+
+      <Grid RowDefinitions="3*,Auto,2*">
+        <!-- The ring: slots around the hull, as in the game. Click a module to switch it,
+             right-click for more; click an empty slot to look for something to put there. -->
+        <ctl:FittingCanvas Grid.Row="0" x:Name="Ring" MinHeight="260" MaxSlotSize="44"
+                           Slots="{Binding RingSlots}" HullRender="{Binding ShipRender}"
+                           SelectedTag="{Binding SelectedModule}" SlotClickedCommand="{Binding RingSlotClickedCommand}" />
+        <GridSplitter Grid.Row="1" Height="5" Background="{DynamicResource BorderSubtleBrush}" ResizeDirection="Rows" />
+      <ScrollViewer Grid.Row="2">
+        <StackPanel>
+          <ItemsControl ItemsSource="{Binding SlotGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingSlotGroupVm">
+                <StackPanel Margin="0 0 0 6">
+                  <TextBlock Text="{Binding Title}" Classes="section" Classes.over="{Binding Over}" />
+                  <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FittingModuleRowVm">
+                        <Border Background="Transparent" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1"
+                                Padding="2 3" PointerPressed="OnRowPressed">
+                          <Panel>
+                            <TextBlock Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" FontSize="11"
+                                       Foreground="{DynamicResource TextFaintBrush}" Margin="78 4 0 4" />
+                            <Grid ColumnDefinitions="Auto,Auto,*,Auto,70,Auto" IsVisible="{Binding !IsEmpty}">
+                              <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3" Width="74" VerticalAlignment="Center">
+                                <Button Classes="state" IsVisible="{Binding CanToggle}"
+                                        Classes.off="{Binding IsOff}" Classes.active="{Binding IsActive}" Classes.heated="{Binding IsHeated}"
+                                        Content="{Binding StateLabel}" ToolTip.Tip="{Binding StateTip}"
+                                        Command="{Binding CycleStateCommand}" />
+                                <!-- Overheat is its own switch, as in the game; shown only where the
+                                     module can be overheated. -->
+                                <Button Classes="heat" Classes.on="{Binding IsHeated}" IsVisible="{Binding CanOverheat}"
+                                        Content="HEAT" ToolTip.Tip="{Binding HeatTip}" Command="{Binding HeatCommand}" />
+                              </StackPanel>
+                              <Image Grid.Column="1" Source="{Binding Icon}" Width="32" Height="32" Margin="6 0" />
+                              <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                              </StackPanel>
+                              <ComboBox Grid.Column="3" IsVisible="{Binding HasCharges}" ItemsSource="{Binding Charges}"
+                                        SelectedItem="{Binding Charge}" PlaceholderText="No charge" MinWidth="200" MaxWidth="260"
+                                        FontSize="11" VerticalAlignment="Center" Margin="6 0" />
+                              <TextBlock Grid.Column="4" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                                         VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                                         ToolTip.Tip="Market value of the module" />
+                              <Button Grid.Column="5" Classes="remove" Content="✕" Command="{Binding RemoveCommand}"
+                                      ToolTip.Tip="Remove" VerticalAlignment="Center" />
+                            </Grid>
+                          </Panel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="DRONES AND FIGHTERS" Classes="section" IsVisible="{Binding HasShip}" />
+          <ItemsControl ItemsSource="{Binding Drones}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingDroneRowVm">
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="2 3">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,70,Auto">
+                    <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Text="in bay" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0" />
+                    <NumericUpDown Grid.Column="3" Value="{Binding CountValue}" Minimum="1" Maximum="500" Increment="1"
+                                   FormatString="0" Width="100" FontSize="11" />
+                    <TextBlock Grid.Column="4" Text="launched" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="8 0 4 0" />
+                    <NumericUpDown Grid.Column="5" Value="{Binding ActiveValue}" Minimum="0" Maximum="500" Increment="1"
+                                   FormatString="0" Width="100" FontSize="11" />
+                    <TextBlock Grid.Column="6" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                               VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                               ToolTip.Tip="Market value of the whole stack" />
+                    <Button Grid.Column="7" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="CARGO HOLD" Classes="section" IsVisible="{Binding HasShip}" />
+          <ItemsControl ItemsSource="{Binding Cargo}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingCargoRowVm">
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="2 3">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto,70,Auto">
+                    <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Text="quantity" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0" />
+                    <NumericUpDown Grid.Column="3" Value="{Binding QuantityValue}" Minimum="1" Maximum="1000000000" Increment="1"
+                                   FormatString="N0" Width="130" FontSize="11" />
+                    <TextBlock Grid.Column="4" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                               VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                               ToolTip.Tip="Market value of the whole stack" />
+                    <Button Grid.Column="5" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="IMPLANTS AND BOOSTERS" Classes="section" IsVisible="{Binding HasShip}" />
+          <ItemsControl ItemsSource="{Binding Implants}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingImplantRowVm">
+                <Grid ColumnDefinitions="*,Auto,Auto" Margin="78 2 0 2">
+                  <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Kind}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0" VerticalAlignment="Center" />
+                  <Button Grid.Column="2" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+      </Grid>
+    </DockPanel>
+
+    <!-- ══ Stats ════════════════════════════════════════════════════════════ -->
+    <Border Grid.Column="1" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1 0 0 0" Padding="12 4 12 10">
+      <ScrollViewer>
+        <StackPanel IsVisible="{Binding HasStats}">
+
+          <TextBlock Text="RESOURCES" Classes="section" />
+          <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Text="CPU" Classes="line" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CpuText}" Classes="line" Classes.over="{Binding CpuOver}" HorizontalAlignment="Right" />
+            <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Value="{Binding CpuFraction}" Classes.over="{Binding CpuOver}" Margin="0 1 0 5" />
+            <TextBlock Grid.Row="2" Text="Powergrid" Classes="line" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PowerText}" Classes="line" Classes.over="{Binding PowerOver}" HorizontalAlignment="Right" />
+            <ProgressBar Grid.Row="3" Grid.ColumnSpan="2" Value="{Binding PowerFraction}" Classes.over="{Binding PowerOver}" Margin="0 1 0 5" />
+            <TextBlock Grid.Row="4" Text="Calibration" Classes="line" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CalibText}" Classes="line" Classes.over="{Binding CalibOver}" HorizontalAlignment="Right" />
+            <ProgressBar Grid.Row="5" Grid.ColumnSpan="2" Value="{Binding CalibFraction}" Classes.over="{Binding CalibOver}" Margin="0 1 0 5" />
+          </Grid>
+          <TextBlock Text="{Binding HardpointsText}" Classes="line" Classes.over="{Binding HardpointsOver}" />
+          <TextBlock Text="{Binding DroneText}" Classes="line" Classes.over="{Binding DroneOver}" />
+          <TextBlock Text="{Binding CargoText}" Classes="line" Classes.over="{Binding CargoOver}" />
+
+          <TextBlock Text="VALUE" Classes="section" />
+          <TextBlock Text="{Binding ValueText}" Classes="big" />
+          <TextBlock Text="{Binding ValueBreakdown}" Classes="line" />
+          <TextBlock Text="{Binding ValueBasis}" Classes="line" Foreground="{DynamicResource TextFaintBrush}" />
+
+          <TextBlock Text="OFFENSE" Classes="section" />
+          <TextBlock Text="{Binding DpsText}" Classes="big" />
+          <TextBlock Text="{Binding DpsSplitText}" Classes="line" />
+          <TextBlock Text="{Binding DamageTypesText}" Classes="line" />
+
+          <TextBlock Text="DEFENSE" Classes="section" />
+          <!-- The damage the tank is judged against. Even damage unless chosen; remembered. -->
+          <Grid ColumnDefinitions="Auto,*" Margin="0 0 0 6">
+            <TextBlock Text="Against" Classes="line" VerticalAlignment="Center" Margin="0 0 8 0" />
+            <ComboBox Grid.Column="1" ItemsSource="{Binding DamageProfiles}" SelectedItem="{Binding SelectedProfile}"
+                      HorizontalAlignment="Stretch" FontSize="11" />
+          </Grid>
+          <Grid ColumnDefinitions="*,*,*,*" Margin="0 0 0 6" IsVisible="{Binding IsCustomProfile}"
+                ToolTip.Tip="Relative amounts of each damage type — any scale">
+            <StackPanel Grid.Column="0" Margin="0 0 4 0">
+              <TextBlock Text="EM" Classes="line" />
+              <NumericUpDown Value="{Binding CustomEm}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0 0 4 0">
+              <TextBlock Text="Thermal" Classes="line" />
+              <NumericUpDown Value="{Binding CustomThermal}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="0 0 4 0">
+              <TextBlock Text="Kinetic" Classes="line" />
+              <NumericUpDown Value="{Binding CustomKinetic}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+            <StackPanel Grid.Column="3">
+              <TextBlock Text="Explosive" Classes="line" />
+              <NumericUpDown Value="{Binding CustomExplosive}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+          </Grid>
+          <TextBlock Text="{Binding EhpText}" Classes="big" ToolTip.Tip="Effective HP against even damage of all four types" />
+          <Grid ColumnDefinitions="52,*,*,*,*,*,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="1" Text="HP"  Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="2" Text="EM"  Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="3" Text="Th"  Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="4" Text="Kin" Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="5" Text="Exp" Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="6" Text="EHP" Classes="line" HorizontalAlignment="Right" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding TankRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:TankLayerRow">
+                <Grid ColumnDefinitions="52,*,*,*,*,*,*">
+                  <TextBlock Grid.Column="0" Text="{Binding Layer}"     FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Hp}"        FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="2" Text="{Binding Em}"        FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="3" Text="{Binding Thermal}"   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="4" Text="{Binding Kinetic}"   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="5" Text="{Binding Explosive}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="6" Text="{Binding Ehp}"       FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- What the tank gets back: passive regeneration for a shield tank, and the modules
+               of an active one, each raw and as effective HP against even damage. -->
+          <TextBlock Text="{Binding RegenText}" Classes="line" Margin="0 6 0 0" />
+          <TextBlock Text="{Binding RepairText}" Classes="line" IsVisible="{Binding HasRepairs}" Margin="0 2 0 0" />
+
+          <TextBlock Text="CAPACITOR" Classes="section" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding CapText}" Classes="big" />
+            <TextBlock Text="{Binding CapStateText}" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource GoodBrush}" IsVisible="{Binding CapStable}" />
+            <TextBlock Text="{Binding CapStateText}" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding !CapStable}" />
+          </StackPanel>
+          <TextBlock Text="{Binding CapFlowText}" Classes="line" />
+
+          <TextBlock Text="NAVIGATION" Classes="section" />
+          <TextBlock Text="{Binding SpeedText}" Classes="big" />
+          <TextBlock Text="{Binding NavText}" Classes="line" />
+          <TextBlock Text="{Binding MassText}" Classes="line" />
+
+          <TextBlock Text="TARGETING" Classes="section" />
+          <TextBlock Text="{Binding TargetingText}" Classes="line" />
+          <TextBlock Text="{Binding SensorText}" Classes="line" />
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+  </Grid>
+</UserControl>

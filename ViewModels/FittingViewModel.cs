@@ -204,7 +204,6 @@ public sealed record SaveTarget(SaveKind Kind, string Label, long? CharacterId =
 
 public sealed record SaveRequest(string Name, IReadOnlyList<SaveTarget> Targets, SaveTarget Suggested);
 public sealed record SaveChoice(string Name, SaveTarget Target);
-public enum UnsavedChoice { Save, Discard, Cancel }
 
 /// <summary>Whose skills the fit is calculated with.</summary>
 public sealed record SkillSourceOption(string Name, long? CharacterId, int AllLevel)
@@ -242,54 +241,115 @@ public sealed class FitSnapshot
 
 // ── The tool ─────────────────────────────────────────────────────────────────
 
+/// <summary>
+/// The fitting tool: the game data, the item finder, the saved fits, and a tab per fit. Picking a
+/// hull, pasting a fit, opening one from the game or from the saved list each opens a new tab,
+/// so whatever was being worked on stays where it was.
+/// </summary>
 public class FittingViewModel : ReactiveObject
 {
-    private readonly IDbContextFactory<AppDbContext> _dbFactory;
-    private readonly FittingsService?                _fittings;
-    private readonly EveConsole.Api.EsiClient?       _esi;
-    private readonly ObservableCollection<Character>?   _characters;
-    private readonly ObservableCollection<Corporation>? _corporations;
+    public IDbContextFactory<AppDbContext>     DbFactory    { get; }
+    public FittingsService?                    Fittings     { get; }
+    public EveConsole.Api.EsiClient?           Esi          { get; }
+    public ObservableCollection<Character>?    Characters   { get; }
+    public ObservableCollection<Corporation>?  Corporations { get; }
 
-    private DogmaData?      _data;
-    private FittingCatalog? _catalog;
-    private DogmaEngine?    _lastEngine;
-    private readonly Dictionary<long, SkillSet> _skillCache = new();
+    public DogmaData?      Data    { get; private set; }
+    public FittingCatalog? Catalog { get; private set; }
 
-    // The fit itself: the hull, its modules in the order they were added, drones, implants, cargo.
-    private int _shipTypeId;
-    private readonly List<FittingModuleRowVm> _modules = [];
-
-    public ObservableCollection<FittingSlotGroupVm> SlotGroups { get; } = [];
-    public ObservableCollection<FittingDroneRowVm>  Drones     { get; } = [];
-    public ObservableCollection<FittingImplantRowVm> Implants  { get; } = [];
-    public ObservableCollection<FittingCargoRowVm>  Cargo      { get; } = [];
+    /// <summary>Whose skills a fit can be calculated with; each tab picks one.</summary>
+    public ObservableCollection<SkillSourceOption> SkillSources { get; } = [];
 
     public FittingViewModel(IDbContextFactory<AppDbContext> dbFactory, FittingsService? fittings = null,
         ObservableCollection<Character>? characters = null, ObservableCollection<Corporation>? corporations = null,
         EveConsole.Api.EsiClient? esi = null)
     {
-        _dbFactory    = dbFactory;
-        _fittings     = fittings;
-        _characters   = characters;
-        _corporations = corporations;
-        _esi          = esi;
-        LoadDamageProfile();
+        DbFactory    = dbFactory;
+        Fittings     = fittings;
+        Characters   = characters;
+        Corporations = corporations;
+        Esi          = esi;
 
-        NewFitCommand      = ReactiveCommand.CreateFromTask(async () => { if (await ConfirmLeaveAsync()) NewFit(announce: true); });
-        ImportEftCommand   = ReactiveCommand.CreateFromTask(ImportEftAsync);
-        CopyEftCommand     = ReactiveCommand.CreateFromTask(CopyEftAsync);
-        ImportEsiCommand   = ReactiveCommand.CreateFromTask(ImportEsiAsync);
-        DeleteSavedCommand = ReactiveCommand.CreateFromTask(DeleteSavedAsync);
-        AddSelectedCommand = ReactiveCommand.CreateFromTask(() => SelectedResult is { } r ? AddAsync(r) : Task.CompletedTask);
-        foreach (var c in new ReactiveCommandBase<Unit, Unit>[] { NewFitCommand, ImportEftCommand, CopyEftCommand, ImportEsiCommand, DeleteSavedCommand, AddSelectedCommand })
-            c.ThrownExceptions.Subscribe(ex => Status = ex.Message);
+        ImportEftCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEftAsync));
+        ImportEsiCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEsiAsync));
+        CopyEftCommand     = Guarded(ReactiveCommand.CreateFromTask(() => SelectedTab?.CopyEftAsync() ?? NoFit()));
+        SaveCommand        = Guarded(ReactiveCommand.CreateFromTask(async () => { if (SelectedTab is { } t) await t.SaveInteractiveAsync(); else await NoFit(); }));
+        DeleteSavedCommand = Guarded(ReactiveCommand.CreateFromTask(DeleteSavedAsync));
+        AddSelectedCommand = Guarded(ReactiveCommand.CreateFromTask(() => SelectedResult is { } r ? AddAsync(r) : Task.CompletedTask));
+        AddToCargoCommand  = Guarded(ReactiveCommand.Create(() =>
+        {
+            if (SelectedResult is not { } r) return;
+            if (SelectedTab is not { HasShip: true } tab) { Status = "Pick a hull first."; return; }
+            tab.AddToCargo(r, 1);
+        }));
 
         this.WhenAnyValue(x => x.SearchText, x => x.KindFilter, x => x.FitsOnly)
             .Throttle(TimeSpan.FromMilliseconds(150))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(__ => _ = RunSearchAsync());
-        this.WhenAnyValue(x => x.SelectedSkillSource).Skip(1)
-            .Subscribe(_ => ScheduleRecalc());
+    }
+
+    private Task NoFit()
+    {
+        Status = "Pick a hull or open a fit first.";
+        return Task.CompletedTask;
+    }
+
+    private ReactiveCommand<TIn, TOut> Guarded<TIn, TOut>(ReactiveCommand<TIn, TOut> c)
+    {
+        c.ThrownExceptions.Subscribe(ex => Status = ex.Message);
+        return c;
+    }
+
+    private string _status = "";
+    public string Status { get => _status; set => this.RaiseAndSetIfChanged(ref _status, value); }
+
+    // ── Tabs ────────────────────────────────────────────────────────────────────
+
+    public ObservableCollection<FitTabViewModel> Tabs { get; } = [];
+
+    private FitTabViewModel? _selectedTab;
+    public FitTabViewModel? SelectedTab
+    {
+        get => _selectedTab;
+        set
+        {
+            if (_selectedTab is not null) _selectedTab.IsSelected = false;
+            this.RaiseAndSetIfChanged(ref _selectedTab, value);
+            if (value is not null) value.IsSelected = true;
+            this.RaisePropertyChanged(nameof(HasTab));
+            _ = RunSearchAsync();   // "only what fits" follows the tab's hull
+        }
+    }
+    public bool HasTab => _selectedTab is not null;
+
+    public ReactiveCommand<FitTabViewModel, Unit> SelectTabCommand => _selectTab ??= ReactiveCommand.Create<FitTabViewModel>(t => SelectedTab = t);
+    private ReactiveCommand<FitTabViewModel, Unit>? _selectTab;
+
+    /// <summary>A new tab, calculated with the pilot of the tab it was opened from.</summary>
+    private FitTabViewModel NewTab()
+    {
+        var tab = new FitTabViewModel(this, SelectedTab?.SelectedSkillSource ?? SkillSources.FirstOrDefault());
+        Tabs.Add(tab);
+        SelectedTab = tab;
+        return tab;
+    }
+
+    public void CloseTab(FitTabViewModel tab)
+    {
+        var i = Tabs.IndexOf(tab);
+        if (i < 0) return;
+        Tabs.RemoveAt(i);
+        if (SelectedTab == tab) SelectedTab = Tabs.Count == 0 ? null : Tabs[Math.Min(i, Tabs.Count - 1)];
+    }
+
+    private int _searchedHull;
+
+    /// <summary>A tab finished calculating. When it is the one showing and its hull has changed
+    /// since the finder last looked, "only what fits" has something new to answer.</summary>
+    internal void TabCalculated(FitTabViewModel tab)
+    {
+        if (tab == SelectedTab && FitsOnly && tab.ShipTypeId != _searchedHull) _ = RunSearchAsync();
     }
 
     // ── Loading ─────────────────────────────────────────────────────────────────
@@ -305,9 +365,9 @@ public class FittingViewModel : ReactiveObject
         Status = "Loading game data…";
         try
         {
-            _data    = await Task.Run(() => DogmaData.LoadAsync(_dbFactory));
-            _catalog = await Task.Run(() => FittingCatalog.LoadAsync(_data, _dbFactory));
-            if (_data.Effects.Count == 0 || _catalog.Entries.Count == 0)
+            Data    = await Task.Run(() => DogmaData.LoadAsync(DbFactory));
+            Catalog = await Task.Run(() => FittingCatalog.LoadAsync(Data, DbFactory));
+            if (Data.Effects.Count == 0 || Catalog.Entries.Count == 0)
             {
                 Status = "No game data yet — import the SDE in Settings → SDE, then reopen this tool.";
                 return;
@@ -315,20 +375,18 @@ public class FittingViewModel : ReactiveObject
             // An SDE imported by a build before this tool has the effects but not their rules,
             // and every number would be a hull's bare base value. The update that adds them runs
             // by itself after upgrading; say so rather than show numbers that look plausible.
-            if (_data.Effects.Values.All(e => e.Modifiers.Count == 0))
+            if (Data.Effects.Values.All(e => e.Modifiers.Count == 0))
             {
                 Status = "The game data is being updated for fitting (Settings → SDE shows the progress). Reopen this tool when it finishes.";
-                _data = null;
+                Data = null;
                 return;
             }
             SkillSources.Clear();
             SkillSources.Add(new SkillSourceOption("All V", null, 5));
             SkillSources.Add(new SkillSourceOption("All 0", null, 0));
-            await using (var db = await _dbFactory.CreateDbContextAsync())
+            await using (var db = await DbFactory.CreateDbContextAsync())
                 foreach (var c in (await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync()).OrderBy(c => c.Name))
                     SkillSources.Add(new SkillSourceOption(c.Name, c.Id, 0));
-            _selectedSkillSource = SkillSources[0];
-            this.RaisePropertyChanged(nameof(SelectedSkillSource));
             await LoadSavedListAsync();
 
             IsReady = true;
@@ -359,9 +417,9 @@ public class FittingViewModel : ReactiveObject
     private CatalogEntry? _selectedResult;
     public CatalogEntry? SelectedResult { get => _selectedResult; set => this.RaiseAndSetIfChanged(ref _selectedResult, value); }
 
-    private async Task RunSearchAsync()
+    internal async Task RunSearchAsync()
     {
-        if (_catalog is null || _data is null) return;
+        if (Catalog is null || Data is null) return;
         HashSet<CatalogKind>? kinds = KindFilter switch
         {
             "Hulls"      => [CatalogKind.Hull],
@@ -380,13 +438,13 @@ public class FittingViewModel : ReactiveObject
         if (SearchText.Trim().Length < 2 && kinds is null) { SearchResults.Clear(); return; }
         if (kinds is not null && SearchText.Trim().Length == 0 && FinderSlot is null && kinds.Contains(CatalogKind.Module)) { SearchResults.Clear(); return; }
 
-        var found = _catalog.Search(SearchText, kinds)
+        var found = Catalog.Search(SearchText, kinds)
             .Where(f => FinderSlot is not { } only || f.Slot == only)
             .Take(400).ToList();
-        if (FitsOnly && _lastEngine is { } engine)
+        if (FitsOnly && SelectedTab?.LastEngine is { } engine)
         {
             // Slot and rig-size rules only; a full slot does not hide what could go in it.
-            await _data.LoadTypesAsync(found.Where(f => f.Kind is CatalogKind.Rig or CatalogKind.Subsystem or CatalogKind.Module).Select(f => f.TypeId));
+            await Data.LoadTypesAsync(found.Where(f => f.Kind is CatalogKind.Rig or CatalogKind.Subsystem or CatalogKind.Module).Select(f => f.TypeId));
             var shipSlots = new FitStats(engine);
             found = found.Where(f => f.Kind switch
             {
@@ -395,27 +453,247 @@ public class FittingViewModel : ReactiveObject
                 _ => true,
             }).ToList();
         }
+        _searchedHull = SelectedTab?.ShipTypeId ?? 0;
         SearchResults.Clear();
         foreach (var f in found.Take(200)) SearchResults.Add(f);
     }
 
     private bool RigSizeFits(DogmaEngine e, int typeId)
     {
-        if (_data!.Attribute("rigSize")?.Id is not { } rs) return true;
-        var t = _data.Type(typeId);
+        if (Data!.Attribute("rigSize")?.Id is not { } rs) return true;
+        var t = Data.Type(typeId);
         return t.Attr(rs) is not { } size || e.Value(e.Ship, rs) is var hull && (hull <= 0 || hull == size);
     }
 
     private bool HullAllows(DogmaEngine e, int typeId)
     {
-        var t = _data!.Type(typeId);
-        var groups = _data.AttributesByName.Values.Where(a => a.Name.StartsWith("canFitShipGroup")).Select(a => t.Attr(a.Id)).OfType<double>().ToList();
-        var hulls  = _data.AttributesByName.Values.Where(a => a.Name.StartsWith("canFitShipType")).Select(a => t.Attr(a.Id)).OfType<double>().ToList();
+        var t = Data!.Type(typeId);
+        var groups = Data.AttributesByName.Values.Where(a => a.Name.StartsWith("canFitShipGroup")).Select(a => t.Attr(a.Id)).OfType<double>().ToList();
+        var hulls  = Data.AttributesByName.Values.Where(a => a.Name.StartsWith("canFitShipType")).Select(a => t.Attr(a.Id)).OfType<double>().ToList();
         return (groups.Count == 0 && hulls.Count == 0) || groups.Contains(e.Ship.Type.GroupId) || hulls.Contains(e.Ship.Type.Id);
     }
 
     private bool FitsHull(DogmaEngine e, int typeId) =>
-        _data!.Attribute("fitsToShipType")?.Id is not { } f || _data.Type(typeId).Attr(f) is not { } hull || (int)hull == e.Ship.Type.Id;
+        Data!.Attribute("fitsToShipType")?.Id is not { } f || Data.Type(typeId).Attr(f) is not { } hull || (int)hull == e.Ship.Type.Id;
+
+    private FitSlot? _finderSlot;
+    /// <summary>When set, the finder lists only modules for this slot — set by clicking an empty
+    /// slot on the ring, cleared by the ✕ beside the note it shows.</summary>
+    public FitSlot? FinderSlot
+    {
+        get => _finderSlot;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _finderSlot, value);
+            this.RaisePropertyChanged(nameof(FinderSlotText));
+            this.RaisePropertyChanged(nameof(HasFinderSlot));
+            _ = RunSearchAsync();
+        }
+    }
+    public bool   HasFinderSlot  => _finderSlot is not null;
+    public string FinderSlotText => _finderSlot is { } s ? $"{char.ToUpper(FittingCatalog.SlotName(s)[0])}{FittingCatalog.SlotName(s)[1..]} slot modules only" : "";
+    public ReactiveCommand<Unit, Unit> ClearFinderSlotCommand => _clearFinderSlot ??= ReactiveCommand.Create(() => { FinderSlot = null; });
+    private ReactiveCommand<Unit, Unit>? _clearFinderSlot;
+
+    /// <summary>An empty slot was clicked on the ring: list what could go in it.</summary>
+    internal void PointFinderAt(FitSlot slot)
+    {
+        _finderSlot = slot;
+        this.RaisePropertyChanged(nameof(FinderSlot));
+        this.RaisePropertyChanged(nameof(FinderSlotText));
+        this.RaisePropertyChanged(nameof(HasFinderSlot));
+        KindFilter = slot switch { FitSlot.Rig => "Rigs", FitSlot.Subsystem => "Subsystems", _ => "Modules" };
+        FitsOnly   = true;
+        _ = RunSearchAsync();
+    }
+
+    // ── Adding from the finder ──────────────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> AddSelectedCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddToCargoCommand  { get; }
+
+    /// <summary>A hull opens a new tab; anything else goes on the fit in the tab that is showing.</summary>
+    public async Task AddAsync(CatalogEntry entry)
+    {
+        if (Data is null || Catalog is null) return;
+        if (entry.Kind == CatalogKind.Hull)
+        {
+            await Data.LoadTypesAsync([entry.TypeId]);
+            await NewTab().StartAsync(entry);
+            Status = $"{entry.Name} in a new tab. Now add modules from the list.";
+            return;
+        }
+        if (SelectedTab is not { HasShip: true } tab) { Status = "Pick a hull first."; return; }
+        await tab.AddAsync(entry);
+    }
+
+    // ── Import, export, saving ──────────────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> ImportEftCommand   { get; }
+    public ReactiveCommand<Unit, Unit> CopyEftCommand     { get; }
+    public ReactiveCommand<Unit, Unit> ImportEsiCommand   { get; }
+    public ReactiveCommand<Unit, Unit> SaveCommand        { get; }
+
+    /// <summary>Asks the view for EFT text to import; null when cancelled.</summary>
+    public Interaction<Unit, string?> AskEft { get; } = new();
+    /// <summary>Hands the view EFT text to put on the clipboard.</summary>
+    public Interaction<string, Unit> CopyText { get; } = new();
+    /// <summary>Asks the view to show the in-game fittings picker.</summary>
+    public Interaction<FitSelectorViewModel, EsiFittingData?> PickEsiFit { get; } = new();
+    /// <summary>Asks the view where to save; null when cancelled.</summary>
+    public Interaction<SaveRequest, SaveChoice?> AskSave { get; } = new();
+
+    private async Task ImportEftAsync()
+    {
+        if (Data is null) return;
+        var text = await AskEft.Handle(Unit.Default);
+        if (string.IsNullOrWhiteSpace(text)) return;
+        var parsed = await EftFormat.ParseAsync(text, Data);
+        await NewTab().LoadFitAsync(parsed.Fit);
+        Status = parsed.Unknown.Count == 0 ? $"Imported {parsed.Fit.Name}." : $"Imported, but not recognised: {string.Join(", ", parsed.Unknown)}";
+    }
+
+    private async Task ImportEsiAsync()
+    {
+        if (Data is null || Catalog is null) return;
+        if (Fittings is null || Characters is null || Corporations is null) { Status = "No characters to read fittings from."; return; }
+        var picker = new FitSelectorViewModel(Fittings, DbFactory, Characters, Corporations, [], 0) { ChooseGroup = false };
+        var esi = await PickEsiFit.Handle(picker);
+        if (esi is null) return;
+        var tab = NewTab();
+        await tab.LoadFitAsync(await EftFormat.FromEsiAsync(esi, Data, Catalog));
+
+        // A character's own fitting can be updated in place; a corporation's cannot be written at all.
+        if (picker.SelectedNode?.Entry is { Source: FitSource.Personal } entry
+            && Characters.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner)
+        {
+            tab.CurrentGameSource = new FitTabViewModel.GameSource(owner.Id, owner.Name, esi.FittingId, esi.Name);
+            // Calculated with the owner's skills unless a character pilot was already chosen.
+            if (tab.SelectedSkillSource?.CharacterId is null && SkillSources.FirstOrDefault(s => s.CharacterId == owner.Id) is { } pilot)
+                tab.SelectedSkillSource = pilot;
+        }
+        Status = $"Imported {esi.Name} from the game.";
+    }
+
+    // ── Saved fits ──────────────────────────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> DeleteSavedCommand { get; }
+    public ObservableCollection<SavedFitOption> SavedFits { get; } = [];
+
+    private SavedFitOption? _selectedSaved;
+    /// <summary>Choosing a saved fit opens it in a new tab.</summary>
+    public SavedFitOption? SelectedSaved
+    {
+        get => _selectedSaved;
+        set
+        {
+            var previous = _selectedSaved;
+            this.RaiseAndSetIfChanged(ref _selectedSaved, value);
+            if (value is not null && value != previous) _ = OpenSavedAsync(value);
+        }
+    }
+
+    internal async Task LoadSavedListAsync()
+    {
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var rows = await db.SavedFits.AsNoTracking().Select(f => new { f.Id, f.Name, f.ShipTypeId }).ToListAsync();
+        SavedFits.Clear();
+        foreach (var r in rows.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
+            SavedFits.Add(new SavedFitOption(r.Id, r.Name, Catalog?.Find(r.ShipTypeId)?.Name ?? ""));
+    }
+
+    private async Task OpenSavedAsync(SavedFitOption option)
+    {
+        if (Data is null) return;
+        await using var db = await DbFactory.CreateDbContextAsync();
+        var row = await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == option.Id);
+        if (row is null) return;
+        var parsed = await EftFormat.ParseAsync(row.Eft, Data);
+        var tab = NewTab();
+        await tab.LoadFitAsync(parsed.Fit);
+        tab.FitName = row.Name;
+        tab.MarkSavedInApp(row.Id);
+        Status = $"Opened {row.Name}.";
+    }
+
+    private async Task DeleteSavedAsync()
+    {
+        if (SelectedSaved is not { } sel) { Status = "Choose a saved fit to delete."; return; }
+        await using var db = await DbFactory.CreateDbContextAsync();
+        await db.SavedFits.Where(f => f.Id == sel.Id).ExecuteDeleteAsync();
+        _selectedSaved = null; this.RaisePropertyChanged(nameof(SelectedSaved));
+        await LoadSavedListAsync();
+        Status = $"Deleted {sel.Name}.";
+    }
+}
+
+/// <summary>
+/// One fit, in its own tab of the fitting tool: its hull, modules, drones, cargo and implants, and
+/// everything calculated from them. The tool opens a tab for every hull picked and every fit
+/// loaded, so a fit being worked on is never replaced by the next one.
+/// </summary>
+public class FitTabViewModel : ReactiveObject
+{
+    public FittingViewModel Tool { get; }
+    private IDbContextFactory<AppDbContext> _dbFactory => Tool.DbFactory;
+    private EveConsole.Api.EsiClient? _esi => Tool.Esi;
+    private DogmaData? _data => Tool.Data;
+    private FittingCatalog? _catalog => Tool.Catalog;
+
+    private DogmaEngine? _lastEngine;
+    /// <summary>The last calculation — what the finder's "only what fits" reads.</summary>
+    public DogmaEngine? LastEngine => _lastEngine;
+    private readonly Dictionary<long, SkillSet> _skillCache = new();
+
+    // The fit itself: the hull, its modules in the order they were added, drones, implants, cargo.
+    private int _shipTypeId;
+    public int ShipTypeId => _shipTypeId;
+    private readonly List<FittingModuleRowVm> _modules = [];
+    private long? _loadedSavedId;
+
+    public ObservableCollection<FittingSlotGroupVm> SlotGroups { get; } = [];
+    public ObservableCollection<FittingDroneRowVm>  Drones     { get; } = [];
+    public ObservableCollection<FittingImplantRowVm> Implants  { get; } = [];
+    public ObservableCollection<FittingCargoRowVm>  Cargo      { get; } = [];
+
+    public FitTabViewModel(FittingViewModel tool, SkillSourceOption? pilot)
+    {
+        Tool = tool;
+        LoadDamageProfile();
+        _selectedSkillSource = pilot ?? SkillSources.FirstOrDefault();
+        this.WhenAnyValue(x => x.SelectedSkillSource).Skip(1)
+            .Subscribe(_ => ScheduleRecalc());
+        CloseCommand = ReactiveCommand.Create(() => Tool.CloseTab(this));
+        SelectCommand = ReactiveCommand.Create(() => { Tool.SelectedTab = this; });
+    }
+
+    /// <summary>The tab's label: the fit's name, else the hull's.</summary>
+    public string TabTitle => FitName.Trim().Length > 0 ? FitName.Trim() : ShipName.Length > 0 ? ShipName : "New fit";
+    /// <summary>Changed since it was loaded or saved — the dot on the tab.</summary>
+    public bool TabDirty => IsDirty;
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectCommand { get; }
+
+    private bool _isSelected;
+    public bool IsSelected { get => _isSelected; set => this.RaiseAndSetIfChanged(ref _isSelected, value); }
+
+    /// <summary>A new fit on <paramref name="hull"/>.</summary>
+    public async Task StartAsync(CatalogEntry hull)
+    {
+        SetShip(hull.TypeId);
+        FitName = $"New {hull.Name}";
+        RebuildSlots();
+        await RecalculateAsync(CancellationToken.None);
+        MarkClean();
+    }
+
+    /// <summary>Recorded as saved in EVE Console under <paramref name="id"/> — a fit opened from the saved list.</summary>
+    internal void MarkSavedInApp(long id)
+    {
+        _loadedSavedId  = id;
+        _lastSavedToApp = id;
+        MarkClean();
+    }
 
     // ── Header: hull, name, pilot ───────────────────────────────────────────────
 
@@ -427,19 +705,16 @@ public class FittingViewModel : ReactiveObject
     public Bitmap? ShipIcon { get => _shipIcon; private set => this.RaiseAndSetIfChanged(ref _shipIcon, value); }
 
     private string _fitName = "";
-    public string FitName { get => _fitName; set => this.RaiseAndSetIfChanged(ref _fitName, value); }
+    public string FitName { get => _fitName; set { this.RaiseAndSetIfChanged(ref _fitName, value); this.RaisePropertyChanged(nameof(TabTitle)); } }
 
-    public ObservableCollection<SkillSourceOption> SkillSources { get; } = [];
+    public ObservableCollection<SkillSourceOption> SkillSources => Tool.SkillSources;
     private SkillSourceOption? _selectedSkillSource;
     public SkillSourceOption? SelectedSkillSource { get => _selectedSkillSource; set => this.RaiseAndSetIfChanged(ref _selectedSkillSource, value); }
 
-    private string _status = "";
-    public string Status { get => _status; set => this.RaiseAndSetIfChanged(ref _status, value); }
+    /// <summary>Messages go to the tool's status line, whichever tab they come from.</summary>
+    public string Status { get => Tool.Status; set => Tool.Status = value; }
 
     // ── Editing ─────────────────────────────────────────────────────────────────
-
-    public ReactiveCommand<Unit, Unit> AddSelectedCommand { get; }
-    public ReactiveCommand<Unit, Unit> NewFitCommand      { get; }
 
     /// <summary>The module row the user last clicked — where a charge picked in the finder goes.</summary>
     private FittingModuleRowVm? _selectedModule;
@@ -453,19 +728,6 @@ public class FittingViewModel : ReactiveObject
 
         switch (entry.Kind)
         {
-            case CatalogKind.Hull:
-                // A different hull starts a new fit: what is fitted belongs to the old one.
-                if (_shipTypeId != 0 && _shipTypeId != entry.TypeId)
-                {
-                    if (!await ConfirmLeaveAsync()) return;
-                    NewFit(announce: false);
-                }
-                SetShip(entry.TypeId);
-                if (FitName.Length == 0) FitName = $"New {entry.Name}";
-                MarkClean();
-                Status = $"{entry.Name}. Now add modules from the list.";
-                break;
-
             case CatalogKind.Module or CatalogKind.Rig or CatalogKind.Subsystem:
                 if (_shipTypeId == 0) { Status = "Pick a hull first."; return; }
                 // Checked against the fit as it is now, not the last debounced calculation, which
@@ -589,14 +851,6 @@ public class FittingViewModel : ReactiveObject
         _ = Task.Run(async () => { var b = await TypeIcons.GetAsync(typeId); Dispatcher.UIThread.Post(() => row.Icon = b); });
     }
 
-    public ReactiveCommand<Unit, Unit> AddToCargoCommand => _addToCargo ??= ReactiveCommand.Create(() =>
-    {
-        if (SelectedResult is not { } r) return;
-        if (_shipTypeId == 0) { Status = "Pick a hull first."; return; }
-        AddToCargo(r, 1);
-    });
-    private ReactiveCommand<Unit, Unit>? _addToCargo;
-
     private void AddDrone(int typeId, string name, int count, int active)
     {
         var row = new FittingDroneRowVm(typeId, name, count, active)
@@ -679,9 +933,7 @@ public class FittingViewModel : ReactiveObject
         }
         if (slot.Tag is FittingModuleRowVm empty)
         {
-            FinderSlot = empty.Slot;
-            KindFilter = empty.Slot switch { FitSlot.Rig => "Rigs", FitSlot.Subsystem => "Subsystems", _ => "Modules" };
-            FitsOnly   = true;
+            Tool.PointFinderAt(empty.Slot);
             Status     = $"Choose a {FittingCatalog.SlotName(empty.Slot)} slot module from Items.";
         }
     }
@@ -708,25 +960,6 @@ public class FittingViewModel : ReactiveObject
         _                                       => ModuleState.Offline,
     };
 
-    private FitSlot? _finderSlot;
-    /// <summary>When set, the finder lists only modules for this slot — set by clicking an empty
-    /// slot on the ring, cleared by the ✕ beside the note it shows.</summary>
-    public FitSlot? FinderSlot
-    {
-        get => _finderSlot;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _finderSlot, value);
-            this.RaisePropertyChanged(nameof(FinderSlotText));
-            this.RaisePropertyChanged(nameof(HasFinderSlot));
-            _ = RunSearchAsync();
-        }
-    }
-    public bool   HasFinderSlot  => _finderSlot is not null;
-    public string FinderSlotText => _finderSlot is { } s ? $"{char.ToUpper(FittingCatalog.SlotName(s)[0])}{FittingCatalog.SlotName(s)[1..]} slot modules only" : "";
-    public ReactiveCommand<Unit, Unit> ClearFinderSlotCommand => _clearFinderSlot ??= ReactiveCommand.Create(() => { FinderSlot = null; });
-    private ReactiveCommand<Unit, Unit>? _clearFinderSlot;
-
     /// <summary>Slot sections for the hull: what is fitted, then an empty row per free slot.</summary>
     private void RebuildSlots()
     {
@@ -751,7 +984,7 @@ public class FittingViewModel : ReactiveObject
     public sealed record GameSource(long CharacterId, string CharacterName, int FittingId, string Name);
 
     private GameSource? _gameSource;
-    private GameSource? CurrentGameSource
+    internal GameSource? CurrentGameSource
     {
         get => _gameSource;
         set
@@ -766,11 +999,6 @@ public class FittingViewModel : ReactiveObject
 
     // ── Saving: where, and whether there is anything unsaved ────────────────────
 
-    /// <summary>Asks the view where to save; null when cancelled.</summary>
-    public Interaction<SaveRequest, SaveChoice?> AskSave { get; } = new();
-    /// <summary>Asks the view what to do with unsaved changes before they are replaced.</summary>
-    public Interaction<string, UnsavedChoice> AskUnsaved { get; } = new();
-
     private ReactiveCommand<Unit, Unit> Guarded(ReactiveCommand<Unit, Unit> c)
     {
         c.ThrownExceptions.Subscribe(ex => Status = ex.Message);
@@ -780,11 +1008,15 @@ public class FittingViewModel : ReactiveObject
     /// <summary>The fit as last loaded or saved, in EFT — what "changed" is measured against.</summary>
     private string _baseline = "";
 
-    private void MarkClean() => _baseline = _data is null || _shipTypeId == 0 ? "" : EftFormat.Write(CurrentFit(), _data);
+    private void MarkClean()
+    {
+        _baseline = _data is null || _shipTypeId == 0 ? "" : EftFormat.Write(CurrentFit(), _data);
+        this.RaisePropertyChanged(nameof(TabDirty));
+    }
 
     /// <summary>
     /// Whether the fit has changed since it was loaded or saved. A bare hull with nothing on it is
-    /// not worth asking about, and module states (on, active, overheated) are not part of any fit
+    /// not worth marking, and module states (on, active, overheated) are not part of any fit
     /// format, so switching modules on and off does not count.
     /// </summary>
     public bool IsDirty
@@ -796,22 +1028,6 @@ public class FittingViewModel : ReactiveObject
             if (fit.Modules.Count + fit.Drones.Count + fit.Cargo.Count + fit.Implants.Count + fit.Boosters.Count == 0) return false;
             return EftFormat.Write(fit, _data) != _baseline;
         }
-    }
-
-    /// <summary>
-    /// Before anything replaces the fit: offers to save unsaved changes. True to go ahead —
-    /// saved, or the user chose not to — false to stay where they are.
-    /// </summary>
-    public async Task<bool> ConfirmLeaveAsync()
-    {
-        if (!IsDirty) return true;
-        var name = FitName.Trim().Length > 0 ? FitName.Trim() : ShipName;
-        return await AskUnsaved.Handle($"\"{name}\" has changes that have not been saved.") switch
-        {
-            UnsavedChoice.Save    => await SaveInteractiveAsync(),
-            UnsavedChoice.Discard => true,
-            _                     => false,
-        };
     }
 
     /// <summary>
@@ -837,9 +1053,6 @@ public class FittingViewModel : ReactiveObject
         return targets;
     }
 
-    public ReactiveCommand<Unit, Unit> SaveCommand => _save ??= Guarded(ReactiveCommand.CreateFromTask(async () => { await SaveInteractiveAsync(); }));
-    private ReactiveCommand<Unit, Unit>? _save;
-
     /// <summary>Asks where to save, and saves there. True when it was saved.</summary>
     public async Task<bool> SaveInteractiveAsync()
     {
@@ -850,7 +1063,7 @@ public class FittingViewModel : ReactiveObject
                 ? targets.FirstOrDefault(t => t.Kind == SaveKind.GameNew && t.CharacterId == pilot && t.Enabled) ?? targets[0]
                 : targets[0];
         var name = FitName.Trim().Length > 0 ? FitName.Trim() : $"{ShipName} fit";
-        var choice = await AskSave.Handle(new SaveRequest(name, targets, suggested));
+        var choice = await Tool.AskSave.Handle(new SaveRequest(name, targets, suggested));
         if (choice is null) return false;
         FitName = choice.Name;
 
@@ -1108,6 +1321,8 @@ public class FittingViewModel : ReactiveObject
             // laid out again each time; the module rows themselves are the same objects.
             RebuildSlots();
             await ApplyPricesAsync(fit);
+            this.RaisePropertyChanged(nameof(TabDirty));
+            Tool.TabCalculated(this);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { Status = $"Calculation failed: {ex.Message}"; }
@@ -1233,57 +1448,13 @@ public class FittingViewModel : ReactiveObject
             this.RaisePropertyChanged(p);
     }
 
-    // ── Import / export ─────────────────────────────────────────────────────────
+    // ── Export and load ─────────────────────────────────────────────────────────
 
-    public ReactiveCommand<Unit, Unit> ImportEftCommand { get; }
-    public ReactiveCommand<Unit, Unit> CopyEftCommand   { get; }
-    public ReactiveCommand<Unit, Unit> ImportEsiCommand { get; }
-
-    /// <summary>Asks the view for EFT text to import; null when cancelled.</summary>
-    public Interaction<Unit, string?> AskEft { get; } = new();
-    /// <summary>Hands the view EFT text to put on the clipboard.</summary>
-    public Interaction<string, Unit> CopyText { get; } = new();
-    /// <summary>Asks the view to show the in-game fittings picker.</summary>
-    public Interaction<FitSelectorViewModel, EsiFittingData?> PickEsiFit { get; } = new();
-
-    private async Task ImportEftAsync()
-    {
-        if (_data is null) return;
-        if (!await ConfirmLeaveAsync()) return;
-        var text = await AskEft.Handle(Unit.Default);
-        if (string.IsNullOrWhiteSpace(text)) return;
-        var parsed = await EftFormat.ParseAsync(text, _data);
-        await LoadFitAsync(parsed.Fit);
-        Status = parsed.Unknown.Count == 0 ? $"Imported {parsed.Fit.Name}." : $"Imported, but not recognised: {string.Join(", ", parsed.Unknown)}";
-    }
-
-    private async Task CopyEftAsync()
+    public async Task CopyEftAsync()
     {
         if (_data is null || _shipTypeId == 0) { Status = "Nothing to copy yet."; return; }
-        await CopyText.Handle(EftFormat.Write(CurrentFit(), _data));
+        await Tool.CopyText.Handle(EftFormat.Write(CurrentFit(), _data));
         Status = "Fit copied to the clipboard as EFT text.";
-    }
-
-    private async Task ImportEsiAsync()
-    {
-        if (_data is null || _catalog is null) return;
-        if (!await ConfirmLeaveAsync()) return;
-        if (_fittings is null || _characters is null || _corporations is null) { Status = "No characters to read fittings from."; return; }
-        var picker = new FitSelectorViewModel(_fittings, _dbFactory, _characters, _corporations, [], 0) { ChooseGroup = false };
-        var esi = await PickEsiFit.Handle(picker);
-        if (esi is null) return;
-        await LoadFitAsync(await EftFormat.FromEsiAsync(esi, _data, _catalog));
-
-        // A character's own fitting can be updated in place; a corporation's cannot be written at all.
-        if (picker.SelectedNode?.Entry is { Source: FitSource.Personal } entry
-            && _characters.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner)
-        {
-            CurrentGameSource = new GameSource(owner.Id, owner.Name, esi.FittingId, esi.Name);
-            // Calculated with the owner's skills unless a pilot was already chosen deliberately.
-            if (SelectedSkillSource?.CharacterId is null && SkillSources.FirstOrDefault(s => s.CharacterId == owner.Id) is { } pilot)
-                SelectedSkillSource = pilot;
-        }
-        Status = $"Imported {esi.Name} from the game.";
     }
 
     /// <summary>Replaces the fit being edited with <paramref name="fit"/>.</summary>
@@ -1304,57 +1475,6 @@ public class FittingViewModel : ReactiveObject
         MarkClean();
     }
 
-    // ── Saved fits ──────────────────────────────────────────────────────────────
-
-    public ReactiveCommand<Unit, Unit> DeleteSavedCommand { get; }
-    public ObservableCollection<SavedFitOption> SavedFits { get; } = [];
-    private long? _loadedSavedId;
-
-    private SavedFitOption? _selectedSaved;
-    public SavedFitOption? SelectedSaved
-    {
-        get => _selectedSaved;
-        set
-        {
-            var previous = _selectedSaved;
-            this.RaiseAndSetIfChanged(ref _selectedSaved, value);
-            if (value is not null && value != previous) _ = OpenSavedGuardedAsync(value, previous);
-        }
-    }
-
-    private async Task LoadSavedListAsync()
-    {
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        var rows = await db.SavedFits.AsNoTracking().Select(f => new { f.Id, f.Name, f.ShipTypeId }).ToListAsync();
-        SavedFits.Clear();
-        foreach (var r in rows.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
-            SavedFits.Add(new SavedFitOption(r.Id, r.Name, _catalog?.Find(r.ShipTypeId)?.Name ?? ""));
-    }
-
-    /// <summary>Opens a saved fit, after offering to save the one it replaces; a cancel puts the
-    /// list back to what it showed.</summary>
-    private async Task OpenSavedGuardedAsync(SavedFitOption option, SavedFitOption? previous)
-    {
-        if (await ConfirmLeaveAsync()) { await OpenSavedAsync(option); return; }
-        _selectedSaved = previous;
-        this.RaisePropertyChanged(nameof(SelectedSaved));
-    }
-
-    private async Task OpenSavedAsync(SavedFitOption option)
-    {
-        if (_data is null) return;
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        var row = await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == option.Id);
-        if (row is null) return;
-        var parsed = await EftFormat.ParseAsync(row.Eft, _data);
-        await LoadFitAsync(parsed.Fit);
-        FitName = row.Name;
-        _loadedSavedId = row.Id;
-        _lastSavedToApp = row.Id;
-        MarkClean();
-        Status = $"Opened {row.Name}.";
-    }
-
     /// <summary>Saves in EVE Console, under the fit's name: the same name on the same hull replaces it.</summary>
     private async Task<bool> SaveToAppAsync()
     {
@@ -1369,20 +1489,10 @@ public class FittingViewModel : ReactiveObject
         await db.SaveChangesAsync();
         _loadedSavedId = row.Id;
         _lastSavedToApp = row.Id;
-        await LoadSavedListAsync();
+        await Tool.LoadSavedListAsync();
         MarkClean();
         Status = $"Saved {name} in EVE Console.";
         return true;
-    }
-
-    private async Task DeleteSavedAsync()
-    {
-        if (SelectedSaved is not { } sel) { Status = "Choose a saved fit to delete."; return; }
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        await db.SavedFits.Where(f => f.Id == sel.Id).ExecuteDeleteAsync();
-        _selectedSaved = null; this.RaisePropertyChanged(nameof(SelectedSaved));
-        await LoadSavedListAsync();
-        Status = $"Deleted {sel.Name}.";
     }
 }
 
