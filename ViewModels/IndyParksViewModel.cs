@@ -10,6 +10,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -25,7 +26,7 @@ public record SdeRigOption(int TypeId, string Name)
     /// held a rig there was no way back to empty. Saved as type 0, which is what an empty slot
     /// has always been stored as.</para>
     /// </summary>
-    public static readonly SdeRigOption None = new(0, "— empty —");
+    public static readonly SdeRigOption None = new(0, IndustryText.HintEmpty);
 
     public override string ToString() => Name;
 }
@@ -145,7 +146,7 @@ public class StructureVm : ReactiveObject
 
     public string? TaxLockTip => TaxEditable
         ? null
-        : $"NPC stations charge a fixed {IndyParksViewModel.NpcFacilityTax}% facility tax.";
+        : string.Format(IndustryText.TipNpcFixedTax, IndyParksViewModel.NpcFacilityTax);
 
     /// <summary>
     /// An NPC station takes no rigs and no service modules — its services are the station's own —
@@ -174,22 +175,25 @@ public class StructureVm : ReactiveObject
 
     public bool TypeEditable => LinkedTypeKey is null;
 
-    public string? NameLockTip => NameEditable ? null : "Named by the linked facility. Unlink it to rename.";
+    public string? NameLockTip => NameEditable ? null : IndustryText.TipNameFromLink;
 
-    public string? TypeLockTip => TypeEditable ? null : "Set by the linked facility's hull.";
+    public string? TypeLockTip => TypeEditable ? null : IndustryText.TipTypeFromLink;
 
-    // ComboBox binds to this; setting it propagates back to StructureTypeKey
-    public string StructureTypeLabel
+    /// <summary>
+    /// The type picker's choice, one of <see cref="IndyParksViewModel.StructureTypeLabels"/>;
+    /// choosing one sets <see cref="StructureTypeKey"/>. Null for a key the list does not have.
+    ///
+    /// <para>⚠️ A choice, not the words shown. The picker used to hand back the displayed name
+    /// and have it looked up again among the names — which a translated name need not match.</para>
+    /// </summary>
+    public Choice<string>? StructureTypeLabel
     {
-        get
-        {
-            var idx = Array.IndexOf(IndyParksViewModel.StructureTypeKeys, _structureTypeKey);
-            return idx >= 0 ? IndyParksViewModel.StructureTypeLabels[idx] : _structureTypeKey;
-        }
+        get => IndyParksViewModel.StructureTypeLabels.FirstOrDefault(o => o.Value == _structureTypeKey);
         set
         {
-            var idx = Array.IndexOf(IndyParksViewModel.StructureTypeLabels, value);
-            StructureTypeKey = idx >= 0 ? IndyParksViewModel.StructureTypeKeys[idx] : value;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            StructureTypeKey = value.Value;
         }
     }
 
@@ -211,17 +215,16 @@ public class StructureVm : ReactiveObject
         }
     }
 
-    public string SecurityLabel
+    /// <summary>The security picker's choice, one of <see cref="IndyParksViewModel.SecurityLabels"/>;
+    /// choosing one sets <see cref="SecurityClass"/>, as the type picker does its key.</summary>
+    public Choice<string>? SecurityLabel
     {
-        get
-        {
-            var idx = Array.IndexOf(IndyParksViewModel.SecurityClasses, _securityClass);
-            return idx >= 0 ? IndyParksViewModel.SecurityLabels[idx] : _securityClass;
-        }
+        get => IndyParksViewModel.SecurityLabels.FirstOrDefault(o => o.Value == _securityClass);
         set
         {
-            var idx = Array.IndexOf(IndyParksViewModel.SecurityLabels, value);
-            SecurityClass = idx >= 0 ? IndyParksViewModel.SecurityClasses[idx] : value;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            SecurityClass = value.Value;
         }
     }
 
@@ -255,13 +258,13 @@ public class StructureVm : ReactiveObject
     // Why a field is locked, as its tooltip. Null while it is editable, so no tooltip shows.
     public string? SystemLockTip => SystemEditable
         ? null
-        : "Set by the linked facility. Unlink it to choose another system.";
+        : IndustryText.TipSystemFromLink;
 
     public string? SecurityLockTip => SecurityEditable
         ? null
         : RealStructureId is not null
-            ? "Set from the linked facility's system."
-            : "Set from the system's own security. Clear or change the system to choose it by hand.";
+            ? IndustryText.TipSecurityFromLinkedSystem
+            : IndustryText.TipSecurityFromSystem;
 
     private decimal _facilityTax = 1m;
     public decimal FacilityTax
@@ -315,15 +318,17 @@ public class StructureVm : ReactiveObject
     public string FittingSourceText =>
         IsNpcStation
             ? RealStructureId is null
-                ? "NPC station — it takes no rigs. Link the station to list the services it offers."
-                : "NPC station — it takes no rigs, and its service modules stand for the station's own services."
+                ? IndustryText.FittingNpcUnlinked
+                : IndustryText.FittingNpcLinked
         : _fittingFromAssets
-            ? "From assets — the game reports this structure's fitting, so it cannot be edited here."
+            ? IndustryText.FittingFromAssets
         : RealStructureId is null
             ? ""
-            : "Entered by hand — this fitting is also written to the linked structure.";
+            : IndustryText.FittingByHand;
 
-    public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName) ? StructureTypeLabel : DisplayName;
+    public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName)
+        ? StructureTypeLabel?.Label ?? _structureTypeKey
+        : DisplayName;
 
     // ── Link to a real in-game facility ──────────────────────────────────────
     // Set by hand: the user says which actual structure this park entry describes.
@@ -357,7 +362,7 @@ public class StructureVm : ReactiveObject
     }
 
     public string FacilityLinkText => RealStructureId is null
-        ? "Not linked — jobs here won't be rig-checked"
+        ? IndustryText.FacilityNotLinked
         : RealStructureName;
 
     /// <summary>
@@ -543,34 +548,53 @@ public class IndyParksViewModel : ReactiveObject
         (StationServiceIds.Cloning,           35894),   // Standup Cloning Center I
         (StationServiceIds.JumpCloneFacility, 35894),
     ];
-    public static readonly string[] StructureTypeLabels = ["Raitaru", "Azbel", "Sotiyo", "Athanor", "Tatara", "NPC Station"];
-    public static readonly string[] SecurityClasses     = ["highsec", "lowsec", "nullsec", "wormhole"];
-    public static readonly string[] SecurityLabels      = ["High Sec", "Low Sec", "Null Sec", "Wormhole"];
+
+    /// <summary>The structure type picker: the key a park structure saves, and the name shown.
+    /// The hulls go by their names in the game, which are never translated.</summary>
+    public static readonly IReadOnlyList<Choice<string>> StructureTypeLabels =
+    [
+        new("raitaru",     "Raitaru"),
+        new("azbel",       "Azbel"),
+        new("sotiyo",      "Sotiyo"),
+        new("athanor",     "Athanor"),
+        new("tatara",      "Tatara"),
+        new(NpcStationKey, IndustryText.StructureTypeNpcStation),
+    ];
+
+    /// <summary>The security picker: the class a park structure saves, which sets its rig
+    /// strength, and the words shown.</summary>
+    public static readonly IReadOnlyList<Choice<string>> SecurityLabels =
+    [
+        new("highsec",  IndustryText.SecurityHighSec),
+        new("lowsec",   IndustryText.SecurityLowSec),
+        new("nullsec",  IndustryText.SecurityNullSec),
+        new("wormhole", IndustryText.SecurityWormhole),
+    ];
 
     public static readonly (string Key, string Label)[] ProductionCategories =
     [
         // Manufacturing
-        ("large_ships",        "Large Ships"),
-        ("medium_ships",       "Medium Ships"),
-        ("small_ships",        "Small Ships"),
-        ("capital_ships",      "Capital Ships"),
-        ("adv_large_ships",    "Advanced Large Ships"),
-        ("adv_medium_ships",   "Advanced Medium Ships"),
-        ("adv_small_ships",    "Advanced Small Ships"),
-        ("capital_components", "Capital Components"),
-        ("adv_components",     "Advanced Components"),
-        ("cap_adv_components", "Capital Advanced Components"),
-        ("drones_fighters",    "Drones and Fighters"),
-        ("ammo_charges",       "Ammo and Charges"),
-        ("modules_equipment",  "Modules and Equipment"),
+        ("large_ships",        IndustryText.CategoryLargeShips),
+        ("medium_ships",       IndustryText.CategoryMediumShips),
+        ("small_ships",        IndustryText.CategorySmallShips),
+        ("capital_ships",      IndustryText.CategoryCapitalShips),
+        ("adv_large_ships",    IndustryText.CategoryAdvLargeShips),
+        ("adv_medium_ships",   IndustryText.CategoryAdvMediumShips),
+        ("adv_small_ships",    IndustryText.CategoryAdvSmallShips),
+        ("capital_components", IndustryText.CategoryCapitalComponents),
+        ("adv_components",     IndustryText.CategoryAdvComponents),
+        ("cap_adv_components", IndustryText.CategoryCapAdvComponents),
+        ("drones_fighters",    IndustryText.CategoryDronesFighters),
+        ("ammo_charges",       IndustryText.CategoryAmmoCharges),
+        ("modules_equipment",  IndustryText.CategoryModulesEquipment),
         // Named for what it actually routes: structures, their components, deployables and fuel
         // blocks. It never carried ammo — that is "Ammo and Charges" above — and the old label
         // had players assigning it as though it did.
-        ("structure_ammo",     "Structures, Components and Fuel Blocks"),
+        ("structure_ammo",     IndustryText.CategoryStructuresFuel),
         // Reactions
-        ("react_composite",    "Composite Reactions"),
-        ("react_biochemical",  "Hybrid Reactions"),
-        ("react_bio_gas",      "Bio and Gas Phase Reactions"),
+        ("react_composite",    IndustryText.CategoryCompositeReactions),
+        ("react_biochemical",  IndustryText.CategoryHybridReactions),
+        ("react_bio_gas",      IndustryText.CategoryBioGasReactions),
         // "react_structure" was listed here and nothing ever mapped to it — no rig, no item, in
         // any of the three matchers. A facility assigned to it received no work, and its name
         // read like the home for structures, so it drew the assignment that belonged above.
@@ -578,9 +602,9 @@ public class IndyParksViewModel : ReactiveObject
         // rigged and usually separately housed — a copy farm and an invention structure are
         // rigged differently, and a park that could only name one would send work to the wrong
         // facility.
-        ("bp_research",        "Blueprint Research"),
-        ("bp_copying",         "Blueprint Copying"),
-        ("bp_invention",       "Blueprint Invention"),
+        ("bp_research",        IndustryText.CategoryBpResearch),
+        ("bp_copying",         IndustryText.CategoryBpCopying),
+        ("bp_invention",       IndustryText.CategoryBpInvention),
         // Reprocessing. Split three ways because the rigs are: there is an Asteroid Ore, a Moon
         // Ore and an Ice Grading Processor, and a refinery carrying two of the three refines the
         // third at no bonus. A park that could name only one facility would route ore to a
@@ -589,10 +613,10 @@ public class IndyParksViewModel : ReactiveObject
         // Gas is the odd one out and has no rig at all — compressed gas decompresses one for one
         // at any refinery. It is listed so the park can still say where that happens, since the
         // hauling has to be aimed somewhere.
-        ("refine_ore",         "Refine Standard Ore"),
-        ("refine_moon_ore",    "Refine Moon Ore"),
-        ("refine_ice",         "Refine Ice"),
-        ("decompress_gas",     "Decompress Gas"),
+        ("refine_ore",         IndustryText.CategoryRefineOre),
+        ("refine_moon_ore",    IndustryText.CategoryRefineMoonOre),
+        ("refine_ice",         IndustryText.CategoryRefineIce),
+        ("decompress_gas",     IndustryText.CategoryDecompressGas),
     ];
 
     /// <summary>
@@ -863,7 +887,7 @@ public class IndyParksViewModel : ReactiveObject
 
         // The first park is the default. With one park there is nothing else it could be, and
         // everything that plans against "the default park" would otherwise find none at all.
-        var park = new IndyPark { Name = "New Park", IsDefault = !await db.IndyParks.AnyAsync() };
+        var park = new IndyPark { Name = IndustryText.DefaultParkName, IsDefault = !await db.IndyParks.AnyAsync() };
         db.IndyParks.Add(park);
         await db.SaveChangesAsync();
 
@@ -902,13 +926,16 @@ public class IndyParksViewModel : ReactiveObject
                 .Select(p => new { p.Id, p.Name }).FirstOrDefaultAsync()
             : null;
 
-        if (ConfirmDelete is not null && !await ConfirmDelete(
-                $"Delete the park \"{name}\"?\n\n"
-              + (structIds.Count > 0
-                    ? $"Its {structIds.Count} structure{(structIds.Count == 1 ? "" : "s")}, with their rigs and service modules, "
-                    : "")
-              + "its category assignments and its item exceptions are deleted with it. This cannot be undone."
-              + (heir is not null ? $"\n\nIt is the default park, so \"{heir.Name}\" becomes the default." : "")))
+        // A whole sentence for each case, a paragraph apiece: the park, what goes with it, and
+        // which park becomes the default.
+        var goesWithIt = structIds.Count > 0
+            ? Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.ConfirmDeleteParkStructuresOther),
+                             structIds.Count)
+            : IndustryText.ConfirmDeleteParkNoStructures;
+        var question = string.Format(IndustryText.ConfirmDeletePark, name) + "\n\n" + goesWithIt
+                     + (heir is not null ? "\n\n" + string.Format(IndustryText.ConfirmDeleteParkNewDefault, heir.Name) : "");
+
+        if (ConfirmDelete is not null && !await ConfirmDelete(question))
             return;
 
         // ⚠️ One transaction, not six. Each ExecuteDelete takes the write lock on its own, so a
@@ -1073,7 +1100,7 @@ public class IndyParksViewModel : ReactiveObject
                 foreach (var svc in services.Where(x => x.StructureId == s.Id)
                                             .OrderBy(x => serviceNames.GetValueOrDefault(x.TypeId, "")))
                     vm.Services.Add(new ServiceModuleVm(
-                        vm, svc.TypeId, serviceNames.GetValueOrDefault(svc.TypeId, $"Type {svc.TypeId}")));
+                        vm, svc.TypeId, serviceNames.GetValueOrDefault(svc.TypeId, string.Format(IndustryText.ServiceTypeNumbered, svc.TypeId))));
 
                 vm.FittingFromAssets =
                     s.RealStructureId is { } realId && assetFed.Contains(realId);
@@ -1596,7 +1623,7 @@ public class IndyParksViewModel : ReactiveObject
     /// </summary>
     private async Task AutoAssignAsync()
     {
-        if (_selectedPark is null) { AutoAssignStatus = "Pick a park first."; return; }
+        if (_selectedPark is null) { AutoAssignStatus = IndustryText.StatusPickParkFirst; return; }
 
         var filled = 0;
         var already = 0;
@@ -1624,15 +1651,15 @@ public class IndyParksViewModel : ReactiveObject
         await Task.CompletedTask;
 
         var parts = new List<string>();
-        parts.Add(filled == 0 ? "Nothing to assign" : $"Assigned {filled} category(ies)");
-        if (already   > 0) parts.Add($"{already} already set");
+        parts.Add(filled == 0 ? IndustryText.AutoAssignNothing : string.Format(IndustryText.AutoAssignAssigned, filled));
+        if (already   > 0) parts.Add(string.Format(IndustryText.AutoAssignAlreadySet, already));
         if (ambiguous.Count > 0)
-            parts.Add($"{ambiguous.Count} with more than one rigged structure, left for you "
-                    + $"({string.Join(", ", ambiguous.Take(3))}{(ambiguous.Count > 3 ? ", …" : "")})");
+            parts.Add(string.Format(IndustryText.AutoAssignAmbiguous, ambiguous.Count,
+                          string.Join(", ", ambiguous.Take(3)) + (ambiguous.Count > 3 ? ", …" : "")));
         if (noMatch.Count > 0)
-            parts.Add($"{noMatch.Count} with no rigged structure");
+            parts.Add(string.Format(IndustryText.AutoAssignNoMatch, noMatch.Count));
 
-        AutoAssignStatus = string.Join(" · ", parts) + ".";
+        AutoAssignStatus = string.Format(IndustryText.AutoAssignSummary, string.Join(" · ", parts));
     }
 
     /// <summary>Whether any of a structure's rigs bonuses this category.</summary>
@@ -1704,11 +1731,11 @@ public class IndyParksViewModel : ReactiveObject
 
     private async Task AddAllInSystemAsync()
     {
-        if (_selectedPark is null) { BulkStatus = "Pick a park first."; return; }
-        if (_bulkAdd is null)      { BulkStatus = "Bulk add is unavailable."; return; }
+        if (_selectedPark is null) { BulkStatus = IndustryText.StatusPickParkFirst; return; }
+        if (_bulkAdd is null)      { BulkStatus = IndustryText.BulkUnavailable; return; }
         if (BulkSystem is not SdeSystemResult sys)
         {
-            BulkStatus = "Pick a system from the list.";
+            BulkStatus = IndustryText.BulkPickSystem;
             return;
         }
 
@@ -1724,11 +1751,9 @@ public class IndyParksViewModel : ReactiveObject
 
         if (toAdd.Count == 0)
         {
-            BulkStatus = candidates.Count == 0
-                ? $"No industrial structures known in {sys.Name}. Only structures the app has "
-                + "already resolved a name for can be added."
-                : $"Nothing new to add in {sys.Name} — {already} already in this park"
-                  + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+            BulkStatus = candidates.Count == 0 ? string.Format(IndustryText.BulkNoneKnown, sys.Name)
+                       : skipped > 0 ? string.Format(IndustryText.BulkNothingNewSkipped, sys.Name, already, skipped)
+                       : string.Format(IndustryText.BulkNothingNew, sys.Name, already);
             return;
         }
 
@@ -1770,9 +1795,14 @@ public class IndyParksViewModel : ReactiveObject
 
         await LoadParkDetailAsync(parkId);
 
-        BulkStatus = $"Added {toAdd.Count} structure(s) from {sys.Name}"
-                   + (already > 0 ? $", {already} already present" : "")
-                   + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+        // A whole sentence for each combination of the two optional counts.
+        BulkStatus = (already > 0, skipped > 0) switch
+        {
+            (true,  true)  => string.Format(IndustryText.BulkAddedAlreadySkipped, toAdd.Count, sys.Name, already, skipped),
+            (true,  false) => string.Format(IndustryText.BulkAddedAlready,        toAdd.Count, sys.Name, already),
+            (false, true)  => string.Format(IndustryText.BulkAddedSkipped,        toAdd.Count, sys.Name, skipped),
+            (false, false) => string.Format(IndustryText.BulkAdded,               toAdd.Count, sys.Name),
+        };
     }
 
     /// <summary>The park's security class for a system, which drives rig strength.</summary>
@@ -1812,7 +1842,7 @@ public class IndyParksViewModel : ReactiveObject
         var s = new IndyStructure
         {
             ParkId           = parkId,
-            DisplayName      = "New Structure",
+            DisplayName      = IndustryText.DefaultStructureName,
             StructureTypeKey = "raitaru",
             SecurityClass    = "nullsec",
         };
@@ -1841,9 +1871,8 @@ public class IndyParksViewModel : ReactiveObject
     private async Task RemoveStructureAsync(StructureVm vm)
     {
         if (ConfirmDelete is not null && !await ConfirmDelete(
-                $"Remove \"{vm.DisplayHeader}\" from this park?\n\n"
-              + "Its rigs and service modules here are deleted, and any category or item exception "
-              + "that sends work to it is left unassigned. The structure in game is not affected."))
+                string.Format(IndustryText.ConfirmRemoveStructure, vm.DisplayHeader)
+              + "\n\n" + IndustryText.ConfirmRemoveStructureDetail))
             return;
 
         await using var db = await _dbFactory.CreateDbContextAsync();

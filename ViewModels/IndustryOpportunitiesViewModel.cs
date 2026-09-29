@@ -7,6 +7,7 @@ using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -86,8 +87,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
 
     public List<IndustryModeOption> ModeOptions { get; } =
     [
-        new("Build & Sell Order",         IndustryMode.BuildAndSellOrder),
-        new("Build & Sell to Buy Order",  IndustryMode.BuildAndSellToBuyOrder),
+        new(IndustryText.ModeBuildSellOrder,      IndustryMode.BuildAndSellOrder),
+        new(IndustryText.ModeBuildSellToBuyOrder, IndustryMode.BuildAndSellToBuyOrder),
     ];
 
     // ⚠️ Every choice on this screen is kept here and remembered in UiState, never left to its
@@ -285,7 +286,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 $"{sort.PropertyPath}:{(sort.Direction == ListSortDirection.Ascending ? "asc" : "desc")}");
     }
 
-    private string _statusText = "Select a market config, then click Calculate.";
+    private string _statusText = IndustryText.OppsStatusStart;
     public string StatusText
     {
         get => _statusText;
@@ -369,7 +370,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
     {
         if (SelectedConfig is null)
         {
-            StatusText = "Please select a market config for pricing.";
+            StatusText = IndustryText.OppsErrNoConfig;
             return;
         }
 
@@ -378,7 +379,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinIskVolume, out var mv) || mv < 0)
             {
-                StatusText = "Please enter a valid minimum ISK volume (or leave blank for no filter).";
+                StatusText = IndustryText.OppsErrMinIskVolume;
                 return;
             }
             minIskVol = mv;
@@ -389,7 +390,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
             {
-                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                StatusText = IndustryText.OppsErrMinUnitVolume;
                 return;
             }
             minUnitVol = uv;
@@ -400,7 +401,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         UiState.Set(UiState.IndustryOppsMinUnitVol, (MinUnitVolume ?? "").Trim());
 
         Results.Clear();
-        StatusText = "Calculating…";
+        StatusText = IndustryText.OppsStatusCalculating;
         IsCalculating = true;
 
         try
@@ -410,12 +411,11 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
             // Region is needed for the volume filters AND to price items that have no
             // sell orders off their 30-day history average. Resolve it best-effort.
             int?   regionId   = await ResolveRegionAsync(SelectedConfig);
-            string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : "unresolved";
+            string regionName = regionId.HasValue ? await GetRegionNameAsync(regionId.Value) : IndustryText.OppsRegionUnresolved;
             bool needsVolume = minIskVol.HasValue || minUnitVol.HasValue;
             if (needsVolume && !regionId.HasValue)
             {
-                StatusText = "Could not resolve this market config's region — " +
-                             "the 30-day volume filters need a region to look up market history.";
+                StatusText = IndustryText.OppsErrNoRegion;
                 return;
             }
 
@@ -430,16 +430,17 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                 Results.Add(r);
 
             int noSell = rows.Count(r => !r.HasSellOrders);
-            var note   = noSell > 0 ? $"  ·  * {noSell} priced from 30-day avg (no sell orders)" : "";
+            var note   = noSell > 0 ? "  ·  " + string.Format(IndustryText.OppsNoteHistoryPriced, noSell) : "";
             // Show the volume region so it's clear the 30-day filters use the Price At region.
-            var volNote = needsVolume ? $" · 30d volume region: {regionName}" : "";
+            var volNote = needsVolume ? " · " + string.Format(IndustryText.OppsNoteVolumeRegion, regionName) : "";
             StatusText = rows.Count > 0
-                ? $"{rows.Count} profitable item{(rows.Count == 1 ? "" : "s")} · priced at {SelectedConfig.Name}{volNote}{note}"
-                : "No profitable build opportunities found for this market config.";
+                ? Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.OppsStatusProfitableOther),
+                                 rows.Count, SelectedConfig.Name) + volNote + note
+                : IndustryText.OppsStatusNone;
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
         finally
         {
@@ -632,7 +633,7 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "Name" FROM "SdeRegions" WHERE "RegionId" = @id""");
         cmd.AddWithValue("@id", regionId);
-        return (await cmd.ExecuteScalarAsync()) as string ?? $"Region {regionId}";
+        return (await cmd.ExecuteScalarAsync()) as string ?? string.Format(IndustryText.OppsRegionNumbered, regionId);
     }
 
     // Resolves the region id used for the 30-day volume lookups from a market config.

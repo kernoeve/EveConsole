@@ -2,6 +2,7 @@ using System.IO;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -18,7 +19,7 @@ public partial class IndyParksView : UserControl
             if (DataContext is not IndyParksViewModel vm) return;
             vm.ConfirmDelete = message => Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
                 TopLevel.GetTopLevel(this) is Window owner
-                    && await new ConfirmDialog(message, title: "Removal Confirmation").ShowDialog<bool>(owner));
+                    && await new ConfirmDialog(message, title: IndustryText.TitleRemovalConfirmation).ShowDialog<bool>(owner));
         };
     }
 
@@ -30,7 +31,7 @@ public partial class IndyParksView : UserControl
 
         var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title           = "Export Park",
+            Title           = IndustryText.ExportPark,
             SuggestedFileName = $"{vm.SelectedPark?.Name ?? "park"}.json",
             FileTypeChoices = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
         });
@@ -48,7 +49,7 @@ public partial class IndyParksView : UserControl
 
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title         = "Import Park",
+            Title         = IndustryText.TitleImportPark,
             AllowMultiple = false,
             FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
         });

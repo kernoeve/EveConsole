@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -41,8 +42,14 @@ public class IndustryBrowserViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _statusText, value);
     }
 
-    private List<string> _ownerOptions = ["All Owners"];
-    public  List<string> OwnerOptions
+    /// <summary>The owner filter's first entry. Its value is empty — no owner to match — so no
+    /// owner's name is ever mistaken for it.</summary>
+    private static readonly Choice<string> AllOwners = new("", IndustryText.OwnerAll);
+
+    /// <summary>The owner filter: every owner, then each owner with jobs, whose name is both its
+    /// value and its label.</summary>
+    private List<Choice<string>> _ownerOptions = [AllOwners];
+    public  List<Choice<string>> OwnerOptions
     {
         get => _ownerOptions;
         private set => this.RaiseAndSetIfChanged(ref _ownerOptions, value);
@@ -50,12 +57,47 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     // ── Column definitions ────────────────────────────────────────────────────
 
+    /// <summary>
+    /// The grid's columns, by the names the rows are keyed on — the query's aliases, which stay
+    /// English. What a header says comes from <see cref="ColumnLabel"/>.
+    /// </summary>
     public static readonly string[] DisplayColumns =
     [
-        "Status", "Time Remaining", "Activity", "Product", "Runs", "Successful Runs",
+        ColStatusLabel, "Time Remaining", "Activity", "Product", "Runs", "Successful Runs",
         "Items Produced", "Build Cost", "Market Value", "Facility", "Note", "Installer", "Owner",
         "Created", "Completed",
     ];
+
+    /// <summary>
+    /// A job's status as the grid and the detail panel show it.
+    ///
+    /// <para>⚠️ Beside "Status", not in place of it. "Status" keeps ESI's own word, capitalised,
+    /// because the time-remaining countdown (Views/GridHelpers), the sort and the active count
+    /// all read that column and compare it — a translated word there would match none of them.</para>
+    /// </summary>
+    public const string ColStatusLabel = "Status Label";
+
+    /// <summary>The header a column shows. The column's own name is the key its rows use, so it
+    /// is never displayed as it is.</summary>
+    public static string ColumnLabel(string column) => column switch
+    {
+        ColStatusLabel    => IndustryText.Status,
+        "Time Remaining"  => IndustryText.ColTimeRemaining,
+        "Activity"        => IndustryText.Activity,
+        "Product"         => IndustryText.ColProduct,
+        "Runs"            => IndustryText.Runs,
+        "Successful Runs" => IndustryText.ColSuccessfulRuns,
+        "Items Produced"  => IndustryText.ColItemsProduced,
+        "Build Cost"      => IndustryText.ColBuildCost,
+        "Market Value"    => IndustryText.ColMarketValue,
+        "Facility"        => IndustryText.ColFacility,
+        ColNote           => IndustryText.ColNote,
+        "Installer"       => IndustryText.Installer,
+        "Owner"           => IndustryText.Owner,
+        "Created"         => IndustryText.ColCreated,
+        "Completed"       => IndustryText.ColCompleted,
+        _                 => column,
+    };
 
     /// <summary>
     /// Columns read by magnitude rather than by name, and so right-justified.
@@ -94,16 +136,55 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     // ── Filter options ────────────────────────────────────────────────────────
 
-    public static readonly string[] ActivityOptions =
+    /// <summary>
+    /// The activity filter. A value is the name the query gives an activity, which the filter
+    /// compares, and one of the values the agent's set_industry_filter tool is told it may use —
+    /// so the values stay English and only the labels are looked up. The grid's Activity column
+    /// shows the same labels.
+    /// </summary>
+    public static readonly IReadOnlyList<Choice<string>> ActivityOptions =
     [
-        "All Activities", "Manufacturing", "TE Research", "ME Research",
-        "Copying", "Invention", "Reverse Eng.", "Reactions",
+        new("All Activities", IndustryText.ActivityAll),
+        new("Manufacturing",  IndustryText.ActivityManufacturing),
+        new("TE Research",    IndustryText.ActivityTeResearch),
+        new("ME Research",    IndustryText.ActivityMeResearch),
+        new("Copying",        IndustryText.ActivityCopying),
+        new("Invention",      IndustryText.ActivityInvention),
+        new("Reverse Eng.",   IndustryText.ActivityReverseEngineering),
+        new("Reactions",      IndustryText.ActivityReactions),
     ];
 
-    public static readonly string[] StatusOptions =
+    /// <summary>The status filter. A value is ESI's status word, as stored and as the agent's
+    /// tool names it; only the label is looked up.</summary>
+    public static readonly IReadOnlyList<Choice<string>> StatusOptions =
     [
-        "All Statuses", "active", "paused", "ready", "delivered", "cancelled", "reverted",
+        new("All Statuses", IndustryText.StatusFilterAll),
+        new("active",       IndustryText.StatusFilterActive),
+        new("paused",       IndustryText.StatusFilterPaused),
+        new("ready",        IndustryText.StatusFilterReady),
+        new("delivered",    IndustryText.StatusFilterDelivered),
+        new("cancelled",    IndustryText.StatusFilterCancelled),
+        new("reverted",     IndustryText.StatusFilterReverted),
     ];
+
+    /// <summary>An activity as the grid shows it, from the name the query gives it. An activity
+    /// the query has no name for arrives as its number and is shown as that.</summary>
+    private static string ActivityLabel(string activity) =>
+        ActivityOptions.FirstOrDefault(o => o.Value == activity)?.Label ?? activity;
+
+    /// <summary>A job status as the grid shows it, from ESI's word. One this does not know is
+    /// shown as ESI's word, capitalised.</summary>
+    private static string JobStatusLabel(string status) => status switch
+    {
+        "active"    => IndustryText.JobStatusActive,
+        "paused"    => IndustryText.JobStatusPaused,
+        "ready"     => IndustryText.JobStatusReady,
+        "delivered" => IndustryText.JobStatusDelivered,
+        "cancelled" => IndustryText.JobStatusCancelled,
+        "reverted"  => IndustryText.JobStatusReverted,
+        ""          => "",
+        _           => char.ToUpper(status[0]) + status[1..],
+    };
 
     /// <summary>Optional so the designer and any bare construction still work; the
     /// Note column simply stays empty without it.</summary>
@@ -129,15 +210,16 @@ public class IndustryBrowserViewModel : ReactiveObject
     // Called by the agent — fuzzy-matches inputs against known option lists.
     public Task ApplyAgentFilterAsync(string? activity, string? status, string? search, string? owner)
     {
-        // Resolve activity: find best match in ActivityOptions (or null = All)
+        // Resolve activity: find best match in ActivityOptions (or null = All). Matched on the
+        // values, which are the English words the agent is given — never on the labels.
         var resolvedActivity = activity is null ? null
-            : ActivityOptions.FirstOrDefault(a =>
+            : ActivityOptions.Select(o => o.Value).FirstOrDefault(a =>
                   a.Contains(activity, StringComparison.OrdinalIgnoreCase)
                   || activity.Contains(a, StringComparison.OrdinalIgnoreCase));
 
         // Resolve status: find best match in StatusOptions (or null = All Statuses)
         var resolvedStatus = status is null ? null
-            : StatusOptions.FirstOrDefault(s =>
+            : StatusOptions.Select(o => o.Value).FirstOrDefault(s =>
                   s.Equals(status, StringComparison.OrdinalIgnoreCase)
                   || s.Contains(status, StringComparison.OrdinalIgnoreCase));
 
@@ -145,8 +227,8 @@ public class IndustryBrowserViewModel : ReactiveObject
         string? resolvedOwner = null;
         if (!string.IsNullOrEmpty(owner))
         {
-            resolvedOwner = _ownerOptions.FirstOrDefault(o =>
-                o != "All Owners" && o.Contains(owner, StringComparison.OrdinalIgnoreCase));
+            resolvedOwner = _ownerOptions.Select(o => o.Value).FirstOrDefault(o =>
+                o.Length > 0 && o.Contains(owner, StringComparison.OrdinalIgnoreCase));
         }
 
         return QueryAsync(resolvedActivity, resolvedStatus, search, null, null, resolvedOwner);
@@ -159,7 +241,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         _cts.Cancel();
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
 
         try
         {
@@ -186,8 +268,8 @@ public class IndustryBrowserViewModel : ReactiveObject
                 Rows        = new ObservableCollection<GridRow>(rows);
                 OwnerOptions = ownerOpts;
                 var active  = rows.Count(r => r["Status"] is "Active" or "Paused" or "Ready");
-                StatusText  = $"{rows.Count:N0} job{(rows.Count == 1 ? "" : "s")}" +
-                              (active > 0 ? $"  ·  {active} active" : "");
+                StatusText  = Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.JobsCountOther), rows.Count) +
+                              (active > 0 ? "  ·  " + string.Format(IndustryText.JobsActiveCount, active) : "");
             });
         }
         catch (OperationCanceledException) { }
@@ -261,7 +343,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             conds.Add("\"Start Date\" >= @startedFrom");
         if (startedThru.HasValue)
             conds.Add("\"Start Date\" < @startedThru");
-        if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
+        if (!string.IsNullOrEmpty(owner))
             conds.Add("\"Owner\" = @owner");
 
         var where = conds.Count > 0 ? "WHERE " + string.Join(" AND ", conds) : "";
@@ -280,7 +362,7 @@ public class IndustryBrowserViewModel : ReactiveObject
             cmd.AddWithValue("@startedFrom", startedFrom.Value.UtcDateTime.ToString("O"));
         if (startedThru.HasValue)
             cmd.AddWithValue("@startedThru", startedThru.Value.UtcDateTime.AddDays(1).ToString("O"));
-        if (!string.IsNullOrEmpty(owner) && owner != "All Owners")
+        if (!string.IsNullOrEmpty(owner))
             cmd.AddWithValue("@owner", owner);
 
         ct.ThrowIfCancellationRequested();
@@ -310,10 +392,16 @@ public class IndustryBrowserViewModel : ReactiveObject
                 var rem = endDate.ToUniversalTime() - DateTimeOffset.UtcNow;
                 var sl  = jobStatus.ToLowerInvariant();
                 if (sl is "active" or "paused")
-                    dict["Time Remaining"] = rem > TimeSpan.Zero ? FormatDuration(rem) : "Ready";
+                    dict["Time Remaining"] = rem > TimeSpan.Zero ? FormatDuration(rem) : IndustryText.JobStatusReady;
                 else if (sl == "ready")
-                    dict["Time Remaining"] = "Ready";
+                    dict["Time Remaining"] = IndustryText.JobStatusReady;
             }
+
+            // The words a person reads for two keyed columns. Activity is relabelled in place: the
+            // filter compared the query's name for it in SQL, before this. The status label goes
+            // beside "Status", which keeps ESI's word for everything that compares it.
+            dict["Activity"]     = ActivityLabel(dict.GetValueOrDefault("Activity", ""));
+            dict[ColStatusLabel] = JobStatusLabel(jobStatus.ToLowerInvariant());
 
             // Collect IDs that SdeTypes/Characters couldn't resolve — feed ESI /universe/names/
             var installerVal = dict.GetValueOrDefault("Installer", "");
@@ -459,7 +547,7 @@ public class IndustryBrowserViewModel : ReactiveObject
 
     // ── Owner filter options ──────────────────────────────────────────────────
 
-    private List<string> LoadOwnerOptions()
+    private List<Choice<string>> LoadOwnerOptions()
     {
         using var conn = AppDb.Connect();
         conn.Open();
@@ -471,9 +559,9 @@ public class IndustryBrowserViewModel : ReactiveObject
             ORDER BY Owner
             """);
 
-        var list = new List<string> { "All Owners" };
+        var list = new List<Choice<string>> { AllOwners };
         using var r = cmd.ExecuteReader();
-        while (r.Read()) { var s = r.IsDBNull(0) ? "" : r.GetString(0); if (s.Length > 0) list.Add(s); }
+        while (r.Read()) { var s = r.IsDBNull(0) ? "" : r.GetString(0); if (s.Length > 0) list.Add(new(s, s)); }
         return list;
     }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -124,8 +125,8 @@ public class PriceOverrideViewModel : ReactiveObject
         Rows.Clear();
         foreach (var o in all)
             Rows.Add(new PriceOverrideRow(o.TypeId, o.TypeName, o.BuildCost, o.MarketValue, o.ContractValue));
-        Status = Rows.Count == 0 ? "No overrides. Add a type to pin its build, market, or contract value."
-                                 : $"{Rows.Count} override(s).";
+        Status = Rows.Count == 0 ? IndustryText.OverrideStatusNone
+                                 : string.Format(IndustryText.OverrideStatusCount, Rows.Count);
     }
 
     private async Task AddAsync()
@@ -140,7 +141,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = new PriceOverrideRow(result.TypeId, result.TypeName, null, null, null);
         Rows.Add(row);
         SelectedRow = row;
-        Status = $"Added {result.TypeName}. Enter a value and Save.";
+        Status = string.Format(IndustryText.OverrideStatusAdded, result.TypeName);
     }
 
     private async Task DeleteSelectedAsync()
@@ -149,7 +150,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = SelectedRow;
         await _svc.DeleteAsync(row.TypeId);
         Rows.Remove(row);
-        Status = $"Removed {row.TypeName}. Save/recalculate to refresh costs.";
+        Status = string.Format(IndustryText.OverrideStatusRemoved, row.TypeName);
     }
 
     private async Task SaveAndRecalcAsync()
@@ -176,13 +177,13 @@ public class PriceOverrideViewModel : ReactiveObject
                 });
             }
 
-            Status = "Saved — recalculating build costs…";
+            Status = IndustryText.OverrideStatusSaving;
             await _buildCosts.RecalculateAllAsync();
-            Status = $"Saved {Rows.Count} override(s) and recalculated build costs at {DateTimeOffset.Now:t}.";
+            Status = string.Format(IndustryText.OverrideStatusSaved, Rows.Count, DateTimeOffset.Now);
         }
         catch (Exception ex)
         {
-            Status = $"Save failed: {ex.Message}";
+            Status = string.Format(IndustryText.OverrideStatusSaveFailed, ex.Message);
         }
         finally
         {

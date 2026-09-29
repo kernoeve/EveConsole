@@ -9,6 +9,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -154,8 +155,8 @@ public class ProductionCalculatorViewModel : ReactiveObject
     }
 
     public string MissingModeDescription => RawMissingByStation
-        ? "Missing counts stock at each job's linked facility"
-        : "Missing counts every asset you own, anywhere";
+        ? IndustryText.CalcMissingByStation
+        : IndustryText.CalcMissingByAssets;
 
     private ProductionCalculatorService.MissingMode CurrentMissingMode =>
         RawMissingByStation
@@ -172,7 +173,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
         if (_plan is not null)
         {
             try { await _service.ApplyAvailabilityAsync(_plan, CurrentMissingMode); }
-            catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+            catch (Exception ex) { Status = string.Format(CommonText.ErrorWithMessage, ex.Message); }
         }
     }
 
@@ -197,13 +198,13 @@ public class ProductionCalculatorViewModel : ReactiveObject
 
     public string PlanWarningHeader => _plan is null || _plan.Warnings.Count == 0
         ? ""
-        : $"{_plan.Warnings.Count} item(s) had no structure assignment in this park";
+        : string.Format(IndustryText.CalcWarnNoAssignment, _plan.Warnings.Count);
 
     public bool HasPricingWarnings => _plan?.PricingWarnings.Count > 0;
 
     public string PricingWarningHeader => _plan is null || _plan.PricingWarnings.Count == 0
         ? ""
-        : $"{_plan.PricingWarnings.Count} blueprint price(s) are out of date or missing";
+        : string.Format(IndustryText.CalcWarnBlueprintPrices, _plan.PricingWarnings.Count);
 
     public bool HasResults => _plan is not null;
 
@@ -437,7 +438,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
     {
         if (SelectedPark is null || Queue.Count == 0) return;
         IsBusy = true;
-        Status = "Calculating...";
+        Status = IndustryText.CalcStatusCalculating;
         Plan   = null;
         try
         {
@@ -454,9 +455,9 @@ public class ProductionCalculatorViewModel : ReactiveObject
             // filled — PlanJobMaterial has no change notification.
             await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);
             Plan   = plan;
-            Status = $"Done — {plan.AllJobs.Count} jobs, {plan.RawMaterials.Count} raw materials";
+            Status = string.Format(IndustryText.CalcStatusDone, plan.AllJobs.Count, plan.RawMaterials.Count);
         }
-        catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(CommonText.ErrorWithMessage, ex.Message); }
         finally { IsBusy = false; }
     }
 }
