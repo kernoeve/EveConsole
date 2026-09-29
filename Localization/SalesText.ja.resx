@@ -1,0 +1,1574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitlePosting" xml:space="preserve">
+    <value>投稿</value>
+  </data>
+  <data name="PostingNameLabel" xml:space="preserve">
+    <value>投稿名</value>
+  </data>
+  <data name="InventoryScopeInStockIn" xml:space="preserve">
+    <value>在庫の対象範囲（在庫あり・製造中）</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>すべての場所</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>入力して検索…</value>
+  </data>
+  <data name="SalePriceBasisLabel" xml:space="preserve">
+    <value>販売価格の基準</value>
+  </data>
+  <data name="BuildCost" xml:space="preserve">
+    <value>製造コスト</value>
+  </data>
+  <data name="ContractCost" xml:space="preserve">
+    <value>契約価格</value>
+  </data>
+  <data name="SpecificMarket" xml:space="preserve">
+    <value>指定のマーケット</value>
+  </data>
+  <data name="MarketCurrentOrdersSameNote" xml:space="preserve">
+    <value>マーケット（現在の注文 — 「トレードチャンス」と同じリスト）</value>
+  </data>
+  <data name="NoPolledMarketsYetNote" xml:space="preserve">
+    <value>ポーリング済みのマーケットはまだありません — 先に「マーケット概要」でマーケットの設定を追加してください。</value>
+  </data>
+  <data name="PriceTypeLabel" xml:space="preserve">
+    <value>価格の種類</value>
+  </data>
+  <data name="SalePriceBasisLabel2" xml:space="preserve">
+    <value>販売価格 = 基準 ×  %</value>
+  </data>
+  <data name="BuildDefaults110ContractMarket" xml:space="preserve">
+    <value>%（既定値：製造110%、契約・マーケット100%）</value>
+  </data>
+  <data name="ShowQuantitiesInPostingLabel" xml:space="preserve">
+    <value>投稿に表示する数量</value>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>在庫あり</value>
+  </data>
+  <data name="InBuild" xml:space="preserve">
+    <value>製造中</value>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>予約済み</value>
+  </data>
+  <data name="IncludeEarliestJobCompletion" xml:space="preserve">
+    <value>最も早いジョブの完了日を含める（在庫あり = 0、製造中 ≥ 1のとき）</value>
+  </data>
+  <data name="OnlyIncludePackagedItems" xml:space="preserve">
+    <value>パッケージ済みのアイテムのみ含める（組み立て完了・装備済みの船体は除く）</value>
+  </data>
+  <data name="ColourEveMailOnlyNote" xml:space="preserve">
+    <value>色（EVEメールのみ — ほかの形式では無視されます）</value>
+  </data>
+  <data name="ColourEachItemLine" xml:space="preserve">
+    <value>在庫あり、製造中、どちらでもないかで、アイテムの各行を色分けする</value>
+  </data>
+  <data name="InStockLabel" xml:space="preserve">
+    <value>在庫あり</value>
+  </data>
+  <data name="InBuildLabel" xml:space="preserve">
+    <value>製造中</value>
+  </data>
+  <data name="NeitherLabel" xml:space="preserve">
+    <value>どちらでもない</value>
+  </data>
+  <data name="AColourSetOnNote" xml:space="preserve">
+    <value>アイテムに設定した色はこれより優先されます。どちらも設定されていない場合は、セクションの色が使われます。ヘッダー、フッター、固定テキストでは[color=#rrggbb]テキスト[/color]と書いてください — ほかの形式ではすべて取り除かれます。</value>
+  </data>
+  <data name="PostBlocksFirstParentNote" xml:space="preserve">
+    <value>投稿ブロック（最初 = 親投稿、残り = スレッドの詳細）</value>
+  </data>
+  <data name="AddPost" xml:space="preserve">
+    <value>+ 投稿を追加</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="TipMoveUp" xml:space="preserve">
+    <value>上へ移動します</value>
+  </data>
+  <data name="TipMoveDown" xml:space="preserve">
+    <value>下へ移動します</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>削除します</value>
+  </data>
+  <data name="HintStaticContent" xml:space="preserve">
+    <value>固定の内容…</value>
+  </data>
+  <data name="HintHeaderTextBeforeTheContent" xml:space="preserve">
+    <value>ヘッダー — 内容の前に置くテキスト…</value>
+  </data>
+  <data name="HintFooterTextAfterTheContent" xml:space="preserve">
+    <value>フッター — 内容の後に置くテキスト…</value>
+  </data>
+  <data name="FooterColourLabel" xml:space="preserve">
+    <value>フッターの色</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="TitleSection" xml:space="preserve">
+    <value>セクション</value>
+  </data>
+  <data name="SectionNameLabel" xml:space="preserve">
+    <value>セクション名</value>
+  </data>
+  <data name="SectionPrefixOutputOnlyNote" xml:space="preserve">
+    <value>セクションの接頭辞（出力のみ — 例：Slackの:macro:）</value>
+  </data>
+  <data name="HintEGShips" xml:space="preserve">
+    <value>例：:ships:</value>
+  </data>
+  <data name="SectionHeaderColourEveMail" xml:space="preserve">
+    <value>セクションヘッダーの色（EVEメールのみ）</value>
+  </data>
+  <data name="SectionRowColourLabel" xml:space="preserve">
+    <value>セクションの行の色</value>
+  </data>
+  <data name="OnlyUsedWhenTheNote" xml:space="preserve">
+    <value>⚠ 投稿が状態による色分けを「していない」ときにのみ使われます。その設定は行ごとに働き、こちらより優先されるため、オンのときはこの設定は効果がありません。アイテム自体の色はどちらよりも優先されます。</value>
+  </data>
+  <data name="OverrideInventoryScopeForThis" xml:space="preserve">
+    <value>このセクションの在庫の対象範囲を上書きする</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>対象範囲</value>
+  </data>
+  <data name="OverrideSalePriceBasis" xml:space="preserve">
+    <value>このセクションの販売価格の基準を上書きする</value>
+  </data>
+  <data name="MarketCurrentOrders" xml:space="preserve">
+    <value>マーケット（現在の注文）</value>
+  </data>
+  <data name="Build110ContractMarket100" xml:space="preserve">
+    <value>%（製造110%、契約・マーケット100%）</value>
+  </data>
+  <data name="OverridePackagedOnlySetting" xml:space="preserve">
+    <value>このセクションの「パッケージ済みのみ」の設定を上書きする</value>
+  </data>
+  <data name="TitleWhereShouldTheSiteLive" xml:space="preserve">
+    <value>サイトをどこに置きますか？</value>
+  </data>
+  <data name="TheSiteNeedsAnNote" xml:space="preserve">
+    <value>サイトにはアドレスが必要です。CloudflareがすべてのWorkerに無料で割り当てるアドレスか、このCloudflareアカウントにすでにある独自ドメインを使えます。どちらも後で「ウェブサイト」タブで変更できます。</value>
+  </data>
+  <data name="TheFreeWorkersDevAddress" xml:space="preserve">
+    <value>無料のworkers.devアドレス</value>
+  </data>
+  <data name="ThisAccountHasNoNote" xml:space="preserve">
+    <value>このアカウントにはまだworkers.devの名前がありません。名前を付けてください：</value>
+  </data>
+  <data name="HintYourName" xml:space="preserve">
+    <value>your-name</value>
+  </data>
+  <data name="WorkersDev" xml:space="preserve">
+    <value>.workers.dev</value>
+  </data>
+  <data name="EveryWorkerOnThisNote" xml:space="preserve">
+    <value>このCloudflareアカウントのすべてのWorkerで共有され、Cloudflare全体で一意である必要があります。後でダッシュボードの「Workers &amp; Pages」→「Account details」で変更できます。使えるのは英小文字、数字、ハイフンです。</value>
+  </data>
+  <data name="ADomainOfMy" xml:space="preserve">
+    <value>Cloudflare上の独自ドメイン</value>
+  </data>
+  <data name="TheDomainMustAlreadyNote" xml:space="preserve">
+    <value>ドメインはすでにこのCloudflareアカウントにあり、DNSもそこにある必要があります。レコードと証明書はCloudflareが作成します。サイトはこの名前でのみ応答します。</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>続行</value>
+  </data>
+  <data name="TitleAddOrder" xml:space="preserve">
+    <value>注文を追加</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>アイテムタイプ</value>
+  </data>
+  <data name="NoneSelected" xml:space="preserve">
+    <value>（未選択）</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>アイテム名を入力…</value>
+  </data>
+  <data name="UnitsLabel" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="PurchasePriceTotalLabel" xml:space="preserve">
+    <value>購入価格（合計）</value>
+  </data>
+  <data name="BuyerLabel" xml:space="preserve">
+    <value>買い手</value>
+  </data>
+  <data name="HintStartTypingACharacterOr" xml:space="preserve">
+    <value>キャラクター名またはコーポレーション名を入力…</value>
+  </data>
+  <data name="EstimatedDateLabel" xml:space="preserve">
+    <value>予定日</value>
+  </data>
+  <data name="CompletedDateLabel" xml:space="preserve">
+    <value>完了日</value>
+  </data>
+  <data name="SetAutomaticallyTodayWhenNote" xml:space="preserve">
+    <value>自動で設定されます：注文を完了またはキャンセルにした日、またはリンクした契約が受諾された日です。実際の日付と異なる場合は、ここで上書きしてください。</value>
+  </data>
+  <data name="PriorityPutThisOrder" xml:space="preserve">
+    <value>優先 — この注文と、それに必要なものすべてを最上位にする</value>
+  </data>
+  <data name="TipOutranksEveryOtherOrder" xml:space="preserve">
+    <value>予定日に関係なく、ほかのすべての注文より優先されます。この注文のためのジョブ、購入、運搬も同様です。</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="HintContractIdsIfThe" xml:space="preserve">
+    <value>照合で漏れた契約のID</value>
+  </data>
+  <data name="NormallyFilledInAutomaticallyNote" xml:space="preserve">
+    <value>通常は自動で入力されます — 1つの注文が複数の契約に分かれることがあるため、この注文を載せたすべての契約が入ります。契約を照合できない場合（たいていは注文を入力する前に契約を作成したため）は、ここにIDを追加してください。複数ある場合はカンマで区切ります。IDを削除すると、その契約は対象から外れます。</value>
+  </data>
+  <data name="LabelsLabel" xml:space="preserve">
+    <value>ラベル</value>
+  </data>
+  <data name="FreeTagsForGroupingNote" xml:space="preserve">
+    <value>注文をまとめるための自由なタグです — コーポのプログラム、顧客、出荷などに使えます。何でも入力でき、まだ存在しない場合はEnterキーを押すと作成されます。「注文管理」ではこれで絞り込めます。</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="SelectAnItemTypeAbove" xml:space="preserve">
+    <value>上でアイテムタイプを選択してください。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>注文管理</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="AddOrder" xml:space="preserve">
+    <value>注文を追加</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>作成日</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>開始 yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>終了 yyyy-MM-dd</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="HintItemName" xml:space="preserve">
+    <value>アイテム名</value>
+  </data>
+  <data name="Buyer" xml:space="preserve">
+    <value>買い手</value>
+  </data>
+  <data name="HintBuyer" xml:space="preserve">
+    <value>買い手</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>ラベル</value>
+  </data>
+  <data name="MenuAddLabel" xml:space="preserve">
+    <value>ラベルを追加</value>
+  </data>
+  <data name="MenuRemoveLabel" xml:space="preserve">
+    <value>ラベルを外す</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>作成日</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>買い手</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="ColOrder" xml:space="preserve">
+    <value>注文番号</value>
+  </data>
+  <data name="ColLabels" xml:space="preserve">
+    <value>ラベル</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>ストア</value>
+  </data>
+  <data name="ColContractTo" xml:space="preserve">
+    <value>契約先</value>
+  </data>
+  <data name="ColStock" xml:space="preserve">
+    <value>在庫</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>所持数</value>
+  </data>
+  <data name="ColIndyJob" xml:space="preserve">
+    <value>生産ジョブ</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>不足</value>
+  </data>
+  <data name="ColOnContract" xml:space="preserve">
+    <value>契約中</value>
+  </data>
+  <data name="ColDelivered" xml:space="preserve">
+    <value>納品済み</value>
+  </data>
+  <data name="ColContract" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>予定日</value>
+  </data>
+  <data name="ColPri" xml:space="preserve">
+    <value>優先</value>
+  </data>
+  <data name="ColPurchasePrice" xml:space="preserve">
+    <value>購入価格</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>完了日</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>製造コスト</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="ColProfit2" xml:space="preserve">
+    <value>利益（%）</value>
+  </data>
+  <data name="SalesTracker" xml:space="preserve">
+    <value>販売管理 →</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>日時</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="TabDefinitions" xml:space="preserve">
+    <value>定義</value>
+  </data>
+  <data name="AddPosting" xml:space="preserve">
+    <value>+ 投稿を追加</value>
+  </data>
+  <data name="ImportPosting" xml:space="preserve">
+    <value>投稿をインポート</value>
+  </data>
+  <data name="ProfitBasedOn" xml:space="preserve">
+    <value>利益の基準</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開く</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>マーケットグループからアイテムを追加</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>アイテムを削除</value>
+  </data>
+  <data name="ColPostingSectionItem" xml:space="preserve">
+    <value>投稿・セクション・アイテム</value>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>+ セクション</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>エクスポート</value>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>この場所を開きます</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ アイテム</value>
+  </data>
+  <data name="ColNameOverride" xml:space="preserve">
+    <value>名前の上書き</value>
+  </data>
+  <data name="ColPrefix" xml:space="preserve">
+    <value>接頭辞</value>
+  </data>
+  <data name="ColColour" xml:space="preserve">
+    <value>色</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="ColInStock" xml:space="preserve">
+    <value>在庫あり</value>
+  </data>
+  <data name="ColStockOvr" xml:space="preserve">
+    <value>在庫上書き</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>製造中</value>
+  </data>
+  <data name="ColBuildOvr" xml:space="preserve">
+    <value>製造中上書き</value>
+  </data>
+  <data name="ColReserved" xml:space="preserve">
+    <value>予約済み</value>
+  </data>
+  <data name="ColRsrvOvr" xml:space="preserve">
+    <value>予約上書き</value>
+  </data>
+  <data name="ColBuildCost2" xml:space="preserve">
+    <value>製造コスト</value>
+  </data>
+  <data name="ColMktValue" xml:space="preserve">
+    <value>マーケット価値</value>
+  </data>
+  <data name="ColContract2" xml:space="preserve">
+    <value>契約価格</value>
+  </data>
+  <data name="ColSalePrice" xml:space="preserve">
+    <value>販売価格</value>
+  </data>
+  <data name="ColProfit3" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="ColProfit4" xml:space="preserve">
+    <value>利益（%）</value>
+  </data>
+  <data name="ColReadyEst" xml:space="preserve">
+    <value>完成予定日</value>
+  </data>
+  <data name="TabPosting" xml:space="preserve">
+    <value>投稿</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>形式</value>
+  </data>
+  <data name="TipReRenderTheSelected" xml:space="preserve">
+    <value>最新の定義データで、選択した投稿を作り直します</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Slackに投稿</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="TipCopyTheRawFormatted" xml:space="preserve">
+    <value>整形済みの生テキスト（マークアップ付き）をクリップボードにコピーします</value>
+  </data>
+  <data name="SalesTracker2" xml:space="preserve">
+    <value>販売管理</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="SaleType" xml:space="preserve">
+    <value>販売の種類</value>
+  </data>
+  <data name="ShowNotForProfit" xml:space="preserve">
+    <value>利益の対象外も表示</value>
+  </data>
+  <data name="TipIncludeSalesMarkedAs" xml:space="preserve">
+    <value>利益の対象外に設定した販売も含めます。表示している間は、この画面のすべてで計上されます：概要、グラフ、表のいずれもこのチェックボックスに従います。</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="ProfitByBuyer" xml:space="preserve">
+    <value>買い手別の利益</value>
+  </data>
+  <data name="ColSales" xml:space="preserve">
+    <value>売上</value>
+  </data>
+  <data name="ProfitByMarketGroup" xml:space="preserve">
+    <value>マーケットグループ別の利益</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="ProfitByItem" xml:space="preserve">
+    <value>アイテム別の利益</value>
+  </data>
+  <data name="NoProfitToShow" xml:space="preserve">
+    <value>表示する利益はありません</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>グラフの単位</value>
+  </data>
+  <data name="CostsSalesAndProfit" xml:space="preserve">
+    <value>コスト、売上、利益</value>
+  </data>
+  <data name="Margin" xml:space="preserve">
+    <value>利益率</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="MenuMarkAsNotForProfit" xml:space="preserve">
+    <value>利益の対象外にする</value>
+  </data>
+  <data name="MenuRestoreToProfit" xml:space="preserve">
+    <value>利益の対象に戻す</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>このステーションまたはストラクチャを開きます</value>
+  </data>
+  <data name="ColItemS" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="ColTotalSale" xml:space="preserve">
+    <value>販売総額</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>製造価格</value>
+  </data>
+  <data name="ColMarketPrice" xml:space="preserve">
+    <value>マーケット価格</value>
+  </data>
+  <data name="AddStore" xml:space="preserve">
+    <value>+ ストアを追加</value>
+  </data>
+  <data name="CheckMailNow" xml:space="preserve">
+    <value>今すぐメールを確認</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="Inquiries" xml:space="preserve">
+    <value>問い合わせ</value>
+  </data>
+  <data name="ActiveItems" xml:space="preserve">
+    <value>進行中の品目</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="ActiveOrders" xml:space="preserve">
+    <value>進行中の注文</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>作成日</value>
+  </data>
+  <data name="ColOrder2" xml:space="preserve">
+    <value>注文</value>
+  </data>
+  <data name="ColEstDate2" xml:space="preserve">
+    <value>予定日</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>調達元</value>
+  </data>
+  <data name="Messages" xml:space="preserve">
+    <value>メッセージ</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>日時</value>
+  </data>
+  <data name="ColDirection" xml:space="preserve">
+    <value>送受信</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>相手</value>
+  </data>
+  <data name="ColCommand" xml:space="preserve">
+    <value>コマンド</value>
+  </data>
+  <data name="ColSubject" xml:space="preserve">
+    <value>件名</value>
+  </data>
+  <data name="ColOutcome" xml:space="preserve">
+    <value>結果</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>メモ</value>
+  </data>
+  <data name="WebSiteEvents" xml:space="preserve">
+    <value>ウェブサイトのイベント</value>
+  </data>
+  <data name="ShowVisits" xml:space="preserve">
+    <value>訪問を表示</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="BookIt" xml:space="preserve">
+    <value>受注</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="TabGeneral" xml:space="preserve">
+    <value>全般</value>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>ストア</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="EveMailbox" xml:space="preserve">
+    <value>EVEメールボックス</value>
+  </data>
+  <data name="UsedForOrderStatusNote" xml:space="preserve">
+    <value>注文ステータスの通知に使われます。EVEメールのストアが開いているときは、ストアへのリクエストにも使われます。</value>
+  </data>
+  <data name="PriceList" xml:space="preserve">
+    <value>価格表</value>
+  </data>
+  <data name="GiveInStockOrders" xml:space="preserve">
+    <value>在庫ありの注文に予定日を設定する</value>
+  </data>
+  <data name="DaySFromTheOrder" xml:space="preserve">
+    <value>日後（注文日から）</value>
+  </data>
+  <data name="OrderLabelsOnEveryNote" xml:space="preserve">
+    <value>注文のラベル（このストアが受けるすべての注文に付けます）</value>
+  </data>
+  <data name="LabelsAppearOnTheNote" xml:space="preserve">
+    <value>ラベルは「注文管理」に表示され、そこで絞り込めます。ここに入力したものはラベルの選択肢に表示されるため、プログラムの最初の注文が届く前に準備しておけます。</value>
+  </data>
+  <data name="TabRestrictions" xml:space="preserve">
+    <value>制限</value>
+  </data>
+  <data name="WhoMayOrder" xml:space="preserve">
+    <value>注文できる相手</value>
+  </data>
+  <data name="UsedWhenServeIsNote" xml:space="preserve">
+    <value>「対応相手」が「リスト」のときに使われます。送信者は、本人の名前、所属コーポレーション、所属アライアンスのいずれかで一致します。名前は、アプリがすでに見たことのあるIDと照合して解決されます。</value>
+  </data>
+  <data name="Serve" xml:space="preserve">
+    <value>対応相手</value>
+  </data>
+  <data name="AnyoneOrOnlyTheNote" xml:space="preserve">
+    <value>誰でも、または下のリストの相手だけです。EVEメールとウェブサイトで共通です。</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>名前を2文字入力…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="PurchaseLimit" xml:space="preserve">
+    <value>購入制限</value>
+  </data>
+  <data name="HowMuchOneBuyerNote" xml:space="preserve">
+    <value>1人の買い手が購入できる量です。このストアでのキャンセルされていない注文を、どの窓口から出されたかにかかわらず合計して数えます。各種類の最初の船体を配るプログラムなら、「アイテムタイプごとに1個、全期間」とします。サイトでは、買い手がもう注文できないアイテムはグレー表示になり、数量欄には残りの数が入ります。それでも制限を超えた注文がアプリに届いた場合は、確認できるように保留され、自動で受注されることはありません。</value>
+  </data>
+  <data name="LimitEachBuyer" xml:space="preserve">
+    <value>買い手ごとに制限する</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>上限</value>
+  </data>
+  <data name="UnitSOf" xml:space="preserve">
+    <value>個、対象：</value>
+  </data>
+  <data name="Per" xml:space="preserve">
+    <value>期間：</value>
+  </data>
+  <data name="TabEveMail" xml:space="preserve">
+    <value>EVEメール</value>
+  </data>
+  <data name="EveMail" xml:space="preserve">
+    <value>EVEメール</value>
+  </data>
+  <data name="AShopFrontInNote" xml:space="preserve">
+    <value>メールボックスの店頭です：買い手が上のキャラクターにメールを送ると、アプリが返信し、注文を受け付け、進捗を知らせます。購入できる相手は「制限」タブで設定します。メールとウェブで共通です。</value>
+  </data>
+  <data name="OpenByEveMail" xml:space="preserve">
+    <value>EVEメールで開店 — メールボックスに届いたメールを読んで返信する</value>
+  </data>
+  <data name="BuyersPutTheCommandNote" xml:space="preserve">
+    <value>買い手はメールの件名にコマンドを書きます：PRICES、ORDER、STATUS、CANCEL、HELP。ORDERの本文は1行に1アイテムです — アイテムをドラッグして入れるのが最も簡単です。STATUSだけを送ると未完了の注文がすべて一覧表示されます。CANCELには確認メールに記載された参照番号が必要です。</value>
+  </data>
+  <data name="MessageHeaderOnEveryNote" xml:space="preserve">
+    <value>メッセージのヘッダー（このストアが送るすべてのメールに付きます）</value>
+  </data>
+  <data name="HintEGThanksFor" xml:space="preserve">
+    <value>例：ご利用ありがとうございます。</value>
+  </data>
+  <data name="TipEveMarkupWorksHere" xml:space="preserve">
+    <value>ここではEVEのマークアップを使えます：&lt;b&gt;、&lt;i&gt;、&lt;u&gt;、ドラッグしたリンク、[color=#rrggbb]テキスト[/color]。この欄の横の色はブロック全体に、タグはその一部に色を付けます。</value>
+  </data>
+  <data name="MessageFooterLabel" xml:space="preserve">
+    <value>メッセージのフッター</value>
+  </data>
+  <data name="BothAcceptEveMarkupNote" xml:space="preserve">
+    <value>どちらもEVEのマークアップ（太字、斜体、下線、ドラッグしたリンク）と、行の一部に色を付ける[color=#rrggbb]テキスト[/color]を使えます。各欄の横の色選択は、ブロック全体に色を付けます。</value>
+  </data>
+  <data name="HintEGContractsAre" xml:space="preserve">
+    <value>例：契約はジタ4-4で発行します。</value>
+  </data>
+  <data name="TabWebSite" xml:space="preserve">
+    <value>ウェブサイト</value>
+  </data>
+  <data name="WebSite" xml:space="preserve">
+    <value>ウェブサイト</value>
+  </data>
+  <data name="AShopFrontOnNote" xml:space="preserve">
+    <value>自分でホストするサイト上の、ウェブの店頭です。買い手はEVE SSOでログインし、在庫あり・製造中・予約済みの数量付きでこの価格表を見て、注文し、その状況を確認できます。アプリは表示してよい内容をサイトに送り、数分ごとに買い手の操作を回収します。サイト上のものがデータベースに直接届くことはありません。購入できる相手は「制限」タブで設定します。メールとウェブで共通です。</value>
+  </data>
+  <data name="OpenOnTheWeb" xml:space="preserve">
+    <value>ウェブで開店 — サイトに公開して注文を受け付ける</value>
+  </data>
+  <data name="SiteAddress" xml:space="preserve">
+    <value>サイトのアドレス</value>
+  </data>
+  <data name="Secret" xml:space="preserve">
+    <value>シークレット</value>
+  </data>
+  <data name="NewSecret" xml:space="preserve">
+    <value>新しいシークレット</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="BuyersMayAlsoChooseLabel" xml:space="preserve">
+    <value>買い手がほかに選べるテーマ：</value>
+  </data>
+  <data name="CheckTheSite" xml:space="preserve">
+    <value>サイトの確認</value>
+  </data>
+  <data name="Every" xml:space="preserve">
+    <value>間隔</value>
+  </data>
+  <data name="MinutesABuyerWaitsNote" xml:space="preserve">
+    <value>分。買い手は確認を最大でこの時間待ちます。呼び出しは1回ごとに、サイトの1日あたりの無料リクエストを1回使います。</value>
+  </data>
+  <data name="AlsoMailWebBuyers" xml:space="preserve">
+    <value>注文が進んだら、ウェブの買い手にもメールで知らせる（上のキャラクターが必要）</value>
+  </data>
+  <data name="TheThemeIsTheNote" xml:space="preserve">
+    <value>このテーマはストア独自のもので、このデスクトップアプリで表示中のテーマとは関係ありません。シークレットは、アプリが各呼び出しに署名するための値です。サイトを手動で構築する場合は、サイトのSTORE_SYNC_SECRETに同じ値を設定してください。</value>
+  </data>
+  <data name="AboutThisStoreOnTheLabel" xml:space="preserve">
+    <value>サイトに載せるストアの紹介</value>
+  </data>
+  <data name="HintContractTermsPickupWhatever" xml:space="preserve">
+    <value>契約条件、受け取り方法など、買い手が注文前に読むべきこと。プレーンテキストまたはHTML。</value>
+  </data>
+  <data name="HtmlIsWelcomeBNote" xml:space="preserve">
+    <value>HTMLを使えます：&lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt;、およびメールのマークアップの&lt;font color&gt;。段落タグやリストタグでレイアウトするまでは、改行と空行は書いたとおりに保たれ、その後はタグに従います。サイトはスクリプト、イベントハンドラー、認識できないタグを取り除き、閉じられていないタグを閉じます。</value>
+  </data>
+  <data name="BannerLabel" xml:space="preserve">
+    <value>バナー</value>
+  </data>
+  <data name="OptionalShownAcrossTheNote" xml:space="preserve">
+    <value>任意です。価格表の上部に、ページの幅いっぱい、高さ最大300ピクセルで表示されます。横長の画像（約1100×250）が最適で、それより縦長の画像は中央部分が表示されます。大きなファイルは縮小され、WebPとして送られます。</value>
+  </data>
+  <data name="ChoosePicture" xml:space="preserve">
+    <value>画像を選択…</value>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>今すぐ同期</value>
+  </data>
+  <data name="EveApplicationNeededBeforeNote" xml:space="preserve">
+    <value>EVEアプリケーション（買い手のログインに必要）</value>
+  </data>
+  <data name="DeployFirstSoTheNote" xml:space="preserve">
+    <value>まずデプロイして、サイトにアドレスを持たせてください。次にEVEの開発者サイトでアプリケーションを登録します：名前と説明は自由で、「Authentication only」（スコープなし）を選び、下に表示されるコールバックアドレスを入力します。そのClient IDとSecret Keyを2つの欄にコピーしてください：ここからデプロイしたサイトには保存した時点で送られ、欄の下の行に、サイトがこれらのキーを持っているかどうかが表示されます。手動で構築したサイトには、同じ値をEVE_CLIENT_IDとEVE_CLIENT_SECRETのシークレットとして設定する必要があります。</value>
+  </data>
+  <data name="OpenDevelopersEveonlineCom" xml:space="preserve">
+    <value>developers.eveonline.comを開いてアプリケーションを作成</value>
+  </data>
+  <data name="CallbackUrl" xml:space="preserve">
+    <value>コールバックURL</value>
+  </data>
+  <data name="HintKnownOnceTheSite" xml:space="preserve">
+    <value>サイトにアドレスが付くか、下でアカウントとWorker名を指定すると決まります</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="HintFromTheApplicationsPage" xml:space="preserve">
+    <value>開発者サイトにあるアプリケーションのページから</value>
+  </data>
+  <data name="SecretKey" xml:space="preserve">
+    <value>Secret Key</value>
+  </data>
+  <data name="HintShownOnceWhenThe" xml:space="preserve">
+    <value>アプリケーションの作成時に一度だけ表示されます</value>
+  </data>
+  <data name="AutomaticDeploymentAndUpdatesNote" xml:space="preserve">
+    <value>Cloudflareへの自動デプロイと更新（デプロイボタン専用）</value>
+  </data>
+  <data name="FillTheseInOnlyNote" xml:space="preserve">
+    <value>アプリにサイトを自分のCloudflareアカウントへ配置させ、「サイトをデプロイまたは更新」ボタンで最新に保たせたい場合にのみ入力してください：データベースを作成し、サイトの最新リリースをアップロードし、上のシークレットを設定して、無料のworkers.devアドレスか、そのアカウントの独自ドメインに配置します。もう一度デプロイすると、注文には触れずにサイトを更新します。代わりにサイトを手動で構築する場合は、ドキュメントに従ってから、上でサイトのアドレスとシークレットを入力してください。その場合、これらの欄はどれも必要ありません。</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>ドキュメント</value>
+  </data>
+  <data name="SiteSourceAndReleases" xml:space="preserve">
+    <value>サイトのソースとリリース</value>
+  </data>
+  <data name="CreateACloudflareApiToken" xml:space="preserve">
+    <value>CloudflareのAPIトークンを作成</value>
+  </data>
+  <data name="OnTheCloudflareTokenNote" xml:space="preserve">
+    <value>Cloudflareのトークンページで：「Create Token」を選び、「Edit Cloudflare Workers」テンプレートに「D1 Edit」の権限を追加して、「Continue」、「Create」の順に進みます。トークンを下に貼り付けて「トークンを保存」を押すと、確認された後、あなたのアカウント用に暗号化されて、このマシンにのみ保存されます。</value>
+  </data>
+  <data name="ApiToken" xml:space="preserve">
+    <value>APIトークン</value>
+  </data>
+  <data name="HintPasteATokenTo" xml:space="preserve">
+    <value>トークンを貼り付けてこのマシンに保存</value>
+  </data>
+  <data name="SaveToken" xml:space="preserve">
+    <value>トークンを保存</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>消去</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>アカウント</value>
+  </data>
+  <data name="HintSaveATokenToList" xml:space="preserve">
+    <value>トークンを保存するとアカウントが一覧表示されます</value>
+  </data>
+  <data name="WorkerName" xml:space="preserve">
+    <value>Worker名</value>
+  </data>
+  <data name="AlsoTheDatabasesNameNote" xml:space="preserve">
+    <value>データベースの名前にもなります。使えるのは英小文字、数字、ハイフンです。下で独自ドメインを選ばない限り、サイトのアドレスはアカウントのworkers.dev上のこの名前になります。</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>アドレス</value>
+  </data>
+  <data name="TheFreeWorkersDev" xml:space="preserve">
+    <value>無料のworkers.devアドレス：アカウントのworkers.dev上のWorker名</value>
+  </data>
+  <data name="RenameTheAccountsWorkersDev" xml:space="preserve">
+    <value>アカウントのworkers.devの名前を変更…</value>
+  </data>
+  <data name="ADomainOfMy2" xml:space="preserve">
+    <value>Cloudflare上の独自ドメイン：</value>
+  </data>
+  <data name="ADomainMustAlreadyNote" xml:space="preserve">
+    <value>ドメインはすでにこのCloudflareアカウントにあり、DNSもそこにある必要があります。次のデプロイでサイトがそのドメインに割り当てられ、Cloudflareがレコードと証明書を作成し、workers.devアドレスは無効になります。これで買い手にもEVEアプリケーションのコールバックにも、1つの名前だけが見えます。元に戻すと、ドメインの割り当ては解除されます。どちらの場合も上のコールバックURLが変わるため、EVEアプリケーションもそれに合わせて更新してください。</value>
+  </data>
+  <data name="DeployOrUpdateSite" xml:space="preserve">
+    <value>サイトをデプロイまたは更新</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="TabInfo" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="AboutThisStore" xml:space="preserve">
+    <value>このストアについて</value>
+  </data>
+  <data name="WhatInfoSendsBackNote" xml:space="preserve">
+    <value>INFOで返信する内容です：ストアの運営者、扱っている品、受け渡しの条件など、買い手が注文前に知っておくべきこと。空欄にするとこのコマンドは提供されません — 使い方のメッセージでINFOには触れず、それでもINFOを送ってきた相手には使い方のメッセージが返されます。</value>
+  </data>
+  <data name="InformationLabel" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="WriteItAsTextNote" xml:space="preserve">
+    <value>テキストで書いてください — 送信時に改行はそのまま改行になります。使い方のメッセージと同じEVEメールのマークアップを使えます：&lt;b&gt; &lt;i&gt; &lt;u&gt;、&lt;font size="12"&gt;、&lt;font color="#ffc8a84b"&gt; — 色はARGBのため、アルファの2桁は省略できません。空白だけでは入力したことになりません。</value>
+  </data>
+  <data name="TabUsage" xml:space="preserve">
+    <value>使い方</value>
+  </data>
+  <data name="UsageMessage" xml:space="preserve">
+    <value>使い方のメッセージ</value>
+  </data>
+  <data name="WhatHelpSendsAndNote" xml:space="preserve">
+    <value>HELPで送る内容で、このストアが理解できなかったメールへの返信にも付きます。既定のメッセージは注文方法を一般的に説明します。独自のルール（買い手1人につき船体1隻、固定価格、条件付きのプログラムなど）があるストアは、当てはまらない説明を送るより、自分の言葉でそう書くほうがよいでしょう。</value>
+  </data>
+  <data name="UseACustomUsage" xml:space="preserve">
+    <value>このストア専用の使い方のメッセージを使う</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>メッセージ</value>
+  </data>
+  <data name="WriteItAsTextNote2" xml:space="preserve">
+    <value>テキストで書いてください — 送信時に改行はそのまま改行になります。EVEメールのマークアップ：&lt;b&gt; &lt;i&gt; &lt;u&gt;、&lt;font size="12"&gt;、&lt;font color="#ffc8a84b"&gt; — 色はARGBのため、アルファの2桁は省略できません。アイテムとキャラクターのリンクは&lt;a href="showinfo:TYPEID"&gt;と&lt;a href="showinfo:1373//CHARACTERID"&gt;です。スペースは書いたとおりに保たれます。HTMLエンティティはデコードされず、入力したとおりに表示されます。</value>
+  </data>
+  <data name="ResetToTheDefaultMessage" xml:space="preserve">
+    <value>既定のメッセージに戻す</value>
+  </data>
+  <data name="OrderStatusPending" xml:space="preserve">
+    <value>進行中</value>
+  </data>
+  <data name="OrderStatusCompleted" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="OrderStatusCanceled" xml:space="preserve">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="TipOpenContract" xml:space="preserve">
+    <value>この契約を「契約」ツールで開きます</value>
+  </data>
+  <data name="UnitsInBuild" xml:space="preserve">
+    <value>{0:N0}個製造中</value>
+  </data>
+  <data name="TipBuildCostAsOf" xml:space="preserve">
+    <value>この注文が確定した日（{0}）時点の製造コストです。</value>
+  </data>
+  <data name="TipBuildCostCurrent" xml:space="preserve">
+    <value>現在の製造コストです。</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>進行中</value>
+  </data>
+  <data name="FilterCompleted" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="FilterCanceled" xml:space="preserve">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="ContractNumbered" xml:space="preserve">
+    <value>契約{0}</value>
+  </data>
+  <data name="ContractAcceptedOn" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}に受諾</value>
+  </data>
+  <data name="ContractAccepted" xml:space="preserve">
+    <value>受諾済み</value>
+  </data>
+  <data name="ContractWaiting" xml:space="preserve">
+    <value>買い手の受諾待ち</value>
+  </data>
+  <data name="ContractDeclined" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="ContractNotPolled" xml:space="preserve">
+    <value>ポーリングした契約にまだありません</value>
+  </data>
+  <data name="ContractsListed" xml:space="preserve">
+    <value>契約{0}件 — {1}</value>
+  </data>
+  <data name="ContractUnitsUncounted" xml:space="preserve">
+    <value>数量は未集計</value>
+  </data>
+  <data name="TipClickToOpenContract" xml:space="preserve">
+    <value>
+クリックすると、契約{0}を「契約」ツールで開きます。</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="StatusLabelled" xml:space="preserve">
+    <value>{0:N0}件の注文にラベル「{1}」を付けました。</value>
+  </data>
+  <data name="StatusLabelFailed" xml:space="preserve">
+    <value>ラベルを付けられませんでした：{0}</value>
+  </data>
+  <data name="StatusLabelRemoved" xml:space="preserve">
+    <value>{1:N0}件の注文からラベル「{0}」を外しました。</value>
+  </data>
+  <data name="BuyerCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="BuyerCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>日別</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>週別</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>月別</value>
+  </data>
+  <data name="UncostedNote" xml:space="preserve">
+    <value>{0:N0}件の販売は、どちらの基準でもコストがないため、グラフに表示していません。</value>
+  </data>
+  <data name="OwnerCharsAndPersonalCorps" xml:space="preserve">
+    <value>すべてのキャラクターと個人コーポ</value>
+  </data>
+  <data name="TypeAll" xml:space="preserve">
+    <value>すべての種類</value>
+  </data>
+  <data name="SaleTypeMarket" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="SaleTypeContract" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="BasisBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="BasisMarket" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="NoSalesMatch" xml:space="preserve">
+    <value>フィルターに一致する販売はありません。</value>
+  </data>
+  <data name="ExcludedShown" xml:space="preserve">
+    <value> · 利益の対象外{0:N0}件（表示しますが集計しません）</value>
+  </data>
+  <data name="ExcludedHidden" xml:space="preserve">
+    <value> · 利益の対象外{0:N0}件（非表示）</value>
+  </data>
+  <data name="SeriesGrossCosts" xml:space="preserve">
+    <value>総コスト</value>
+  </data>
+  <data name="SeriesGrossSales" xml:space="preserve">
+    <value>総売上</value>
+  </data>
+  <data name="SeriesNetProfit" xml:space="preserve">
+    <value>純利益</value>
+  </data>
+  <data name="SeriesMargin" xml:space="preserve">
+    <value>利益率</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="StatusLabelledSales" xml:space="preserve">
+    <value>{0:N0}件の販売にラベル「{1}」を付けました。</value>
+  </data>
+  <data name="StatusLabelRemovedSales" xml:space="preserve">
+    <value>{1:N0}件の販売からラベル「{0}」を外しました。</value>
+  </data>
+  <data name="StatusLabelRemoveFailed" xml:space="preserve">
+    <value>ラベルを外せませんでした：{0}</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>すべての場所</value>
+  </data>
+  <data name="PriceBasisContract" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="PriceBasisMarketAt" xml:space="preserve">
+    <value>マーケット：{0}（{1}）</value>
+  </data>
+  <data name="PriceBasisBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="SummaryScope" xml:space="preserve">
+    <value>対象範囲：</value>
+  </data>
+  <data name="PriceBasisMarketShort" xml:space="preserve">
+    <value>マーケット：{0}</value>
+  </data>
+  <data name="SummaryPackagedOnly" xml:space="preserve">
+    <value>パッケージ済みのみ</value>
+  </data>
+  <data name="SummaryAllItems" xml:space="preserve">
+    <value>すべてのアイテム</value>
+  </data>
+  <data name="StatusPostingExported" xml:space="preserve">
+    <value>投稿をエクスポートしました。</value>
+  </data>
+  <data name="StatusExportFailed" xml:space="preserve">
+    <value>エクスポートに失敗しました：{0}</value>
+  </data>
+  <data name="StatusNotAPosting" xml:space="preserve">
+    <value>そのファイルは販売の投稿ではありません。</value>
+  </data>
+  <data name="StatusImportFailed" xml:space="preserve">
+    <value>インポートに失敗しました：{0}</value>
+  </data>
+  <data name="NoPostingsYet" xml:space="preserve">
+    <value>投稿はまだありません — 追加して始めてください。</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="SlackSelectPosting" xml:space="preserve">
+    <value>先に投稿を選択してください。</value>
+  </data>
+  <data name="SlackNotConfigured" xml:space="preserve">
+    <value>SlackのチャンネルもWebhookも設定されていません。</value>
+  </data>
+  <data name="SlackAlreadyPosted" xml:space="preserve">
+    <value>「{0}」は{1}にSlackへ投稿済みです。
+
+</value>
+  </data>
+  <data name="SlackPostAgain" xml:space="preserve">
+    <value>もう一度投稿しますか？</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>投稿をキャンセルしました。</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Slackに投稿中…</value>
+  </data>
+  <data name="SlackNothingToPost" xml:space="preserve">
+    <value>投稿するものがありません — この投稿には投稿ブロックがありません。</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>「{0}」のSlackへの投稿に失敗しました：{1}</value>
+  </data>
+  <data name="SlackAllEmpty" xml:space="preserve">
+    <value>投稿するものがありません — すべての投稿ブロックが空でした。</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>{0}に投稿しました — {1:t}</value>
+  </data>
+  <data name="SelectSectionFirst" xml:space="preserve">
+    <value>先にセクション（またはその中のアイテム）を選択してください。</value>
+  </data>
+  <data name="NoItemsInGroup" xml:space="preserve">
+    <value>そのマーケットグループにはアイテムがありません。</value>
+  </data>
+  <data name="ItemsAlreadyInSection" xml:space="preserve">
+    <value>それらのアイテムはすべて、すでにセクションにあります。</value>
+  </data>
+  <data name="AddedItems" xml:space="preserve">
+    <value>アイテムを{0}種類追加しました。</value>
+  </data>
+  <data name="StoreOpenMailAndWeb" xml:space="preserve">
+    <value>メールとウェブで営業中</value>
+  </data>
+  <data name="StoreOpenMail" xml:space="preserve">
+    <value>メールで営業中</value>
+  </data>
+  <data name="StoreOpenWeb" xml:space="preserve">
+    <value>ウェブで営業中</value>
+  </data>
+  <data name="StoreClosed" xml:space="preserve">
+    <value>休業中</value>
+  </data>
+  <data name="MailReceived" xml:space="preserve">
+    <value>受信</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="EventOrder" xml:space="preserve">
+    <value>注文</value>
+  </data>
+  <data name="EventCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="EventVisit" xml:space="preserve">
+    <value>訪問</value>
+  </data>
+  <data name="OutcomeBooked" xml:space="preserve">
+    <value>受注済み</value>
+  </data>
+  <data name="OutcomeApplied" xml:space="preserve">
+    <value>適用済み</value>
+  </data>
+  <data name="OutcomeDeclined" xml:space="preserve">
+    <value>拒否済み</value>
+  </data>
+  <data name="OutcomeFailed" xml:space="preserve">
+    <value>失敗</value>
+  </data>
+  <data name="OutcomeNoted" xml:space="preserve">
+    <value>記録済み</value>
+  </data>
+  <data name="AllowNotFoundCharacter" xml:space="preserve">
+    <value>「{0}」という名前のキャラクターが見つかりませんでした。</value>
+  </data>
+  <data name="AllowNotFoundCorporation" xml:space="preserve">
+    <value>「{0}」という名前のコーポレーションが見つかりませんでした。</value>
+  </data>
+  <data name="AllowNotFoundAlliance" xml:space="preserve">
+    <value>「{0}」という名前のアライアンスが見つかりませんでした。</value>
+  </data>
+  <data name="WebStatusSynced" xml:space="preserve">
+    <value>最終同期は{0:yyyy-MM-dd HH:mm}です。</value>
+  </data>
+  <data name="WebStatusSyncedVersion" xml:space="preserve">
+    <value>最終同期は{0:yyyy-MM-dd HH:mm}、サイトのバージョンは{1}です。</value>
+  </data>
+  <data name="WebStatusNotSynced" xml:space="preserve">
+    <value>まだ同期していません。</value>
+  </data>
+  <data name="WebStatusNotSyncedVersion" xml:space="preserve">
+    <value>まだ同期していません。サイトのバージョンは{0}です。</value>
+  </data>
+  <data name="StoreUnnamed" xml:space="preserve">
+    <value>（名前なし）</value>
+  </data>
+  <data name="OutcomeNeedsDecision" xml:space="preserve">
+    <value>判断待ち</value>
+  </data>
+  <data name="SalesCountOther" xml:space="preserve">
+    <value>販売{0:N0}件</value>
+  </data>
+  <data name="TipContractLine" xml:space="preserve">
+    <value>{0} — {1}、{2}</value>
+  </data>
+  <data name="BuyerAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="LimitScopeType" xml:space="preserve">
+    <value>アイテムタイプごと</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>アイテムグループごと</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>ストア全体</value>
+  </data>
+  <data name="LimitPeriodDays" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="LimitPeriodMonths" xml:space="preserve">
+    <value>か月</value>
+  </data>
+  <data name="LimitPeriodYears" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="LimitPeriodAllTime" xml:space="preserve">
+    <value>全期間</value>
+  </data>
+  <data name="PriceListTooLong" xml:space="preserve">
+    <value>⚠  価格表は{0:N0}バイト（上限{1:N0}バイト）で、{2:N0}バイト超過しているため、{3}通のメールに分かれて届きます。1通で送るには、投稿を短くしてください。</value>
+  </data>
+  <data name="PriceListFits" xml:space="preserve">
+    <value>価格表は{0:N0}バイト（上限{1:N0}バイト）で、1通のメールに収まります（残り{2:N0}バイト）。</value>
+  </data>
+  <data name="BannerNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="BannerSaved" xml:space="preserve">
+    <value>バナーを保存しました。次回の同期でサイトに送られます。</value>
+  </data>
+  <data name="BannerSavedScaled" xml:space="preserve">
+    <value>バナーを保存しました。{0} × {1}に縮小してWebPに変換しています。次回の同期でサイトに送られます。</value>
+  </data>
+  <data name="BannerUnusable" xml:space="preserve">
+    <value>バナーを使用できませんでした：{0}</value>
+  </data>
+  <data name="BannerRemoved" xml:space="preserve">
+    <value>バナーを削除しました。次回の同期でサイトからも消えます。</value>
+  </data>
+  <data name="BannerRemoveFailed" xml:space="preserve">
+    <value>バナーを削除できませんでした：{0}</value>
+  </data>
+  <data name="WebClosed" xml:space="preserve">
+    <value>ウェブの窓口は閉じています。</value>
+  </data>
+  <data name="WebNeedsAddress" xml:space="preserve">
+    <value>同期するには、サイトのアドレスとシークレットが必要です。</value>
+  </data>
+  <data name="WebOtherClient" xml:space="preserve">
+    <value>別のクライアントがバックグラウンド処理を実行し、ウェブサイトを同期しています。変更はその次のサイクルで反映されます。</value>
+  </data>
+  <data name="WebSyncing" xml:space="preserve">
+    <value>ウェブサイトを同期中…</value>
+  </data>
+  <data name="WebSecretGenerated" xml:space="preserve">
+    <value>新しいシークレットを生成しました。サイトにも同じ値を設定してください。設定しないと、次回の同期は拒否されます。</value>
+  </data>
+  <data name="SsoKeysNeeded" xml:space="preserve">
+    <value>サイトにEVEアプリケーションのClient IDとSecret Keyが設定されるまで、買い手はログインできません。ここに入力してください：デプロイボタンでサイトに配置されます。手動で構築したサイトには、同じ値をEVE_CLIENT_IDとEVE_CLIENT_SECRETのシークレットとして設定する必要があります。</value>
+  </data>
+  <data name="TokenSavedDpapi" xml:space="preserve">
+    <value>トークンは、このマシン上のあなたのアカウント用にWindowsによって暗号化されて保存されています。</value>
+  </data>
+  <data name="TokenSavedKeyring" xml:space="preserve">
+    <value>トークンはこのマシンのキーリングに保存されています。</value>
+  </data>
+  <data name="TokenSavedPlain" xml:space="preserve">
+    <value>キーリングを利用できなかったため、トークンはこのマシンのconfig.jsonに入力されたまま保存されています。</value>
+  </data>
+  <data name="TokenNone" xml:space="preserve">
+    <value>このマシンにはトークンが保存されていません。デプロイと更新には必要ですが、同期には必要ありません。</value>
+  </data>
+  <data name="DeployPasteToken" xml:space="preserve">
+    <value>先にトークンを貼り付けてください。</value>
+  </data>
+  <data name="DeployCheckingToken" xml:space="preserve">
+    <value>トークンを確認中…</value>
+  </data>
+  <data name="DeployTokenGone" xml:space="preserve">
+    <value>このマシンからトークンがなくなりました。サイトは動作し続けます。トークンが必要なのは、ここからのデプロイと更新だけです。</value>
+  </data>
+  <data name="SsoSendThem" xml:space="preserve">
+    <value>送るには「サイトをデプロイまたは更新」を押してください。手動で構築したサイトには、EVE_CLIENT_IDとEVE_CLIENT_SECRETのシークレットとして設定する必要があります。</value>
+  </data>
+  <data name="SsoKeysNotOnSite" xml:space="preserve">
+    <value>キーはここに保存されていますが、サイトにはまだありません。{0}</value>
+  </data>
+  <data name="SsoNoKeys" xml:space="preserve">
+    <value>サイトにはまだEVEアプリケーションのキーがありません：アプリケーションを登録し、上にそのキーを入力してください。</value>
+  </data>
+  <data name="SsoReady" xml:space="preserve">
+    <value>サイトにはEVEアプリケーションのキーがあり、ログインの設定は完了しています。</value>
+  </data>
+  <data name="SsoKeysNotSaved" xml:space="preserve">
+    <value>サイトにはEVEアプリケーションのキーがありますが、ここには保存されていません：更新してもキーが保たれるよう、上に同じキーを入力してください。</value>
+  </data>
+  <data name="SsoReadySame" xml:space="preserve">
+    <value>サイトにはこれらのEVEアプリケーションのキーがあり、ログインの設定は完了しています。</value>
+  </data>
+  <data name="SsoKeysDiffer" xml:space="preserve">
+    <value>サイトには、ここに保存されているものとは異なるEVEアプリケーションのキーがあります。{0}</value>
+  </data>
+  <data name="DeployCheckingAccount" xml:space="preserve">
+    <value>アカウントを確認中…</value>
+  </data>
+  <data name="DeployCancelled" xml:space="preserve">
+    <value>デプロイをキャンセルしました。</value>
+  </data>
+  <data name="DeployAskingSite" xml:space="preserve">
+    <value>サイトに問い合わせ中…</value>
+  </data>
+  <data name="NoStoresYet" xml:space="preserve">
+    <value>ストアはまだありません — 追加すると、買い手がEVEメールで問い合わせられるようになります。</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>保存に失敗しました：{0}</value>
+  </data>
+  <data name="NewStoreName" xml:space="preserve">
+    <value>新しいストア</value>
+  </data>
+  <data name="DeployPickAccount" xml:space="preserve">
+    <value>先にCloudflareアカウントを選択してください。</value>
+  </data>
+  <data name="RenameWorkersTitle" xml:space="preserve">
+    <value>アカウントのworkers.devの名前を変更</value>
+  </data>
+  <data name="RenameWorkersLabel" xml:space="preserve">
+    <value>新しい名前</value>
+  </data>
+  <data name="RenameWorkersHint" xml:space="preserve">
+    <value>英小文字、数字、ハイフン</value>
+  </data>
+  <data name="DeployRenaming" xml:space="preserve">
+    <value>名前を変更中…</value>
+  </data>
+  <data name="DeleteStoreConfirm" xml:space="preserve">
+    <value>ストア「{0}」を削除しますか？
+
+ストアは閉じられ、この一覧から消えます。
+
+何も破棄されません：注文は「注文管理」に残り、設定、許可リスト、メッセージの履歴も保持されるため、このストアを参照しているものは引き続き解決できます。メールの読み取りと返信を停止するだけです。</value>
+  </data>
+  <data name="AllowAlreadyListed" xml:space="preserve">
+    <value>{0}はすでにリストにあります。</value>
+  </data>
+  <data name="AllowAddFailed" xml:space="preserve">
+    <value>追加できませんでした：{0}</value>
+  </data>
+  <data name="TitleAddPosting" xml:space="preserve">
+    <value>投稿を追加</value>
+  </data>
+  <data name="TitleEditPosting" xml:space="preserve">
+    <value>投稿を編集</value>
+  </data>
+  <data name="LocStationLabel" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="LocSolarSystemLabel" xml:space="preserve">
+    <value>ソーラーシステム</value>
+  </data>
+  <data name="LocRegionLabel" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="PostingNameRequired" xml:space="preserve">
+    <value>投稿名は必須です。</value>
+  </data>
+  <data name="SelectMarketForBasis" xml:space="preserve">
+    <value>「指定のマーケット」を基準にするには、マーケットを選択してください。</value>
+  </data>
+  <data name="TitleAddSection" xml:space="preserve">
+    <value>セクションを追加</value>
+  </data>
+  <data name="TitleEditSection" xml:space="preserve">
+    <value>セクションを編集</value>
+  </data>
+  <data name="SectionNameRequired" xml:space="preserve">
+    <value>セクション名は必須です。</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>コーポ{0}</value>
+  </data>
+  <data name="CharNumbered" xml:space="preserve">
+    <value>キャラクター{0}</value>
+  </data>
+  <data name="NoItems" xml:space="preserve">
+    <value>（アイテムなし）</value>
+  </data>
+  <data name="UnitsMultiple" xml:space="preserve">
+    <value>複数</value>
+  </data>
+  <data name="TitleEditOrder" xml:space="preserve">
+    <value>注文を編集</value>
+  </data>
+  <data name="NotLinked" xml:space="preserve">
+    <value>{0}（リンクなし）</value>
+  </data>
+  <data name="ChooseBannerTitle" xml:space="preserve">
+    <value>バナー画像を選択</value>
+  </data>
+  <data name="AddLabelToOrders" xml:space="preserve">
+    <value>{0}件の注文にラベルを追加</value>
+  </data>
+  <data name="AddLabel" xml:space="preserve">
+    <value>ラベルを追加</value>
+  </data>
+  <data name="RemoveLabelFromOrders" xml:space="preserve">
+    <value>{0}件の注文からラベルを外す</value>
+  </data>
+  <data name="RemoveLabel" xml:space="preserve">
+    <value>ラベルを外す</value>
+  </data>
+  <data name="NewLabelMenu" xml:space="preserve">
+    <value>新しいラベル…</value>
+  </data>
+  <data name="NewLabelTitle" xml:space="preserve">
+    <value>新しいラベル</value>
+  </data>
+  <data name="LabelPrompt" xml:space="preserve">
+    <value>ラベル</value>
+  </data>
+  <data name="NewLabelHint" xml:space="preserve">
+    <value>例：主力艦プログラム</value>
+  </data>
+  <data name="AddLabelToSales" xml:space="preserve">
+    <value>{0}件の販売にラベルを追加</value>
+  </data>
+  <data name="RemoveLabelFromSales" xml:space="preserve">
+    <value>{0}件の販売からラベルを外す</value>
+  </data>
+  <data name="TitleExportPosting" xml:space="preserve">
+    <value>投稿をエクスポート</value>
+  </data>
+  <data name="TitleImportPosting" xml:space="preserve">
+    <value>投稿をインポート</value>
+  </data>
+  <data name="WorkersNameInvalid" xml:space="preserve">
+    <value>workers.devの名前には、英小文字、数字、ハイフンを63文字以内で使ってください。</value>
+  </data>
+  <data name="HostnameInvalid" xml:space="preserve">
+    <value>ホスト名ではありません：store.example.comのような形式で、英字、数字、ハイフン、ドットだけを使ってください。</value>
+  </data>
+  <data name="ContractUnitsOther" xml:space="preserve">
+    <value>{0:N0}個</value>
+  </data>
+  <data name="BasisContract" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="PolicyList" xml:space="preserve">
+    <value>リスト</value>
+  </data>
+  <data name="PolicyAnyone" xml:space="preserve">
+    <value>誰でも</value>
+  </data>
+  <data name="ScopePickStation" xml:space="preserve">
+    <value>ステーションを選択するか、「すべての場所」を選んでください。</value>
+  </data>
+  <data name="ScopePickSystem" xml:space="preserve">
+    <value>ソーラーシステムを選択するか、「すべての場所」を選んでください。</value>
+  </data>
+  <data name="ScopePickRegion" xml:space="preserve">
+    <value>リージョンを選択するか、「すべての場所」を選んでください。</value>
+  </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="TitleSaleListingBuild" xml:space="preserve">
+    <value>販売リスト — 製造コスト</value>
+  </data>
+  <data name="TitleSaleListingMarket" xml:space="preserve">
+    <value>販売リスト — マーケット価値</value>
+  </data>
+  <data name="PostTypeSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="PostTypeDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="PostTypeStatic" xml:space="preserve">
+    <value>固定テキスト</value>
+  </data>
+  <data name="TextColourLabel" xml:space="preserve">
+    <value>テキストの色</value>
+  </data>
+  <data name="HeaderColourLabel" xml:space="preserve">
+    <value>ヘッダーの色</value>
+  </data>
+  <data name="SourceStock" xml:space="preserve">
+    <value>在庫</value>
+  </data>
+  <data name="SourceInProduction" xml:space="preserve">
+    <value>製造中</value>
+  </data>
+  <data name="SourceContracted" xml:space="preserve">
+    <value>契約済み</value>
+  </data>
+  <data name="SourceUnsourced" xml:space="preserve">
+    <value>調達元なし</value>
+  </data>
+  <data name="ItemsAndMoreOther" xml:space="preserve">
+    <value>{1}ほか{0}種類</value>
+  </data>
+  <data name="MoreItemsTailOther" xml:space="preserve">
+    <value>ほか{0}種類</value>
+  </data>
+</root>

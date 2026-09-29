@@ -1,0 +1,1078 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>グループ名</value>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>コレクション</value>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="OnlyStationsWithCachedNote" xml:space="preserve">
+    <value>キャッシュ済みの売り注文があるステーションのみ表示されます。</value>
+  </data>
+  <data name="MarketPriceSourceLabel" xml:space="preserve">
+    <value>マーケット価格ソース</value>
+  </data>
+  <data name="MaxPriceOverSourceLabel" xml:space="preserve">
+    <value>価格ソースに対する上限（%）</value>
+  </data>
+  <data name="HintEG100Leave" xml:space="preserve">
+    <value>例：100 — 空欄で無効</value>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>倍率</value>
+  </data>
+  <data name="TargetQuantitiesForAllNote" xml:space="preserve">
+    <value>× このグループの全アイテムの目標数量</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Issuer" xml:space="preserve">
+    <value>発行者</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>割り当て先</value>
+  </data>
+  <data name="Acceptor" xml:space="preserve">
+    <value>受諾者</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>価格</value>
+  </data>
+  <data name="Reward" xml:space="preserve">
+    <value>報酬</value>
+  </data>
+  <data name="Collateral" xml:space="preserve">
+    <value>担保</value>
+  </data>
+  <data name="Buyout" xml:space="preserve">
+    <value>希望落札価格</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>出発地</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>目的地</value>
+  </data>
+  <data name="Issued" xml:space="preserve">
+    <value>発行日</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>期限</value>
+  </data>
+  <data name="Accepted" xml:space="preserve">
+    <value>受諾日</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>完了日</value>
+  </data>
+  <data name="PullItemsFromEsi" xml:space="preserve">
+    <value>ESIからアイテムを取得</value>
+  </data>
+  <data name="TipAskEveryEndpointThis" xml:space="preserve">
+    <value>この契約のアイテムを、該当するすべてのエンドポイントにもう一度問い合わせ、それぞれの応答を表示します。</value>
+  </data>
+  <data name="Offered" xml:space="preserve">
+    <value>提供アイテム</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>マーケット価値</value>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>製造価値</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>要求アイテム</value>
+  </data>
+  <data name="TabCorporationPersonal" xml:space="preserve">
+    <value>コーポレーション・個人</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>対象範囲：</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>ステータス：</value>
+  </data>
+  <data name="AssigneeLabel" xml:space="preserve">
+    <value>割り当て先：</value>
+  </data>
+  <data name="AcceptorLabel" xml:space="preserve">
+    <value>受諾者：</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ 更新</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>出発地</value>
+  </data>
+  <data name="ColAssignee" xml:space="preserve">
+    <value>割り当て先</value>
+  </data>
+  <data name="ColAcceptor" xml:space="preserve">
+    <value>受諾者</value>
+  </data>
+  <data name="ColPrice" xml:space="preserve">
+    <value>価格</value>
+  </data>
+  <data name="ColReward" xml:space="preserve">
+    <value>報酬</value>
+  </data>
+  <data name="ColIssued" xml:space="preserve">
+    <value>発行日</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>期限</value>
+  </data>
+  <data name="SelectAContractToNote" xml:space="preserve">
+    <value>契約を選択すると、その詳細が表示されます。</value>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>公開</value>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>表示：</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>契約：</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>リージョン：</value>
+  </data>
+  <data name="CategoryLabel" xml:space="preserve">
+    <value>カテゴリ：</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>アイテム：</value>
+  </data>
+  <data name="HintTypeName" xml:space="preserve">
+    <value>タイプ名…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>並び順：</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="ColVolM" xml:space="preserve">
+    <value>体積（m³）</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 最初</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 前へ</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>次へ ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>最後 ⏭</value>
+  </data>
+  <data name="TabCurrentValues" xml:space="preserve">
+    <value>現在の価値</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>再計算</value>
+  </data>
+  <data name="TipRePriceEveryOffer" xml:space="preserve">
+    <value>すべてのオファーを現在のマーケット価格と契約価格で評価し直します。マーケット価格の更新時に自動で行われますが、このボタンで今すぐ実行できます。</value>
+  </data>
+  <data name="MeanIskPerLoyaltyNote" xml:space="preserve">
+    <value>各ストアで価値がゼロを上回るオファー全体での、ロイヤルティポイント1点あたりの平均ISKです。価値がゼロ以下のオファーはアイテムブラウザでアイテムごとに表示されますが、誰もLPを使わないためここでは集計しません。中央値もまったく同じオファーが対象です。LPを保有しているコーポレーションが先頭に表示されます。行をダブルクリックすると履歴を表示します。</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>「NPCエンティティ」で開きます</value>
+  </data>
+  <data name="ColIskLp" xml:space="preserve">
+    <value>ISK / LP</value>
+  </data>
+  <data name="TipMeanIskPerLp" xml:space="preserve">
+    <value>このコーポレーションで集計対象になったオファー全体での、1LPあたりの平均ISKです。</value>
+  </data>
+  <data name="ColMedian" xml:space="preserve">
+    <value>中央値</value>
+  </data>
+  <data name="TipTheMiddleOfferOver" xml:space="preserve">
+    <value>平均と同じ集計対象のオファーのうち、中央にあたるオファーです。平均を大きく下回る場合は強調表示されます。これは、ごく一部の非常に高いオファーによって、平均が典型的なオファーの見返りより高くなっていることを意味します。</value>
+  </data>
+  <data name="ColBestOffer" xml:space="preserve">
+    <value>最良のオファー</value>
+  </data>
+  <data name="ColBestItem" xml:space="preserve">
+    <value>最良のアイテム</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColCounted" xml:space="preserve">
+    <value>集計数</value>
+  </data>
+  <data name="TipOffersBehindTheseFigures" xml:space="preserve">
+    <value>これらの数値の元になったオファーの数と、ストア全体のオファー数です。価格を付けられなかったオファーと、価値がゼロ以下のオファーは除外されます — 誰もLPを使わないため、アイテムごとには表示されますが、ここでは平均に含めません。</value>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>所持LP</value>
+  </data>
+  <data name="ColHoldingWorth" xml:space="preserve">
+    <value>保有LPの価値</value>
+  </data>
+  <data name="ColUpdated" xml:space="preserve">
+    <value>更新日時</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>履歴</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>コーポレーション：</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>期間：</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ グループを追加</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ コレクション</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開く</value>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>装備からアイテムを追加</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>マーケットグループからアイテムを追加</value>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>ブループリントからアイテムを追加</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>アイテムを削除</value>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>グループ・アイテム</value>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>すべてのグループを展開します</value>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>すべてのグループを折りたたみます</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>名前を変更</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ アイテム</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>目標</value>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>目標合計</value>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>出品数</value>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>差分</value>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>マーケット価格</value>
+  </data>
+  <data name="ColStMin" xml:space="preserve">
+    <value>ST最低</value>
+  </data>
+  <data name="ColStAvg" xml:space="preserve">
+    <value>ST平均</value>
+  </data>
+  <data name="ColStMax" xml:space="preserve">
+    <value>ST最高</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>製造価格</value>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>体積（m³）</value>
+  </data>
+  <data name="TitleMarketLevels" xml:space="preserve">
+    <value>出品レベル</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="SellOrderCountLabel" xml:space="preserve">
+    <value>売り注文数</value>
+  </data>
+  <data name="SellOrderIskLabel" xml:space="preserve">
+    <value>売り注文額（ISK）</value>
+  </data>
+  <data name="SellOrderTypesLabel" xml:space="preserve">
+    <value>売り注文のタイプ数</value>
+  </data>
+  <data name="BuyOrderCountLabel" xml:space="preserve">
+    <value>買い注文数</value>
+  </data>
+  <data name="BuyOrderIskLabel" xml:space="preserve">
+    <value>買い注文額（ISK）</value>
+  </data>
+  <data name="BuyOrderTypesLabel" xml:space="preserve">
+    <value>買い注文のタイプ数</value>
+  </data>
+  <data name="SalesUnitsLabel" xml:space="preserve">
+    <value>販売数量</value>
+  </data>
+  <data name="SalesIskLabel" xml:space="preserve">
+    <value>販売額（ISK）</value>
+  </data>
+  <data name="SalesTypesLabel" xml:space="preserve">
+    <value>販売タイプ数</value>
+  </data>
+  <data name="SellOrdersByType" xml:space="preserve">
+    <value>タイプ別の売り注文</value>
+  </data>
+  <data name="NoSellOrdersForThis" xml:space="preserve">
+    <value>この選択範囲に売り注文はありません。</value>
+  </data>
+  <data name="BuyOrdersByType" xml:space="preserve">
+    <value>タイプ別の買い注文</value>
+  </data>
+  <data name="NoBuyOrdersForThis" xml:space="preserve">
+    <value>この選択範囲に買い注文はありません。</value>
+  </data>
+  <data name="SalesByMarketGroup" xml:space="preserve">
+    <value>マーケットグループ別の販売</value>
+  </data>
+  <data name="NoSalesForThisSelection" xml:space="preserve">
+    <value>この選択範囲に販売はありません。</value>
+  </data>
+  <data name="DailySalesIsk" xml:space="preserve">
+    <value>日別の販売額（ISK）</value>
+  </data>
+  <data name="NoSalesHistoryForThis" xml:space="preserve">
+    <value>この選択範囲に販売履歴はありません。</value>
+  </data>
+  <data name="TabByMarketGroup" xml:space="preserve">
+    <value>マーケットグループ別</value>
+  </data>
+  <data name="ColMarketGroup" xml:space="preserve">
+    <value>マーケットグループ</value>
+  </data>
+  <data name="ColSellOrderUnits" xml:space="preserve">
+    <value>売り注文数量</value>
+  </data>
+  <data name="ColSellOrderIsk" xml:space="preserve">
+    <value>売り注文額</value>
+  </data>
+  <data name="ColBuyOrderUnits" xml:space="preserve">
+    <value>買い注文数量</value>
+  </data>
+  <data name="ColBuyOrderIsk" xml:space="preserve">
+    <value>買い注文額</value>
+  </data>
+  <data name="ColSalesUnits" xml:space="preserve">
+    <value>販売数量</value>
+  </data>
+  <data name="ColSalesIsk" xml:space="preserve">
+    <value>販売額</value>
+  </data>
+  <data name="TabByType" xml:space="preserve">
+    <value>タイプ別</value>
+  </data>
+  <data name="TabSellOrdersByType" xml:space="preserve">
+    <value>タイプ別の売り注文</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="TabBuyOrdersByType" xml:space="preserve">
+    <value>タイプ別の買い注文</value>
+  </data>
+  <data name="TitleStandingBuyOrder" xml:space="preserve">
+    <value>常設の買い注文</value>
+  </data>
+  <data name="DeclareABuyOrderNote" xml:space="preserve">
+    <value>常設し続ける予定の買い注文を登録します。EVE Consoleは、この場所に一致する有効な買い注文があるかどうかと、その残量を報告します。</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>アイテムタイプ</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>アイテムタイプを検索…</value>
+  </data>
+  <data name="StationStructureLabel" xml:space="preserve">
+    <value>ステーション・ストラクチャ</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>ステーションまたはストラクチャを検索…</value>
+  </data>
+  <data name="NpcStationsPlayerStructuresNote" xml:space="preserve">
+    <value>NPCステーション、プレイヤーのストラクチャ、所属コーポレーションのストラクチャをすべて検索できます。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文</value>
+  </data>
+  <data name="BuyOrdersYouIntendNote" xml:space="preserve">
+    <value>ステーションまたはストラクチャに常設し続ける予定の買い注文です。それぞれ、キャラクターとコーポレーションの有効な買い注文と照合されます。</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="Refresh2" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>このステーションまたはストラクチャを開きます</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>保有者</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>自分の買値</value>
+  </data>
+  <data name="ColStationBestBid" xml:space="preserve">
+    <value>ステーション最高買値</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>メモ</value>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>計算</value>
+  </data>
+  <data name="HintTypeToFilter" xml:space="preserve">
+    <value>入力して絞り込み…</value>
+  </data>
+  <data name="CargoM" xml:space="preserve">
+    <value>カーゴ（m³）</value>
+  </data>
+  <data name="IskCap" xml:space="preserve">
+    <value>ISK上限</value>
+  </data>
+  <data name="HintNoLimit" xml:space="preserve">
+    <value>上限なし</value>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>30日間の最低取引額</value>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>フィルターなし</value>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>30日間の最低取引数量</value>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>除外するグループ</value>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>この除外を解除します</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="CostLabel" xml:space="preserve">
+    <value>コスト</value>
+  </data>
+  <data name="ProfitLabel" xml:space="preserve">
+    <value>利益</value>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>売値</value>
+  </data>
+  <data name="ColDestPrice" xml:space="preserve">
+    <value>目的地の価格</value>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>1個あたり利益</value>
+  </data>
+  <data name="ColProfitM" xml:space="preserve">
+    <value>m³あたり利益</value>
+  </data>
+  <data name="ColVolumeM2" xml:space="preserve">
+    <value>体積（m³）</value>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>総コスト</value>
+  </data>
+  <data name="ColTotalProfit" xml:space="preserve">
+    <value>合計利益</value>
+  </data>
+  <data name="ScanningForTradeOpportunities" xml:space="preserve">
+    <value>トレードチャンスを検索中…</value>
+  </data>
+  <data name="TitleTradeOpportunities" xml:space="preserve">
+    <value>トレードチャンス</value>
+  </data>
+  <data name="ContractTypeItemExchange" xml:space="preserve">
+    <value>アイテム交換</value>
+  </data>
+  <data name="ContractTypeAuction" xml:space="preserve">
+    <value>オークション</value>
+  </data>
+  <data name="ContractTypeCourier" xml:space="preserve">
+    <value>輸送</value>
+  </data>
+  <data name="ContractTypeLoan" xml:space="preserve">
+    <value>ローン</value>
+  </data>
+  <data name="ContractExpired" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
+  <data name="ContractTotalRow" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="TipLinesUnpriced" xml:space="preserve">
+    <value>{0:N0}行はマーケット価格がないため集計されていません</value>
+  </data>
+  <data name="TipEveryLinePriced" xml:space="preserve">
+    <value>すべての行に価格があります</value>
+  </data>
+  <data name="TipLinesUncosted" xml:space="preserve">
+    <value>{0:N0}行は製造コストがないため集計されていません</value>
+  </data>
+  <data name="TipEveryLineCosted" xml:space="preserve">
+    <value>すべての行に製造コストがあります</value>
+  </data>
+  <data name="ItemOffered" xml:space="preserve">
+    <value>提供</value>
+  </data>
+  <data name="ItemRequested" xml:space="preserve">
+    <value>要求</value>
+  </data>
+  <data name="TipNoMarketPrice" xml:space="preserve">
+    <value>このアイテムのマーケット価格はありません</value>
+  </data>
+  <data name="TipIskPerUnitMarket" xml:space="preserve">
+    <value>資産評価用のマーケット価格ソースで1個あたり{0} ISK</value>
+  </data>
+  <data name="TipNoBuildCost" xml:space="preserve">
+    <value>このアイテムの製造コストはありません</value>
+  </data>
+  <data name="TipIskPerUnitBuild" xml:space="preserve">
+    <value>製造コストは1個あたり{0} ISK</value>
+  </data>
+  <data name="AskingEsi" xml:space="preserve">
+    <value>ESIに問い合わせ中…</value>
+  </data>
+  <data name="ItemsHttpError" xml:space="preserve">
+    <value>アイテムを問い合わせたところ、ESIはHTTP {0}を返しました。</value>
+  </data>
+  <data name="ItemsNoneListed" xml:space="preserve">
+    <value>ESIはこの契約のアイテムを返しませんでした。</value>
+  </data>
+  <data name="ItemsNotAskedYet" xml:space="preserve">
+    <value>まだ問い合わせていません — バックグラウンドの巡回処理で取得されます。</value>
+  </data>
+  <data name="NoTitle" xml:space="preserve">
+    <value>（タイトルなし）</value>
+  </data>
+  <data name="AvailabilityPublic" xml:space="preserve">
+    <value>公開</value>
+  </data>
+  <data name="AvailabilityPrivate" xml:space="preserve">
+    <value>非公開</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>場所{0}</value>
+  </data>
+  <data name="TipIssuedForCorp" xml:space="preserve">
+    <value>{0}がコーポレーションのために発行しました。エンティティブラウザで開きます。</value>
+  </data>
+  <data name="TipOpenEntity" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="FilterAllStatuses" xml:space="preserve">
+    <value>すべてのステータス</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="ContractNotStored" xml:space="preserve">
+    <value>契約{0}はこちらに保存されていません — 公開契約か、まだポーリングされていない可能性があります。</value>
+  </data>
+  <data name="ContractContentsAndMore" xml:space="preserve">
+    <value>{0}ほか{1}件</value>
+  </data>
+  <data name="ContractContentsItems" xml:space="preserve">
+    <value>アイテム{0}個</value>
+  </data>
+  <data name="ContractContentsCourier" xml:space="preserve">
+    <value>（輸送）</value>
+  </data>
+  <data name="ContractItemBpc" xml:space="preserve">
+    <value>BPC</value>
+  </data>
+  <data name="ContractItemBpo" xml:space="preserve">
+    <value>BPO</value>
+  </data>
+  <data name="ContractItemRuns" xml:space="preserve">
+    <value>{0}回</value>
+  </data>
+  <data name="ContractItemAssembled" xml:space="preserve">
+    <value>組み立て完了</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>利用できません。</value>
+  </data>
+  <data name="LoadingContracts" xml:space="preserve">
+    <value>契約を読み込み中…</value>
+  </data>
+  <data name="ScopeAllOwners" xml:space="preserve">
+    <value>すべての所有者</value>
+  </data>
+  <data name="ScopeAllCharsCorps" xml:space="preserve">
+    <value>すべてのキャラクターと個人コーポ</value>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>アライアンス{0}</value>
+  </data>
+  <data name="AllAssignees" xml:space="preserve">
+    <value>すべての割り当て先</value>
+  </data>
+  <data name="AllAcceptors" xml:space="preserve">
+    <value>すべての受諾者</value>
+  </data>
+  <data name="NoContractsStored" xml:space="preserve">
+    <value>コーポレーションや個人の契約はまだ保存されていません。</value>
+  </data>
+  <data name="SortPriceLowHigh" xml:space="preserve">
+    <value>価格：低い順</value>
+  </data>
+  <data name="SortPriceHighLow" xml:space="preserve">
+    <value>価格：高い順</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>新しい順</value>
+  </data>
+  <data name="SortOldest" xml:space="preserve">
+    <value>古い順</value>
+  </data>
+  <data name="SortRewardHighLow" xml:space="preserve">
+    <value>報酬：高い順</value>
+  </data>
+  <data name="SortVolumeHighLow" xml:space="preserve">
+    <value>体積：大きい順</value>
+  </data>
+  <data name="SortContentsAz" xml:space="preserve">
+    <value>内容（A → Z）</value>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>すべてのカテゴリ</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>結果なし</value>
+  </data>
+  <data name="PageOfContracts" xml:space="preserve">
+    <value>{0:N0}/{1:N0}ページ  ·  契約{2:N0}件</value>
+  </data>
+  <data name="AllRegions" xml:space="preserve">
+    <value>すべてのリージョン</value>
+  </data>
+  <data name="FilterHistorical" xml:space="preserve">
+    <value>過去の契約</value>
+  </data>
+  <data name="FilterAllContracts" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="ContractTypeAll" xml:space="preserve">
+    <value>すべての種類</value>
+  </data>
+  <data name="ContractStatusOutstanding" xml:space="preserve">
+    <value>未締結</value>
+  </data>
+  <data name="ContractStatusInProgress" xml:space="preserve">
+    <value>進行中</value>
+  </data>
+  <data name="ContractStatusFinished" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="ContractStatusFinishedIssuer" xml:space="preserve">
+    <value>完了（発行者）</value>
+  </data>
+  <data name="ContractStatusFinishedContractor" xml:space="preserve">
+    <value>完了（契約者）</value>
+  </data>
+  <data name="ContractStatusCancelled" xml:space="preserve">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="ContractStatusRejected" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="ContractStatusFailed" xml:space="preserve">
+    <value>失敗</value>
+  </data>
+  <data name="ContractStatusDeleted" xml:space="preserve">
+    <value>削除済み</value>
+  </data>
+  <data name="ContractStatusReversed" xml:space="preserve">
+    <value>取り消し済み</value>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>全期間</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>過去365日間</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>過去90日間</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>過去7日間</value>
+  </data>
+  <data name="RegionNumbered" xml:space="preserve">
+    <value>リージョン{0}</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="SeriesSalesIsk" xml:space="preserve">
+    <value>販売額</value>
+  </data>
+  <data name="StatusAllRegions" xml:space="preserve">
+    <value>すべてのリージョン</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="GroupNumbered" xml:space="preserve">
+    <value>グループ{0}</value>
+  </data>
+  <data name="NoMarketDataForSelection" xml:space="preserve">
+    <value>この選択範囲のマーケットデータはありません。</value>
+  </data>
+  <data name="StatusMarketGroupCount" xml:space="preserve">
+    <value>マーケットグループ{0:N0}件</value>
+  </data>
+  <data name="StatusTypeCount" xml:space="preserve">
+    <value>{0:N0}タイプ</value>
+  </data>
+  <data name="NoOrdersForSelection" xml:space="preserve">
+    <value>この選択範囲の注文はありません。</value>
+  </data>
+  <data name="StatusAllItemsAlreadyInGroup" xml:space="preserve">
+    <value>「{0}」のアイテムはすべてグループに登録済みです。</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>タイプID {0}</value>
+  </data>
+  <data name="StatusAddedItemsSkipped" xml:space="preserve">
+    <value>「{1}」からアイテムを{0}個追加しました。{2}個は登録済みのためスキップしました。</value>
+  </data>
+  <data name="StatusAddedItems" xml:space="preserve">
+    <value>「{1}」からアイテムを{0}個追加しました。</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>「{0}」のアイテムを読み込み中…</value>
+  </data>
+  <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
+    <value>「{0}」の下に公開アイテムが見つかりません。</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>キャンセルしました。</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>グループが選択されていません。</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>資源を計算中…</value>
+  </data>
+  <data name="StatusCalculationError" xml:space="preserve">
+    <value>計算エラー：{0}</value>
+  </data>
+  <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
+    <value>そのブループリントの資源が見つかりません。</value>
+  </data>
+  <data name="SourceAssetDefault" xml:space="preserve">
+    <value>— 資産の既定値 —</value>
+  </data>
+  <data name="CollectionDefaultChoice" xml:space="preserve">
+    <value>— 既定 —</value>
+  </data>
+  <data name="CollectionDefault" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="StatusNoGroups" xml:space="preserve">
+    <value>グループが設定されていません。「{0}」をクリックして作成してください。</value>
+  </data>
+  <data name="StatusGroupsAndItems" xml:space="preserve">
+    <value>グループ{0}件、アイテム{1}個</value>
+  </data>
+  <data name="DataFromHoursAgo" xml:space="preserve">
+    <value>{0}時間{1}分前のデータ</value>
+  </data>
+  <data name="DataFromMinutesAgo" xml:space="preserve">
+    <value>{0}分前のデータ</value>
+  </data>
+  <data name="DataFromJustNow" xml:space="preserve">
+    <value>たった今取得したデータ</value>
+  </data>
+  <data name="StatusNoCachedOrders" xml:space="preserve">
+    <value>キャッシュ済みの注文がありません — マーケット価格の取得を実行して読み込んでください。</value>
+  </data>
+  <data name="StatusGroupCount" xml:space="preserve">
+    <value>グループ{0}件</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>コレクション「{0}」を削除しました。</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>コレクション「{0}」を追加しました。</value>
+  </data>
+  <data name="ModeSellToBuyOrder" xml:space="preserve">
+    <value>売り注文で購入 → 買い注文に売却</value>
+  </data>
+  <data name="ModeUndercutSellOrder" xml:space="preserve">
+    <value>売り注文で購入 → 最安の売り注文より安く出品</value>
+  </data>
+  <data name="StatusSelectStations" xml:space="preserve">
+    <value>出発地と目的地のステーションを選択し、「{0}」をクリックしてください。</value>
+  </data>
+  <data name="ErrSelectBothStations" xml:space="preserve">
+    <value>出発地と目的地の両方のステーションを選択してください。</value>
+  </data>
+  <data name="ErrSameStation" xml:space="preserve">
+    <value>出発地と目的地には別々のステーションを指定してください。</value>
+  </data>
+  <data name="ErrInvalidCargo" xml:space="preserve">
+    <value>有効なカーゴ容量をm³で入力してください。</value>
+  </data>
+  <data name="ErrInvalidIskCap" xml:space="preserve">
+    <value>有効なISK上限を入力してください（空欄で上限なし）。</value>
+  </data>
+  <data name="ErrInvalidMinIskVolume" xml:space="preserve">
+    <value>有効な最低取引額を入力してください（空欄でフィルターなし）。</value>
+  </data>
+  <data name="ErrInvalidMinUnitVolume" xml:space="preserve">
+    <value>有効な最低取引数量を入力してください（空欄でフィルターなし）。</value>
+  </data>
+  <data name="StatusCalculating" xml:space="preserve">
+    <value>計算中…</value>
+  </data>
+  <data name="ErrNoDestinationRegion" xml:space="preserve">
+    <value>目的地のステーションのリージョンを特定できませんでした — 取引量のフィルターが機能するよう、その場所のマーケットデータが読み込まれていることを確認してください。</value>
+  </data>
+  <data name="StatusNoOpportunities" xml:space="preserve">
+    <value>このルートで利益の出るチャンスは見つかりませんでした。</value>
+  </data>
+  <data name="PeriodPast30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="PeriodPast90Days" xml:space="preserve">
+    <value>過去90日間</value>
+  </data>
+  <data name="PeriodPast365Days" xml:space="preserve">
+    <value>過去365日間</value>
+  </data>
+  <data name="StatusRecalculatingLp" xml:space="preserve">
+    <value>LPの価値を再計算中…</value>
+  </data>
+  <data name="StatusRecalculationFailed" xml:space="preserve">
+    <value>再計算に失敗しました：{0}</value>
+  </data>
+  <data name="StatusNoLpValues" xml:space="preserve">
+    <value>LPの価値はまだありません — マーケット価格の更新時に計算されます。</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>コーポ{0}</value>
+  </data>
+  <data name="StatusCorpsValued" xml:space="preserve">
+    <value>{0:N0}件のコーポレーションを評価済み — 更新：{1:M月d日 HH:mm}</value>
+  </data>
+  <data name="HistoryNoneForCorp" xml:space="preserve">
+    <value>この期間の{0}の履歴はまだありません。価値が再計算されるたびにデータ点が記録されます。</value>
+  </data>
+  <data name="SeriesIskPerLp" xml:space="preserve">
+    <value>1LPあたりのISK</value>
+  </data>
+  <data name="HistoryRange" xml:space="preserve">
+    <value>{0:N0}日間 — {1:N2}～{2:N2} ISK/LP</value>
+  </data>
+  <data name="TipStationNotTracked" xml:space="preserve">
+    <value>このステーションはマーケットソースとして設定されていないため、競合する買い注文は不明です。「設定 → マーケット」で追加してください。</value>
+  </data>
+  <data name="TipOutbidBy" xml:space="preserve">
+    <value>{0:N2} ISK差で価格を上回られています — ステーションの最高買値は{1:N2}です。</value>
+  </data>
+  <data name="TipNoOtherBids" xml:space="preserve">
+    <value>ここには、このアイテムの他の買い注文はありません。</value>
+  </data>
+  <data name="OrderStateMissing" xml:space="preserve">
+    <value>注文なし</value>
+  </data>
+  <data name="OrderStateOutbid" xml:space="preserve">
+    <value>価格で上回られた</value>
+  </data>
+  <data name="OrderStateActive" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="NoteNoLiveOrder" xml:space="preserve">
+    <value>この場所に有効な買い注文がありません</value>
+  </data>
+  <data name="NoteOutbidBy" xml:space="preserve">
+    <value>{0:N2} ISK差で価格を上回られています（ステーション最高買値{1:N2}）</value>
+  </data>
+  <data name="NoteBelowVolume" xml:space="preserve">
+    <value>当初数量の{0:N0}%未満</value>
+  </data>
+  <data name="NoteUnderDuration" xml:space="preserve">
+    <value>残り期間が{0:N0}%未満</value>
+  </data>
+  <data name="NoteNeedsAttention" xml:space="preserve">
+    <value>{0} — 要対応</value>
+  </data>
+  <data name="StatusNoStandingOrders" xml:space="preserve">
+    <value>常設の買い注文はまだ登録されていません。</value>
+  </data>
+  <data name="StatusCountDefined" xml:space="preserve">
+    <value>登録{0:N0}件</value>
+  </data>
+  <data name="StatusCountMissing" xml:space="preserve">
+    <value>注文なし{0:N0}件</value>
+  </data>
+  <data name="StatusCountOutbid" xml:space="preserve">
+    <value>価格で上回られた{0:N0}件</value>
+  </data>
+  <data name="StatusCountRunningLow" xml:space="preserve">
+    <value>残りわずか{0:N0}件</value>
+  </data>
+  <data name="StatusCountExpiringSoon" xml:space="preserve">
+    <value>まもなく期限切れ{0:N0}件</value>
+  </data>
+  <data name="StatusAllHealthy" xml:space="preserve">
+    <value>すべて正常</value>
+  </data>
+  <data name="StatusStandingOrderExists" xml:space="preserve">
+    <value>{1}における{0}の常設の買い注文はすでに登録されています。</value>
+  </data>
+  <data name="ConfirmAddLargeGroup" xml:space="preserve">
+    <value>選択したグループには{0}個のアイテムが含まれています。すべて追加しますか？</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>コレクションを追加</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>コレクション名</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>コレクション名を変更</value>
+  </data>
+  <data name="TitleEditStandingBuyOrder" xml:space="preserve">
+    <value>常設の買い注文を編集</value>
+  </data>
+  <data name="ErrPickItemType" xml:space="preserve">
+    <value>検索結果からアイテムタイプを選択してください。</value>
+  </data>
+  <data name="ErrPickStation" xml:space="preserve">
+    <value>検索結果からステーションまたはストラクチャを選択してください。</value>
+  </data>
+  <data name="ConfirmDeleteStandingOrder" xml:space="preserve">
+    <value>この常設の買い注文を削除しますか？</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>グループを追加</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>グループを編集</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>グループ名は必須です。</value>
+  </data>
+  <data name="StatusItemTypesLoadedOther" xml:space="preserve">
+    <value>{0}種類のアイテム  ·  {1:N1} m³を積載</value>
+  </data>
+  <data name="StationUnknown" xml:space="preserve">
+    <value>不明（{0}）</value>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="NoOtherBids" xml:space="preserve">
+    <value>他の買い注文なし</value>
+  </data>
+  <data name="PriceMaxOf" xml:space="preserve">
+    <value>{0:N2}（{1}件中の最高）</value>
+  </data>
+  <data name="OwnersCount" xml:space="preserve">
+    <value>保有者{0}件</value>
+  </data>
+  <data name="TipOwnerOrderLine" xml:space="preserve">
+    <value>{0} — {1:N2} ISK、{2:N0}/{3:N0}、期限{4:yyyy-MM-dd}</value>
+  </data>
+  <data name="OwnerOrdersCount" xml:space="preserve">
+    <value>{0}（注文{1}件）</value>
+  </data>
+  <data name="ExpiryExpired" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}（期限切れ）</value>
+  </data>
+  <data name="ExpiryDaysLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}（残り{1}日）</value>
+  </data>
+  <data name="ExpiryHoursLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}（残り{1}時間）</value>
+  </data>
+  <data name="ExpiryFirst" xml:space="preserve">
+    <value>{0}（最初の期限）</value>
+  </data>
+</root>
