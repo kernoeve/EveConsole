@@ -186,7 +186,7 @@ public sealed class AgentDocumentViewModel : ReactiveObject
     {
         Title    = title;
         Markdown = markdown;
-        SubtitleText = DateTimeOffset.Now.ToString("d MMMM yyyy, HH:mm", CultureInfo.CurrentCulture);
+        SubtitleText = DateTimeOffset.Now.ToString(CommonText.DateTimeLong, CultureInfo.CurrentCulture);
 
         CopyCommand = ReactiveCommand.CreateFromTask(async () =>
         {

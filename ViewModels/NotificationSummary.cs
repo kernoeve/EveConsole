@@ -104,7 +104,7 @@ public static class NotificationSummary
         if (d.TotalMinutes < 60) return Two((int)d.TotalMinutes, nameof(CommsText.TimeAgoMinutesOther), d.Seconds, nameof(CommsText.TimeAgoSecondsOther));
         if (d.TotalHours   < 24) return Two((int)d.TotalHours,   nameof(CommsText.TimeAgoHoursOther),   d.Minutes, nameof(CommsText.TimeAgoMinutesOther));
         if (d.TotalDays    < 30) return Two((int)d.TotalDays,    nameof(CommsText.TimeAgoDaysOther),    d.Hours,   nameof(CommsText.TimeAgoHoursOther));
-        return ts.ToLocalTime().ToString("MMM d, yyyy");
+        return ts.ToLocalTime().ToString(CommonText.DateMonthDayYear);
     }
 
     // One unit, in the form its number needs: "1 second", "3 hours". A unit is named by its plural

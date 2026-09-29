@@ -80,7 +80,7 @@ public sealed class LpStoreCorpRowVm(int corporationId, string name) : ReactiveO
 
     private DateTime? _checkedAt;
     public DateTime? CheckedAt { get => _checkedAt; private set { this.RaiseAndSetIfChanged(ref _checkedAt, value); this.RaisePropertyChanged(nameof(CheckedText)); } }
-    public string CheckedText => CheckedAt is { } t ? DateTime.SpecifyKind(t, DateTimeKind.Utc).ToLocalTime().ToString("d MMM HH:mm") : "";
+    public string CheckedText => CheckedAt is { } t ? DateTime.SpecifyKind(t, DateTimeKind.Utc).ToLocalTime().ToString(CommonText.DateDayTime) : "";
 
     public void Set(bool hasStore, int offers, DateTime? checkedAt)
     {
@@ -105,11 +105,11 @@ public sealed class AlarmMonitorRowVm(long id, string name) : ReactiveObject
 
     private DateTimeOffset? _lastChecked;
     public DateTimeOffset? LastChecked { get => _lastChecked; private set { this.RaiseAndSetIfChanged(ref _lastChecked, value); this.RaisePropertyChanged(nameof(LastCheckedText)); } }
-    public string LastCheckedText => LastChecked is { } t ? t.ToLocalTime().ToString("d MMM HH:mm:ss") : "";
+    public string LastCheckedText => LastChecked is { } t ? t.ToLocalTime().ToString(CommonText.DateDayTimeSeconds) : "";
 
     private DateTimeOffset? _lastFired;
     public DateTimeOffset? LastFired { get => _lastFired; private set { this.RaiseAndSetIfChanged(ref _lastFired, value); this.RaisePropertyChanged(nameof(LastFiredText)); } }
-    public string LastFiredText => LastFired is { } t ? t.ToLocalTime().ToString("d MMM HH:mm:ss") : DataText.TimeNeverLower;
+    public string LastFiredText => LastFired is { } t ? t.ToLocalTime().ToString(CommonText.DateDayTimeSeconds) : DataText.TimeNeverLower;
 
     private int _fireCount;
     public int FireCount { get => _fireCount; private set => this.RaiseAndSetIfChanged(ref _fireCount, value); }

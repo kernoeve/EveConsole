@@ -360,4 +360,60 @@
     <value>, </value>
     <comment>Between the items of a list joined in code ("3 missing, 2 outbid"). A comma and a space in English; your language's list separator.</comment>
   </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>MMM d</value>
+    <comment>Chart axes and short dates, e.g. Sep 28. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>MMM d, HH:mm</value>
+    <comment>A date and time in lists, e.g. Sep 28, 14:05. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>MMM d, h:mm tt</value>
+    <comment>News item times, e.g. Sep 28, 5:00 AM. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>MMM d, yyyy</value>
+    <comment>A date with its year, e.g. Sep 28, 2026. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>MMM d, yyyy HH:mm</value>
+    <comment>A date with year and time, e.g. Sep 28, 2026 14:05. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>MMMM yyyy</value>
+    <comment>A month, e.g. September 2026. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>MMM yy</value>
+    <comment>A month on a long chart axis, e.g. Sep 26. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>d MMM HH:mm</value>
+    <comment>A day and time, e.g. 28 Sep 14:05. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>d MMM HH:mm:ss</value>
+    <comment>A day and time to the second, e.g. 28 Sep 14:05:09. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>d MMM yyyy</value>
+    <comment>A date, e.g. 28 Sep 2026. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>d MMM yyyy HH:mm</value>
+    <comment>A date and time, e.g. 28 Sep 2026 14:05. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>d MMMM yyyy, HH:mm</value>
+    <comment>A long date and time, e.g. 28 September 2026, 14:05. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>dddd, MMM d yyyy  HH:mm</value>
+    <comment>A notification's date with its weekday, e.g. Monday, Sep 28 2026  14:05. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:dd MMM yyyy}</value>
+    <comment>A date in a screen's binding, e.g. 28 Sep 2026. Keep {0:…} around the pattern. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
+  </data>
 </root>

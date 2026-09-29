@@ -292,7 +292,7 @@ public class ScheduledBlockRenderer(
         var first = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc)
                         .AddMonths(-Math.Max(0, monthsBack));
 
-        return (first.Year, first.Month, first.ToString("MMMM yyyy"));
+        return (first.Year, first.Month, first.ToString(CommonText.DateMonthYear));
     }
 
     /// <summary>That same month as a half-open range, for the ranked lists.</summary>

@@ -1718,7 +1718,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         (
             [
                 new DateTimeAxis(TimeSpan.FromDays(1),
-                    d => d.ToString(moreThan60 ? "MMM yy" : "MM/dd"))
+                    d => d.ToString(moreThan60 ? CommonText.DateMonthYearShort : "MM/dd"))
                 {
                     TextSize        = 10,
                     LabelsPaint     = ChartPaint.Labels,

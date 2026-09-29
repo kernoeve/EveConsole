@@ -186,7 +186,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             {
                 var t = (long)v;
                 return t < DateTime.MinValue.Ticks || t > DateTime.MaxValue.Ticks
-                    ? "" : new DateTime(t).ToString("MMM d");
+                    ? "" : new DateTime(t).ToString(CommonText.DateMonthDay);
             },
             UnitWidth       = TimeSpan.FromDays(1).Ticks,
             MinStep         = TimeSpan.FromDays(1).Ticks,

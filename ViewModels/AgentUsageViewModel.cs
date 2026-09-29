@@ -691,7 +691,7 @@ public class AgentUsageViewModel : ReactiveObject
         {
             case "Month":
                 var m = new DateTime(d.Year, d.Month, 1);
-                return (m.ToString("MMMM yyyy", CultureInfo.CurrentCulture), m.Ticks);
+                return (m.ToString(CommonText.DateMonthYear, CultureInfo.CurrentCulture), m.Ticks);
             case "Week":
                 // ISO-style: the week starts on Monday, whatever the machine's culture says.
                 var w = d.AddDays(-(((int)d.DayOfWeek + 6) % 7));

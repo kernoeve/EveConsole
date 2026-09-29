@@ -525,7 +525,7 @@ public sealed class AlarmActionRunner
             .Replace("{summary}", evt.Summary,                               StringComparison.OrdinalIgnoreCase)
             .Replace("{count}",   evt.MatchCount.ToString(),                 StringComparison.OrdinalIgnoreCase)
             .Replace("{time}",    evt.FiredAt.ToLocalTime().ToString("HH:mm"), StringComparison.OrdinalIgnoreCase)
-            .Replace("{date}",    evt.FiredAt.ToLocalTime().ToString("d MMM yyyy"), StringComparison.OrdinalIgnoreCase);
+            .Replace("{date}",    evt.FiredAt.ToLocalTime().ToString(CommonText.DateFull), StringComparison.OrdinalIgnoreCase);
 
     private static string? Str(JsonElement e, string name) =>
         e.ValueKind == JsonValueKind.Object

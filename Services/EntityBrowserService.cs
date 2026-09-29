@@ -346,7 +346,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     if (c.AchievementScore is { } score)
                         facts.Add(new(CorpText.FactAchievementScore, score.ToString("N0")));
                     if (c.Birthday is { } b)
-                        facts.Add(new(CorpText.FactBorn, b.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactBorn, b.ToLocalTime().ToString(CommonText.DateFull)));
                     if (!string.IsNullOrWhiteSpace(c.Title))
                         facts.Add(new(CorpText.FactTitle, c.Title!));
 
@@ -367,7 +367,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         facts.Add(new(CorpText.FactAlliance, await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
                                       EntityKind.Alliance, aid));
                     if (c.DateFounded is { } d)
-                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString(CommonText.DateFull)));
                     if (c.TaxRate is { } t) facts.Add(new(CorpText.FactTaxRate, $"{t * 100:0.#}%"));
                     if (c.WarEligible is true) facts.Add(new(CorpText.FactWarEligible, CorpText.FactYes));
                     if (!string.IsNullOrWhiteSpace(c.Url) && c.Url != "http://")
@@ -392,7 +392,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                         facts.Add(new(CorpText.FactExecutorCorp, await NameOfAsync(ex, ct) ?? ex.ToString("N0"),
                                       EntityKind.PlayerCorp, ex));
                     if (a.DateFounded is { } d)
-                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString(CommonText.DateFull)));
 
                     await CacheNameAsync(a.Name, id, CategoryOf(kind), ct);
                     name = a.Name;
@@ -458,8 +458,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     : CorpText.HistoryNoAlliance;
 
                 // The record has no end date; a membership ran until the next one began.
-                var until = i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy");
-                var from  = r.StartDate.ToLocalTime().ToString("d MMM yyyy");
+                var until = i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString(CommonText.DateFull);
+                var from  = r.StartDate.ToLocalTime().ToString(CommonText.DateFull);
                 var days  = ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days;
 
                 result.Add(new EntityHistoryRow(name, from, until, days < 0 ? "" : string.Format(CorpText.HistoryDays, days),
@@ -531,8 +531,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             var ordered = rows.OrderByDescending(r => r.StartDate).ToList();
             return ordered.Select((r, i) => new EntityHistoryRow(
                 names.GetValueOrDefault(r.CorporationId, string.Format(CorpText.FallbackCorporationName, r.CorporationId)),
-                r.StartDate.ToLocalTime().ToString("d MMM yyyy"),
-                i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy"),
+                r.StartDate.ToLocalTime().ToString(CommonText.DateFull),
+                i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString(CommonText.DateFull),
                 string.Format(CorpText.HistoryDays, ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days),
                 r.IsDeleted == true,
                 r.CorporationId)).ToList();
@@ -1291,5 +1291,5 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                     double ReprocessingEfficiency, double ReprocessingTax, int Agents);
 
     private static string Pretty(string iso) =>
-        DateTimeOffset.TryParse(iso, out var d) ? d.ToLocalTime().ToString("d MMM yyyy HH:mm") : "—";
+        DateTimeOffset.TryParse(iso, out var d) ? d.ToLocalTime().ToString(CommonText.DateTimeFull) : "—";
 }

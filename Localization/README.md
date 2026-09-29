@@ -16,8 +16,12 @@ translators.
   `config.json` as `ui.language`, and used from the next start: every label is read once, when its
   window is built. *System default* picks the system's own language when a finished translation of
   it exists, and English otherwise.
-- **Numbers and dates** keep following the machine's regional format, whatever the interface
-  language — Windows keeps the two apart the same way.
+- **Numbers and dates** follow the machine's regional format — unless that format is in another
+  language than the interface (a Chinese interface on an English-region PC): then they follow the
+  interface language, so no English month names sit among the Chinese. Date patterns a person
+  reads are entries too (`CommonText.Date*`, ".NET date format patterns"), so a translation can
+  put the parts in its own order. Text the AI model reads is formatted invariantly and stays
+  English.
 
 ## Languages
 

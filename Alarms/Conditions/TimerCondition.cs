@@ -75,7 +75,7 @@ public sealed class TimerCondition : IAlarmCondition
 
         var useEve = UsesEveTime(config);
         var shown  = useEve ? at.ToUniversalTime() : at.ToLocalTime();
-        var when   = shown.ToString("ddd d MMM yyyy HH:mm", CultureInfo.CurrentCulture)
+        var when   = shown.ToString("ddd d MMM yyyy HH:mm", CultureInfo.InvariantCulture)
                    + (useEve ? " EVE" : " local");
 
         var every = ReadRepeatSeconds(config);
@@ -134,8 +134,8 @@ public sealed class TimerCondition : IAlarmCondition
         // announced occurrence look new and fire it a second time.
         var stamp = at.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         var shown = useEve
-            ? $"{at.ToUniversalTime():ddd d MMM HH:mm} EVE"
-            : $"{at.ToLocalTime():ddd d MMM HH:mm} local";
+            ? FormattableString.Invariant($"{at.ToUniversalTime():ddd d MMM HH:mm} EVE")
+            : FormattableString.Invariant($"{at.ToLocalTime():ddd d MMM HH:mm} local");
 
         return new AlarmMatch($"timer:{stamp}", $"Timer due {shown}")
         {

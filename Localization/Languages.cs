@@ -138,6 +138,19 @@ public static class Languages
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         CultureInfo.CurrentUICulture = culture;
 
+        // Dates and numbers follow Windows' regional format — unless that format is in another
+        // language than the interface: a Chinese interface on an English-region PC put "Sep 28"
+        // and "27 Sep 2026" among the Chinese. Then they follow the interface language (decided
+        // 2026-09-28). An English interface on a UK region keeps the UK's own format.
+        var region = CultureInfo.CurrentCulture;
+        if (!Pseudo && !string.Equals(region.TwoLetterISOLanguageName, culture.TwoLetterISOLanguageName,
+                                      StringComparison.OrdinalIgnoreCase))
+        {
+            var formats = CultureInfo.CreateSpecificCulture(culture.Name);
+            CultureInfo.DefaultThreadCurrentCulture = formats;
+            CultureInfo.CurrentCulture = formats;
+        }
+
         if (Pseudo) PseudoLocalization.Install();
     }
 

@@ -1633,7 +1633,7 @@ public class ItemBrowserViewModel : ReactiveObject
 
         HistoryXAxes =
         [
-            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
+            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString(CommonText.DateMonthDay))
             {
                 LabelsPaint    = ChartPaint.Labels,
                 SeparatorsPaint = ChartPaint.Separators,
@@ -1799,7 +1799,7 @@ public class ItemBrowserViewModel : ReactiveObject
 
         DerivedXAxes =
         [
-            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
+            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString(CommonText.DateMonthDay))
             {
                 LabelsPaint     = ChartPaint.Labels,
                 SeparatorsPaint = ChartPaint.Separators,

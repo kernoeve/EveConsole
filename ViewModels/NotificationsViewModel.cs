@@ -125,7 +125,7 @@ public class NotificationDetailVm
     public NotificationDetailVm(NotificationRowVm row, NotificationBodyVm body, Bitmap? icon, string glyph)
     {
         Title      = row.TypeLabel;
-        DateText   = row.Record.Timestamp.ToLocalTime().ToString("dddd, MMM d yyyy  HH:mm");
+        DateText   = row.Record.Timestamp.ToLocalTime().ToString(CommonText.DateWeekdayTime);
         Sender     = new NotifValueVm
         {
             Text = row.Sender,

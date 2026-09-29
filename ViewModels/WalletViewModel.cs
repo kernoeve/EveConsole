@@ -64,7 +64,7 @@ public class WalletJournalRowVm
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
         DateRaw      = e.Date;
-        DateText     = e.Date.ToLocalTime().ToString("MMM d, HH:mm");
+        DateText     = e.Date.ToLocalTime().ToString(CommonText.DateMonthDayTime);
         RefTypeText  = FormatRefType(e.RefType);
         Description  = e.Description ?? e.Reason ?? "";
         AmountRaw    = e.Amount;
@@ -151,7 +151,7 @@ public class WalletTransactionRowVm
         IReadOnlyDictionary<long, string>        locationNames,
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
-        DateText     = t.Date.ToLocalTime().ToString("MMM d, HH:mm");
+        DateText     = t.Date.ToLocalTime().ToString(CommonText.DateMonthDayTime);
         TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : string.Format(CommonText.TypeNumbered, t.TypeId);
         QuantityRaw  = t.Quantity;
         Quantity     = t.Quantity.ToString("N0");

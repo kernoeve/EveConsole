@@ -40,7 +40,7 @@ public sealed class AlarmRowVm : ReactiveObject
                                                : AlarmsText.AlarmStatusArmed;
 
     public string LastFiredText => LastFiredAt is { } t
-        ? t.ToUniversalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture) + " EVE"
+        ? t.ToUniversalTime().ToString(CommonText.DateDayTime, CultureInfo.CurrentCulture) + " EVE"
         : "—";
 
     public bool IsAgentCreated => string.Equals(CreatedBy, "agent", StringComparison.OrdinalIgnoreCase);
@@ -553,7 +553,7 @@ public sealed class AlarmEventVm
     public required int            MatchCount { get; init; }
 
     /// <summary>Shown in EVE time, matching the header clock and the alarm editor's default.</summary>
-    public string WhenText => FiredAt.ToUniversalTime().ToString("d MMM HH:mm:ss", CultureInfo.CurrentCulture);
+    public string WhenText => FiredAt.ToUniversalTime().ToString(CommonText.DateDayTimeSeconds, CultureInfo.CurrentCulture);
 }
 
 /// <summary>An outstanding alert raised by the Alert action.</summary>
@@ -564,7 +564,7 @@ public sealed class AlarmAlertVm : ReactiveObject
     public required string?        Body      { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
 
-    public string WhenText => CreatedAt.ToLocalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture);
+    public string WhenText => CreatedAt.ToLocalTime().ToString(CommonText.DateDayTime, CultureInfo.CurrentCulture);
 
     public ReactiveCommand<Unit, Unit>? DismissCommand { get; init; }
 }

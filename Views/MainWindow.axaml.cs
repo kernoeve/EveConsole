@@ -880,7 +880,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // The clock, first. Every message in the history carries the time it was sent, and this
         // is what those are measured against — without it the stamps are dates with no "ago".
         var now = DateTimeOffset.UtcNow;
-        sb.AppendLine($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd}).");
+        sb.AppendLine(FormattableString.Invariant($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd})."));
 
         // ⚠️ What is on screen, first and unmistakable, with the guide's own words about it. A
         // small model asked "what is this?" answered from memory, named the wrong tool, and went

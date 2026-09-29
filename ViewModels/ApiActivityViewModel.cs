@@ -791,7 +791,7 @@ public class ApiActivityViewModel : ReactiveObject
             ? due.ToLocalTime().ToString("HH:mm:ss")
             : "—";
         AlarmLastFireText = RelayTime(WorkerActivityService.Alarms, () => _alarms.LastFireAt, next: false) is { } fired
-            ? fired.ToLocalTime().ToString("d MMM HH:mm:ss")
+            ? fired.ToLocalTime().ToString(CommonText.DateDayTimeSeconds)
             : DataText.AlarmsNothingFired;
 
         SyncStageTables();
@@ -863,7 +863,7 @@ public class ApiActivityViewModel : ReactiveObject
         LpStoreProgressText = string.Format(DataText.LpStoreProgress, s.CorpsChecked, s.CorpsTotal, remaining);
         LpStoreOffersText   = string.Format(DataText.LpStoreOffers, s.Offers, s.CorpsWithStore);
         LpStoreLastText     = s.LastCheckedAt is { } t
-            ? t.ToLocalTime().ToString("d MMM HH:mm:ss")
+            ? t.ToLocalTime().ToString(CommonText.DateDayTimeSeconds)
             : DataText.TimeNeverLower;
         LpStoreDetail       = Relay(WorkerActivityService.LpStore, () => _lpStore.StatusText);
 

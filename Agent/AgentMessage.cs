@@ -52,7 +52,7 @@ public sealed record AgentMessage
 
     /// <summary>When it was said, in the capsuleer's own time, for the label above the bubble.</summary>
     [JsonIgnore]
-    public string TimeText => Timestamp.ToLocalTime().ToString("d MMM yyyy HH:mm");
+    public string TimeText => Timestamp.ToLocalTime().ToString(CommonText.DateTimeFull);
 
     /// <summary>
     /// The same moment as the model is told it, on EVE time — the clock every timestamp in the

@@ -271,4 +271,46 @@
   <data name="ListSeparator" xml:space="preserve">
     <value>、</value>
   </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>M月d日</value>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>yyyy年M月d日</value>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>yyyy年M月</value>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>yy年M月</value>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>M月d日 HH:mm:ss</value>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>yyyy年M月d日</value>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>yyyy年M月d日 dddd HH:mm</value>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:yyyy年M月d日}</value>
+  </data>
 </root>

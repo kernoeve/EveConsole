@@ -83,7 +83,7 @@ public record LpCorpValueVm(
 
     public string UpdatedText => ComputedAt == default
         ? "—"
-        : ComputedAt.ToLocalTime().ToString("d MMM HH:mm");
+        : ComputedAt.ToLocalTime().ToString(CommonText.DateDayTime);
 }
 
 public record LpHistoryPeriod(string Label, int Days);   // Days = -1 → all time
@@ -346,7 +346,7 @@ public class LpMarketValuesViewModel : ReactiveObject
 
                 XAxes =
                 [
-                    new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
+                    new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString(CommonText.DateMonthDay))
                     {
                         LabelsPaint     = ChartPaint.Labels,
                         SeparatorsPaint = ChartPaint.Separators,

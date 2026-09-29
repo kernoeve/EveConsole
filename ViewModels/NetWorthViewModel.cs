@@ -122,7 +122,7 @@ public class NetWorthViewModel : ReactiveObject
                 var ticks = (long)value;
                 return ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks
                     ? ""
-                    : new DateTime(ticks).ToString("MMM d");
+                    : new DateTime(ticks).ToString(CommonText.DateMonthDay);
             },
             UnitWidth  = TimeSpan.FromDays(1).Ticks,
             MinStep    = TimeSpan.FromDays(1).Ticks,

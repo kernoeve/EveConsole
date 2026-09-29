@@ -470,7 +470,7 @@
                       IsVisible="{Binding Attributes.LastRemapDate, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <TextBlock Grid.Column="0" Text="{x:Static loc:CharactersText.LastRemapLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
                   <TextBlock Grid.Column="1"
-                             Text="{Binding Attributes.LastRemapDate, StringFormat=\{0:dd MMM yyyy\}}"
+                             Text="{Binding Attributes.LastRemapDate, StringFormat={x:Static loc:CommonText.DateFullBinding}}"
                              Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
                 </Grid>
               </StackPanel>
@@ -569,7 +569,7 @@
                                  FontSize="12" FontWeight="SemiBold"
                                  Foreground="{DynamicResource AccentBrush}" />
                       <TextBlock Grid.Row="0" Grid.Column="1"
-                                 Text="{Binding Date, StringFormat=\{0:dd MMM yyyy\}}"
+                                 Text="{Binding Date, StringFormat={x:Static loc:CommonText.DateFullBinding}}"
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                  VerticalAlignment="Center" />
                       <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"

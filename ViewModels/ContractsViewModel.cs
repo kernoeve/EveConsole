@@ -82,7 +82,7 @@ internal static class ContractFmt
     };
 
     public static string Date(DateTimeOffset? d) =>
-        d.HasValue ? d.Value.ToLocalTime().ToString("MMM d, yyyy HH:mm") : "—";
+        d.HasValue ? d.Value.ToLocalTime().ToString(CommonText.DateMonthDayYearTime) : "—";
 }
 
 // ── Row / detail view-models ────────────────────────────────────────────────────
@@ -474,9 +474,9 @@ public class ContractRowVm
             : "—";
 
         DateIssuedRaw = c.DateIssued;
-        DateIssued    = c.DateIssued.ToLocalTime().ToString("MMM d, HH:mm");
+        DateIssued    = c.DateIssued.ToLocalTime().ToString(CommonText.DateMonthDayTime);
         DateExpiresRaw = c.DateExpired ?? DateTimeOffset.MaxValue;
-        DateExpires    = c.DateExpired is { } exp ? exp.ToLocalTime().ToString("MMM d, HH:mm") : "—";
+        DateExpires    = c.DateExpired is { } exp ? exp.ToLocalTime().ToString(CommonText.DateMonthDayTime) : "—";
         PriceRaw      = c.Price;
         Price         = c.Price  > 0 ? ContractFmt.Isk(c.Price)  : "—";
         RewardRaw     = c.Reward;
