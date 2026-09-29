@@ -646,11 +646,11 @@
   </data>
   <data name="MidpointsCitadelSystems" xml:space="preserve">
     <value>Fortizar / Keepstar systems</value>
-    <comment>Jump Planner pick list: where the route may stop — systems with a Fortizar or Keepstar (structure names, keep them).</comment>
+    <comment>Jump Planner pick list: where the route may stop — systems with a Fortizar or Keepstar: the structures' names as your language's game client writes them (some clients leave them in English).</comment>
   </data>
   <data name="MidpointsKeepstarSystems" xml:space="preserve">
     <value>Keepstar systems</value>
-    <comment>Jump Planner pick list: where the route may stop — systems with a Keepstar (structure name, keep it).</comment>
+    <comment>Jump Planner pick list: where the route may stop — systems with a Keepstar: the structure's name as your language's game client writes it (some clients leave it in English).</comment>
   </data>
   <data name="RangePerJump" xml:space="preserve">
     <value>{0:N2} ly per jump ({1:N1} base, JDC {2})</value>
@@ -802,7 +802,7 @@
   </data>
   <data name="TipServiceManufacturing" xml:space="preserve">
     <value>NPC factory, or a Standup Manufacturing Plant or Shipyard</value>
-    <comment>Tooltip on a map mark: where manufacturing can come from. Standup… are structure module names.</comment>
+    <comment>Tooltip on a map mark: where manufacturing can come from. Standup… are structure module names: as your language's game client writes them.</comment>
   </data>
   <data name="ServiceResearch" xml:space="preserve">
     <value>Research / Invention</value>
@@ -810,7 +810,7 @@
   </data>
   <data name="TipServiceResearch" xml:space="preserve">
     <value>NPC laboratory, or a Standup Research or Invention Lab</value>
-    <comment>Tooltip on a map mark: where research can come from. Standup… are structure module names.</comment>
+    <comment>Tooltip on a map mark: where research can come from. Standup… are structure module names: as your language's game client writes them.</comment>
   </data>
   <data name="ServiceReprocessing" xml:space="preserve">
     <value>Reprocessing</value>
@@ -818,7 +818,7 @@
   </data>
   <data name="TipServiceReprocessing" xml:space="preserve">
     <value>NPC reprocessing plant or refinery, or a Standup Reprocessing Facility</value>
-    <comment>Tooltip on a map mark: where reprocessing can come from. Standup… are structure module names.</comment>
+    <comment>Tooltip on a map mark: where reprocessing can come from. Standup… are structure module names: as your language's game client writes them.</comment>
   </data>
   <data name="ServiceReactions" xml:space="preserve">
     <value>Reactions</value>
@@ -826,7 +826,7 @@
   </data>
   <data name="TipServiceReactions" xml:space="preserve">
     <value>A Standup reactor. No NPC station reacts, so this is always a player structure</value>
-    <comment>Tooltip on a map mark: where reactions can come from. Standup is part of a structure module name.</comment>
+    <comment>Tooltip on a map mark: where reactions can come from. Standup is part of a structure module name: as your language's game client writes it.</comment>
   </data>
   <data name="ServiceCloning" xml:space="preserve">
     <value>Clone bay</value>
@@ -834,7 +834,7 @@
   </data>
   <data name="TipServiceCloning" xml:space="preserve">
     <value>NPC cloning or jump clone facility, or a Standup Cloning Center</value>
-    <comment>Tooltip on a map mark: where a clone bay can come from. Standup… is a structure module name.</comment>
+    <comment>Tooltip on a map mark: where a clone bay can come from. Standup… is a structure module name: as your language's game client writes it.</comment>
   </data>
   <data name="ServiceMarket" xml:space="preserve">
     <value>Market</value>
