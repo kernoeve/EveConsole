@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -40,11 +41,11 @@ public partial class AlarmsView : UserControl
 
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title         = "Choose an alarm sound",
+            Title         = AlarmsText.PickSoundTitle,
             AllowMultiple = false,
             FileTypeFilter =
             [
-                new FilePickerFileType("Audio")
+                new FilePickerFileType(AlarmsText.PickSoundFileType)
                 {
                     Patterns = [.. AlarmSoundService.SupportedExtensions.Select(e => "*" + e)],
                 },

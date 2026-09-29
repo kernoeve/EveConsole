@@ -11,6 +11,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -33,10 +34,10 @@ public sealed class AlarmRowVm : ReactiveObject
     public required DateTimeOffset? LastFiredAt { get; init; }
     public string?                  Error       { get; init; }
 
-    public string StatusText => !Enabled       ? "Disabled"
-                              : Error is not null ? "Error"
-                              : FireCount > 0  ? $"Armed · fired {FireCount}×"
-                                               : "Armed";
+    public string StatusText => !Enabled       ? AlarmsText.AlarmStatusDisabled
+                              : Error is not null ? AlarmsText.AlarmStatusError
+                              : FireCount > 0  ? string.Format(AlarmsText.AlarmStatusArmedFired, FireCount)
+                                               : AlarmsText.AlarmStatusArmed;
 
     public string LastFiredText => LastFiredAt is { } t
         ? t.ToUniversalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture) + " EVE"
@@ -134,12 +135,28 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>Set when the condition's schema declares a zone alongside this date-time.</summary>
     public bool HasZone { get; set; }
 
-    public IReadOnlyList<string> ZoneOptions { get; } = ["EVE time", "Local time"];
+    /// <summary>
+    /// The two clocks, by what they mean: true is EVE time.
+    ///
+    /// <para>⚠️ Was a pair of strings, and the setter compared the pick against "Local time" —
+    /// in another language the words would never have matched, and every pick would have read
+    /// as EVE time.</para>
+    /// </summary>
+    public IReadOnlyList<Choice<bool>> ZoneOptions { get; } =
+    [
+        new(true,  AlarmsText.ZoneEveTime),
+        new(false, AlarmsText.ZoneLocalTime),
+    ];
 
-    public string SelectedZone
+    public Choice<bool> SelectedZone
     {
-        get => UseEveTime ? "EVE time" : "Local time";
-        set => UseEveTime = value != "Local time";
+        get => ZoneOptions.First(o => o.Value == UseEveTime);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            UseEveTime = value.Value;
+        }
     }
 
     /// <summary>
@@ -158,8 +175,8 @@ public sealed class AlarmFieldVm : ReactiveObject
                 Time.Hours, Time.Minutes, Time.Seconds, offset);
 
             return UseEveTime
-                ? $"= {instant.ToLocalTime():ddd d MMM HH:mm} local"
-                : $"= {instant.ToUniversalTime():ddd d MMM HH:mm} EVE";
+                ? string.Format(AlarmsText.EquivalentLocal, instant.ToLocalTime())
+                : string.Format(AlarmsText.EquivalentEve, instant.ToUniversalTime());
         }
     }
 
@@ -215,7 +232,7 @@ public sealed class AlarmFieldVm : ReactiveObject
         // nowhere. Refuse it here, while it is still in front of the user.
         if (Validator is not null && !await Validator(typed, CancellationToken.None))
         {
-            Error = $"\"{typed}\" is not a name the app knows — pick one from the list.";
+            Error = string.Format(AlarmsText.NotAKnownName, typed);
             return;
         }
 
@@ -287,7 +304,7 @@ public sealed class AlarmActionVm : ReactiveObject
             var added = sounds.AddCustomSound(path);
             if (added is null)
             {
-                ImportError = "That file type is not supported.";
+                ImportError = AlarmsText.UnsupportedSoundFile;
                 return;
             }
 
@@ -464,7 +481,7 @@ public sealed class AlarmStageVm : ReactiveObject
     }
 
     public int    Number   { get; }
-    public string Title    => $"STAGE {Number}";
+    public string Title    => string.Format(AlarmsText.StageTitle, Number);
     public AlarmFieldVm? Field { get; }
     public bool   HasField => Field is not null;
 
@@ -619,7 +636,15 @@ public sealed class AlarmsViewModel : ReactiveObject
         return a;
     }
 
-    public IReadOnlyList<AlarmRepeat> RepeatModes { get; } = [AlarmRepeat.Continuous, AlarmRepeat.OneShot];
+    /// <summary>
+    /// The After Firing choices. ⚠️ The ComboBox used to show the enum's own names ("OneShot");
+    /// the enum is still what is saved, and only the words are looked up.
+    /// </summary>
+    public IReadOnlyList<Choice<AlarmRepeat>> RepeatModes { get; } =
+    [
+        new(AlarmRepeat.Continuous, AlarmsText.RepeatContinuous),
+        new(AlarmRepeat.OneShot,    AlarmsText.RepeatOneShot),
+    ];
 
     private AlarmRowVm? _selectedAlarm;
     public AlarmRowVm? SelectedAlarm
@@ -653,7 +678,23 @@ public sealed class AlarmsViewModel : ReactiveObject
     }
 
     private AlarmRepeat _repeat = AlarmRepeat.Continuous;
-    public AlarmRepeat Repeat { get => _repeat; set => this.RaiseAndSetIfChanged(ref _repeat, value); }
+    public Choice<AlarmRepeat> Repeat
+    {
+        get => RepeatModes.FirstOrDefault(o => o.Value == _repeat) ?? RepeatModes[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _repeat = value.Value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    private void SetRepeat(AlarmRepeat repeat)
+    {
+        _repeat = repeat;
+        this.RaisePropertyChanged(nameof(Repeat));
+    }
 
     private int _pollSeconds = 60;
     public int PollSeconds { get => _pollSeconds; set => this.RaiseAndSetIfChanged(ref _pollSeconds, value); }
@@ -754,7 +795,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
 
         HasAlerts  = Alerts.Count > 0;
-        StatusText = $"{Alarms.Count} alarm(s) · {Alerts.Count} open alert(s)";
+        StatusText = string.Format(AlarmsText.AlarmsStatus, Alarms.Count, Alerts.Count);
     }
 
     private async Task DismissAlertAsync(long id)
@@ -770,7 +811,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         if (Alerts.FirstOrDefault(a => a.Id == id) is { } row) Alerts.Remove(row);
         HasAlerts  = Alerts.Count > 0;
-        StatusText = $"{Alarms.Count} alarm(s) · {Alerts.Count} open alert(s)";
+        StatusText = string.Format(AlarmsText.AlarmsStatus, Alarms.Count, Alerts.Count);
     }
 
     // ── Editor ───────────────────────────────────────────────────────────────
@@ -779,11 +820,11 @@ public sealed class AlarmsViewModel : ReactiveObject
     {
         SelectedAlarm     = null;
         EditingId         = 0;
-        Name              = "New alarm";
+        Name              = AlarmsText.DefaultAlarmName;
         Enabled           = true;
         ActiveFrom        = "";
         ActiveThru        = "";
-        Repeat            = AlarmRepeat.Continuous;
+        SetRepeat(AlarmRepeat.Continuous);
         PollSeconds       = 60;
         CooldownSeconds   = 0;
         SelectedCondition = Conditions.FirstOrDefault();
@@ -813,7 +854,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         Enabled         = alarm.Enabled;
         ActiveFrom      = alarm.ActiveFrom ?? "";
         ActiveThru      = alarm.ActiveThru ?? "";
-        Repeat          = alarm.Repeat;
+        SetRepeat(alarm.Repeat);
         PollSeconds     = alarm.PollSeconds;
         CooldownSeconds = alarm.CooldownSeconds;
 
@@ -1106,17 +1147,17 @@ public sealed class AlarmsViewModel : ReactiveObject
         string preview;
         try
         {
-            var sample = new[] { new AlarmMatch("preview", "…the matching detail goes here") };
+            var sample = new[] { new AlarmMatch("preview", AlarmsText.PreviewSampleDetail) };
             var cfg    = JsonDocument.Parse(BuildConfigJson()).RootElement;
             var (title, _) = SelectedCondition?.DefaultText(
-                string.IsNullOrWhiteSpace(Name) ? "This alarm" : Name, cfg, sample)
+                string.IsNullOrWhiteSpace(Name) ? AlarmsText.ThisAlarm : Name, cfg, sample)
                 ?? ("", "");
 
             preview = string.IsNullOrWhiteSpace(title)
-                ? "The check will supply the wording."
-                : $"e.g. \"{title}\", then the matches beneath it.";
+                ? AlarmsText.DefaultWordingFromCheck
+                : string.Format(AlarmsText.DefaultWordingExample, title);
         }
-        catch { preview = "The check will supply the wording."; }
+        catch { preview = AlarmsText.DefaultWordingFromCheck; }
 
         foreach (var a in AllActions) a.DefaultTextPreview = preview;
     }
@@ -1263,8 +1304,8 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     private async Task SaveAsync()
     {
-        if (SelectedCondition is null) { StatusText = "Pick a condition first."; return; }
-        if (string.IsNullOrWhiteSpace(Name)) { StatusText = "Give the alarm a name."; return; }
+        if (SelectedCondition is null) { StatusText = AlarmsText.ErrPickCondition; return; }
+        if (string.IsNullOrWhiteSpace(Name)) { StatusText = AlarmsText.ErrAlarmName; return; }
 
         // An item name that does not resolve makes an alarm that can never match, and says so
         // nowhere. Refuse the save instead, while the field is still in front of the user.
@@ -1280,27 +1321,33 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             if (!known)
             {
-                StatusText = $"\"{typed}\" is not an item — pick one from the list.";
+                StatusText = string.Format(AlarmsText.NotAnItem, typed);
                 return;
             }
         }
 
         foreach (var field in Fields.Where(f => f.IsList && f.Required && f.Items.Count == 0))
         {
-            StatusText = $"Add at least one entry under {field.Label}.";
+            StatusText = string.Format(AlarmsText.ErrAddListEntry, field.Label);
             return;
         }
 
-        // A window half-typed is a window nobody meant: refuse rather than guess.
-        foreach (var (label, text) in new[] { ("from", ActiveFrom), ("thru", ActiveThru) })
+        // A window half-typed is a window nobody meant: refuse rather than guess. One whole
+        // sentence per box, not "Active {from|thru}".
+        foreach (var (complaint, text) in new[]
+                 {
+                     (AlarmsText.ErrActiveFrom, ActiveFrom),
+                     (AlarmsText.ErrActiveThru, ActiveThru),
+                 })
             if (!string.IsNullOrWhiteSpace(text) && Alarm.ParseClock(text) is null)
             {
-                StatusText = $"Active {label} needs a time like 18:00.";
+                StatusText = complaint;
                 return;
             }
 
         var conditionType = SelectedCondition.TypeKey;
         var conditionJson = BuildConfigJson();
+        var repeat        = _repeat;
         var actionRows    = AllActions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
 
         var id = EditingId;
@@ -1329,7 +1376,7 @@ public sealed class AlarmsViewModel : ReactiveObject
             alarm.Enabled         = Enabled;
             alarm.ConditionType   = conditionType;
             alarm.ConditionJson   = conditionJson;
-            alarm.Repeat          = Repeat;
+            alarm.Repeat          = repeat;
             // Two seconds is the service's own tick; anything lower would be a promise it cannot keep.
             alarm.PollSeconds     = Math.Max(2, PollSeconds);
             alarm.CooldownSeconds = Math.Max(0, CooldownSeconds);
@@ -1371,7 +1418,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         await LoadAsync();
         SelectedAlarm = Alarms.FirstOrDefault(a => a.Id == savedId);
-        StatusText    = wasNew ? "Alarm created." : "Alarm saved.";
+        StatusText    = wasNew ? AlarmsText.AlarmCreated : AlarmsText.AlarmSaved;
     }
 
     private async Task DeleteAsync()
@@ -1397,7 +1444,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         HasEditor = false;
         EditingId = 0;
         await LoadAsync();
-        StatusText = "Alarm deleted.";
+        StatusText = AlarmsText.AlarmDeleted;
     }
 
     /// <summary>
@@ -1410,7 +1457,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         {
             if (a.IsSound && a.Sound is { } s) await _sounds.PlayAsync(s.Key, a.Volume);
         }
-        StatusText = "Played the alarm's sounds. Save first to test the other actions.";
+        StatusText = AlarmsText.PlayedSounds;
     }
 
     private static string Humanise(string name)

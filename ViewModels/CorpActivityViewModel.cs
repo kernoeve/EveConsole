@@ -13,6 +13,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using ReactiveUI;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -352,20 +353,20 @@ public sealed class StandingProjectRowVm
         ProjectStatusText = row.MatchStatus switch
         {
             "matched"     => row.MatchedName,
-            "all_healthy" => "no systems below the minimum ADM",
-            "no_systems"  => "scope expands to no systems",
+            "all_healthy" => CorpText.StatusNoSystemsBelowMinAdm,
+            "no_systems"  => CorpText.StatusScopeNoSystems,
             "no_adm"      => row.StatusNote.Length > 0
-                                 ? $"sovereignty data unavailable — {row.StatusNote}"
-                                 : "sovereignty data unavailable",
+                                 ? string.Format(CorpText.StatusSovUnavailableNote, row.StatusNote)
+                                 : CorpText.StatusSovUnavailable,
 
             // ⚠️ Not "not active". A delivery destination is named as an office, and the
             // office-to-station lookup comes from corp assets; while that is missing the row
             // can be neither matched nor ruled out. Calling it inactive was a claim about the
             // project made out of a gap in our own data.
             "no_office"   => row.StatusNote.Length > 0
-                                 ? $"office location unavailable — {row.StatusNote}"
-                                 : "office location unavailable — asset data still loading",
-            _             => "project not active",
+                                 ? string.Format(CorpText.StatusOfficeUnavailableNote, row.StatusNote)
+                                 : CorpText.StatusOfficeUnavailableLoading,
+            _             => CorpText.StatusProjectNotActive,
         };
         ProjectStatusColor = IsLowRemaining ? "#e0902e" : statusColor;
 
@@ -771,7 +772,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     // ── Status ────────────────────────────────────────────────────────────────
-    private string _status = "Select a corporation above to load data.";
+    private string _status = CorpText.StatusSelectCorp;
     public string Status
     {
         get => _status;
@@ -805,11 +806,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     // ── Daily chart ───────────────────────────────────────────────────────────
     public IReadOnlyList<ChartPeriodOption> ChartPeriods { get; } =
     [
-        new("Last 30 Days",  30),
-        new("Last 60 Days",  60),
-        new("Last 90 Days",  90),
-        new("Last 6 Months", 180),
-        new("Last Year",     365),
+        new(CorpText.PeriodLast30Days,  30),
+        new(CorpText.PeriodLast60Days,  60),
+        new(CorpText.PeriodLast90Days,  90),
+        new(CorpText.PeriodLast6Months, 180),
+        new(CorpText.PeriodLastYear,    365),
     ];
 
     private ChartPeriodOption _selectedChartPeriod;
@@ -864,11 +865,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     // ── Ratting / Industry tax tabs ───────────────────────────────────────────
     public IReadOnlyList<ChartPeriodOption> TaxPeriods { get; } =
     [
-        new("Last 7 Days",    7),
-        new("Last 30 Days",  30),
-        new("Last 90 Days",  90),
-        new("Last 6 Months", 180),
-        new("Last Year",     365),
+        new(CorpText.PeriodLast7Days,     7),
+        new(CorpText.PeriodLast30Days,  30),
+        new(CorpText.PeriodLast90Days,  90),
+        new(CorpText.PeriodLast6Months, 180),
+        new(CorpText.PeriodLastYear,    365),
     ];
 
     // Ratting
@@ -1092,7 +1093,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         async Task LoadAsync()
         {
             try { await load(corpId, default); }
-            catch (Exception ex) { Status = $"Filter failed: {ex.Message}"; }
+            catch (Exception ex) { Status = string.Format(CorpText.StatusFilterFailed, ex.Message); }
         }
     }
 
@@ -1334,16 +1335,32 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// way. Affects only the exported text — the grids are unchanged.
     ///
     /// One selection backs both the Top 10 and the Monthly Summary dropdowns, and persists
-    /// across sessions — see ExportFormatSettings.</summary>
-    public IReadOnlyList<string> ExportFormats { get; } = OutputFormat.All.Select(f => f.Name).ToList();
+    /// across sessions — see ExportFormatSettings.
+    ///
+    /// <para>⚠️ The format's name is what is saved and compared, in every language; only the
+    /// label is looked up.</para></summary>
+    public IReadOnlyList<Choice<string>> ExportFormats { get; } =
+        OutputFormat.All.Select(f => new Choice<string>(f.Name, ExportFormatLabel(f.Name))).ToList();
+
+    /// <summary>The words a format goes by. Only these two have any to translate; the others are
+    /// the names of Slack, Discord, Markdown, HTML and BBCode.</summary>
+    private static string ExportFormatLabel(string name) => name switch
+    {
+        "Plain Text" => CorpText.FormatPlainText,
+        "EVE Mail"   => CorpText.FormatEveMail,
+        _            => name,
+    };
 
     private string _selectedExportFormat = ExportFormatSettings.Default;
-    public string SelectedExportFormat
+    public Choice<string> SelectedExportFormat
     {
-        get => _selectedExportFormat;
+        get => ExportFormats.FirstOrDefault(o => o.Value == _selectedExportFormat) ?? ExportFormats[0];
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedExportFormat, value ?? ExportFormatSettings.Default);
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved as one.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedExportFormat = value.Value;
+            this.RaisePropertyChanged();
             if (_exportFormat is not null) _exportFormat.Format = _selectedExportFormat;
         }
     }
@@ -1457,37 +1474,37 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         this.WhenAnyValue(x => x.SelectedMiningPeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => _ = ReloadTabSafeAsync("mining", () => LoadMiningLedgerAsync((long)SelectedCorp!.Id)));
+            .Subscribe(p => _ = ReloadTabSafeAsync("mining", CorpText.StepMining, () => LoadMiningLedgerAsync((long)SelectedCorp!.Id)));
 
         this.WhenAnyValue(x => x.SelectedRattingPeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => { _ = ReloadTabSafeAsync("ratting", () => LoadRattingTabAsync((long)SelectedCorp!.Id)); });
+            .Subscribe(p => { _ = ReloadTabSafeAsync("ratting", CorpText.StepRatting, () => LoadRattingTabAsync((long)SelectedCorp!.Id)); });
 
         this.WhenAnyValue(x => x.SelectedIndustryPeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => { _ = ReloadTabSafeAsync("industry", () => LoadIndustryTabAsync((long)SelectedCorp!.Id)); });
+            .Subscribe(p => { _ = ReloadTabSafeAsync("industry", CorpText.StepIndustry, () => LoadIndustryTabAsync((long)SelectedCorp!.Id)); });
 
         this.WhenAnyValue(x => x.SelectedDonationPeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => { _ = ReloadTabSafeAsync("donations", () => LoadDonationTabAsync((long)SelectedCorp!.Id)); });
+            .Subscribe(p => { _ = ReloadTabSafeAsync("donations", CorpText.StepDonations, () => LoadDonationTabAsync((long)SelectedCorp!.Id)); });
 
         this.WhenAnyValue(x => x.SelectedKillGridPeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => _ = ReloadTabSafeAsync("kills", () => LoadKillsTabAsync((long)SelectedCorp!.Id, default)));
+            .Subscribe(p => _ = ReloadTabSafeAsync("kills", CorpText.StepKills, () => LoadKillsTabAsync((long)SelectedCorp!.Id, default)));
 
         this.WhenAnyValue(x => x.SelectedIncomePeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => _ = ReloadTabSafeAsync("income", () => LoadIncomeByTypeAsync((long)SelectedCorp!.Id)));
+            .Subscribe(p => _ = ReloadTabSafeAsync("income", CorpText.StepIncome, () => LoadIncomeByTypeAsync((long)SelectedCorp!.Id)));
 
         this.WhenAnyValue(x => x.SelectedExpensePeriod)
             .Skip(1)
             .Where(p => p is not null && SelectedCorp is not null)
-            .Subscribe(p => _ = ReloadTabSafeAsync("expense", () => LoadExpenseByTypeAsync((long)SelectedCorp!.Id)));
+            .Subscribe(p => _ = ReloadTabSafeAsync("expense", CorpText.StepExpense, () => LoadExpenseByTypeAsync((long)SelectedCorp!.Id)));
 
         // Project selection — either grid drives the unified detail panel
         this.WhenAnyValue(x => x.SelectedActiveProject)
@@ -1567,22 +1584,22 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
         {
-            await RunStep("wallet",           () => LoadWalletAsync(corpId, ct));
-            await RunStep("daily chart",      () => LoadDailyChartAsync(corpId, ct));
-            await RunStep("kills",            () => LoadKillsTabAsync(corpId, ct));
-            await RunStep("monthly activity", () => LoadMonthlyActivityAsync(corpId, ct));
-            await RunStep("projects",    () => LoadProjectsAsync(corpId, ct));
+            await RunStep("wallet",           CorpText.StepWallet,          () => LoadWalletAsync(corpId, ct));
+            await RunStep("daily chart",      CorpText.StepDailyChart,      () => LoadDailyChartAsync(corpId, ct));
+            await RunStep("kills",            CorpText.StepKills,           () => LoadKillsTabAsync(corpId, ct));
+            await RunStep("monthly activity", CorpText.StepMonthlyActivity, () => LoadMonthlyActivityAsync(corpId, ct));
+            await RunStep("projects",         CorpText.StepProjects,        () => LoadProjectsAsync(corpId, ct));
 
             var (since, until) = GetTop10DateRange();
-            await RunStep("top 10",   () => LoadAllTop10Async(corpId, excludeIds, since, until, ct));
-            await RunStep("monthly summary", () => LoadMonthlySummaryAsync(corpId, ct));
-            await RunStep("mining",   () => LoadMiningLedgerAsync(corpId, ct));
-            await RunStep("ratting",   () => LoadRattingTabAsync(corpId, ct));
-            await RunStep("donations", () => LoadDonationTabAsync(corpId, ct));
-            await RunStep("industry",  () => LoadIndustryTabAsync(corpId, ct));
-            await RunStep("income by type",  () => LoadIncomeByTypeAsync(corpId, ct));
-            await RunStep("expense by type", () => LoadExpenseByTypeAsync(corpId, ct));
-            await RunStep("24h activity",    () => Load24hActivityAsync(corpId, ct));
+            await RunStep("top 10",          CorpText.StepTop10,          () => LoadAllTop10Async(corpId, excludeIds, since, until, ct));
+            await RunStep("monthly summary", CorpText.StepMonthlySummary, () => LoadMonthlySummaryAsync(corpId, ct));
+            await RunStep("mining",          CorpText.StepMining,         () => LoadMiningLedgerAsync(corpId, ct));
+            await RunStep("ratting",         CorpText.StepRatting,        () => LoadRattingTabAsync(corpId, ct));
+            await RunStep("donations",       CorpText.StepDonations,      () => LoadDonationTabAsync(corpId, ct));
+            await RunStep("industry",        CorpText.StepIndustry,       () => LoadIndustryTabAsync(corpId, ct));
+            await RunStep("income by type",  CorpText.StepIncomeByType,   () => LoadIncomeByTypeAsync(corpId, ct));
+            await RunStep("expense by type", CorpText.StepExpenseByType,  () => LoadExpenseByTypeAsync(corpId, ct));
+            await RunStep("24h activity",    CorpText.Step24hActivity,    () => Load24hActivityAsync(corpId, ct));
 
             Status = LoadedStatus(SelectedCorp.Name);
         }
@@ -1602,16 +1619,16 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
         {
-            await RunStep("wallet",           () => LoadWalletAsync(corpId, ct));
-            await RunStep("daily chart",      () => LoadDailyChartAsync(corpId, ct));
-            await RunStep("kills",            () => LoadKillsTabAsync(corpId, ct));
-            await RunStep("monthly activity", () => LoadMonthlyActivityAsync(corpId, ct));
-            await RunStep("projects",         () => LoadProjectsAsync(corpId, ct));
+            await RunStep("wallet",           CorpText.StepWallet,          () => LoadWalletAsync(corpId, ct));
+            await RunStep("daily chart",      CorpText.StepDailyChart,      () => LoadDailyChartAsync(corpId, ct));
+            await RunStep("kills",            CorpText.StepKills,           () => LoadKillsTabAsync(corpId, ct));
+            await RunStep("monthly activity", CorpText.StepMonthlyActivity, () => LoadMonthlyActivityAsync(corpId, ct));
+            await RunStep("projects",         CorpText.StepProjects,        () => LoadProjectsAsync(corpId, ct));
 
             var (since, until) = GetTop10DateRange();
-            await RunStep("top 10",  () => LoadAllTop10Async(corpId, excludeIds, since, until, ct));
-            await RunStep("mining",  () => LoadMiningLedgerAsync(corpId, ct));
-            await RunStep("24h activity", () => Load24hActivityAsync(corpId, ct));
+            await RunStep("top 10",       CorpText.StepTop10,       () => LoadAllTop10Async(corpId, excludeIds, since, until, ct));
+            await RunStep("mining",       CorpText.StepMining,      () => LoadMiningLedgerAsync(corpId, ct));
+            await RunStep("24h activity", CorpText.Step24hActivity, () => Load24hActivityAsync(corpId, ct));
 
             Status = LoadedStatus(SelectedCorp.Name);
         }
@@ -1640,46 +1657,51 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// status say "Loaded" above an empty list. Logging alone was not enough: it put the reason
     /// somewhere, and left the screen claiming everything was fine.</para>
     /// </summary>
-    private void StepFailed(string what, Exception ex)
+    /// <remarks>⚠️ Two names for every step: <paramref name="what"/> is the English one the error
+    /// log files it under, <paramref name="label"/> the words the status line shows.</remarks>
+    private void StepFailed(string what, string label, Exception ex)
     {
         _errorLogger?.Log("CorpActivityViewModel", what, ex);
-        _stepFailures.Add(what);
+        _stepFailures.Add(label);
     }
 
-    private async Task RunStep(string name, Func<Task> step)
+    /// <remarks>⚠️ <paramref name="name"/> goes to the error log and stays English;
+    /// <paramref name="label"/> is what the status line shows.</remarks>
+    private async Task RunStep(string name, string label, Func<Task> step)
     {
         try
         {
-            Status = $"Loading {name}...";
+            Status = string.Format(CorpText.StatusLoadingStep, label);
             await step();
         }
         catch (Exception ex)
         {
             _errorLogger?.Log("CorpActivityViewModel", $"{name} step", ex);
-            _stepFailures.Add(name);
-            Status = $"Warning: {name} failed — {ex.Message}";
+            _stepFailures.Add(label);
+            Status = string.Format(CorpText.StatusStepFailed, label, ex.Message);
         }
     }
 
     /// <summary>The closing status, which has to survive the steps that went wrong.</summary>
     private string LoadedStatus(string corpName) =>
         _stepFailures.Count == 0
-            ? $"Loaded — {corpName}"
-            : $"Loaded — {corpName}, but {string.Join(", ", _stepFailures)} failed. "
-              + "See the Error Log for the reason.";
+            ? string.Format(CorpText.StatusLoaded, corpName)
+            : string.Format(CorpText.StatusLoadedWithFailures, corpName, string.Join(", ", _stepFailures));
 
-    private async Task ReloadTabSafeAsync(string name, Func<Task> load)
+    /// <remarks><paramref name="name"/> for the error log, <paramref name="label"/> for the status
+    /// line — see RunStep.</remarks>
+    private async Task ReloadTabSafeAsync(string name, string label, Func<Task> load)
     {
         try
         {
-            Status = $"Refreshing {name}...";
+            Status = string.Format(CorpText.StatusRefreshingStep, label);
             await load();
-            Status = SelectedCorp is not null ? $"Loaded — {SelectedCorp.Name}" : "Ready";
+            Status = SelectedCorp is not null ? string.Format(CorpText.StatusLoaded, SelectedCorp.Name) : CorpText.StatusReady;
         }
         catch (Exception ex)
         {
             _errorLogger?.Log("CorpActivityViewModel", $"period reload {name}", ex);
-            Status = $"Warning: {name} reload failed — {ex.Message}";
+            Status = string.Format(CorpText.StatusStepReloadFailed, label, ex.Message);
         }
     }
 
@@ -1773,7 +1795,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// destination and exposes no channel name, so it says so rather than showing nothing.</summary>
     public string SlackTop10ChannelText =>
         _slack?.UsesWebhook(SlackService.AreaCorpTop10) == true
-            ? "via webhook"
+            ? CorpText.SlackViaWebhook
             : _slack?.ChannelName(SlackService.AreaCorpTop10) is { Length: > 0 } n ? $"#{n}" : "";
 
     private string _slackStatus = "";
@@ -1783,7 +1805,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     public string SlackMonthlyChannelText =>
         _slack?.UsesWebhook(SlackService.AreaCorpMonthly) == true
-            ? "via webhook"
+            ? CorpText.SlackViaWebhook
             : _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } m ? $"#{m}" : "";
 
     public void RefreshSlackState()
@@ -1807,7 +1829,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpTop10);
         var viaHook = _slack.UsesWebhook(SlackService.AreaCorpTop10);
-        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = CorpText.SlackNoDestination; return; }
 
         // Guard against accidental double-posting.
         if (_slack.LastPostAt(SlackService.AreaCorpTop10) is { } last
@@ -1815,16 +1837,16 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             && ConfirmSlackRepost is not null)
         {
             var confirmed = await ConfirmSlackRepost(
-                $"This Top 10 listing was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
-                "Post it again?");
-            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+                string.Format(CorpText.Top10AlreadyPosted, NotificationSummary.Age(last)) + "\n\n" +
+                CorpText.PostItAgain);
+            if (!confirmed) { SlackStatus = CorpText.SlackPostCancelled; return; }
         }
 
-        SlackStatus = "Posting to Slack…";
+        SlackStatus = CorpText.SlackPosting;
         // Plain Text is wrapped in a code block so the padded columns line up in Slack's
         // proportional font; a markup format is posted raw, since a code block would show
         // its bold markers literally instead of rendering them.
-        var plain = SelectedExportFormat == "Plain Text";
+        var plain = _selectedExportFormat == "Plain Text";
         var body  = BuildTop10Export(includeIsk);
         var sent  = await SlackMessageSplitter.PostAsync(plain ? $"```\n{body}\n```" : body,
             (part, ct) => _slack.PostAreaAsync(SlackService.AreaCorpTop10, part, ct: ct));
@@ -1841,10 +1863,13 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// </summary>
     private static string SlackPostStatus(SlackPartsResult sent, string where) =>
         sent.AllPosted
-            ? $"Posted to {where}{(sent.Total > 1 ? $" in {sent.Total} messages" : "")} — {DateTimeOffset.Now:t}"
+            ? sent.Total > 1
+                ? Plurals.Format(CorpText.ResourceManager, nameof(CorpText.SlackPostedInPartsOther),
+                                 sent.Total, where, DateTimeOffset.Now)
+                : string.Format(CorpText.SlackPosted, where, DateTimeOffset.Now)
         : sent.Posted == 0
-            ? $"Slack post failed: {sent.Error}"
-            : $"Posted {sent.Posted} of {sent.Total} messages to {where}; Slack refused the next: {sent.Error}";
+            ? string.Format(CorpText.SlackPostFailed, sent.Error)
+            : string.Format(CorpText.SlackPostedPartly, sent.Posted, sent.Total, where, sent.Error);
 
     /// <summary>
     /// Posts the monthly summary to its own configured channel.
@@ -1858,20 +1883,20 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         if (_slack is null) return;
         var channel = _slack.ChannelId(SlackService.AreaCorpMonthly);
         var viaHook = _slack.UsesWebhook(SlackService.AreaCorpMonthly);
-        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = CorpText.SlackNoDestination; return; }
 
         if (_slack.LastPostAt(SlackService.AreaCorpMonthly) is { } last
             && DateTimeOffset.UtcNow - last < SlackRepostWindow
             && ConfirmSlackRepost is not null)
         {
             var confirmed = await ConfirmSlackRepost(
-                $"This monthly summary was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
-                "Post it again?");
-            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+                string.Format(CorpText.SummaryAlreadyPosted, NotificationSummary.Age(last)) + "\n\n" +
+                CorpText.PostItAgain);
+            if (!confirmed) { SlackStatus = CorpText.SlackPostCancelled; return; }
         }
 
-        SlackStatus = "Posting to Slack…";
-        var plain = SelectedExportFormat == "Plain Text";
+        SlackStatus = CorpText.SlackPosting;
+        var plain = _selectedExportFormat == "Plain Text";
         var body  = BuildMonthlySummaryExport();
         var sent  = await SlackMessageSplitter.PostAsync(plain ? $"```\n{body}\n```" : body,
             (part, ct) => _slack.PostAreaAsync(SlackService.AreaCorpMonthly, part, ct: ct));
@@ -1978,7 +2003,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// carry the structure when a client renders markup weakly or not at all, and bold is
     /// an addition to them rather than a replacement.
     /// </summary>
-    public string BuildMonthlySummaryExport() => BuildMonthlySummaryExport(SelectedExportFormat);
+    public string BuildMonthlySummaryExport() => BuildMonthlySummaryExport(_selectedExportFormat);
 
     public string BuildMonthlySummaryExport(string formatName) =>
         MonthlySummaryReport.Export(
@@ -1996,15 +2021,15 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     private string BuildTop10Export(bool includeIsk)
     {
-        var fmt   = OutputFormat.ByName(SelectedExportFormat);
+        var fmt   = OutputFormat.ByName(_selectedExportFormat);
         var plain = fmt.Name == "Plain Text";
 
         var month = SelectedTop10Month?.Name ?? "?";
         var year  = SelectedTop10Year;
         var corp  = SelectedCorp?.Name;
         var header = string.IsNullOrWhiteSpace(corp)
-            ? $"Top 10 — {month} {year}"
-            : $"{corp} — Top 10 — {month} {year}";
+            ? string.Format(CorpText.Top10ExportHeader, month, year)
+            : string.Format(CorpText.Top10ExportHeaderCorp, corp, month, year);
 
         var sb = new System.Text.StringBuilder();
 
@@ -2088,19 +2113,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
         try { rattingRows  = await _service.GetTopRattersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { StepFailed("Top10 ratters", ex); }
+        catch (Exception ex) { StepFailed("Top10 ratters", CorpText.StepTop10Ratters, ex); }
 
         try { industryRows = await _service.GetTopIndustryAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { StepFailed("Top10 industry", ex); }
+        catch (Exception ex) { StepFailed("Top10 industry", CorpText.StepTop10Industry, ex); }
 
         try { killerRows   = await _service.GetTopKillersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { StepFailed("Top10 killers", ex); }
+        catch (Exception ex) { StepFailed("Top10 killers", CorpText.StepTop10Killers, ex); }
 
         try { minerRows    = await _service.GetTopMinersAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { StepFailed("Top10 miners", ex); }
+        catch (Exception ex) { StepFailed("Top10 miners", CorpText.StepTop10Miners, ex); }
 
         try { contribRows  = await _service.GetTopProjectContributorsAsync(corpId, since, until, excludeIds, ct); }
-        catch (Exception ex) { StepFailed("Top10 contributors", ex); }
+        catch (Exception ex) { StepFailed("Top10 contributors", CorpText.StepTop10Contributors, ex); }
 
         var walletIds  = rattingRows.Concat(industryRows).Concat(killerRows)
                                     .Select(r => r.CharacterId);
@@ -2268,7 +2293,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                                  List<WalletTypeRow> rows,
                                  ref RefTypeChoice? selected, string propertyName)
     {
-        var all   = new RefTypeChoice(null, "All types");
+        var all   = new RefTypeChoice(null, CorpText.AllTypes);
         var built = new List<RefTypeChoice> { all };
         built.AddRange(rows.Select(r => new RefTypeChoice(r.RefType, FormatRefType(r.RefType)))
                            .DistinctBy(c => c.RefType)
@@ -2295,7 +2320,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         series = [
             new ColumnSeries<double>
             {
-                Name   = "Amount",
+                Name   = CorpText.SeriesAmount,
                 Values = amounts,
                 Fill   = new SolidColorPaint(color),
                 YToolTipLabelFormatter = p => FormatIsk(p.Coordinate.PrimaryValue),
@@ -2334,19 +2359,19 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<Activity24hKillRow>   kills    = [];
 
         try { summary  = await _service.Get24hSummaryAsync(corpId, ct); }
-        catch (Exception ex) { StepFailed("24h summary", ex); }
+        catch (Exception ex) { StepFailed("24h summary", CorpText.Step24hSummary, ex); }
 
         try { ratters  = await _service.Get24hTopRattersAsync(corpId,  excludeIds, ct); }
-        catch (Exception ex) { StepFailed("24h ratters", ex); }
+        catch (Exception ex) { StepFailed("24h ratters", CorpText.Step24hRatters, ex); }
 
         try { industry = await _service.Get24hTopIndustryAsync(corpId, excludeIds, ct); }
-        catch (Exception ex) { StepFailed("24h industry", ex); }
+        catch (Exception ex) { StepFailed("24h industry", CorpText.Step24hIndustry, ex); }
 
         try { miners   = await _service.Get24hTopMinersAsync(corpId,   excludeIds, ct); }
-        catch (Exception ex) { StepFailed("24h miners", ex); }
+        catch (Exception ex) { StepFailed("24h miners", CorpText.Step24hMiners, ex); }
 
         try { kills    = await _service.Get24hKillsAsync(corpId, ct); }
-        catch (Exception ex) { StepFailed("24h kills", ex); }
+        catch (Exception ex) { StepFailed("24h kills", CorpText.Step24hKills, ex); }
 
         Activity24hPlayerCountText = summary.PlayerCount.ToString("N0");
         Activity24hIncomeText      = FormatIskStatic(summary.TotalIncome);
@@ -2366,22 +2391,51 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         _ = Task.WhenAll(Activity24hKills.Select(k => k.LoadImagesAsync()));
     }
 
+    /// <summary>
+    /// The name of an ESI wallet journal ref type.
+    ///
+    /// <para>⚠️ The ref type is ESI's key and stays the key; only the words are looked up. The
+    /// common ones have labels a translation can carry. The rest — ESI knows well over a hundred —
+    /// are spelled out from the key, in English, rather than shown as "bounty_prizes".</para>
+    /// </summary>
     internal static string FormatRefType(string r) => r switch
     {
-        "bounty_prizes" or "bounty_prize"    => "Bounty Prizes",
-        "ess_escrow_transfer"                => "ESS Transfer",
-        "daily_goal_payouts"                 => "Daily Goal Payout",
-        "mining_tax"                         => "Mining Tax",
-        "player_donation"                    => "Player Donation",
-        "corporate_reward_payout"            => "Corp Reward",
-        "industry_job_tax"                   => "Industry Tax",
-        "manufacturing_tax"                  => "Manufacturing Tax",
-        "reprocessing_tax"                   => "Reprocessing Tax",
-        "contract_price"                     => "Contract Income",
-        "contract_price_payment_corp"        => "Corp Contract",
-        "market_transaction"                 => "Market Transaction",
-        "market_escrow"                      => "Market Escrow",
-        "project_payouts"                    => "Project Payouts",
+        "bounty_prizes" or "bounty_prize"    => CorpText.RefBountyPrizes,
+        "ess_escrow_transfer"                => CorpText.RefEssTransfer,
+        "daily_goal_payouts"                 => CorpText.RefDailyGoalPayout,
+        "mining_tax"                         => CorpText.RefMiningTax,
+        "player_donation"                    => CorpText.RefPlayerDonation,
+        "corporate_reward_payout"            => CorpText.RefCorpReward,
+        "industry_job_tax"                   => CorpText.RefIndustryTax,
+        "manufacturing_tax"                  => CorpText.RefManufacturingTax,
+        "reprocessing_tax"                   => CorpText.RefReprocessingTax,
+        "contract_price"                     => CorpText.RefContractIncome,
+        "contract_price_payment_corp"        => CorpText.RefCorpContract,
+        "market_transaction"                 => CorpText.RefMarketTransaction,
+        "market_escrow"                      => CorpText.RefMarketEscrow,
+        "project_payouts"                    => CorpText.RefProjectPayouts,
+
+        // Spelled exactly as the fallback below would spell them, so the English is unchanged.
+        "corporation_account_withdrawal"     => CorpText.RefCorpAccountWithdrawal,
+        "agent_mission_reward"               => CorpText.RefAgentMissionReward,
+        "agent_mission_time_bonus_reward"    => CorpText.RefAgentMissionTimeBonus,
+        "project_discovery_reward"           => CorpText.RefProjectDiscoveryReward,
+        "freelance_jobs_reward"              => CorpText.RefFreelanceJobsReward,
+        "brokers_fee"                        => CorpText.RefBrokersFee,
+        "transaction_tax"                    => CorpText.RefTransactionTax,
+        "office_rental_fee"                  => CorpText.RefOfficeRentalFee,
+        "insurance"                          => CorpText.RefInsurance,
+        "planetary_import_tax"               => CorpText.RefPlanetaryImportTax,
+        "planetary_export_tax"               => CorpText.RefPlanetaryExportTax,
+        "contract_brokers_fee"               => CorpText.RefContractBrokersFee,
+        "contract_sales_tax"                 => CorpText.RefContractSalesTax,
+        "contract_reward"                    => CorpText.RefContractReward,
+        "contract_collateral"                => CorpText.RefContractCollateral,
+        "war_fee"                            => CorpText.RefWarFee,
+        "structure_gate_jump"                => CorpText.RefStructureGateJump,
+        "jump_clone_installation_fee"        => CorpText.RefJumpCloneInstallationFee,
+        "jump_clone_activation_fee"          => CorpText.RefJumpCloneActivationFee,
+
         _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo
                    .ToTitleCase(r.Replace('_', ' ')),
     };
@@ -2395,7 +2449,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         [
             new LineSeries<DateTimePoint>
             {
-                Name           = "Total",
+                Name           = CorpText.SeriesTotal,
                 Values         = rows.Select(r => new DateTimePoint(
                                      DateTime.Parse(r.Day), (double)r.Amount)).ToList(),
                 Stroke         = new SolidColorPaint(color) { StrokeThickness = 2 },
@@ -2423,7 +2477,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         KillCharRows.Clear();
         foreach (var r in charRows)
         {
-            var name = names.TryGetValue(r.CharacterId, out var n) ? n : $"Character {r.CharacterId}";
+            var name = names.TryGetValue(r.CharacterId, out var n) ? n : string.Format(CorpText.FallbackCharacterName, r.CharacterId);
             KillCharRows.Add(new CorpKillCharRowVm(r, name));
         }
         HasKillData = KillCharRows.Count > 0;
@@ -2453,13 +2507,13 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         [
             new LineSeries<double>
             {
-                Name = "Kills", Values = killVals,
+                Name = CorpText.SeriesKills, Values = killVals,
                 Stroke = new SolidColorPaint(new SKColor(106, 170, 136), 2),
                 Fill   = null, GeometrySize = 0, EasingFunction = null,
             },
             new LineSeries<double>
             {
-                Name = "Losses", Values = lossVals,
+                Name = CorpText.SeriesLosses, Values = lossVals,
                 Stroke = new SolidColorPaint(new SKColor(204, 100, 100), 2),
                 Fill   = null, GeometrySize = 0, EasingFunction = null,
             },
@@ -2582,21 +2636,21 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
         // Common info fields
         ProjectInfoFields.Clear();
-        ProjectInfoFields.Add(new("Name",         p.Name));
-        ProjectInfoFields.Add(new("State",         p.State));
-        ProjectInfoFields.Add(new("Type",          FormatConfigType(p.ConfigType)));
-        ProjectInfoFields.Add(new("Career",        string.IsNullOrEmpty(p.Career) ? "—" : p.Career));
+        ProjectInfoFields.Add(new(CorpText.FieldName,         p.Name));
+        ProjectInfoFields.Add(new(CorpText.FieldState,         p.State));
+        ProjectInfoFields.Add(new(CorpText.FieldType,          FormatConfigType(p.ConfigType)));
+        ProjectInfoFields.Add(new(CorpText.FieldCareer,        string.IsNullOrEmpty(p.Career) ? "—" : p.Career));
         if (p.Created.HasValue)
-            ProjectInfoFields.Add(new("Created",   p.Created.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm")));
-        ProjectInfoFields.Add(new("Last Modified", p.LastModified.UtcDateTime.ToString("yyyy-MM-dd HH:mm")));
+            ProjectInfoFields.Add(new(CorpText.FieldCreated,   p.Created.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm")));
+        ProjectInfoFields.Add(new(CorpText.FieldLastModified, p.LastModified.UtcDateTime.ToString("yyyy-MM-dd HH:mm")));
         if (!string.IsNullOrEmpty(p.CreatorName))
-            ProjectInfoFields.Add(new("Creator",   p.CreatorName));
-        ProjectInfoFields.Add(new("Progress",         $"{p.ProgressCurrent:N0} / {p.ProgressDesired:N0}"));
+            ProjectInfoFields.Add(new(CorpText.FieldCreator,   p.CreatorName));
+        ProjectInfoFields.Add(new(CorpText.FieldProgress,         $"{p.ProgressCurrent:N0} / {p.ProgressDesired:N0}"));
         if (p.RewardInitial > 0)
-            ProjectInfoFields.Add(new("Total Reward",     FormatIskStatic((decimal)p.RewardInitial) + " ISK"));
-        ProjectInfoFields.Add(new("Remaining Reward", p.RewardRemaining > 0 ? FormatIskStatic((decimal)p.RewardRemaining) + " ISK" : "—"));
+            ProjectInfoFields.Add(new(CorpText.FieldTotalReward,     FormatIskStatic((decimal)p.RewardInitial) + " ISK"));
+        ProjectInfoFields.Add(new(CorpText.FieldRemainingReward, p.RewardRemaining > 0 ? FormatIskStatic((decimal)p.RewardRemaining) + " ISK" : "—"));
         if (!string.IsNullOrEmpty(p.Description))
-            ProjectInfoFields.Add(new("Description", p.Description));
+            ProjectInfoFields.Add(new(CorpText.FieldDescription, p.Description));
 
         // Configuration fields — async, resolves IDs to names
         ProjectConfigFields.Clear();
@@ -2638,23 +2692,23 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
     private static string FormatConfigType(string? type) => type switch
     {
-        "capture_fw_complex"  => "Capture FW Complex",
-        "damage_ship"         => "Damage Ship",
-        "defend_fw_complex"   => "Defend FW Complex",
-        "deliver_item"        => "Deliver Item",
-        "destroy_npc"         => "Destroy Non-Capsuleers",
-        "destroy_ship"        => "Destroy Ship",
-        "earn_loyalty_points" => "Earn Loyalty Points",
-        "lost_ship"           => "Lose Ship",
-        "manual"              => "Manual",
-        "manufacture_item"    => "Manufacture Item",
-        "mine_material"       => "Mine Material",
-        "remote_boost_shield" => "Remote Boost Shield",
-        "remote_repair_armor" => "Remote Repair Armor",
-        "salvage_wreck"       => "Salvage Wreck",
-        "scan_signature"      => "Scan Signature",
-        "ship_insurance"      => "Ship Insurance",
-        "unknown"             => "Unknown",
+        "capture_fw_complex"  => CorpText.ProjectTypeCaptureFwComplex,
+        "damage_ship"         => CorpText.ProjectTypeDamageShip,
+        "defend_fw_complex"   => CorpText.ProjectTypeDefendFwComplex,
+        "deliver_item"        => CorpText.DeliverItem,
+        "destroy_npc"         => CorpText.ProjectTypeDestroyNonCapsuleers,
+        "destroy_ship"        => CorpText.ProjectTypeDestroyShip,
+        "earn_loyalty_points" => CorpText.ProjectTypeEarnLoyaltyPoints,
+        "lost_ship"           => CorpText.ProjectTypeLoseShip,
+        "manual"              => CorpText.ProjectTypeManual,
+        "manufacture_item"    => CorpText.ProjectTypeManufactureItem,
+        "mine_material"       => CorpText.ProjectTypeMineMaterial,
+        "remote_boost_shield" => CorpText.ProjectTypeRemoteBoostShield,
+        "remote_repair_armor" => CorpText.ProjectTypeRemoteRepairArmor,
+        "salvage_wreck"       => CorpText.ProjectTypeSalvageWreck,
+        "scan_signature"      => CorpText.ProjectTypeScanSignature,
+        "ship_insurance"      => CorpText.ProjectTypeShipInsurance,
+        "unknown"             => CorpText.ProjectTypeUnknown,
         null or ""            => "—",
         var s                 => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(s.Replace('_', ' ')),
     };
@@ -2724,7 +2778,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 : new Dictionary<long, string>();
 
             string Resolve(long id) => names.TryGetValue(id, out var n) ? n
-                : id > 1_000_000_000_000L ? $"Structure {id}"
+                : id > 1_000_000_000_000L ? string.Format(CorpText.FallbackStructureName, id)
                 : id.ToString();
 
             string ResolveOfficeId(long officeId)
@@ -2766,10 +2820,10 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 var arr = el ?? (inner.TryGetProperty("locations", out var l) ? l : (JsonElement?)null);
                 if (arr is null) return;
                 var val = ResolveList(arr.Value, "solar_system_id", "constellation_id", "region_id");
-                if (!string.IsNullOrEmpty(val)) fields.Add(new("Location(s)", val));
+                if (!string.IsNullOrEmpty(val)) fields.Add(new(CorpText.ConfigLocations, val));
             }
 
-            void AddIdentities(string label = "Target(s)")
+            void AddIdentities(string label)
             {
                 if (!inner.TryGetProperty("identities", out var arr) || arr.GetArrayLength() == 0) return;
                 var val = ResolveList(arr, "character_id", "corporation_id", "alliance_id", "faction_id");
@@ -2780,21 +2834,21 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 case "deliver_item":
                     if (inner.TryGetProperty("items", out var dItems) && dItems.GetArrayLength() > 0)
-                        fields.Add(new("Item(s)", ResolveList(dItems, "type_id", "group_id")));
+                        fields.Add(new(CorpText.ConfigItems, ResolveList(dItems, "type_id", "group_id")));
                     // Modern API: docking_locations (structure/station); legacy: office_id
                     if (inner.TryGetProperty("docking_locations", out var dDock) && dDock.GetArrayLength() > 0)
-                        fields.Add(new("Destination(s)", ResolveDockingList(dDock)));
+                        fields.Add(new(CorpText.ConfigDestinations, ResolveDockingList(dDock)));
                     else if (inner.TryGetProperty("office_id", out var oId) && oId.ValueKind == JsonValueKind.Number)
-                        fields.Add(new("Destination", ResolveOfficeId(oId.GetInt64())));
+                        fields.Add(new(CorpText.ConfigDestination, ResolveOfficeId(oId.GetInt64())));
                     break;
 
                 case "manufacture_item":
                     if (inner.TryGetProperty("items", out var mfItems) && mfItems.GetArrayLength() > 0)
-                        fields.Add(new("Item(s)", ResolveList(mfItems, "type_id", "group_id")));
+                        fields.Add(new(CorpText.ConfigItems, ResolveList(mfItems, "type_id", "group_id")));
                     if (inner.TryGetProperty("docking_locations", out var mfDock) && mfDock.GetArrayLength() > 0)
-                        fields.Add(new("Location(s)", ResolveDockingList(mfDock)));
+                        fields.Add(new(CorpText.ConfigLocations, ResolveDockingList(mfDock)));
                     if (inner.TryGetProperty("owner", out var owner))
-                        fields.Add(new("Owner", owner.GetString() ?? "—"));
+                        fields.Add(new(CorpText.ConfigOwner, owner.GetString() ?? "—"));
                     break;
 
                 case "destroy_npc":
@@ -2804,33 +2858,33 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 case "destroy_ship":
                     AddLocations();
                     if (inner.TryGetProperty("ships", out var dsShips) && dsShips.GetArrayLength() > 0)
-                        fields.Add(new("Ship Type(s)", ResolveList(dsShips, "type_id")));
-                    AddIdentities("Target(s)");
+                        fields.Add(new(CorpText.ConfigShipTypes, ResolveList(dsShips, "type_id")));
+                    AddIdentities(CorpText.ConfigTargets);
                     break;
 
                 case "damage_ship":
                     AddLocations();
-                    AddIdentities("Target(s)");
+                    AddIdentities(CorpText.ConfigTargets);
                     break;
 
                 case "lost_ship":
                     if (inner.TryGetProperty("ships", out var lsShips) && lsShips.GetArrayLength() > 0)
-                        fields.Add(new("Ship Type(s)", ResolveList(lsShips, "type_id")));
+                        fields.Add(new(CorpText.ConfigShipTypes, ResolveList(lsShips, "type_id")));
                     AddLocations();
-                    AddIdentities("Killed By");
+                    AddIdentities(CorpText.ConfigKilledBy);
                     break;
 
                 case "ship_insurance":
                     if (inner.TryGetProperty("conflict_type", out var ct2))
-                        fields.Add(new("Conflict Type", ct2.GetString() ?? "—"));
+                        fields.Add(new(CorpText.ConfigConflictType, ct2.GetString() ?? "—"));
                     AddLocations();
-                    AddIdentities("Killed By");
+                    AddIdentities(CorpText.ConfigKilledBy);
                     break;
 
                 case "mine_material":
                     AddLocations();
                     if (inner.TryGetProperty("materials", out var mineMats) && mineMats.GetArrayLength() > 0)
-                        fields.Add(new("Material(s)", ResolveList(mineMats, "type_id", "group_id")));
+                        fields.Add(new(CorpText.ConfigMaterials, ResolveList(mineMats, "type_id", "group_id")));
                     break;
 
                 case "salvage_wreck":
@@ -2845,7 +2899,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                         var sigIds = string.Join(", ", sigs.EnumerateArray()
                             .Where(el => el.TryGetProperty("signature_type_id", out _))
                             .Select(el => el.GetProperty("signature_type_id").GetInt64().ToString()));
-                        if (!string.IsNullOrEmpty(sigIds)) fields.Add(new("Signature Type(s)", sigIds));
+                        if (!string.IsNullOrEmpty(sigIds)) fields.Add(new(CorpText.ConfigSignatureTypes, sigIds));
                     }
                     break;
 
@@ -2853,26 +2907,26 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 case "defend_fw_complex":
                     AddLocations();
                     if (inner.TryGetProperty("factions", out var fwFacs) && fwFacs.GetArrayLength() > 0)
-                        fields.Add(new("Faction(s)", ResolveList(fwFacs, "faction_id")));
+                        fields.Add(new(CorpText.ConfigFactions, ResolveList(fwFacs, "faction_id")));
                     // archetype_id is a game-internal ID not resolvable via /universe/names/
                     if (inner.TryGetProperty("archetypes", out var arcs) && arcs.GetArrayLength() > 0)
                     {
                         var arcIds = string.Join(", ", arcs.EnumerateArray()
                             .Where(el => el.TryGetProperty("archetype_id", out _))
                             .Select(el => el.GetProperty("archetype_id").GetInt64().ToString()));
-                        if (!string.IsNullOrEmpty(arcIds)) fields.Add(new("Archetype(s)", arcIds));
+                        if (!string.IsNullOrEmpty(arcIds)) fields.Add(new(CorpText.ConfigArchetypes, arcIds));
                     }
                     break;
 
                 case "remote_boost_shield":
                 case "remote_repair_armor":
                     AddLocations();
-                    AddIdentities("Target(s)");
+                    AddIdentities(CorpText.ConfigTargets);
                     break;
 
                 case "earn_loyalty_points":
                     if (inner.TryGetProperty("corporations", out var lpCorps) && lpCorps.GetArrayLength() > 0)
-                        fields.Add(new("Corporation(s)", ResolveList(lpCorps, "corporation_id")));
+                        fields.Add(new(CorpText.ConfigCorporations, ResolveList(lpCorps, "corporation_id")));
                     break;
 
                 case "manual":
@@ -2881,7 +2935,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
                 case "unknown":
                     if (inner.TryGetProperty("type", out var uType))
-                        fields.Add(new("Sub-type", uType.GetString() ?? "—"));
+                        fields.Add(new(CorpText.ConfigSubType, uType.GetString() ?? "—"));
                     break;
 
                 default:
@@ -2956,7 +3010,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         catch (Exception ex)
         {
             _errorLogger?.Log("CorpActivityViewModel", "Maintain load", ex);
-            Status = $"MAINTAIN load failed: {ex.Message}";
+            Status = string.Format(CorpText.StatusMaintainLoadFailed, ex.Message);
         }
         finally { IsLoadingMaintain = false; }
     }

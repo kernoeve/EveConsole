@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -344,12 +345,12 @@ public partial class StandingProjectDialog : Window
         {
             if (_selectedTypeId is null)
             {
-                ShowValidation("Please select an item type.");
+                ShowValidation(CorpText.ErrSelectItemType);
                 return;
             }
             if (_selectedStationId is null)
             {
-                ShowValidation("Please select a destination station or structure.");
+                ShowValidation(CorpText.ErrSelectDestination);
                 return;
             }
             Close(new CorpStandingProject
@@ -367,7 +368,7 @@ public partial class StandingProjectDialog : Window
             {
                 if (_selectedSystemId is null)
                 {
-                    ShowValidation("Please select a solar system.");
+                    ShowValidation(CorpText.ErrSelectSolarSystem);
                     return;
                 }
                 Close(new CorpStandingProject
@@ -382,7 +383,7 @@ public partial class StandingProjectDialog : Window
             {
                 if (_selectedRegionId is null)
                 {
-                    ShowValidation("Please select a region.");
+                    ShowValidation(CorpText.ErrSelectRegion);
                     return;
                 }
                 Close(new CorpStandingProject
@@ -398,7 +399,7 @@ public partial class StandingProjectDialog : Window
             {
                 if (AllianceCombo.SelectedItem is not AllianceRow alliance)
                 {
-                    ShowValidation("Please select an alliance.");
+                    ShowValidation(CorpText.ErrSelectAlliance);
                     return;
                 }
                 Close(new CorpStandingProject
@@ -417,7 +418,7 @@ public partial class StandingProjectDialog : Window
             {
                 if (_selectedConstId is null)
                 {
-                    ShowValidation("Please select a constellation.");
+                    ShowValidation(CorpText.ErrSelectConstellation);
                     return;
                 }
                 Close(new CorpStandingProject

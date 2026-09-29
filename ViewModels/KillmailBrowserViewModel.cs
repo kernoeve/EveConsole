@@ -7,6 +7,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -180,8 +181,8 @@ public class KillmailItemVm : ReactiveObject
         TypeName     = r.TypeName;
         HasDestroyed = r.QtyDestroyed > 0;
         HasDropped   = r.QtyDropped   > 0;
-        QtyDestroyed = r.QtyDestroyed > 0 ? $"x{r.QtyDestroyed} dest" : "";
-        QtyDropped   = r.QtyDropped   > 0 ? $"x{r.QtyDropped} drop" : "";
+        QtyDestroyed = r.QtyDestroyed > 0 ? string.Format(CorpText.KillQtyDestroyed, r.QtyDestroyed) : "";
+        QtyDropped   = r.QtyDropped   > 0 ? string.Format(CorpText.KillQtyDropped, r.QtyDropped) : "";
         EstValueText = r.EstValue > 0 ? FmtIsk(r.EstValue) : "";
     }
 
@@ -274,7 +275,7 @@ public class KillmailAttackerVm : ReactiveObject
         _allianceId    = r.AllianceId;
         _shipTypeId   = r.ShipTypeId;
         _weaponTypeId = r.WeaponTypeId;
-        if (r.FinalBlow) { RoleLabel = "★ FB"; RoleColor = Palette.Accent; }
+        if (r.FinalBlow) { RoleLabel = CorpText.RoleFinalBlow; RoleColor = Palette.Accent; }
 
         OpenCharCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _characterId));
         OpenCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _corporationId));
@@ -290,8 +291,8 @@ public class KillmailAttackerVm : ReactiveObject
     public void MarkTopDamage()
     {
         IsTopDamage = true;
-        if (!FinalBlow) { RoleLabel = "▲ TD"; RoleColor = Palette.Good; }
-        else            { RoleLabel = "★ FB  ▲ TD"; }
+        if (!FinalBlow) { RoleLabel = CorpText.RoleTopDamage; RoleColor = Palette.Good; }
+        else            { RoleLabel = CorpText.RoleFinalBlow + "  " + CorpText.RoleTopDamage; }
     }
 
     public Task LoadImagesAsync() => Task.WhenAll(
@@ -363,7 +364,7 @@ public class KillmailDetailVm : ReactiveObject
         SystemText     = string.IsNullOrEmpty(d.RegionName)
             ? d.SystemName : $"{d.SystemName}  ({d.RegionName})";
         LocationText   = d.LocationText;
-        DamageTakenText= $"{d.VictimDamageTaken:N0} dmg";
+        DamageTakenText= string.Format(CorpText.DamageTaken, d.VictimDamageTaken);
         DestroyedText  = FmtIsk(d.DestroyedIsk);
         DroppedText    = FmtIsk(d.DroppedIsk);
         TotalIskText   = FmtIsk(d.DestroyedIsk + d.DroppedIsk);
@@ -562,7 +563,7 @@ public class KillmailBrowserViewModel : ReactiveObject
     {
         IsLoading   = true;
         StatusColor = Palette.TextFaint;
-        StatusText  = "Loading killmails…";
+        StatusText  = CorpText.StatusLoadingKillmails;
         _offset     = 0;
         HasMore     = false;
         try
@@ -582,7 +583,7 @@ public class KillmailBrowserViewModel : ReactiveObject
             UpdateStatusText();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Palette.Bad; }
+        catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); StatusColor = Palette.Bad; }
         finally { IsLoading = false; }
     }
 
@@ -611,15 +612,15 @@ public class KillmailBrowserViewModel : ReactiveObject
             UpdateStatusText();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; StatusColor = Palette.Bad; }
+        catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); StatusColor = Palette.Bad; }
         finally { IsLoadingMore = false; }
     }
 
     private void UpdateStatusText()
     {
         StatusText = HasMore
-            ? $"{KillmailRows.Count:N0} killmails loaded — more available, click Load More"
-            : $"{KillmailRows.Count:N0} killmails";
+            ? string.Format(CorpText.KillmailsLoadedMore, KillmailRows.Count)
+            : string.Format(CorpText.KillmailsCount, KillmailRows.Count);
     }
 
     public void SelectById(int killMailId) => _ = SelectByIdAsync(killMailId);

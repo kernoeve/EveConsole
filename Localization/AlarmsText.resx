@@ -420,4 +420,536 @@
     <value>Runs what is on screen, for real, and counts as the scheduled run.</value>
     <comment>Tooltip in SchedulerView.</comment>
   </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>Current month</value>
+    <comment>Scheduler, month pick list of a corp section: the month in progress.</comment>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>Last month</value>
+    <comment>Scheduler, month pick list of a corp section: the month before this one.</comment>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>Deliver item</value>
+    <comment>Scheduler, Standing Projects section: project type pick list.</comment>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>Destroy NPC</value>
+    <comment>Scheduler, Standing Projects section: project type pick list.</comment>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>Missing projects</value>
+    <comment>Scheduler, Standing Projects section, Report pick list: only the projects no active corp project covers.</comment>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>Missing and low projects</value>
+    <comment>Scheduler, Standing Projects section, Report pick list: those, plus the ones nearly finished.</comment>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>All projects</value>
+    <comment>Scheduler, Standing Projects section, Report pick list.</comment>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>TOP 10 LISTS</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a corp." and in the preview.</comment>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>CORP MONTHLY SUMMARY</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a corp."</comment>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>SALE POSTING</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a posting."</comment>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>STANDING PROJECTS</value>
+    <comment>Scheduler: heading of a message section. Also shown lower-cased in "Section {0} ({1}) needs a corp."</comment>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>CORP ISK TRENDS CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>CORP ACTIVITY TRENDS CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>CORP KILLS / LOSSES CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>CORP MINING CHART</value>
+    <comment>Scheduler: heading of a message section that posts a chart.</comment>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>TEXT</value>
+    <comment>Scheduler: heading of a message section of plain text. Also shown lower-cased in "Section {0} ({1}) is empty."</comment>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>In progress — {0:MMMM yyyy} as things stand.</value>
+    <comment>Scheduler, under the month pick list. {0} is the month and year, e.g. "September 2026".</comment>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:MMMM yyyy} as things stand.</value>
+    <comment>Scheduler, under the month pick list. {0} is the month and year, e.g. "August 2026".</comment>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>Could not read the projects: {0}</value>
+    <comment>Scheduler, Standing Projects section. {0} is the error.</comment>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>No deliver item projects are defined for this corp.</value>
+    <comment>Scheduler, Standing Projects section, when the corp has no standing projects of that type.</comment>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>No destroy NPC projects are defined for this corp.</value>
+    <comment>Scheduler, Standing Projects section, when the corp has no standing projects of that type.</comment>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>Failed: {0}</value>
+    <comment>Scheduler status line when a button's action failed. {0} is the error.</comment>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>Move to another task and lose them?</value>
+    <comment>Second half of the unsaved-changes question, when another task is picked.</comment>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>Post to Slack</value>
+    <comment>Scheduler, task type pick list.</comment>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>Raise an alert</value>
+    <comment>Scheduler, task type pick list.</comment>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>Text</value>
+    <comment>Scheduler, pick list of message sections to add: plain text.</comment>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>Corp Top 10</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>Corp Monthly Summary</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>Sale Posting</value>
+    <comment>Scheduler, pick list of message sections to add: a Sale Posting.</comment>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>Standing Projects</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>Corp ISK Trends Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>Corp Activity Trends Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>Corp Kills / Losses Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>Corp Mining Chart</value>
+    <comment>Scheduler, pick list of message sections to add.</comment>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>Every so often</value>
+    <comment>Scheduler, Repeats pick list: every so many minutes or hours.</comment>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>Days of the week</value>
+    <comment>Scheduler, Repeats pick list: on the days ticked.</comment>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>Once a month</value>
+    <comment>Scheduler, Repeats pick list.</comment>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>Once a year</value>
+    <comment>Scheduler, Repeats pick list.</comment>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>Sun</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>Mon</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>Tue</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>Wed</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>Thu</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>Fri</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>Sat</value>
+    <comment>Scheduler, day of the week tick box. Short: three letters in English.</comment>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>January</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>February</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>March</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>April</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>May</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>June</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>July</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>August</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>September</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>October</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>November</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>December</value>
+    <comment>Scheduler, month pick list of a yearly task.</comment>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>Measured from the last run. Closed for longer than the interval, it runs once when it opens — not once per period missed.</value>
+    <comment>Scheduler, under the schedule of a task that repeats every so often.</comment>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>Every day ticked is a daily task. A day that passes while the app is closed is not made up later, so just after midnight beats just before it.</value>
+    <comment>Scheduler, under the schedule of a task that runs on days of the week.</comment>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>Runs once in the month, from that day and time onward. A day past the end of a short month runs on its last day, so the 31st still happens in February.</value>
+    <comment>Scheduler, under the schedule of a task that runs once a month.</comment>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>Runs once in the year, from that day and time onward. 29 February falls back to the 28th in the three years out of four that lack it.</value>
+    <comment>Scheduler, under the schedule of a task that runs once a year.</comment>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>Refresh and lose them?</value>
+    <comment>Second half of the unsaved-changes question, when Refresh is pressed.</comment>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>(unnamed)</value>
+    <comment>Scheduler task list: a task with no name.</comment>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>Never run</value>
+    <comment>Scheduler task list: the task has not run yet.</comment>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>Last run {0:yyyy-MM-dd HH:mm} EVE</value>
+    <comment>Scheduler task list. {0} is the date and time of the last run, in EVE time.</comment>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>{0} task(s).</value>
+    <comment>Scheduler status line. {0} is the number of tasks.</comment>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Webhook: {0}</value>
+    <comment>Scheduler, Post To pick list: a Slack webhook rather than a channel. {0} is the webhook's name.</comment>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>Start a new task and lose them?</value>
+    <comment>Second half of the unsaved-changes question, when New Task is pressed.</comment>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>New task.</value>
+    <comment>Scheduler status line after New Task.</comment>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>This task</value>
+    <comment>Stands in for the name of a task that has none, in "{0}" has unsaved changes.</comment>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>"{0}" has unsaved changes.</value>
+    <comment>First half of the question asked before unsaved changes to a task are lost. {0} is the task's name.</comment>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>Give the task a name.</value>
+    <comment>Scheduler status line on Save.</comment>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>Time of day must be HH:mm, EVE time.</value>
+    <comment>Scheduler status line on Save. HH:mm is the time format; keep it.</comment>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>Pick at least one day.</value>
+    <comment>Scheduler status line on Save of a weekly task with no day ticked.</comment>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>No channels or webhooks yet — add one under Settings, Slack.</value>
+    <comment>Scheduler status line on Save. Settings and Slack name the place in the Settings window.</comment>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>Pick where to post it.</value>
+    <comment>Scheduler status line on Save of a Slack post with nowhere to post.</comment>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>Add something to say.</value>
+    <comment>Scheduler status line on Save of a Slack post with no sections.</comment>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>Write what the alert should say.</value>
+    <comment>Scheduler status line on Save of an alert with no text.</comment>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>Section {0} ({1}) needs a corp.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>Section {0} ({1}) needs a posting.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one list.</value>
+    <comment>Scheduler status line on Save of a Top 10 section with no list ticked. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>Section {0} ({1}) is empty.</value>
+    <comment>Scheduler status line on Save of a text section with nothing in it. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>Section {0} ({1}) needs at least one project ticked.</value>
+    <comment>Scheduler status line on Save. {0} is the section's number, {1} its heading in lower case.</comment>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Saved.</value>
+    <comment>Scheduler status line.</comment>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>Nothing to discard.</value>
+    <comment>Scheduler status line after Discard Changes with nothing changed.</comment>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>Discarded.</value>
+    <comment>Scheduler status line after Discard Changes.</comment>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Deleted.</value>
+    <comment>Scheduler status line after a task was deleted.</comment>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>Nothing to render: this task has no blocks.</value>
+    <comment>Scheduler status line on Preview of a task with no sections.</comment>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>Rendering…</value>
+    <comment>Scheduler status line while a preview is rendered.</comment>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0} — skipped: the destination is a webhook]</value>
+    <comment>A line in the Scheduler's preview for a chart section. {0} is the section's heading.</comment>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0} — uploaded as an image]</value>
+    <comment>A line in the Scheduler's preview for a chart section. {0} is the section's heading.</comment>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>(the sections rendered empty)</value>
+    <comment>Scheduler preview when the sections produced no text.</comment>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>Rendered, but no dynamic section had anything to say — this would not post.</value>
+    <comment>Scheduler status line after Preview, when the task is set to skip posts with nothing to say.</comment>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>{0:N0} characters.</value>
+    <comment>Scheduler status line after Preview. {0} is the length of the message in characters.</comment>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>Preview failed: {0}</value>
+    <comment>Scheduler status line. {0} is the error.</comment>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Running…</value>
+    <comment>On the Run Now button, and in the status line, while a task runs.</comment>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>Run Now</value>
+    <comment>Scheduler button: run the task on screen now, for real.</comment>
+  </data>
+  <data name="MonthsBackOne" xml:space="preserve">
+    <value>{0} month back</value>
+    <comment>Scheduler, month pick list of a corp section: a month counted back from this one. {0} is how many months (2 to 12 in the list).</comment>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0} months back</value>
+    <comment>Scheduler, month pick list of a corp section: a month counted back from this one. {0} is how many months (2 to 12 in the list).</comment>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>Disabled</value>
+    <comment>Alarm list, under an alarm's name: it is switched off.</comment>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>Error</value>
+    <comment>Alarm list, under an alarm's name: its last check failed.</comment>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>Armed · fired {0}×</value>
+    <comment>Alarm list, under an alarm's name: armed, and how often it has fired. {0} is the number of times.</comment>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>Armed</value>
+    <comment>Alarm list, under an alarm's name: armed and waiting.</comment>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>EVE time</value>
+    <comment>Alarm editor, clock pick list beside a date and time: EVE time (UTC).</comment>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>Local time</value>
+    <comment>Alarm editor, clock pick list beside a date and time: this computer's clock.</comment>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} local</value>
+    <comment>Alarm editor, under a date and time in EVE time: the same moment on this computer's clock. {0} is the day, date and time.</comment>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= {0:ddd d MMM HH:mm} EVE</value>
+    <comment>Alarm editor, under a date and time on this computer's clock: the same moment in EVE time. {0} is the day, date and time.</comment>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>"{0}" is not a name the app knows — pick one from the list.</value>
+    <comment>Alarm editor, under a list of names, when the typed name matches nothing. {0} is what was typed.</comment>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>That file type is not supported.</value>
+    <comment>Alarm editor, after Add Sound… picked a file the app cannot play.</comment>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>STAGE {0}</value>
+    <comment>Alarm editor: heading of one stage of a check that fires in stages. {0} is the stage's number.</comment>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>Continuous</value>
+    <comment>Alarm editor, After Firing pick list: the alarm stays armed.</comment>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>One shot</value>
+    <comment>Alarm editor, After Firing pick list: the alarm switches itself off after firing once.</comment>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>{0} alarm(s) · {1} open alert(s)</value>
+    <comment>Alarms status line. {0} is the number of alarms, {1} of alerts not yet dismissed.</comment>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>New alarm</value>
+    <comment>The name a new alarm starts with.</comment>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…the matching detail goes here</value>
+    <comment>Stand-in for what a check found, used when showing an example of an alarm's default wording.</comment>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>This alarm</value>
+    <comment>Stands in for the name of an alarm that has none, in the example of its default wording.</comment>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>The check will supply the wording.</value>
+    <comment>Alarm editor, beside "Use the default wording for this check", when there is no example to show.</comment>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>e.g. "{0}", then the matches beneath it.</value>
+    <comment>Alarm editor, beside "Use the default wording for this check". {0} is an example of the headline the check would write.</comment>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>Pick a condition first.</value>
+    <comment>Alarms status line on Save with no check chosen.</comment>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>Give the alarm a name.</value>
+    <comment>Alarms status line on Save.</comment>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>"{0}" is not an item — pick one from the list.</value>
+    <comment>Alarms status line on Save, when an item name matches no item. {0} is what was typed.</comment>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>Add at least one entry under {0}.</value>
+    <comment>Alarms status line on Save, when a required list is empty. {0} is the list's label.</comment>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>Active from needs a time like 18:00.</value>
+    <comment>Alarms status line on Save. "Active from" is the first of the two hours the alarm is on (ACTIVE FROM … THRU).</comment>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>Active thru needs a time like 18:00.</value>
+    <comment>Alarms status line on Save. "Active thru" is the second of the two hours the alarm is on (ACTIVE FROM … THRU).</comment>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>Alarm created.</value>
+    <comment>Alarms status line after saving a new alarm.</comment>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>Alarm saved.</value>
+    <comment>Alarms status line after saving an alarm.</comment>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>Alarm deleted.</value>
+    <comment>Alarms status line.</comment>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>Played the alarm's sounds. Save first to test the other actions.</value>
+    <comment>Alarms status line after Test Sounds.</comment>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>Alarm sounding — {0}</value>
+    <comment>Title of the window that comes with a repeating alarm sound. {0} is the alarm's name.</comment>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>The sound repeats until you acknowledge it.</value>
+    <comment>Window that comes with a repeating alarm sound, under what the alarm found.</comment>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>Choose an alarm sound</value>
+    <comment>Title of the file picker behind Add Sound… in the alarm editor.</comment>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>Audio</value>
+    <comment>File type in the Add Sound… file picker: sound files.</comment>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>Alarm</value>
+    <comment>Title of an alarm's pop-up dialog when the alarm gives none.</comment>
+  </data>
 </root>

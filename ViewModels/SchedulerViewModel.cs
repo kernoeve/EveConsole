@@ -11,6 +11,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -117,15 +118,16 @@ public sealed class MessageBlockVm : ReactiveObject
     /// </summary>
     public static readonly MonthBackChoice[] MonthOptions =
     [
-        new(0, "Current month"),
-        new(1, "Last month"),
-        .. Enumerable.Range(2, 11).Select(n => new MonthBackChoice(n, $"{n} months back")),
+        new(0, AlarmsText.MonthCurrent),
+        new(1, AlarmsText.MonthLast),
+        .. Enumerable.Range(2, 11).Select(n => new MonthBackChoice(n,
+               Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.MonthsBackOther), n))),
     ];
 
     public static readonly LabelledChoice[] ProjectTypeOptions =
     [
-        new(StandingProjectReport.DeliverItem, "Deliver item"),
-        new(StandingProjectReport.DestroyNpc,  "Destroy NPC"),
+        new(StandingProjectReport.DeliverItem, AlarmsText.ProjectTypeDeliverItem),
+        new(StandingProjectReport.DestroyNpc,  AlarmsText.ProjectTypeDestroyNpc),
     ];
 
     /// <summary>
@@ -136,9 +138,9 @@ public sealed class MessageBlockVm : ReactiveObject
     /// </summary>
     public static readonly LabelledChoice[] ProjectFilterOptions =
     [
-        new(ProjectFilters.Missing,       "Missing projects"),
-        new(ProjectFilters.MissingAndLow, "Missing and low projects"),
-        new(ProjectFilters.All,           "All projects"),
+        new(ProjectFilters.Missing,       AlarmsText.FilterMissingProjects),
+        new(ProjectFilters.MissingAndLow, AlarmsText.FilterMissingAndLowProjects),
+        new(ProjectFilters.All,           AlarmsText.FilterAllProjects),
     ];
 
     private readonly Func<long, string, Task<IReadOnlyList<Models.CorpStandingProject>>>? _loadProjects;
@@ -257,15 +259,15 @@ public sealed class MessageBlockVm : ReactiveObject
 
     public string Heading => Type switch
     {
-        MessageBlock.TypeTop10    => "TOP 10 LISTS",
-        MessageBlock.TypeMonthly  => "CORP MONTHLY SUMMARY",
-        MessageBlock.TypeSale     => "SALE POSTING",
-        MessageBlock.TypeProjects => "STANDING PROJECTS",
-        MessageBlock.TypeIskChart      => "CORP ISK TRENDS CHART",
-        MessageBlock.TypeActivityChart => "CORP ACTIVITY TRENDS CHART",
-        MessageBlock.TypeKillChart     => "CORP KILLS / LOSSES CHART",
-        MessageBlock.TypeMiningChart   => "CORP MINING CHART",
-        _                         => "TEXT",
+        MessageBlock.TypeTop10    => AlarmsText.HeadingTop10,
+        MessageBlock.TypeMonthly  => AlarmsText.HeadingMonthlySummary,
+        MessageBlock.TypeSale     => AlarmsText.HeadingSalePosting,
+        MessageBlock.TypeProjects => AlarmsText.HeadingStandingProjects,
+        MessageBlock.TypeIskChart      => AlarmsText.HeadingIskChart,
+        MessageBlock.TypeActivityChart => AlarmsText.HeadingActivityChart,
+        MessageBlock.TypeKillChart     => AlarmsText.HeadingKillChart,
+        MessageBlock.TypeMiningChart   => AlarmsText.HeadingMiningChart,
+        _                         => AlarmsText.HeadingText,
     };
 
     private string _text;
@@ -379,8 +381,8 @@ public sealed class MessageBlockVm : ReactiveObject
                            .AddMonths(-Math.Max(0, MonthsBack));
 
             return MonthsBack == 0
-                ? $"In progress — {when:MMMM yyyy} as things stand."
-                : $"{when:MMMM yyyy} as things stand.";
+                ? string.Format(AlarmsText.MonthInProgress, when)
+                : string.Format(AlarmsText.MonthAsThingsStand, when);
         }
     }
 
@@ -431,11 +433,15 @@ public sealed class MessageBlockVm : ReactiveObject
 
         List<Models.CorpStandingProject> list;
         try { list = [.. await _loadProjects(Corp.Id, ProjectType.Key)]; }
-        catch (Exception ex) { ProjectsNote = $"Could not read the projects: {ex.Message}"; return; }
+        catch (Exception ex) { ProjectsNote = string.Format(AlarmsText.ErrReadProjects, ex.Message); return; }
 
         if (list.Count == 0)
         {
-            ProjectsNote = $"No {ProjectType.Label.ToLowerInvariant()} projects are defined for this corp.";
+            // One sentence per type: the type's label, lower-cased into the middle of a sentence,
+            // only reads right in English.
+            ProjectsNote = ProjectType.Key == StandingProjectReport.DeliverItem
+                ? AlarmsText.NoDeliverProjects
+                : AlarmsText.NoDestroyNpcProjects;
             return;
         }
 
@@ -531,7 +537,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         RemoveCommand   = ReactiveCommand.Create<MessageBlockVm>(b => Blocks.Remove(b));
 
         for (var i = 0; i < 7; i++)
-            Days.Add(new DayChoice(i, ((DayOfWeek)i).ToString()[..3]) { Selected = true });
+            Days.Add(new DayChoice(i, DayNames[i]) { Selected = true });
 
         PickKind(ScheduleKind.Weekly);
         PickTaskType(ScheduledTaskType.SlackPost);
@@ -549,7 +555,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         {
             cmd.ThrownExceptions.Subscribe(ex =>
             {
-                StatusText = $"Failed: {ex.Message}";
+                StatusText = string.Format(AlarmsText.StatusCommandFailed, ex.Message);
                 _errors.Log(nameof(SchedulerViewModel), "command", ex);
             });
         }
@@ -578,7 +584,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         if (_reselecting) return;
 
-        if (row.Id != EditingId && !await MayDiscardAsync("Move to another task and lose them?"))
+        if (row.Id != EditingId && !await MayDiscardAsync(AlarmsText.DiscardMoveToTask))
         {
             var back = Tasks.FirstOrDefault(t => t.Id == EditingId);
             _reselecting = true;
@@ -601,22 +607,22 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     public List<LabelledChoice> TaskTypes { get; } =
     [
-        new(ScheduledTaskType.SlackPost,  "Post to Slack"),
-        new(ScheduledTaskType.RaiseAlert, "Raise an alert"),
+        new(ScheduledTaskType.SlackPost,  AlarmsText.TaskTypeSlackPost),
+        new(ScheduledTaskType.RaiseAlert, AlarmsText.TaskTypeRaiseAlert),
     ];
 
     /// <summary>What a message section can be. One list, one Add button.</summary>
     public List<LabelledChoice> SectionTypes { get; } =
     [
-        new(MessageBlock.TypeText,     "Text"),
-        new(MessageBlock.TypeTop10,    "Corp Top 10"),
-        new(MessageBlock.TypeMonthly,  "Corp Monthly Summary"),
-        new(MessageBlock.TypeSale,     "Sale Posting"),
-        new(MessageBlock.TypeProjects, "Standing Projects"),
-        new(MessageBlock.TypeIskChart,      "Corp ISK Trends Chart"),
-        new(MessageBlock.TypeActivityChart, "Corp Activity Trends Chart"),
-        new(MessageBlock.TypeKillChart,     "Corp Kills / Losses Chart"),
-        new(MessageBlock.TypeMiningChart,   "Corp Mining Chart"),
+        new(MessageBlock.TypeText,     AlarmsText.SectionTypeText),
+        new(MessageBlock.TypeTop10,    AlarmsText.SectionTypeTop10),
+        new(MessageBlock.TypeMonthly,  AlarmsText.SectionTypeMonthly),
+        new(MessageBlock.TypeSale,     AlarmsText.SectionTypeSale),
+        new(MessageBlock.TypeProjects, AlarmsText.SectionTypeProjects),
+        new(MessageBlock.TypeIskChart,      AlarmsText.SectionTypeIskChart),
+        new(MessageBlock.TypeActivityChart, AlarmsText.SectionTypeActivityChart),
+        new(MessageBlock.TypeKillChart,     AlarmsText.SectionTypeKillChart),
+        new(MessageBlock.TypeMiningChart,   AlarmsText.SectionTypeMiningChart),
     ];
 
     private LabelledChoice? _selectedSectionType;
@@ -628,16 +634,35 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     public List<LabelledChoice> Kinds { get; } =
     [
-        new(ScheduleKind.Interval, "Every so often"),
-        new(ScheduleKind.Weekly,   "Days of the week"),
-        new(ScheduleKind.Monthly,  "Once a month"),
-        new(ScheduleKind.Yearly,   "Once a year"),
+        new(ScheduleKind.Interval, AlarmsText.KindInterval),
+        new(ScheduleKind.Weekly,   AlarmsText.KindWeekly),
+        new(ScheduleKind.Monthly,  AlarmsText.KindMonthly),
+        new(ScheduleKind.Yearly,   AlarmsText.KindYearly),
     ];
 
-    /// <summary>Calendar month names, for a yearly task's chosen month.</summary>
+    /// <summary>
+    /// The days of the week as the tick boxes name them, Sunday first — the bit a day is saved
+    /// under is its place in this list, as with <see cref="DayOfWeek"/>.
+    /// </summary>
+    private static readonly string[] DayNames =
+    [
+        AlarmsText.DaySun, AlarmsText.DayMon, AlarmsText.DayTue, AlarmsText.DayWed,
+        AlarmsText.DayThu, AlarmsText.DayFri, AlarmsText.DaySat,
+    ];
+
+    /// <summary>
+    /// Calendar month names, for a yearly task's chosen month.
+    ///
+    /// <para>The month is saved as its place in this list (see Snapshot), never as the name, so
+    /// the names can be in any language.</para>
+    /// </summary>
     public List<string> MonthNames { get; } =
-        [.. Enumerable.Range(1, 12).Select(m =>
-            System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m))];
+    [
+        AlarmsText.MonthJanuary, AlarmsText.MonthFebruary, AlarmsText.MonthMarch,
+        AlarmsText.MonthApril,   AlarmsText.MonthMay,      AlarmsText.MonthJune,
+        AlarmsText.MonthJuly,    AlarmsText.MonthAugust,   AlarmsText.MonthSeptember,
+        AlarmsText.MonthOctober, AlarmsText.MonthNovember, AlarmsText.MonthDecember,
+    ];
 
     private ScheduledTaskRowVm? _selectedTask;
     public ScheduledTaskRowVm? SelectedTask
@@ -734,20 +759,16 @@ public sealed class SchedulerViewModel : ReactiveObject
     public string ScheduleHint => Kind switch
     {
         ScheduleKind.Interval =>
-            "Measured from the last run. Closed for longer than the interval, it runs once when it "
-          + "opens — not once per period missed.",
+            AlarmsText.HintInterval,
 
         ScheduleKind.Weekly =>
-            "Every day ticked is a daily task. A day that passes while the app is closed is not "
-          + "made up later, so just after midnight beats just before it.",
+            AlarmsText.HintWeekly,
 
         ScheduleKind.Monthly =>
-            "Runs once in the month, from that day and time onward. A day past the end of a short "
-          + "month runs on its last day, so the 31st still happens in February.",
+            AlarmsText.HintMonthly,
 
         ScheduleKind.Yearly =>
-            "Runs once in the year, from that day and time onward. 29 February falls back to the "
-          + "28th in the three years out of four that lack it.",
+            AlarmsText.HintYearly,
 
         _ => "",
     };
@@ -802,7 +823,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     private int _dayOfMonth = 1;
     public int DayOfMonth { get => _dayOfMonth; set => this.RaiseAndSetIfChanged(ref _dayOfMonth, Math.Clamp(value, 1, 31)); }
 
-    private string _monthOfYear = "January";
+    private string _monthOfYear = AlarmsText.MonthJanuary;
     public string MonthOfYear { get => _monthOfYear; set => this.RaiseAndSetIfChanged(ref _monthOfYear, value); }
 
     private bool _skipIfMissed;
@@ -856,7 +877,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private async Task RefreshAsync()
     {
-        if (!await MayDiscardAsync("Refresh and lose them?")) return;
+        if (!await MayDiscardAsync(AlarmsText.DiscardRefresh)) return;
         await ReloadAsync();
     }
 
@@ -898,12 +919,12 @@ public sealed class SchedulerViewModel : ReactiveObject
             Tasks.Add(new ScheduledTaskRowVm
             {
                 Id          = t.Id,
-                Name        = t.Name.Length > 0 ? t.Name : "(unnamed)",
+                Name        = t.Name.Length > 0 ? t.Name : AlarmsText.UnnamedTask,
                 Schedule    = ScheduleDue.Describe(t),
                 Enabled     = t.Enabled,
                 LastRunText = t.LastRunUtc is null
-                                  ? "Never run"
-                                  : $"Last run {t.LastRunUtc.Value.UtcDateTime:yyyy-MM-dd HH:mm} EVE",
+                                  ? AlarmsText.NeverRun
+                                  : string.Format(AlarmsText.LastRun, t.LastRunUtc.Value.UtcDateTime),
                 LastResult  = t.LastResult,
             });
 
@@ -913,7 +934,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             _selectedTask = Tasks.FirstOrDefault(r => r.Id == keep);
         this.RaisePropertyChanged(nameof(SelectedTask));
 
-        StatusText = $"{Tasks.Count} task(s).";
+        StatusText = string.Format(AlarmsText.TaskCount, Tasks.Count);
     }
 
     /// <summary>
@@ -983,7 +1004,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
         foreach (var w in await _slack.WebhooksAsync())
             Destinations.Add(new SlackDestination(
-                SlackDestination.KindWebhook, w.Id.ToString(), "Webhook: " + w.Name, w.Url));
+                SlackDestination.KindWebhook, w.Id.ToString(), string.Format(AlarmsText.WebhookDestination, w.Name), w.Url));
 
         if (picked is not null)
             Destination = Destinations.FirstOrDefault(d => d.Kind == picked.Kind && d.Id == picked.Id);
@@ -1050,7 +1071,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private async Task NewTaskAsync()
     {
-        if (!await MayDiscardAsync("Start a new task and lose them?")) return;
+        if (!await MayDiscardAsync(AlarmsText.DiscardNewTask)) return;
         NewTask();
     }
 
@@ -1081,7 +1102,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         PreviewText      = "";
         HasEditor        = true;
         _editorLoadedFor = -1;
-        StatusText       = "New task.";
+        StatusText       = AlarmsText.StatusNewTask;
         MarkClean();
     }
 
@@ -1176,18 +1197,19 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         if (!IsDirty || ConfirmDiscard is null) return true;
 
+        var name = Name.Trim().Length > 0 ? Name.Trim() : AlarmsText.ThisTask;
         return await ConfirmDiscard(
-            $"\"{(Name.Trim().Length > 0 ? Name.Trim() : "This task")}\" has unsaved changes.\n\n{what}");
+            string.Format(AlarmsText.UnsavedChanges, name) + "\n\n" + what);
     }
 
     private ScheduledTask? Collect()
     {
-        if (string.IsNullOrWhiteSpace(Name)) { StatusText = "Give the task a name."; return null; }
+        if (string.IsNullOrWhiteSpace(Name)) { StatusText = AlarmsText.ErrTaskName; return null; }
 
         var minutes = ParsedTime();
-        if (HasClock && minutes is null) { StatusText = "Time of day must be HH:mm, EVE time."; return null; }
+        if (HasClock && minutes is null) { StatusText = AlarmsText.ErrTimeOfDay; return null; }
 
-        if (IsWeekly && Days.All(d => !d.Selected)) { StatusText = "Pick at least one day."; return null; }
+        if (IsWeekly && Days.All(d => !d.Selected)) { StatusText = AlarmsText.ErrPickDay; return null; }
 
         // Each type asks for what it actually needs. An alert with a headline and nothing else is
         // a perfectly good reminder; a Slack post with nothing to say is not a post.
@@ -1196,11 +1218,11 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (Destination is null)
             {
                 StatusText = Destinations.Count == 0
-                    ? "No channels or webhooks yet — add one under Settings, Slack."
-                    : "Pick where to post it.";
+                    ? AlarmsText.ErrNoDestinations
+                    : AlarmsText.ErrPickDestination;
                 return null;
             }
-            if (Blocks.Count == 0) { StatusText = "Add something to say."; return null; }
+            if (Blocks.Count == 0) { StatusText = AlarmsText.ErrNothingToSay; return null; }
 
             // ⚠️ A section missing its own parameter renders to nothing, and a message that
             // silently came out one section short is the hardest kind of wrong to notice. Refused
@@ -1209,7 +1231,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         }
         else if (IsRaiseAlert && string.IsNullOrWhiteSpace(AlertText))
         {
-            StatusText = "Write what the alert should say.";
+            StatusText = AlarmsText.ErrAlertText;
             return null;
         }
 
@@ -1224,19 +1246,21 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         for (var i = 0; i < Blocks.Count; i++)
         {
-            var b   = Blocks[i];
-            var who = $"Section {i + 1} ({b.Heading.ToLowerInvariant()})";
+            var b       = Blocks[i];
+            var n       = i + 1;
+            var heading = b.Heading.ToLowerInvariant();
 
-            if (b.NeedsCorp && b.Corp is null)                      return $"{who} needs a corp.";
-            if (b.IsSale    && b.Posting is null)                   return $"{who} needs a posting.";
-            if (b.IsTop10   && b.Categories.All(c => !c.Selected))  return $"{who} needs at least one list.";
-            if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return $"{who} is empty.";
+            // Whole sentences, with the section's number and heading as placeholders.
+            if (b.NeedsCorp && b.Corp is null)                      return string.Format(AlarmsText.SectionNeedsCorp, n, heading);
+            if (b.IsSale    && b.Posting is null)                   return string.Format(AlarmsText.SectionNeedsPosting, n, heading);
+            if (b.IsTop10   && b.Categories.All(c => !c.Selected))  return string.Format(AlarmsText.SectionNeedsList, n, heading);
+            if (b.IsText    && string.IsNullOrWhiteSpace(b.Text))   return string.Format(AlarmsText.SectionEmpty, n, heading);
 
             // ⚠️ Not guarded on Projects.Count. With the list stored as inclusions, a section
             // saved before its projects finished loading would store an empty list and quietly
             // post nothing — so "none ticked" and "none loaded" are both refused here.
             if (b.IsProjects && b.Projects.All(pr => !pr.Selected))
-                return $"{who} needs at least one project ticked.";
+                return string.Format(AlarmsText.SectionNeedsProject, n, heading);
         }
 
         return null;
@@ -1292,7 +1316,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         await LoadAsync();
 
         SelectedTask = Tasks.FirstOrDefault(t => t.Id == id);
-        StatusText   = "Saved.";
+        StatusText   = AlarmsText.StatusSaved;
     }
 
     /// <summary>
@@ -1303,7 +1327,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// </summary>
     private async Task DiscardAsync()
     {
-        if (!IsDirty) { StatusText = "Nothing to discard."; return; }
+        if (!IsDirty) { StatusText = AlarmsText.StatusNothingToDiscard; return; }
 
         // Never saved: there is no row to go back to, so the editor closes rather than reverting
         // to a blank version of a task that does not exist.
@@ -1312,7 +1336,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             HasEditor        = false;
             _editorLoadedFor = -1;
             _savedSignature  = "";
-            StatusText       = "Discarded.";
+            StatusText       = AlarmsText.StatusDiscarded;
             return;
         }
 
@@ -1323,7 +1347,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         _editorLoadedFor = -1;
         await LoadEditorAsync(id);
 
-        StatusText = "Discarded.";
+        StatusText = AlarmsText.StatusDiscarded;
     }
 
     private async Task DeleteAsync()
@@ -1344,7 +1368,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         EditingId        = 0;
         _editorLoadedFor = -1;
         await LoadAsync();
-        StatusText = "Deleted.";
+        StatusText = AlarmsText.StatusDeleted;
     }
 
     /// <summary>
@@ -1355,9 +1379,9 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// </summary>
     private async Task PreviewAsync()
     {
-        if (Blocks.Count == 0) { StatusText = "Nothing to render: this task has no blocks."; return; }
+        if (Blocks.Count == 0) { StatusText = AlarmsText.StatusNoBlocks; return; }
 
-        StatusText = "Rendering…";
+        StatusText = AlarmsText.StatusRendering;
         try
         {
             var render = await _renderer.RenderAsync(
@@ -1368,24 +1392,24 @@ public sealed class SchedulerViewModel : ReactiveObject
             // Drawing them here would also mean rendering twice for a button that sends nothing.
             var noted = string.Join("\n", Blocks.Where(b => b.IsChart)
                 .Select(b => b.ShowWebhookChartWarning
-                    ? $"[{b.Heading} — skipped: the destination is a webhook]"
-                    : $"[{b.Heading} — uploaded as an image]"));
+                    ? string.Format(AlarmsText.PreviewChartSkipped, b.Heading)
+                    : string.Format(AlarmsText.PreviewChartUploaded, b.Heading)));
 
             var shown = string.Join("\n\n",
                 new[] { render.Text, noted }.Where(t => t.Length > 0));
 
-            PreviewText = shown.Length > 0 ? shown : "(the sections rendered empty)";
+            PreviewText = shown.Length > 0 ? shown : AlarmsText.PreviewEmpty;
 
             // The preview is also where you find out the switch would have held the post back,
             // rather than finding out from a channel that stayed quiet.
             StatusText = SkipIfNoDynamicContent && !render.AnyDynamicContent
-                ? "Rendered, but no dynamic section had anything to say — this would not post."
-                : $"{render.Text.Length:N0} characters.";
+                ? AlarmsText.StatusWouldNotPost
+                : string.Format(AlarmsText.StatusCharacters, render.Text.Length);
         }
         catch (Exception ex)
         {
             PreviewText = "";
-            StatusText  = $"Preview failed: {ex.Message}";
+            StatusText  = string.Format(AlarmsText.StatusPreviewFailed, ex.Message);
         }
     }
 
@@ -1411,7 +1435,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         private set { this.RaiseAndSetIfChanged(ref _isRunning, value); this.RaisePropertyChanged(nameof(RunLabel)); }
     }
 
-    public string RunLabel => IsRunning ? "Running…" : "Run Now";
+    public string RunLabel => IsRunning ? AlarmsText.Running : AlarmsText.RunNow;
 
     /// <summary>
     /// Runs what is ON SCREEN, for real.
@@ -1431,7 +1455,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         var now = DateTime.UtcNow;
 
         IsRunning  = true;
-        StatusText = "Running…";
+        StatusText = AlarmsText.Running;
 
         var (ok, message) = await _scheduler.RunOneAsync(task, now);
         IsRunning = false;

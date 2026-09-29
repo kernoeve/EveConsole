@@ -832,4 +832,776 @@
     <value>Save</value>
     <comment>Button or option in StandingProjectDialog.</comment>
   </data>
+  <data name="StatusNoSystemsBelowMinAdm" xml:space="preserve">
+    <value>no systems below the minimum ADM</value>
+    <comment>Project status cell of a standing project whose scope has no system below the minimum ADM. Lower case, like the other statuses.</comment>
+  </data>
+  <data name="StatusScopeNoSystems" xml:space="preserve">
+    <value>scope expands to no systems</value>
+    <comment>Project status cell: the project's scope (a region, constellation or alliance) contains no systems at all.</comment>
+  </data>
+  <data name="StatusSovUnavailableNote" xml:space="preserve">
+    <value>sovereignty data unavailable — {0}</value>
+    <comment>Project status cell when the sovereignty data could not be read. {0} is the error.</comment>
+  </data>
+  <data name="StatusSovUnavailable" xml:space="preserve">
+    <value>sovereignty data unavailable</value>
+    <comment>Project status cell when the sovereignty data could not be read.</comment>
+  </data>
+  <data name="StatusOfficeUnavailableNote" xml:space="preserve">
+    <value>office location unavailable — {0}</value>
+    <comment>Project status cell when the corp office's location is unknown. {0} is the reason.</comment>
+  </data>
+  <data name="StatusOfficeUnavailableLoading" xml:space="preserve">
+    <value>office location unavailable — asset data still loading</value>
+    <comment>Project status cell when the corp office's location is unknown because corp assets have not loaded yet.</comment>
+  </data>
+  <data name="StatusProjectNotActive" xml:space="preserve">
+    <value>project not active</value>
+    <comment>Project status cell: no corp project in the game currently covers this standing project.</comment>
+  </data>
+  <data name="StatusSelectCorp" xml:space="preserve">
+    <value>Select a corporation above to load data.</value>
+    <comment>Status line before a corporation is chosen.</comment>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Last 30 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast60Days" xml:space="preserve">
+    <value>Last 60 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Last 90 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast6Months" xml:space="preserve">
+    <value>Last 6 Months</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLastYear" xml:space="preserve">
+    <value>Last Year</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Last 7 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="StatusFilterFailed" xml:space="preserve">
+    <value>Filter failed: {0}</value>
+    <comment>Status line when the Type or Name filter of a detail grid fails. {0} is the error.</comment>
+  </data>
+  <data name="FormatPlainText" xml:space="preserve">
+    <value>Plain Text</value>
+    <comment>Export format pick list: text with no markup.</comment>
+  </data>
+  <data name="FormatEveMail" xml:space="preserve">
+    <value>EVE Mail</value>
+    <comment>Export format pick list: formatted for EVE's in-game mail.</comment>
+  </data>
+  <data name="StepMining" xml:space="preserve">
+    <value>mining</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}..." and "{0} failed".</comment>
+  </data>
+  <data name="StepRatting" xml:space="preserve">
+    <value>ratting</value>
+    <comment>A part of the Corp Activity screen (ratting tax), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepIndustry" xml:space="preserve">
+    <value>industry</value>
+    <comment>A part of the Corp Activity screen (industry tax), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepDonations" xml:space="preserve">
+    <value>donations</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepKills" xml:space="preserve">
+    <value>kills</value>
+    <comment>A part of the Corp Activity screen (kill mails), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepIncome" xml:space="preserve">
+    <value>income</value>
+    <comment>A part of the Corp Activity screen (the Income tab), named in status lines such as "Refreshing {0}...".</comment>
+  </data>
+  <data name="StepExpense" xml:space="preserve">
+    <value>expense</value>
+    <comment>A part of the Corp Activity screen (the Expense tab), named in status lines such as "Refreshing {0}...".</comment>
+  </data>
+  <data name="StepWallet" xml:space="preserve">
+    <value>wallet</value>
+    <comment>A part of the Corp Activity screen (the corp wallet), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepDailyChart" xml:space="preserve">
+    <value>daily chart</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepMonthlyActivity" xml:space="preserve">
+    <value>monthly activity</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepProjects" xml:space="preserve">
+    <value>projects</value>
+    <comment>A part of the Corp Activity screen (corp projects), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepTop10" xml:space="preserve">
+    <value>top 10</value>
+    <comment>A part of the Corp Activity screen (the Top 10 lists), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepMonthlySummary" xml:space="preserve">
+    <value>monthly summary</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepIncomeByType" xml:space="preserve">
+    <value>income by type</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepExpenseByType" xml:space="preserve">
+    <value>expense by type</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="Step24hActivity" xml:space="preserve">
+    <value>24h activity</value>
+    <comment>A part of the Corp Activity screen (the last 24 hours), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StatusLoadingStep" xml:space="preserve">
+    <value>Loading {0}...</value>
+    <comment>Status line while one part of the screen loads. {0} is that part, e.g. "wallet" or "top 10".</comment>
+  </data>
+  <data name="StatusStepFailed" xml:space="preserve">
+    <value>Warning: {0} failed — {1}</value>
+    <comment>Status line when one part of the screen failed to load. {0} is that part, {1} the error.</comment>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Loaded — {0}</value>
+    <comment>Status line when everything has loaded. {0} is the corporation.</comment>
+  </data>
+  <data name="StatusLoadedWithFailures" xml:space="preserve">
+    <value>Loaded — {0}, but {1} failed. See the Error Log for the reason.</value>
+    <comment>Status line when loading finished but some parts failed. {0} is the corporation, {1} the parts that failed, separated by commas.</comment>
+  </data>
+  <data name="StatusRefreshingStep" xml:space="preserve">
+    <value>Refreshing {0}...</value>
+    <comment>Status line while one tab reloads for a new period. {0} is the tab, e.g. "mining".</comment>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Ready</value>
+    <comment>Status line when a tab has reloaded and no corporation is chosen.</comment>
+  </data>
+  <data name="StatusStepReloadFailed" xml:space="preserve">
+    <value>Warning: {0} reload failed — {1}</value>
+    <comment>Status line when a tab failed to reload. {0} is the tab, {1} the error.</comment>
+  </data>
+  <data name="SlackViaWebhook" xml:space="preserve">
+    <value>via webhook</value>
+    <comment>Tooltip of the Post to Slack button when it posts through a webhook, which has no channel name. Also fills {0} in "Posted to {0}".</comment>
+  </data>
+  <data name="SlackNoDestination" xml:space="preserve">
+    <value>No Slack channel or webhook configured.</value>
+    <comment>Status line when Post to Slack has nowhere to post.</comment>
+  </data>
+  <data name="Top10AlreadyPosted" xml:space="preserve">
+    <value>This Top 10 listing was already posted to Slack {0}.</value>
+    <comment>Question before posting the Top 10 to Slack again. {0} is how long ago, e.g. "3 hours ago".</comment>
+  </data>
+  <data name="PostItAgain" xml:space="preserve">
+    <value>Post it again?</value>
+    <comment>Question before posting to Slack again, after the sentence saying it was already posted.</comment>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Post cancelled.</value>
+    <comment>Status line when the user declined to post again.</comment>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Posting to Slack…</value>
+    <comment>Status line while posting to Slack.</comment>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Posted to {0} — {1:t}</value>
+    <comment>Status line after posting to Slack. {0} is the channel ("#name", or the words for a webhook), {1} the time.</comment>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Slack post failed: {0}</value>
+    <comment>Status line when posting to Slack failed. {0} is the error.</comment>
+  </data>
+  <data name="SlackPostedPartly" xml:space="preserve">
+    <value>Posted {0} of {1} messages to {2}; Slack refused the next: {3}</value>
+    <comment>Status line when a long post was split and Slack refused a later part. {0} is how many parts were posted, {1} how many there were, {2} the channel, {3} the error.</comment>
+  </data>
+  <data name="SummaryAlreadyPosted" xml:space="preserve">
+    <value>This monthly summary was already posted to Slack {0}.</value>
+    <comment>Question before posting the monthly summary to Slack again. {0} is how long ago, e.g. "3 hours ago".</comment>
+  </data>
+  <data name="Top10ExportHeader" xml:space="preserve">
+    <value>Top 10 — {0} {1}</value>
+    <comment>Heading of the Top 10 export. {0} is the month's name, {1} the year.</comment>
+  </data>
+  <data name="Top10ExportHeaderCorp" xml:space="preserve">
+    <value>{0} — Top 10 — {1} {2}</value>
+    <comment>Heading of the Top 10 export. {0} is the corporation, {1} the month's name, {2} the year.</comment>
+  </data>
+  <data name="StepTop10Ratters" xml:space="preserve">
+    <value>Top10 ratters</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Industry" xml:space="preserve">
+    <value>Top10 industry</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Killers" xml:space="preserve">
+    <value>Top10 killers</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Miners" xml:space="preserve">
+    <value>Top10 miners</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Contributors" xml:space="preserve">
+    <value>Top10 contributors</value>
+    <comment>A part of the Top 10 lists (project contributors), named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>All types</value>
+    <comment>First entry of the Type filter above the income and expense detail grids: no filter.</comment>
+  </data>
+  <data name="SeriesAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Chart series name (bar chart of ISK by type).</comment>
+  </data>
+  <data name="Step24hSummary" xml:space="preserve">
+    <value>24h summary</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hRatters" xml:space="preserve">
+    <value>24h ratters</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hIndustry" xml:space="preserve">
+    <value>24h industry</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hMiners" xml:space="preserve">
+    <value>24h miners</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hKills" xml:space="preserve">
+    <value>24h kills</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="RefBountyPrizes" xml:space="preserve">
+    <value>Bounty Prizes</value>
+    <comment>Wallet entry type: NPC bounties.</comment>
+  </data>
+  <data name="RefEssTransfer" xml:space="preserve">
+    <value>ESS Transfer</value>
+    <comment>Wallet entry type: ISK paid out of an Encounter Surveillance System.</comment>
+  </data>
+  <data name="RefDailyGoalPayout" xml:space="preserve">
+    <value>Daily Goal Payout</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefMiningTax" xml:space="preserve">
+    <value>Mining Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefPlayerDonation" xml:space="preserve">
+    <value>Player Donation</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefCorpReward" xml:space="preserve">
+    <value>Corp Reward</value>
+    <comment>Wallet entry type: a corporation reward payout.</comment>
+  </data>
+  <data name="RefIndustryTax" xml:space="preserve">
+    <value>Industry Tax</value>
+    <comment>Wallet entry type: tax on industry jobs.</comment>
+  </data>
+  <data name="RefManufacturingTax" xml:space="preserve">
+    <value>Manufacturing Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefReprocessingTax" xml:space="preserve">
+    <value>Reprocessing Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefContractIncome" xml:space="preserve">
+    <value>Contract Income</value>
+    <comment>Wallet entry type: the price received for a contract.</comment>
+  </data>
+  <data name="RefCorpContract" xml:space="preserve">
+    <value>Corp Contract</value>
+    <comment>Wallet entry type: a contract paid for by the corporation.</comment>
+  </data>
+  <data name="RefMarketTransaction" xml:space="preserve">
+    <value>Market Transaction</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefMarketEscrow" xml:space="preserve">
+    <value>Market Escrow</value>
+    <comment>Wallet entry type: ISK held for a buy order.</comment>
+  </data>
+  <data name="RefProjectPayouts" xml:space="preserve">
+    <value>Project Payouts</value>
+    <comment>Wallet entry type: corporation project rewards paid out.</comment>
+  </data>
+  <data name="RefCorpAccountWithdrawal" xml:space="preserve">
+    <value>Corporation Account Withdrawal</value>
+    <comment>Wallet entry type: ISK taken out of the corporation's wallet.</comment>
+  </data>
+  <data name="RefAgentMissionReward" xml:space="preserve">
+    <value>Agent Mission Reward</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefAgentMissionTimeBonus" xml:space="preserve">
+    <value>Agent Mission Time Bonus Reward</value>
+    <comment>Wallet entry type: the bonus for finishing a mission quickly.</comment>
+  </data>
+  <data name="RefProjectDiscoveryReward" xml:space="preserve">
+    <value>Project Discovery Reward</value>
+    <comment>Wallet entry type. Project Discovery is the name of an in-game feature.</comment>
+  </data>
+  <data name="RefFreelanceJobsReward" xml:space="preserve">
+    <value>Freelance Jobs Reward</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefBrokersFee" xml:space="preserve">
+    <value>Brokers Fee</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefTransactionTax" xml:space="preserve">
+    <value>Transaction Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefOfficeRentalFee" xml:space="preserve">
+    <value>Office Rental Fee</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefInsurance" xml:space="preserve">
+    <value>Insurance</value>
+    <comment>Wallet entry type: a ship insurance payment or payout.</comment>
+  </data>
+  <data name="RefPlanetaryImportTax" xml:space="preserve">
+    <value>Planetary Import Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefPlanetaryExportTax" xml:space="preserve">
+    <value>Planetary Export Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefContractBrokersFee" xml:space="preserve">
+    <value>Contract Brokers Fee</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefContractSalesTax" xml:space="preserve">
+    <value>Contract Sales Tax</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefContractReward" xml:space="preserve">
+    <value>Contract Reward</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefContractCollateral" xml:space="preserve">
+    <value>Contract Collateral</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefWarFee" xml:space="preserve">
+    <value>War Fee</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefStructureGateJump" xml:space="preserve">
+    <value>Structure Gate Jump</value>
+    <comment>Wallet entry type: the fee for a jump through a player-owned jump gate.</comment>
+  </data>
+  <data name="RefJumpCloneInstallationFee" xml:space="preserve">
+    <value>Jump Clone Installation Fee</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="RefJumpCloneActivationFee" xml:space="preserve">
+    <value>Jump Clone Activation Fee</value>
+    <comment>Wallet entry type.</comment>
+  </data>
+  <data name="SeriesTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Chart series name (daily total).</comment>
+  </data>
+  <data name="FallbackCharacterName" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>Shown instead of a character's name when it could not be looked up. {0} is the character's id.</comment>
+  </data>
+  <data name="SeriesKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Chart series name.</comment>
+  </data>
+  <data name="SeriesLosses" xml:space="preserve">
+    <value>Losses</value>
+    <comment>Chart series name.</comment>
+  </data>
+  <data name="FieldName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldState" xml:space="preserve">
+    <value>State</value>
+    <comment>Label in a corporation project's details: whether it is active, completed…</comment>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Label in a corporation project's details: the kind of project.</comment>
+  </data>
+  <data name="FieldCareer" xml:space="preserve">
+    <value>Career</value>
+    <comment>Label in a corporation project's details: the career path it counts towards.</comment>
+  </data>
+  <data name="FieldCreated" xml:space="preserve">
+    <value>Created</value>
+    <comment>Label in a corporation project's details: when it was created.</comment>
+  </data>
+  <data name="FieldLastModified" xml:space="preserve">
+    <value>Last Modified</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldCreator" xml:space="preserve">
+    <value>Creator</value>
+    <comment>Label in a corporation project's details: who set it up.</comment>
+  </data>
+  <data name="FieldProgress" xml:space="preserve">
+    <value>Progress</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldTotalReward" xml:space="preserve">
+    <value>Total Reward</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldRemainingReward" xml:space="preserve">
+    <value>Remaining Reward</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldDescription" xml:space="preserve">
+    <value>Description</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="ProjectTypeCaptureFwComplex" xml:space="preserve">
+    <value>Capture FW Complex</value>
+    <comment>Corporation project type. FW is faction warfare.</comment>
+  </data>
+  <data name="ProjectTypeDamageShip" xml:space="preserve">
+    <value>Damage Ship</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeDefendFwComplex" xml:space="preserve">
+    <value>Defend FW Complex</value>
+    <comment>Corporation project type. FW is faction warfare.</comment>
+  </data>
+  <data name="ProjectTypeDestroyNonCapsuleers" xml:space="preserve">
+    <value>Destroy Non-Capsuleers</value>
+    <comment>Corporation project type: destroy NPCs.</comment>
+  </data>
+  <data name="ProjectTypeDestroyShip" xml:space="preserve">
+    <value>Destroy Ship</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeEarnLoyaltyPoints" xml:space="preserve">
+    <value>Earn Loyalty Points</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeLoseShip" xml:space="preserve">
+    <value>Lose Ship</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeManual" xml:space="preserve">
+    <value>Manual</value>
+    <comment>Corporation project type: progress recorded by hand.</comment>
+  </data>
+  <data name="ProjectTypeManufactureItem" xml:space="preserve">
+    <value>Manufacture Item</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeMineMaterial" xml:space="preserve">
+    <value>Mine Material</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeRemoteBoostShield" xml:space="preserve">
+    <value>Remote Boost Shield</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeRemoteRepairArmor" xml:space="preserve">
+    <value>Remote Repair Armor</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeSalvageWreck" xml:space="preserve">
+    <value>Salvage Wreck</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeScanSignature" xml:space="preserve">
+    <value>Scan Signature</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeShipInsurance" xml:space="preserve">
+    <value>Ship Insurance</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>Corporation project type the game does not describe.</comment>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Shown instead of a structure's name when it could not be looked up. {0} is the structure's id.</comment>
+  </data>
+  <data name="ConfigLocations" xml:space="preserve">
+    <value>Location(s)</value>
+    <comment>Label in a corporation project's configuration: where it counts.</comment>
+  </data>
+  <data name="ConfigItems" xml:space="preserve">
+    <value>Item(s)</value>
+    <comment>Label in a corporation project's configuration: the items it asks for.</comment>
+  </data>
+  <data name="ConfigDestinations" xml:space="preserve">
+    <value>Destination(s)</value>
+    <comment>Label in a corporation project's configuration: where items are to be delivered.</comment>
+  </data>
+  <data name="ConfigDestination" xml:space="preserve">
+    <value>Destination</value>
+    <comment>Label in a corporation project's configuration: where items are to be delivered.</comment>
+  </data>
+  <data name="ConfigOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Label in a corporation project's configuration: whose jobs count.</comment>
+  </data>
+  <data name="ConfigShipTypes" xml:space="preserve">
+    <value>Ship Type(s)</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigTargets" xml:space="preserve">
+    <value>Target(s)</value>
+    <comment>Label in a corporation project's configuration: the characters, corporations or alliances to shoot.</comment>
+  </data>
+  <data name="ConfigKilledBy" xml:space="preserve">
+    <value>Killed By</value>
+    <comment>Label in a corporation project's configuration: the losses that count are to these.</comment>
+  </data>
+  <data name="ConfigConflictType" xml:space="preserve">
+    <value>Conflict Type</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigMaterials" xml:space="preserve">
+    <value>Material(s)</value>
+    <comment>Label in a corporation project's configuration: the ores or materials to mine.</comment>
+  </data>
+  <data name="ConfigSignatureTypes" xml:space="preserve">
+    <value>Signature Type(s)</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigFactions" xml:space="preserve">
+    <value>Faction(s)</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigArchetypes" xml:space="preserve">
+    <value>Archetype(s)</value>
+    <comment>Label in a corporation project's configuration: faction warfare complex types.</comment>
+  </data>
+  <data name="ConfigCorporations" xml:space="preserve">
+    <value>Corporation(s)</value>
+    <comment>Label in a corporation project's configuration: whose loyalty points count.</comment>
+  </data>
+  <data name="ConfigSubType" xml:space="preserve">
+    <value>Sub-type</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="StatusMaintainLoadFailed" xml:space="preserve">
+    <value>MAINTAIN load failed: {0}</value>
+    <comment>Status line when the standing projects failed to load. MAINTAIN was the tab's old name. {0} is the error.</comment>
+  </data>
+  <data name="SlackPostedInPartsOne" xml:space="preserve">
+    <value>Posted to {1} in {0} message — {2:t}</value>
+    <comment>Status line after a long post went to Slack split into parts. {0} is the number of messages, {1} the channel ("#name", or the words for a webhook), {2} the time.</comment>
+  </data>
+  <data name="SlackPostedInPartsOther" xml:space="preserve">
+    <value>Posted to {1} in {0} messages — {2:t}</value>
+    <comment>Status line after a long post went to Slack split into parts. {0} is the number of messages, {1} the channel ("#name", or the words for a webhook), {2} the time.</comment>
+  </data>
+  <data name="ConfirmDeleteStandingProject" xml:space="preserve">
+    <value>Are you sure you want to delete this standing project?</value>
+    <comment>Question before deleting a standing project (Corp Activity &gt; Projects &gt; Standing Projects).</comment>
+  </data>
+  <data name="ErrSelectItemType" xml:space="preserve">
+    <value>Please select an item type.</value>
+    <comment>Standing project dialog, shown on Save when no item type is chosen.</comment>
+  </data>
+  <data name="ErrSelectDestination" xml:space="preserve">
+    <value>Please select a destination station or structure.</value>
+    <comment>Standing project dialog, shown on Save when no destination is chosen.</comment>
+  </data>
+  <data name="ErrSelectSolarSystem" xml:space="preserve">
+    <value>Please select a solar system.</value>
+    <comment>Standing project dialog, shown on Save when no solar system is chosen.</comment>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Please select a region.</value>
+    <comment>Standing project dialog, shown on Save when no region is chosen.</comment>
+  </data>
+  <data name="ErrSelectAlliance" xml:space="preserve">
+    <value>Please select an alliance.</value>
+    <comment>Standing project dialog, shown on Save when no alliance is chosen.</comment>
+  </data>
+  <data name="ErrSelectConstellation" xml:space="preserve">
+    <value>Please select a constellation.</value>
+    <comment>Standing project dialog, shown on Save when no constellation is chosen.</comment>
+  </data>
+  <data name="KillQtyDestroyed" xml:space="preserve">
+    <value>x{0} dest</value>
+    <comment>Killmail item list: how many of the item were destroyed. {0} is the quantity; "dest" is short for destroyed.</comment>
+  </data>
+  <data name="KillQtyDropped" xml:space="preserve">
+    <value>x{0} drop</value>
+    <comment>Killmail item list: how many of the item dropped. {0} is the quantity.</comment>
+  </data>
+  <data name="RoleFinalBlow" xml:space="preserve">
+    <value>★ FB</value>
+    <comment>Killmail attacker list: this attacker landed the final blow. FB is short for Final Blow; keep it short.</comment>
+  </data>
+  <data name="RoleTopDamage" xml:space="preserve">
+    <value>▲ TD</value>
+    <comment>Killmail attacker list: this attacker did the most damage. TD is short for Top Damage; keep it short.</comment>
+  </data>
+  <data name="DamageTaken" xml:space="preserve">
+    <value>{0:N0} dmg</value>
+    <comment>Killmail header: damage the victim took. {0} is the amount; "dmg" is short for damage.</comment>
+  </data>
+  <data name="StatusLoadingKillmails" xml:space="preserve">
+    <value>Loading killmails…</value>
+    <comment>Killmail Browser status line while the list loads.</comment>
+  </data>
+  <data name="KillmailsLoadedMore" xml:space="preserve">
+    <value>{0:N0} killmails loaded — more available, click Load More</value>
+    <comment>Killmail Browser status line when there are more to load. {0} is how many are loaded.</comment>
+  </data>
+  <data name="KillmailsCount" xml:space="preserve">
+    <value>{0:N0} killmails</value>
+    <comment>Killmail Browser status line. {0} is how many killmails are listed.</comment>
+  </data>
+  <data name="EntitySearchTruncated" xml:space="preserve">
+    <value>Showing {0:N0} of {1:N0} matches — keep typing to narrow it.</value>
+    <comment>Entity browser, under the search box when the match list was cut short. {0} is how many are shown, {1} how many matched.</comment>
+  </data>
+  <data name="TabMemberCorps" xml:space="preserve">
+    <value>Member Corps</value>
+    <comment>Entity browser tab of an alliance: its member corporations.</comment>
+  </data>
+  <data name="TabCorpHistory" xml:space="preserve">
+    <value>Corp History</value>
+    <comment>Entity browser tab of a pilot: the corporations they have been in.</comment>
+  </data>
+  <data name="TabAllianceHistory" xml:space="preserve">
+    <value>Alliance History</value>
+    <comment>Entity browser tab of a corporation: the alliances it has been in.</comment>
+  </data>
+  <data name="ColHistoryCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header on a pilot's Corp History tab.</comment>
+  </data>
+  <data name="ColHistoryAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Column header on a corporation's Alliance History tab.</comment>
+  </data>
+  <data name="StationsCount" xml:space="preserve">
+    <value>{0:N0} station(s)</value>
+    <comment>Entity browser, Stations tab of an NPC corporation. {0} is the number of stations.</comment>
+  </data>
+  <data name="NoStationsFound" xml:space="preserve">
+    <value>No stations found.</value>
+    <comment>Entity browser, Stations tab of an NPC corporation.</comment>
+  </data>
+  <data name="NoStationsMilitia" xml:space="preserve">
+    <value>No stations — this is the {0} militia corporation, and a militia loyalty store is not run from one.</value>
+    <comment>Entity browser, Stations tab of a faction's militia corporation, which has a loyalty store but no stations. {0} is the faction.</comment>
+  </data>
+  <data name="OrdersScopeNoMarketData" xml:space="preserve">
+    <value>no market data pulled for any region this corp holds stations in</value>
+    <comment>Entity browser, Orders tab: fills {0} in "No orders found — {0}." and {2} in "{0:N0} sell, {1:N0} buy — {2}".</comment>
+  </data>
+  <data name="OrdersScopeCoverage" xml:space="preserve">
+    <value>market data covers {0} of its {1} regions</value>
+    <comment>Entity browser, Orders tab: fills {0} in "No orders found — {0}." and {2} in "{0:N0} sell, {1:N0} buy — {2}". {0} is how many of the corporation's regions have market data, {1} how many regions it has stations in.</comment>
+  </data>
+  <data name="NoOrdersFoundScoped" xml:space="preserve">
+    <value>No orders found — {0}.</value>
+    <comment>Entity browser, Orders tab of an NPC corporation. {0} says how much of its territory the market data covers.</comment>
+  </data>
+  <data name="NoOrdersFound" xml:space="preserve">
+    <value>No orders found in the market data pulled so far.</value>
+    <comment>Entity browser, Orders tab of an NPC corporation.</comment>
+  </data>
+  <data name="OrdersCountScoped" xml:space="preserve">
+    <value>{0:N0} sell, {1:N0} buy — {2}</value>
+    <comment>Entity browser, Orders tab of an NPC corporation. {0} is the number of sell orders, {1} of buy orders, {2} says how much of its territory the market data covers.</comment>
+  </data>
+  <data name="OrdersCount" xml:space="preserve">
+    <value>{0:N0} sell, {1:N0} buy</value>
+    <comment>Entity browser, Orders tab of an NPC corporation. {0} is the number of sell orders, {1} of buy orders.</comment>
+  </data>
+  <data name="NoLpOffersFound" xml:space="preserve">
+    <value>No LP offers found.</value>
+    <comment>Entity browser, LP Offers tab of an NPC corporation.</comment>
+  </data>
+  <data name="LpOffersCount" xml:space="preserve">
+    <value>{0:N0} LP offer(s)</value>
+    <comment>Entity browser, LP Offers tab of an NPC corporation. {0} is the number of offers.</comment>
+  </data>
+  <data name="NoWarfareSystemsFound" xml:space="preserve">
+    <value>No faction warfare systems found.</value>
+    <comment>Entity browser, Faction Warfare tab of a faction.</comment>
+  </data>
+  <data name="WarfareSystemsCount" xml:space="preserve">
+    <value>{0:N0} faction warfare system(s)</value>
+    <comment>Entity browser, Faction Warfare tab of a faction. {0} is the number of systems.</comment>
+  </data>
+  <data name="NoMemberCorpsReturned" xml:space="preserve">
+    <value>No member corporations returned. ESI reports current membership only.</value>
+    <comment>Entity browser, Member Corps tab of an alliance with none listed.</comment>
+  </data>
+  <data name="NoAgentsFound" xml:space="preserve">
+    <value>No agents found.</value>
+    <comment>Entity browser, Agents tab of an NPC corporation or station.</comment>
+  </data>
+  <data name="NoMemberCorpsFound" xml:space="preserve">
+    <value>No member corporations found.</value>
+    <comment>Entity browser, Corporations tab of a faction.</comment>
+  </data>
+  <data name="AgentsCount" xml:space="preserve">
+    <value>{0:N0} agent(s)</value>
+    <comment>Entity browser, Agents tab. {0} is the number of agents.</comment>
+  </data>
+  <data name="MemberCorpsCount" xml:space="preserve">
+    <value>{0:N0} member corporation(s)</value>
+    <comment>Entity browser, member corporations tab. {0} is the number of corporations.</comment>
+  </data>
+  <data name="NoAllianceHistory" xml:space="preserve">
+    <value>No alliance history recorded for this corporation.</value>
+    <comment>Entity browser, history tab with no rows.</comment>
+  </data>
+  <data name="HistoryPeriodsCount" xml:space="preserve">
+    <value>{0:N0} period(s), newest first</value>
+    <comment>Entity browser, history tab. {0} is the number of periods listed.</comment>
+  </data>
+  <data name="NoKillmailsForEntity" xml:space="preserve">
+    <value>No killmails recorded for this entity.</value>
+    <comment>Entity browser, Kills / Losses tab.</comment>
+  </data>
+  <data name="RecentKillmailsCapped" xml:space="preserve">
+    <value>{0:N0} most recent killmail(s) (capped)</value>
+    <comment>Entity browser, Kills / Losses tab when the list stopped at its limit. {0} is the number of killmails.</comment>
+  </data>
+  <data name="RecentKillmailsCount" xml:space="preserve">
+    <value>{0:N0} most recent killmail(s)</value>
+    <comment>Entity browser, Kills / Losses tab. {0} is the number of killmails.</comment>
+  </data>
+  <data name="NoIntelSightings" xml:space="preserve">
+    <value>No intel sightings. These come from intel channels via the chat log importer.</value>
+    <comment>Entity browser, Intel Reports tab of a pilot.</comment>
+  </data>
+  <data name="IntelSightingsCount" xml:space="preserve">
+    <value>{0:N0} sighting(s)</value>
+    <comment>Entity browser, Intel Reports tab. {0} is the number of sightings.</comment>
+  </data>
 </root>
