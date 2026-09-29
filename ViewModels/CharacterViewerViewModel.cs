@@ -739,6 +739,15 @@ public class CharacterViewerViewModel : ReactiveObject
             .Where(t => jTypeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // Where each clone is: a station by the SDE's name, a structure as its owner named it.
+        var clonePlaceIds   = jClones.Select(j => j.LocationId).Distinct().ToList();
+        var cloneStationIds = clonePlaceIds.Where(id => id is > 60_000_000 and < 70_000_000).Select(id => (int)id).ToList();
+        var clonePlaces = await _db.SdeStations
+            .Where(s => cloneStationIds.Contains(s.StationId))
+            .ToDictionaryAsync(s => (long)s.StationId, s => s.Name, ct);
+        foreach (var s in await _db.EsiStructureNames.Where(s => clonePlaceIds.Contains(s.StructureId)).ToListAsync(ct))
+            clonePlaces[s.StructureId] = s.Name;
+
         var jumpClones = jClones.Select(jc =>
         {
             var implants = jImplants
@@ -748,7 +757,16 @@ public class CharacterViewerViewModel : ReactiveObject
                     : string.Format(CharactersText.ImplantNumbered, i.TypeId))
                 .OrderBy(n => n, StringComparer.CurrentCulture)
                 .ToList();
-            var location = string.Format(CharactersText.CloneLocation, jc.LocationId, jc.LocationType);
+            // A station in the interface language. Unnamed, the place's kind picks the pattern:
+            // ESI's "station" or "structure" is a key, not a word to show.
+            var location = clonePlaces.TryGetValue(jc.LocationId, out var place)
+                ? SdeNames.Location(jc.LocationId, place)
+                : jc.LocationType switch
+                {
+                    "station"   => string.Format(AssetsText.FallbackStationName, jc.LocationId),
+                    "structure" => string.Format(AssetsText.FallbackStructureName, jc.LocationId),
+                    _           => string.Format(CharactersText.CloneLocation, jc.LocationId, jc.LocationType),
+                };
             return new JumpCloneVm(location, jc.Name, implants);
         }).ToList();
 

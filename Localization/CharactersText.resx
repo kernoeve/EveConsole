@@ -370,7 +370,7 @@
   </data>
   <data name="CloneLocation" xml:space="preserve">
     <value>Location {0} ({1})</value>
-    <comment>A jump clone's location when its name is not known. {0} is its id, {1} the kind of location as ESI names it (station or structure).</comment>
+    <comment>A jump clone's location when its name is not known and ESI gives a kind of place other than a station or a structure (those read as AssetsText.FallbackStationName and FallbackStructureName). {0} is its id, {1} the kind as ESI names it.</comment>
   </data>
   <data name="MedalNumbered" xml:space="preserve">
     <value>Medal #{0}</value>
