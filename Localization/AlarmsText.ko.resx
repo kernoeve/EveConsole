@@ -770,7 +770,7 @@
     <value>항성계</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>감시할 항성계 이름을 쉼표로 구분하여 입력합니다 (예: "Jita, Amarr"). 대신 점프 범위를 지정하면 비워 둘 수 있습니다.</value>
+    <value>감시할 항성계 이름을 쉼표로 구분하여 입력합니다 (예: "{0}, {1}"). 대신 점프 범위를 지정하면 비워 둘 수 있습니다.</value>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>기준 항성계</value>
@@ -806,7 +806,7 @@
     <value>탑승 함선</value>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>선택 사항. 선체 이름("Rifter"), 함급("Cruiser", "Titan") 또는 "Pod"를 섞어서 입력할 수 있습니다. 이 중 하나와 일치하면 되며, 비워 두면 모든 함선이 대상입니다.</value>
+    <value>선택 사항. 선체 이름("{0}"), 함급("{1}", "{2}") 또는 "Pod"를 섞어서 입력할 수 있습니다. 이 중 하나와 일치하면 되며, 비워 두면 모든 함선이 대상입니다.</value>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>피팅</value>
@@ -851,7 +851,7 @@
     <value>선택하면: 점프 가능한 선체가 이전 위치에서 스타게이트로 이어지지 않는 항성계에 도착하고(점프 드라이브 또는 브릿지) 계속 우주에 있을 때 시간을 재기 시작합니다. 점프 드라이브가 있는 선체만 감시하며, 탑승 함선 목록이 비어 있으면 그런 선체 전체가 대상입니다. 선택 해제하면: 모든 선체에 대해 도킹 해제 시점부터 시간을 재며, 탑승 함선 목록에 감시할 대상을 지정해야 합니다.</value>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>선체 이름("Rhea")이나 함급("Freighter", "Jump Freighter", "Hauler")을 섞어서 입력할 수 있습니다. 여기에 지정한 것만 감시합니다 — 점프 도착 기준이라면 비워 두어 점프 가능한 모든 선체를 감시할 수 있습니다.</value>
+    <value>선체 이름("{0}")이나 함급("{1}", "{2}", "{3}")을 섞어서 입력할 수 있습니다. 여기에 지정한 것만 감시합니다 — 점프 도착 기준이라면 비워 두어 점프 가능한 모든 선체를 감시할 수 있습니다.</value>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>{0}단계: 경과</value>
@@ -920,7 +920,7 @@
     <value>아이템</value>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>정확한 아이템 이름 (예: "Sigil" 또는 "Imperial Navy Slicer"). 종류 이름과 정확히 일치해야 하며, 확인되지 않는 이름은 아무것과도 일치하지 않습니다.</value>
+    <value>정확한 아이템 이름 (예: "{0}" 또는 "{1}"). 종류 이름과 정확히 일치해야 하며, 확인되지 않는 이름은 아무것과도 일치하지 않습니다.</value>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>최대 개당 가격</value>

@@ -138,7 +138,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     public AlarmFieldText? ScreenField(string property) => property switch
     {
         "arrivals"       => new(AlarmsText.AdriftArrivalsLabel, AlarmsText.AdriftArrivalsNote),
-        "ships"          => new(AlarmsText.FlyingLabel,         AlarmsText.AdriftShipsNote),
+        // Examples as the game names them in the interface language: names the box takes.
+        "ships"          => new(AlarmsText.FlyingLabel,         string.Format(AlarmsText.AdriftShipsNote,
+                                SdeNames.Type(28844, "Rhea"), SdeNames.Group(513, "Freighter"),
+                                SdeNames.Group(902, "Jump Freighter"), SdeNames.Group(28, "Hauler"))),
         "stage1_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 1), AlarmsText.AdriftStage1Note, AlarmsText.SuffixSecondsUndocked),
         "stage2_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 2), AlarmsText.AdriftStage2Note, AlarmsText.SuffixSecondsUndocked),
         "stage3_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 3), AlarmsText.AdriftStage3Note, AlarmsText.SuffixSecondsUndocked),
@@ -275,7 +278,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
     {
         var arrivals  = ReadBool(config, "arrivals");
-        var wantShips = ReadList(config, "ships").Select(Norm).ToHashSet();
+        var shipNames = ReadList(config, "ships");
+        var wantShips = shipNames.Select(Norm).ToHashSet();
         if (wantShips.Count == 0 && !arrivals) return [];
 
         var stages = StageSeconds(config);
@@ -303,6 +307,9 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                              where typeIds.Contains(t.TypeId)
                              select new { t.TypeId, t.Name, g.GroupId, Group = g.Name })
                             .ToDictionaryAsync(x => x.TypeId, ct);
+
+        // Hulls and classes named in the client's other languages, as the ids they name.
+        var otherShips = await OtherLanguageNames.IdsAsync(db, shipNames, ct, SdeNameKind.Type, SdeNameKind.Group);
 
         // Arrivals: only a hull with a jump drive, and only a landing no gate could have made —
         // the previous system and this one are not neighbours on the stargate map.
@@ -341,10 +348,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         {
             if (!hulls.TryGetValue(s.ShipTypeId!.Value, out var hull)) continue;
             var isPod = hull.GroupId == CapsuleGroupId;
-            if (wantShips.Count > 0
-                && !wantShips.Contains(Norm(hull.Name)) && !wantShips.Contains(Norm(hull.Group))
-                && !(isPod && wantShips.Contains("pod")))
-                continue;
+            var named = wantShips.Contains(Norm(hull.Name)) || wantShips.Contains(Norm(hull.Group))
+                     || otherShips[SdeNameKind.Type].Contains(hull.TypeId) || otherShips[SdeNameKind.Group].Contains(hull.GroupId)
+                     || (isPod && wantShips.Contains("pod"));
+            if (wantShips.Count > 0 && !named) continue;
 
             var undockedAt = (arrivals ? s.SystemChangedAt : s.UndockedAt)!.Value.ToUniversalTime();
             var systemId   = arrivals ? s.SolarSystemId!.Value : s.UndockedSystemId!.Value;

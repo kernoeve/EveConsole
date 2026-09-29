@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using EveConsole.Data;
 using EveConsole.Localization;
+using EveConsole.Models;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -86,7 +87,9 @@ public sealed class MarketContractCondition : IAlarmCondition
 
     public AlarmFieldText? ScreenField(string property) => property switch
     {
-        "item"              => new(AlarmsText.MarketItemLabel,     AlarmsText.MarketItemNote),
+        // Examples as the game names them in the interface language: names the box takes.
+        "item"              => new(AlarmsText.MarketItemLabel,     string.Format(AlarmsText.MarketItemNote,
+                                   SdeNames.Type(19744, "Sigil"), SdeNames.Type(17703, "Imperial Navy Slicer"))),
         "max_unit_price"    => new(AlarmsText.MarketMaxPriceLabel, AlarmsText.MarketMaxPriceNote),
         "min_quantity"      => new(AlarmsText.MarketMinQtyLabel,   AlarmsText.MarketMinQtyNote),
         "source"            => new(AlarmsText.MarketSourceLabel,   AlarmsText.MarketSourceNote),
@@ -160,15 +163,16 @@ public sealed class MarketContractCondition : IAlarmCondition
         await conn.OpenAsync(ct);
 
         // An unresolvable name matches nothing rather than everything — same rule as the intel
-        // check. A typo must go quiet.
+        // check. A typo must go quiet. The English first, then the client's other languages.
         int typeId;
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike("""SELECT "TypeId" FROM "SdeTypes" WHERE upper("Name") = upper(@n) LIMIT 1""");
             cmd.AddWithValue("@n", item.Trim());
             var found = await cmd.ExecuteScalarAsync(ct);
-            if (found is null or DBNull) return [];
-            typeId = Convert.ToInt32(found);
+            if (found is not null and not DBNull) typeId = Convert.ToInt32(found);
+            else if (await OtherLanguageNames.IdAsync(conn, SdeNameKind.Type, item, ct) is { } other) typeId = (int)other;
+            else return [];
         }
 
         var matches = new List<AlarmMatch>();

@@ -773,7 +773,7 @@
     <value>Systèmes</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Noms des systèmes à surveiller, séparés par des virgules, p. ex. « Jita, Amarr ». Peut rester vide si une portée en sauts est indiquée à la place.</value>
+    <value>Noms des systèmes à surveiller, séparés par des virgules, p. ex. « {0}, {1} ». Peut rester vide si une portée en sauts est indiquée à la place.</value>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>Dans un rayon autour de</value>
@@ -809,7 +809,7 @@
     <value>Vaisseaux pilotés</value>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>Facultatif. Noms de coques (« Rifter »), classes de vaisseaux, en anglais (« Cruiser », « Titan »), ou « Pod », mélangés à volonté. Correspond à n'importe lequel d'entre eux ; laissez vide pour n'importe quel vaisseau.</value>
+    <value>Facultatif. Noms de coques (« {0} »), classes de vaisseaux (« {1} », « {2} »), ou « Pod », mélangés à volonté. Correspond à n'importe lequel d'entre eux ; laissez vide pour n'importe quel vaisseau.</value>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>Équipement</value>
@@ -854,7 +854,7 @@
     <value>Coché : le chronomètre démarre quand une coque capable de sauter arrive dans un système qu'aucun portail stellaire ne relie à son point de départ — propulseur hyperspatial ou pont — et reste dans l'espace ; seules les coques dotées d'un propulseur hyperspatial sont surveillées, et une liste « Vaisseaux pilotés » vide les inclut toutes. Décoché : le chronomètre démarre à l'appareillage, pour n'importe quelle coque, et « Vaisseaux pilotés » doit nommer ce qu'il faut surveiller.</value>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>Noms de coques (« Rhea ») ou classes de vaisseaux, en anglais (« Freighter », « Jump Freighter », « Hauler »), mélangés à volonté. Seuls ceux-ci sont surveillés — ou, pour les arrivées par saut, laissez vide pour toutes les coques capables de sauter.</value>
+    <value>Noms de coques (« {0} ») ou classes de vaisseaux (« {1} », « {2} », « {3} »), mélangés à volonté. Seuls ceux-ci sont surveillés — ou, pour les arrivées par saut, laissez vide pour toutes les coques capables de sauter.</value>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>Étape {0} après</value>
@@ -923,7 +923,7 @@
     <value>Objet</value>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>Nom exact de l'objet, p. ex. « Sigil » ou « Imperial Navy Slicer ». Doit correspondre exactement au nom du type ; un nom qui ne correspond à aucun type ne donne rien.</value>
+    <value>Nom exact de l'objet, p. ex. « {0} » ou « {1} ». Doit correspondre exactement au nom du type ; un nom qui ne correspond à aucun type ne donne rien.</value>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>Prix unitaire max.</value>

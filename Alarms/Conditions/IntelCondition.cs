@@ -5,6 +5,7 @@ using EveConsole.Localization;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using EveConsole.Data;
+using EveConsole.Models;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -88,7 +89,9 @@ public sealed class IntelCondition : IAlarmCondition
 
     public AlarmFieldText? ScreenField(string property) => property switch
     {
-        "systems"          => new(AlarmsText.IntelSystemsLabel,     AlarmsText.IntelSystemsNote),
+        // Examples as the game names them in the interface language: names the box takes.
+        "systems"          => new(AlarmsText.IntelSystemsLabel,     string.Format(AlarmsText.IntelSystemsNote,
+                                  SdeNames.SolarSystem(30000142, "Jita"), SdeNames.SolarSystem(30002187, "Amarr"))),
         "within_jumps_of"  => new(AlarmsText.IntelWithinJumpsLabel, AlarmsText.IntelWithinJumpsNote),
         "jumps"            => new(AlarmsText.IntelJumpsLabel,       AlarmsText.IntelJumpsNote),
         "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
@@ -375,8 +378,10 @@ public sealed class IntelCondition : IAlarmCondition
             await using var cmd = conn.Command("""SELECT "SolarSystemId" FROM "SdeSolarSystems" WHERE upper("Name") = upper(@n) LIMIT 1""");
             cmd.AddWithValue("@n", name.Trim());
 
+            // The English first, then the client's other languages: 吉他 is Jita.
             var result = await cmd.ExecuteScalarAsync(ct);
             if (result is not null and not DBNull) ids.Add(Convert.ToInt32(result));
+            else if (await OtherLanguageNames.IdAsync(conn, SdeNameKind.SolarSystem, name, ct) is { } other) ids.Add((int)other);
         }
         return ids;
     }

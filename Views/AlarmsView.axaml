@@ -341,12 +341,15 @@
                             </ItemsPanelTemplate>
                           </ItemsControl.ItemsPanel>
                           <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
+                            <!-- The name in the interface language; the English, which the alarm
+                                 stores, in the tooltip when the two differ. -->
+                            <DataTemplate x:DataType="vm:AlarmNameSuggestion">
                               <Border Margin="0 2 4 2" Padding="7 2 4 2" CornerRadius="3"
                                       Background="{DynamicResource SurfaceRaisedBrush}"
-                                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+                                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                                      ToolTip.Tip="{Binding English}" ToolTip.IsEnabled="{Binding IsTranslated}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                  <TextBlock Text="{Binding}" FontSize="11" VerticalAlignment="Center" />
+                                  <TextBlock Text="{Binding Shown}" FontSize="11" VerticalAlignment="Center" />
                                   <Button Content="×" FontSize="12" Padding="3 0" MinHeight="0"
                                           Background="Transparent" BorderThickness="0"
                                           Foreground="{DynamicResource TextDimBrush}"

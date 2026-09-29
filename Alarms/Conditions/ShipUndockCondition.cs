@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using EveConsole.Data;
 using EveConsole.Localization;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Alarms.Conditions;
@@ -162,7 +163,9 @@ public sealed class ShipUndockCondition : IAlarmCondition
     public AlarmFieldText? ScreenField(string property) => property switch
     {
         "locations" => new(AlarmsText.UndockFromLabel, AlarmsText.UndockFromNote),
-        "ships"     => new(AlarmsText.FlyingLabel,     AlarmsText.UndockShipsNote),
+        // Examples as the game names them in the interface language: names the box takes.
+        "ships"     => new(AlarmsText.FlyingLabel,     string.Format(AlarmsText.UndockShipsNote,
+                           SdeNames.Type(587, "Rifter"), SdeNames.Group(26, "Cruiser"), SdeNames.Group(30, "Titan"))),
         "fit"       => new(AlarmsText.UndockFitLabel,  AlarmsText.UndockFitNote),
         "fuel"      => new(AlarmsText.UndockFuelLabel, AlarmsText.UndockFuelNote, AlarmsText.SuffixUnits),
         "ammo"      => new(AlarmsText.UndockAmmoLabel, AlarmsText.UndockAmmoNote, AlarmsText.SuffixUnits),
@@ -295,8 +298,10 @@ public sealed class ShipUndockCondition : IAlarmCondition
             .ToList();
         if (recent.Count == 0) return [];
 
-        var wantPlaces = ReadList(config, "locations").Select(Norm).ToHashSet();
-        var wantShips  = ReadList(config, "ships").Select(Norm).ToHashSet();
+        var placeNames = ReadList(config, "locations");
+        var shipNames  = ReadList(config, "ships");
+        var wantPlaces = placeNames.Select(Norm).ToHashSet();
+        var wantShips  = shipNames.Select(Norm).ToHashSet();
         var fitChoice  = ReadChoice(config, "fit",  FitChoices);
         var fuelChoice = ReadChoice(config, "fuel", AmountChoices);
         var ammoChoice = ReadChoice(config, "ammo", AmountChoices);
@@ -322,8 +327,13 @@ public sealed class ShipUndockCondition : IAlarmCondition
         var systems = await (from s in db.SdeSolarSystems.AsNoTracking()
                              join r in db.SdeRegions.AsNoTracking() on s.RegionId equals r.RegionId
                              where sysIds.Contains(s.SolarSystemId)
-                             select new { s.SolarSystemId, s.Name, Region = r.Name })
+                             select new { s.SolarSystemId, s.Name, Region = r.Name, r.RegionId })
                             .ToDictionaryAsync(x => x.SolarSystemId, ct);
+
+        // Names given in the client's other languages, as the ids they name.
+        var otherPlaces = await OtherLanguageNames.IdsAsync(db, placeNames, ct,
+            SdeNameKind.Region, SdeNameKind.SolarSystem, SdeNameKind.Station);
+        var otherShips  = await OtherLanguageNames.IdsAsync(db, shipNames, ct, SdeNameKind.Type, SdeNameKind.Group);
 
         var fromIds  = recent.Select(s => s.UndockedFromId ?? 0).Where(id => id != 0).Distinct().ToList();
         var stations = await db.SdeStations.AsNoTracking()
@@ -352,18 +362,20 @@ public sealed class ShipUndockCondition : IAlarmCondition
                 ? stations.GetValueOrDefault(from) ?? structures.GetValueOrDefault(from)
                 : null;
 
-            // ── Filters: where from, and in what ──
-            if (wantPlaces.Count > 0
-                && !(place is not null && wantPlaces.Contains(Norm(place)))
-                && !(system is not null && (wantPlaces.Contains(Norm(system.Name)) || wantPlaces.Contains(Norm(system.Region)))))
-                continue;
+            // ── Filters: where from, and in what — by the English, or by what a name in another
+            //    language names ──
+            var fromNamed = (place is not null && wantPlaces.Contains(Norm(place)))
+                         || (s.UndockedFromId is { } fromId && otherPlaces[SdeNameKind.Station].Contains(fromId))
+                         || (system is not null && (wantPlaces.Contains(Norm(system.Name)) || wantPlaces.Contains(Norm(system.Region))
+                                                    || otherPlaces[SdeNameKind.SolarSystem].Contains(system.SolarSystemId)
+                                                    || otherPlaces[SdeNameKind.Region].Contains(system.RegionId)));
+            if (wantPlaces.Count > 0 && !fromNamed) continue;
 
             var isPod = hull.GroupId == CapsuleGroupId;
-            if (wantShips.Count > 0
-                && !wantShips.Contains(Norm(hull.Name))
-                && !wantShips.Contains(Norm(hull.Group))
-                && !(isPod && wantShips.Contains("pod")))
-                continue;
+            var inNamed = wantShips.Contains(Norm(hull.Name)) || wantShips.Contains(Norm(hull.Group))
+                       || otherShips[SdeNameKind.Type].Contains(hull.TypeId) || otherShips[SdeNameKind.Group].Contains(hull.GroupId)
+                       || (isPod && wantShips.Contains("pod"));
+            if (wantShips.Count > 0 && !inNamed) continue;
 
             // ── States: fit, fuel, ammunition — each a filter, each either way round ──
             var detail = new Dictionary<string, object?>

@@ -187,6 +187,21 @@ public static class SdeNames
     }
 
     /// <summary>
+    /// The ids of one kind whose name in the interface language IS <paramref name="name"/>,
+    /// ignoring case in any script — for a box that takes a name typed as the screen shows it and
+    /// stores the English. Empty in English, and for blank text.
+    /// </summary>
+    public static IReadOnlyList<long> Named(SdeNameKind kind, string name)
+    {
+        var text = name.Trim();
+        if (text.Length == 0) return [];
+        var found = new List<long>();
+        foreach (var (id, shown) in Map(kind))
+            if (string.Equals(shown, text, StringComparison.OrdinalIgnoreCase)) found.Add(id);
+        return found;
+    }
+
+    /// <summary>
     /// Completes once the interface language's names are in: at once in English, or when they
     /// already are. For code that builds a screen's rows and would rather wait a moment, once,
     /// than show English first. Waits at most ten seconds, and not at all behind a load that has

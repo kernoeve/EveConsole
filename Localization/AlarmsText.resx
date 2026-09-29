@@ -1029,8 +1029,8 @@
     <comment>Alarm editor, Intel report check: label of the solar systems to watch.</comment>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Comma-separated system names to watch, e.g. "Jita, Amarr". May be left empty if a jump range is given instead.</value>
-    <comment>Alarm editor, Intel report check, under Systems. The two system names are examples from the game; keep them.</comment>
+    <value>Comma-separated system names to watch, e.g. "{0}, {1}". May be left empty if a jump range is given instead.</value>
+    <comment>Alarm editor, Intel report check, under Systems. {0} and {1} are two systems' names, filled in as the game names them in the interface language (Jita, Amarr).</comment>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>Within jumps of</value>
@@ -1077,8 +1077,8 @@
     <comment>Alarm editor, Ship undocks and Undocked too long checks: label of the list of hulls and ship classes to watch.</comment>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>Optional. Hull names ("Rifter"), ship classes ("Cruiser", "Titan") or "Pod", any mix. Matches any of them; leave empty for any ship.</value>
-    <comment>Alarm editor, Ship undocks check, under Flying. Rifter, Cruiser and Titan are examples from the game; "Pod" is what is typed in the list to mean a capsule, so keep it as Pod.</comment>
+    <value>Optional. Hull names ("{0}"), ship classes ("{1}", "{2}") or "Pod", any mix. Matches any of them; leave empty for any ship.</value>
+    <comment>Alarm editor, Ship undocks check, under Flying. {0} is a hull's name and {1}, {2} ship classes' names, filled in as the game names them in the interface language (Rifter, Cruiser, Titan). "Pod" is what is typed in the list to mean a capsule, so keep it as Pod.</comment>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>Fit</value>
@@ -1137,8 +1137,8 @@
     <comment>Alarm editor, Undocked too long check, beside Jump arrivals. Flying is the list of hulls below it (FlyingLabel).</comment>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>Hull names ("Rhea") or ship classes ("Freighter", "Jump Freighter", "Hauler"), any mix. Only these are watched — or, for jump arrivals, leave it empty for every jump-capable hull.</value>
-    <comment>Alarm editor, Undocked too long check, under Flying. Rhea, Freighter, Jump Freighter and Hauler are examples from the game.</comment>
+    <value>Hull names ("{0}") or ship classes ("{1}", "{2}", "{3}"), any mix. Only these are watched — or, for jump arrivals, leave it empty for every jump-capable hull.</value>
+    <comment>Alarm editor, Undocked too long check, under Flying. {0} is a hull's name and {1} to {3} ship classes' names, filled in as the game names them in the interface language (Rhea, Freighter, Jump Freighter, Hauler).</comment>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>Stage {0} after</value>
@@ -1229,8 +1229,8 @@
     <comment>Alarm editor, Market / contract price check: label of the item to watch.</comment>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>Exact item name, e.g. "Sigil" or "Imperial Navy Slicer". Must match the type name exactly; a name that does not resolve matches nothing.</value>
-    <comment>Alarm editor, Market / contract price check, under Item. Sigil and Imperial Navy Slicer are item names from the game; keep them.</comment>
+    <value>Exact item name, e.g. "{0}" or "{1}". Must match the type name exactly; a name that does not resolve matches nothing.</value>
+    <comment>Alarm editor, Market / contract price check, under Item. {0} and {1} are two items' names, filled in as the game names them in the interface language (Sigil, Imperial Navy Slicer).</comment>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>Max unit price</value>

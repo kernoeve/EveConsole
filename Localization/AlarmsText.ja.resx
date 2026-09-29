@@ -770,7 +770,7 @@
     <value>システム</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>監視するシステム名をカンマ区切りで指定します（例：「Jita, Amarr」）。代わりにジャンプ範囲を指定する場合は空欄でもかまいません。</value>
+    <value>監視するシステム名をカンマ区切りで指定します（例：「{0}, {1}」）。代わりにジャンプ範囲を指定する場合は空欄でもかまいません。</value>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>ジャンプ範囲の起点</value>
@@ -806,7 +806,7 @@
     <value>搭乗艦船</value>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>任意。船体名（「リフター」）、艦船クラス（「巡洋艦」「タイタン」）、または「Pod」を自由に組み合わせて指定します。いずれかに一致すれば対象になります。空欄にするとすべての艦船が対象です。</value>
+    <value>任意。船体名（「{0}」）、艦船クラス（「{1}」「{2}」）、または「Pod」を自由に組み合わせて指定します。いずれかに一致すれば対象になります。空欄にするとすべての艦船が対象です。</value>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>装備</value>
@@ -851,7 +851,7 @@
     <value>チェックあり：ジャンプ可能な船体が、元の場所からスターゲートでつながっていないシステムに（ジャンプドライブまたはブリッジで）到着し、まだ宇宙空間にいるときに計測を開始します。ジャンプドライブを持つ船体だけが監視され、「搭乗艦船」の一覧が空ならそのすべてが対象です。チェックなし：出港時に計測を開始し、船体は問いませんが、「搭乗艦船」で監視対象を指定する必要があります。</value>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>船体名（「レハ」）または艦船クラス（「超大型輸送艦」「ジャンプドライブ搭載型輸送艦」「ハウラー」）を自由に組み合わせて指定します。指定したものだけが監視されます — ジャンプでの到着の場合は、空欄にするとジャンプ可能なすべての船体が対象になります。</value>
+    <value>船体名（「{0}」）または艦船クラス（「{1}」「{2}」「{3}」）を自由に組み合わせて指定します。指定したものだけが監視されます — ジャンプでの到着の場合は、空欄にするとジャンプ可能なすべての船体が対象になります。</value>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>ステージ{0}の経過時間</value>
@@ -920,7 +920,7 @@
     <value>アイテム</value>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>正確なアイテム名（例：「Sigil」「Imperial Navy Slicer」）。タイプ名と完全に一致する必要があり、解決できない名前は何にも一致しません。</value>
+    <value>正確なアイテム名（例：「{0}」「{1}」）。タイプ名と完全に一致する必要があり、解決できない名前は何にも一致しません。</value>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>最高単価</value>

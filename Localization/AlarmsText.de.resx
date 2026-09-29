@@ -773,7 +773,7 @@
     <value>Systeme</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Kommagetrennte Namen der zu überwachenden Systeme, z. B. „Jita, Amarr“. Kann leer bleiben, wenn stattdessen eine Sprungreichweite angegeben ist.</value>
+    <value>Kommagetrennte Namen der zu überwachenden Systeme, z. B. „{0}, {1}“. Kann leer bleiben, wenn stattdessen eine Sprungreichweite angegeben ist.</value>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>Im Sprungumkreis von</value>
@@ -809,7 +809,7 @@
     <value>Fliegt</value>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>Optional. Rumpfnamen („Rifter“), Schiffsklassen („Cruiser“, „Titan“) oder „Pod“, beliebig gemischt. Trifft auf jeden davon zu; leer lassen für jedes Schiff.</value>
+    <value>Optional. Rumpfnamen („{0}“), Schiffsklassen („{1}“, „{2}“) oder „Pod“, beliebig gemischt. Trifft auf jeden davon zu; leer lassen für jedes Schiff.</value>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>Ausrüstung</value>
@@ -854,7 +854,7 @@
     <value>Angekreuzt: Die Uhr startet, wenn ein sprungfähiger Rumpf in einem System ankommt, zu dem von seinem vorherigen aus kein Sprungtor führt – per Sprungantrieb oder Brücke – und noch im All ist; überwacht werden nur Rümpfe mit Sprungantrieb, und eine leere Liste „Fliegt“ bedeutet alle. Nicht angekreuzt: Die Uhr startet beim Abdocken, beliebiger Rumpf, und „Fliegt“ muss nennen, was überwacht wird.</value>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>Rumpfnamen („Rhea“) oder Schiffsklassen („Freighter“, „Jump Freighter“, „Hauler“), beliebig gemischt. Nur diese werden überwacht – oder lassen Sie die Liste bei Sprungankünften leer für jeden sprungfähigen Rumpf.</value>
+    <value>Rumpfnamen („{0}“) oder Schiffsklassen („{1}“, „{2}“, „{3}“), beliebig gemischt. Nur diese werden überwacht – oder lassen Sie die Liste bei Sprungankünften leer für jeden sprungfähigen Rumpf.</value>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>Stufe {0} nach</value>
@@ -923,7 +923,7 @@
     <value>Gegenstand</value>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>Exakter Gegenstandsname, z. B. „Sigil“ oder „Imperial Navy Slicer“. Muss genau dem Typnamen entsprechen; ein Name, der sich nicht auflösen lässt, trifft auf nichts zu.</value>
+    <value>Exakter Gegenstandsname, z. B. „{0}“ oder „{1}“. Muss genau dem Typnamen entsprechen; ein Name, der sich nicht auflösen lässt, trifft auf nichts zu.</value>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>Max. Stückpreis</value>

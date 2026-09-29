@@ -770,7 +770,7 @@
     <value>星系</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>要监视的星系名称，用逗号分隔，例如“Jita, Amarr”。如果改为给出跳数范围，此处可以留空。</value>
+    <value>要监视的星系名称，用逗号分隔，例如“{0}, {1}”。如果改为给出跳数范围，此处可以留空。</value>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>中心星系</value>
@@ -806,7 +806,7 @@
     <value>驾驶舰船</value>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>可选。船体名称（“Rifter”）、舰船类别（“Cruiser”、“Titan”）或“Pod”（太空舱），可任意混合。匹配其中任意一项；留空表示任何舰船。</value>
+    <value>可选。船体名称（“{0}”）、舰船类别（“{1}”、“{2}”）或“Pod”（太空舱），可任意混合。匹配其中任意一项；留空表示任何舰船。</value>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>装配</value>
@@ -851,7 +851,7 @@
     <value>勾选时：当可跳跃的船体抵达一个无法从原所在星系经星门直达的星系（即通过跳跃引擎或跳桥抵达），且仍在太空中时开始计时；只监视装有跳跃引擎的船体，“驾驶舰船”列表为空表示监视所有此类船体。不勾选时：在出站时开始计时，适用于任何船体，且必须在“驾驶舰船”中指定要监视的舰船。</value>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>船体名称（“Rhea”）或舰船类别（“Freighter”、“Jump Freighter”、“Hauler”），可任意混合。只监视列出的这些——若是跳跃抵达，也可以留空，以监视所有可跳跃的船体。</value>
+    <value>船体名称（“{0}”）或舰船类别（“{1}”、“{2}”、“{3}”），可任意混合。只监视列出的这些——若是跳跃抵达，也可以留空，以监视所有可跳跃的船体。</value>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>第 {0} 阶段：经过</value>
@@ -920,7 +920,7 @@
     <value>物品</value>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>准确的物品名称，例如“Sigil”或“Imperial Navy Slicer”。必须与类型名称完全一致；无法识别的名称不会匹配任何物品。</value>
+    <value>准确的物品名称，例如“{0}”或“{1}”。必须与类型名称完全一致；无法识别的名称不会匹配任何物品。</value>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>最高单价</value>

@@ -773,7 +773,7 @@
     <value>Sistemas</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Nombres de sistemas que vigilar, separados por comas, p. ej., «Jita, Amarr». Se puede dejar vacío si se indica un alcance en saltos.</value>
+    <value>Nombres de sistemas que vigilar, separados por comas, p. ej., «{0}, {1}». Se puede dejar vacío si se indica un alcance en saltos.</value>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
     <value>Alrededor de</value>
@@ -809,7 +809,7 @@
     <value>Pilotando</value>
   </data>
   <data name="UndockShipsNote" xml:space="preserve">
-    <value>Opcional. Nombres de cascos («Rifter»), clases de nave («Crucero», «Titán») o «Pod» (cápsula), en cualquier combinación. Coincide con cualquiera de ellos; déjalo vacío para cualquier nave.</value>
+    <value>Opcional. Nombres de cascos («{0}»), clases de nave («{1}», «{2}») o «Pod» (cápsula), en cualquier combinación. Coincide con cualquiera de ellos; déjalo vacío para cualquier nave.</value>
   </data>
   <data name="UndockFitLabel" xml:space="preserve">
     <value>Equipamiento</value>
@@ -854,7 +854,7 @@
     <value>Marcado: el reloj empieza cuando un casco con capacidad de salto llega a un sistema al que no lleva ningún portal estelar desde donde estaba (motor de salto o puente) y sigue en el espacio; solo se vigilan los cascos con motor de salto, y una lista «Pilotando» vacía significa todos ellos. Sin marcar: el reloj empieza con un desacople, con cualquier casco, y «Pilotando» debe indicar qué vigilar.</value>
   </data>
   <data name="AdriftShipsNote" xml:space="preserve">
-    <value>Nombres de cascos («Rhea») o clases de nave («Carguero», «Carguero de salto», «Nave de mercancías»), en cualquier combinación. Solo se vigilan estos o, para las llegadas por salto, déjalo vacío para todos los cascos con capacidad de salto.</value>
+    <value>Nombres de cascos («{0}») o clases de nave («{1}», «{2}», «{3}»), en cualquier combinación. Solo se vigilan estos o, para las llegadas por salto, déjalo vacío para todos los cascos con capacidad de salto.</value>
   </data>
   <data name="AdriftStageLabel" xml:space="preserve">
     <value>Fase {0} tras</value>
@@ -923,7 +923,7 @@
     <value>Objeto</value>
   </data>
   <data name="MarketItemNote" xml:space="preserve">
-    <value>Nombre exacto del objeto, p. ej., «Sigil» o «Imperial Navy Slicer». Debe coincidir exactamente con el nombre del tipo; un nombre que no se resuelve no coincide con nada.</value>
+    <value>Nombre exacto del objeto, p. ej., «{0}» o «{1}». Debe coincidir exactamente con el nombre del tipo; un nombre que no se resuelve no coincide con nada.</value>
   </data>
   <data name="MarketMaxPriceLabel" xml:space="preserve">
     <value>Precio unitario máx.</value>
