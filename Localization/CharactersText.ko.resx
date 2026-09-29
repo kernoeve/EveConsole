@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>모든 캐릭터</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>새로고침</value>
+  </data>
+  <data name="DoubleClickARowNote" xml:space="preserve">
+    <value>행을 두 번 클릭하면 상세 탭에서 열립니다.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>얼라이언스</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="ColPodValue" xml:space="preserve">
+    <value>캡슐 가치</value>
+  </data>
+  <data name="ColHomeStation" xml:space="preserve">
+    <value>주 정거장</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>스킬 대기열</value>
+  </data>
+  <data name="TipEntriesInTheQueue" xml:space="preserve">
+    <value>대기열의 항목 수, 그리고 마지막 항목이 끝날 때까지 남은 시간입니다.</value>
+  </data>
+  <data name="ColTotalSp" xml:space="preserve">
+    <value>총 SP</value>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>자산</value>
+  </data>
+  <data name="ColMfg" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="TipManufacturingSlotsFreeOfTotal" xml:space="preserve">
+    <value>전체 제조 슬롯 중 비어 있는 슬롯</value>
+  </data>
+  <data name="ColRxn" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="TipReactionSlotsFreeOfTotal" xml:space="preserve">
+    <value>전체 합성 슬롯 중 비어 있는 슬롯</value>
+  </data>
+  <data name="ColSci" xml:space="preserve">
+    <value>연구</value>
+  </data>
+  <data name="TipScienceSlotsFreeOf" xml:space="preserve">
+    <value>전체 연구 슬롯 중 비어 있는 슬롯 — 복제, 연구, 인벤션</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>상세</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>캐릭터:</value>
+  </data>
+  <data name="TotalSpLabel" xml:space="preserve">
+    <value>총 SP: </value>
+  </data>
+  <data name="UnallocatedLabel" xml:space="preserve">
+    <value>미할당: </value>
+  </data>
+  <data name="SecStatusLabel" xml:space="preserve">
+    <value>시큐리티 상태: </value>
+  </data>
+  <data name="TabSkills" xml:space="preserve">
+    <value>스킬</value>
+  </data>
+  <data name="SkillGroups" xml:space="preserve">
+    <value>스킬 그룹</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="TrainingQueue" xml:space="preserve">
+    <value>훈련 대기열</value>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>능력치</value>
+  </data>
+  <data name="CharacterAttributes" xml:space="preserve">
+    <value>캐릭터 능력치</value>
+  </data>
+  <data name="Intelligence" xml:space="preserve">
+    <value>지능</value>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>기억력</value>
+  </data>
+  <data name="Charisma" xml:space="preserve">
+    <value>카리스마</value>
+  </data>
+  <data name="Perception" xml:space="preserve">
+    <value>지각력</value>
+  </data>
+  <data name="Willpower" xml:space="preserve">
+    <value>정신력</value>
+  </data>
+  <data name="NoAttributeDataAvailableNote" xml:space="preserve">
+    <value>능력치 데이터가 없습니다. 캐릭터 능력치는 ESI 폴링 중에 불러옵니다.</value>
+  </data>
+  <data name="NeuralRemapping" xml:space="preserve">
+    <value>신경망 재배열</value>
+  </data>
+  <data name="LastRemapLabel" xml:space="preserve">
+    <value>마지막 재배열:</value>
+  </data>
+  <data name="TabClones" xml:space="preserve">
+    <value>클론</value>
+  </data>
+  <data name="ActiveCloneImplants" xml:space="preserve">
+    <value>활성 클론 임플란트</value>
+  </data>
+  <data name="NoImplantsFittedInActive" xml:space="preserve">
+    <value>활성 클론에 장착된 임플란트가 없습니다.</value>
+  </data>
+  <data name="JumpClones" xml:space="preserve">
+    <value>점프 클론</value>
+  </data>
+  <data name="NoJumpClones" xml:space="preserve">
+    <value>점프 클론이 없습니다.</value>
+  </data>
+  <data name="TabMedals" xml:space="preserve">
+    <value>훈장</value>
+  </data>
+  <data name="TabTitles" xml:space="preserve">
+    <value>직위</value>
+  </data>
+  <data name="NoTitlesHeldByThis" xml:space="preserve">
+    <value>이 캐릭터가 보유한 직위가 없습니다.</value>
+  </data>
+  <data name="TabStandings" xml:space="preserve">
+    <value>평판</value>
+  </data>
+  <data name="NoStandingsDataAvailable" xml:space="preserve">
+    <value>평판 데이터가 없습니다.</value>
+  </data>
+  <data name="FmtUpdated" xml:space="preserve">
+    <value>업데이트: {0:yyyy년 M월 d일 HH:mm}</value>
+  </data>
+  <data name="TitleCharacterViewer" xml:space="preserve">
+    <value>캐릭터 뷰어</value>
+  </data>
+  <data name="StatusOnline" xml:space="preserve">
+    <value>온라인</value>
+  </data>
+  <data name="StatusOffline" xml:space="preserve">
+    <value>오프라인</value>
+  </data>
+  <data name="QueueEmptyShort" xml:space="preserve">
+    <value>비어 있음</value>
+  </data>
+  <data name="QueuePausedShort" xml:space="preserve">
+    <value>{0} · 일시정지</value>
+  </data>
+  <data name="SpanDone" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0:F0}일</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0:F0}시간</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0:F0}분</value>
+  </data>
+  <data name="SpMillions" xml:space="preserve">
+    <value>{0:F2}M SP</value>
+  </data>
+  <data name="SpThousands" xml:space="preserve">
+    <value>{0:F0}k SP</value>
+  </data>
+  <data name="SpPlain" xml:space="preserve">
+    <value>{0} SP</value>
+  </data>
+  <data name="QueuePaused" xml:space="preserve">
+    <value>일시정지</value>
+  </data>
+  <data name="QueueComplete" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="StandingTypeFaction" xml:space="preserve">
+    <value>팩션</value>
+  </data>
+  <data name="StandingTypeCorp" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="StandingTypeAgent" xml:space="preserve">
+    <value>에이전트</value>
+  </data>
+  <data name="SummaryStatusOther" xml:space="preserve">
+    <value>캐릭터 {0}명. 수치는 폴링된 데이터에서 가져옵니다 — 상세 탭의 새로고침은 캐릭터 한 명을, 폴링은 모든 캐릭터를 갱신합니다.</value>
+  </data>
+  <data name="SummaryLoadFailed" xml:space="preserve">
+    <value>요약을 불러올 수 없습니다: {0}</value>
+  </data>
+  <data name="NoMedalsOnRecord" xml:space="preserve">
+    <value>이 캐릭터의 훈장 기록이 없습니다.</value>
+  </data>
+  <data name="MedalCountOther" xml:space="preserve">
+    <value>훈장 {0}개</value>
+  </data>
+  <data name="StatusSelectCharacterToView" xml:space="preserve">
+    <value>데이터를 볼 캐릭터를 선택하십시오.</value>
+  </data>
+  <data name="StatusLoadingCharacter" xml:space="preserve">
+    <value>{0} 불러오는 중…</value>
+  </data>
+  <data name="StatusCharacterSp" xml:space="preserve">
+    <value>{0} — {1:N0} SP</value>
+  </data>
+  <data name="StatusLoadError" xml:space="preserve">
+    <value>{0} 불러오기 오류: {1}</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>코퍼레이션 #{0}</value>
+  </data>
+  <data name="SkillGroupUnknown" xml:space="preserve">
+    <value>알 수 없음</value>
+  </data>
+  <data name="SkillNumbered" xml:space="preserve">
+    <value>스킬 #{0}</value>
+  </data>
+  <data name="AllSkills" xml:space="preserve">
+    <value>모든 스킬</value>
+  </data>
+  <data name="QueueEmpty" xml:space="preserve">
+    <value>대기열 비어 있음</value>
+  </data>
+  <data name="RemapNoData" xml:space="preserve">
+    <value>능력치 데이터 없음</value>
+  </data>
+  <data name="RemapBonusOther" xml:space="preserve">
+    <value>보너스 재배열 {0}회 사용 가능</value>
+  </data>
+  <data name="RemapAvailableOn" xml:space="preserve">
+    <value>재배열 가능: {0:yyyy년 M월 d일}</value>
+  </data>
+  <data name="RemapLastAvailableNow" xml:space="preserve">
+    <value>마지막 재배열: {0:yyyy년 M월 d일} — 지금 재배열 가능</value>
+  </data>
+  <data name="RemapAvailable" xml:space="preserve">
+    <value>재배열 가능</value>
+  </data>
+  <data name="ImplantNumbered" xml:space="preserve">
+    <value>임플란트 #{0}</value>
+  </data>
+  <data name="CloneLocation" xml:space="preserve">
+    <value>위치 {0} ({1})</value>
+  </data>
+  <data name="MedalNumbered" xml:space="preserve">
+    <value>훈장 #{0}</value>
+  </data>
+  <data name="FactionNumbered" xml:space="preserve">
+    <value>팩션 #{0}</value>
+  </data>
+  <data name="AgentNumbered" xml:space="preserve">
+    <value>에이전트 #{0}</value>
+  </data>
+  <data name="EntityNumbered" xml:space="preserve">
+    <value>개체 #{0}</value>
+  </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0} (비행 중)</value>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>정거장 {0}</value>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>구조물 {0}</value>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>항성계 {0}</value>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>위치 {0}</value>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>코퍼레이션 {0}</value>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>얼라이언스 {0}</value>
+  </data>
+  <data name="StatusSelectCharacter" xml:space="preserve">
+    <value>캐릭터를 선택하십시오.</value>
+  </data>
+  <data name="DurationDaysOther" xml:space="preserve">
+    <value>{0}일</value>
+  </data>
+  <data name="DurationHoursOther" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="DurationMinutesOther" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="QueueSkillsFinishOther" xml:space="preserve">
+    <value>스킬 {0}개 — {1:yyyy년 M월 d일} 완료</value>
+  </data>
+  <data name="QueueSkillsPausedOther" xml:space="preserve">
+    <value>스킬 {0}개 (일시정지)</value>
+  </data>
+  <data name="DurationSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+</root>

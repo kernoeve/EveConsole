@@ -72,11 +72,18 @@ public static class Languages
             "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "WenQuanYi Micro Hei",
         ]),
         // Latin, which the bundled Inter covers: no fallback list needed.
+        new("de", "Deutsch", "German", Preview: true, []),
+        new("es", "Español", "Spanish", Preview: true, []),
         new("fr", "Français", "French", Preview: true, []),
         new("ja", "日本語", "Japanese", Preview: true,
         [
             "Yu Gothic UI", "Meiryo UI", "Meiryo", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
             "Noto Sans CJK JP", "Noto Sans JP", "Source Han Sans JP", "IPAexGothic",
+        ]),
+        new("ko", "한국어", "Korean", Preview: true,
+        [
+            "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR",
+            "Source Han Sans KR", "NanumGothic",
         ]),
     ];
 
