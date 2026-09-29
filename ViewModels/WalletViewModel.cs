@@ -81,9 +81,7 @@ public class WalletJournalRowVm
             : "";
     }
 
-    private static string FormatRefType(string s) =>
-        string.Join(" ", s.Split('_')
-            .Select(w => w.Length > 0 ? char.ToUpperInvariant(w[0]) + w[1..] : w));
+    private static string FormatRefType(string s) => RefTypes.Label(s);
 
     private static string FormatAmount(decimal v)
     {

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>代理人任务奖励</value>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>代理人任务限时奖励</value>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>赏金奖励</value>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>赏金奖励</value>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>中介费</value>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>合同中介费</value>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>合同保证金</value>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>合同收入</value>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>军团合同</value>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>合同报酬</value>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>合同销售税</value>
+  </data>
+  <data name="CorporateRewardPayout" xml:space="preserve">
+    <value>军团奖励</value>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>军团账户提款</value>
+  </data>
+  <data name="DailyGoalPayouts" xml:space="preserve">
+    <value>每日目标奖励</value>
+  </data>
+  <data name="EssEscrowTransfer" xml:space="preserve">
+    <value>ESS 转账</value>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>自由职业项目奖励</value>
+  </data>
+  <data name="IndustryJobTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>保险</value>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>跳跃克隆激活费</value>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>跳跃克隆安装费</value>
+  </data>
+  <data name="ManufacturingTax" xml:space="preserve">
+    <value>制造税</value>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>市场托管金</value>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>市场交易</value>
+  </data>
+  <data name="MiningTax" xml:space="preserve">
+    <value>采矿税</value>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>办公室租金</value>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>行星出口税</value>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>行星进口税</value>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>玩家捐赠</value>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>发现计划奖励</value>
+  </data>
+  <data name="ProjectPayouts" xml:space="preserve">
+    <value>项目奖励</value>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>精炼税</value>
+  </data>
+  <data name="StructureGateJump" xml:space="preserve">
+    <value>建筑跳跃门通行费</value>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>交易税</value>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>宣战费用</value>
+  </data>
+</root>

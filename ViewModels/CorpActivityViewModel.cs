@@ -2396,47 +2396,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     /// common ones have labels a translation can carry. The rest — ESI knows well over a hundred —
     /// are spelled out from the key, in English, rather than shown as "bounty_prizes".</para>
     /// </summary>
-    internal static string FormatRefType(string r) => r switch
-    {
-        "bounty_prizes" or "bounty_prize"    => CorpText.RefBountyPrizes,
-        "ess_escrow_transfer"                => CorpText.RefEssTransfer,
-        "daily_goal_payouts"                 => CorpText.RefDailyGoalPayout,
-        "mining_tax"                         => CorpText.RefMiningTax,
-        "player_donation"                    => CorpText.RefPlayerDonation,
-        "corporate_reward_payout"            => CorpText.RefCorpReward,
-        "industry_job_tax"                   => CorpText.RefIndustryTax,
-        "manufacturing_tax"                  => CorpText.RefManufacturingTax,
-        "reprocessing_tax"                   => CorpText.RefReprocessingTax,
-        "contract_price"                     => CorpText.RefContractIncome,
-        "contract_price_payment_corp"        => CorpText.RefCorpContract,
-        "market_transaction"                 => CorpText.RefMarketTransaction,
-        "market_escrow"                      => CorpText.RefMarketEscrow,
-        "project_payouts"                    => CorpText.RefProjectPayouts,
-
-        // Spelled exactly as the fallback below would spell them, so the English is unchanged.
-        "corporation_account_withdrawal"     => CorpText.RefCorpAccountWithdrawal,
-        "agent_mission_reward"               => CorpText.RefAgentMissionReward,
-        "agent_mission_time_bonus_reward"    => CorpText.RefAgentMissionTimeBonus,
-        "project_discovery_reward"           => CorpText.RefProjectDiscoveryReward,
-        "freelance_jobs_reward"              => CorpText.RefFreelanceJobsReward,
-        "brokers_fee"                        => CorpText.RefBrokersFee,
-        "transaction_tax"                    => CorpText.RefTransactionTax,
-        "office_rental_fee"                  => CorpText.RefOfficeRentalFee,
-        "insurance"                          => CorpText.RefInsurance,
-        "planetary_import_tax"               => CorpText.RefPlanetaryImportTax,
-        "planetary_export_tax"               => CorpText.RefPlanetaryExportTax,
-        "contract_brokers_fee"               => CorpText.RefContractBrokersFee,
-        "contract_sales_tax"                 => CorpText.RefContractSalesTax,
-        "contract_reward"                    => CorpText.RefContractReward,
-        "contract_collateral"                => CorpText.RefContractCollateral,
-        "war_fee"                            => CorpText.RefWarFee,
-        "structure_gate_jump"                => CorpText.RefStructureGateJump,
-        "jump_clone_installation_fee"        => CorpText.RefJumpCloneInstallationFee,
-        "jump_clone_activation_fee"          => CorpText.RefJumpCloneActivationFee,
-
-        _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo
-                   .ToTitleCase(r.Replace('_', ' ')),
-    };
+    internal static string FormatRefType(string r) => RefTypes.Label(r);
 
     private static (ISeries[] Series, Axis[] XAxes, Axis[] YAxes) BuildTaxChart(
         List<DailyAmountRow> rows, SKColor color)
