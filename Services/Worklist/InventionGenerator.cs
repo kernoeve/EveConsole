@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -38,7 +39,7 @@ public class InventionGenerator(
     WorklistSettings                settings) : IWorklistGenerator
 {
     public string Id          => "invention";
-    public string DisplayName => "Invention & Copying";
+    public string DisplayName => WorklistText.SourceInvention;
 
     private const int ShipCategoryId = 6;
 
@@ -122,7 +123,7 @@ public class InventionGenerator(
 
         foreach (var (d, recipe, plan, shortRuns) in needs)
         {
-            var name = names.GetValueOrDefault(d.TypeId, $"Type {d.TypeId}");
+            var name = names.GetValueOrDefault(d.TypeId, string.Format(WorklistText.TypeWithId, d.TypeId));
 
             // Whoever gives the best odds. Invention chance is the one thing here that genuinely
             // differs by character, and a worse pilot costs datacores on every attempt.
@@ -132,7 +133,7 @@ public class InventionGenerator(
                 .ThenBy(c => c.Config.CharacterId)
                 .First();
 
-            var head = $"{name}: short {shortRuns:N0} run(s) of T2 production.";
+            var head = string.Format(WorklistText.InventionHead, name, shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
                                      timeCtx, best, siteStock, d.Priority, name, head));
@@ -206,8 +207,7 @@ public class InventionGenerator(
 
             List<string> Short(IReadOnlyList<(int TypeId, long Qty)> want) =>
                 want.Where(m => Available(m.TypeId) < m.Qty)
-                    .Select(m => $"{names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}")} " +
-                                 $"({Available(m.TypeId):N0} of {m.Qty:N0})")
+                    .Select(m => HaveOfWant(m.TypeId, Available(m.TypeId), m.Qty))
                     .ToList();
 
             var missing = Short(mats);
@@ -231,7 +231,7 @@ public class InventionGenerator(
                 var runMats = runnable == job.Runs ? mats : MatsFor(runnable);
 
                 var readiness = free is null ? WorklistReadiness.Waiting : WorklistReadiness.Ready;
-                var blockedBy = free is null ? "Every character who runs science has all slots busy" : "";
+                var blockedBy = free is null ? WorklistText.WaitingScienceSlotsBusy : "";
 
                 if (free is not null)
                 {
@@ -243,8 +243,7 @@ public class InventionGenerator(
 
                 Emit(runnable, runMats, readiness, blockedBy, "",
                      runnable < job.Runs
-                         ? $" Cut to what the datacores on hand cover — {job.Runs - runnable:N0} "
-                         + "more attempt(s) are on a separate row."
+                         ? " " + string.Format(WorklistText.InventionCutToDatacores, job.Runs - runnable)
                          : "");
             }
 
@@ -267,18 +266,14 @@ public class InventionGenerator(
 
                 var shortNames = restMats
                     .Where(m => Available(m.TypeId) - unclaimed.GetValueOrDefault(m.TypeId) < m.Qty)
-                    .Select(m =>
-                    {
-                        var have = Available(m.TypeId) - unclaimed.GetValueOrDefault(m.TypeId);
-                        return $"{names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}")} " +
-                               $"({have:N0} of {m.Qty:N0})";
-                    })
+                    .Select(m => HaveOfWant(
+                        m.TypeId, Available(m.TypeId) - unclaimed.GetValueOrDefault(m.TypeId), m.Qty))
                     .ToList();
 
                 Emit(restRuns, restMats, WorklistReadiness.Blocked,
-                     $"Not at {lab.Name}: {string.Join(", ", shortNames)}",
+                     string.Format(WorklistText.BlockedNotAt, lab.Name, string.Join(", ", shortNames)),
                      runnable > 0 ? ":short" : "",
-                     runnable > 0 ? " The rest of this batch, waiting on datacores." : "");
+                     runnable > 0 ? " " + WorklistText.InventionRestWaiting : "");
             }
 
             void Emit(int runs, IReadOnlyList<(int TypeId, long Qty)> lineMats,
@@ -290,16 +285,19 @@ public class InventionGenerator(
                 var seconds  = job.Runs > 0 ? job.Seconds * runs / job.Runs : 0;
                 var duration = IndustryJobSplit.Duration(seconds);
                 var durText  = duration.Length > 0 ? $" ~{duration}." : "";
-                var ofText   = split.Jobs.Count > 1 ? $" (job {job.Index} of {job.Of})" : "";
+                var ofText   = split.Jobs.Count > 1
+                    ? " " + string.Format(WorklistText.JobIndexOf, job.Index, job.Of)
+                    : "";
                 var capText  = split.Jobs.Count == 1 && split.RunsUnassigned == 0 ? "" : job.Cap switch
                 {
-                    SplitCap.GameLimit => " Capped by EVE's 30-day limit on a single job.",
-                    SplitCap.CopyRuns  => " Capped by the runs left on the source copy.",
-                    SplitCap.JobLength => $" Capped by the {settings.MaxJobDaysScience:0.#}-day job length.",
+                    SplitCap.GameLimit => " " + WorklistText.JobCapGameLimit,
+                    SplitCap.CopyRuns  => " " + WorklistText.JobCapSourceCopyRuns,
+                    SplitCap.JobLength => " " + string.Format(WorklistText.JobCapJobLength,
+                                                              settings.MaxJobDaysScience),
                     _                  => "",
                 };
                 var shortText = job.Index == split.Jobs.Count && split.RunsUnassigned > 0
-                    ? $" {split.RunsUnassigned:N0} further attempt(s) need a source copy — none free."
+                    ? " " + string.Format(WorklistText.InventionAttemptsNoCopy, split.RunsUnassigned)
                     : "";
 
                 items.Add(new WorklistItem
@@ -308,14 +306,16 @@ public class InventionGenerator(
                     Source        = Id,
                     Kind          = WorklistKind.Job,
                     Pool          = IndustryPool.Science,
-                    Title         = $"{name} — invent {runs:N0} run(s)",
+                    Title         = string.Format(WorklistText.InventionTitle, name, runs),
                     Quantity      = runs,
-                    Detail        = $"{head}{ofText} {plan.Chance:P1} a run "
-                                  + $"({recipe.BaseChance:P0} base, {DecryptorText(plan.Decryptor)}) "
-                                  + $"→ {plan.SuccessesNeeded:N0} BPC(s) of {plan.RunsPerBpc} run(s) "
-                                  + $"at ME{plan.InventedMe}/TE{plan.InventedTe} over {plan.Attempts:N0} "
-                                  + $"attempt(s). {recipe.SourceBlueprintName} "
-                                  + $"{job.Print.Describe()} at {lab.Name}.{durText}{capText}{extraDetail}{shortText}",
+                    Detail        = head + ofText + " "
+                                  + string.Format(WorklistText.InventionOdds,
+                                                  plan.Chance, recipe.BaseChance, DecryptorText(plan.Decryptor),
+                                                  plan.SuccessesNeeded, plan.RunsPerBpc,
+                                                  plan.InventedMe, plan.InventedTe, plan.Attempts)
+                                  + " " + string.Format(WorklistText.PrintAt,
+                                                        $"{recipe.SourceBlueprintName} {job.Print.Describe()}", lab.Name)
+                                  + $"{durText}{capText}{extraDetail}{shortText}",
                     Readiness     = readiness,
                     BlockedBy     = blockedBy,
                     CharacterId   = who.Config.CharacterId,
@@ -327,7 +327,9 @@ public class InventionGenerator(
                     Priority      = priority,
                     Lines         = lineMats
                         .Select(m => new WorklistLine(
-                            m.TypeId, names.GetValueOrDefault(m.TypeId, $"Type {m.TypeId}"), m.Qty))
+                            m.TypeId,
+                            names.GetValueOrDefault(m.TypeId, string.Format(WorklistText.TypeWithId, m.TypeId)),
+                            m.Qty))
                         .ToList(),
                 });
             }
@@ -342,12 +344,12 @@ public class InventionGenerator(
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
-                Title     = $"{name} — invent {plan.Attempts:N0} run(s)",
+                Title     = string.Format(WorklistText.InventionTitle, name, plan.Attempts),
                 Quantity  = plan.Attempts,
-                Detail    = $"{head} {plan.Chance:P1} a run → {plan.SuccessesNeeded:N0} BPC(s) "
-                          + $"of {plan.RunsPerBpc} run(s).",
+                Detail    = string.Format(WorklistText.InventionNoCopyDetail,
+                                          head, plan.Chance, plan.SuccessesNeeded, plan.RunsPerBpc),
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy      = $"No {recipe.SourceBlueprintName} copy at {lab.Name} to invent from",
+                BlockedBy      = string.Format(WorklistText.BlockedNoCopyToInvent, recipe.SourceBlueprintName, lab.Name),
                 BlockedByPrint = true,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
@@ -361,6 +363,12 @@ public class InventionGenerator(
         long Available(int typeId) =>
             stock.GetValueOrDefault((lab.Site, typeId))
             - committed.GetValueOrDefault((lab.Site, typeId));
+
+        // A datacore, and how many of it the lab holds against what the job wants.
+        string HaveOfWant(int typeId, long have, long want) =>
+            string.Format(WorklistText.NameHaveOfWant,
+                          names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)),
+                          have, want);
     }
 
     // ── Copying ───────────────────────────────────────────────────────────────
@@ -396,12 +404,10 @@ public class InventionGenerator(
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
-                Title     = $"{recipe.SourceBlueprintName} — no original to copy from",
-                Detail    = $"{head} Invention needs {plan.CopyRunsNeeded:N0} copy run(s) and "
-                          + $"{ownedCopyRuns:N0} are owned.",
+                Title     = string.Format(WorklistText.CopyTitleNoOriginal, recipe.SourceBlueprintName),
+                Detail    = string.Format(WorklistText.CopyNeedsRunsDetail, head, plan.CopyRunsNeeded, ownedCopyRuns),
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy      = "No BPO owned on any character — one has to be acquired, "
-                               + "or the copies bought outright",
+                BlockedBy      = WorklistText.BlockedNoBpoToCopy,
                 BlockedByPrint = true,
                 TypeId    = recipe.SourceBlueprintTypeId,
                 TypeName  = recipe.SourceBlueprintName,
@@ -424,14 +430,14 @@ public class InventionGenerator(
             Source        = Id,
             Kind          = WorklistKind.Job,
             Pool          = IndustryPool.Science,
-            Title         = $"{recipe.SourceBlueprintName} — copy {copies:N0} × {perCopy:N0} run(s)",
+            Title         = string.Format(WorklistText.CopyTitle, recipe.SourceBlueprintName, copies, perCopy),
             Quantity      = copies,
-            Detail        = $"{head} Feeds {plan.Attempts:N0} invention attempt(s); "
-                          + $"{ownedCopyRuns:N0} copy run(s) already owned. "
-                          + $"{original.Describe()} at {lab.Name}.{durText}",
+            Detail        = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
+                          + " " + string.Format(WorklistText.PrintAt, original.Describe(), lab.Name)
+                          + durText,
             Readiness     = atCopyLab ? WorklistReadiness.Ready : WorklistReadiness.Blocked,
             BlockedBy     = atCopyLab ? ""
-                          : $"The original is not at {lab.Name} — it has to be moved there first",
+                          : string.Format(WorklistText.BlockedOriginalNotAt, lab.Name),
             CharacterId   = best.Config.CharacterId,
             CharacterName = best.Config.CharacterName,
             LocationId    = lab.Site,
@@ -445,7 +451,7 @@ public class InventionGenerator(
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static string DecryptorText(Decryptor d) =>
-        d.IsNone ? "no decryptor" : $"{d.Name} ×{d.ChanceMultiplier:0.0#}";
+        d.IsNone ? WorklistText.NoDecryptor : $"{d.Name} ×{d.ChanceMultiplier:0.0#}";
 
     private Decryptor DecryptorFor(int productTypeId, ProductionContext ctx, List<Decryptor> all) =>
         InventionService.DecryptorFor(

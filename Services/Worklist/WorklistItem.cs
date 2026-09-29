@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
@@ -86,11 +88,11 @@ public sealed record WorklistWaitingJob(
     /// the job is waiting on this crate AND on something else, so the trip will not start it.</para>
     /// </summary>
     public string StatusText =>
-        Unblocked                 ? "starts on arrival"
-        : IsPlanned               ? $"wants {WantsUnits:N0}"
-        : StillShortOf.Count == 0 ? "queued behind another job"
-        : StillShortOf.Count == 1 ? "also short of 1 item"
-                                  : $"also short of {StillShortOf.Count:N0} items";
+        Unblocked                 ? WorklistText.WaitStartsOnArrival
+        : IsPlanned               ? string.Format(WorklistText.WaitWants, WantsUnits)
+        : StillShortOf.Count == 0 ? WorklistText.WaitQueuedBehind
+        : Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.WaitAlsoShortOther),
+                         StillShortOf.Count);
 
     /// <summary>
     /// ⚠️ A planned build rather than a stopped worklist row — the planner recorded it as the
@@ -101,15 +103,14 @@ public sealed record WorklistWaitingJob(
     public bool IsPlanned => Key.Length == 0;
 
     public string StatusTip =>
-        IsPlanned ? "A build this delivery is for. It is what the planner raised the trip for, and "
-                  + "has not been broken out into a task of its own yet."
-        : Unblocked ? "This haul carries everything the job is short of, so it starts when the cargo lands."
-        : StillShortOf.Count == 0
-            ? "The job wants something on this manifest, but an earlier job has already claimed "
-            + "that stock — this load will not reach it."
-            : "Still short of " + string.Join(", ", StillShortOf.Take(6))
-            + (StillShortOf.Count > 6 ? $", and {StillShortOf.Count - 6:N0} more." : ".")
-            + (QueuedBehind ? " It is also behind another job for something on this manifest." : "");
+        IsPlanned ? WorklistText.WaitTipPlanned
+        : Unblocked ? WorklistText.WaitTipStarts
+        : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
+        : (StillShortOf.Count > 6
+              ? string.Format(WorklistText.WaitTipStillShortMore,
+                              string.Join(", ", StillShortOf.Take(6)), StillShortOf.Count - 6)
+              : string.Format(WorklistText.WaitTipStillShort, string.Join(", ", StillShortOf)))
+          + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
 
     public Avalonia.Media.IBrush StatusColor =>
         Unblocked ? EveConsole.Services.Palette.Good : EveConsole.Services.Palette.TextFaint;

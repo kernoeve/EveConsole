@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -56,33 +57,29 @@ public sealed record HaulBlock(
       : Sources    > 1 ? "Several stops"
       :                  "Haul raised";
 
-    public string Advice => Verdict switch
+    /// <summary>
+    /// What to do about the row. A whole sentence for each way the pickups fall — none in scope,
+    /// one place, several — rather than a phrase dropped into one.
+    /// </summary>
+    public string Advice => (Verdict switch
     {
-        "Nothing moving" =>
-            $"Stopped for want of {ItemTypes:N0} item(s) already owned. {Volume:N0} m3 to move, "
-          + $"{Stops}. No haul on the list brings any of it here, so nothing about this changes "
-          + $"on its own.{Behind}",
+        "Nothing moving" => Sources <= 0
+            ? string.Format(WorklistText.HaulAdviceIdleNowhere, ItemTypes, Volume)
+            : Sources == 1
+                ? string.Format(WorklistText.HaulAdviceIdleOnePlace, ItemTypes, Volume)
+                : string.Format(WorklistText.HaulAdviceIdlePlaces, ItemTypes, Volume, Sources),
 
+        // Only ever more than one place: that is what the verdict means.
         "Several stops" =>
-            $"Stopped for want of {ItemTypes:N0} item(s), {Volume:N0} m3 in all, {Stops}, with "
-          + $"{HaulTasks:N0} haul(s) already raised. More than one pickup, so it stays stopped "
-          + $"until the last of them lands.{Behind}",
+            string.Format(WorklistText.HaulAdviceSeveralStops, ItemTypes, Volume, Sources, HaulTasks),
 
-        _ =>
-            $"Stopped, and {HaulTasks:N0} haul(s) are already raised to bring the {Volume:N0} m3 "
-          + $"here. Nothing to decide — it starts when the material arrives.{Behind}",
-    };
-
-    /// <summary>How many places have to be visited to cover it.</summary>
-    private string Stops =>
-        Sources <= 0 ? "none of it reachable in scope"
-      : Sources == 1 ? "all of it from one place"
-      :                $"from {Sources:N0} places";
+        _ => string.Format(WorklistText.HaulAdviceRaised, HaulTasks, Volume),
+    }) + Behind;
 
     /// <summary>What waiting costs beyond this job. Silent where nothing waits on it.</summary>
     private string Behind =>
         StalledTasks > 0
-            ? $" {StalledTasks:N0} further task(s) are stopped behind it."
+            ? " " + string.Format(WorklistText.HaulAdviceBehind, StalledTasks)
             : "";
 }
 
@@ -207,23 +204,31 @@ public class HaulPressureService(
 
             detail.AddRange(short_.Select(sh =>
             {
-                var from = Pickups(sh.TypeId, sh.Short, here);
-                var name = from.Count > 0
-                    ? places.GetValueOrDefault(from[0], $"Location {from[0]}")
-                    : "nowhere in scope";
+                var from  = Pickups(sh.TypeId, sh.Short, here);
+                var m3    = sh.Short * volumes.GetValueOrDefault(sh.TypeId);
+                var first = from.Count > 0
+                    ? places.GetValueOrDefault(from[0], string.Format(WorklistText.LocationWithId, from[0]))
+                    : "";
+
+                // A whole phrase for each way the pickups fall.
+                var why = from.Count switch
+                {
+                    0 => string.Format(WorklistText.HaulNeedNowhere, sh.Short, sh.Wanted, m3),
+                    1 => string.Format(WorklistText.HaulNeedFrom, sh.Short, sh.Wanted, m3, first),
+                    _ => string.Format(WorklistText.HaulNeedFromMore, sh.Short, sh.Wanted, m3, first, from.Count - 1),
+                };
 
                 return new ShortageTask(
                     "Needs", 0, sh.TypeName, sh.TypeName,
-                    from.Count == 1 ? "1 stop" : $"{from.Count:N0} stops",
-                    $"short {sh.Short:N0} of {sh.Wanted:N0}, "
-                  + $"{sh.Short * volumes.GetValueOrDefault(sh.TypeId):N0} m3 — from {name}"
-                  + (from.Count > 1 ? $" and {from.Count - 1:N0} more" : ""),
+                    // Not a state key: the grid shows this count of stops as it stands.
+                    Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.StopsOther), from.Count),
+                    why,
                     sh.TypeId);
             }));
 
             detail.AddRange(moving.Select(h => new ShortageTask(
                 "Hauling", -1, "", h.Title, h.Readiness.ToString(),
-                h.From.Length > 0 ? $"already on the list, from {h.From}" : "already on the list")));
+                h.From.Length > 0 ? string.Format(WorklistText.WhyOnListFrom, h.From) : WorklistText.WhyOnList)));
 
             detail.AddRange(chain.Select(t => t with { Hop = t.Hop + 1 }));
 

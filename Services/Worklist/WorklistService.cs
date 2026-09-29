@@ -2,6 +2,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -218,13 +219,10 @@ public class WorklistService(
 
                     Detail = haul.Detail
                            + (freed.Count > 0
-                                ? $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
-                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
-                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                ? " " + Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed)
                                 : "")
                            + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
-                                + "cargo but will not start on this load."
+                                ? " " + string.Format(WorklistText.HaulOthersWantPart, waiting.Count - freed.Count)
                                 : "")
 
                            // ⚠️ The planner's drivers, merged in above, are counted here too, or
@@ -232,12 +230,24 @@ public class WorklistService(
                            // named while the prose said one. They are not jobs — nothing has been
                            // written down for them yet — so they are counted as what they are.
                            + (also.Count > 0
-                                ? $" {also.Count:N0} more item(s) here are wanted by planned work "
-                                + "that has no stopped job of its own."
+                                ? " " + string.Format(WorklistText.HaulPlannedWantIt, also.Count)
                                 : ""),
                 };
             }
         }
+    }
+
+    /// <summary>
+    /// A count of stopped jobs and the first three of them by name, as one sentence:
+    /// <paramref name="upToThree"/> when those are all of them, <paramref name="withMore"/> when
+    /// more follow. In both, {0} is the count and {1} the names; {2} is how many more.
+    /// </summary>
+    private static string Listed(string upToThree, string withMore, IReadOnlyList<WorklistWaitingJob> jobs)
+    {
+        var names = string.Join(", ", jobs.Take(3).Select(j => j.TypeName));
+        return jobs.Count > 3
+            ? string.Format(withMore, jobs.Count, names, jobs.Count - 3)
+            : string.Format(upToThree, jobs.Count, names);
     }
 
 
@@ -399,13 +409,10 @@ public class WorklistService(
 
                     Detail = buy.Detail
                            + (freed.Count > 0
-                                ? $" Releases {freed.Count:N0} stopped job(s): "
-                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
-                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                ? " " + Listed(WorklistText.BuyReleasesJobs, WorklistText.BuyReleasesJobsMore, freed)
                                 : "")
                            + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} more job(s) want this but are "
-                                + "short of other things too."
+                                ? " " + string.Format(WorklistText.BuyOthersWantIt, waiting.Count - freed.Count)
                                 : ""),
                 };
             }
@@ -508,6 +515,10 @@ public class WorklistService(
             // market window for something that is not on it.
             var tag = parts.Select(p => p.Item.TitleTag).FirstOrDefault(t => t is not null);
 
+            // ⚠️ The tag is a key — the grid picks the blueprint icon by it — so the words shown
+            // for it are looked up, and the tag itself is carried on unchanged.
+            var tagText = tag == "BPO/BPC" ? WorklistText.TitleTagBpoBpc : tag;
+
             var merged = lead.Item with
             {
                 // Keyed off the merge key, so the combined task keeps one identity across
@@ -519,8 +530,8 @@ public class WorklistService(
                 Title     = (tag, total) switch
                 {
                     (null, _) => $"{lead.Item.TypeName} × {total:N0}",
-                    (_,    0) => $"{lead.Item.TypeName} — {tag}",
-                    _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
+                    (_,    0) => $"{lead.Item.TypeName} — {tagText}",
+                    _         => $"{lead.Item.TypeName} — {tagText} × {total:N0}",
                 },
                 Quantity  = total,
                 // ⚠️ The contributors' own figures do not add up to this, and saying so is the
@@ -528,9 +539,8 @@ public class WorklistService(
                 // adding the "short" numbers gets a figure that credits that stock once per
                 // demand — which is what this row used to print. The sum is spelled out instead.
                 Detail    = pooled
-                    ? $"{total:N0} in total — {demand:N0} wanted between them, less {supply:N0} " +
-                      $"already on hand, on order or recoverable, counted once. {reasons}"
-                    : $"{total:N0} in total. {reasons}",
+                    ? string.Format(WorklistText.MergedDetailPooled, total, demand, supply, reasons)
+                    : string.Format(WorklistText.MergedDetail, total, reasons),
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",

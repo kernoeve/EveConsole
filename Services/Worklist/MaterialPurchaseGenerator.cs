@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -46,7 +47,7 @@ public class MaterialPurchaseGenerator(
     AppErrorLogger                  errorLogger) : IWorklistGenerator
 {
     public string Id          => "material_purchases";
-    public string DisplayName => "Material Purchases";
+    public string DisplayName => WorklistText.SourceMaterialPurchases;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -130,7 +131,7 @@ public class MaterialPurchaseGenerator(
             queue.Add(new ProductionQueueEntry
             {
                 TypeId   = d.TypeId,
-                TypeName = ctx.TypeNames.GetValueOrDefault(d.TypeId, $"Type {d.TypeId}"),
+                TypeName = ctx.TypeNames.GetValueOrDefault(d.TypeId, string.Format(WorklistText.TypeWithId, d.TypeId)),
                 Quantity = Math.Clamp(d.Units, 1, int.MaxValue),
                 MeLevel  = meMap.TryGetValue(d.TypeId, out var me)
                              ? me
@@ -262,7 +263,7 @@ public class MaterialPurchaseGenerator(
 
             if (short_ <= 0) continue;
 
-            var typeName = ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}");
+            var typeName = ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId));
 
             items.Add(new WorklistItem
             {
@@ -284,17 +285,15 @@ public class MaterialPurchaseGenerator(
                 // started jobs already took is not supply, so it is left out of the credit.
                 GrossDemand    = need.Units,
                 SupplyCredited = (have - taken) + ordered + building + held.Units,
-                Detail        = $"{WantedBy(need)}: need {need.Units:N0}; "
-                              + $"{have:N0} on hand{settings.IndustryScopeSuffix}"
-                              + (taken    > 0 ? $" of which {taken:N0} already went into jobs the asset poll has not seen" : "")
-                              + (ordered  > 0 ? $", {ordered:N0} on order" : "")
-                              + (building > 0 ? $", {building:N0} in production" : "")
+                Detail        = OnHandText(WantedBy(need), need.Units, have, taken)
+                              + (ordered  > 0 ? ", " + string.Format(WorklistText.OnOrder, ordered) : "")
+                              + (building > 0 ? ", " + string.Format(WorklistText.InProduction, building) : "")
                               + held.Note
-                              + $" — short {short_:N0}.",
+                              + " — " + string.Format(WorklistText.ShortByTail, short_),
                 Readiness     = alt is null ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                 BlockedBy     = alt is null
-                    ? (buyAt > 0 ? $"No market alt assigned to {buyName}"
-                                 : "No buy location set on the Industry tab")
+                    ? (buyAt > 0 ? string.Format(WorklistText.BlockedNoMarketAltAt, buyName)
+                                 : WorklistText.BlockedNoBuyLocation)
                     : "",
                 CharacterId   = alt?.CharacterId   ?? 0,
                 CharacterName = alt?.CharacterName ?? "",
@@ -331,14 +330,37 @@ public class MaterialPurchaseGenerator(
             .Select(g => (g.First().Name, Runs: g.Sum(c => c.Runs), Units: g.Sum(c => c.Units)))
             .OrderByDescending(u => u.Units)
             .ToList();
-        if (users.Count == 0) return "Planned builds";
+        if (users.Count == 0) return WorklistText.WantedByPlannedBuilds;
 
         var named = users.Take(2)
-            .Select(u => $"{u.Name} ({u.Runs:N0} run(s))")
+            .Select(u => string.Format(WorklistText.NameRuns, u.Name, u.Runs))
             .ToList();
         var more = users.Count - named.Count;
 
-        return "For " + string.Join(" and ", named) + (more > 0 ? $" and {more} more" : "");
+        // One or two builds by name; any more only counted.
+        return named.Count == 1
+            ? string.Format(WorklistText.WantedForOne, named[0])
+            : more > 0
+                ? string.Format(WorklistText.WantedForTwoMore, named[0], named[1], more)
+                : string.Format(WorklistText.WantedForTwo, named[0], named[1]);
+    }
+
+    /// <summary>
+    /// A purchase's opening clause: what it is for, how much is needed, and how much is on hand —
+    /// naming the scope, and the stock already eaten by jobs the asset poll has not seen, where
+    /// they apply. A whole clause per case, since the pieces do not join the same way in every
+    /// language.
+    /// </summary>
+    private string OnHandText(string wantedBy, long need, long have, long taken)
+    {
+        var place = settings.IndustryScopePlace;
+        return (place.Length > 0, taken > 0) switch
+        {
+            (false, false) => string.Format(WorklistText.PurchaseNeedOnHand, wantedBy, need, have),
+            (true,  false) => string.Format(WorklistText.PurchaseNeedOnHandIn, wantedBy, need, have, place),
+            (false, true)  => string.Format(WorklistText.PurchaseNeedOnHandTaken, wantedBy, need, have, taken),
+            (true,  true)  => string.Format(WorklistText.PurchaseNeedOnHandInTaken, wantedBy, need, have, place, taken),
+        };
     }
 
     /// <summary>Shortfalls against inventory targets, for groups whose rule says to build.</summary>
@@ -478,30 +500,34 @@ public class MaterialPurchaseGenerator(
             var stillNeeded = Math.Max(0, demand - held);
             if (stillNeeded <= 0) continue;
 
-            var bpName = ctx.TypeNames.GetValueOrDefault(bpTypeId, $"Blueprint {bpTypeId}");
+            var bpName = ctx.TypeNames.GetValueOrDefault(
+                             bpTypeId, string.Format(WorklistText.BlueprintWithId, bpTypeId));
             var price  = ctx.BpcPerRun.TryGetValue(bpTypeId, out var opts) && opts.Count > 0
-                ? $" Copies have been seen on contract from {opts.Min(o => o.PerRun):N0} ISK a run."
+                ? " " + string.Format(WorklistText.PrintContractPrice, opts.Min(o => o.PerRun))
                 : "";
 
             // Spelled out, because the number is a subtraction the reader cannot see.
             var parts = new List<string>(3);
-            if (jobs  > 0) parts.Add($"{jobs:N0} for {forWhat.GetValueOrDefault(bpTypeId, "queued builds")}");
-            if (shelf > 0) parts.Add($"{shelf:N0} to stock");
+            if (jobs  > 0) parts.Add(forWhat.TryGetValue(bpTypeId, out var usedFor)
+                                         ? string.Format(WorklistText.PrintRunsFor, jobs, usedFor)
+                                         : string.Format(WorklistText.PrintRunsForQueued, jobs));
+            if (shelf > 0) parts.Add(string.Format(WorklistText.PrintRunsToStock, shelf));
 
-            var haveText = anyOriginal ? ", original owned"
-                         : held > 0    ? $", {held:N0} owned"
-                                       : ", none owned";
+            var haveText = ", " + (anyOriginal ? WorklistText.PrintOriginalOwned
+                                 : held > 0    ? string.Format(WorklistText.PrintCopiesOwned, held)
+                                               : WorklistText.PrintNoneOwned);
 
             items.Add(new WorklistItem
             {
                 Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = $"{bpName} — BPO/BPC × {stillNeeded:N0} run(s)",
+                Title         = string.Format(WorklistText.PrintTitle, bpName, stillNeeded),
                 TitleTag      = "BPO/BPC",
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
-                Detail        = $"{string.Join(" + ", parts)}{haveText} — short {stillNeeded:N0} run(s).{price}",
+                Detail        = $"{string.Join(" + ", parts)}{haveText} — "
+                              + string.Format(WorklistText.PrintShortRuns, stillNeeded) + price,
                 Readiness     = WorklistReadiness.Ready,
                 CharacterId   = alt?.CharacterId   ?? 0,
                 CharacterName = alt?.CharacterName ?? "",
@@ -595,15 +621,17 @@ public class MaterialPurchaseGenerator(
 
                 total += gives;
                 from.Add(due > 0
-                    ? $"{have:N0} {s.SourceName} and {due:N0} on order"
+                    ? string.Format(WorklistText.HeldAndOnOrder, have, s.SourceName, due)
                     : $"{units:N0} {s.SourceName}");
             }
 
             if (total <= 0) continue;
 
-            result[typeId] = (total,
-                $", {total:N0} recoverable from " + string.Join(", ", from.Take(3))
-                + (from.Count > 3 ? $" and {from.Count - 3} more" : ""));
+            // A clause of the detail's list, so it opens with the list's own comma.
+            var named = string.Join(", ", from.Take(3));
+            result[typeId] = (total, ", " + (from.Count > 3
+                ? string.Format(WorklistText.RecoverableFromMore, total, named, from.Count - 3)
+                : string.Format(WorklistText.RecoverableFrom, total, named)));
         }
 
         return result;

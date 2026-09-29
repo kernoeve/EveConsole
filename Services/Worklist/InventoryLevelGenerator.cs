@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -29,7 +30,7 @@ public class InventoryLevelGenerator(
     OutbidOrderService              outbidOrders) : IWorklistGenerator
 {
     public string Id          => "inventory_levels";
-    public string DisplayName => "Inventory Levels";
+    public string DisplayName => WorklistText.SourceInventoryLevels;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -145,7 +146,7 @@ public class InventoryLevelGenerator(
                     var held    = subHeld.GetValueOrDefault(gi.TypeId);
                     var shortfall = need.Shortfall - ordered - held.Units;
 
-                    var name = names.GetValueOrDefault(gi.TypeId, $"Type {gi.TypeId}");
+                    var name = names.GetValueOrDefault(gi.TypeId, string.Format(WorklistText.TypeWithId, gi.TypeId));
 
                     // ⚠️ Everything except the orders. What is left is whether this rule would
                     // still be short if no order existed — which is exactly the question of
@@ -164,18 +165,18 @@ public class InventoryLevelGenerator(
                     // "Here" and "elsewhere" kept apart so the detail says where the incoming
                     // material actually is; both count the same against the shortfall.
                     var away  = ordered - onOrder;
-                    var order = (onOrder > 0 ? $", {onOrder:N0} on order here" : "")
-                              + (away    > 0 ? $", {away:N0} on order elsewhere" : "")
+                    var order = (onOrder > 0 ? ", " + string.Format(WorklistText.OnOrderHere, onOrder) : "")
+                              + (away    > 0 ? ", " + string.Format(WorklistText.OnOrderElsewhere, away) : "")
                               + held.Note;
                     var fill  = need.FillText(rule);
 
                     // The name leads. The column sorts on this string, so a leading verb sorted
                     // every shortfall in the list under "P" for "Place order".
                     var title    = $"{name} × {shortfall:N0}";
-                    var detail   = $"{stock}{order}.{fill} Short {shortfall:N0}."
+                    var detail   = $"{stock}{order}.{fill} " + string.Format(WorklistText.ShortBy, shortfall)
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
-                                      : " Competing bids unknown — this location is not a configured market source.");
+                                      : " " + WorklistText.CompetingBidsUnknown);
                     var priority = WorklistPriority.ForStock(need.Percent);
                     // Only a shortfall is an amount to acquire, and only an amount can be added
                     // to what another source wants of the same thing at the same station.
@@ -191,7 +192,9 @@ public class InventoryLevelGenerator(
                         Source        = Id,
                         Kind          = WorklistKind.Buy,
                         Title         = title,
-                        Detail        = $"{group.Name} · below {rule.ThresholdPercent:0.#}% · {detail}",
+                        Detail        = $"{group.Name} · "
+                                      + string.Format(WorklistText.BelowThreshold, rule.ThresholdPercent)
+                                      + $" · {detail}",
                         Quantity      = shortfall,
                         MergeKey      = mergeKey,
                         // Both halves of the subtraction, so merging with a job's demand for the
@@ -199,7 +202,7 @@ public class InventoryLevelGenerator(
                         GrossDemand    = need.Wanted,
                         SupplyCredited = need.Have + ordered + held.Units,
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                        BlockedBy     = blocked ? "No character assigned to this location" : "",
+                        BlockedBy     = blocked ? WorklistText.BlockedNoCharacterAtLocation : "",
                         CharacterId   = alt?.CharacterId   ?? 0,
                         CharacterName = alt?.CharacterName ?? "",
                         LocationId    = rule.LocationId,
@@ -270,15 +273,17 @@ public class InventoryLevelGenerator(
 
                 total += gives;
                 from.Add(due > 0
-                    ? $"{have:N0} {s.SourceName} and {due:N0} on order"
+                    ? string.Format(WorklistText.HeldAndOnOrder, have, s.SourceName, due)
                     : $"{units:N0} {s.SourceName}");
             }
 
             if (total <= 0) continue;
 
-            result[typeId] = (total,
-                $", {total:N0} recoverable from " + string.Join(", ", from.Take(3))
-                + (from.Count > 3 ? $" and {from.Count - 3} more" : ""));
+            // A clause of the detail's list, so it opens with the list's own comma.
+            var named = string.Join(", ", from.Take(3));
+            result[typeId] = (total, ", " + (from.Count > 3
+                ? string.Format(WorklistText.RecoverableFromMore, total, named, from.Count - 3)
+                : string.Format(WorklistText.RecoverableFrom, total, named)));
         }
 
         return result;

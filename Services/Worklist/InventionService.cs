@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -227,7 +228,8 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
 
             result[m.ProductTypeId] = new InventionRecipe(
                 SourceBlueprintTypeId:   inv.SourceBp,
-                SourceBlueprintName:     sourceNames.GetValueOrDefault(inv.SourceBp, $"Type {inv.SourceBp}"),
+                SourceBlueprintName:     sourceNames.GetValueOrDefault(
+                                             inv.SourceBp, string.Format(WorklistText.TypeWithId, inv.SourceBp)),
                 InventedBlueprintTypeId: m.TypeId,
                 ProductTypeId:           m.ProductTypeId,
                 BaseChance:              inv.Probability,

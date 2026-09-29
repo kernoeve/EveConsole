@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
@@ -24,16 +26,29 @@ public sealed record SharedHaul(
     int    Stalled,
     bool   Raised)
 {
-    public string Line =>
-        $"{TypeName} to {StationName}: one delivery of {Units:N0} ({Volume:N0} m3) "
-      + (Unblocks > 0
-            ? $"restarts {Unblocks:N0} job(s)"
-            + (Stalled > 0 ? $" and the {Stalled:N0} task(s) behind them" : "")
-            : $"is wanted by {Jobs:N0} job(s), none of which it restarts on its own")
-      + (Unblocks > 0 && Jobs > Unblocks
-            ? $" — {Jobs - Unblocks:N0} more want it and are short of other things too"
-            : "")
-      + (Raised ? " — already raised." : " — nothing moving.");
+    /// <summary>
+    /// The delivery in one line. A whole sentence per case for the delivery itself; the two
+    /// remarks after it are clauses of their own, joined by the dash.
+    /// </summary>
+    public string Line
+    {
+        get
+        {
+            var delivery = Unblocks <= 0
+                ? string.Format(WorklistText.SharedTripWanted, TypeName, StationName, Units, Volume, Jobs)
+                : Stalled > 0
+                    ? string.Format(WorklistText.SharedTripRestartsBehind,
+                                    TypeName, StationName, Units, Volume, Unblocks, Stalled)
+                    : string.Format(WorklistText.SharedTripRestarts, TypeName, StationName, Units, Volume, Unblocks);
+
+            var others = Unblocks > 0 && Jobs > Unblocks
+                ? " — " + string.Format(WorklistText.SharedTripOthersShort, Jobs - Unblocks)
+                : "";
+
+            return delivery + others + " — "
+                 + (Raised ? WorklistText.SharedTripRaised : WorklistText.SharedTripNothingMoving);
+        }
+    }
 }
 
 /// <summary>

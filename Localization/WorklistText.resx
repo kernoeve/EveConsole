@@ -1772,4 +1772,1124 @@
     <value>{0:N0} Tasks</value>
     <comment>Count in a Worklist group heading, several tasks. {0} is the number.</comment>
   </data>
+  <data name="SourceSkillQueues" xml:space="preserve">
+    <value>Skill Queues</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): tasks about characters' skill queues.</comment>
+  </data>
+  <data name="SkillQueueEmpty" xml:space="preserve">
+    <value>Skill queue is empty</value>
+    <comment>Worklist task, shown after the character's name ("Name — Skill queue is empty").</comment>
+  </data>
+  <data name="SkillQueueEmptyDetail" xml:space="preserve">
+    <value>Nothing is training. Every minute is skill points not earned.</value>
+    <comment>Worklist task detail when a character's skill queue is empty.</comment>
+  </data>
+  <data name="SkillQueuePaused" xml:space="preserve">
+    <value>Skill queue is paused</value>
+    <comment>Worklist task, shown after the character's name: the queue has skills in it but none is training.</comment>
+  </data>
+  <data name="SkillQueuePausedDetail" xml:space="preserve">
+    <value>The queue has skills in it but none is training.</value>
+    <comment>Worklist task detail when a character's skill queue is paused.</comment>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}d {1}h</value>
+    <comment>A time left, as in "3d 4h". {0} is the days, {1} the hours.</comment>
+  </data>
+  <data name="SkillQueueEndsIn" xml:space="preserve">
+    <value>Skill queue ends in {0}</value>
+    <comment>Worklist task, shown after the character's name. {0} is the time left, such as "3d 4h" or "5h 20m".</comment>
+  </data>
+  <data name="SkillQueueEndsDetail" xml:space="preserve">
+    <value>Runs dry {0:d MMM HH:mm}, inside the {1}-day warning.</value>
+    <comment>Worklist task detail. {0} is when the queue runs out, {1} how many days ahead the warning looks.</comment>
+  </data>
+  <data name="SourceStandingProjects" xml:space="preserve">
+    <value>Standing Projects</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): corporation projects that should always be running.</comment>
+  </data>
+  <data name="BlockedNoCharacterForCorp" xml:space="preserve">
+    <value>No character assigned to this corporation</value>
+    <comment>Why a Worklist task is blocked: nobody is assigned to maintain this corporation's projects (Other tab, Corp Projects).</comment>
+  </data>
+  <data name="ProjectNotActive" xml:space="preserve">
+    <value>No active project matches this definition.</value>
+    <comment>Worklist task detail: a standing corporation project has no live project matching it.</comment>
+  </data>
+  <data name="ProjectCheckAdm" xml:space="preserve">
+    <value>Check ADM data — {0}: {1}</value>
+    <comment>Worklist task title for a standing corporation project whose sovereignty data could not be read. {0} is the project type (such as "Destroy NPC"), {1} its scope. ADM is EVE's Activity Defense Multiplier.</comment>
+  </data>
+  <data name="ProjectCheckAdmDetail" xml:space="preserve">
+    <value>Sovereignty data could not be read, so no system can be measured against the threshold. This is a fetch that failed, not a scope that is empty.</value>
+    <comment>Worklist task detail when sovereignty (ADM) data could not be read.</comment>
+  </data>
+  <data name="ProjectCheckScope" xml:space="preserve">
+    <value>Check scope — {0}: {1}</value>
+    <comment>Worklist task title for a standing corporation project whose scope covers no systems. {0} is the project type, {1} its scope.</comment>
+  </data>
+  <data name="ProjectCheckScopeDetail" xml:space="preserve">
+    <value>The scope expands to no systems at all, so nothing can be created for it.</value>
+    <comment>Worklist task detail when a standing corporation project's scope covers no systems.</comment>
+  </data>
+  <data name="ProjectNothingToRaise" xml:space="preserve">
+    <value>{0} — nothing to raise in {1}</value>
+    <comment>Worklist task title when every system in a standing project's scope is healthy. {0} is the project type, {1} its scope.</comment>
+  </data>
+  <data name="ProjectNothingToRaiseDetail" xml:space="preserve">
+    <value>Every system in scope is at or above the threshold, so the rule selects nothing today. It reappears on its own if an ADM falls.</value>
+    <comment>Worklist task detail when every system in a standing project's scope is at or above its ADM threshold.</comment>
+  </data>
+  <data name="ProjectDeliverTo" xml:space="preserve">
+    <value>{0} — {1} to {2}</value>
+    <comment>Worklist task title for a missing corporation delivery project. {0} is the project type (such as "Deliver Item"), {1} the item, {2} the station it is delivered to.</comment>
+  </data>
+  <data name="ProjectDeliverToAnyOffice" xml:space="preserve">
+    <value>{0} — {1} to any corp office</value>
+    <comment>Worklist task title for a missing corporation delivery project that names no station. {0} is the project type (such as "Deliver Item"), {1} the item.</comment>
+  </data>
+  <data name="ProjectNotActiveByRule" xml:space="preserve">
+    <value>No active project matches this definition. This system qualifies under an ADM rule, so it drops off the list on its own once the ADM recovers.</value>
+    <comment>Worklist task detail for a missing "Destroy NPC" project in a system picked by an ADM rule (EVE's Activity Defense Multiplier).</comment>
+  </data>
+  <data name="ProjectNotActiveNamed" xml:space="preserve">
+    <value>No active project matches this definition. This system is named by the definition itself.</value>
+    <comment>Worklist task detail for a missing "Destroy NPC" project in a system the definition names directly.</comment>
+  </data>
+  <data name="SourceStandingBuyOrders" xml:space="preserve">
+    <value>Standing Buy Orders</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): buy orders the player keeps up.</comment>
+  </data>
+  <data name="BlockedNoCharacterAtLocation" xml:space="preserve">
+    <value>No character assigned to this location</value>
+    <comment>Why a Worklist task is blocked: no market alt is assigned to the station (Market tab).</comment>
+  </data>
+  <data name="TitleRaiseBid" xml:space="preserve">
+    <value>{0} — raise bid</value>
+    <comment>Worklist task title: our buy order for an item is outbid. {0} is the item. "raise" is a verb.</comment>
+  </data>
+  <data name="TitlePlaceOrder" xml:space="preserve">
+    <value>{0} — place order</value>
+    <comment>Worklist task title: a standing buy order has no live order. {0} is the item. "place" is a verb.</comment>
+  </data>
+  <data name="TitleTopUpOrder" xml:space="preserve">
+    <value>{0} — top up order</value>
+    <comment>Worklist task title: a standing buy order is nearly filled. {0} is the item. "top up" is a verb.</comment>
+  </data>
+  <data name="TitleReplaceOrder" xml:space="preserve">
+    <value>{0} — re-place order</value>
+    <comment>Worklist task title: a standing buy order is about to expire and has to be placed again. {0} is the item.</comment>
+  </data>
+  <data name="StandingOutbidBy" xml:space="preserve">
+    <value>Outbid by {0:N2} ISK — best competing bid {1}. Yours: {2}.</value>
+    <comment>Worklist task detail for an outbid standing buy order. {0} is how much higher the rival bid is, {1} the rival bid, {2} our price.</comment>
+  </data>
+  <data name="StandingOutbid" xml:space="preserve">
+    <value>Outbid — best competing bid {0}. Yours: {1}.</value>
+    <comment>Worklist task detail for an outbid standing buy order. {0} is the rival bid, {1} our price.</comment>
+  </data>
+  <data name="StandingNoOrderAt" xml:space="preserve">
+    <value>No order found at {0}.</value>
+    <comment>Worklist task detail for a standing buy order with no live order. {0} is the station.</comment>
+  </data>
+  <data name="CompetingBidsUnknown" xml:space="preserve">
+    <value>Competing bids unknown — this location is not a configured market source.</value>
+    <comment>Added to a Worklist buy task's detail when the station's order book is not fetched.</comment>
+  </data>
+  <data name="StandingRunningLow" xml:space="preserve">
+    <value>{0} left ({1} of the original volume).</value>
+    <comment>Worklist task detail for a nearly filled standing buy order. {0} is what is left, as "1,200 / 5,000"; {1} a percentage.</comment>
+  </data>
+  <data name="StandingExpires" xml:space="preserve">
+    <value>Expires {0}.</value>
+    <comment>Worklist task detail for a standing buy order about to expire. {0} is when, as the Standing Buy Orders tool shows it.</comment>
+  </data>
+  <data name="OutbidDetail" xml:space="preserve">
+    <value>At {0}: outbid at {1:N2} ISK against {2:N2} — behind by {3:N2} ({4:N1}%). {5:N0} units still on order and buying nothing while something needs them.</value>
+    <comment>Worklist task detail for an outbid buy order something still needs. {0} is the station, {1} our bid, {2} the best rival bid, {3} the difference, {4} the difference as a percentage of our bid, {5} the units left on our order.</comment>
+  </data>
+  <data name="WhyShort" xml:space="preserve">
+    <value>short {0:N0} of {1:N0} {2}</value>
+    <comment>Why a stopped task is listed under Bottlenecks, lower case. {0} is how many it lacks, {1} how many it needs, {2} the item. None is owned anywhere.</comment>
+  </data>
+  <data name="WhyShortOwnedElsewhere" xml:space="preserve">
+    <value>short {0:N0} of {1:N0} {2} (owned, but not where the job is)</value>
+    <comment>Why a stopped task is listed under Bottlenecks, lower case. {0} is how many it lacks, {1} how many it needs, {2} the item, which is owned at another station.</comment>
+  </data>
+  <data name="SharedTripRestarts" xml:space="preserve">
+    <value>{0} to {1}: one delivery of {2:N0} ({3:N0} m3) restarts {4:N0} job(s)</value>
+    <comment>A trip listed above the Hauling grid. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs it restarts. A remark follows after a dash.</comment>
+  </data>
+  <data name="SharedTripRestartsBehind" xml:space="preserve">
+    <value>{0} to {1}: one delivery of {2:N0} ({3:N0} m3) restarts {4:N0} job(s) and the {5:N0} task(s) behind them</value>
+    <comment>A trip listed above the Hauling grid. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs it restarts, {5} the tasks waiting behind those jobs. A remark follows after a dash.</comment>
+  </data>
+  <data name="SharedTripWanted" xml:space="preserve">
+    <value>{0} to {1}: one delivery of {2:N0} ({3:N0} m3) is wanted by {4:N0} job(s), none of which it restarts on its own</value>
+    <comment>A trip listed above the Hauling grid. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs that want it. A remark follows after a dash.</comment>
+  </data>
+  <data name="SharedTripOthersShort" xml:space="preserve">
+    <value>{0:N0} more want it and are short of other things too</value>
+    <comment>Remark after a trip listed above the Hauling grid, after a dash. {0} is the other stopped jobs that want the item.</comment>
+  </data>
+  <data name="SharedTripRaised" xml:space="preserve">
+    <value>already raised.</value>
+    <comment>End of a trip listed above the Hauling grid, after a dash: a haul for it is already on the Worklist. Lower case.</comment>
+  </data>
+  <data name="SharedTripNothingMoving" xml:space="preserve">
+    <value>nothing moving.</value>
+    <comment>End of a trip listed above the Hauling grid, after a dash: no haul for it is on the Worklist. Lower case.</comment>
+  </data>
+  <data name="WaitStartsOnArrival" xml:space="preserve">
+    <value>starts on arrival</value>
+    <comment>Beside a job in a Worklist row's "waiting on this" panel: this delivery is all the job lacks. Lower case.</comment>
+  </data>
+  <data name="WaitWants" xml:space="preserve">
+    <value>wants {0:N0}</value>
+    <comment>Beside a planned build in a Worklist row's "waiting on this" panel. {0} is how many units of the cargo it wants. Lower case.</comment>
+  </data>
+  <data name="WaitQueuedBehind" xml:space="preserve">
+    <value>queued behind another job</value>
+    <comment>Beside a job in a Worklist row's "waiting on this" panel: an earlier job has already claimed the stock this delivery carries. Lower case.</comment>
+  </data>
+  <data name="WaitAlsoShortOne" xml:space="preserve">
+    <value>also short of {0:N0} item</value>
+    <comment>Beside a job in a Worklist row's "waiting on this" panel: it lacks other items too. {0} is how many (one). Lower case.</comment>
+  </data>
+  <data name="WaitAlsoShortOther" xml:space="preserve">
+    <value>also short of {0:N0} items</value>
+    <comment>Beside a job in a Worklist row's "waiting on this" panel: it lacks other items too. {0} is how many. Lower case.</comment>
+  </data>
+  <data name="WaitTipPlanned" xml:space="preserve">
+    <value>A build this delivery is for. It is what the planner raised the trip for, and has not been broken out into a task of its own yet.</value>
+    <comment>Tooltip beside a planned build in a Worklist row's "waiting on this" panel.</comment>
+  </data>
+  <data name="WaitTipStarts" xml:space="preserve">
+    <value>This haul carries everything the job is short of, so it starts when the cargo lands.</value>
+    <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
+  </data>
+  <data name="WaitTipQueued" xml:space="preserve">
+    <value>The job wants something on this manifest, but an earlier job has already claimed that stock — this load will not reach it.</value>
+    <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
+  </data>
+  <data name="WaitTipStillShort" xml:space="preserve">
+    <value>Still short of {0}.</value>
+    <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel. {0} is a comma-separated list of items.</comment>
+  </data>
+  <data name="WaitTipStillShortMore" xml:space="preserve">
+    <value>Still short of {0}, and {1:N0} more.</value>
+    <comment>Tooltip beside a job in a Worklist row's "waiting on this" panel. {0} is a comma-separated list of the first items, {1} how many more there are.</comment>
+  </data>
+  <data name="WaitTipAlsoBehind" xml:space="preserve">
+    <value>It is also behind another job for something on this manifest.</value>
+    <comment>Added to the tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
+  </data>
+  <data name="MergedDetailPooled" xml:space="preserve">
+    <value>{0:N0} in total — {1:N0} wanted between them, less {2:N0} already on hand, on order or recoverable, counted once. {3}</value>
+    <comment>Worklist task detail for purchases of one item merged from several sources. {0} is the units to buy, {1} what they want between them, {2} the stock counted against that, {3} each source's own reason, separated by bullets.</comment>
+  </data>
+  <data name="MergedDetail" xml:space="preserve">
+    <value>{0:N0} in total. {1}</value>
+    <comment>Worklist task detail for purchases of one item merged from several sources. {0} is the units to buy, {1} each source's own reason, separated by bullets.</comment>
+  </data>
+  <data name="HaulRestartsJobs" xml:space="preserve">
+    <value>Restarts {0:N0} stopped job(s) on arrival: {1}.</value>
+    <comment>Added to a Worklist haul's detail. {0} is the stopped jobs this delivery restarts, {1} a comma-separated list of what they make.</comment>
+  </data>
+  <data name="HaulRestartsJobsMore" xml:space="preserve">
+    <value>Restarts {0:N0} stopped job(s) on arrival: {1}, and {2:N0} more.</value>
+    <comment>Added to a Worklist haul's detail. {0} is the stopped jobs this delivery restarts, {1} a comma-separated list of what the first three make, {2} how many more.</comment>
+  </data>
+  <data name="HaulOthersWantPart" xml:space="preserve">
+    <value>{0:N0} more job(s) want part of this cargo but will not start on this load.</value>
+    <comment>Added to a Worklist haul's detail. {0} is the stopped jobs that want some of the cargo and still lack other things.</comment>
+  </data>
+  <data name="HaulPlannedWantIt" xml:space="preserve">
+    <value>{0:N0} more item(s) here are wanted by planned work that has no stopped job of its own.</value>
+    <comment>Added to a Worklist haul's detail. {0} is the items on the manifest that planned builds want.</comment>
+  </data>
+  <data name="BuyReleasesJobs" xml:space="preserve">
+    <value>Releases {0:N0} stopped job(s): {1}.</value>
+    <comment>Added to a Worklist purchase's detail. {0} is the stopped jobs this purchase lets start, {1} a comma-separated list of what they make.</comment>
+  </data>
+  <data name="BuyReleasesJobsMore" xml:space="preserve">
+    <value>Releases {0:N0} stopped job(s): {1}, and {2:N0} more.</value>
+    <comment>Added to a Worklist purchase's detail. {0} is the stopped jobs this purchase lets start, {1} a comma-separated list of what the first three make, {2} how many more.</comment>
+  </data>
+  <data name="BuyOthersWantIt" xml:space="preserve">
+    <value>{0:N0} more job(s) want this but are short of other things too.</value>
+    <comment>Added to a Worklist purchase's detail. {0} is the stopped jobs that want the item and still lack other things.</comment>
+  </data>
+  <data name="TitleTagBpoBpc" xml:space="preserve">
+    <value>BPO/BPC</value>
+    <comment>In a Worklist purchase title after the item: it is a blueprint, bought as an original (BPO) or a copy (BPC) on contract. Keep the game's own abbreviations if your EVE client uses them.</comment>
+  </data>
+  <data name="StockOfTarget" xml:space="preserve">
+    <value>stock {0:N0} of {1:N0} ({2:0.#}%)</value>
+    <comment>How an inventory level stands, in a Worklist task's detail, lower case. {0} is the stock, {1} the target, {2} the stock as a percentage of the target.</comment>
+  </data>
+  <data name="FillingTo" xml:space="preserve">
+    <value>Filling to {0:0.#}% ({1:N0}).</value>
+    <comment>In a Worklist task's detail, when an inventory rule fills past or short of its target. {0} is the fill percentage, {1} the units that makes.</comment>
+  </data>
+  <data name="SourceInventoryLevels" xml:space="preserve">
+    <value>Inventory Levels</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): buy orders raised when an inventory level runs low.</comment>
+  </data>
+  <data name="SourceMaterialPurchases" xml:space="preserve">
+    <value>Material Purchases</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): materials and blueprints that industry has to buy.</comment>
+  </data>
+  <data name="BlockedNoMarketAltAt" xml:space="preserve">
+    <value>No market alt assigned to {0}</value>
+    <comment>Why a Worklist purchase is blocked. {0} is the buy location; a market alt is a character assigned to buy there (Market tab).</comment>
+  </data>
+  <data name="BlockedNoBuyLocation" xml:space="preserve">
+    <value>No buy location set on the Industry tab</value>
+    <comment>Why a Worklist purchase is blocked: no station is set to buy shortfalls at.</comment>
+  </data>
+  <data name="WantedByPlannedBuilds" xml:space="preserve">
+    <value>Planned builds</value>
+    <comment>Start of a Worklist purchase's detail when no build can be named as the reason for it.</comment>
+  </data>
+  <data name="NameRuns" xml:space="preserve">
+    <value>{0} ({1:N0} run(s))</value>
+    <comment>A build named as the reason for a purchase, in a Worklist task's detail. {0} is what is built, {1} its runs.</comment>
+  </data>
+  <data name="BlueprintWithId" xml:space="preserve">
+    <value>Blueprint {0}</value>
+    <comment>Shown for a blueprint whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="PrintRunsToStock" xml:space="preserve">
+    <value>{0:N0} to stock</value>
+    <comment>Part of a Worklist blueprint purchase's detail: runs wanted on the shelf by an inventory rule. {0} is the runs.</comment>
+  </data>
+  <data name="PrintTitle" xml:space="preserve">
+    <value>{0} — BPO/BPC × {1:N0} run(s)</value>
+    <comment>Worklist task title: blueprint runs to acquire. {0} is the blueprint, {1} the runs. BPO and BPC are EVE's abbreviations for a blueprint original and a blueprint copy.</comment>
+  </data>
+  <data name="OnOrderHere" xml:space="preserve">
+    <value>{0:N0} on order here</value>
+    <comment>A clause in a Worklist purchase's detail, after a comma: units already bought with buy orders at this station. {0} is the units.</comment>
+  </data>
+  <data name="OnOrderElsewhere" xml:space="preserve">
+    <value>{0:N0} on order elsewhere</value>
+    <comment>A clause in a Worklist purchase's detail, after a comma: units already bought with buy orders at other stations. {0} is the units.</comment>
+  </data>
+  <data name="OnOrder" xml:space="preserve">
+    <value>{0:N0} on order</value>
+    <comment>A clause in a Worklist purchase's detail, after a comma: units already bought with buy orders. {0} is the units.</comment>
+  </data>
+  <data name="InProduction" xml:space="preserve">
+    <value>{0:N0} in production</value>
+    <comment>A clause in a Worklist purchase's detail, after a comma: units that running industry jobs will deliver. {0} is the units.</comment>
+  </data>
+  <data name="HeldAndOnOrder" xml:space="preserve">
+    <value>{0:N0} {1} and {2:N0} on order</value>
+    <comment>One source in a list of stock that can be refined or decompressed into the item. {0} is the units held, {1} the source item, {2} the units on buy orders.</comment>
+  </data>
+  <data name="RecoverableFrom" xml:space="preserve">
+    <value>{0:N0} recoverable from {1}</value>
+    <comment>A clause in a Worklist purchase's detail, after a comma: units that can be refined or decompressed out of stock already held. {0} is the units, {1} a comma-separated list of the sources.</comment>
+  </data>
+  <data name="RecoverableFromMore" xml:space="preserve">
+    <value>{0:N0} recoverable from {1} and {2} more</value>
+    <comment>A clause in a Worklist purchase's detail, after a comma: units that can be refined or decompressed out of stock already held. {0} is the units, {1} a comma-separated list of the first sources, {2} how many more there are.</comment>
+  </data>
+  <data name="ShortBy" xml:space="preserve">
+    <value>Short {0:N0}.</value>
+    <comment>In a Worklist task's detail: how many units are still missing. {0} is the units. "Short" is an adjective.</comment>
+  </data>
+  <data name="ShortByTail" xml:space="preserve">
+    <value>short {0:N0}.</value>
+    <comment>End of a Worklist purchase's detail, after a dash: how many units are still missing. {0} is the units. Lower case.</comment>
+  </data>
+  <data name="BelowThreshold" xml:space="preserve">
+    <value>below {0:0.#}%</value>
+    <comment>In a Worklist purchase's detail, after the inventory group: the rule fires below this share of its target. {0} is the percentage. Lower case.</comment>
+  </data>
+  <data name="PurchaseNeedOnHand" xml:space="preserve">
+    <value>{0}: need {1:N0}; {2:N0} on hand</value>
+    <comment>Start of a Worklist purchase's detail; more clauses follow after commas. {0} is what it is for (such as "For Raven (2 run(s))"), {1} the units needed, {2} the units on hand.</comment>
+  </data>
+  <data name="PurchaseNeedOnHandIn" xml:space="preserve">
+    <value>{0}: need {1:N0}; {2:N0} on hand in {3}</value>
+    <comment>Start of a Worklist purchase's detail; more clauses follow after commas. {0} is what it is for, {1} the units needed, {2} the units on hand, {3} the region or system stock is counted in.</comment>
+  </data>
+  <data name="PurchaseNeedOnHandTaken" xml:space="preserve">
+    <value>{0}: need {1:N0}; {2:N0} on hand of which {3:N0} already went into jobs the asset poll has not seen</value>
+    <comment>Start of a Worklist purchase's detail; more clauses follow after commas. {0} is what it is for, {1} the units needed, {2} the units on hand, {3} how many of those jobs started since the last asset update have already used.</comment>
+  </data>
+  <data name="PurchaseNeedOnHandInTaken" xml:space="preserve">
+    <value>{0}: need {1:N0}; {2:N0} on hand in {3} of which {4:N0} already went into jobs the asset poll has not seen</value>
+    <comment>Start of a Worklist purchase's detail; more clauses follow after commas. {0} is what it is for, {1} the units needed, {2} the units on hand, {3} the region or system stock is counted in, {4} how many of those jobs started since the last asset update have already used.</comment>
+  </data>
+  <data name="WantedForOne" xml:space="preserve">
+    <value>For {0}</value>
+    <comment>What a Worklist purchase is for, at the start of its detail. {0} is a build, such as "Raven (2 run(s))".</comment>
+  </data>
+  <data name="WantedForTwo" xml:space="preserve">
+    <value>For {0} and {1}</value>
+    <comment>What a Worklist purchase is for, at the start of its detail. {0} and {1} are builds, such as "Raven (2 run(s))".</comment>
+  </data>
+  <data name="WantedForTwoMore" xml:space="preserve">
+    <value>For {0} and {1} and {2} more</value>
+    <comment>What a Worklist purchase is for, at the start of its detail. {0} and {1} are builds, such as "Raven (2 run(s))"; {2} is how many more builds want it.</comment>
+  </data>
+  <data name="PrintContractPrice" xml:space="preserve">
+    <value>Copies have been seen on contract from {0:N0} ISK a run.</value>
+    <comment>End of a Worklist blueprint purchase's detail. {0} is the lowest price per run seen for copies on contracts.</comment>
+  </data>
+  <data name="PrintRunsFor" xml:space="preserve">
+    <value>{0:N0} for {1}</value>
+    <comment>Part of a Worklist blueprint purchase's detail: runs the queued builds need. {0} is the runs, {1} what they build.</comment>
+  </data>
+  <data name="PrintRunsForQueued" xml:space="preserve">
+    <value>{0:N0} for queued builds</value>
+    <comment>Part of a Worklist blueprint purchase's detail: runs the queued builds need. {0} is the runs.</comment>
+  </data>
+  <data name="PrintOriginalOwned" xml:space="preserve">
+    <value>original owned</value>
+    <comment>A clause in a Worklist blueprint purchase's detail, after a comma: a blueprint original is owned. Lower case.</comment>
+  </data>
+  <data name="PrintCopiesOwned" xml:space="preserve">
+    <value>{0:N0} owned</value>
+    <comment>A clause in a Worklist blueprint purchase's detail, after a comma: runs on blueprint copies already owned. {0} is the runs. Lower case.</comment>
+  </data>
+  <data name="PrintNoneOwned" xml:space="preserve">
+    <value>none owned</value>
+    <comment>A clause in a Worklist blueprint purchase's detail, after a comma: no blueprint is owned. Lower case.</comment>
+  </data>
+  <data name="PrintShortRuns" xml:space="preserve">
+    <value>short {0:N0} run(s).</value>
+    <comment>End of a Worklist blueprint purchase's detail, after a dash: blueprint runs still missing. {0} is the runs. Lower case.</comment>
+  </data>
+  <data name="SourceIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): manufacturing and reaction jobs to start.</comment>
+  </data>
+  <data name="JobDetailBuild" xml:space="preserve">
+    <value>{0} Build {1:N0}.</value>
+    <comment>Worklist job detail when the job cannot be planned at all. {0} is why it is wanted (one or more sentences), {1} the units to build. "Build" is a verb.</comment>
+  </data>
+  <data name="BlockedNoSkilledCharacter" xml:space="preserve">
+    <value>No enabled character has the skills for this job</value>
+    <comment>Why a Worklist job is blocked: no character enabled for industry has the skills it needs.</comment>
+  </data>
+  <data name="BlockedNoCharacterRunsActivity" xml:space="preserve">
+    <value>No enabled character runs this activity</value>
+    <comment>Why a Worklist job is blocked: no character is enabled for this kind of industry job.</comment>
+  </data>
+  <data name="BlockedSiteNotLinked" xml:space="preserve">
+    <value>{0} is not linked to a real structure, so materials cannot be checked</value>
+    <comment>Why a Worklist job is blocked. {0} is the Indy Parks structure the job is assigned to, which is not linked to a real structure.</comment>
+  </data>
+  <data name="BlockedNoLinkedStructure" xml:space="preserve">
+    <value>No linked structure for this job, so materials cannot be checked</value>
+    <comment>Why a Worklist job is blocked: the park assigns it to no structure linked to a real one.</comment>
+  </data>
+  <data name="WaitingAllSlotsBusy" xml:space="preserve">
+    <value>Every character who can run this has all slots busy</value>
+    <comment>Why a Worklist job is waiting: every character who could run it has no free industry slot.</comment>
+  </data>
+  <data name="JobTitleRunsMaking" xml:space="preserve">
+    <value>{0} — {1:N0} run(s) → {2:N0}</value>
+    <comment>Worklist job title. {0} is what it makes, {1} the runs, {2} the units they produce.</comment>
+  </data>
+  <data name="JobTitleRuns" xml:space="preserve">
+    <value>{0} — {1:N0} run(s)</value>
+    <comment>Worklist job title. {0} is what it makes, {1} the runs.</comment>
+  </data>
+  <data name="BlockedNoBlueprintOwned" xml:space="preserve">
+    <value>No blueprint owned — one has to be acquired</value>
+    <comment>Why a Worklist job is blocked: no blueprint for it is owned.</comment>
+  </data>
+  <data name="BlockedBlueprintBusy" xml:space="preserve">
+    <value>Blueprint busy in a running job ({0})</value>
+    <comment>Why a Worklist job is blocked: the blueprint is in another job. {0} describes it, as "BPO ME10/TE20".</comment>
+  </data>
+  <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
+    <value>No blueprint free at {0} ({1})</value>
+    <comment>Why a Worklist job is blocked. {0} is the structure, {1} the best blueprint owned, as "BPO ME10/TE20".</comment>
+  </data>
+  <data name="JobDetailShort" xml:space="preserve">
+    <value>{0} Short {1:N0}.</value>
+    <comment>Start of a Worklist job's detail. {0} is why it is wanted (one or more sentences), {1} how many units are still missing. "Short" is an adjective.</comment>
+  </data>
+  <data name="BlockedPlannerSilent" xml:space="preserve">
+    <value>The planner did not produce a task for this and did not say why — please report it</value>
+    <comment>Why a Worklist job is blocked: the planner dropped it without a reason, which is a bug.</comment>
+  </data>
+  <data name="BlockedNothingMakesIt" xml:space="preserve">
+    <value>Nothing in the SDE makes this, so it can only be bought</value>
+    <comment>Why a Worklist job is blocked: no blueprint in the game data makes this item.</comment>
+  </data>
+  <data name="JobTitleNeeded" xml:space="preserve">
+    <value>{0} — {1:N0} needed</value>
+    <comment>Worklist job title for work that cannot be split into jobs. {0} is the item, {1} the units needed.</comment>
+  </data>
+  <data name="JobDetailShortOf" xml:space="preserve">
+    <value>{0} Short {1:N0} (job {2} of {3}).</value>
+    <comment>Start of a Worklist job's detail when the work is split into several jobs. {0} is why it is wanted (one or more sentences), {1} how many units are still missing, {2} which job this is, {3} how many jobs there are. "Short" is an adjective.</comment>
+  </data>
+  <data name="PrintAt" xml:space="preserve">
+    <value>{0} at {1}.</value>
+    <comment>In a Worklist job's detail: the blueprint the job uses and where it runs. {0} describes the blueprint, as "BPO ME10/TE20"; {1} is the structure.</comment>
+  </data>
+  <data name="JobCutToMaterials" xml:space="preserve">
+    <value>Cut to what the materials on hand cover — {0:N0} more run(s) are on a separate row.</value>
+    <comment>Added to a Worklist job's detail when only part of it can start. {0} is the runs left over, listed as another task.</comment>
+  </data>
+  <data name="JobRestWaiting" xml:space="preserve">
+    <value>The rest of this job, waiting on materials.</value>
+    <comment>Added to the detail of the Worklist task holding the part of a job the materials on hand do not cover.</comment>
+  </data>
+  <data name="JobRunsNoFreePrint" xml:space="preserve">
+    <value>{0:N0} further run(s) have no free print — listed separately.</value>
+    <comment>Added to a Worklist job's detail. {0} is the runs no free blueprint can carry; they are listed as other tasks.</comment>
+  </data>
+  <data name="JobCapGameLimit" xml:space="preserve">
+    <value>Capped by EVE's 30-day limit on a single job.</value>
+    <comment>Added to a Worklist job's detail: why the job is no longer.</comment>
+  </data>
+  <data name="JobCapCopyRuns" xml:space="preserve">
+    <value>Capped by the runs left on the copy.</value>
+    <comment>Added to a Worklist job's detail: why the job is no longer. The copy is a blueprint copy.</comment>
+  </data>
+  <data name="JobCapJobLength" xml:space="preserve">
+    <value>Capped by the {0:0.#}-day job length.</value>
+    <comment>Added to a Worklist job's detail: why the job is no longer. {0} is the maximum job length in days, set on the Other tab.</comment>
+  </data>
+  <data name="JobSizedFullyResearched" xml:space="preserve">
+    <value>Sized against a fully researched print (TE{0}) — none is owned.</value>
+    <comment>Added to a Worklist job's detail when no blueprint is owned. {0} is the time efficiency assumed. TE is EVE's time efficiency.</comment>
+  </data>
+  <data name="JobSizedAgainst" xml:space="preserve">
+    <value>Sized against {0}.</value>
+    <comment>Added to a Worklist job's detail. {0} describes the blueprint its runs were planned on, as "BPO ME10/TE20".</comment>
+  </data>
+  <data name="JobNeedsBlueprintAt" xml:space="preserve">
+    <value>Needs a blueprint at {0}.</value>
+    <comment>In a Worklist job's detail when no blueprint is free for it. {0} is the structure.</comment>
+  </data>
+  <data name="BlockedMaterialsNotAt" xml:space="preserve">
+    <value>Materials not at {0}: {1}</value>
+    <comment>Why a Worklist job is blocked: materials are owned but elsewhere. {0} is the structure, {1} a list of the materials.</comment>
+  </data>
+  <data name="BlockedNotOwned" xml:space="preserve">
+    <value>Not owned: {0}</value>
+    <comment>Why a Worklist job is blocked: materials nobody owns. {0} is a list of them.</comment>
+  </data>
+  <data name="BlockedNotOwnedIn" xml:space="preserve">
+    <value>Not owned in {0}: {1}</value>
+    <comment>Why a Worklist job is blocked: materials nobody owns within the stock scope. {0} is the region or system, {1} a list of the materials.</comment>
+  </data>
+  <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
+    <value>Not owned: {0}; elsewhere: {1}</value>
+    <comment>Why a Worklist job is blocked. {0} lists materials nobody owns, {1} materials owned but at another station.</comment>
+  </data>
+  <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
+    <value>Not owned in {0}: {1}; elsewhere: {2}</value>
+    <comment>Why a Worklist job is blocked. {0} is the region or system stock is counted in, {1} lists materials nobody owns there, {2} materials owned but at another station.</comment>
+  </data>
+  <data name="NamesAndMore" xml:space="preserve">
+    <value>{0}, and {1} more</value>
+    <comment>A list cut short in a Worklist task's text. {0} is the first few names, separated by commas; {1} how many more there are.</comment>
+  </data>
+  <data name="ReasonPendingOrders" xml:space="preserve">
+    <value>{0} pending order(s) for {1:N0}.</value>
+    <comment>Why a Worklist job is wanted, at the start of its detail. {0} is the number of customer orders, {1} the units they ask for.</comment>
+  </data>
+  <data name="ReasonForParent" xml:space="preserve">
+    <value>{0:N0} for {1}.</value>
+    <comment>Why a Worklist job is wanted, at the start of its detail: a build higher up needs it. {0} is the units, {1} what they are for.</comment>
+  </data>
+  <data name="ReasonsAndMore" xml:space="preserve">
+    <value>and {0} more.</value>
+    <comment>After the first three reasons a Worklist job is wanted, at the start of its detail. {0} is how many more reasons there are.</comment>
+  </data>
+  <data name="ReasonKeepingConsuming" xml:space="preserve">
+    <value>Keeping {0:N0} and consuming {1:N0}, against {2:N0} on hand.</value>
+    <comment>Why a Worklist job is wanted: the sum behind its quantity. {0} is the inventory level kept, {1} what builds will consume, {2} what is on hand.</comment>
+  </data>
+  <data name="PrintDescribeBpo" xml:space="preserve">
+    <value>BPO ME{0}/TE{1}</value>
+    <comment>A blueprint original as a Worklist task describes it. {0} is its material efficiency, {1} its time efficiency. BPO, ME and TE are EVE's abbreviations; keep them if your game client does.</comment>
+  </data>
+  <data name="PrintDescribeBpc" xml:space="preserve">
+    <value>BPC ME{0}/TE{1}, {2:N0} run(s) left</value>
+    <comment>A blueprint copy as a Worklist task describes it. {0} is its material efficiency, {1} its time efficiency, {2} the runs left on it. BPC, ME and TE are EVE's abbreviations; keep them if your game client does.</comment>
+  </data>
+  <data name="JobLengthMinutes" xml:space="preserve">
+    <value>{0:0}m</value>
+    <comment>How long a job takes, in a Worklist task's detail after "~". {0} is minutes, as in "45m".</comment>
+  </data>
+  <data name="JobLengthHours" xml:space="preserve">
+    <value>{0:0.#}h</value>
+    <comment>How long a job takes, in a Worklist task's detail after "~". {0} is hours, as in "3.5h".</comment>
+  </data>
+  <data name="JobLengthDays" xml:space="preserve">
+    <value>{0:0.#}d</value>
+    <comment>How long a job takes, in a Worklist task's detail after "~". {0} is days, as in "2.5d".</comment>
+  </data>
+  <data name="HeadDownstream" xml:space="preserve">
+    <value>[{0:N0} item(s) downstream wait on this]</value>
+    <comment>After the reasons a Worklist job is wanted, at the start of its detail. {0} is how many other items to be built need this one.</comment>
+  </data>
+  <data name="SourceInvention" xml:space="preserve">
+    <value>Invention &amp; Copying</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): the copy and invention jobs T2 production needs.</comment>
+  </data>
+  <data name="InventionHead" xml:space="preserve">
+    <value>{0}: short {1:N0} run(s) of T2 production.</value>
+    <comment>Start of a Worklist invention or copy job's detail. {0} is the T2 item, {1} the runs of it still missing.</comment>
+  </data>
+  <data name="WaitingScienceSlotsBusy" xml:space="preserve">
+    <value>Every character who runs science has all slots busy</value>
+    <comment>Why a Worklist invention job is waiting: every character who runs science jobs has no free slot.</comment>
+  </data>
+  <data name="BlockedNotAt" xml:space="preserve">
+    <value>Not at {0}: {1}</value>
+    <comment>Why a Worklist invention job is blocked. {0} is the laboratory, {1} a list of datacores with how many are there, as "Datacore - Mechanical Engineering (4 of 16)".</comment>
+  </data>
+  <data name="InventionTitle" xml:space="preserve">
+    <value>{0} — invent {1:N0} run(s)</value>
+    <comment>Worklist invention job title. {0} is the T2 item, {1} the invention runs (attempts). "invent" is a verb.</comment>
+  </data>
+  <data name="InventionNoCopyDetail" xml:space="preserve">
+    <value>{0} {1:P1} a run → {2:N0} BPC(s) of {3} run(s).</value>
+    <comment>Worklist invention job detail when there is no copy to invent from. {0} is why it is wanted (a sentence), {1} the chance of success per run, {2} the blueprint copies needed, {3} the runs on each. BPC is EVE's abbreviation for a blueprint copy.</comment>
+  </data>
+  <data name="BlockedNoCopyToInvent" xml:space="preserve">
+    <value>No {0} copy at {1} to invent from</value>
+    <comment>Why a Worklist invention job is blocked. {0} is the T1 blueprint, {1} the laboratory.</comment>
+  </data>
+  <data name="CopyTitleNoOriginal" xml:space="preserve">
+    <value>{0} — no original to copy from</value>
+    <comment>Worklist copy job title when no original is owned. {0} is the T1 blueprint.</comment>
+  </data>
+  <data name="CopyNeedsRunsDetail" xml:space="preserve">
+    <value>{0} Invention needs {1:N0} copy run(s) and {2:N0} are owned.</value>
+    <comment>Worklist copy job detail when no original is owned. {0} is why it is wanted (a sentence), {1} the copy runs invention needs, {2} the copy runs owned.</comment>
+  </data>
+  <data name="BlockedNoBpoToCopy" xml:space="preserve">
+    <value>No BPO owned on any character — one has to be acquired, or the copies bought outright</value>
+    <comment>Why a Worklist copy job is blocked: no blueprint original to copy from. BPO is EVE's abbreviation for a blueprint original.</comment>
+  </data>
+  <data name="CopyTitle" xml:space="preserve">
+    <value>{0} — copy {1:N0} × {2:N0} run(s)</value>
+    <comment>Worklist copy job title. {0} is the T1 blueprint, {1} the copies to make, {2} the runs on each. "copy" is a verb.</comment>
+  </data>
+  <data name="BlockedOriginalNotAt" xml:space="preserve">
+    <value>The original is not at {0} — it has to be moved there first</value>
+    <comment>Why a Worklist copy job is blocked. {0} is the laboratory the original has to be moved to.</comment>
+  </data>
+  <data name="NoDecryptor" xml:space="preserve">
+    <value>no decryptor</value>
+    <comment>In a Worklist invention job's detail, inside brackets: the invention uses no decryptor. Lower case.</comment>
+  </data>
+  <data name="NameHaveOfWant" xml:space="preserve">
+    <value>{0} ({1:N0} of {2:N0})</value>
+    <comment>A datacore in the list of what an invention job lacks. {0} is the item, {1} how many the laboratory holds, {2} how many the job needs.</comment>
+  </data>
+  <data name="InventionCutToDatacores" xml:space="preserve">
+    <value>Cut to what the datacores on hand cover — {0:N0} more attempt(s) are on a separate row.</value>
+    <comment>Added to a Worklist invention job's detail when only part of it can start. {0} is the attempts left over, listed as another task.</comment>
+  </data>
+  <data name="InventionRestWaiting" xml:space="preserve">
+    <value>The rest of this batch, waiting on datacores.</value>
+    <comment>Added to the detail of the Worklist task holding the part of an invention batch the datacores on hand do not cover.</comment>
+  </data>
+  <data name="JobIndexOf" xml:space="preserve">
+    <value>(job {0} of {1})</value>
+    <comment>In a Worklist invention job's detail when the work is split into several jobs. {0} is which job this is, {1} how many there are.</comment>
+  </data>
+  <data name="JobCapSourceCopyRuns" xml:space="preserve">
+    <value>Capped by the runs left on the source copy.</value>
+    <comment>Added to a Worklist invention job's detail: why the job is no longer. The source copy is the T1 blueprint copy invented from.</comment>
+  </data>
+  <data name="InventionAttemptsNoCopy" xml:space="preserve">
+    <value>{0:N0} further attempt(s) need a source copy — none free.</value>
+    <comment>Added to a Worklist invention job's detail. {0} is the invention attempts no free T1 blueprint copy can carry.</comment>
+  </data>
+  <data name="InventionOdds" xml:space="preserve">
+    <value>{0:P1} a run ({1:P0} base, {2}) → {3:N0} BPC(s) of {4} run(s) at ME{5}/TE{6} over {7:N0} attempt(s).</value>
+    <comment>In a Worklist invention job's detail. {0} is the chance of success per run, {1} the base chance, {2} the decryptor used (or "no decryptor"), {3} the blueprint copies needed, {4} the runs on each, {5} and {6} their material and time efficiency, {7} the attempts. BPC, ME and TE are EVE's abbreviations.</comment>
+  </data>
+  <data name="CopyFeedsDetail" xml:space="preserve">
+    <value>{0} Feeds {1:N0} invention attempt(s); {2:N0} copy run(s) already owned.</value>
+    <comment>Worklist copy job detail. {0} is why it is wanted (a sentence), {1} the invention attempts the copies feed, {2} the copy runs already owned.</comment>
+  </data>
+  <data name="SourceRefining" xml:space="preserve">
+    <value>Refining</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): ore, ice and gas to reprocess or decompress.</comment>
+  </data>
+  <data name="RefineTitleOne" xml:space="preserve">
+    <value>Reprocess {0} — {1:N0} units</value>
+    <comment>Worklist task title: one kind of ore or ice to reprocess at a refinery. {0} is the item, {1} the units. "Reprocess" is a verb.</comment>
+  </data>
+  <data name="RefineTitleMany" xml:space="preserve">
+    <value>Reprocess {0} ore types — {1:N0} units</value>
+    <comment>Worklist task title: several kinds of ore or ice to reprocess at a refinery. {0} is how many kinds, {1} the units. "Reprocess" is a verb.</comment>
+  </data>
+  <data name="DecompressTitleOne" xml:space="preserve">
+    <value>Decompress {0} — {1:N0} units</value>
+    <comment>Worklist task title: one kind of compressed gas to decompress. {0} is the item, {1} the units. "Decompress" is a verb.</comment>
+  </data>
+  <data name="DecompressTitleMany" xml:space="preserve">
+    <value>Decompress {0} compressed gas types — {1:N0} units</value>
+    <comment>Worklist task title: several kinds of compressed gas to decompress. {0} is how many kinds, {1} the units. "Decompress" is a verb.</comment>
+  </data>
+  <data name="RefineDetail" xml:space="preserve">
+    <value>At {0}: {1:N0} units reprocessable in whole batches — {2}. Anything short of a full batch stays where it is.</value>
+    <comment>Worklist reprocessing task detail. {0} is the refinery, {1} the units, {2} a comma-separated list of the largest lots, as "12,000 Veldspar".</comment>
+  </data>
+  <data name="RefineDetailMore" xml:space="preserve">
+    <value>At {0}: {1:N0} units reprocessable in whole batches — {2} and {3} more. Anything short of a full batch stays where it is.</value>
+    <comment>Worklist reprocessing task detail. {0} is the refinery, {1} the units, {2} a comma-separated list of the three largest lots, as "12,000 Veldspar"; {3} how many more kinds there are.</comment>
+  </data>
+  <data name="DecompressDetail" xml:space="preserve">
+    <value>At {0}: {1:N0} units to decompress — {2}.</value>
+    <comment>Worklist decompression task detail. {0} is the structure, {1} the units, {2} a comma-separated list of the largest lots.</comment>
+  </data>
+  <data name="DecompressDetailMore" xml:space="preserve">
+    <value>At {0}: {1:N0} units to decompress — {2} and {3} more.</value>
+    <comment>Worklist decompression task detail. {0} is the structure, {1} the units, {2} a comma-separated list of the three largest lots, {3} how many more kinds there are.</comment>
+  </data>
+  <data name="SourceAssetSafety" xml:space="preserve">
+    <value>Asset Safety</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): items in asset safety that need a delivery decision.</comment>
+  </data>
+  <data name="StationWithIdLower" xml:space="preserve">
+    <value>station {0}</value>
+    <comment>Mid-sentence, for a station whose name is not known. {0} is its id. Lower case.</comment>
+  </data>
+  <data name="UnnamedStructureWithId" xml:space="preserve">
+    <value>Unnamed structure {0}</value>
+    <comment>Shown for a player structure whose name cannot be read. {0} is its id.</comment>
+  </data>
+  <data name="CharacterWithId" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>Shown for a character whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="SafetyChooseDestinationOne" xml:space="preserve">
+    <value>choose a destination for {0:N0} asset safety wrap</value>
+    <comment>Worklist task title, after the station ("Station — choose a destination…"): items in asset safety can be sent somewhere now. {0} is the number of Asset Safety Wraps (one). Lower case.</comment>
+  </data>
+  <data name="SafetyChooseDestinationOther" xml:space="preserve">
+    <value>choose a destination for {0:N0} asset safety wraps</value>
+    <comment>Worklist task title, after the station ("Station — choose a destination…"): items in asset safety can be sent somewhere now. {0} is the number of Asset Safety Wraps. Lower case.</comment>
+  </data>
+  <data name="SafetyTypesInOneWrapOne" xml:space="preserve">
+    <value>{0:N0} item type in 1 wrap</value>
+    <comment>What an asset safety task holds, in its Worklist detail. {0} is the kinds of item (one) in the one Asset Safety Wrap.</comment>
+  </data>
+  <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
+    <value>{0:N0} item types in 1 wrap</value>
+    <comment>What an asset safety task holds, in its Worklist detail. {0} is the kinds of item in the one Asset Safety Wrap.</comment>
+  </data>
+  <data name="SafetyTypesAcrossWraps" xml:space="preserve">
+    <value>{0:N0} item types across {1:N0} wraps</value>
+    <comment>What an asset safety task holds, in its Worklist detail. {0} is the kinds of item, {1} the Asset Safety Wraps (always more than one).</comment>
+  </data>
+  <data name="SafetyDetail" xml:space="preserve">
+    <value>{0}. {1}. Delivers itself to {2} in {3}d {4}h ({5:d MMM HH:mm}) at the higher fee if left.</value>
+    <comment>Worklist asset safety task detail. {0} is the owner, {1} what the wraps hold (such as "12 item types across 2 wraps"), {2} the station the game will deliver to, {3} and {4} the days and hours left, {5} when that happens.</comment>
+  </data>
+  <data name="SourceLogistics" xml:space="preserve">
+    <value>Logistics</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): hauls that move material to where it is needed.</comment>
+  </data>
+  <data name="HaulTitleItems" xml:space="preserve">
+    <value>{0} item(s)</value>
+    <comment>Worklist haul title: how many kinds of item the trip carries. {0} is the number; the route is shown beside it.</comment>
+  </data>
+  <data name="HaulWhyUnblocking" xml:space="preserve">
+    <value>Jobs are waiting on this.</value>
+    <comment>Worklist haul detail: stopped jobs need this cargo.</comment>
+  </data>
+  <data name="HaulWhyRestock" xml:space="preserve">
+    <value>Tops the station up to its level.</value>
+    <comment>Worklist haul detail: the trip refills a station level (Station Levels tab).</comment>
+  </data>
+  <data name="HaulWhyRefine" xml:space="preserve">
+    <value>For refining or decompression.</value>
+    <comment>Worklist haul detail: the cargo goes to where it is reprocessed or decompressed.</comment>
+  </data>
+  <data name="HaulWhySurplus" xml:space="preserve">
+    <value>Spare stock going to where its group lives.</value>
+    <comment>Worklist haul detail: spare stock going to the station that collects its inventory group (Station Levels tab).</comment>
+  </data>
+  <data name="PlaceInSpace" xml:space="preserve">
+    <value>{0} (in space)</value>
+    <comment>Where something is when it is not in a station: in space in a solar system. {0} is the system.</comment>
+  </data>
+  <data name="DriverBuild" xml:space="preserve">
+    <value>build</value>
+    <comment>In a Station Needs row's "asked for by" list: the need is materials for building the item named beside it. A noun. Lower case.</comment>
+  </data>
+  <data name="DriverBlueprintFor" xml:space="preserve">
+    <value>blueprint for</value>
+    <comment>In a Station Needs row's "asked for by" list: the need is the blueprint for building the item named beside it. Lower case.</comment>
+  </data>
+  <data name="DriverInvention" xml:space="preserve">
+    <value>invention</value>
+    <comment>In a Station Needs row's "asked for by" list: the need is datacores and decryptors for inventing the item named beside it. Lower case.</comment>
+  </data>
+  <data name="DriverCopiesForInvention" xml:space="preserve">
+    <value>copies for invention</value>
+    <comment>In a Station Needs row's "asked for by" list: the need is blueprint copies to invent the item named beside it from. Lower case.</comment>
+  </data>
+  <data name="DriverStationLevel" xml:space="preserve">
+    <value>station level</value>
+    <comment>In a Station Needs row's "asked for by" list: a station level (Station Levels tab) asks for this stock, whatever jobs there are. Lower case.</comment>
+  </data>
+  <data name="HaulAdviceIdleNowhere" xml:space="preserve">
+    <value>Stopped for want of {0:N0} item(s) already owned. {1:N0} m3 to move, none of it reachable in scope. No haul on the list brings any of it here, so nothing about this changes on its own.</value>
+    <comment>Suggestion on the Bottlenecks → Hauling tab for a stopped job no haul serves. {0} is the kinds of item it lacks, {1} their volume in cubic metres.</comment>
+  </data>
+  <data name="HaulAdviceIdleOnePlace" xml:space="preserve">
+    <value>Stopped for want of {0:N0} item(s) already owned. {1:N0} m3 to move, all of it from one place. No haul on the list brings any of it here, so nothing about this changes on its own.</value>
+    <comment>Suggestion on the Bottlenecks → Hauling tab for a stopped job no haul serves. {0} is the kinds of item it lacks, {1} their volume in cubic metres.</comment>
+  </data>
+  <data name="HaulAdviceIdlePlaces" xml:space="preserve">
+    <value>Stopped for want of {0:N0} item(s) already owned. {1:N0} m3 to move, from {2:N0} places. No haul on the list brings any of it here, so nothing about this changes on its own.</value>
+    <comment>Suggestion on the Bottlenecks → Hauling tab for a stopped job no haul serves. {0} is the kinds of item it lacks, {1} their volume in cubic metres, {2} the places to pick them up from.</comment>
+  </data>
+  <data name="HaulAdviceSeveralStops" xml:space="preserve">
+    <value>Stopped for want of {0:N0} item(s), {1:N0} m3 in all, from {2:N0} places, with {3:N0} haul(s) already raised. More than one pickup, so it stays stopped until the last of them lands.</value>
+    <comment>Suggestion on the Bottlenecks → Hauling tab. {0} is the kinds of item the job lacks, {1} their volume in cubic metres, {2} the places to pick them up from, {3} the hauls already on the Worklist.</comment>
+  </data>
+  <data name="HaulAdviceRaised" xml:space="preserve">
+    <value>Stopped, and {0:N0} haul(s) are already raised to bring the {1:N0} m3 here. Nothing to decide — it starts when the material arrives.</value>
+    <comment>Suggestion on the Bottlenecks → Hauling tab. {0} is the hauls already on the Worklist, {1} the volume in cubic metres.</comment>
+  </data>
+  <data name="HaulAdviceBehind" xml:space="preserve">
+    <value>{0:N0} further task(s) are stopped behind it.</value>
+    <comment>Added to a suggestion on the Bottlenecks → Hauling tab. {0} is the tasks waiting on this job's output.</comment>
+  </data>
+  <data name="HaulNeedNowhere" xml:space="preserve">
+    <value>short {0:N0} of {1:N0}, {2:N0} m3 — from nowhere in scope</value>
+    <comment>An item a stopped job lacks, in a Hauling row's expanded list. {0} is how many it lacks, {1} how many it needs, {2} the volume lacking in cubic metres. Lower case.</comment>
+  </data>
+  <data name="HaulNeedFrom" xml:space="preserve">
+    <value>short {0:N0} of {1:N0}, {2:N0} m3 — from {3}</value>
+    <comment>An item a stopped job lacks, in a Hauling row's expanded list. {0} is how many it lacks, {1} how many it needs, {2} the volume lacking in cubic metres, {3} the station to fetch it from. Lower case.</comment>
+  </data>
+  <data name="HaulNeedFromMore" xml:space="preserve">
+    <value>short {0:N0} of {1:N0}, {2:N0} m3 — from {3} and {4:N0} more</value>
+    <comment>An item a stopped job lacks, in a Hauling row's expanded list. {0} is how many it lacks, {1} how many it needs, {2} the volume lacking in cubic metres, {3} the first station to fetch it from, {4} how many more stations. Lower case.</comment>
+  </data>
+  <data name="StopsOne" xml:space="preserve">
+    <value>{0:N0} stop</value>
+    <comment>In the State column of a Hauling row's expanded list: pickups needed for one item. {0} is the number (one).</comment>
+  </data>
+  <data name="StopsOther" xml:space="preserve">
+    <value>{0:N0} stops</value>
+    <comment>In the State column of a Hauling row's expanded list: pickups needed for one item. {0} is the number.</comment>
+  </data>
+  <data name="WhyOnListFrom" xml:space="preserve">
+    <value>already on the list, from {0}</value>
+    <comment>A haul in a Hauling row's expanded list: it is already a Worklist task. {0} is where it picks up. Lower case.</comment>
+  </data>
+  <data name="WhyOnList" xml:space="preserve">
+    <value>already on the list</value>
+    <comment>A haul in a Hauling row's expanded list: it is already a Worklist task. Lower case.</comment>
+  </data>
+  <data name="WhyReadyToInstall" xml:space="preserve">
+    <value>ready to install</value>
+    <comment>Beside a job in a Bottlenecks row's expanded list: nothing stands in its way. Lower case.</comment>
+  </data>
+  <data name="RunsInstalled" xml:space="preserve">
+    <value>{0:N0} run(s) installed</value>
+    <comment>A running industry job in a Bottlenecks row's expanded list. {0} is its runs.</comment>
+  </data>
+  <data name="JobLands" xml:space="preserve">
+    <value>lands {0:d MMM HH:mm}</value>
+    <comment>When a running industry job finishes, in a Bottlenecks row's expanded list. {0} is the date and time. Lower case; "lands" means is delivered.</comment>
+  </data>
+  <data name="AdviceStopped" xml:space="preserve">
+    <value>{0:N0} task(s) stopped</value>
+    <comment>Opening clause of a suggestion on the Item Contention tab, not a sentence on its own. {0} is the tasks stopped for want of the item.</comment>
+  </data>
+  <data name="AdviceStoppedChain" xml:space="preserve">
+    <value>{0:N0} task(s) stopped, {1:N0} of them directly short of it</value>
+    <comment>Opening clause of a suggestion on the Item Contention tab, not a sentence on its own. {0} is the tasks stopped, counting those behind others; {1} those short of the item themselves.</comment>
+  </data>
+  <data name="AdviceNothingMade" xml:space="preserve">
+    <value>Not one has been made in the last {0} days, which is what drained it.</value>
+    <comment>Added to a suggestion on the Item Contention tab. {0} is the number of days measured.</comment>
+  </data>
+  <data name="AdviceMakingRunning" xml:space="preserve">
+    <value>{0:N0} job(s) making it are running now.</value>
+    <comment>Added to a suggestion on the Item Contention tab. {0} is the running industry jobs that make the item.</comment>
+  </data>
+  <data name="AdviceMakingReady" xml:space="preserve">
+    <value>{0:N0} task(s) to make it are ready to start — starting them is the fix.</value>
+    <comment>Added to a suggestion on the Item Contention tab. {0} is the Worklist jobs that make the item and can start now.</comment>
+  </data>
+  <data name="AdviceMakingWaiting" xml:space="preserve">
+    <value>{0:N0} task(s) to make it are waiting on a free slot.</value>
+    <comment>Added to a suggestion on the Item Contention tab. {0} is the Worklist jobs that make the item and wait for an industry slot.</comment>
+  </data>
+  <data name="AdviceMakingBlocked" xml:space="preserve">
+    <value>Nothing is refilling it: all {0:N0} task(s) to make it are blocked too.</value>
+    <comment>Added to a suggestion on the Item Contention tab. {0} is the Worklist jobs that make the item, all of them blocked.</comment>
+  </data>
+  <data name="AdviceMakingNone" xml:space="preserve">
+    <value>Nothing on the list is making it at all.</value>
+    <comment>Added to a suggestion on the Item Contention tab: no Worklist job makes the item.</comment>
+  </data>
+  <data name="AdviceOnOrder" xml:space="preserve">
+    <value>{0}, and nothing here makes it — but {1:N0} unit(s) are already bid for on the market against a shortfall of {2:N0}. Nothing further to raise; the jobs start when the buy order fills.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units on our buy orders, {2} the units missing.</comment>
+  </data>
+  <data name="AdviceBuyNow" xml:space="preserve">
+    <value>{0}, and nothing here makes it.</value>
+    <comment>First sentence of a suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped".</comment>
+  </data>
+  <data name="AdviceBuyNowOnOrder" xml:space="preserve">
+    <value>{0:N0} unit(s) are on order against a shortfall of {1:N0}, so the bid needs raising rather than placing.</value>
+    <comment>Middle of a suggestion on the Item Contention tab. {0} is the units on our buy orders, {1} the units missing.</comment>
+  </data>
+  <data name="AdviceBuyNowLevel" xml:space="preserve">
+    <value>Drawn on at {0:N1}/day against a level of {1:N0}. Buying is the only thing that starts them.</value>
+    <comment>End of a suggestion on the Item Contention tab. {0} is the units used per day, {1} the inventory level set for it.</comment>
+  </data>
+  <data name="AdviceBuyNowNoLevel" xml:space="preserve">
+    <value>Drawn on at {0:N1}/day with no level set to hold any. Buying is the only thing that starts them.</value>
+    <comment>End of a suggestion on the Item Contention tab. {0} is the units used per day.</comment>
+  </data>
+  <data name="AdviceBufferSpent" xml:space="preserve">
+    <value>{0} with {1:N0} left. Demand is running {2:N1}× its {3}-day average and the level of {4:N0} covered {5:N0} day(s) of ordinary draw but not this. A larger level absorbs the next wave; if waves like this are routine, the durable fix is making more of it, since no level survives a rate it cannot refill at.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units on hand, {2} how many times the usual rate it is being used at, {3} the days that average covers, {4} the inventory level, {5} the days that level lasts.</comment>
+  </data>
+  <data name="AdviceLevelTooLow" xml:space="preserve">
+    <value>{0}. The work on the list needs {1:N0} and {2:N0} are on hand — the level of {3:N0} is met, so this is not a buffer that ran out but one sized for {4:N0} day(s) of ordinary draw when the work in front of it wants {5:N0} more than exists. Raising the level, or making more, is what closes that gap.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units the work needs, {2} the units on hand, {3} the inventory level, {4} the days that level lasts, {5} the units missing.</comment>
+  </data>
+  <data name="AdviceLevelTooLowWave" xml:space="preserve">
+    <value>{0}. The work on the list needs {1:N0} and {2:N0} are on hand — the level of {3:N0} is met, so this is not a buffer that ran out but one sized for {4:N0} day(s) of ordinary draw when the work in front of it wants {5:N0} more than exists, with demand running {6:N1}× its {7}-day average. Raising the level, or making more, is what closes that gap.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units the work needs, {2} the units on hand, {3} the inventory level, {4} the days that level lasts, {5} the units missing, {6} how many times the usual rate it is being used at, {7} the days that average covers.</comment>
+  </data>
+  <data name="AdviceNoBuffer" xml:space="preserve">
+    <value>{0} and nothing sets a level for this at all, though it is drawn on at {1:N1}/day. There is no cushion by construction: every unit has to be made or bought exactly when it is wanted. Short {2:N0} against what the list needs.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units used per day, {2} the units missing.</comment>
+  </data>
+  <data name="AdviceNotTheShelf" xml:space="preserve">
+    <value>{0}, but {1:N0} are on hand and the work needs {2:N0} — this material is not what stopped them. Something else on those jobs is short, or they are waiting on a slot, a blueprint, or stock sitting at another station.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units on hand, {2} the units the work needs.</comment>
+  </data>
+  <data name="AdviceBlocked" xml:space="preserve">
+    <value>{0} with {1:N0} left against a level of {2:N0} — about {3:N0} day(s) of cover at {4:N1}/day, and it ran out. Either the level is too low for how fast this moves, or it is not being refilled in time.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is a clause such as "3 task(s) stopped", {1} the units on hand, {2} the inventory level, {3} the days that level lasts, {4} the units used per day.</comment>
+  </data>
+  <data name="AdviceBuy" xml:space="preserve">
+    <value>None owned and nothing here makes it, drawn on at {0:N1}/day. Nothing is stopped yet.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is the units used per day.</comment>
+  </data>
+  <data name="AdviceMakingTooFew" xml:space="preserve">
+    <value>Consumed {0:N1}/day against {1:N1}/day made, and demand is flat. More production, not a larger buffer.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is the units used per day, {1} the units made per day.</comment>
+  </data>
+  <data name="AdviceMakingTooFewEmpty" xml:space="preserve">
+    <value>Consumed {0:N1}/day against {1:N1}/day made, and demand is flat. Empty in about {2:N0} day(s) at this rate. More production, not a larger buffer.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is the units used per day, {1} the units made per day, {2} the days until none is left.</comment>
+  </data>
+  <data name="AdviceWave" xml:space="preserve">
+    <value>Being drawn on {0:N1}× harder than usual — a build wave passing through. {1:N0} left, roughly {2:N0} day(s) at the current draw. Nothing is stopped yet; worth watching rather than acting on.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is how many times the usual rate it is being used at, {1} the units on hand, {2} the days they last.</comment>
+  </data>
+  <data name="AdviceNoLevelSet" xml:space="preserve">
+    <value>Consumed {0:N1}/day with nothing asking to keep any on the shelf, so there is no cushion at all when demand rises.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is the units used per day.</comment>
+  </data>
+  <data name="AdviceBufferThin" xml:space="preserve">
+    <value>The level of {0:N0} is {1:N0} day(s) at {2:N1}/day. Anything taking longer than that to replace will block before it arrives.</value>
+    <comment>Suggestion on the Item Contention tab. {0} is the inventory level, {1} the days it lasts, {2} the units used per day.</comment>
+  </data>
+  <data name="AdviceHolding" xml:space="preserve">
+    <value>{0:N0} day(s) of cover at {1:N1}/day, replaced at {2:N1}/day.</value>
+    <comment>Suggestion on the Item Contention tab when nothing is wrong. {0} is the days the inventory level lasts, {1} the units used per day, {2} the units made per day.</comment>
+  </data>
+  <data name="RemedyEffect" xml:space="preserve">
+    <value>backlog clears in {0:N0}d instead of {1:N0}d</value>
+    <comment>What a way of adding industry slots does to the queue, on the Bottlenecks → Slots tab. {0} is the days to work through it afterwards, {1} the days as things stand; "d" abbreviates days.</comment>
+  </data>
+  <data name="RemedyTrain" xml:space="preserve">
+    <value>Train the characters already running this</value>
+    <comment>A way to get more industry slots, on the Bottlenecks → Slots tab: train the skills of the characters already running this kind of job.</comment>
+  </data>
+  <data name="RemedyTrainNone" xml:space="preserve">
+    <value>Everyone running this pool is already at the skill cap.</value>
+    <comment>Beside the remedy "Train the characters already running this" when there is nothing left to train.</comment>
+  </data>
+  <data name="RemedyTrainDetail" xml:space="preserve">
+    <value>{0} character(s) below the {1}-slot cap: {2}</value>
+    <comment>Beside the remedy "Train the characters already running this". {0} is the characters below the cap, {1} the most slots one character can have, {2} a list of them with the slots each would gain, as "Name +2, Name +5".</comment>
+  </data>
+  <data name="RemedyEnable" xml:space="preserve">
+    <value>Enable characters currently switched off for this pool</value>
+    <comment>A way to get more industry slots, on the Bottlenecks → Slots tab: switch on characters that are not set to run this kind of job.</comment>
+  </data>
+  <data name="RemedyEnableNone" xml:space="preserve">
+    <value>Every configured character already runs this pool.</value>
+    <comment>Beside the remedy "Enable characters currently switched off for this pool" when none is switched off.</comment>
+  </data>
+  <data name="RemedyEnableDetail" xml:space="preserve">
+    <value>{0} character(s) switched off, holding {1:N0} slot(s) today — usually off for a reason, so read this as a size rather than a plan. {2}</value>
+    <comment>Beside the remedy "Enable characters currently switched off for this pool". {0} is the characters switched off, {1} the slots they have, {2} a list of them with their slots, as "Name +10", or empty.</comment>
+  </data>
+  <data name="RemedyAccount" xml:space="preserve">
+    <value>Add {0} characters (one account), trained to the cap</value>
+    <comment>A way to get more industry slots, on the Bottlenecks → Slots tab. {0} is the characters on one EVE account.</comment>
+  </data>
+  <data name="RemedyAccountDetail" xml:space="preserve">
+    <value>{0} × {1} slots against the {2:N0} running now. Training is not instant — this is the ceiling it buys.</value>
+    <comment>Beside the remedy of adding an account. {0} is the characters on one account, {1} the most slots one character can have, {2} the slots running now.</comment>
+  </data>
+  <data name="ContentionScale" xml:space="preserve">
+    <value>Measured across {0:N0} blueprint(s) over {1} days: {2:N0} never had every original busy at once, the middle sits at {3:N0}%, and the busiest tenth start at {4:N0}% — which is the line the flags use.</value>
+    <comment>End of the Bottlenecks status line: how the blueprint flags were measured. {0} is the blueprints measured, {1} the days, {2} how many never had every original busy at once, {3} the middle value, {4} where the busiest tenth begins, both as a share of the time.</comment>
+  </data>
+  <data name="PrintAdviceBlockingBpo" xml:space="preserve">
+    <value>Every BPO was busy {0:N0}% of the last {1} days, and {2:N0} job(s) cannot start right now. Another BPO takes the ceiling from {3:N2} to {4:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every blueprint original was in a job at once, {1} the days measured, {2} the jobs that cannot start, {3} and {4} the units a day now and with one more original. BPO is EVE's blueprint original.</comment>
+  </data>
+  <data name="PrintAdviceBlockingFormula" xml:space="preserve">
+    <value>Every formula was busy {0:N0}% of the last {1} days, and {2:N0} job(s) cannot start right now. Another formula takes the ceiling from {3:N2} to {4:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every reaction formula was in a job at once, {1} the days measured, {2} the jobs that cannot start, {3} and {4} the units a day now and with one more formula.</comment>
+  </data>
+  <data name="PrintAdviceSteadyBpo" xml:space="preserve">
+    <value>Every BPO was busy {0:N0}% of the last {1} days with {2:N0} job(s) queued — wanting another means waiting for one to free up. A further BPO takes the ceiling to {3:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every blueprint original was in a job at once, {1} the days measured, {2} the jobs queued, {3} the units a day with one more original.</comment>
+  </data>
+  <data name="PrintAdviceSteadyFormula" xml:space="preserve">
+    <value>Every formula was busy {0:N0}% of the last {1} days with {2:N0} job(s) queued — wanting another means waiting for one to free up. A further formula takes the ceiling to {3:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every reaction formula was in a job at once, {1} the days measured, {2} the jobs queued, {3} the units a day with one more formula.</comment>
+  </data>
+  <data name="PrintAdviceContendedBpo" xml:space="preserve">
+    <value>Every BPO was busy {0:N0}% of the last {1} days, but nothing is queued for it today. Worth watching rather than buying for.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every blueprint original was in a job at once, {1} the days measured.</comment>
+  </data>
+  <data name="PrintAdviceContendedFormula" xml:space="preserve">
+    <value>Every formula was busy {0:N0}% of the last {1} days, but nothing is queued for it today. Worth watching rather than buying for.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every reaction formula was in a job at once, {1} the days measured.</comment>
+  </data>
+  <data name="PrintAdviceBlockedBpo" xml:space="preserve">
+    <value>{0:N0} job(s) cannot start, though the BPOs on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another BPO — this looks like something other than the blueprint.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every blueprint original was in a job at once.</comment>
+  </data>
+  <data name="PrintAdviceBlockedFormula" xml:space="preserve">
+    <value>{0:N0} job(s) cannot start, though the formulas on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another formula — this looks like something other than the blueprint.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every reaction formula was in a job at once.</comment>
+  </data>
+  <data name="PrintAdviceSurgeBpo" xml:space="preserve">
+    <value>{0:N0} job(s) want it now, but every BPO was free for almost all of the last {1} days. A one-off rather than a standing need — a BPC may serve better than an original.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that want the blueprint, {1} the days measured. BPC is EVE's blueprint copy.</comment>
+  </data>
+  <data name="PrintAdviceSurgeFormula" xml:space="preserve">
+    <value>{0:N0} job(s) want it now, but every formula was free for almost all of the last {1} days. A one-off rather than a standing need — a BPC may serve better than an original.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that want the formula, {1} the days measured. BPC is EVE's blueprint copy.</comment>
+  </data>
+  <data name="PrintAdviceMinorBpo" xml:space="preserve">
+    <value>Every BPO was busy {0:N0}% of the last {1} days — real, but outside the busiest tenth here, and nothing is queued for it. Another BPO would take the ceiling to {2:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every blueprint original was in a job at once, {1} the days measured, {2} the units a day with one more original.</comment>
+  </data>
+  <data name="PrintAdviceMinorFormula" xml:space="preserve">
+    <value>Every formula was busy {0:N0}% of the last {1} days — real, but outside the busiest tenth here, and nothing is queued for it. Another formula would take the ceiling to {2:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the share of the time every reaction formula was in a job at once, {1} the days measured, {2} the units a day with one more formula.</comment>
+  </data>
+  <data name="PrintAdviceBuildingBpo" xml:space="preserve">
+    <value>{0:N0} job(s) queued; every BPO busy {1:N0}% of the window. Another BPO would take the ceiling to {2:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the jobs queued, {1} the share of the time every blueprint original was in a job at once, {2} the units a day with one more original.</comment>
+  </data>
+  <data name="PrintAdviceBuildingFormula" xml:space="preserve">
+    <value>{0:N0} job(s) queued; every formula busy {1:N0}% of the window. Another formula would take the ceiling to {2:N2}/day.</value>
+    <comment>Suggestion on the BPO / Formula tab. {0} is the jobs queued, {1} the share of the time every reaction formula was in a job at once, {2} the units a day with one more formula.</comment>
+  </data>
+  <data name="SummarySlotRemedy" xml:space="preserve">
+    <value>{0} — +{1:N0} slots ({2:N0}%)</value>
+    <comment>A line under a slots finding on the Bottlenecks → Summary tab. {0} is the remedy, such as "Train the characters already running this"; {1} the slots it adds, {2} that as a share of the slots there now.</comment>
+  </data>
+  <data name="SummaryBuyPrint" xml:space="preserve">
+    <value>{0} — buy 1 of {1:N0} owned (+{2:N0}% output)</value>
+    <comment>A line under a blueprints finding on the Bottlenecks → Summary tab. {0} is the item, {1} the originals owned, {2} how much more output one more would give, in percent.</comment>
+  </data>
+  <data name="SummaryPlaceBuyOrders" xml:space="preserve">
+    <value>Place {0:N0} buy order(s)</value>
+    <comment>Heading of a buying finding on the Bottlenecks → Summary tab. {0} is the buy orders to place. "Place" is a verb.</comment>
+  </data>
+  <data name="SummarySetLevel" xml:space="preserve">
+    <value>{0} — set level to {1}</value>
+    <comment>A line under an inventory level finding on the Bottlenecks → Summary tab. {0} is the item, {1} the level suggested.</comment>
+  </data>
+  <data name="SummaryRaiseLevel" xml:space="preserve">
+    <value>{0} — raise level {1:N0} to {2}</value>
+    <comment>A line under an inventory level finding on the Bottlenecks → Summary tab. {0} is the item, {1} its level now, {2} the level suggested.</comment>
+  </data>
+  <data name="SummaryChangeLevels" xml:space="preserve">
+    <value>Change {0:N0} inventory level(s)</value>
+    <comment>Heading of an inventory level finding on the Bottlenecks → Summary tab. {0} is the levels to change. "Change" is a verb.</comment>
+  </data>
+  <data name="SummaryLevelsSized" xml:space="preserve">
+    <value>Sized for {0} days at the current draw.</value>
+    <comment>Under an inventory level finding on the Bottlenecks → Summary tab. {0} is the days of use the suggested levels cover.</comment>
+  </data>
+  <data name="SummaryHaulAt" xml:space="preserve">
+    <value>{0} at {1} — {2:N0} m3</value>
+    <comment>A line under a hauling finding on the Bottlenecks → Summary tab. {0} is the stopped job, {1} the station, {2} the volume to move in cubic metres.</comment>
+  </data>
+  <data name="SummaryRaiseHauls" xml:space="preserve">
+    <value>Raise {0:N0} haul(s)</value>
+    <comment>Heading of a hauling finding on the Bottlenecks → Summary tab. {0} is the hauls to raise. "Raise" is a verb.</comment>
+  </data>
+  <data name="SummaryHaulsIdle" xml:space="preserve">
+    <value>{0:N0} job(s) waiting on material already owned, with nothing moving.</value>
+    <comment>Under a hauling finding on the Bottlenecks → Summary tab. {0} is the stopped jobs waiting on material owned elsewhere.</comment>
+  </data>
+  <data name="SummaryAddManufacturingSlots" xml:space="preserve">
+    <value>Add manufacturing slots</value>
+    <comment>Heading of a finding on the Bottlenecks → Summary tab: more manufacturing job slots are needed. "Add" is a verb.</comment>
+  </data>
+  <data name="SummaryAddReactionSlots" xml:space="preserve">
+    <value>Add reaction slots</value>
+    <comment>Heading of a finding on the Bottlenecks → Summary tab: more reaction job slots are needed. "Add" is a verb.</comment>
+  </data>
+  <data name="SummaryAddScienceSlots" xml:space="preserve">
+    <value>Add science slots</value>
+    <comment>Heading of a finding on the Bottlenecks → Summary tab: more science job slots (copying, invention, research) are needed. "Add" is a verb.</comment>
+  </data>
+  <data name="SummarySlotsWaiting" xml:space="preserve">
+    <value>{0:N0} job(s) waiting on one.</value>
+    <comment>Under a slots finding on the Bottlenecks → Summary tab. {0} is the jobs waiting for a free slot.</comment>
+  </data>
+  <data name="SummarySlotsWaitingBehind" xml:space="preserve">
+    <value>{0:N0} job(s) waiting on one, {1:N0} more stopped behind them.</value>
+    <comment>Under a slots finding on the Bottlenecks → Summary tab. {0} is the jobs waiting for a free slot, {1} the tasks stopped because those jobs have not run.</comment>
+  </data>
+  <data name="SummaryBuyBlueprints" xml:space="preserve">
+    <value>Buy {0:N0} blueprint(s)</value>
+    <comment>Heading of a finding on the Bottlenecks → Summary tab. {0} is the blueprints worth buying another original of. "Buy" is a verb.</comment>
+  </data>
+  <data name="SummaryBuyFormulas" xml:space="preserve">
+    <value>Buy {0:N0} formula(s)</value>
+    <comment>Heading of a finding on the Bottlenecks → Summary tab. {0} is the reaction formulas worth buying another of. "Buy" is a verb.</comment>
+  </data>
+  <data name="SummaryBuyUnblocks" xml:space="preserve">
+    <value>{0} — unblocks {1:N0} task(s)</value>
+    <comment>A line under a buying finding on the Bottlenecks → Summary tab. {0} is the purchase as the Worklist names it, {1} the stopped tasks it would free.</comment>
+  </data>
+  <data name="SummaryTripRestarts" xml:space="preserve">
+    <value>{0} to {1} — {2:N0} ({3:N0} m3), restarts {4:N0} jobs</value>
+    <comment>A line under a hauling finding on the Bottlenecks → Summary tab. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs the delivery restarts.</comment>
+  </data>
+  <data name="SummaryTripWanted" xml:space="preserve">
+    <value>{0} to {1} — {2:N0} ({3:N0} m3), wanted by {4:N0} jobs, none restarted by it alone</value>
+    <comment>A line under a hauling finding on the Bottlenecks → Summary tab. {0} is the item, {1} the station, {2} the units, {3} their volume in cubic metres, {4} the stopped jobs that want it.</comment>
+  </data>
+  <data name="SummaryWorstShown" xml:space="preserve">
+    <value>Worst {0} shown; the rest are on the tab.</value>
+    <comment>Under a finding on the Bottlenecks → Summary tab when its list is cut short. {0} is how many are listed; the rest are on that finding's own tab.</comment>
+  </data>
 </root>

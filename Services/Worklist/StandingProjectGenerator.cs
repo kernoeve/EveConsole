@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -21,7 +22,7 @@ public class StandingProjectGenerator(
     WorklistCorpAltService          corpAlts) : IWorklistGenerator
 {
     public string Id          => "standing_projects";
-    public string DisplayName => "Standing Projects";
+    public string DisplayName => WorklistText.SourceStandingProjects;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -48,7 +49,7 @@ public class StandingProjectGenerator(
 
             altMap.TryGetValue(corpId, out var alt);
             var blocked  = alt is null;
-            var corpName = corpNames.GetValueOrDefault(corpId, $"Corp {corpId}");
+            var corpName = corpNames.GetValueOrDefault(corpId, string.Format(WorklistText.CorpWithId, corpId));
 
             foreach (var r in rows)
             {
@@ -65,7 +66,7 @@ public class StandingProjectGenerator(
                     Title         = title,
                     Detail        = $"{corpName} · {detail}",
                     Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                    BlockedBy     = blocked ? "No character assigned to this corporation" : "",
+                    BlockedBy     = blocked ? WorklistText.BlockedNoCharacterForCorp : "",
                     CharacterId   = alt?.CharacterId   ?? 0,
                     CharacterName = alt?.CharacterName ?? "",
                     TypeId        = r.ItemTypeId ?? 0,
@@ -108,35 +109,30 @@ public class StandingProjectGenerator(
         return r.MatchStatus switch
         {
             "not_active" when deliver => (
-                $"{r.TypeDisplay} — {r.TargetDisplay} to "
-              + (r.DestDisplay.Length > 0 ? r.DestDisplay : "any corp office"),
-                "No active project matches this definition."),
+                r.DestDisplay.Length > 0
+                    ? string.Format(WorklistText.ProjectDeliverTo, r.TypeDisplay, r.TargetDisplay, r.DestDisplay)
+                    : string.Format(WorklistText.ProjectDeliverToAnyOffice, r.TypeDisplay, r.TargetDisplay),
+                WorklistText.ProjectNotActive),
 
             "not_active" => (
                 $"{r.TypeDisplay} — {place}"
               + (byRule ? $" — {r.TargetDisplay}" : ""),
-                "No active project matches this definition."
-              + (byRule
-                  ? " This system qualifies under an ADM rule, so it drops off the list on its "
-                  + "own once the ADM recovers."
-                  : " This system is named by the definition itself.")),
+                byRule ? WorklistText.ProjectNotActiveByRule : WorklistText.ProjectNotActiveNamed),
 
             // ⚠️ Not a create. There is nothing to create a project against, and saying "create"
             // would send somebody to try. Three separate reasons reach here and they want three
             // different answers — one is a fault, one is a misconfiguration, one is good news.
             "no_adm" => (
-                $"Check ADM data — {r.TypeDisplay}: {r.TargetDisplay}",
-                "Sovereignty data could not be read, so no system can be measured against the "
-              + "threshold. This is a fetch that failed, not a scope that is empty."),
+                string.Format(WorklistText.ProjectCheckAdm, r.TypeDisplay, r.TargetDisplay),
+                WorklistText.ProjectCheckAdmDetail),
 
             "no_systems" => (
-                $"Check scope — {r.TypeDisplay}: {r.TargetDisplay}",
-                "The scope expands to no systems at all, so nothing can be created for it."),
+                string.Format(WorklistText.ProjectCheckScope, r.TypeDisplay, r.TargetDisplay),
+                WorklistText.ProjectCheckScopeDetail),
 
             "all_healthy" => (
-                $"{r.TypeDisplay} — nothing to raise in {r.TargetDisplay}",
-                "Every system in scope is at or above the threshold, so the rule selects nothing "
-              + "today. It reappears on its own if an ADM falls."),
+                string.Format(WorklistText.ProjectNothingToRaise, r.TypeDisplay, r.TargetDisplay),
+                WorklistText.ProjectNothingToRaiseDetail),
 
 
             _ => (null, ""),

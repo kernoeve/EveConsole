@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -120,9 +121,9 @@ public class OutbidOrderService(
 
             losing.Add(new Losing(
                 g.Key.TypeId,
-                names.GetValueOrDefault(g.Key.TypeId, $"Type {g.Key.TypeId}"),
+                names.GetValueOrDefault(g.Key.TypeId, string.Format(WorklistText.TypeWithId, g.Key.TypeId)),
                 g.Key.LocationId,
-                places.GetValueOrDefault(g.Key.LocationId, $"Location {g.Key.LocationId}"),
+                places.GetValueOrDefault(g.Key.LocationId, string.Format(WorklistText.LocationWithId, g.Key.LocationId)),
                 ourBest, rival,
                 g.Sum(o => (long)o.VolumeRemain),
                 servedBy[g.Key.TypeId],
@@ -149,13 +150,12 @@ public class OutbidOrderService(
             Key           = $"outbid:{l.TypeId}:{l.LocationId}",
             Source        = "outbid",
             Kind          = WorklistKind.Buy,
-            Title         = $"{l.TypeName} — raise bid",
+            Title         = string.Format(WorklistText.TitleRaiseBid, l.TypeName),
             // No quantity to acquire, so nothing to merge with a purchase of the same thing. The
             // two are different actions: one changes a price, the other places an order.
             MergeKey      = null,
-            Detail        = $"At {l.LocationName}: outbid at {l.OurBid:N2} ISK against {l.BestBid:N2} "
-                          + $"— behind by {behind:N2} ({pct:N1}%). {l.VolumeRemain:N0} units still on "
-                          + "order and buying nothing while something needs them.",
+            Detail        = string.Format(WorklistText.OutbidDetail,
+                                          l.LocationName, l.OurBid, l.BestBid, behind, pct, l.VolumeRemain),
             Readiness     = WorklistReadiness.Ready,
             LocationId    = l.LocationId,
             LocationName  = l.LocationName,

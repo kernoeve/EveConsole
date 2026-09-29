@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>Why a job is the size it is — the ceiling that actually bound it.</summary>
@@ -138,8 +140,8 @@ public static class IndustryJobSplit
     public static string Duration(double seconds) => seconds switch
     {
         <= 0    => "",
-        < 3600  => $"{seconds / 60:0}m",
-        < 86400 => $"{seconds / 3600:0.#}h",
-        _       => $"{seconds / 86400:0.#}d",
+        < 3600  => string.Format(WorklistText.JobLengthMinutes, seconds / 60),
+        < 86400 => string.Format(WorklistText.JobLengthHours, seconds / 3600),
+        _       => string.Format(WorklistText.JobLengthDays, seconds / 86400),
     };
 }
