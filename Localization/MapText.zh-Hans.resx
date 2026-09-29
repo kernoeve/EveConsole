@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShipLabel" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="HullLabel" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="JumpDriveCalibrationLabel" xml:space="preserve">
+    <value>跳跃引擎校准</value>
+  </data>
+  <data name="JumpFuelConservationLabel" xml:space="preserve">
+    <value>跳跃燃料节约</value>
+  </data>
+  <data name="JumpThroughLabel" xml:space="preserve">
+    <value>中转星系</value>
+  </data>
+  <data name="LimitsWhereTheRouteNote" xml:space="preserve">
+    <value>限制路线中途可以停留的地方，而不限制起点或终点。“有空间站的星系”指任何可以停靠的地方——NPC 空间站或玩家建筑均可。玩家建筑仅包括本应用已解析出名称的建筑，因此这两个选项宁可少报，也不做猜测。</value>
+  </data>
+  <data name="WaypointsLabel" xml:space="preserve">
+    <value>航点</value>
+  </data>
+  <data name="HintSystemName" xml:space="preserve">
+    <value>星系名称…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TipDragToReorder" xml:space="preserve">
+    <value>拖动以重新排序</value>
+  </data>
+  <data name="PlanRoute" xml:space="preserve">
+    <value>规划路线</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="Use" xml:space="preserve">
+    <value>使用</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>来自</value>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>打开此星系</value>
+  </data>
+  <data name="ColJumpTo" xml:space="preserve">
+    <value>跳至</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="TipFrameThisRegionOnThe" xml:space="preserve">
+    <value>在星图上聚焦此星域</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>安等</value>
+  </data>
+  <data name="ColDistance" xml:space="preserve">
+    <value>距离</value>
+  </data>
+  <data name="ColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="ResolveViaEsi" xml:space="preserve">
+    <value>通过 ESI 解析</value>
+  </data>
+  <data name="AddById" xml:space="preserve">
+    <value>按 ID 添加…</value>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>清除筛选</value>
+  </data>
+  <data name="ShowUnknown" xml:space="preserve">
+    <value>显示未知</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="HintAny" xml:space="preserve">
+    <value>不限</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>星座</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="ColStructure" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>在星图上打开</value>
+  </data>
+  <data name="ColConstellation" xml:space="preserve">
+    <value>星座</value>
+  </data>
+  <data name="TipFrameThisConstellationOnThe" xml:space="preserve">
+    <value>在星图上聚焦此星座</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>最近天体</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="SelectAStructureAboveNote" xml:space="preserve">
+    <value>在上方选择一个建筑以查看和编辑。</value>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>位置 ID</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="HintTypeTwoLettersOf" xml:space="preserve">
+    <value>输入星系名称中的两个字母…</value>
+  </data>
+  <data name="NotesLabel" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="HintAccessNotesWhoTo" xml:space="preserve">
+    <value>准入说明、找谁申请停靠权限——ESI 永远不会提供的任何信息。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="PullFromEsi" xml:space="preserve">
+    <value>从 ESI 拉取</value>
+  </data>
+  <data name="TipAsksEsiAboutThis" xml:space="preserve">
+    <value>立即向 ESI 查询此建筑，忽略 403 错误通常会触发的 30 天退避期。获得停靠权限后使用。</value>
+  </data>
+  <data name="LocationIdCannotBeNote" xml:space="preserve">
+    <value>位置 ID 无法更改——它是建筑的身份标识。</value>
+  </data>
+  <data name="TabFitting" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="HintFilterModules" xml:space="preserve">
+    <value>筛选装备…</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="ClearSlot" xml:space="preserve">
+    <value>清空槽位</value>
+  </data>
+  <data name="ColSlot" xml:space="preserve">
+    <value>槽位</value>
+  </data>
+  <data name="ColModule" xml:space="preserve">
+    <value>装备</value>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>货柜</value>
+  </data>
+  <data name="ColWhere" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="TabCargo" xml:space="preserve">
+    <value>货舱</value>
+  </data>
+  <data name="TabFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="TabFighters" xml:space="preserve">
+    <value>舰载机</value>
+  </data>
+  <data name="ColFighter" xml:space="preserve">
+    <value>舰载机</value>
+  </data>
+  <data name="TabIndustryJobs" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="EndsFromLabel" xml:space="preserve">
+    <value>结束日期从</value>
+  </data>
+  <data name="EndsThruLabel" xml:space="preserve">
+    <value>结束日期至</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>活动</value>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>产品</value>
+  </data>
+  <data name="ColRuns" xml:space="preserve">
+    <value>流程</value>
+  </data>
+  <data name="ColEnds" xml:space="preserve">
+    <value>结束</value>
+  </data>
+  <data name="AddAStructureByLocation" xml:space="preserve">
+    <value>按位置 ID 添加建筑</value>
+  </data>
+  <data name="StructuresNormallyArriveOnNote" xml:space="preserve">
+    <value>建筑通常会自动出现，来源包括资产、工业任务、合同和击毁记录。对于尚未出现的建筑，请使用此功能——例如你已获得停靠权限的空间站，或别人发给你的 ID。</value>
+  </data>
+  <data name="LocationIdLabel" xml:space="preserve">
+    <value>位置 ID</value>
+  </data>
+  <data name="LookUp" xml:space="preserve">
+    <value>查询</value>
+  </data>
+  <data name="TipTrueSecurity" xml:space="preserve">
+    <value>真实安全等级</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="Constellation" xml:space="preserve">
+    <value>星座</value>
+  </data>
+  <data name="Sovereignty" xml:space="preserve">
+    <value>主权</value>
+  </data>
+  <data name="LocalPirates" xml:space="preserve">
+    <value>本地海盗</value>
+  </data>
+  <data name="IndustryIndices" xml:space="preserve">
+    <value>工业指数</value>
+  </data>
+  <data name="TipManufacturingTimeEfficiencyMaterial" xml:space="preserve">
+    <value>制造 · 时间效率 · 材料效率 · 拷贝 · 发明 · 反应</value>
+  </data>
+  <data name="Production" xml:space="preserve">
+    <value>产出</value>
+  </data>
+  <data name="Planets" xml:space="preserve">
+    <value>行星</value>
+  </data>
+  <data name="Moons" xml:space="preserve">
+    <value>卫星</value>
+  </data>
+  <data name="Belts" xml:space="preserve">
+    <value>小行星带</value>
+  </data>
+  <data name="Jumps1h24h" xml:space="preserve">
+    <value>跳跃数 1h / 24h</value>
+  </data>
+  <data name="ShipKills" xml:space="preserve">
+    <value>舰船击毁</value>
+  </data>
+  <data name="NpcKills" xml:space="preserve">
+    <value>NPC 击毁</value>
+  </data>
+  <data name="PodKills" xml:space="preserve">
+    <value>太空舱击毁</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>概览</value>
+  </data>
+  <data name="JumpsLabel" xml:space="preserve">
+    <value>跳跃数</value>
+  </data>
+  <data name="NpcKillsLabel" xml:space="preserve">
+    <value>NPC 击毁</value>
+  </data>
+  <data name="ShipKillsLabel" xml:space="preserve">
+    <value>舰船击毁</value>
+  </data>
+  <data name="PodKillsLabel" xml:space="preserve">
+    <value>太空舱击毁</value>
+  </data>
+  <data name="SovereigntyStructuresLabel" xml:space="preserve">
+    <value>主权建筑</value>
+  </data>
+  <data name="NoSovereigntyStructuresInThis" xml:space="preserve">
+    <value>此星系中没有主权建筑。</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="StateLabel" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="VulnerabilityWindowLabel" xml:space="preserve">
+    <value>脆弱窗口</value>
+  </data>
+  <data name="SovereigntyChangesLabel" xml:space="preserve">
+    <value>主权变更</value>
+  </data>
+  <data name="NoChangesRecordedInNote" xml:space="preserve">
+    <value>在已存储的时间范围内没有变更记录。</value>
+  </data>
+  <data name="GatesLabel" xml:space="preserve">
+    <value>星门</value>
+  </data>
+  <data name="PlayerStructuresLabel" xml:space="preserve">
+    <value>玩家建筑</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>在建筑浏览器中打开</value>
+  </data>
+  <data name="NpcStationsLabel" xml:space="preserve">
+    <value>NPC 空间站</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>在 NPC 实体中打开</value>
+  </data>
+  <data name="TabCelestials" xml:space="preserve">
+    <value>天体</value>
+  </data>
+  <data name="LaidOutAsTheNote" xml:space="preserve">
+    <value>按星系在太空中的实际布局排列：恒星、星门，然后按轨道顺序列出各颗行星，其下嵌套显示该行星的小行星带、卫星，以及停靠在这些天体上的一切。</value>
+  </data>
+  <data name="ObjectLabel" xml:space="preserve">
+    <value>天体</value>
+  </data>
+  <data name="PowerLabel" xml:space="preserve">
+    <value>电力</value>
+  </data>
+  <data name="WorkforceLabel" xml:space="preserve">
+    <value>劳动力</value>
+  </data>
+  <data name="ReagentLabel" xml:space="preserve">
+    <value>试剂</value>
+  </data>
+  <data name="TabGraphs" xml:space="preserve">
+    <value>图表</value>
+  </data>
+  <data name="ShipJumpsLabel" xml:space="preserve">
+    <value>舰船跳跃数</value>
+  </data>
+  <data name="ActivityDefenseMultiplierLabel" xml:space="preserve">
+    <value>活动防御乘数（ADM）</value>
+  </data>
+  <data name="IndustryCostIndicesLabel" xml:space="preserve">
+    <value>工业成本指数</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="DivisionLabel" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="LevelLabel" xml:space="preserve">
+    <value>等级</value>
+  </data>
+  <data name="LocatorLabel" xml:space="preserve">
+    <value>定位</value>
+  </data>
+  <data name="TipOpenTheStationInNpc" xml:space="preserve">
+    <value>在 NPC 实体中打开此空间站</value>
+  </data>
+  <data name="TabKills" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="TipDoubleClickToOpen" xml:space="preserve">
+    <value>双击以在击毁报告浏览器中打开</value>
+  </data>
+  <data name="TabEvents" xml:space="preserve">
+    <value>事件</value>
+  </data>
+  <data name="NoEventsRecordedInNote" xml:space="preserve">
+    <value>在已存储的时间范围内没有事件记录。</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="WhenUtcLabel" xml:space="preserve">
+    <value>时间（UTC）</value>
+  </data>
+  <data name="PilotsLabel" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="NoteLabel" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="ReportedByLabel" xml:space="preserve">
+    <value>报告者</value>
+  </data>
+  <data name="TipNoVisualReportedPresent" xml:space="preserve">
+    <value>无目视——据报在场，但未见到</value>
+  </data>
+  <data name="TipOpenInPlayerEntities" xml:space="preserve">
+    <value>在玩家实体中打开</value>
+  </data>
+  <data name="OverlayLabel" xml:space="preserve">
+    <value>叠加层</value>
+  </data>
+  <data name="GoToLabel" xml:space="preserve">
+    <value>转到</value>
+  </data>
+  <data name="HintRegionOrSystem" xml:space="preserve">
+    <value>星域或星系</value>
+  </data>
+  <data name="ClickANodeForNote" xml:space="preserve">
+    <value>单击节点查看详情，双击打开。</value>
+  </data>
+  <data name="LegendLabel" xml:space="preserve">
+    <value>图例</value>
+  </data>
+  <data name="DockingBarAboveTheBoxLabel" xml:space="preserve">
+    <value>停靠——方框上方的横条</value>
+  </data>
+  <data name="ServicesUnderTheBoxLabel" xml:space="preserve">
+    <value>服务——方框下方</value>
+  </data>
+  <data name="MergedFromNpcStationsNote" xml:space="preserve">
+    <value>由 NPC 空间站和玩家建筑的数据合并而成。类型尚未解析的建筑不计入其中，因此空白的一侧表示“未知”，而不是“没有”。</value>
+  </data>
+  <data name="ScrollToZoomDragNote" xml:space="preserve">
+    <value>滚动鼠标缩放，拖动平移。击毁数来自本应用已存储的击毁报告，而非整个新伊甸。</value>
+  </data>
+</root>

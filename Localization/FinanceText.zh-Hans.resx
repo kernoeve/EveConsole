@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="IncomeExpense" xml:space="preserve">
+    <value>收入与支出</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="DailyIncomeExpenseCashflow" xml:space="preserve">
+    <value>每日收入 · 支出 · 现金流</value>
+  </data>
+  <data name="FmtNet" xml:space="preserve">
+    <value>净额：{0}</value>
+  </data>
+  <data name="AutoRange" xml:space="preserve">
+    <value>自动范围</value>
+  </data>
+  <data name="LogScale" xml:space="preserve">
+    <value>对数刻度</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>从</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>至</value>
+  </data>
+  <data name="NetWorthLabel" xml:space="preserve">
+    <value>净资产</value>
+  </data>
+  <data name="AssetsLabel" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="WalletLabel" xml:space="preserve">
+    <value>钱包</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>卖单</value>
+  </data>
+  <data name="BuyEscrowLabel" xml:space="preserve">
+    <value>买单托管金</value>
+  </data>
+  <data name="ContractCollatLabel" xml:space="preserve">
+    <value>合同保证金</value>
+  </data>
+  <data name="ContractValueLabel" xml:space="preserve">
+    <value>合同价值</value>
+  </data>
+  <data name="NoNetWorthDataNote" xml:space="preserve">
+    <value>此期间没有净资产数据。</value>
+  </data>
+  <data name="DataIsRecordedAutomaticallyNote" xml:space="preserve">
+    <value>每当 ESI 轮询刷新资产、钱包、订单或合同时，都会自动记录数据。</value>
+  </data>
+  <data name="TitleNetWorth" xml:space="preserve">
+    <value>净资产</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>所有者：</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ 刷新</value>
+  </data>
+  <data name="BalanceLabel" xml:space="preserve">
+    <value>余额：</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>概览</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>此期间没有收入数据。</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>此期间没有支出数据。</value>
+  </data>
+  <data name="TabJournal" xml:space="preserve">
+    <value>钱包日志</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>类型：</value>
+  </data>
+  <data name="HintFilter" xml:space="preserve">
+    <value>筛选…</value>
+  </data>
+  <data name="DivLabel" xml:space="preserve">
+    <value>部门：</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>从：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>至：</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>排序：</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="ColBalance" xml:space="preserve">
+    <value>余额</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="ColDiv" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 首页</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 上一页</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一页 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>末页 ⏭</value>
+  </data>
+  <data name="TabMarketTransactions" xml:space="preserve">
+    <value>市场交易</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>物品：</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>位置：</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>单价</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>打开此空间站或建筑</value>
+  </data>
+  <data name="TabDivisions" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="TitleWallet" xml:space="preserve">
+    <value>钱包</value>
+  </data>
+  <data name="BuySellLabel" xml:space="preserve">
+    <value>买/卖：</value>
+  </data>
+  <data name="ColBuySell" xml:space="preserve">
+    <value>买/卖</value>
+  </data>
+</root>

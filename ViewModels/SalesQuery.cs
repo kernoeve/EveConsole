@@ -3,6 +3,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -143,8 +144,8 @@ internal static class SalesQuery
         bool IsPersonal(long id, string type) => type == "corporation" && corpPersonal.TryGetValue(id, out var p) && p;
 
         string OwnerName(long id, string type) => type == "corporation"
-            ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
-            : (charNames.TryGetValue(id, out var pn) ? pn : $"Char {id}");
+            ? (corpNames.TryGetValue(id, out var cn) ? cn : string.Format(SalesText.CorpNumbered, id))
+            : (charNames.TryGetValue(id, out var pn) ? pn : string.Format(SalesText.CharNumbered, id));
         string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
 
         // Buyer names — external players. Resolve from local caches, fall back to ESI once and
@@ -188,9 +189,9 @@ internal static class SalesQuery
             var when = ParseDate(c.DateStr);
             var its  = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
             string namesText, units;
-            if (its.Count == 0)      { namesText = "(no items)"; units = ""; }
+            if (its.Count == 0)      { namesText = SalesText.NoItems; units = ""; }
             else if (its.Count == 1) { namesText = TypeName(its[0].TypeId); units = its[0].Quantity.ToString("N0"); }
-            else                     { namesText = $"{TypeName(its[0].TypeId)} +{its.Count - 1} more items"; units = "Multiple"; }
+            else                     { namesText = string.Format(SalesText.MoreItems, TypeName(its[0].TypeId), its.Count - 1); units = SalesText.UnitsMultiple; }
             var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
             var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
             var firstType = its.Count > 0 ? its[0].TypeId : 0;

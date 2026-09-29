@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -136,7 +137,7 @@ public partial class SalePostingView : UserControl
 
         var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title             = "Export Posting",
+            Title             = SalesText.TitleExportPosting,
             SuggestedFileName = $"{Sanitise(row.PostingName)}.json",
             DefaultExtension  = "json",
             FileTypeChoices   = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
@@ -156,7 +157,7 @@ public partial class SalePostingView : UserControl
 
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title          = "Import Posting",
+            Title          = SalesText.TitleImportPosting,
             AllowMultiple  = false,
             FileTypeFilter = [new FilePickerFileType("JSON") { Patterns = ["*.json"] }],
         });

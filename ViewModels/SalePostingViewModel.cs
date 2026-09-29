@@ -14,6 +14,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -526,7 +527,7 @@ public class SalePostingRow : ReactiveObject
     {
         Model          = m;
         PostingName    = m.Name;
-        ScopeDisplay   = m.Scope == "Everywhere" ? "Everywhere" : $"{m.LocationName} · {m.Scope}";
+        ScopeDisplay   = m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : $"{m.LocationName} · {m.Scope}";
         _scope         = m.Scope;
         _locationId    = m.LocationId;
         _locationName  = m.LocationName;
@@ -535,9 +536,9 @@ public class SalePostingRow : ReactiveObject
         this.RaisePropertyChanged(nameof(HasLocationLink));
         string basis   = m.PricingBasis switch
         {
-            "Contract" => "Contract",
-            "Market"   => $"Market: {m.MarketStationName} ({m.MarketPriceType})",
-            _          => "Build",
+            "Contract" => SalesText.PriceBasisContract,
+            "Market"   => string.Format(SalesText.PriceBasisMarketAt, m.MarketStationName, m.MarketPriceType),
+            _          => SalesText.PriceBasisBuild,
         };
         PricingDisplay = $"{basis} × {m.PricePercent:0.#}%";
     }
@@ -619,19 +620,19 @@ public class SalePostingSectionRow : ReactiveObject
 
         var parts = new List<string>();
         if (m.OverrideScope)
-            parts.Add("scope: " + (m.Scope == "Everywhere" ? "Everywhere" : m.LocationName));
+            parts.Add(SalesText.SummaryScope + (m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : m.LocationName));
         if (m.OverridePricing)
         {
             string b = m.PricingBasis switch
             {
-                "Contract" => "Contract",
-                "Market"   => $"Market:{m.MarketStationName}",
-                _          => "Build",
+                "Contract" => SalesText.PriceBasisContract,
+                "Market"   => string.Format(SalesText.PriceBasisMarketShort, m.MarketStationName),
+                _          => SalesText.PriceBasisBuild,
             };
             parts.Add($"{b} ×{m.PricePercent:0.#}%");
         }
         if (m.OverrideOnlyPackaged)
-            parts.Add(m.OnlyPackaged ? "packaged only" : "all items");
+            parts.Add(m.OnlyPackaged ? SalesText.SummaryPackagedOnly : SalesText.SummaryAllItems);
         OverrideSummary = parts.Count > 0 ? "⚙ " + string.Join(" · ", parts) : "";
     }
 
@@ -923,12 +924,25 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     }
 
     // Profit basis toggle (mirrors the Sales Tracker), default Build.
-    public IReadOnlyList<string> ProfitBasisOptions { get; } = ["Build", "Market", "Contract"];
+    // The value is the basis each item's figures are keyed by; only the label is translated.
+    public IReadOnlyList<Choice<string>> ProfitBasisOptions { get; } =
+    [
+        new("Build",    SalesText.BasisBuild),
+        new("Market",   SalesText.BasisMarket),
+        new("Contract", SalesText.BasisContract),
+    ];
     private string _selectedProfitBasis = "Build";
-    public string SelectedProfitBasis
+    public Choice<string> SelectedProfitBasis
     {
-        get => _selectedProfitBasis;
-        set { this.RaiseAndSetIfChanged(ref _selectedProfitBasis, value ?? "Build"); ApplyProfitBasis(); }
+        get => ProfitBasisOptions.FirstOrDefault(o => o.Value == _selectedProfitBasis) ?? ProfitBasisOptions[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedProfitBasis = value.Value;
+            this.RaisePropertyChanged();
+            ApplyProfitBasis();
+        }
     }
 
     public ReactiveCommand<Unit, Unit> AddPostingCommand         { get; }
@@ -998,9 +1012,9 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         try
         {
             await _svc.ExportPostingAsync(postingId, stream);
-            StatusText = "Posting exported.";
+            StatusText = SalesText.StatusPostingExported;
         }
-        catch (Exception ex) { StatusText = $"Export failed: {ex.Message}"; }
+        catch (Exception ex) { StatusText = string.Format(SalesText.StatusExportFailed, ex.Message); }
     }
 
     public async Task ImportPostingAsync(Stream stream)
@@ -1008,7 +1022,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         try
         {
             var posting = await _svc.ImportPostingAsync(stream);
-            if (posting is null) { StatusText = "That file is not a sale posting."; return; }
+            if (posting is null) { StatusText = SalesText.StatusNotAPosting; return; }
 
             // Reloaded rather than appended: the import wrote sections, items and post blocks,
             // and the grid is built from all of them. Rebuilding the one posting by hand here
@@ -1016,7 +1030,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             await InitAsync();
             StatusText = $"Imported \"{posting.Name}\".";
         }
-        catch (Exception ex) { StatusText = $"Import failed: {ex.Message}"; }
+        catch (Exception ex) { StatusText = string.Format(SalesText.StatusImportFailed, ex.Message); }
     }
 
     // ── Load ──────────────────────────────────────────────────────────────────
@@ -1024,7 +1038,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     {
         try
         {
-            StatusText = "Loading…";
+            StatusText = CommonText.Loading;
             var postings = await _svc.LoadPostingsAsync();
             var sections = await _svc.LoadSectionsAsync();
 
@@ -1038,7 +1052,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                     var items = await _svc.LoadItemsAsync(sr.SectionId);
                     // Names are placeholders here; ComputePostingAsync fills them from ComputeAsync.
                     sr.AllItems = items
-                        .Select(i => new SalePostingItemRow(i, $"Type {i.TypeId}", _svc))
+                        .Select(i => new SalePostingItemRow(i, string.Format(SalesText.TypeNumbered, i.TypeId), _svc))
                         .ToList();
                 }
                 await ComputePostingAsync(pr);
@@ -1047,11 +1061,11 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
             RebuildGridRows();
             SyncPostings();
-            StatusText = _allPostings.Count == 0 ? "No postings yet — add one to get started." : "";
+            StatusText = _allPostings.Count == 0 ? SalesText.NoPostingsYet : "";
         }
         catch (Exception ex)
         {
-            StatusText = $"Load failed: {ex.Message}";
+            StatusText = string.Format(SalesText.StatusLoadFailed, ex.Message);
         }
     }
 
@@ -1191,10 +1205,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     private async Task PostSelectedToSlackAsync()
     {
         if (_slack is null) return;
-        if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = "Select a posting first."; return; }
+        if (_selectedPostingForTab is not SalePostingRow pr) { SlackStatus = SalesText.SlackSelectPosting; return; }
         var channel = _slack.ChannelId(SlackService.AreaSalePosting);
         var viaHook = _slack.UsesWebhook(SlackService.AreaSalePosting);
-        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = "No Slack channel or webhook configured."; return; }
+        if (string.IsNullOrEmpty(channel) && !viaHook) { SlackStatus = SalesText.SlackNotConfigured; return; }
 
         var guardKey = $"{SlackService.AreaSalePosting}.{pr.PostingId}";
         if (_slack.LastPostAt(guardKey) is { } last
@@ -1202,18 +1216,18 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             && ConfirmSlackRepost is not null)
         {
             var confirmed = await ConfirmSlackRepost(
-                $"\"{pr.PostingName}\" was already posted to Slack {NotificationSummary.Age(last)}.\n\n" +
-                "Post it again?");
-            if (!confirmed) { SlackStatus = "Post cancelled."; return; }
+                string.Format(SalesText.SlackAlreadyPosted, pr.PostingName, NotificationSummary.Age(last)) +
+                SalesText.SlackPostAgain);
+            if (!confirmed) { SlackStatus = SalesText.SlackPostCancelled; return; }
         }
 
         IsPostingToSlack = true;
-        SlackStatus = "Posting to Slack…";
+        SlackStatus = SalesText.SlackPosting;
         try
         {
             var fmt   = OutputFormat.ByName("Slack");
             var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
-            if (posts.Count == 0) { SlackStatus = "Nothing to post — this posting has no post blocks."; return; }
+            if (posts.Count == 0) { SlackStatus = SalesText.SlackNothingToPost; return; }
 
             string? threadTs = null;
             int posted = 0;
@@ -1228,14 +1242,14 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
                 var fallbackText = OutputFormat.ByName("Plain Text").Finalize(markup);
                 var block        = OutputFormat.BuildSlackRichTextBlock(markup);
                 var res = await _slack.PostAreaAsync(SlackService.AreaSalePosting, fallbackText, threadTs, blocks: new[] { block });
-                if (!res.Ok) { SlackStatus = $"Slack post failed on \"{post.Name}\": {res.Error}"; return; }
+                if (!res.Ok) { SlackStatus = string.Format(SalesText.SlackPostFailed, post.Name, res.Error); return; }
                 threadTs ??= res.Ts;
                 posted++;
             }
 
-            if (posted == 0) { SlackStatus = "Nothing to post — all post blocks were empty."; return; }
+            if (posted == 0) { SlackStatus = SalesText.SlackAllEmpty; return; }
             await _slack.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
-            SlackStatus = $"Posted to {SlackChannelText} — {DateTimeOffset.Now:t}";
+            SlackStatus = string.Format(SalesText.SlackPosted, SlackChannelText, DateTimeOffset.Now);
         }
         finally { IsPostingToSlack = false; }
     }
@@ -1395,14 +1409,14 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     private async Task AddFromMarketGroupAsync()
     {
         var section = GetContextSection();
-        if (section is null) { StatusText = "Select a section (or an item in one) first."; return; }
+        if (section is null) { StatusText = SalesText.SelectSectionFirst; return; }
         if (ShowMarketGroupPickerDialog is null || _batchSvc is null) return;
 
         var pick = await ShowMarketGroupPickerDialog();
         if (pick is null) return;
 
         var groupItems = await _batchSvc.GetItemsInGroupTreeAsync(pick.MarketGroupId);
-        if (groupItems.Count == 0) { StatusText = "No items in that market group."; return; }
+        if (groupItems.Count == 0) { StatusText = SalesText.NoItemsInGroup; return; }
 
         var parent = _allPostings.First(p => p.Sections.Any(s => s.SectionId == section.SectionId));
         int added = 0;
@@ -1414,7 +1428,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             newRows.Add(new SalePostingItemRow(model, name, _svc));
             added++;
         }
-        if (added == 0) { StatusText = "All those items are already in the section."; return; }
+        if (added == 0) { StatusText = SalesText.ItemsAlreadyInSection; return; }
 
         section.AllItems = section.AllItems.Concat(newRows)
             .OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
@@ -1422,7 +1436,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         await ComputePostingAsync(parent);
         SortPostingItems(parent);
         RebuildGridRows();
-        StatusText = $"Added {added} item(s).";
+        StatusText = string.Format(SalesText.AddedItems, added);
     }
 
     private async Task DeleteSelectedItemAsync()

@@ -7,6 +7,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -66,7 +67,7 @@ public class NotificationRowVm
         SenderType     = n.SenderType.Length > 0
             ? char.ToUpperInvariant(n.SenderType[0]) + n.SenderType[1..] : "";
         // n.IsRead here is MIN(IsRead) across recipients → Unread if any recipient hasn't read it.
-        ReadText       = n.IsRead ? "Read" : "Unread";
+        ReadText       = n.IsRead ? CommsText.NotifRead : CommsText.NotifUnread;
         _characterId     = n.CharacterId;
         _senderId        = n.SenderId;
         _senderTypeRaw   = n.SenderType;
@@ -128,7 +129,7 @@ public class NotificationDetailVm
         Sender     = new NotifValueVm
         {
             Text = row.Sender,
-            Tip  = row.HasSenderLink ? "Open in the entity browser" : null,
+            Tip  = row.HasSenderLink ? CommsText.NotifTipEntity : null,
             Open = row.HasSenderLink ? row.OpenSender : null,
         };
         SenderType = row.SenderType;
@@ -138,7 +139,7 @@ public class NotificationDetailVm
             ? [.. row.Recipients.Select(c => new NotifValueVm
                 {
                     Text    = c.Name,
-                    Tip     = "Open in the entity browser",
+                    Tip     = CommsText.NotifTipEntity,
                     IconUrl = $"characters/{c.Id}/portrait?size=64",
                     Open    = () => EntityNavigator.Instance.Entity(EntityKind.Pilot, c.Id),
                 })]
@@ -169,8 +170,13 @@ public class NotificationsViewModel : ReactiveObject
 
     public ObservableCollection<ContractPartyOption> Characters  { get; } = new();
     public ObservableCollection<NotifTypeOption>     Types       { get; } = new();
-    private static readonly NotifTypeOption AllTypes = new("All types", []);
-    public IReadOnlyList<string>                     SenderTypes { get; } = ["All senders", "Corporation", "Character"];
+    private static readonly NotifTypeOption AllTypes = new(CommsText.NotifAllTypes, []);
+    public IReadOnlyList<Choice<string>>             SenderTypes { get; } =
+    [
+        new("All senders", CommsText.SenderAll),
+        new("Corporation", CommsText.SenderCorporation),
+        new("Character",   CommsText.SenderCharacter),
+    ];
 
     // ⚠️ Every order ends on NotificationId. Many notifications share a minute, and without a
     // final tiebreak the database may order a tie differently from one query to the next — so
@@ -178,9 +184,9 @@ public class NotificationsViewModel : ReactiveObject
     // then served on.
     public IReadOnlyList<GridSortOption> SortOptions { get; } =
     [
-        new("Date: newest first", "\"Timestamp\" DESC, \"NotificationId\" DESC"),
-        new("Date: oldest first", "\"Timestamp\" ASC, \"NotificationId\" ASC"),
-        new("Type (A → Z)",       TypeOrderToken + " ASC, \"Timestamp\" DESC, \"NotificationId\" DESC"),
+        new(CommsText.SortDateNewest, "\"Timestamp\" DESC, \"NotificationId\" DESC"),
+        new(CommsText.SortDateOldest, "\"Timestamp\" ASC, \"NotificationId\" ASC"),
+        new(CommsText.SortTypeAz,       TypeOrderToken + " ASC, \"Timestamp\" DESC, \"NotificationId\" DESC"),
     ];
 
     private string SortSql => _selectedSort.Sql.Replace(TypeOrderToken, _typeOrderSql);
@@ -215,10 +221,16 @@ public class NotificationsViewModel : ReactiveObject
     }
 
     private string _selectedSenderType = "All senders";
-    public string SelectedSenderType
+    public Choice<string> SelectedSenderType
     {
-        get => _selectedSenderType;
-        set { this.RaiseAndSetIfChanged(ref _selectedSenderType, value ?? "All senders"); ResetAndReload(); }
+        get => SenderTypes.FirstOrDefault(o => o.Value == _selectedSenderType) ?? SenderTypes[0];
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedSenderType = value.Value;
+            this.RaisePropertyChanged();
+            ResetAndReload();
+        }
     }
 
     private DateTime? _fromDate = DateTime.Today.AddDays(-30);
@@ -378,7 +390,7 @@ public class NotificationsViewModel : ReactiveObject
             var chars = await db.Characters.OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name }).ToListAsync();
             Characters.Clear();
-            Characters.Add(new ContractPartyOption("All characters", null));
+            Characters.Add(new ContractPartyOption(CommsText.AllCharactersLower, null));
             foreach (var c in chars)
                 Characters.Add(new ContractPartyOption(c.Name, c.Id));
             _selectedCharacter = Characters.FirstOrDefault();
@@ -456,7 +468,7 @@ public class NotificationsViewModel : ReactiveObject
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -531,7 +543,7 @@ public class NotificationsViewModel : ReactiveObject
             SelectedRow = (_focusId is long focus ? Rows.FirstOrDefault(r => r.NotificationId == focus) : null)
                           ?? Rows.FirstOrDefault();
             _focusId    = null;
-            StatusText = Pager.TotalCount == 0 ? "No notifications match these filters." : "";
+            StatusText = Pager.TotalCount == 0 ? CommsText.NotifNoneMatch : "";
         }
         catch (Exception ex)
         {

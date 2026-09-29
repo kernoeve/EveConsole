@@ -1,0 +1,970 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitlePosting" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="PostingNameLabel" xml:space="preserve">
+    <value>发布名称</value>
+  </data>
+  <data name="InventoryScopeInStockIn" xml:space="preserve">
+    <value>库存范围（现货 / 制造中）</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>所有位置</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>输入以搜索…</value>
+  </data>
+  <data name="SalePriceBasisLabel" xml:space="preserve">
+    <value>售价基准</value>
+  </data>
+  <data name="BuildCost" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="ContractCost" xml:space="preserve">
+    <value>合同成本</value>
+  </data>
+  <data name="SpecificMarket" xml:space="preserve">
+    <value>指定市场</value>
+  </data>
+  <data name="MarketCurrentOrdersSameNote" xml:space="preserve">
+    <value>市场（当前订单——与贸易机会使用同一列表）</value>
+  </data>
+  <data name="NoPolledMarketsYetNote" xml:space="preserve">
+    <value>尚无已轮询的市场——请先在市场概览中添加市场配置。</value>
+  </data>
+  <data name="PriceTypeLabel" xml:space="preserve">
+    <value>价格类型</value>
+  </data>
+  <data name="SalePriceBasisLabel2" xml:space="preserve">
+    <value>售价 = 基准 ×  %</value>
+  </data>
+  <data name="BuildDefaults110ContractMarket" xml:space="preserve">
+    <value>%（制造默认 110%，合同 / 市场默认 100%）</value>
+  </data>
+  <data name="ShowQuantitiesInPostingLabel" xml:space="preserve">
+    <value>在发布中显示数量</value>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>现货</value>
+  </data>
+  <data name="InBuild" xml:space="preserve">
+    <value>制造中</value>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>预留</value>
+  </data>
+  <data name="IncludeEarliestJobCompletion" xml:space="preserve">
+    <value>包含最早的任务完成日期（当现货 = 0 且制造中 ≥ 1 时）</value>
+  </data>
+  <data name="OnlyIncludePackagedItems" xml:space="preserve">
+    <value>仅包含打包的物品（跳过已组装 / 已装配的船体）</value>
+  </data>
+  <data name="ColourEveMailOnlyNote" xml:space="preserve">
+    <value>颜色（仅限 EVE 邮件——其他格式会忽略）</value>
+  </data>
+  <data name="ColourEachItemLine" xml:space="preserve">
+    <value>按物品是现货、制造中还是两者皆非，为每个物品行着色</value>
+  </data>
+  <data name="InStockLabel" xml:space="preserve">
+    <value>现货</value>
+  </data>
+  <data name="InBuildLabel" xml:space="preserve">
+    <value>制造中</value>
+  </data>
+  <data name="NeitherLabel" xml:space="preserve">
+    <value>两者皆非</value>
+  </data>
+  <data name="AColourSetOnNote" xml:space="preserve">
+    <value>物品上设置的颜色优先于此设置；两者都未设置时，使用分区的颜色。在页眉、页脚和静态文本中，可以写 [color=#rrggbb]文字[/color]——其他所有格式都会将其去除。</value>
+  </data>
+  <data name="PostBlocksFirstParentNote" xml:space="preserve">
+    <value>帖子块（第一个为主帖；其余为跟帖详情）</value>
+  </data>
+  <data name="AddPost" xml:space="preserve">
+    <value>+ 添加帖子</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="TipMoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TipMoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="HintStaticContent" xml:space="preserve">
+    <value>静态内容…</value>
+  </data>
+  <data name="HintHeaderTextBeforeTheContent" xml:space="preserve">
+    <value>页眉——内容之前的文本…</value>
+  </data>
+  <data name="HintFooterTextAfterTheContent" xml:space="preserve">
+    <value>页脚——内容之后的文本…</value>
+  </data>
+  <data name="FooterColourLabel" xml:space="preserve">
+    <value>页脚颜色</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="TitleSection" xml:space="preserve">
+    <value>分区</value>
+  </data>
+  <data name="SectionNameLabel" xml:space="preserve">
+    <value>分区名称</value>
+  </data>
+  <data name="SectionPrefixOutputOnlyNote" xml:space="preserve">
+    <value>分区前缀（仅用于输出——例如 Slack 的 :macro:）</value>
+  </data>
+  <data name="HintEGShips" xml:space="preserve">
+    <value>例如 :ships:</value>
+  </data>
+  <data name="SectionHeaderColourEveMail" xml:space="preserve">
+    <value>分区标题颜色（仅限 EVE 邮件）</value>
+  </data>
+  <data name="SectionRowColourLabel" xml:space="preserve">
+    <value>分区行颜色</value>
+  </data>
+  <data name="OnlyUsedWhenTheNote" xml:space="preserve">
+    <value>⚠ 仅在发布未启用“按状态着色”时使用。该设置逐行生效且优先，因此启用后此项不起作用。物品自身的颜色优先于这两者。</value>
+  </data>
+  <data name="OverrideInventoryScopeForThis" xml:space="preserve">
+    <value>为此分区覆盖库存范围</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="OverrideSalePriceBasis" xml:space="preserve">
+    <value>为此分区覆盖售价基准</value>
+  </data>
+  <data name="MarketCurrentOrders" xml:space="preserve">
+    <value>市场（当前订单）</value>
+  </data>
+  <data name="Build110ContractMarket100" xml:space="preserve">
+    <value>%（制造 110%，合同 / 市场 100%）</value>
+  </data>
+  <data name="OverridePackagedOnlySetting" xml:space="preserve">
+    <value>为此分区覆盖“仅打包物品”设置</value>
+  </data>
+  <data name="TitleWhereShouldTheSiteLive" xml:space="preserve">
+    <value>网站使用哪个地址？</value>
+  </data>
+  <data name="TheSiteNeedsAnNote" xml:space="preserve">
+    <value>网站需要一个地址。可以使用 Cloudflare 为每个 Worker 提供的免费地址，也可以使用已在此 Cloudflare 账户中的自有域名。两者之后都可以在“网站”选项卡中更改。</value>
+  </data>
+  <data name="TheFreeWorkersDevAddress" xml:space="preserve">
+    <value>免费的 workers.dev 地址</value>
+  </data>
+  <data name="ThisAccountHasNoNote" xml:space="preserve">
+    <value>此账户还没有 workers.dev 名称。请为它命名：</value>
+  </data>
+  <data name="HintYourName" xml:space="preserve">
+    <value>your-name</value>
+  </data>
+  <data name="WorkersDev" xml:space="preserve">
+    <value>.workers.dev</value>
+  </data>
+  <data name="EveryWorkerOnThisNote" xml:space="preserve">
+    <value>此 Cloudflare 账户上的所有 Worker 共用这个名称；它在整个 Cloudflare 中必须唯一，之后可以在控制台的 Workers &amp; Pages 下的 Account details 中更改。只能使用小写字母、数字和连字符。</value>
+  </data>
+  <data name="ADomainOfMy" xml:space="preserve">
+    <value>我在 Cloudflare 上的自有域名</value>
+  </data>
+  <data name="TheDomainMustAlreadyNote" xml:space="preserve">
+    <value>该域名必须已在此 Cloudflare 账户中，且 DNS 也托管在那里。Cloudflare 会创建 DNS 记录和证书；网站只在此域名上响应。</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>继续</value>
+  </data>
+  <data name="TitleAddOrder" xml:space="preserve">
+    <value>添加订单</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>物品类型</value>
+  </data>
+  <data name="NoneSelected" xml:space="preserve">
+    <value>（未选择）</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>输入物品名称…</value>
+  </data>
+  <data name="UnitsLabel" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="PurchasePriceTotalLabel" xml:space="preserve">
+    <value>购买价格（总计）</value>
+  </data>
+  <data name="BuyerLabel" xml:space="preserve">
+    <value>买家</value>
+  </data>
+  <data name="HintStartTypingACharacterOr" xml:space="preserve">
+    <value>输入角色或军团名称…</value>
+  </data>
+  <data name="EstimatedDateLabel" xml:space="preserve">
+    <value>预计日期</value>
+  </data>
+  <data name="CompletedDateLabel" xml:space="preserve">
+    <value>完成日期</value>
+  </data>
+  <data name="SetAutomaticallyTodayWhenNote" xml:space="preserve">
+    <value>自动设置：在你将订单标记为已完成或已取消时设为当天，或设为关联合同被接受的日期。如果实际日期不同，可在此修改。</value>
+  </data>
+  <data name="PriorityPutThisOrder" xml:space="preserve">
+    <value>优先——把此订单及其所需的一切排在最前面</value>
+  </data>
+  <data name="TipOutranksEveryOtherOrder" xml:space="preserve">
+    <value>无论预计日期如何，此订单及为其服务的工业任务、采购和运输都排在所有其他订单之前。</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="HintContractIdsIfThe" xml:space="preserve">
+    <value>合同 ID（如有未匹配到的）</value>
+  </data>
+  <data name="NormallyFilledInAutomaticallyNote" xml:space="preserve">
+    <value>通常会自动填写——列出承载此订单的每个合同，因为一个订单可能分多个合同发出。当某个合同无法匹配时（通常是因为合同在录入订单之前就已创建），请在此添加其 ID；多个 ID 用逗号分隔。移除某个 ID 即解除与该合同的关联。</value>
+  </data>
+  <data name="LabelsLabel" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="FreeTagsForGroupingNote" xml:space="preserve">
+    <value>用于给订单分组的自由标签——例如军团计划、某位客户、某批货物。可以输入任意内容；若标签尚不存在，按 Enter 即可创建。订单跟踪可以按标签筛选。</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="SelectAnItemTypeAbove" xml:space="preserve">
+    <value>请在上方选择物品类型。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>订单跟踪</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="AddOrder" xml:space="preserve">
+    <value>添加订单</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>创建日期</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>从 yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>至 yyyy-MM-dd</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="HintItemName" xml:space="preserve">
+    <value>物品名称</value>
+  </data>
+  <data name="Buyer" xml:space="preserve">
+    <value>买家</value>
+  </data>
+  <data name="HintBuyer" xml:space="preserve">
+    <value>买家</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="MenuAddLabel" xml:space="preserve">
+    <value>添加标签</value>
+  </data>
+  <data name="MenuRemoveLabel" xml:space="preserve">
+    <value>移除标签</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>创建日期</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>买家</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="ColOrder" xml:space="preserve">
+    <value>订单号</value>
+  </data>
+  <data name="ColLabels" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>商店</value>
+  </data>
+  <data name="ColContractTo" xml:space="preserve">
+    <value>合同对象</value>
+  </data>
+  <data name="ColStock" xml:space="preserve">
+    <value>库存</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>现有</value>
+  </data>
+  <data name="ColIndyJob" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>缺口</value>
+  </data>
+  <data name="ColOnContract" xml:space="preserve">
+    <value>合同中</value>
+  </data>
+  <data name="ColDelivered" xml:space="preserve">
+    <value>已交付</value>
+  </data>
+  <data name="ColContract" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>预计日期</value>
+  </data>
+  <data name="ColPri" xml:space="preserve">
+    <value>优先</value>
+  </data>
+  <data name="ColPurchasePrice" xml:space="preserve">
+    <value>购买价格</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>完成日期</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="ColProfit2" xml:space="preserve">
+    <value>利润 %</value>
+  </data>
+  <data name="SalesTracker" xml:space="preserve">
+    <value>销售跟踪 →</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>日期 / 时间</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="TabDefinitions" xml:space="preserve">
+    <value>定义</value>
+  </data>
+  <data name="AddPosting" xml:space="preserve">
+    <value>+ 添加发布</value>
+  </data>
+  <data name="ImportPosting" xml:space="preserve">
+    <value>导入发布</value>
+  </data>
+  <data name="ProfitBasedOn" xml:space="preserve">
+    <value>利润基于</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>从市场分组添加物品</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>删除物品</value>
+  </data>
+  <data name="ColPostingSectionItem" xml:space="preserve">
+    <value>发布 / 分区 / 物品</value>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>+ 分区</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>导出</value>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>打开此位置</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ 物品</value>
+  </data>
+  <data name="ColNameOverride" xml:space="preserve">
+    <value>名称覆盖</value>
+  </data>
+  <data name="ColPrefix" xml:space="preserve">
+    <value>前缀</value>
+  </data>
+  <data name="ColColour" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="ColInStock" xml:space="preserve">
+    <value>现货</value>
+  </data>
+  <data name="ColStockOvr" xml:space="preserve">
+    <value>现货覆盖</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>制造中</value>
+  </data>
+  <data name="ColBuildOvr" xml:space="preserve">
+    <value>制造覆盖</value>
+  </data>
+  <data name="ColReserved" xml:space="preserve">
+    <value>预留</value>
+  </data>
+  <data name="ColRsrvOvr" xml:space="preserve">
+    <value>预留覆盖</value>
+  </data>
+  <data name="ColBuildCost2" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="ColMktValue" xml:space="preserve">
+    <value>市场价值</value>
+  </data>
+  <data name="ColContract2" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="ColSalePrice" xml:space="preserve">
+    <value>售价</value>
+  </data>
+  <data name="ColProfit3" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="ColProfit4" xml:space="preserve">
+    <value>利润 %</value>
+  </data>
+  <data name="ColReadyEst" xml:space="preserve">
+    <value>就绪（预计）</value>
+  </data>
+  <data name="TabPosting" xml:space="preserve">
+    <value>发布</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>格式</value>
+  </data>
+  <data name="TipReRenderTheSelected" xml:space="preserve">
+    <value>使用最新的定义数据重新生成所选发布</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>发布到 Slack</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="TipCopyTheRawFormatted" xml:space="preserve">
+    <value>将原始格式化文本（含标记）复制到剪贴板</value>
+  </data>
+  <data name="SalesTracker2" xml:space="preserve">
+    <value>销售跟踪</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>从</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>至</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="SaleType" xml:space="preserve">
+    <value>销售类型</value>
+  </data>
+  <data name="ShowNotForProfit" xml:space="preserve">
+    <value>显示非营利销售</value>
+  </data>
+  <data name="TipIncludeSalesMarkedAs" xml:space="preserve">
+    <value>包括标记为非营利的销售。显示时，它们会计入此页面的所有统计：摘要、图表和表格都随此复选框变化。</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>摘要</value>
+  </data>
+  <data name="ProfitByBuyer" xml:space="preserve">
+    <value>按买家统计利润</value>
+  </data>
+  <data name="ColSales" xml:space="preserve">
+    <value>销售额</value>
+  </data>
+  <data name="ProfitByMarketGroup" xml:space="preserve">
+    <value>按市场分组统计利润</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="ProfitByItem" xml:space="preserve">
+    <value>按物品统计利润</value>
+  </data>
+  <data name="NoProfitToShow" xml:space="preserve">
+    <value>没有可显示的利润</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>图表周期</value>
+  </data>
+  <data name="CostsSalesAndProfit" xml:space="preserve">
+    <value>成本、销售额和利润</value>
+  </data>
+  <data name="Margin" xml:space="preserve">
+    <value>利润率</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>明细</value>
+  </data>
+  <data name="MenuMarkAsNotForProfit" xml:space="preserve">
+    <value>标记为非营利</value>
+  </data>
+  <data name="MenuRestoreToProfit" xml:space="preserve">
+    <value>恢复为营利</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>打开此空间站或建筑</value>
+  </data>
+  <data name="ColItemS" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="ColTotalSale" xml:space="preserve">
+    <value>销售总额</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>制造价格</value>
+  </data>
+  <data name="ColMarketPrice" xml:space="preserve">
+    <value>市场价格</value>
+  </data>
+  <data name="AddStore" xml:space="preserve">
+    <value>+ 添加商店</value>
+  </data>
+  <data name="CheckMailNow" xml:space="preserve">
+    <value>立即检查邮件</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>概览</value>
+  </data>
+  <data name="Inquiries" xml:space="preserve">
+    <value>咨询</value>
+  </data>
+  <data name="ActiveItems" xml:space="preserve">
+    <value>进行中的订单项</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="ActiveOrders" xml:space="preserve">
+    <value>进行中的订单</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>创建日期</value>
+  </data>
+  <data name="ColOrder2" xml:space="preserve">
+    <value>订单</value>
+  </data>
+  <data name="ColEstDate2" xml:space="preserve">
+    <value>预计日期</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="Messages" xml:space="preserve">
+    <value>消息</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColDirection" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>对方</value>
+  </data>
+  <data name="ColCommand" xml:space="preserve">
+    <value>命令</value>
+  </data>
+  <data name="ColSubject" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="ColOutcome" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="WebSiteEvents" xml:space="preserve">
+    <value>网站事件</value>
+  </data>
+  <data name="ShowVisits" xml:space="preserve">
+    <value>显示访问记录</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="BookIt" xml:space="preserve">
+    <value>接单</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>拒绝</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="TabGeneral" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>商店</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="EveMailbox" xml:space="preserve">
+    <value>EVE 邮箱</value>
+  </data>
+  <data name="UsedForOrderStatusNote" xml:space="preserve">
+    <value>用于发送订单状态通知；当 EVE 邮件商店开放时，也用于处理商店请求。</value>
+  </data>
+  <data name="PriceList" xml:space="preserve">
+    <value>价目表</value>
+  </data>
+  <data name="GiveInStockOrders" xml:space="preserve">
+    <value>为现货订单设定预计日期</value>
+  </data>
+  <data name="DaySFromTheOrder" xml:space="preserve">
+    <value>天（自下单起）</value>
+  </data>
+  <data name="OrderLabelsOnEveryNote" xml:space="preserve">
+    <value>订单标签（加在此商店接收的每个订单上）</value>
+  </data>
+  <data name="LabelsAppearOnTheNote" xml:space="preserve">
+    <value>标签会显示在订单跟踪中，并可在那里筛选。在此输入的任何标签都会出现在其标签选择器中，因此可以在某个计划的第一个订单到来之前就把它设置好。</value>
+  </data>
+  <data name="TabRestrictions" xml:space="preserve">
+    <value>限制</value>
+  </data>
+  <data name="WhoMayOrder" xml:space="preserve">
+    <value>谁可以下单</value>
+  </data>
+  <data name="UsedWhenServeIsNote" xml:space="preserve">
+    <value>当“服务对象”设为“名单”时使用。发件人可按其本人名称、所属军团或所属联盟匹配。名称会根据应用已见过的 ID 进行解析。</value>
+  </data>
+  <data name="Serve" xml:space="preserve">
+    <value>服务对象</value>
+  </data>
+  <data name="AnyoneOrOnlyTheNote" xml:space="preserve">
+    <value>任何人，或仅限下方名单。EVE 邮件和网站均适用。</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>至少输入名称中的两个字母…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="PurchaseLimit" xml:space="preserve">
+    <value>购买限制</value>
+  </data>
+  <data name="HowMuchOneBuyerNote" xml:space="preserve">
+    <value>单个买家最多可购买的数量，按其在此商店中所有未取消的订单累计计算，无论订单通过哪个渠道下达。对于每种船体只发放第一艘的计划：每种物品类型 1 个，时间范围为全部时间。在网站上，买家已不能再订购的物品会显示为灰色，数量框中为剩余可订数量；若仍有超出限制的订单到达应用，它会被暂扣等待你查看，绝不会自动接单。</value>
+  </data>
+  <data name="LimitEachBuyer" xml:space="preserve">
+    <value>限制每位买家</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>最多</value>
+  </data>
+  <data name="UnitSOf" xml:space="preserve">
+    <value>个，按</value>
+  </data>
+  <data name="Per" xml:space="preserve">
+    <value>计，每</value>
+  </data>
+  <data name="TabEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="EveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="AShopFrontInNote" xml:space="preserve">
+    <value>开在邮箱里的店面：买家写信给上方的角色，应用会回复、接单并随时告知进展。谁可以购买在“限制”选项卡中设置，邮件和网站相同。</value>
+  </data>
+  <data name="OpenByEveMail" xml:space="preserve">
+    <value>通过 EVE 邮件开放——读取并回复发送到该邮箱的邮件</value>
+  </data>
+  <data name="BuyersPutTheCommandNote" xml:space="preserve">
+    <value>买家在邮件主题中写入命令：PRICES、ORDER、STATUS、CANCEL 或 HELP。ORDER 邮件的正文每行一个物品——直接把物品拖进去最方便。单独发送 STATUS 会列出所有未完成的订单；CANCEL 需要提供确认邮件中的订单编号。</value>
+  </data>
+  <data name="MessageHeaderOnEveryNote" xml:space="preserve">
+    <value>消息页眉（附在此商店发出的每封邮件上）</value>
+  </data>
+  <data name="HintEGThanksFor" xml:space="preserve">
+    <value>例如：感谢惠顾。</value>
+  </data>
+  <data name="TipEveMarkupWorksHere" xml:space="preserve">
+    <value>此处可使用 EVE 标记：&lt;b&gt;、&lt;i&gt;、&lt;u&gt;、拖入的链接，以及 [color=#rrggbb]文字[/color]。此框旁边的颜色为整段着色；该标签只为其中一部分着色。</value>
+  </data>
+  <data name="MessageFooterLabel" xml:space="preserve">
+    <value>消息页脚</value>
+  </data>
+  <data name="BothAcceptEveMarkupNote" xml:space="preserve">
+    <value>两者都支持 EVE 标记——粗体、斜体、下划线、拖入的链接——以及用于为一行中部分文字着色的 [color=#rrggbb]文字[/color]。每个框旁边的取色器为整段着色。</value>
+  </data>
+  <data name="HintEGContractsAre" xml:space="preserve">
+    <value>例如：合同从 Jita 4-4 发出。</value>
+  </data>
+  <data name="TabWebSite" xml:space="preserve">
+    <value>网站</value>
+  </data>
+  <data name="WebSite" xml:space="preserve">
+    <value>网站</value>
+  </data>
+  <data name="AShopFrontOnNote" xml:space="preserve">
+    <value>开在网上的店面，位于你自己托管的网站上。买家使用 EVE SSO 登录，查看此价目表及其中的现货、制造中和预留数量，下单并跟踪订单。应用会把网站可以显示的内容发送给网站，并每隔几分钟收集买家的操作；网站上的内容不会直接进入数据库。谁可以购买在“限制”选项卡中设置，邮件和网站相同。</value>
+  </data>
+  <data name="OpenOnTheWeb" xml:space="preserve">
+    <value>在网上开放——发布到网站并接收其订单</value>
+  </data>
+  <data name="SiteAddress" xml:space="preserve">
+    <value>网站地址</value>
+  </data>
+  <data name="Secret" xml:space="preserve">
+    <value>密钥</value>
+  </data>
+  <data name="NewSecret" xml:space="preserve">
+    <value>新密钥</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="BuyersMayAlsoChooseLabel" xml:space="preserve">
+    <value>买家还可以选择：</value>
+  </data>
+  <data name="CheckTheSite" xml:space="preserve">
+    <value>检查网站</value>
+  </data>
+  <data name="Every" xml:space="preserve">
+    <value>每</value>
+  </data>
+  <data name="MinutesABuyerWaitsNote" xml:space="preserve">
+    <value>分钟。买家最多需要等待这么久才能收到确认；每次调用都会占用网站每日免费请求额度中的一次。</value>
+  </data>
+  <data name="AlsoMailWebBuyers" xml:space="preserve">
+    <value>订单有进展时也给网站买家发邮件（需要上方的角色）</value>
+  </data>
+  <data name="TheThemeIsTheNote" xml:space="preserve">
+    <value>此主题属于商店本身，与本桌面应用当前显示的主题无关。密钥是应用为每次调用签名所用的值；手动搭建网站时，请将网站的 STORE_SYNC_SECRET 设为相同的值。</value>
+  </data>
+  <data name="AboutThisStoreOnTheLabel" xml:space="preserve">
+    <value>网站上的商店介绍</value>
+  </data>
+  <data name="HintContractTermsPickupWhatever" xml:space="preserve">
+    <value>合同条款、取货方式，以及买家下单前应阅读的任何内容。纯文本或 HTML 均可。</value>
+  </data>
+  <data name="HtmlIsWelcomeBNote" xml:space="preserve">
+    <value>支持 HTML：&lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt;，以及邮件标记中的 &lt;font color&gt;。在你使用段落或列表标签排版之前，换行和空行会按原样保留；使用之后则由标签决定。网站会移除脚本、事件处理程序和无法识别的标签，并闭合所有未闭合的标签。</value>
+  </data>
+  <data name="BannerLabel" xml:space="preserve">
+    <value>横幅</value>
+  </data>
+  <data name="OptionalShownAcrossTheNote" xml:space="preserve">
+    <value>可选。显示在价目表顶部，宽度与页面相同，高度最多 300 像素；宽幅图片（约 1100 × 250）效果最佳，较高的图片只显示中间部分。大文件会被缩小并以 WebP 格式发送。</value>
+  </data>
+  <data name="ChoosePicture" xml:space="preserve">
+    <value>选择图片…</value>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>立即同步</value>
+  </data>
+  <data name="EveApplicationNeededBeforeNote" xml:space="preserve">
+    <value>EVE 应用程序（买家登录前必须设置）</value>
+  </data>
+  <data name="DeployFirstSoTheNote" xml:space="preserve">
+    <value>请先部署，让网站有一个地址。然后在 EVE 开发者网站上注册一个应用程序：名称和描述任意，选择 Authentication only（无权限范围），并填写下方显示的回调地址。将其 Client ID 和 Secret Key 复制到这两个框中：从这里部署的网站会在保存后立即收到它们，框下方的一行会显示网站是否已持有这些密钥。手动搭建的网站需要将相同的值设为其 EVE_CLIENT_ID 和 EVE_CLIENT_SECRET 密钥。</value>
+  </data>
+  <data name="OpenDevelopersEveonlineCom" xml:space="preserve">
+    <value>打开 developers.eveonline.com 创建应用程序</value>
+  </data>
+  <data name="CallbackUrl" xml:space="preserve">
+    <value>回调 URL</value>
+  </data>
+  <data name="HintKnownOnceTheSite" xml:space="preserve">
+    <value>网站有地址后，或在下方填写账户和 Worker 名称后即可得知</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>客户端 ID</value>
+  </data>
+  <data name="HintFromTheApplicationsPage" xml:space="preserve">
+    <value>从开发者网站上该应用程序的页面获取</value>
+  </data>
+  <data name="SecretKey" xml:space="preserve">
+    <value>客户端密钥</value>
+  </data>
+  <data name="HintShownOnceWhenThe" xml:space="preserve">
+    <value>仅在创建应用程序时显示一次</value>
+  </data>
+  <data name="AutomaticDeploymentAndUpdatesNote" xml:space="preserve">
+    <value>在 Cloudflare 上自动部署和更新（仅用于部署按钮）</value>
+  </data>
+  <data name="FillTheseInOnlyNote" xml:space="preserve">
+    <value>仅当你希望应用通过“部署或更新网站”按钮把网站放到你自己的 Cloudflare 账户上并保持最新时，才需要填写这些字段：它会创建数据库、上传网站的最新版本、设置上面的密钥，并把网站放在免费的 workers.dev 地址或该账户中你自己的域名上。再次部署会更新网站，而不会影响其订单。若要改为手动搭建网站，请按照文档操作，然后在上方填写网站地址和密钥；这种情况下不需要这些字段。</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="SiteSourceAndReleases" xml:space="preserve">
+    <value>网站源代码和发布版本</value>
+  </data>
+  <data name="CreateACloudflareApiToken" xml:space="preserve">
+    <value>创建 Cloudflare API 令牌</value>
+  </data>
+  <data name="OnTheCloudflareTokenNote" xml:space="preserve">
+    <value>在 Cloudflare 令牌页面上：点击 Create Token，选择“Edit Cloudflare Workers”模板，添加 D1 Edit 权限，然后依次点击 Continue 和 Create。将令牌粘贴到下方并点击“保存令牌”；令牌会先经过检查，然后仅保存在本机，并为你的账户加密。</value>
+  </data>
+  <data name="ApiToken" xml:space="preserve">
+    <value>API 令牌</value>
+  </data>
+  <data name="HintPasteATokenTo" xml:space="preserve">
+    <value>粘贴令牌以保存在本机</value>
+  </data>
+  <data name="SaveToken" xml:space="preserve">
+    <value>保存令牌</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>忘记</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>账户</value>
+  </data>
+  <data name="HintSaveATokenToList" xml:space="preserve">
+    <value>保存令牌后即可列出账户</value>
+  </data>
+  <data name="WorkerName" xml:space="preserve">
+    <value>Worker 名称</value>
+  </data>
+  <data name="AlsoTheDatabasesNameNote" xml:space="preserve">
+    <value>同时也是数据库的名称。只能使用小写字母、数字和连字符；除非在下方选择了你自己的域名，否则网站地址就是该账户 workers.dev 上的这个名称。</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>地址</value>
+  </data>
+  <data name="TheFreeWorkersDev" xml:space="preserve">
+    <value>免费的 workers.dev 地址：该账户 workers.dev 上的 Worker 名称</value>
+  </data>
+  <data name="RenameTheAccountsWorkersDev" xml:space="preserve">
+    <value>重命名该账户的 workers.dev 名称…</value>
+  </data>
+  <data name="ADomainOfMy2" xml:space="preserve">
+    <value>我在 Cloudflare 上的自有域名：</value>
+  </data>
+  <data name="ADomainMustAlreadyNote" xml:space="preserve">
+    <value>域名必须已在此 Cloudflare 账户中，且 DNS 也托管在那里。下次部署时会将网站绑定到该域名，Cloudflare 会创建 DNS 记录和证书，同时关闭 workers.dev 地址，使买家和 EVE 应用程序的回调只看到一个名称；切换回来则会释放该域名。无论哪种方式，上方的回调 URL 都会改变，因此请相应更新 EVE 应用程序。</value>
+  </data>
+  <data name="DeployOrUpdateSite" xml:space="preserve">
+    <value>部署或更新网站</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>检查</value>
+  </data>
+  <data name="TabInfo" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="AboutThisStore" xml:space="preserve">
+    <value>关于此商店</value>
+  </data>
+  <data name="WhatInfoSendsBackNote" xml:space="preserve">
+    <value>INFO 命令回复的内容：谁在经营商店、有哪些存货、交付条款，以及买家下单前应了解的任何事项。留空则不提供此命令——使用说明中不会提及 INFO，仍发送该命令的人会收到使用说明。</value>
+  </data>
+  <data name="InformationLabel" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="WriteItAsTextNote" xml:space="preserve">
+    <value>以纯文本书写——发送时，换行会变成邮件中的换行。可使用与使用说明相同的 EVE 邮件标记：&lt;b&gt; &lt;i&gt; &lt;u&gt;、&lt;font size="12"&gt; 和 &lt;font color="#ffc8a84b"&gt;——颜色为 ARGB 格式，因此不能省略表示 alpha 的两位。仅含空白字符不算已填写。</value>
+  </data>
+  <data name="TabUsage" xml:space="preserve">
+    <value>使用说明</value>
+  </data>
+  <data name="UsageMessage" xml:space="preserve">
+    <value>使用说明消息</value>
+  </data>
+  <data name="WhatHelpSendsAndNote" xml:space="preserve">
+    <value>HELP 命令发送的内容，也是此商店无法理解的邮件所收到的回复。默认内容概括说明如何下单；有自己规则的商店——如每位买家限一艘船体、固定价格、带条件的计划——最好用自己的话说明，而不是发送不适用的说明。</value>
+  </data>
+  <data name="UseACustomUsage" xml:space="preserve">
+    <value>为此商店使用自定义使用说明</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>消息</value>
+  </data>
+  <data name="WriteItAsTextNote2" xml:space="preserve">
+    <value>以纯文本书写——发送时，换行会变成邮件中的换行。EVE 邮件标记：&lt;b&gt; &lt;i&gt; &lt;u&gt;、&lt;font size="12"&gt; 和 &lt;font color="#ffc8a84b"&gt;——颜色为 ARGB 格式，因此不能省略表示 alpha 的两位。物品和角色链接分别写作 &lt;a href="showinfo:TYPEID"&gt; 和 &lt;a href="showinfo:1373//CHARACTERID"&gt;。空格按原样保留；HTML 实体不会被解码，会按输入原样显示。</value>
+  </data>
+  <data name="ResetToTheDefaultMessage" xml:space="preserve">
+    <value>恢复为默认消息</value>
+  </data>
+  <data name="OrderStatusPending" xml:space="preserve">
+    <value>待处理</value>
+  </data>
+  <data name="OrderStatusCompleted" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="OrderStatusCanceled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+</root>

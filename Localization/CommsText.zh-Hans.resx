@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>撰写邮件</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>发件人</value>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>收件人（搜索名称，按 Enter 添加）</value>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>角色名称…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>正文</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>回复</value>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>转发</value>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ 撰写</value>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>从：</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>致：</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>日期：</value>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>选择一封邮件即可阅读。</value>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>角色：</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>类型：</value>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>发送者：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>至：</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>排序：</value>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>仅未读</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>发送者</value>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>发送者类型</value>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>发送者</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>没有更多详情。</value>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>显示原文</value>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>选择一条通知即可查看详情。</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 首页</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 上一页</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一页 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>末页 ⏭</value>
+  </data>
+</root>

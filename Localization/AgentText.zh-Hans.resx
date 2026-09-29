@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>复制 Markdown</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>复制所选</value>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>将所选行连同表头复制为制表符分隔的文本——可直接粘贴到电子表格中。Ctrl+C 的效果相同。</value>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>复制全部</value>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>保存 CSV</value>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>语音音量（独立于系统音量）</value>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>清除对话</value>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>关闭面板</value>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>——较早的上下文已总结——</value>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>按住说话，松开发送。也可以按住全局热键。</value>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>将 {0} 的语音静音 / 取消静音</value>
+  </data>
+</root>

@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -38,11 +39,11 @@ public class NetWorthViewModel : ReactiveObject
 
     public ObservableCollection<TimeframeOption> TimeframeOptions { get; } =
     [
-        new("Last 90 Days",   NetWorthTimeframe.Days90),
-        new("Last 365 Days",  NetWorthTimeframe.Days365),
-        new("Year to Date",   NetWorthTimeframe.YearToDate),
-        new("Prior Year",     NetWorthTimeframe.PriorYear),
-        new("Custom Range",   NetWorthTimeframe.Custom),
+        new(FinanceText.Last90Days,   NetWorthTimeframe.Days90),
+        new(FinanceText.Last365Days,  NetWorthTimeframe.Days365),
+        new(FinanceText.YearToDate,   NetWorthTimeframe.YearToDate),
+        new(FinanceText.PriorYear,     NetWorthTimeframe.PriorYear),
+        new(FinanceText.CustomRange,   NetWorthTimeframe.Custom),
     ];
 
     private TimeframeOption _selectedTimeframe;
@@ -206,7 +207,7 @@ public class NetWorthViewModel : ReactiveObject
             .ToListAsync();
 
         OwnerOptions.Clear();
-        OwnerOptions.Add(new NetWorthOwnerOption("Personal", IsPersonal: true, CorpId: null));
+        OwnerOptions.Add(new NetWorthOwnerOption(FinanceText.OwnerPersonal, IsPersonal: true, CorpId: null));
         foreach (var c in corps)
             OwnerOptions.Add(new NetWorthOwnerOption(c.Name, IsPersonal: false, CorpId: c.Id));
 
@@ -344,14 +345,14 @@ public class NetWorthViewModel : ReactiveObject
         bool log = _isLogScale;
         Series =
         [
-            MakeLine("Net Worth (Total)", rows, r => scale(r.Total),      0xc8, 0xa8, 0x4b, thickness: 3, logScale: log),
-            MakeLine("Assets",            rows, r => scale(r.Assets),     0x5b, 0x9b, 0xd5, logScale: log),
-            MakeLine("Wallet",            rows, r => scale(r.Wallet),     0x70, 0xad, 0x47, logScale: log),
-            MakeLine("Industry Jobs",     rows, r => scale(r.Industry),   0xed, 0x7d, 0x31, logScale: log),
-            MakeLine("Sell Orders",       rows, r => scale(r.SellOrders), 0xa8, 0x79, 0xd8, logScale: log),
-            MakeLine("Buy Escrow",        rows, r => scale(r.BuyEscrow),  0x17, 0xbe, 0xcf, logScale: log),
-            MakeLine("Contract Colat.",   rows, r => scale(r.Collateral), 0xe7, 0x4c, 0x3c, logScale: log),
-            MakeLine("Contract Value",    rows, r => scale(r.Contracts),  0xf1, 0xc4, 0x0f, logScale: log),
+            MakeLine(FinanceText.LineNetWorthTotal, rows, r => scale(r.Total),      0xc8, 0xa8, 0x4b, thickness: 3, logScale: log),
+            MakeLine(FinanceText.LineAssets,            rows, r => scale(r.Assets),     0x5b, 0x9b, 0xd5, logScale: log),
+            MakeLine(FinanceText.LineWallet,            rows, r => scale(r.Wallet),     0x70, 0xad, 0x47, logScale: log),
+            MakeLine(FinanceText.LineIndustryJobs,     rows, r => scale(r.Industry),   0xed, 0x7d, 0x31, logScale: log),
+            MakeLine(FinanceText.LineSellOrders,       rows, r => scale(r.SellOrders), 0xa8, 0x79, 0xd8, logScale: log),
+            MakeLine(FinanceText.LineBuyEscrow,        rows, r => scale(r.BuyEscrow),  0x17, 0xbe, 0xcf, logScale: log),
+            MakeLine(FinanceText.LineContractCollateral,   rows, r => scale(r.Collateral), 0xe7, 0x4c, 0x3c, logScale: log),
+            MakeLine(FinanceText.LineContractValue,    rows, r => scale(r.Contracts),  0xf1, 0xc4, 0x0f, logScale: log),
         ];
     }
 
@@ -392,7 +393,7 @@ public class NetWorthViewModel : ReactiveObject
             CurrentBuyEscrow = "—"; CurrentCollateral = "—"; CurrentContracts = "—";
             return;
         }
-        CurrentDate       = $"As of {row.Date}";
+        CurrentDate       = string.Format(FinanceText.AsOfDate, row.Date);
         CurrentTotal      = FormatIskKpi(row.Total);
         CurrentAssets     = FormatIskKpi(row.Assets);
         CurrentIndustry   = FormatIskKpi(row.Industry);

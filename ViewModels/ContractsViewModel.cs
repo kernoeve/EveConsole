@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -28,18 +29,31 @@ internal static class ContractFmt
 
     public static string TypeLabel(string type) => type switch
     {
-        "item_exchange" => "Item Exchange",
-        "auction"       => "Auction",
-        "courier"       => "Courier",
-        "loan"          => "Loan",
+        "item_exchange" => MarketText.ContractTypeItemExchange,
+        "auction"       => MarketText.ContractTypeAuction,
+        "courier"       => MarketText.ContractTypeCourier,
+        "loan"          => MarketText.ContractTypeLoan,
         ""              => "",
         _               => string.Join(" ", type.Split('_')
                                .Select(w => w.Length > 0 ? char.ToUpperInvariant(w[0]) + w[1..] : w)),
     };
 
-    public static string StatusLabel(string status) =>
-        string.Join(" ", status.Split('_')
-            .Select(w => w.Length > 0 ? char.ToUpperInvariant(w[0]) + w[1..] : w));
+    /// <summary>A status as a person reads it. ESI's own word, humanised, for one not listed.</summary>
+    public static string StatusLabel(string status) => status switch
+    {
+        "outstanding"         => MarketText.ContractStatusOutstanding,
+        "in_progress"         => MarketText.ContractStatusInProgress,
+        "finished"            => MarketText.ContractStatusFinished,
+        "finished_issuer"     => MarketText.ContractStatusFinishedIssuer,
+        "finished_contractor" => MarketText.ContractStatusFinishedContractor,
+        "cancelled"           => MarketText.ContractStatusCancelled,
+        "rejected"            => MarketText.ContractStatusRejected,
+        "failed"              => MarketText.ContractStatusFailed,
+        "deleted"             => MarketText.ContractStatusDeleted,
+        "reversed"            => MarketText.ContractStatusReversed,
+        _ => string.Join(" ", status.Split('_')
+                 .Select(w => w.Length > 0 ? char.ToUpperInvariant(w[0]) + w[1..] : w)),
+    };
 
     // A stored status only reflects the last time we saw the contract. Public listings and
     // owned contracts that age off ESI are retained as "outstanding" forever; if their expiry
@@ -48,7 +62,7 @@ internal static class ContractFmt
         status == "outstanding" && expired is { } e && e < DateTimeOffset.UtcNow;
 
     public static string EffectiveStatusLabel(string status, DateTimeOffset? expired) =>
-        IsExpired(status, expired) ? "Expired" : StatusLabel(status);
+        IsExpired(status, expired) ? MarketText.ContractExpired : StatusLabel(status);
 
     public static IBrush EffectiveStatusColor(string status, DateTimeOffset? expired) =>
         IsExpired(status, expired) ? Palette.Warn : StatusColor(status);
@@ -142,21 +156,21 @@ public class ContractItemRowVm : ReactiveObject
         IsTotal   = true;
         Kind      = rows.Count > 0 ? rows[0].Kind : "";
         KindColor = Palette.TextMuted;
-        TypeName  = "Total";
+        TypeName  = MarketText.ContractTotalRow;
         QuantityRaw = rows.Sum(r => r.QuantityRaw);
         Quantity  = QuantityRaw.ToString("N0");
         MarketValueRaw = rows.Any(r => r.MarketValueRaw is not null) ? rows.Sum(r => r.MarketValueRaw ?? 0) : null;
         BuildValueRaw  = rows.Any(r => r.BuildValueRaw  is not null) ? rows.Sum(r => r.BuildValueRaw  ?? 0) : null;
         var unpricedM = rows.Count(r => r.MarketValueRaw is null);
         var unpricedB = rows.Count(r => r.BuildValueRaw  is null);
-        MarketTip = unpricedM > 0 ? $"{unpricedM:N0} line(s) have no market price and are not counted" : "Every line priced";
-        BuildTip  = unpricedB > 0 ? $"{unpricedB:N0} line(s) have no build cost and are not counted"   : "Every line costed";
+        MarketTip = unpricedM > 0 ? string.Format(MarketText.TipLinesUnpriced, unpricedM) : MarketText.TipEveryLinePriced;
+        BuildTip  = unpricedB > 0 ? string.Format(MarketText.TipLinesUncosted, unpricedB)   : MarketText.TipEveryLineCosted;
         Details   = "";
     }
 
     public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames, ContractItemValues values)
     {
-        Kind      = it.IsIncluded ? "Offered" : "Requested";
+        Kind      = it.IsIncluded ? MarketText.ItemOffered : MarketText.ItemRequested;
         KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
         TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
         TypeId    = it.TypeId;
@@ -166,8 +180,8 @@ public class ContractItemRowVm : ReactiveObject
 
         MarketValueRaw = values.MarketUnit.TryGetValue(it.TypeId, out var mu) && mu > 0 ? mu * it.Quantity : null;
         BuildValueRaw  = values.BuildUnit.TryGetValue(it.TypeId,  out var bu) && bu > 0 ? bu * it.Quantity : null;
-        MarketTip = MarketValueRaw is null ? "No market price held for this item" : $"{MarketFmt.Isk(mu)} ISK a unit at the asset-value market source";
-        BuildTip  = BuildValueRaw  is null ? "No build cost held for this item"   : $"{MarketFmt.Isk(bu)} ISK a unit to build";
+        MarketTip = MarketValueRaw is null ? MarketText.TipNoMarketPrice : string.Format(MarketText.TipIskPerUnitMarket, MarketFmt.Isk(mu));
+        BuildTip  = BuildValueRaw  is null ? MarketText.TipNoBuildCost   : string.Format(MarketText.TipIskPerUnitBuild, MarketFmt.Isk(bu));
 
         var notes = new List<string>();
         if (it.IsBlueprintCopy == true || (it.RawQuantity is < -1))
@@ -204,7 +218,7 @@ public class ContractDetailVm : ReactiveObject
     {
         if (_pull is null || IsPulling) return;
         IsPulling   = true;
-        PullMessage = "Asking ESI…";
+        PullMessage = MarketText.AskingEsi;
         try { PullMessage = await _pull(ContractId); }
         catch (Exception ex) { PullMessage = AppErrorLogger.Line("Pull failed", ex); }
         finally { IsPulling = false; }
@@ -284,17 +298,17 @@ public class ContractDetailVm : ReactiveObject
         ContractId  = c.ContractId;
         // Why there are no items, when there are none: asked and refused, or not asked yet.
         if (items.Count == 0)
-            _pullMessage = c.ItemsStatus >= 400 ? $"ESI answered HTTP {c.ItemsStatus} when the items were asked for."
-                         : c.ItemsPulled        ? "ESI listed no items for it."
-                         :                        "Not asked for yet — the background sweep will get to it.";
-        Title       = string.IsNullOrWhiteSpace(c.Title) ? "(no title)" : c.Title!;
+            _pullMessage = c.ItemsStatus >= 400 ? string.Format(MarketText.ItemsHttpError, c.ItemsStatus)
+                         : c.ItemsPulled        ? MarketText.ItemsNoneListed
+                         :                        MarketText.ItemsNotAskedYet;
+        Title       = string.IsNullOrWhiteSpace(c.Title) ? MarketText.NoTitle : c.Title!;
         TypeLabel   = ContractFmt.TypeLabel(c.Type);
         Status      = ContractFmt.EffectiveStatusLabel(c.Status, c.DateExpired);
         StatusColor = ContractFmt.EffectiveStatusColor(c.Status, c.DateExpired);
         Availability = c.Availability switch
         {
-            "public"   => "Public",
-            "personal" => "Private",
+            "public"   => MarketText.AvailabilityPublic,
+            "personal" => MarketText.AvailabilityPrivate,
             ""         => "",
             _          => ContractFmt.StatusLabel(c.Availability),
         };
@@ -329,8 +343,8 @@ public class ContractDetailVm : ReactiveObject
                                  .ThenBy(i => typeNames.TryGetValue(i.TypeId, out var n) ? n : ""))
             Items.Add(new ContractItemRowVm(it, typeNames, values));
 
-        var offered   = Items.Where(r => r.Kind == "Offered").ToList();
-        var requested = Items.Where(r => r.Kind == "Requested").ToList();
+        var offered   = Items.Where(r => r.Kind == MarketText.ItemOffered).ToList();
+        var requested = Items.Where(r => r.Kind == MarketText.ItemRequested).ToList();
         foreach (var r in offered)   Offered.Add(r);
         if (offered.Count > 0)       Offered.Add(new ContractItemRowVm(offered));
         foreach (var r in requested) Requested.Add(r);
@@ -349,7 +363,7 @@ public class ContractDetailVm : ReactiveObject
 
     private static string Loc(IReadOnlyDictionary<long, string> locations, long? id) =>
         id is > 0 && locations.TryGetValue(id.Value, out var n) && !string.IsNullOrEmpty(n)
-            ? n : (id is > 0 ? $"Location {id}" : "—");
+            ? n : (id is > 0 ? string.Format(MarketText.LocationNumbered, id) : "—");
 }
 
 public class ContractRowVm
@@ -443,8 +457,8 @@ public class ContractRowVm
         _fromId = c.ForCorporation && c.IssuerCorporationId != 0 ? c.IssuerCorporationId : c.IssuerId;
         From    = names.TryGetValue(_fromId, out var fromName) && fromName.Length > 0 ? fromName : $"ID {_fromId}";
         FromTip = c.ForCorporation && c.IssuerId != 0
-            ? $"Issued for the corporation by {Issuer}. Open in the entity browser."
-            : "Open in the entity browser";
+            ? string.Format(MarketText.TipIssuedForCorp, Issuer)
+            : MarketText.TipOpenEntity;
         AssigneeId = c.AssigneeId;
         AcceptorId = c.AcceptorId;
         Assignee = c.AssigneeId is > 0
@@ -856,8 +870,8 @@ public class OwnedContractsViewModel : ReactiveObject
     public ObservableCollection<ContractScopeOption> Scopes     { get; } = new();
     public ObservableCollection<ContractPartyOption> Assignees  { get; } = new();
     public ObservableCollection<ContractPartyOption> Acceptors  { get; } = new();
-    /// <summary>The statuses the stored contracts are in, "All statuses" first.</summary>
-    public ObservableCollection<string>              Statuses   { get; } = new();
+    /// <summary>"Active" and "All statuses", then the statuses the stored contracts are in.</summary>
+    public ObservableCollection<Choice<string>>      Statuses   { get; } = new();
 
     private ContractScopeOption? _selectedScope;
     public ContractScopeOption? SelectedScope
@@ -866,16 +880,18 @@ public class OwnedContractsViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedScope, value); ApplyFilter(); }
     }
 
-    private string? _selectedStatus;
-    public string? SelectedStatus
+    private Choice<string>? _selectedStatus;
+    public Choice<string>? SelectedStatus
     {
         get => _selectedStatus;
         set { this.RaiseAndSetIfChanged(ref _selectedStatus, value); ApplyFilter(); }
     }
 
-    private const string AllStatuses  = "All statuses";
+    // Values no status label is: a translation that gives "Active" and a status the same words
+    // cannot make them one entry.
+    private static readonly Choice<string> AllStatuses  = new("*all", MarketText.FilterAllStatuses);
     /// <summary>Outstanding and not past its expiry — the default, as on the public tab.</summary>
-    private const string ActiveStatus = "Active";
+    private static readonly Choice<string> ActiveStatus = new("*active", MarketText.FilterActive);
 
     private int _pendingSelect;
     private int _reloadedFor;
@@ -900,7 +916,7 @@ public class OwnedContractsViewModel : ReactiveObject
                 _pendingSelect = contractId;
                 _ = LoadAsync();
             }
-            else StatusText = $"Contract {contractId} is not stored on this side — it may be a public listing, or not yet polled.";
+            else StatusText = string.Format(MarketText.ContractNotStored, contractId);
             return;
         }
 
@@ -974,7 +990,7 @@ public class OwnedContractsViewModel : ReactiveObject
     /// so the row's contents and the pane both show them.</summary>
     private async Task<string> PullItemsAsync(int contractId)
     {
-        if (_contracts is null) return "Not available.";
+        if (_contracts is null) return MarketText.NotAvailable;
         var r = await _contracts.PullItemsNowAsync(contractId);
         if (r.Stored) { _reloadedFor = 0; _pendingSelect = contractId; await LoadAsync(); }
         return r.Message;
@@ -996,7 +1012,7 @@ public class OwnedContractsViewModel : ReactiveObject
     {
         if (IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading contracts…";
+        StatusText = MarketText.LoadingContracts;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -1045,8 +1061,8 @@ public class OwnedContractsViewModel : ReactiveObject
                 .Concat(corps.Where(c => c.IsPersonal).Select(c => (long)c.Id))
                 .ToHashSet();
             Scopes.Clear();
-            Scopes.Add(new ContractScopeOption("All owners", null));
-            Scopes.Add(new ContractScopeOption("All characters and personal corps", mine));
+            Scopes.Add(new ContractScopeOption(MarketText.ScopeAllOwners, null));
+            Scopes.Add(new ContractScopeOption(MarketText.ScopeAllCharsCorps, mine));
             foreach (var c in chars.OrderBy(c => c.Name))
                 Scopes.Add(new ContractScopeOption(c.Name, new HashSet<long> { c.Id }));
             foreach (var c in corps.OrderBy(c => c.Name))
@@ -1058,19 +1074,19 @@ public class OwnedContractsViewModel : ReactiveObject
                 .SelectMany(r => new[] { r.AssigneeId ?? 0, r.AcceptorId ?? 0 })
                 .Where(id => id > 0 && EntityLinks.KindOf(id) == EntityKind.Alliance)
                 .Distinct()
-                .Select(id => (Id: id, Name: _partyNames.TryGetValue(id, out var n) && n.Length > 0 ? n : $"Alliance {id}"))
+                .Select(id => (Id: id, Name: _partyNames.TryGetValue(id, out var n) && n.Length > 0 ? n : string.Format(MarketText.AllianceNumbered, id)))
                 .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase);
             foreach (var a in alliances)
                 Scopes.Add(new ContractScopeOption(a.Name, new HashSet<long> { a.Id }));
 
-            BuildPartyCombo(Assignees, _all.Select(r => r.AssigneeId), "All assignees");
-            BuildPartyCombo(Acceptors, _all.Select(r => r.AcceptorId), "All acceptors");
+            BuildPartyCombo(Assignees, _all.Select(r => r.AssigneeId), MarketText.AllAssignees);
+            BuildPartyCombo(Acceptors, _all.Select(r => r.AcceptorId), MarketText.AllAcceptors);
 
             Statuses.Clear();
             Statuses.Add(ActiveStatus);
             Statuses.Add(AllStatuses);
             foreach (var s in _all.Select(r => r.Status).Distinct().OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
-                Statuses.Add(s);
+                Statuses.Add(new(s, s));
 
             _selectedScope    = Scopes.Count > 1 ? Scopes[1] : Scopes.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedScope));
             _selectedAssignee = Assignees.FirstOrDefault(); this.RaisePropertyChanged(nameof(SelectedAssignee));
@@ -1079,7 +1095,7 @@ public class OwnedContractsViewModel : ReactiveObject
 
             _initialized = true;
             ApplyFilter();
-            StatusText = _all.Count == 0 ? "No corporation or personal contracts stored yet." : "";
+            StatusText = _all.Count == 0 ? MarketText.NoContractsStored : "";
 
             // A click that arrived while this was loading.
             if (_pendingSelect > 0) { var id = _pendingSelect; _pendingSelect = 0; IsLoading = false; SelectById(id); }
@@ -1120,7 +1136,7 @@ public class OwnedContractsViewModel : ReactiveObject
         if (SelectedAssignee?.Id is { } aid) q = q.Where(r => r.AssigneeId == aid);
         if (SelectedAcceptor?.Id is { } cid) q = q.Where(r => r.AcceptorId == cid);
         if (SelectedStatus == ActiveStatus) q = q.Where(r => r.IsActive);
-        else if (SelectedStatus is { } status && status != AllStatuses) q = q.Where(r => r.Status == status);
+        else if (SelectedStatus is { } status && status != AllStatuses) q = q.Where(r => r.Status == status.Value);
 
         var rows = q.OrderByDescending(r => r.DateIssuedRaw).ToList();
 
@@ -1173,7 +1189,12 @@ public class PublicContractsViewModel : ReactiveObject
 
     public ObservableCollection<ContractRegionOption> Regions    { get; } = new();
     public ObservableCollection<string>               Categories { get; } = new();
-    public IReadOnlyList<string>                       StatusOptions { get; } = ["Active", "Historical", "All"];
+    public IReadOnlyList<Choice<string>>               StatusOptions { get; } =
+    [
+        new("Active",     MarketText.FilterActive),
+        new("Historical", MarketText.FilterHistorical),
+        new("All",        MarketText.FilterAllContracts),
+    ];
 
     // Matches the Contents column: the title if any, else the first item's type name (included
     // items first, then by record). The subquery is a PK-indexed seek per row, so it's cheap.
@@ -1186,13 +1207,13 @@ public class PublicContractsViewModel : ReactiveObject
     // only reorder the current page, which is the confusing behaviour we're replacing.
     public IReadOnlyList<ContractSortOption> SortOptions { get; } =
     [
-        new("Price: low → high",  "CAST(c.\"Price\" AS DOUBLE PRECISION) ASC, c.\"ContractId\" DESC"),
-        new("Price: high → low",  "CAST(c.\"Price\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
-        new("Newest first",       "c.\"DateIssued\" DESC"),
-        new("Oldest first",       "c.\"DateIssued\" ASC"),
-        new("Reward: high → low", "CAST(c.\"Reward\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
-        new("Volume: high → low", "CAST(c.\"Volume\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
-        new("Contents (A → Z)",   ContentsSortExpr + " ASC, c.ContractId DESC"),
+        new(MarketText.SortPriceLowHigh,  "CAST(c.\"Price\" AS DOUBLE PRECISION) ASC, c.\"ContractId\" DESC"),
+        new(MarketText.SortPriceHighLow,  "CAST(c.\"Price\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
+        new(MarketText.SortNewest,       "c.\"DateIssued\" DESC"),
+        new(MarketText.SortOldest,       "c.\"DateIssued\" ASC"),
+        new(MarketText.SortRewardHighLow, "CAST(c.\"Reward\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
+        new(MarketText.SortVolumeHighLow, "CAST(c.\"Volume\" AS DOUBLE PRECISION) DESC, c.\"ContractId\" DESC"),
+        new(MarketText.SortContentsAz,   ContentsSortExpr + " ASC, c.ContractId DESC"),
     ];
 
     private ContractSortOption _selectedSort;
@@ -1203,20 +1224,38 @@ public class PublicContractsViewModel : ReactiveObject
     }
 
     private string _selectedStatus = "Active";
-    public string SelectedStatus
+    public Choice<string> SelectedStatus
     {
-        get => _selectedStatus;
-        set { this.RaiseAndSetIfChanged(ref _selectedStatus, value ?? "Active"); ResetToFirstPageAndReload(); }
+        get => StatusOptions.FirstOrDefault(o => o.Value == _selectedStatus) ?? StatusOptions[0];
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedStatus = value.Value;
+            this.RaisePropertyChanged();
+            ResetToFirstPageAndReload();
+        }
     }
 
-    public IReadOnlyList<string> ContractTypeOptions { get; } =
-        ["All types", "Item Exchange", "Auction", "Courier"];
+    // The value is ESI's type, or empty for every type.
+    public IReadOnlyList<Choice<string>> ContractTypeOptions { get; } =
+    [
+        new("",              MarketText.ContractTypeAll),
+        new("item_exchange", MarketText.ContractTypeItemExchange),
+        new("auction",       MarketText.ContractTypeAuction),
+        new("courier",       MarketText.ContractTypeCourier),
+    ];
 
-    private string _selectedContractType = "All types";
-    public string SelectedContractType
+    private string _selectedContractType = "";
+    public Choice<string> SelectedContractType
     {
-        get => _selectedContractType;
-        set { this.RaiseAndSetIfChanged(ref _selectedContractType, value ?? "All types"); ResetToFirstPageAndReload(); }
+        get => ContractTypeOptions.FirstOrDefault(o => o.Value == _selectedContractType) ?? ContractTypeOptions[0];
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedContractType = value.Value;
+            this.RaisePropertyChanged();
+            ResetToFirstPageAndReload();
+        }
     }
 
     private ContractRegionOption? _selectedRegion;
@@ -1226,11 +1265,11 @@ public class PublicContractsViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); ResetToFirstPageAndReload(); }
     }
 
-    private string _selectedCategory = "All categories";
+    private string _selectedCategory = MarketText.AllCategories;
     public string SelectedCategory
     {
         get => _selectedCategory;
-        set { this.RaiseAndSetIfChanged(ref _selectedCategory, value ?? "All categories"); ResetToFirstPageAndReload(); }
+        set { this.RaiseAndSetIfChanged(ref _selectedCategory, value ?? MarketText.AllCategories); ResetToFirstPageAndReload(); }
     }
 
     private string _typeFilter = "";
@@ -1273,8 +1312,8 @@ public class PublicContractsViewModel : ReactiveObject
     public bool CanPrev => CurrentPage > 1;
     public bool CanNext => CurrentPage < TotalPages;
     public string PageInfo => TotalCount == 0
-        ? "No results"
-        : $"Page {CurrentPage:N0} of {TotalPages:N0}  ·  {TotalCount:N0} contracts";
+        ? MarketText.NoResults
+        : string.Format(MarketText.PageOfContracts, CurrentPage, TotalPages, TotalCount);
 
     private void RaisePaging()
     {
@@ -1302,7 +1341,7 @@ public class PublicContractsViewModel : ReactiveObject
     /// <summary>The detail pane's pull, and a reload of the page when items landed.</summary>
     private async Task<string> PullItemsAsync(int contractId)
     {
-        if (_contracts is null) return "Not available.";
+        if (_contracts is null) return MarketText.NotAvailable;
         var r = await _contracts.PullItemsNowAsync(contractId);
         if (r.Stored) await ReloadPageAsync();
         return r.Message;
@@ -1322,7 +1361,7 @@ public class PublicContractsViewModel : ReactiveObject
         ClearFiltersCommand = ReactiveCommand.Create(() =>
         {
             _typeFilter = ""; this.RaisePropertyChanged(nameof(TypeFilter));
-            _selectedCategory = "All categories"; this.RaisePropertyChanged(nameof(SelectedCategory));
+            _selectedCategory = MarketText.AllCategories; this.RaisePropertyChanged(nameof(SelectedCategory));
             ResetToFirstPageAndReload();
         });
         FirstPageCommand = ReactiveCommand.Create(() => GoToPage(1));
@@ -1372,7 +1411,7 @@ public class PublicContractsViewModel : ReactiveObject
                 .ToDictionary(gr => gr.Key, gr => gr.Select(g => g.MarketGroupId).ToList());
 
             Categories.Clear();
-            Categories.Add("All categories");
+            Categories.Add(MarketText.AllCategories);
             _categoryRootId.Clear();
             foreach (var g in mgs.Where(g => g.ParentGroupId == null)
                          .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase))
@@ -1387,7 +1426,7 @@ public class PublicContractsViewModel : ReactiveObject
                 .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
             Regions.Clear();
-            Regions.Add(new ContractRegionOption("All regions", null));
+            Regions.Add(new ContractRegionOption(MarketText.AllRegions, null));
             foreach (var kv in regionNames.OrderBy(k => k.Value))
                 Regions.Add(new ContractRegionOption(kv.Value, kv.Key));
 
@@ -1417,13 +1456,7 @@ public class PublicContractsViewModel : ReactiveObject
             ps.Add(rid);
         }
 
-        var contractType = _selectedContractType switch
-        {
-            "Item Exchange" => "item_exchange",
-            "Auction"       => "auction",
-            "Courier"       => "courier",
-            _               => null,
-        };
+        var contractType = _selectedContractType.Length > 0 ? _selectedContractType : null;
         if (contractType is not null)
         {
             parts.Add($"c.\"Type\" = {{{ps.Count}}}");
@@ -1453,7 +1486,7 @@ public class PublicContractsViewModel : ReactiveObject
             ps.Add($"%{typeF}%");
         }
 
-        if (_selectedCategory is { Length: > 0 } cat && cat != "All categories"
+        if (_selectedCategory is { Length: > 0 } cat && cat != MarketText.AllCategories
             && _categoryRootId.TryGetValue(cat, out var rootId))
         {
             var ids = DescendantGroupIds(rootId);
@@ -1484,7 +1517,7 @@ public class PublicContractsViewModel : ReactiveObject
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>添加物品</value>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>搜索物品</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>开始输入物品名称…</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>更改</value>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>目标数量</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>请从上方列表中选择一个物品。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>从蓝图添加物品</value>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>蓝图（按产品名称搜索）</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>输入以搜索…</value>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>ME 等级</value>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>流程数</value>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>材料来源</value>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>仅此蓝图</value>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>整条生产链</value>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>工业园区（整条生产链）</value>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>添加物品</value>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>自定义颜色</value>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>EVE 邮件的背景接近黑色，因此很深的颜色在其中几乎看不见。下方的色样显示在该背景上，而不是本对话框的背景上。</value>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2.12B</value>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>使用此颜色</value>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>在浏览器中打开？</value>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>此链接会在浏览器中打开一个网站。</value>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>不再询问</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>从装配添加物品</value>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>添加到分组：</value>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>装配内容</value>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>添加物品</value>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>从市场分组添加物品</value>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>每种物品的目标数量</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>选择颜色</value>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>EVE 邮件颜色</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>自定义…</value>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>无颜色</value>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>显示所有已在使用的标签</value>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>没有匹配项——按 Enter 键创建。</value>
+  </data>
+</root>

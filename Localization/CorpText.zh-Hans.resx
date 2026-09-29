@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>军团：</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="TabActivity24h" xml:space="preserve">
+    <value>活动（24 小时）</value>
+  </data>
+  <data name="PlayersActiveLabel" xml:space="preserve">
+    <value>活跃玩家：</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>收入：</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>支出：</value>
+  </data>
+  <data name="RattingLabel" xml:space="preserve">
+    <value>刷怪</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>价值</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="MiningLabel" xml:space="preserve">
+    <value>采矿</value>
+  </data>
+  <data name="RecentKillsLossesLabel" xml:space="preserve">
+    <value>近期击毁与损失</value>
+  </data>
+  <data name="TabMonthlyActivity" xml:space="preserve">
+    <value>月度活动</value>
+  </data>
+  <data name="ColMonth" xml:space="preserve">
+    <value>月份</value>
+  </data>
+  <data name="ColTotalIncome" xml:space="preserve">
+    <value>总收入</value>
+  </data>
+  <data name="ColTotalExpense" xml:space="preserve">
+    <value>总支出</value>
+  </data>
+  <data name="ColRattingTax" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="ColIndustryTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="ColProjPayouts" xml:space="preserve">
+    <value>项目奖励</value>
+  </data>
+  <data name="ColMinedValue" xml:space="preserve">
+    <value>采矿价值</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="ColLosses" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="ColIskEff" xml:space="preserve">
+    <value>ISK 效率</value>
+  </data>
+  <data name="ColPlayersActive" xml:space="preserve">
+    <value>活跃玩家</value>
+  </data>
+  <data name="IskTrendsBillions" xml:space="preserve">
+    <value>ISK 趋势（十亿）</value>
+  </data>
+  <data name="KillsLossesIskEfficiencyRight" xml:space="preserve">
+    <value>击毁 / 损失（右轴为 ISK 效率）</value>
+  </data>
+  <data name="PlayersActiveLabel2" xml:space="preserve">
+    <value>活跃玩家</value>
+  </data>
+  <data name="MiningReprocessedValue" xml:space="preserve">
+    <value>采矿（精炼价值）</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="IncomeByTypeLabel" xml:space="preserve">
+    <value>收入（按类型）</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>时段：</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColCount" xml:space="preserve">
+    <value>笔数</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>明细</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="HintContains" xml:space="preserve">
+    <value>包含…</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>日期 / 时间</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ColReason" xml:space="preserve">
+    <value>事由</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="ExpensesByTypeLabel" xml:space="preserve">
+    <value>支出（按类型）</value>
+  </data>
+  <data name="TabRattingTaxes" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="RattingTaxLabel" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="DailyRattingTaxLabel" xml:space="preserve">
+    <value>每日刷怪税</value>
+  </data>
+  <data name="TabIndustryTaxes" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="IndustryTaxLabel" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="DailyIndustryTaxLabel" xml:space="preserve">
+    <value>每日工业税</value>
+  </data>
+  <data name="TabDonations" xml:space="preserve">
+    <value>捐赠</value>
+  </data>
+  <data name="DonationsLabel" xml:space="preserve">
+    <value>捐赠</value>
+  </data>
+  <data name="ColDonated" xml:space="preserve">
+    <value>捐赠额</value>
+  </data>
+  <data name="DailyDonationsLabel" xml:space="preserve">
+    <value>每日捐赠</value>
+  </data>
+  <data name="ColDonor" xml:space="preserve">
+    <value>捐赠者</value>
+  </data>
+  <data name="TabMining" xml:space="preserve">
+    <value>采矿</value>
+  </data>
+  <data name="MiningLedgerLabel" xml:space="preserve">
+    <value>采矿记录</value>
+  </data>
+  <data name="NoMiningDataForNote" xml:space="preserve">
+    <value>此时段没有采矿数据。如果某个步骤失败，上方的状态行会注明。</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="ColOreType" xml:space="preserve">
+    <value>矿石类型</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColReprocessedValue" xml:space="preserve">
+    <value>精炼价值</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="KillmailsLabel" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="DailyKillsLossesLabel" xml:space="preserve">
+    <value>每日击毁 / 损失</value>
+  </data>
+  <data name="TabProjects" xml:space="preserve">
+    <value>项目</value>
+  </data>
+  <data name="TabActive" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="TotalRewardLabel" xml:space="preserve">
+    <value>总奖励：</value>
+  </data>
+  <data name="RemainingLabel" xml:space="preserve">
+    <value>剩余：</value>
+  </data>
+  <data name="NoActiveCorpProjects" xml:space="preserve">
+    <value>没有进行中的军团项目。</value>
+  </data>
+  <data name="ColCareer" xml:space="preserve">
+    <value>职业</value>
+  </data>
+  <data name="ColProgress" xml:space="preserve">
+    <value>进度</value>
+  </data>
+  <data name="ColRemReward" xml:space="preserve">
+    <value>剩余奖励</value>
+  </data>
+  <data name="ColCreator" xml:space="preserve">
+    <value>创建者</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>创建时间</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>历史</value>
+  </data>
+  <data name="NoProjectHistoryAvailable" xml:space="preserve">
+    <value>暂无项目历史。</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>完成时间</value>
+  </data>
+  <data name="TabStandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="AddProject" xml:space="preserve">
+    <value>+ 添加项目</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>正在加载…</value>
+  </data>
+  <data name="MenuCloneItem" xml:space="preserve">
+    <value>复制此项</value>
+  </data>
+  <data name="MenuOpenItemInItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开物品</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>地点</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>打开此空间站或建筑</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>项目状态</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>剩余 %</value>
+  </data>
+  <data name="ColPayout" xml:space="preserve">
+    <value>奖励</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="NoStandingProjectsDefinedNote" xml:space="preserve">
+    <value>尚未定义长期项目。点击“+ 添加项目”创建一个。</value>
+  </data>
+  <data name="SelectAProjectAboveNote" xml:space="preserve">
+    <value>在上方选择一个项目以查看详情。</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="ConfigurationLabel" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="TabContributors" xml:space="preserve">
+    <value>贡献者</value>
+  </data>
+  <data name="ColContributed" xml:space="preserve">
+    <value>贡献量</value>
+  </data>
+  <data name="ColOfTarget" xml:space="preserve">
+    <value>占目标比例</value>
+  </data>
+  <data name="TabTop10Lists" xml:space="preserve">
+    <value>前十榜单</value>
+  </data>
+  <data name="Top10ByMonthLabel" xml:space="preserve">
+    <value>月度前十</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>月份：</value>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>年份：</value>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>正在加载…</value>
+  </data>
+  <data name="TipFormatUsedForExport" xml:space="preserve">
+    <value>“导出到剪贴板”和“发布到 Slack”所使用的格式</value>
+  </data>
+  <data name="ExportToClipboard" xml:space="preserve">
+    <value>导出到剪贴板</value>
+  </data>
+  <data name="ExportNoIsk" xml:space="preserve">
+    <value>导出（不含 ISK）</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>发布到 Slack</value>
+  </data>
+  <data name="MiningUnitsMinedLabel" xml:space="preserve">
+    <value>采矿——开采数量</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="ProjectContributorsLabel" xml:space="preserve">
+    <value>项目贡献者</value>
+  </data>
+  <data name="TabMonthlySummary" xml:space="preserve">
+    <value>月度摘要</value>
+  </data>
+  <data name="MonthlySummaryLabel" xml:space="preserve">
+    <value>月度摘要</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>本月</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>变化</value>
+  </data>
+  <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
+    <value>与上月相比的变化</value>
+  </data>
+  <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
+    <value>与上月相比的变化百分比</value>
+  </data>
+  <data name="FmtRows" xml:space="preserve">
+    <value>{0:N0} 行</value>
+  </data>
+  <data name="TitleCorpActivity" xml:space="preserve">
+    <value>军团活动</value>
+  </data>
+  <data name="HintTypeAtLeastTwo" xml:space="preserve">
+    <value>至少输入两个字符进行搜索…</value>
+  </data>
+  <data name="SearchAboveAndPickNote" xml:space="preserve">
+    <value>在上方搜索并选择一个实体，即可查看其详情。</value>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>简介</value>
+  </data>
+  <data name="TabKillsLosses" xml:space="preserve">
+    <value>击毁 / 损失</value>
+  </data>
+  <data name="ColName2" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="ColLvl" xml:space="preserve">
+    <value>等级</value>
+  </data>
+  <data name="ColDivision" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="TipOpenInTheStationsTab" xml:space="preserve">
+    <value>在“空间站”标签页中打开</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="ColUntil" xml:space="preserve">
+    <value>结束</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>时长</value>
+  </data>
+  <data name="TabStations" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>安等</value>
+  </data>
+  <data name="ColAgents" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="TabOrders" xml:space="preserve">
+    <value>订单</value>
+  </data>
+  <data name="Sells" xml:space="preserve">
+    <value>卖单</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColLowPrice" xml:space="preserve">
+    <value>最低价</value>
+  </data>
+  <data name="ColHighPrice" xml:space="preserve">
+    <value>最高价</value>
+  </data>
+  <data name="Buys" xml:space="preserve">
+    <value>买单</value>
+  </data>
+  <data name="TabLpOffers" xml:space="preserve">
+    <value>LP 兑换项</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColRequires" xml:space="preserve">
+    <value>所需物品</value>
+  </data>
+  <data name="TabFactionWarfare" xml:space="preserve">
+    <value>势力战争</value>
+  </data>
+  <data name="ColRole" xml:space="preserve">
+    <value>身份</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>占领者</value>
+  </data>
+  <data name="ColContested" xml:space="preserve">
+    <value>争夺状态</value>
+  </data>
+  <data name="ColPoints" xml:space="preserve">
+    <value>胜利点数</value>
+  </data>
+  <data name="ColThreshold" xml:space="preserve">
+    <value>阈值</value>
+  </data>
+  <data name="TabIntelReports" xml:space="preserve">
+    <value>情报报告</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColChannel" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="ColReporter" xml:space="preserve">
+    <value>报告人</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>角色…</value>
+  </data>
+  <data name="HintCorp" xml:space="preserve">
+    <value>军团…</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>从：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>至：</value>
+  </data>
+  <data name="HintShip" xml:space="preserve">
+    <value>舰船…</value>
+  </data>
+  <data name="HintSystemRegion" xml:space="preserve">
+    <value>星系/星域…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>加载更多</value>
+  </data>
+  <data name="SelectAKillmailToView" xml:space="preserve">
+    <value>选择一份击毁报告以查看详情。</value>
+  </data>
+  <data name="TipOpenOnTheUniverseMap" xml:space="preserve">
+    <value>在星图中打开</value>
+  </data>
+  <data name="DestroyedLabel" xml:space="preserve">
+    <value>已摧毁</value>
+  </data>
+  <data name="DroppedLabel" xml:space="preserve">
+    <value>已掉落</value>
+  </data>
+  <data name="TotalLabel" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="AttackersLabel" xml:space="preserve">
+    <value>攻击者</value>
+  </data>
+  <data name="TitleKillmails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="TabFactions" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="TabAlliances" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="TitleStandingProject" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>项目类型</value>
+  </data>
+  <data name="DeliverItem" xml:space="preserve">
+    <value>交付物品</value>
+  </data>
+  <data name="DestroyNpc" xml:space="preserve">
+    <value>摧毁 NPC</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>物品类型</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>搜索物品类型…</value>
+  </data>
+  <data name="DestinationStationStructureLabel" xml:space="preserve">
+    <value>目的地空间站 / 建筑</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>搜索空间站或建筑…</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="SpecificSystem" xml:space="preserve">
+    <value>指定星系</value>
+  </data>
+  <data name="AllSystemsInA" xml:space="preserve">
+    <value>星域内 ADM 低于下限的所有星系</value>
+  </data>
+  <data name="AllSystemsInA2" xml:space="preserve">
+    <value>星座内 ADM 低于下限的所有星系</value>
+  </data>
+  <data name="AllSystemsWhereAn" xml:space="preserve">
+    <value>某联盟拥有主权的所有星系</value>
+  </data>
+  <data name="SolarSystemLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="HintSearchForSolarSystem" xml:space="preserve">
+    <value>搜索星系…</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="HintSearchForRegion" xml:space="preserve">
+    <value>搜索星域…</value>
+  </data>
+  <data name="MinAdmLabel" xml:space="preserve">
+    <value>ADM 下限：</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>星座</value>
+  </data>
+  <data name="HintSearchForConstellation" xml:space="preserve">
+    <value>搜索星座…</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="NoAllianceFoundOnNote" xml:space="preserve">
+    <value>已跟踪的角色均不属于任何联盟。</value>
+  </data>
+  <data name="EverySystemThisAllianceNote" xml:space="preserve">
+    <value>此联盟持有的所有 ADM 低于下限的星系，无论位于何处。每次生成表格时都会重新从主权地图读取。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+</root>

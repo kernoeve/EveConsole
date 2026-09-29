@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AiUsageCost" xml:space="preserve">
+    <value>AI 用量与费用</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>从</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>至</value>
+  </data>
+  <data name="HintToday" xml:space="preserve">
+    <value>（今天）</value>
+  </data>
+  <data name="GroupBy" xml:space="preserve">
+    <value>分组方式</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="EstimatedCostLabel" xml:space="preserve">
+    <value>估算费用</value>
+  </data>
+  <data name="AgentLabel" xml:space="preserve">
+    <value>助手</value>
+  </data>
+  <data name="SpeechOutLabel" xml:space="preserve">
+    <value>语音输出</value>
+  </data>
+  <data name="SpeechInLabel" xml:space="preserve">
+    <value>语音输入</value>
+  </data>
+  <data name="CallsLabel" xml:space="preserve">
+    <value>调用次数</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>时间段</value>
+  </data>
+  <data name="ColService" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="ColProvider" xml:space="preserve">
+    <value>提供商</value>
+  </data>
+  <data name="ColModel" xml:space="preserve">
+    <value>模型</value>
+  </data>
+  <data name="ColCalls" xml:space="preserve">
+    <value>调用</value>
+  </data>
+  <data name="ColInput" xml:space="preserve">
+    <value>输入</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>输出</value>
+  </data>
+  <data name="ColCacheRd" xml:space="preserve">
+    <value>缓存读</value>
+  </data>
+  <data name="ColCacheWr" xml:space="preserve">
+    <value>缓存写</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>单位</value>
+  </data>
+  <data name="ColAvg" xml:space="preserve">
+    <value>平均</value>
+  </data>
+  <data name="ColErrors" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>费用</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>明细</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColTook" xml:space="preserve">
+    <value>耗时</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>活动</value>
+  </data>
+  <data name="ColError" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 首页</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 上一页</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一页 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>末页 ⏭</value>
+  </data>
+  <data name="TabRates" xml:space="preserve">
+    <value>费率</value>
+  </data>
+  <data name="WhatEachServiceChargesNote" xml:space="preserve">
+    <value>各项服务的收费标准。费用在你查看时根据这些费率计算，从不随用量一起存储——公开价格会变动，而六个月前固化在某个版本里的数字，看似权威，实则是错的。下方的数值是构建此版本时的标价；如有变动，请自行更正。费率按各供应商报价时所用的计量单位填写，单位显示在每一行旁边。此处没有对应行的提供商按“未定价”计算，而不是“免费”——只有标记为本地的行才是真正免费的。</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>输入</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>输出</value>
+  </data>
+  <data name="CacheRead" xml:space="preserve">
+    <value>缓存读取</value>
+  </data>
+  <data name="CacheWrite" xml:space="preserve">
+    <value>缓存写入</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="SaveRates" xml:space="preserve">
+    <value>保存费率</value>
+  </data>
+  <data name="TitleBackgroundProcesses" xml:space="preserve">
+    <value>后台进程</value>
+  </data>
+  <data name="TabEsiActivityLog" xml:space="preserve">
+    <value>ESI 活动日志</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="NoCallsInProgress" xml:space="preserve">
+    <value>没有进行中的调用。</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Endpoint" xml:space="preserve">
+    <value>端点</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>时间戳</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="TabEsiCallSchedule" xml:space="preserve">
+    <value>ESI 调用计划</value>
+  </data>
+  <data name="TabCharacterCorporation" xml:space="preserve">
+    <value>角色 / 军团</value>
+  </data>
+  <data name="TokenLabel" xml:space="preserve">
+    <value>令牌：</value>
+  </data>
+  <data name="SelectATokenToNote" xml:space="preserve">
+    <value>选择一个令牌以查看其轮询计划。</value>
+  </data>
+  <data name="LastCalled" xml:space="preserve">
+    <value>上次调用</value>
+  </data>
+  <data name="NextCall" xml:space="preserve">
+    <value>下次调用</value>
+  </data>
+  <data name="TimeUntil" xml:space="preserve">
+    <value>剩余时间</value>
+  </data>
+  <data name="TabMarketRefresh" xml:space="preserve">
+    <value>市场刷新</value>
+  </data>
+  <data name="MarketSource" xml:space="preserve">
+    <value>市场来源</value>
+  </data>
+  <data name="LastRefresh" xml:space="preserve">
+    <value>上次刷新</value>
+  </data>
+  <data name="NextRefresh" xml:space="preserve">
+    <value>下次刷新</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>价格历史</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="RefreshedTotal24h" xml:space="preserve">
+    <value>已刷新 / 总数（24 小时）</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>排队中</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="TabContractItems" xml:space="preserve">
+    <value>合同物品</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="ColItemsPulled" xml:space="preserve">
+    <value>已拉取物品</value>
+  </data>
+  <data name="ColQueued" xml:space="preserve">
+    <value>排队中</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="ItemsArePulledOneNote" xml:space="preserve">
+    <value>物品按合同逐个拉取，每个合同一次调用：先拉取你自己的合同，然后是排在其后的公开合同。每个合同只拉取一次，之后便一直保留。</value>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>LP 商店</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>商店</value>
+  </data>
+  <data name="ColOffers" xml:space="preserve">
+    <value>兑换项</value>
+  </data>
+  <data name="ColLastChecked" xml:space="preserve">
+    <value>上次检查</value>
+  </data>
+  <data name="LpStoreCataloguesComeNote" xml:space="preserve">
+    <value>LP 商店目录来自一个公开的 ESI 端点，每个 NPC 军团一次调用，每天扫描一遍。在第一轮扫描完成之前，无论是否有人出售，物品的“LP 商店”标签页都会保持隐藏——目录不完整和确实没有，看起来是一样的。</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>范围：</value>
+  </data>
+  <data name="CoverageLabel" xml:space="preserve">
+    <value>覆盖范围：</value>
+  </data>
+  <data name="ColStage" xml:space="preserve">
+    <value>阶段</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColDetail" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="Parsing" xml:space="preserve">
+    <value>解析</value>
+  </data>
+  <data name="Backlog" xml:space="preserve">
+    <value>积压</value>
+  </data>
+  <data name="ParsingRunsStraightAfterNote" xml:space="preserve">
+    <value>每次读取聊天日志的新内容后会立即进行解析，因此目击报告会在存储该消息的同一轮中出现在星图上。频道在“设置 → 聊天日志”中选择，那里还有一个按钮，可以解析磁盘上已有的历史记录。</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>警报</value>
+  </data>
+  <data name="NextCheckLabel" xml:space="preserve">
+    <value>下次检查：</value>
+  </data>
+  <data name="LastFiringLabel" xml:space="preserve">
+    <value>上次触发：</value>
+  </data>
+  <data name="ColAlarm" xml:space="preserve">
+    <value>警报</value>
+  </data>
+  <data name="ColCondition" xml:space="preserve">
+    <value>条件</value>
+  </data>
+  <data name="ColEnabled" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="ColEvery" xml:space="preserve">
+    <value>间隔</value>
+  </data>
+  <data name="ColLastFired" xml:space="preserve">
+    <value>上次触发</value>
+  </data>
+  <data name="ColFired" xml:space="preserve">
+    <value>触发次数</value>
+  </data>
+  <data name="ColLastError" xml:space="preserve">
+    <value>上次错误</value>
+  </data>
+  <data name="EachAlarmIsCheckedNote" xml:space="preserve">
+    <value>每个警报按各自的间隔检查，因此循环只在确实有警报到期时才访问数据库。警报只通报之前未通报过的内容——持续成立的条件不会重复通报——所以一个持续匹配的检查在这里显示为“待命”，而不是反复触发。</value>
+  </data>
+  <data name="TabOrderFulfilment" xml:space="preserve">
+    <value>订单履行</value>
+  </data>
+  <data name="OrderFulfilment" xml:space="preserve">
+    <value>订单履行</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="LastCheck" xml:space="preserve">
+    <value>上次检查</value>
+  </data>
+  <data name="NextCheck" xml:space="preserve">
+    <value>下次检查</value>
+  </data>
+  <data name="EveryThirtySecondsAndNote" xml:space="preserve">
+    <value>每三十秒一次，并且每当轮询带来新的工业任务、合同或资产时立即进行：订单跟踪中的每个待处理订单都会与可以满足它的来源进行匹配。如果在下单之后，你的某个角色或个人军团向该买家发出了合同，该订单即直接完成；否则使用未被预留的现有库存，或最早完成的、正在生产该物品的工业任务，其完成日期即成为订单的预计日期。库存和任务在被认领时即被预留，因此两个订单永远不会重复计算同一批物品，已关联到某个订单的合同也绝不会被另一个订单再次使用。</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="ColSweep" xml:space="preserve">
+    <value>扫描</value>
+  </data>
+  <data name="ColLastRun" xml:space="preserve">
+    <value>上次运行</value>
+  </data>
+  <data name="ColNextRun" xml:space="preserve">
+    <value>下次运行</value>
+  </data>
+  <data name="ColResult" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="SweepNow" xml:space="preserve">
+    <value>立即扫描</value>
+  </data>
+  <data name="CollectsPlayerStructureIdsNote" xml:space="preserve">
+    <value>从资产、合同、工业任务、市场订单和钱包记录中收集玩家建筑 ID，然后解析每个建筑的名称、类型、所有者和位置。每小时扫描一次；公开建筑列表每天遍历一次，以找出这里没有人去过的建筑。若根据我们自己的资产可以判定某行是舰船、货柜或资产安全包裹，该行会被移除，而不会作为未知建筑保留。解析需要 esi-universe.read_structures.v1 权限范围和停靠权限，因此私有建筑会保持未解析状态——这些正是值得在建筑浏览器中手动补充描述的建筑。</value>
+  </data>
+  <data name="TabNameCache" xml:space="preserve">
+    <value>名称缓存</value>
+  </data>
+  <data name="CachedNames" xml:space="preserve">
+    <value>已缓存名称</value>
+  </data>
+  <data name="WhatThisDoes" xml:space="preserve">
+    <value>作用说明</value>
+  </data>
+  <data name="ResolvesCharacterCorporationAndNote" xml:space="preserve">
+    <value>将数据库中任何位置出现的角色、军团和联盟 ID 解析为名称，赶在任何界面需要它们之前完成。每小时扫描一次。EVE 实体名称无法更改，因此每个名称只获取一次，并永久保存。</value>
+  </data>
+  <data name="ChatLog" xml:space="preserve">
+    <value>聊天日志</value>
+  </data>
+  <data name="HintNow" xml:space="preserve">
+    <value>（现在）</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>查找</value>
+  </data>
+  <data name="HintSenderOrText" xml:space="preserve">
+    <value>发送者或文本…</value>
+  </data>
+  <data name="HideSystem" xml:space="preserve">
+    <value>隐藏系统消息</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>发送者</value>
+  </data>
+  <data name="ColMessage" xml:space="preserve">
+    <value>消息</value>
+  </data>
+  <data name="ColListener" xml:space="preserve">
+    <value>收听者</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>错误日志</value>
+  </data>
+  <data name="ColClient" xml:space="preserve">
+    <value>客户端</value>
+  </data>
+  <data name="ColContext" xml:space="preserve">
+    <value>上下文</value>
+  </data>
+  <data name="ColInner" xml:space="preserve">
+    <value>内部异常</value>
+  </data>
+  <data name="SelectAnErrorToNote" xml:space="preserve">
+    <value>选择一个错误以查看其详情。</value>
+  </data>
+  <data name="EsiTables" xml:space="preserve">
+    <value>ESI 数据表</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ 筛选</value>
+  </data>
+  <data name="TipWriteEveryRowThat" xml:space="preserve">
+    <value>将符合筛选条件的每一行按当前顺序写入 CSV 文件——是全部行，而不只是此处已加载的行。在选中的行上按 Ctrl+C 会连同标题行一起复制。</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>加载更多</value>
+  </data>
+  <data name="TitleEsiDataExplorer" xml:space="preserve">
+    <value>ESI 数据浏览器</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>游戏日志</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="HintNameOrText" xml:space="preserve">
+    <value>名称或文本…</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>数值</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>目标</value>
+  </data>
+  <data name="SelectAnEntryToNote" xml:space="preserve">
+    <value>选择一个条目以查看其完整详情。</value>
+  </data>
+</root>

@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -74,13 +75,13 @@ public partial class ComposeMailDialog : Window
         if (string.IsNullOrEmpty(name)) return;
 
         RecipientSearchStatus.IsVisible = false;
-        StatusLabel.Text = "Searching…";
+        StatusLabel.Text = CommsText.MailSearching;
 
         var results = await _svc.ResolveRecipientAsync(_fromCharId, name);
 
         if (results.Count == 0)
         {
-            RecipientSearchStatus.Text      = $"No character found matching \"{name}\".";
+            RecipientSearchStatus.Text      = string.Format(CommsText.MailNoCharacterFound, name);
             RecipientSearchStatus.IsVisible = true;
             StatusLabel.Text = "";
             return;
@@ -105,9 +106,9 @@ public partial class ComposeMailDialog : Window
         var subject = SubjectBox.Text?.Trim() ?? "";
         var body    = BodyBox.Text?.Trim()    ?? "";
 
-        if (string.IsNullOrEmpty(subject)) { StatusLabel.Text = "Subject is required."; return; }
-        if (string.IsNullOrEmpty(body))    { StatusLabel.Text = "Body is required."; return; }
-        if (_recipients.Count == 0)        { StatusLabel.Text = "Add at least one recipient."; return; }
+        if (string.IsNullOrEmpty(subject)) { StatusLabel.Text = CommsText.MailSubjectRequired; return; }
+        if (string.IsNullOrEmpty(body))    { StatusLabel.Text = CommsText.MailBodyRequired; return; }
+        if (_recipients.Count == 0)        { StatusLabel.Text = CommsText.MailAddRecipient; return; }
 
         Close(new ComposeMailResult
         {

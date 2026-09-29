@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -24,12 +25,12 @@ public partial class AddEditSectionDialog : Window
     {
         _searchFn = searchFn;
         InitializeComponent();
-        Title = existing == null ? "Add Section" : "Edit Section";
+        Title = existing == null ? SalesText.TitleAddSection : SalesText.TitleEditSection;
 
         MarketStationBox.ItemsSource = marketStations;
         NoStationsText.IsVisible     = marketStations.Count == 0;
-        PriceTypeBox.ItemsSource     = new[] { "Buy", "Midpoint", "Sell" };
-        PriceTypeBox.SelectedItem    = "Sell";
+        PriceTypeBox.ItemsSource     = Choice.PriceTypes;
+        PriceTypeBox.SelectedItem    = PriceTypeChoice("Sell");
 
         OverrideScopeBox.IsCheckedChanged        += (_, _) => ScopePanel.IsVisible        = OverrideScopeBox.IsChecked        == true;
         OverridePricingBox.IsCheckedChanged      += (_, _) => PricingPanel.IsVisible      = OverridePricingBox.IsChecked      == true;
@@ -80,7 +81,7 @@ public partial class AddEditSectionDialog : Window
             if (existing.MarketStationId.HasValue)
                 MarketStationBox.SelectedItem = marketStations.FirstOrDefault(s => s.LocationId == existing.MarketStationId.Value);
             if (!string.IsNullOrEmpty(existing.MarketPriceType))
-                PriceTypeBox.SelectedItem = existing.MarketPriceType;
+                PriceTypeBox.SelectedItem = PriceTypeChoice(existing.MarketPriceType);
             PercentBox.Value = (decimal)existing.PricePercent;
 
             OverrideOnlyPackagedBox.IsChecked = existing.OverrideOnlyPackaged;
@@ -95,7 +96,7 @@ public partial class AddEditSectionDialog : Window
     {
         LocationPanel.IsVisible = ScopeEverywhere.IsChecked != true;
         var scope = GetScope();
-        LocationLabel.Text = scope == "Station" ? "STATION" : scope == "System" ? "SOLAR SYSTEM" : "REGION";
+        LocationLabel.Text = scope == "Station" ? SalesText.LocStationLabel : scope == "System" ? SalesText.LocSolarSystemLabel : SalesText.LocRegionLabel;
         _selectedLocationId = null; _selectedLocationName = "";
         LocationSearchBox.Text = ""; SelectedLocationText.Text = ""; LocationResultsBorder.IsVisible = false;
     }
@@ -131,13 +132,18 @@ public partial class AddEditSectionDialog : Window
     private void OnOkClick(object? sender, RoutedEventArgs e)
     {
         var name = NameBox.Text?.Trim() ?? "";
-        if (string.IsNullOrEmpty(name)) { ErrorText.Text = "Section name is required."; return; }
+        if (string.IsNullOrEmpty(name)) { ErrorText.Text = SalesText.SectionNameRequired; return; }
 
         bool ovScope = OverrideScopeBox.IsChecked == true;
         var scope = ovScope ? GetScope() : "Everywhere";
         if (ovScope && scope != "Everywhere" && _selectedLocationId is null)
         {
-            ErrorText.Text = $"Select a {scope.ToLowerInvariant()} or choose Everywhere.";
+            ErrorText.Text = scope switch
+            {
+                "Station" => SalesText.ScopePickStation,
+                "System"  => SalesText.ScopePickSystem,
+                _         => SalesText.ScopePickRegion,
+            };
             return;
         }
 
@@ -146,7 +152,7 @@ public partial class AddEditSectionDialog : Window
         var station = MarketStationBox.SelectedItem as StationOption;
         if (ovPrice && basis == "Market" && station is null)
         {
-            ErrorText.Text = "Select a market for the Specific Market basis.";
+            ErrorText.Text = SalesText.SelectMarketForBasis;
             return;
         }
 
@@ -164,12 +170,16 @@ public partial class AddEditSectionDialog : Window
             (double)(PercentBox.Value ?? 100m),
             ovPrice && basis == "Market" ? station!.LocationId : null,
             ovPrice && basis == "Market" ? station!.Name       : "",
-            ovPrice && basis == "Market" ? (PriceTypeBox.SelectedItem as string ?? "Sell") : "Sell",
+            ovPrice && basis == "Market" ? ((PriceTypeBox.SelectedItem as Choice<string>)?.Value ?? "Sell") : "Sell",
             OverrideOnlyPackagedBox.IsChecked == true,
             OnlyPackagedBox.IsChecked == true));
     }
 
     private void OnCancelClick(object? sender, RoutedEventArgs e) => Close(null);
+
+    // The price type a posting saved, as the entry in the box.
+    private static Choice<string> PriceTypeChoice(string key) =>
+        Choice.PriceTypes.FirstOrDefault(c => c.Value == key) ?? Choice.PriceTypes[^1];
 
     private string GetScope()
     {

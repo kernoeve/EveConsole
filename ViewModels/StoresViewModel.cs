@@ -15,6 +15,7 @@ using EveConsole.Services;
 using EveConsole.Services.WebStore;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -94,10 +95,10 @@ public class StoreRowVm : ReactiveObject
     /// looks to find out why a buyer got no answer.</summary>
     public string StateText => (_model.Enabled, _model.WebEnabled) switch
     {
-        (true,  true)  => "Mail and web open",
-        (true,  false) => "Mail open",
-        (false, true)  => "Web open",
-        _              => "Closed",
+        (true,  true)  => SalesText.StoreOpenMailAndWeb,
+        (true,  false) => SalesText.StoreOpenMail,
+        (false, true)  => SalesText.StoreOpenWeb,
+        _              => SalesText.StoreClosed,
     };
 
     public void Refresh(Store model)
@@ -115,7 +116,7 @@ public class StoreRowVm : ReactiveObject
 public class StoreMailRowVm(StoreMail m)
 {
     public string When      => m.At.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
-    public string Direction => m.Direction == "in" ? "Received" : "Sent";
+    public string Direction => m.Direction == "in" ? SalesText.MailReceived : SalesText.MailSent;
     public string Party     => m.PartyName.Length > 0 ? m.PartyName : m.PartyId.ToString();
     public string Command   => m.Command;
     public string Subject   => m.Subject;
@@ -134,16 +135,16 @@ public class StoreWebEventRowVm(StoreWebEvent e)
 {
     public int    Id       => e.Id;
     public string When     => e.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
-    public string Kind     => e.Kind switch { "order" => "Order", "cancel" => "Cancel", "visit" => "Visit", _ => e.Kind };
+    public string Kind     => e.Kind switch { "order" => SalesText.EventOrder, "cancel" => SalesText.EventCancel, "visit" => SalesText.EventVisit, _ => e.Kind };
     public string Buyer    => e.BuyerName.Length > 0 ? e.BuyerName : e.BuyerId.ToString();
     public string Outcome  => e.Outcome switch
     {
-        "booked"   => "Booked",
-        "applied"  => "Applied",
+        "booked"   => SalesText.OutcomeBooked,
+        "applied"  => SalesText.OutcomeApplied,
         "review"   => "Needs a decision",
-        "rejected" => "Declined",
-        "error"    => "Failed",
-        "noted"    => "Noted",
+        "rejected" => SalesText.OutcomeDeclined,
+        "error"    => SalesText.OutcomeFailed,
+        "noted"    => SalesText.OutcomeNoted,
         _          => e.Outcome,
     };
     public string Detail   => e.Detail;
@@ -161,9 +162,9 @@ public class StoreSenderRowVm(StoreSender s)
     public string Name => s.Name.Length > 0 ? s.Name : s.EntityId.ToString();
     public string Kind => s.EntityType switch
     {
-        "corporation" => "Corporation",
-        "alliance"    => "Alliance",
-        _             => "Character",
+        "corporation" => SalesText.BuyerCorporation,
+        "alliance"    => SalesText.BuyerAlliance,
+        _             => SalesText.BuyerCharacter,
     };
 }
 
@@ -225,15 +226,21 @@ public class StoresViewModel : ReactiveObject
     public ObservableCollection<CharacterOption> CharacterOptions { get; } = [];
     public ObservableCollection<PostingOption>   PostingOptions   { get; } = [];
 
-    public IReadOnlyList<string> PolicyOptions { get; } = ["List", "Anyone"];
+    // ⚠️ The value is what the store saves and the mail and web services read; only the label is
+    // translated.
+    public IReadOnlyList<Choice<string>> PolicyOptions { get; } =
+    [
+        new("List",   SalesText.PolicyList),
+        new("Anyone", SalesText.PolicyAnyone),
+    ];
 
     public sealed record LimitOption(string Key, string Label)
     {
         public override string ToString() => Label;
     }
 
-    public IReadOnlyList<LimitOption> LimitScopeOptions  { get; } = [new("type", "item type"), new("group", "item group"), new("store", "the whole store")];
-    public IReadOnlyList<LimitOption> LimitPeriodOptions { get; } = [new("days", "day(s)"), new("months", "month(s)"), new("years", "year(s)"), new("all", "all time")];
+    public IReadOnlyList<LimitOption> LimitScopeOptions  { get; } = [new("type", SalesText.LimitScopeType), new("group", SalesText.LimitScopeGroup), new("store", SalesText.LimitScopeStore)];
+    public IReadOnlyList<LimitOption> LimitPeriodOptions { get; } = [new("days", SalesText.LimitPeriodDays), new("months", SalesText.LimitPeriodMonths), new("years", SalesText.LimitPeriodYears), new("all", SalesText.LimitPeriodAllTime)];
 
     public sealed record CharacterOption(long Id, string Name)
     {
@@ -366,10 +373,19 @@ public class StoresViewModel : ReactiveObject
     }
 
     private string _senderPolicy = "List";
-    public string SenderPolicy
+    public Choice<string> SenderPolicy
     {
-        get => _senderPolicy;
-        set { this.RaiseAndSetIfChanged(ref _senderPolicy, value); _ = SaveAsync(s => s.SenderPolicy = value); }
+        get => PolicyOptions.FirstOrDefault(o => o.Value == _senderPolicy) ?? PolicyOptions[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            var policy = value.Value;
+            if (policy == _senderPolicy) return;
+            _senderPolicy = policy;
+            this.RaisePropertyChanged();
+            _ = SaveAsync(s => s.SenderPolicy = policy);
+        }
     }
 
     private bool _storeEnabled;
@@ -429,11 +445,8 @@ public class StoresViewModel : ReactiveObject
             if (size is null) { Clear(); return; }
 
             var text = size.Splits
-                ? $"⚠  Price list is {size.Bytes:N0} of {size.Limit:N0} bytes — "
-                + $"{size.Over:N0} over, so it will arrive as {size.Parts} mails. "
-                + "Shorten the posting to send it as one."
-                : $"Price list is {size.Bytes:N0} of {size.Limit:N0} bytes — fits in one mail "
-                + $"with {size.Limit - size.Bytes:N0} to spare.";
+                ? string.Format(SalesText.PriceListTooLong, size.Bytes, size.Limit, size.Over, size.Parts)
+                : string.Format(SalesText.PriceListFits, size.Bytes, size.Limit, size.Limit - size.Bytes);
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -803,7 +816,7 @@ public class StoresViewModel : ReactiveObject
 
     // ── The banner across the top of the site's price list ────────────────────
 
-    private string _webBannerText = "None.";
+    private string _webBannerText = SalesText.BannerNone;
     /// <summary>What the banner is — file, size, how it goes to the site — or that there is none.</summary>
     public string WebBannerText
     {
@@ -845,7 +858,7 @@ public class StoresViewModel : ReactiveObject
                 if (SelectedStore?.Id != storeId) return;
                 HasWebBanner     = asset is not null;
                 WebBannerPreview = preview;
-                WebBannerText    = asset is null ? "None." : DescribeBanner(asset);
+                WebBannerText    = asset is null ? SalesText.BannerNone : DescribeBanner(asset);
             });
         }
         catch (Exception ex) { _errorLogger.Log(nameof(StoresViewModel), nameof(LoadWebBannerAsync), ex); }
@@ -880,13 +893,13 @@ public class StoresViewModel : ReactiveObject
             await db.SaveChangesAsync();
             _webSync.Nudge();
             Status = ReferenceEquals(prepared.Bytes, source)
-                ? "Banner saved; it goes to the site on the next sync."
-                : $"Banner saved, scaled to {prepared.Width} × {prepared.Height} and sent as WebP; it goes to the site on the next sync.";
+                ? SalesText.BannerSaved
+                : string.Format(SalesText.BannerSavedScaled, prepared.Width, prepared.Height);
         }
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(StoresViewModel), nameof(SetWebBannerAsync), ex);
-            Status = "The banner could not be used: " + ex.Message;
+            Status = string.Format(SalesText.BannerUnusable, ex.Message);
         }
         await LoadWebBannerAsync(row.Id);
     }
@@ -899,12 +912,12 @@ public class StoresViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync();
             await db.StoreWebAssets.Where(a => a.StoreId == row.Id && a.Kind == StoreWebAsset.Banner).ExecuteDeleteAsync();
             _webSync.Nudge();
-            Status = "Banner removed; the site drops it on the next sync.";
+            Status = SalesText.BannerRemoved;
         }
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(StoresViewModel), nameof(RemoveWebBannerAsync), ex);
-            Status = "The banner could not be removed: " + ex.Message;
+            Status = string.Format(SalesText.BannerRemoveFailed, ex.Message);
         }
         await LoadWebBannerAsync(row.Id);
     }
@@ -927,10 +940,10 @@ public class StoresViewModel : ReactiveObject
 
     private static string DescribeWeb(Store s)
     {
-        if (!s.WebEnabled) return "The web channel is closed.";
-        if (s.WebUrl.Length == 0 || s.WebSecret.Length == 0) return "Needs a site address and a secret before it can sync.";
-        var last = s.WebLastSyncAt is { } t ? $"Last synced {t.ToLocalTime():yyyy-MM-dd HH:mm}" : "Not synced yet";
-        var ver  = s.WebSiteVersion.Length > 0 ? $", site version {s.WebSiteVersion}" : "";
+        if (!s.WebEnabled) return SalesText.WebClosed;
+        if (s.WebUrl.Length == 0 || s.WebSecret.Length == 0) return SalesText.WebNeedsAddress;
+        var last = s.WebLastSyncAt is { } t ? string.Format(SalesText.WebLastSynced, t.ToLocalTime()) : SalesText.WebNotSynced;
+        var ver  = s.WebSiteVersion.Length > 0 ? string.Format(SalesText.WebSiteVersion, s.WebSiteVersion) : "";
         return s.WebLastError.Length > 0 ? $"{last}{ver}. ⚠ {s.WebLastError}" : $"{last}{ver}.";
     }
 
@@ -946,12 +959,12 @@ public class StoresViewModel : ReactiveObject
         await _lastSave;   // an edit that just lost focus has its save on the way
         if (!_lease.IsHolder)
         {
-            Status = "Another client is running the background work and syncs the web site; it will pick the change up on its next cycle.";
+            Status = SalesText.WebOtherClient;
             _webSync.Nudge();
             return;
         }
 
-        Status = "Syncing the web site…";
+        Status = SalesText.WebSyncing;
         var line = await _webSync.SyncStoreNowAsync(row.Id);
         await LoadSelectedAsync();
         Status = line;
@@ -965,7 +978,7 @@ public class StoresViewModel : ReactiveObject
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             WebSecret = secret;
-            Status    = "New secret generated. Set the same value on the site, or the next sync is refused.";
+            Status    = SalesText.WebSecretGenerated;
         });
     }
 
@@ -1127,9 +1140,7 @@ public class StoresViewModel : ReactiveObject
     }
 
     public string WebSsoWarningText =>
-        "Buyers cannot sign in until the site has the EVE application's Client ID and Secret Key. Enter them here: "
-        + "the Deploy button places them on the site, and a site set up by hand needs the same values as its "
-        + "EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
+        SalesText.SsoKeysNeeded;
 
     private string _deployStatusText = "";
     public string DeployStatusText
@@ -1143,11 +1154,11 @@ public class StoresViewModel : ReactiveObject
         CloudflareTokenText = AppConfig.HasCloudflareToken
             ? AppConfig.CloudflareTokenProtection switch
             {
-                SecretProtection.Dpapi     => "A token is saved on this machine, encrypted by Windows for your account.",
-                SecretProtection.LibSecret => "A token is saved in this machine's keyring.",
-                _                          => "A token is saved on this machine in config.json as typed; no keyring was available.",
+                SecretProtection.Dpapi     => SalesText.TokenSavedDpapi,
+                SecretProtection.LibSecret => SalesText.TokenSavedKeyring,
+                _                          => SalesText.TokenSavedPlain,
             }
-            : "No token is saved on this machine. Deploying and updating need one; syncing does not.";
+            : SalesText.TokenNone;
     }
 
     /// <summary>The callback address, from the site's address or from where a deploy would put it.</summary>
@@ -1177,9 +1188,9 @@ public class StoresViewModel : ReactiveObject
     private async Task SaveCloudflareTokenAsync()
     {
         var token = CloudflareToken.Trim();
-        if (token.Length == 0) { DeployStatusText = "Paste the token first."; return; }
+        if (token.Length == 0) { DeployStatusText = SalesText.DeployPasteToken; return; }
 
-        DeployStatusText = "Checking the token…";
+        DeployStatusText = SalesText.DeployCheckingToken;
         var check = await _deploy.CheckTokenAsync(token);
         if (!check.Ok) { DeployStatusText = check.Text; return; }
 
@@ -1203,7 +1214,7 @@ public class StoresViewModel : ReactiveObject
         AppConfig.SetCloudflareToken(null);
         _subdomains = new Dictionary<string, string>();
         RefreshTokenText();
-        DeployStatusText = "The token is gone from this machine. The site keeps running; only deploying and updating from here need one.";
+        DeployStatusText = SalesText.DeployTokenGone;
     }
 
     /// <summary>
@@ -1269,23 +1280,22 @@ public class StoresViewModel : ReactiveObject
         if (probe?.SsoConfigured is not { } sso) { SetSiteSso("", null); return; }
 
         var haveKeys = _webEveClientId.Trim().Length > 0 && _webEveClientSecret.Trim().Length > 0;
-        const string sendThem = "Press Deploy or update site to send them; a site set up by hand needs them as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.";
+        string sendThem = SalesText.SsoSendThem;
         if (!sso)
         {
             SetSiteSso(haveKeys
-                ? "The keys are saved here, but the site does not have them yet. " + sendThem
-                : "The site has no EVE application keys yet: register the application and enter its keys above.", false);
+                ? string.Format(SalesText.SsoKeysNotOnSite, sendThem): SalesText.SsoNoKeys, false);
             return;
         }
         // Sites from 0.1.2 say which keys they hold, so a key changed here and not there shows up too.
         if (probe!.SsoClientId is null || probe.SsoFingerprint is null)
-            SetSiteSso("The site has EVE application keys; sign-in is set up.", true);
+            SetSiteSso(SalesText.SsoReady, true);
         else if (!haveKeys)
-            SetSiteSso("The site has EVE application keys, but none are saved here: enter the same ones above so an update keeps them.", false);
+            SetSiteSso(SalesText.SsoKeysNotSaved, false);
         else if (probe.SsoClientId == _webEveClientId.Trim() && probe.SsoFingerprint == CloudflareDeployService.KeyFingerprint(_webEveClientSecret))
-            SetSiteSso("The site has these EVE application keys; sign-in is set up.", true);
+            SetSiteSso(SalesText.SsoReadySame, true);
         else
-            SetSiteSso("The site has different EVE application keys from the ones saved here. " + sendThem, false);
+            SetSiteSso(string.Format(SalesText.SsoKeysDiffer, sendThem), false);
 
     }
 
@@ -1308,7 +1318,7 @@ public class StoresViewModel : ReactiveObject
         var accountId = CloudflareAccount?.Id ?? "";
         if (accountId.Length > 0 && !_subdomains.ContainsKey(accountId) && AppConfig.GetCloudflareToken() is { Length: > 0 } tokenNow)
         {
-            DeployStatusText = "Checking the account…";
+            DeployStatusText = SalesText.DeployCheckingAccount;
             var check = await _deploy.CheckTokenAsync(tokenNow);
             if (check.Ok) _subdomains = check.Subdomains;
         }
@@ -1323,7 +1333,7 @@ public class StoresViewModel : ReactiveObject
             var prompt = new DeployAddressPrompt(WebWorkerName, _subdomains.GetValueOrDefault(accountId),
                 CloudflareDeployService.Slug(CloudflareAccount?.Name ?? "", 40, ""), WebCustomHostname);
             var choice = await ask(prompt);
-            if (choice is null) { DeployStatusText = "Deploy cancelled."; return; }
+            if (choice is null) { DeployStatusText = SalesText.DeployCancelled; return; }
             if (choice.Hostname.Length > 0)
             {
                 _webCustomHostname = choice.Hostname;
@@ -1349,7 +1359,7 @@ public class StoresViewModel : ReactiveObject
     {
         if (SelectedStore is not StoreRowVm row) return;
         await _lastSave;   // an edit that just lost focus has its save on the way
-        DeployStatusText = "Asking the site…";
+        DeployStatusText = SalesText.DeployAskingSite;
         var r = await _deploy.CheckSiteAsync(row.Id);
         DeployStatusText = r.Text;
     }
@@ -1358,10 +1368,25 @@ public class StoresViewModel : ReactiveObject
     private string _senderName = "";
     public string SenderName { get => _senderName; set => this.RaiseAndSetIfChanged(ref _senderName, value); }
 
-    private string _senderKind = "Character";
-    public string SenderKind { get => _senderKind; set => this.RaiseAndSetIfChanged(ref _senderKind, value); }
+    // The value is ESI's category to search: character, corporation or alliance.
+    public IReadOnlyList<Choice<string>> SenderKinds { get; } =
+    [
+        new("character",   SalesText.BuyerCharacter),
+        new("corporation", SalesText.BuyerCorporation),
+        new("alliance",    SalesText.BuyerAlliance),
+    ];
 
-    public IReadOnlyList<string> SenderKinds { get; } = ["Character", "Corporation", "Alliance"];
+    private string _senderKind = "character";
+    public Choice<string> SenderKind
+    {
+        get => SenderKinds.FirstOrDefault(o => o.Value == _senderKind) ?? SenderKinds[0];
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _senderKind = value.Value;
+            this.RaisePropertyChanged();
+        }
+    }
 
     /// <summary>One suggestion in the name box.</summary>
     public sealed record SenderOption(long Id, string Name)
@@ -1398,7 +1423,7 @@ public class StoresViewModel : ReactiveObject
         var needle = (text ?? "").Trim();
         if (needle.Length < 2) return [];
 
-        var category = CategoryOf(SenderKind);
+        var category = _senderKind;
 
         try
         {
@@ -1427,13 +1452,6 @@ public class StoresViewModel : ReactiveObject
             _errorLogger.Log(nameof(StoresViewModel), nameof(SenderPopulator), ex);
             return [];
         }
-    };
-
-    private static string CategoryOf(string kind) => kind switch
-    {
-        "Corporation" => "corporation",
-        "Alliance"    => "alliance",
-        _             => "character",
     };
 
     private StoreSenderRowVm? _selectedSender;
@@ -1497,7 +1515,7 @@ public class StoresViewModel : ReactiveObject
                     : Stores.FirstOrDefault();
 
                 Status = Stores.Count == 0
-                    ? "No stores yet — add one to let buyers ask by EVE mail."
+                    ? SalesText.NoStoresYet
                     : "";
             });
 
@@ -1506,7 +1524,7 @@ public class StoresViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(StoresViewModel), nameof(LoadAsync), ex);
-            Status = $"Load failed: {ex.Message}";
+            Status = string.Format(SalesText.StatusLoadFailed, ex.Message);
         }
     }
 
@@ -1627,7 +1645,7 @@ public class StoresViewModel : ReactiveObject
                     StoreName      = store.Name;
                     StoreCharacter = CharacterOptions.FirstOrDefault(c => c.Id == store.CharacterId);
                     StorePosting   = PostingOptions.FirstOrDefault(p => p.Id == store.PostingId);
-                    SenderPolicy   = store.SenderPolicy;
+                    _senderPolicy  = store.SenderPolicy; this.RaisePropertyChanged(nameof(SenderPolicy));
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
@@ -1735,7 +1753,7 @@ public class StoresViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(StoresViewModel), nameof(SaveAsync), ex);
-            Status = $"Save failed: {ex.Message}";
+            Status = string.Format(SalesText.StatusSaveFailed, ex.Message);
         }
     }
 
@@ -1745,7 +1763,7 @@ public class StoresViewModel : ReactiveObject
 
         var store = new Store
         {
-            Name       = "New store",
+            Name       = SalesText.NewStoreName,
             CreatedAt  = DateTimeOffset.UtcNow,
             // Closed, with nothing before now to answer. Both are the safe position: a shop is
             // configured first and opened deliberately.
@@ -1782,14 +1800,14 @@ public class StoresViewModel : ReactiveObject
     private async Task RenameSubdomainAsync()
     {
         var accountId = CloudflareAccount?.Id ?? "";
-        if (accountId.Length == 0) { DeployStatusText = "Pick the Cloudflare account first."; return; }
+        if (accountId.Length == 0) { DeployStatusText = SalesText.DeployPickAccount; return; }
         if (AskText is not { } ask) return;
 
-        var typed = await ask("Rename the account's workers.dev name", "New name",
-            "lower-case letters, digits and hyphens", _subdomains.GetValueOrDefault(accountId) ?? "");
+        var typed = await ask(SalesText.RenameWorkersTitle, SalesText.RenameWorkersLabel,
+            SalesText.RenameWorkersHint, _subdomains.GetValueOrDefault(accountId) ?? "");
         if (typed is null || typed.Trim().Length == 0) return;
 
-        DeployStatusText = "Renaming…";
+        DeployStatusText = SalesText.DeployRenaming;
         var r = await _deploy.RenameSubdomainAsync(accountId, typed.Trim());
         if (r.Ok)
         {
@@ -1810,11 +1828,7 @@ public class StoresViewModel : ReactiveObject
         if (ConfirmDelete is { } ask)
         {
             var confirmed = await ask(
-                $"Delete the store \"{row.Name}\"?\n\n" +
-                "It closes and disappears from this list.\n\n" +
-                "Nothing is destroyed: its orders stay in the Order Tracker, and its settings, " +
-                "allow list and message history are kept so anything referring to it still " +
-                "resolves. It simply stops reading and answering mail.");
+                string.Format(SalesText.DeleteStoreConfirm, row.Name));
 
             if (!confirmed) return;
         }
@@ -1844,7 +1858,7 @@ public class StoresViewModel : ReactiveObject
         if (SelectedStore is not StoreRowVm row) return;
         if (string.IsNullOrWhiteSpace(SenderName)) return;
 
-        var kind = CategoryOf(SenderKind);
+        var kind = _senderKind;
 
         try
         {
@@ -1867,7 +1881,7 @@ public class StoresViewModel : ReactiveObject
                 : await ResolveAsync(db, typed, kind);
             if (resolved is null)
             {
-                Status = $"Could not find a {kind} called \"{typed}\".";
+                Status = string.Format(SalesText.AllowNotFound, kind, typed);
                 return;
             }
 
@@ -1875,7 +1889,7 @@ public class StoresViewModel : ReactiveObject
 
             if (await db.StoreSenders.AnyAsync(s => s.StoreId == row.Id && s.EntityId == id))
             {
-                Status = $"{name} is already on the list.";
+                Status = string.Format(SalesText.AllowAlreadyListed, name);
                 return;
             }
 
@@ -1896,7 +1910,7 @@ public class StoresViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(StoresViewModel), nameof(AddSenderAsync), ex);
-            Status = $"Could not add: {ex.Message}";
+            Status = string.Format(SalesText.AllowAddFailed, ex.Message);
         }
     }
 
@@ -1953,7 +1967,7 @@ public class StoresViewModel : ReactiveObject
 
     private async Task CheckMailNowAsync()
     {
-        Status = "Checking…";
+        Status = CommonText.Checking;
         await _storeMail.RunOnceAsync();
         await LoadSelectedAsync();
         Status = _storeMail.StatusText;

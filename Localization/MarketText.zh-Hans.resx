@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>分组名称</value>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>集合</value>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="OnlyStationsWithCachedNote" xml:space="preserve">
+    <value>只有已缓存卖单的空间站才会出现在这里。</value>
+  </data>
+  <data name="MarketPriceSourceLabel" xml:space="preserve">
+    <value>市场价格来源</value>
+  </data>
+  <data name="MaxPriceOverSourceLabel" xml:space="preserve">
+    <value>相对来源的最高溢价（%）</value>
+  </data>
+  <data name="HintEG100Leave" xml:space="preserve">
+    <value>例如 100——留空则停用</value>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>倍数</value>
+  </data>
+  <data name="TargetQuantitiesForAllNote" xml:space="preserve">
+    <value>× 本分组所有物品的目标数量</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Issuer" xml:space="preserve">
+    <value>发布者</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>指定对象</value>
+  </data>
+  <data name="Acceptor" xml:space="preserve">
+    <value>接受者</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>价格</value>
+  </data>
+  <data name="Reward" xml:space="preserve">
+    <value>报酬</value>
+  </data>
+  <data name="Collateral" xml:space="preserve">
+    <value>保证金</value>
+  </data>
+  <data name="Buyout" xml:space="preserve">
+    <value>一口价</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>起点</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>目的地</value>
+  </data>
+  <data name="Issued" xml:space="preserve">
+    <value>发布时间</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>到期时间</value>
+  </data>
+  <data name="Accepted" xml:space="preserve">
+    <value>接受时间</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>完成时间</value>
+  </data>
+  <data name="PullItemsFromEsi" xml:space="preserve">
+    <value>从 ESI 拉取物品</value>
+  </data>
+  <data name="TipAskEveryEndpointThis" xml:space="preserve">
+    <value>再次向此合同的每个端点请求其物品，并显示每个端点的答复。</value>
+  </data>
+  <data name="Offered" xml:space="preserve">
+    <value>提供的物品</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>市场价值</value>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>制造价值</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>索取的物品</value>
+  </data>
+  <data name="TabCorporationPersonal" xml:space="preserve">
+    <value>军团与个人</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>范围：</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>状态：</value>
+  </data>
+  <data name="AssigneeLabel" xml:space="preserve">
+    <value>指定对象：</value>
+  </data>
+  <data name="AcceptorLabel" xml:space="preserve">
+    <value>接受者：</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ 刷新</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>来自</value>
+  </data>
+  <data name="ColAssignee" xml:space="preserve">
+    <value>指定对象</value>
+  </data>
+  <data name="ColAcceptor" xml:space="preserve">
+    <value>接受者</value>
+  </data>
+  <data name="ColPrice" xml:space="preserve">
+    <value>价格</value>
+  </data>
+  <data name="ColReward" xml:space="preserve">
+    <value>报酬</value>
+  </data>
+  <data name="ColIssued" xml:space="preserve">
+    <value>发布时间</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>到期时间</value>
+  </data>
+  <data name="SelectAContractToNote" xml:space="preserve">
+    <value>选择一个合同以查看其详情。</value>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>公开</value>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>显示：</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>合同类型：</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>星域：</value>
+  </data>
+  <data name="CategoryLabel" xml:space="preserve">
+    <value>类别：</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>物品：</value>
+  </data>
+  <data name="HintTypeName" xml:space="preserve">
+    <value>物品名称…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>排序：</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="ColVolM" xml:space="preserve">
+    <value>体积 m³</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 首页</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 上一页</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一页 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>末页 ⏭</value>
+  </data>
+  <data name="TabCurrentValues" xml:space="preserve">
+    <value>当前价值</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>重新计算</value>
+  </data>
+  <data name="TipRePriceEveryOffer" xml:space="preserve">
+    <value>按当前的市场价格和合同价格为每个兑换项重新估价。市场价格刷新时会自动执行；点击此按钮可立即执行。</value>
+  </data>
+  <data name="MeanIskPerLoyaltyNote" xml:space="preserve">
+    <value>各商店中估值高于零的兑换项，平均每忠诚点可换得的 ISK。价值为零或更低的兑换项会在物品浏览器中按物品显示，但不计入此处，因为没人会为它们花 LP；中位数统计的也正是同一批兑换项。你持有 LP 的军团排在最前。双击某行可查看其历史。</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>在 NPC 实体中打开</value>
+  </data>
+  <data name="ColIskLp" xml:space="preserve">
+    <value>ISK / LP</value>
+  </data>
+  <data name="TipMeanIskPerLp" xml:space="preserve">
+    <value>此军团计入统计的兑换项中，每 LP 的平均 ISK。</value>
+  </data>
+  <data name="ColMedian" xml:space="preserve">
+    <value>中位数</value>
+  </data>
+  <data name="TipTheMiddleOfferOver" xml:space="preserve">
+    <value>居中的那个兑换项，统计范围与平均值相同。若它明显低于平均值则会高亮显示，这意味着少数价值极高的兑换项把平均值抬高到了一般兑换项的回报之上。</value>
+  </data>
+  <data name="ColBestOffer" xml:space="preserve">
+    <value>最佳兑换项</value>
+  </data>
+  <data name="ColBestItem" xml:space="preserve">
+    <value>最佳物品</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColCounted" xml:space="preserve">
+    <value>计入数</value>
+  </data>
+  <data name="TipOffersBehindTheseFigures" xml:space="preserve">
+    <value>这些数字所依据的兑换项数，以及该商店的兑换项总数。不含无法估价的兑换项，也不含价值为零或更低的兑换项——没人会为它们花 LP，因此它们只按物品显示，不计入此处的平均值。</value>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>你的 LP</value>
+  </data>
+  <data name="ColHoldingWorth" xml:space="preserve">
+    <value>持有价值</value>
+  </data>
+  <data name="ColUpdated" xml:space="preserve">
+    <value>更新时间</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>历史</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>军团：</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>时段：</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ 添加分组</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ 集合</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>从装配添加物品</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>从市场分组添加物品</value>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>从蓝图添加物品</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>删除物品</value>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>分组 / 物品</value>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>展开所有分组</value>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>折叠所有分组</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>重命名</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ 物品</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>目标</value>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>目标总量</value>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>在售</value>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>差值</value>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>市场价</value>
+  </data>
+  <data name="ColStMin" xml:space="preserve">
+    <value>站内最低</value>
+  </data>
+  <data name="ColStAvg" xml:space="preserve">
+    <value>站内平均</value>
+  </data>
+  <data name="ColStMax" xml:space="preserve">
+    <value>站内最高</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>制造价格</value>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>体积（m³）</value>
+  </data>
+  <data name="TitleMarketLevels" xml:space="preserve">
+    <value>市场存量</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>汇总</value>
+  </data>
+  <data name="SellOrderCountLabel" xml:space="preserve">
+    <value>卖单笔数</value>
+  </data>
+  <data name="SellOrderIskLabel" xml:space="preserve">
+    <value>卖单 ISK</value>
+  </data>
+  <data name="SellOrderTypesLabel" xml:space="preserve">
+    <value>卖单类型数</value>
+  </data>
+  <data name="BuyOrderCountLabel" xml:space="preserve">
+    <value>买单笔数</value>
+  </data>
+  <data name="BuyOrderIskLabel" xml:space="preserve">
+    <value>买单 ISK</value>
+  </data>
+  <data name="BuyOrderTypesLabel" xml:space="preserve">
+    <value>买单类型数</value>
+  </data>
+  <data name="SalesUnitsLabel" xml:space="preserve">
+    <value>销售件数</value>
+  </data>
+  <data name="SalesIskLabel" xml:space="preserve">
+    <value>销售 ISK</value>
+  </data>
+  <data name="SalesTypesLabel" xml:space="preserve">
+    <value>销售类型数</value>
+  </data>
+  <data name="SellOrdersByType" xml:space="preserve">
+    <value>卖单（按类型）</value>
+  </data>
+  <data name="NoSellOrdersForThis" xml:space="preserve">
+    <value>所选范围内没有卖单。</value>
+  </data>
+  <data name="BuyOrdersByType" xml:space="preserve">
+    <value>买单（按类型）</value>
+  </data>
+  <data name="NoBuyOrdersForThis" xml:space="preserve">
+    <value>所选范围内没有买单。</value>
+  </data>
+  <data name="SalesByMarketGroup" xml:space="preserve">
+    <value>销售（按市场分组）</value>
+  </data>
+  <data name="NoSalesForThisSelection" xml:space="preserve">
+    <value>所选范围内没有销售。</value>
+  </data>
+  <data name="DailySalesIsk" xml:space="preserve">
+    <value>每日销售 ISK</value>
+  </data>
+  <data name="NoSalesHistoryForThis" xml:space="preserve">
+    <value>所选范围内没有销售历史。</value>
+  </data>
+  <data name="TabByMarketGroup" xml:space="preserve">
+    <value>按市场分组</value>
+  </data>
+  <data name="ColMarketGroup" xml:space="preserve">
+    <value>市场分组</value>
+  </data>
+  <data name="ColSellOrderUnits" xml:space="preserve">
+    <value>卖单件数</value>
+  </data>
+  <data name="ColSellOrderIsk" xml:space="preserve">
+    <value>卖单 ISK</value>
+  </data>
+  <data name="ColBuyOrderUnits" xml:space="preserve">
+    <value>买单件数</value>
+  </data>
+  <data name="ColBuyOrderIsk" xml:space="preserve">
+    <value>买单 ISK</value>
+  </data>
+  <data name="ColSalesUnits" xml:space="preserve">
+    <value>销售件数</value>
+  </data>
+  <data name="ColSalesIsk" xml:space="preserve">
+    <value>销售 ISK</value>
+  </data>
+  <data name="TabByType" xml:space="preserve">
+    <value>按类型</value>
+  </data>
+  <data name="TabSellOrdersByType" xml:space="preserve">
+    <value>卖单（按类型）</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>件数</value>
+  </data>
+  <data name="TabBuyOrdersByType" xml:space="preserve">
+    <value>买单（按类型）</value>
+  </data>
+  <data name="TitleStandingBuyOrder" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="DeclareABuyOrderNote" xml:space="preserve">
+    <value>登记一个你打算长期保持的买单。EVE Console 会报告此地点是否存在与之匹配的有效买单，以及它还剩多少。</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>物品类型</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>搜索物品类型…</value>
+  </data>
+  <data name="StationStructureLabel" xml:space="preserve">
+    <value>空间站 / 建筑</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>搜索空间站或建筑…</value>
+  </data>
+  <data name="NpcStationsPlayerStructuresNote" xml:space="preserve">
+    <value>NPC 空间站、玩家建筑和你军团的建筑都可以搜索。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="BuyOrdersYouIntendNote" xml:space="preserve">
+    <value>你打算在某个空间站或建筑长期保持的买单。每一项都会与你的角色和军团当前的有效买单进行匹配。</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="Refresh2" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>地点</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>打开此空间站或建筑</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>挂单方</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>我方出价</value>
+  </data>
+  <data name="ColStationBestBid" xml:space="preserve">
+    <value>空间站最高出价</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>计算</value>
+  </data>
+  <data name="HintTypeToFilter" xml:space="preserve">
+    <value>输入以筛选…</value>
+  </data>
+  <data name="CargoM" xml:space="preserve">
+    <value>货舱（m³）</value>
+  </data>
+  <data name="IskCap" xml:space="preserve">
+    <value>ISK 上限</value>
+  </data>
+  <data name="HintNoLimit" xml:space="preserve">
+    <value>不限</value>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>30 天 ISK 成交额下限</value>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>不筛选</value>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>30 天成交量下限</value>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>排除分组</value>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>移除此排除项</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="CostLabel" xml:space="preserve">
+    <value>成本</value>
+  </data>
+  <data name="ProfitLabel" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>卖价</value>
+  </data>
+  <data name="ColDestPrice" xml:space="preserve">
+    <value>目的地价格</value>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>利润 / 件</value>
+  </data>
+  <data name="ColProfitM" xml:space="preserve">
+    <value>利润 / m³</value>
+  </data>
+  <data name="ColVolumeM2" xml:space="preserve">
+    <value>体积（m³）</value>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>总成本</value>
+  </data>
+  <data name="ColTotalProfit" xml:space="preserve">
+    <value>总利润</value>
+  </data>
+  <data name="ScanningForTradeOpportunities" xml:space="preserve">
+    <value>正在扫描贸易机会…</value>
+  </data>
+  <data name="TitleTradeOpportunities" xml:space="preserve">
+    <value>贸易机会</value>
+  </data>
+</root>

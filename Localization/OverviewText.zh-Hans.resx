@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>时间范围：</value>
+  </data>
+  <data name="CustomizeLayout" xml:space="preserve">
+    <value>⚙ 自定义布局</value>
+  </data>
+  <data name="ActivitySummary" xml:space="preserve">
+    <value>活动摘要</value>
+  </data>
+  <data name="InPeriod" xml:space="preserve">
+    <value>时间范围内</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="MarketSales" xml:space="preserve">
+    <value>市场销售</value>
+  </data>
+  <data name="MarketPurchases" xml:space="preserve">
+    <value>市场购买</value>
+  </data>
+  <data name="CompletedJobs" xml:space="preserve">
+    <value>已完成的工业任务</value>
+  </data>
+  <data name="PlayerShipKills" xml:space="preserve">
+    <value>击毁玩家舰船</value>
+  </data>
+  <data name="TipRequiresFullKillMail" xml:space="preserve">
+    <value>需要获取完整的击毁报告才能区分击毁与损失</value>
+  </data>
+  <data name="ShipsLost" xml:space="preserve">
+    <value>损失舰船</value>
+  </data>
+  <data name="CurrentState" xml:space="preserve">
+    <value>当前状态</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>价值</value>
+  </data>
+  <data name="OutstandingSellOrders" xml:space="preserve">
+    <value>未完成的卖单</value>
+  </data>
+  <data name="OutstandingBuyOrders" xml:space="preserve">
+    <value>未完成的买单</value>
+  </data>
+  <data name="OutstandingContracts" xml:space="preserve">
+    <value>未完成的合同</value>
+  </data>
+  <data name="ActiveIndyJobs" xml:space="preserve">
+    <value>进行中的工业任务</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="AlertSettings" xml:space="preserve">
+    <value>提醒设置 →</value>
+  </data>
+  <data name="NoActiveAlerts" xml:space="preserve">
+    <value>当前没有提醒。</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="EveOnlineNews" xml:space="preserve">
+    <value>EVE Online 新闻</value>
+  </data>
+  <data name="NewsUnavailableWillRetryNext" xml:space="preserve">
+    <value>新闻暂不可用——将在下次刷新时重试。</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="Notifications2" xml:space="preserve">
+    <value>通知 →</value>
+  </data>
+  <data name="NoRecentNotifications" xml:space="preserve">
+    <value>最近没有通知。</value>
+  </data>
+  <data name="PersonalKillmails" xml:space="preserve">
+    <value>个人击毁报告</value>
+  </data>
+  <data name="Killmails" xml:space="preserve">
+    <value>击毁报告 →</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="LossesLabel" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="NoKillmailsInThisPeriod" xml:space="preserve">
+    <value>此时间范围内没有击毁报告。</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>此时间范围内没有收入数据。</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>此时间范围内没有支出数据。</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>订单</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>订单跟踪 →</value>
+  </data>
+  <data name="NoActiveOrders" xml:space="preserve">
+    <value>没有进行中的订单。</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>创建日期</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>买家</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>预计日期</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="StandingBuyOrders2" xml:space="preserve">
+    <value>长期收购订单 →</value>
+  </data>
+  <data name="NoStandingBuyOrders" xml:space="preserve">
+    <value>没有长期收购订单。</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>我方出价</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>到期</value>
+  </data>
+  <data name="WorklistAll" xml:space="preserve">
+    <value>工作清单（全部）</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>工作清单 →</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>任务</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>价值</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="WorklistBuy" xml:space="preserve">
+    <value>工作清单（购买）</value>
+  </data>
+  <data name="WorklistHaul" xml:space="preserve">
+    <value>工作清单（运输）</value>
+  </data>
+  <data name="WorklistJobs" xml:space="preserve">
+    <value>工作清单（工业任务）</value>
+  </data>
+  <data name="WorklistStationNeeds" xml:space="preserve">
+    <value>工作清单（空间站需求）</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>空间站需求 →</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>短缺</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>现有</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>订单任务</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>任务</value>
+  </data>
+  <data name="ColInvLevels" xml:space="preserve">
+    <value>库存水平</value>
+  </data>
+  <data name="ColStnLevels" xml:space="preserve">
+    <value>空间站水平</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>短缺价值</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>短缺体积</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="CorpActivity" xml:space="preserve">
+    <value>军团活动 →</value>
+  </data>
+  <data name="NoStandingProjects" xml:space="preserve">
+    <value>没有长期项目。</value>
+  </data>
+  <data name="ColProject" xml:space="preserve">
+    <value>项目</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>项目状态</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ColRem2" xml:space="preserve">
+    <value>剩余 %</value>
+  </data>
+  <data name="OverviewDataReflectsCharactersNote" xml:space="preserve">
+    <value>概览数据仅反映角色及个人军团的情况。</value>
+  </data>
+  <data name="TipOpenInNotifications" xml:space="preserve">
+    <value>在通知中打开</value>
+  </data>
+  <data name="TitleCustomizeOverview" xml:space="preserve">
+    <value>自定义概览</value>
+  </data>
+  <data name="OverviewLayout" xml:space="preserve">
+    <value>概览布局</value>
+  </data>
+  <data name="GridSize" xml:space="preserve">
+    <value>网格大小：</value>
+  </data>
+  <data name="Rows" xml:space="preserve">
+    <value>行数</value>
+  </data>
+  <data name="Columns" xml:space="preserve">
+    <value>列数</value>
+  </data>
+  <data name="Sections" xml:space="preserve">
+    <value>区块</value>
+  </data>
+  <data name="DragASectionOntoNote" xml:space="preserve">
+    <value>将区块拖到网格上即可添加。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+</root>

@@ -748,4 +748,248 @@
     <value>Trade Opportunities</value>
     <comment>Window title in TradeOpportunitiesWindow.</comment>
   </data>
+  <data name="ContractTypeItemExchange" xml:space="preserve">
+    <value>Item Exchange</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractTypeAuction" xml:space="preserve">
+    <value>Auction</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractTypeCourier" xml:space="preserve">
+    <value>Courier</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractTypeLoan" xml:space="preserve">
+    <value>Loan</value>
+    <comment>A contract's type.</comment>
+  </data>
+  <data name="ContractExpired" xml:space="preserve">
+    <value>Expired</value>
+    <comment>A contract's status: past its expiry.</comment>
+  </data>
+  <data name="ContractTotalRow" xml:space="preserve">
+    <value>Total</value>
+    <comment>The totals row of a contract's items.</comment>
+  </data>
+  <data name="TipLinesUnpriced" xml:space="preserve">
+    <value>{0:N0} line(s) have no market price and are not counted</value>
+    <comment>Tooltip. {0} is how many item lines.</comment>
+  </data>
+  <data name="TipEveryLinePriced" xml:space="preserve">
+    <value>Every line priced</value>
+    <comment>Tooltip.</comment>
+  </data>
+  <data name="TipLinesUncosted" xml:space="preserve">
+    <value>{0:N0} line(s) have no build cost and are not counted</value>
+    <comment>Tooltip. {0} is how many item lines.</comment>
+  </data>
+  <data name="TipEveryLineCosted" xml:space="preserve">
+    <value>Every line costed</value>
+    <comment>Tooltip.</comment>
+  </data>
+  <data name="ItemOffered" xml:space="preserve">
+    <value>Offered</value>
+    <comment>A contract line: an item the issuer gives.</comment>
+  </data>
+  <data name="ItemRequested" xml:space="preserve">
+    <value>Requested</value>
+    <comment>A contract line: an item the issuer asks for.</comment>
+  </data>
+  <data name="TipNoMarketPrice" xml:space="preserve">
+    <value>No market price held for this item</value>
+    <comment>Tooltip on an item's market value.</comment>
+  </data>
+  <data name="TipIskPerUnitMarket" xml:space="preserve">
+    <value>{0} ISK a unit at the asset-value market source</value>
+    <comment>Tooltip on an item's market value. {0} is the ISK amount.</comment>
+  </data>
+  <data name="TipNoBuildCost" xml:space="preserve">
+    <value>No build cost held for this item</value>
+    <comment>Tooltip on an item's build value.</comment>
+  </data>
+  <data name="TipIskPerUnitBuild" xml:space="preserve">
+    <value>{0} ISK a unit to build</value>
+    <comment>Tooltip on an item's build value. {0} is the ISK amount.</comment>
+  </data>
+  <data name="AskingEsi" xml:space="preserve">
+    <value>Asking ESI…</value>
+    <comment>Status while the app asks ESI for a contract's items.</comment>
+  </data>
+  <data name="ItemsHttpError" xml:space="preserve">
+    <value>ESI answered HTTP {0} when the items were asked for.</value>
+    <comment>Why a contract has no items. {0} is the HTTP status code.</comment>
+  </data>
+  <data name="ItemsNoneListed" xml:space="preserve">
+    <value>ESI listed no items for it.</value>
+    <comment>Why a contract has no items.</comment>
+  </data>
+  <data name="ItemsNotAskedYet" xml:space="preserve">
+    <value>Not asked for yet — the background sweep will get to it.</value>
+    <comment>Why a contract has no items.</comment>
+  </data>
+  <data name="NoTitle" xml:space="preserve">
+    <value>(no title)</value>
+    <comment>A contract without a title.</comment>
+  </data>
+  <data name="AvailabilityPublic" xml:space="preserve">
+    <value>Public</value>
+    <comment>Who can see a contract.</comment>
+  </data>
+  <data name="AvailabilityPrivate" xml:space="preserve">
+    <value>Private</value>
+    <comment>Who can see a contract.</comment>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>A place whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="TipIssuedForCorp" xml:space="preserve">
+    <value>Issued for the corporation by {0}. Open in the entity browser.</value>
+    <comment>Tooltip on a contract's issuer. {0} is the character who issued it.</comment>
+  </data>
+  <data name="TipOpenEntity" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip on a character, corporation or alliance.</comment>
+  </data>
+  <data name="FilterAllStatuses" xml:space="preserve">
+    <value>All statuses</value>
+    <comment>Contract status filter: every status.</comment>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Contract status filter: still open.</comment>
+  </data>
+  <data name="ContractNotStored" xml:space="preserve">
+    <value>Contract {0} is not stored on this side — it may be a public listing, or not yet polled.</value>
+    <comment>Status line. {0} is a contract number.</comment>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>Not available.</value>
+    <comment>Shown when the contracts service is not available.</comment>
+  </data>
+  <data name="LoadingContracts" xml:space="preserve">
+    <value>Loading contracts…</value>
+    <comment>Status while loading.</comment>
+  </data>
+  <data name="ScopeAllOwners" xml:space="preserve">
+    <value>All owners</value>
+    <comment>Whose contracts to show.</comment>
+  </data>
+  <data name="ScopeAllCharsCorps" xml:space="preserve">
+    <value>All characters and personal corps</value>
+    <comment>Whose contracts to show: the user's characters and the corporations marked personal.</comment>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>An alliance whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="AllAssignees" xml:space="preserve">
+    <value>All assignees</value>
+    <comment>Filter: every assignee.</comment>
+  </data>
+  <data name="AllAcceptors" xml:space="preserve">
+    <value>All acceptors</value>
+    <comment>Filter: every acceptor.</comment>
+  </data>
+  <data name="NoContractsStored" xml:space="preserve">
+    <value>No corporation or personal contracts stored yet.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="SortPriceLowHigh" xml:space="preserve">
+    <value>Price: low → high</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortPriceHighLow" xml:space="preserve">
+    <value>Price: high → low</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Newest first</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortOldest" xml:space="preserve">
+    <value>Oldest first</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortRewardHighLow" xml:space="preserve">
+    <value>Reward: high → low</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortVolumeHighLow" xml:space="preserve">
+    <value>Volume: high → low</value>
+    <comment>Sort order.</comment>
+  </data>
+  <data name="SortContentsAz" xml:space="preserve">
+    <value>Contents (A → Z)</value>
+    <comment>Sort order: by what the contract holds, alphabetically.</comment>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>All categories</value>
+    <comment>Category filter: every category.</comment>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>No results</value>
+    <comment>Paging line when nothing matches.</comment>
+  </data>
+  <data name="PageOfContracts" xml:space="preserve">
+    <value>Page {0:N0} of {1:N0}  ·  {2:N0} contracts</value>
+    <comment>Paging line. {0} is the page, {1} how many pages, {2} how many contracts.</comment>
+  </data>
+  <data name="AllRegions" xml:space="preserve">
+    <value>All regions</value>
+    <comment>Region filter: every region.</comment>
+  </data>
+  <data name="FilterHistorical" xml:space="preserve">
+    <value>Historical</value>
+    <comment>Public contract filter: no longer open.</comment>
+  </data>
+  <data name="FilterAllContracts" xml:space="preserve">
+    <value>All</value>
+    <comment>Public contract filter: open and closed.</comment>
+  </data>
+  <data name="ContractTypeAll" xml:space="preserve">
+    <value>All types</value>
+    <comment>Contract type filter: every type.</comment>
+  </data>
+  <data name="ContractStatusOutstanding" xml:space="preserve">
+    <value>Outstanding</value>
+    <comment>A contract's status: open, not yet accepted.</comment>
+  </data>
+  <data name="ContractStatusInProgress" xml:space="preserve">
+    <value>In Progress</value>
+    <comment>A contract's status: a courier contract accepted and under way.</comment>
+  </data>
+  <data name="ContractStatusFinished" xml:space="preserve">
+    <value>Finished</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="ContractStatusFinishedIssuer" xml:space="preserve">
+    <value>Finished Issuer</value>
+    <comment>A contract's status: finished by the issuer.</comment>
+  </data>
+  <data name="ContractStatusFinishedContractor" xml:space="preserve">
+    <value>Finished Contractor</value>
+    <comment>A contract's status: finished by the contractor.</comment>
+  </data>
+  <data name="ContractStatusCancelled" xml:space="preserve">
+    <value>Cancelled</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="ContractStatusRejected" xml:space="preserve">
+    <value>Rejected</value>
+    <comment>A contract's status: the assignee turned it down.</comment>
+  </data>
+  <data name="ContractStatusFailed" xml:space="preserve">
+    <value>Failed</value>
+    <comment>A contract's status: a courier contract not delivered in time.</comment>
+  </data>
+  <data name="ContractStatusDeleted" xml:space="preserve">
+    <value>Deleted</value>
+    <comment>A contract's status.</comment>
+  </data>
+  <data name="ContractStatusReversed" xml:space="preserve">
+    <value>Reversed</value>
+    <comment>A contract's status.</comment>
+  </data>
 </root>

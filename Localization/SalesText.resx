@@ -1288,4 +1288,731 @@
     <value>Canceled</value>
     <comment>An order's status, in the list on the order dialog.</comment>
   </data>
+  <data name="TipOpenContract" xml:space="preserve">
+    <value>Open this contract in the Contracts tool</value>
+    <comment>Tooltip on an order's contract.</comment>
+  </data>
+  <data name="UnitsInBuild" xml:space="preserve">
+    <value>{0:N0} in build</value>
+    <comment>An order's units being built. {0} is the number.</comment>
+  </data>
+  <data name="TipBuildCostAsOf" xml:space="preserve">
+    <value>Build cost as it stood on {0}, the day this order settled.</value>
+    <comment>Tooltip on an order's build cost. {0} is a date.</comment>
+  </data>
+  <data name="TipBuildCostCurrent" xml:space="preserve">
+    <value>Current build cost.</value>
+    <comment>Tooltip on an order's build cost.</comment>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Order status filter: orders still open.</comment>
+  </data>
+  <data name="FilterCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Order status filter.</comment>
+  </data>
+  <data name="FilterCanceled" xml:space="preserve">
+    <value>Canceled</value>
+    <comment>Order status filter.</comment>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Order status filter: every order.</comment>
+  </data>
+  <data name="ContractNumbered" xml:space="preserve">
+    <value>Contract {0}</value>
+    <comment>A contract with no title. {0} is its number.</comment>
+  </data>
+  <data name="ContractAcceptedOn" xml:space="preserve">
+    <value>accepted {0:yyyy-MM-dd}</value>
+    <comment>Where a contract stands. {0} is the date it was accepted.</comment>
+  </data>
+  <data name="ContractAccepted" xml:space="preserve">
+    <value>accepted</value>
+    <comment>Where a contract stands.</comment>
+  </data>
+  <data name="ContractWaiting" xml:space="preserve">
+    <value>waiting for the buyer</value>
+    <comment>Where a contract stands: the buyer has not accepted it yet.</comment>
+  </data>
+  <data name="ContractDeclined" xml:space="preserve">
+    <value>declined</value>
+    <comment>Where a contract stands: the buyer turned it down.</comment>
+  </data>
+  <data name="ContractNotPolled" xml:space="preserve">
+    <value>not in the contracts polled yet</value>
+    <comment>Where a contract stands: the app has not seen it in its contract polls yet.</comment>
+  </data>
+  <data name="ContractsListed" xml:space="preserve">
+    <value>{0} contracts — {1}</value>
+    <comment>Several contracts on one order. {0} is how many, {1} their numbers.</comment>
+  </data>
+  <data name="ContractUnitsUncounted" xml:space="preserve">
+    <value>units not yet counted</value>
+    <comment>A contract whose units for this order have not been counted yet.</comment>
+  </data>
+  <data name="TipClickToOpenContract" xml:space="preserve">
+    <value>
+Click to open contract {0} in the Contracts tool.</value>
+    <comment>Last line of a tooltip (starts on a new line). {0} is a contract number.</comment>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
+  <data name="StatusLabelled" xml:space="preserve">
+    <value>Labelled {0:N0} order(s) "{1}".</value>
+    <comment>Status line. {0} is how many orders, {1} the label.</comment>
+  </data>
+  <data name="StatusLabelFailed" xml:space="preserve">
+    <value>Could not label: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusLabelRemoved" xml:space="preserve">
+    <value>Removed "{0}" from {1:N0} order(s).</value>
+    <comment>Status line. {0} is the label, {1} how many orders.</comment>
+  </data>
+  <data name="BuyerCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>What a buyer found by search is: a character.</comment>
+  </data>
+  <data name="BuyerCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>What a buyer found by search is: a corporation.</comment>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>Daily</value>
+    <comment>How sales are grouped on the charts.</comment>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>Weekly</value>
+    <comment>How sales are grouped on the charts.</comment>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>Monthly</value>
+    <comment>How sales are grouped on the charts.</comment>
+  </data>
+  <data name="UncostedNote" xml:space="preserve">
+    <value>{0:N0} sale(s) have no cost on either basis and are not charted.</value>
+    <comment>Under the charts. {0} is how many sales.</comment>
+  </data>
+  <data name="OwnerCharsAndPersonalCorps" xml:space="preserve">
+    <value>All Characters and Personal Corps</value>
+    <comment>Whose sales to show: the user's characters and the corporations marked personal.</comment>
+  </data>
+  <data name="TypeAll" xml:space="preserve">
+    <value>All types</value>
+    <comment>Sale type filter: every type.</comment>
+  </data>
+  <data name="SaleTypeMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>Sale type filter: sold on the market.</comment>
+  </data>
+  <data name="SaleTypeContract" xml:space="preserve">
+    <value>Contract</value>
+    <comment>Sale type filter: sold by contract.</comment>
+  </data>
+  <data name="BasisBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>What profit is measured against: the cost to build.</comment>
+  </data>
+  <data name="BasisMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>What profit is measured against: the market price.</comment>
+  </data>
+  <data name="NoSalesMatch" xml:space="preserve">
+    <value>No sales match the filters.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="ExcludedShown" xml:space="preserve">
+    <value> · {0:N0} not for profit, shown but not counted</value>
+    <comment>Added to the status line. {0} is how many sales.</comment>
+  </data>
+  <data name="ExcludedHidden" xml:space="preserve">
+    <value> · {0:N0} not for profit, hidden</value>
+    <comment>Added to the status line. {0} is how many sales.</comment>
+  </data>
+  <data name="SeriesGrossCosts" xml:space="preserve">
+    <value>Gross costs</value>
+    <comment>Chart line.</comment>
+  </data>
+  <data name="SeriesGrossSales" xml:space="preserve">
+    <value>Gross sales</value>
+    <comment>Chart line.</comment>
+  </data>
+  <data name="SeriesNetProfit" xml:space="preserve">
+    <value>Net profit</value>
+    <comment>Chart line.</comment>
+  </data>
+  <data name="SeriesMargin" xml:space="preserve">
+    <value>Margin</value>
+    <comment>Chart line: profit margin.</comment>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>Other</value>
+    <comment>Pie chart slice holding everything too small to show on its own.</comment>
+  </data>
+  <data name="StatusLabelledSales" xml:space="preserve">
+    <value>Labelled {0:N0} sale(s) "{1}".</value>
+    <comment>Status line. {0} is how many sales, {1} the label.</comment>
+  </data>
+  <data name="StatusLabelRemovedSales" xml:space="preserve">
+    <value>Removed "{0}" from {1:N0} sale(s).</value>
+    <comment>Status line. {0} is the label, {1} how many sales.</comment>
+  </data>
+  <data name="StatusLabelRemoveFailed" xml:space="preserve">
+    <value>Could not remove label: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>Everywhere</value>
+    <comment>A posting's scope: items anywhere.</comment>
+  </data>
+  <data name="PriceBasisContract" xml:space="preserve">
+    <value>Contract</value>
+    <comment>What a posting prices from: contract prices.</comment>
+  </data>
+  <data name="PriceBasisMarketAt" xml:space="preserve">
+    <value>Market: {0} ({1})</value>
+    <comment>What a posting prices from: a market. {0} is the station, {1} the price type.</comment>
+  </data>
+  <data name="PriceBasisBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>What a posting prices from: the cost to build.</comment>
+  </data>
+  <data name="SummaryScope" xml:space="preserve">
+    <value>scope: </value>
+    <comment>Start of one part of a section's override summary; the scope follows.</comment>
+  </data>
+  <data name="PriceBasisMarketShort" xml:space="preserve">
+    <value>Market:{0}</value>
+    <comment>What a section prices from: a market. {0} is the station.</comment>
+  </data>
+  <data name="SummaryPackagedOnly" xml:space="preserve">
+    <value>packaged only</value>
+    <comment>Part of a section's override summary.</comment>
+  </data>
+  <data name="SummaryAllItems" xml:space="preserve">
+    <value>all items</value>
+    <comment>Part of a section's override summary.</comment>
+  </data>
+  <data name="StatusPostingExported" xml:space="preserve">
+    <value>Posting exported.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="StatusExportFailed" xml:space="preserve">
+    <value>Export failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="StatusNotAPosting" xml:space="preserve">
+    <value>That file is not a sale posting.</value>
+    <comment>Status line after an import.</comment>
+  </data>
+  <data name="StatusImportFailed" xml:space="preserve">
+    <value>Import failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="NoPostingsYet" xml:space="preserve">
+    <value>No postings yet — add one to get started.</value>
+    <comment>Status line when there are no postings.</comment>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Load failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="SlackSelectPosting" xml:space="preserve">
+    <value>Select a posting first.</value>
+    <comment>Slack status.</comment>
+  </data>
+  <data name="SlackNotConfigured" xml:space="preserve">
+    <value>No Slack channel or webhook configured.</value>
+    <comment>Slack status.</comment>
+  </data>
+  <data name="SlackAlreadyPosted" xml:space="preserve">
+    <value>"{0}" was already posted to Slack {1}.
+
+</value>
+    <comment>Question before posting again. {0} is the posting, {1} how long ago ("3 hours ago").</comment>
+  </data>
+  <data name="SlackPostAgain" xml:space="preserve">
+    <value>Post it again?</value>
+    <comment>Question before posting again.</comment>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Post cancelled.</value>
+    <comment>Slack status.</comment>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Posting to Slack…</value>
+    <comment>Slack status while posting.</comment>
+  </data>
+  <data name="SlackNothingToPost" xml:space="preserve">
+    <value>Nothing to post — this posting has no post blocks.</value>
+    <comment>Slack status.</comment>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Slack post failed on "{0}": {1}</value>
+    <comment>Slack status. {0} is the post block, {1} the error.</comment>
+  </data>
+  <data name="SlackAllEmpty" xml:space="preserve">
+    <value>Nothing to post — all post blocks were empty.</value>
+    <comment>Slack status.</comment>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Posted to {0} — {1:t}</value>
+    <comment>Slack status. {0} is the channel, {1} the time.</comment>
+  </data>
+  <data name="SelectSectionFirst" xml:space="preserve">
+    <value>Select a section (or an item in one) first.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="NoItemsInGroup" xml:space="preserve">
+    <value>No items in that market group.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="ItemsAlreadyInSection" xml:space="preserve">
+    <value>All those items are already in the section.</value>
+    <comment>Status line.</comment>
+  </data>
+  <data name="AddedItems" xml:space="preserve">
+    <value>Added {0} item(s).</value>
+    <comment>Status line. {0} is how many items.</comment>
+  </data>
+  <data name="StoreOpenMailAndWeb" xml:space="preserve">
+    <value>Mail and web open</value>
+    <comment>Whether a store answers: both channels open.</comment>
+  </data>
+  <data name="StoreOpenMail" xml:space="preserve">
+    <value>Mail open</value>
+    <comment>Whether a store answers: EVE mail only.</comment>
+  </data>
+  <data name="StoreOpenWeb" xml:space="preserve">
+    <value>Web open</value>
+    <comment>Whether a store answers: the web site only.</comment>
+  </data>
+  <data name="StoreClosed" xml:space="preserve">
+    <value>Closed</value>
+    <comment>Whether a store answers: neither.</comment>
+  </data>
+  <data name="MailReceived" xml:space="preserve">
+    <value>Received</value>
+    <comment>A store mail's direction.</comment>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>Sent</value>
+    <comment>A store mail's direction.</comment>
+  </data>
+  <data name="EventOrder" xml:space="preserve">
+    <value>Order</value>
+    <comment>What a web event was: an order.</comment>
+  </data>
+  <data name="EventCancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>What a web event was: a cancellation.</comment>
+  </data>
+  <data name="EventVisit" xml:space="preserve">
+    <value>Visit</value>
+    <comment>What a web event was: a visit.</comment>
+  </data>
+  <data name="OutcomeBooked" xml:space="preserve">
+    <value>Booked</value>
+    <comment>What became of a web event.</comment>
+  </data>
+  <data name="OutcomeApplied" xml:space="preserve">
+    <value>Applied</value>
+    <comment>What became of a web event.</comment>
+  </data>
+  <data name="OutcomeDeclined" xml:space="preserve">
+    <value>Declined</value>
+    <comment>What became of a web event.</comment>
+  </data>
+  <data name="OutcomeFailed" xml:space="preserve">
+    <value>Failed</value>
+    <comment>What became of a web event.</comment>
+  </data>
+  <data name="OutcomeNoted" xml:space="preserve">
+    <value>Noted</value>
+    <comment>What became of a web event.</comment>
+  </data>
+  <data name="BuyerAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>What an allowed sender is: an alliance.</comment>
+  </data>
+  <data name="LimitScopeType" xml:space="preserve">
+    <value>item type</value>
+    <comment>What an order limit counts over.</comment>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>item group</value>
+    <comment>What an order limit counts over.</comment>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>the whole store</value>
+    <comment>What an order limit counts over.</comment>
+  </data>
+  <data name="LimitPeriodDays" xml:space="preserve">
+    <value>day(s)</value>
+    <comment>The period of an order limit, after a number.</comment>
+  </data>
+  <data name="LimitPeriodMonths" xml:space="preserve">
+    <value>month(s)</value>
+    <comment>The period of an order limit, after a number.</comment>
+  </data>
+  <data name="LimitPeriodYears" xml:space="preserve">
+    <value>year(s)</value>
+    <comment>The period of an order limit, after a number.</comment>
+  </data>
+  <data name="LimitPeriodAllTime" xml:space="preserve">
+    <value>all time</value>
+    <comment>The period of an order limit: no limit in time.</comment>
+  </data>
+  <data name="PriceListTooLong" xml:space="preserve">
+    <value>⚠  Price list is {0:N0} of {1:N0} bytes — {2:N0} over, so it will arrive as {3} mails. Shorten the posting to send it as one.</value>
+    <comment>A store's price list is too long for one mail. {0} its size, {1} the limit, {2} how far over, {3} how many mails.</comment>
+  </data>
+  <data name="PriceListFits" xml:space="preserve">
+    <value>Price list is {0:N0} of {1:N0} bytes — fits in one mail with {2:N0} to spare.</value>
+    <comment>A store's price list fits in one mail. {0} its size, {1} the limit, {2} what is left.</comment>
+  </data>
+  <data name="BannerNone" xml:space="preserve">
+    <value>None.</value>
+    <comment>The store has no banner image.</comment>
+  </data>
+  <data name="BannerSaved" xml:space="preserve">
+    <value>Banner saved; it goes to the site on the next sync.</value>
+    <comment>Status after saving a banner.</comment>
+  </data>
+  <data name="BannerSavedScaled" xml:space="preserve">
+    <value>Banner saved, scaled to {0} × {1} and sent as WebP; it goes to the site on the next sync.</value>
+    <comment>Status after saving a banner. {0} × {1} is its new size in pixels.</comment>
+  </data>
+  <data name="BannerUnusable" xml:space="preserve">
+    <value>The banner could not be used: {0}</value>
+    <comment>Status. {0} is the error.</comment>
+  </data>
+  <data name="BannerRemoved" xml:space="preserve">
+    <value>Banner removed; the site drops it on the next sync.</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="BannerRemoveFailed" xml:space="preserve">
+    <value>The banner could not be removed: {0}</value>
+    <comment>Status. {0} is the error.</comment>
+  </data>
+  <data name="WebClosed" xml:space="preserve">
+    <value>The web channel is closed.</value>
+    <comment>The web channel's state.</comment>
+  </data>
+  <data name="WebNeedsAddress" xml:space="preserve">
+    <value>Needs a site address and a secret before it can sync.</value>
+    <comment>The web channel's state.</comment>
+  </data>
+  <data name="WebLastSynced" xml:space="preserve">
+    <value>Last synced {0:yyyy-MM-dd HH:mm}</value>
+    <comment>The web channel's state. {0} is when.</comment>
+  </data>
+  <data name="WebNotSynced" xml:space="preserve">
+    <value>Not synced yet</value>
+    <comment>The web channel's state.</comment>
+  </data>
+  <data name="WebSiteVersion" xml:space="preserve">
+    <value>, site version {0}</value>
+    <comment>Added after the sync state. {0} is the site's version.</comment>
+  </data>
+  <data name="WebOtherClient" xml:space="preserve">
+    <value>Another client is running the background work and syncs the web site; it will pick the change up on its next cycle.</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="WebSyncing" xml:space="preserve">
+    <value>Syncing the web site…</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="WebSecretGenerated" xml:space="preserve">
+    <value>New secret generated. Set the same value on the site, or the next sync is refused.</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="SsoKeysNeeded" xml:space="preserve">
+    <value>Buyers cannot sign in until the site has the EVE application's Client ID and Secret Key. Enter them here: the Deploy button places them on the site, and a site set up by hand needs the same values as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.</value>
+    <comment>Help for the store web site's EVE sign-in keys.</comment>
+  </data>
+  <data name="TokenSavedDpapi" xml:space="preserve">
+    <value>A token is saved on this machine, encrypted by Windows for your account.</value>
+    <comment>Where the Cloudflare token is kept.</comment>
+  </data>
+  <data name="TokenSavedKeyring" xml:space="preserve">
+    <value>A token is saved in this machine's keyring.</value>
+    <comment>Where the Cloudflare token is kept.</comment>
+  </data>
+  <data name="TokenSavedPlain" xml:space="preserve">
+    <value>A token is saved on this machine in config.json as typed; no keyring was available.</value>
+    <comment>Where the Cloudflare token is kept.</comment>
+  </data>
+  <data name="TokenNone" xml:space="preserve">
+    <value>No token is saved on this machine. Deploying and updating need one; syncing does not.</value>
+    <comment>Where the Cloudflare token is kept: nowhere.</comment>
+  </data>
+  <data name="DeployPasteToken" xml:space="preserve">
+    <value>Paste the token first.</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="DeployCheckingToken" xml:space="preserve">
+    <value>Checking the token…</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="DeployTokenGone" xml:space="preserve">
+    <value>The token is gone from this machine. The site keeps running; only deploying and updating from here need one.</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="SsoSendThem" xml:space="preserve">
+    <value>Press Deploy or update site to send them; a site set up by hand needs them as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.</value>
+    <comment>Added to the sign-in key messages below.</comment>
+  </data>
+  <data name="SsoKeysNotOnSite" xml:space="preserve">
+    <value>The keys are saved here, but the site does not have them yet. {0}</value>
+    <comment>Sign-in key state. {0} is the SsoSendThem sentence.</comment>
+  </data>
+  <data name="SsoNoKeys" xml:space="preserve">
+    <value>The site has no EVE application keys yet: register the application and enter its keys above.</value>
+    <comment>Sign-in key state.</comment>
+  </data>
+  <data name="SsoReady" xml:space="preserve">
+    <value>The site has EVE application keys; sign-in is set up.</value>
+    <comment>Sign-in key state.</comment>
+  </data>
+  <data name="SsoKeysNotSaved" xml:space="preserve">
+    <value>The site has EVE application keys, but none are saved here: enter the same ones above so an update keeps them.</value>
+    <comment>Sign-in key state.</comment>
+  </data>
+  <data name="SsoReadySame" xml:space="preserve">
+    <value>The site has these EVE application keys; sign-in is set up.</value>
+    <comment>Sign-in key state.</comment>
+  </data>
+  <data name="SsoKeysDiffer" xml:space="preserve">
+    <value>The site has different EVE application keys from the ones saved here. {0}</value>
+    <comment>Sign-in key state. {0} is the SsoSendThem sentence.</comment>
+  </data>
+  <data name="DeployCheckingAccount" xml:space="preserve">
+    <value>Checking the account…</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="DeployCancelled" xml:space="preserve">
+    <value>Deploy cancelled.</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="DeployAskingSite" xml:space="preserve">
+    <value>Asking the site…</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="NoStoresYet" xml:space="preserve">
+    <value>No stores yet — add one to let buyers ask by EVE mail.</value>
+    <comment>Status when there are no stores.</comment>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Save failed: {0}</value>
+    <comment>Status line. {0} is the error.</comment>
+  </data>
+  <data name="NewStoreName" xml:space="preserve">
+    <value>New store</value>
+    <comment>The name a new store starts with.</comment>
+  </data>
+  <data name="DeployPickAccount" xml:space="preserve">
+    <value>Pick the Cloudflare account first.</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="RenameWorkersTitle" xml:space="preserve">
+    <value>Rename the account's workers.dev name</value>
+    <comment>Title of a prompt: renaming the Cloudflare account's workers.dev name.</comment>
+  </data>
+  <data name="RenameWorkersLabel" xml:space="preserve">
+    <value>New name</value>
+    <comment>Label in that prompt.</comment>
+  </data>
+  <data name="RenameWorkersHint" xml:space="preserve">
+    <value>lower-case letters, digits and hyphens</value>
+    <comment>Hint in that prompt: which characters are allowed.</comment>
+  </data>
+  <data name="DeployRenaming" xml:space="preserve">
+    <value>Renaming…</value>
+    <comment>Deploy status.</comment>
+  </data>
+  <data name="DeleteStoreConfirm" xml:space="preserve">
+    <value>Delete the store "{0}"?
+
+It closes and disappears from this list.
+
+Nothing is destroyed: its orders stay in the Order Tracker, and its settings, allow list and message history are kept so anything referring to it still resolves. It simply stops reading and answering mail.</value>
+    <comment>Asked before a store is deleted. {0} is its name.</comment>
+  </data>
+  <data name="AllowNotFound" xml:space="preserve">
+    <value>Could not find a {0} called "{1}".</value>
+    <comment>Status. {0} is character/corporation/alliance, {1} the name typed.</comment>
+  </data>
+  <data name="AllowAlreadyListed" xml:space="preserve">
+    <value>{0} is already on the list.</value>
+    <comment>Status. {0} is a name.</comment>
+  </data>
+  <data name="AllowAddFailed" xml:space="preserve">
+    <value>Could not add: {0}</value>
+    <comment>Status. {0} is the error.</comment>
+  </data>
+  <data name="TitleAddPosting" xml:space="preserve">
+    <value>Add Posting</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="TitleEditPosting" xml:space="preserve">
+    <value>Edit Posting</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="LocStationLabel" xml:space="preserve">
+    <value>STATION</value>
+    <comment>Label over the location picker when the scope is a station.</comment>
+  </data>
+  <data name="LocSolarSystemLabel" xml:space="preserve">
+    <value>SOLAR SYSTEM</value>
+    <comment>Label over the location picker when the scope is a solar system.</comment>
+  </data>
+  <data name="LocRegionLabel" xml:space="preserve">
+    <value>REGION</value>
+    <comment>Label over the location picker when the scope is a region.</comment>
+  </data>
+  <data name="PostingNameRequired" xml:space="preserve">
+    <value>Posting name is required.</value>
+    <comment>Error in the dialog.</comment>
+  </data>
+  <data name="SelectMarketForBasis" xml:space="preserve">
+    <value>Select a market for the Specific Market basis.</value>
+    <comment>Error in the dialog.</comment>
+  </data>
+  <data name="TitleAddSection" xml:space="preserve">
+    <value>Add Section</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="TitleEditSection" xml:space="preserve">
+    <value>Edit Section</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="SectionNameRequired" xml:space="preserve">
+    <value>Section name is required.</value>
+    <comment>Error in the dialog.</comment>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>A corporation whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="CharNumbered" xml:space="preserve">
+    <value>Char {0}</value>
+    <comment>A character whose name is unknown. {0} is its number.</comment>
+  </data>
+  <data name="NoItems" xml:space="preserve">
+    <value>(no items)</value>
+    <comment>A sale with no items.</comment>
+  </data>
+  <data name="MoreItems" xml:space="preserve">
+    <value>{0} +{1} more items</value>
+    <comment>A sale of several items. {0} is the first item, {1} how many more.</comment>
+  </data>
+  <data name="UnitsMultiple" xml:space="preserve">
+    <value>Multiple</value>
+    <comment>Units column for a sale of several items.</comment>
+  </data>
+  <data name="TitleEditOrder" xml:space="preserve">
+    <value>Edit Order</value>
+    <comment>Dialog title.</comment>
+  </data>
+  <data name="NotLinked" xml:space="preserve">
+    <value>{0}  (not linked)</value>
+    <comment>A buyer typed by hand, not found in EVE. {0} is the name.</comment>
+  </data>
+  <data name="ChooseBannerTitle" xml:space="preserve">
+    <value>Choose a banner picture</value>
+    <comment>File picker title.</comment>
+  </data>
+  <data name="AddLabelToOrders" xml:space="preserve">
+    <value>Add label to {0} orders</value>
+    <comment>Menu item. {0} is how many orders.</comment>
+  </data>
+  <data name="AddLabel" xml:space="preserve">
+    <value>Add label</value>
+    <comment>Menu item.</comment>
+  </data>
+  <data name="RemoveLabelFromOrders" xml:space="preserve">
+    <value>Remove label from {0} orders</value>
+    <comment>Menu item. {0} is how many orders.</comment>
+  </data>
+  <data name="RemoveLabel" xml:space="preserve">
+    <value>Remove label</value>
+    <comment>Menu item.</comment>
+  </data>
+  <data name="NewLabelMenu" xml:space="preserve">
+    <value>New label…</value>
+    <comment>Menu item.</comment>
+  </data>
+  <data name="NewLabelTitle" xml:space="preserve">
+    <value>New label</value>
+    <comment>Title of the prompt for a new label.</comment>
+  </data>
+  <data name="LabelPrompt" xml:space="preserve">
+    <value>Label</value>
+    <comment>Label in that prompt.</comment>
+  </data>
+  <data name="NewLabelHint" xml:space="preserve">
+    <value>e.g. Capital Program</value>
+    <comment>Example in that prompt.</comment>
+  </data>
+  <data name="AddLabelToSales" xml:space="preserve">
+    <value>Add label to {0} sales</value>
+    <comment>Menu item. {0} is how many sales.</comment>
+  </data>
+  <data name="RemoveLabelFromSales" xml:space="preserve">
+    <value>Remove label from {0} sales</value>
+    <comment>Menu item. {0} is how many sales.</comment>
+  </data>
+  <data name="TitleExportPosting" xml:space="preserve">
+    <value>Export Posting</value>
+    <comment>File dialog title.</comment>
+  </data>
+  <data name="TitleImportPosting" xml:space="preserve">
+    <value>Import Posting</value>
+    <comment>File dialog title.</comment>
+  </data>
+  <data name="WorkersNameInvalid" xml:space="preserve">
+    <value>The workers.dev name needs lower-case letters, digits and hyphens, up to 63 of them.</value>
+    <comment>Error in the address dialog.</comment>
+  </data>
+  <data name="HostnameInvalid" xml:space="preserve">
+    <value>That is not a hostname: something like store.example.com, letters, digits, hyphens and dots only.</value>
+    <comment>Error in the address dialog.</comment>
+  </data>
+  <data name="ContractUnitsOne" xml:space="preserve">
+    <value>{0:N0} unit</value>
+    <comment>A contract's units for this order, one. {0} is the number.</comment>
+  </data>
+  <data name="ContractUnitsOther" xml:space="preserve">
+    <value>{0:N0} units</value>
+    <comment>A contract's units for this order, several. {0} is the number.</comment>
+  </data>
+  <data name="BasisContract" xml:space="preserve">
+    <value>Contract</value>
+    <comment>What profit is measured against: contract prices.</comment>
+  </data>
+  <data name="PolicyList" xml:space="preserve">
+    <value>List</value>
+    <comment>Who a store answers: only the senders on its list.</comment>
+  </data>
+  <data name="PolicyAnyone" xml:space="preserve">
+    <value>Anyone</value>
+    <comment>Who a store answers: every sender.</comment>
+  </data>
+  <data name="ScopePickStation" xml:space="preserve">
+    <value>Select a station or choose Everywhere.</value>
+    <comment>Error in the posting dialog.</comment>
+  </data>
+  <data name="ScopePickSystem" xml:space="preserve">
+    <value>Select a solar system or choose Everywhere.</value>
+    <comment>Error in the posting dialog.</comment>
+  </data>
+  <data name="ScopePickRegion" xml:space="preserve">
+    <value>Select a region or choose Everywhere.</value>
+    <comment>Error in the posting dialog.</comment>
+  </data>
 </root>

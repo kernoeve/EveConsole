@@ -190,4 +190,130 @@
   <data name="TipReleasePage" xml:space="preserve">
     <value>在 GitHub 上打开发布页面</value>
   </data>
+  <data name="TitleAboutEveConsole" xml:space="preserve">
+    <value>关于 EVE Console</value>
+  </data>
+  <data name="AnEveOnlineIndustrialNote" xml:space="preserve">
+    <value>一款 EVE Online 工业辅助工具，用于生产规划、资产跟踪、市场定价和角色管理。</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>网站</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="TipCommunityChatAndSupport" xml:space="preserve">
+    <value>社区交流与支持</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="TitleEveConsoleDatabaseProblem" xml:space="preserve">
+    <value>EVE Console——数据库问题</value>
+  </data>
+  <data name="TheDatabaseCouldNotBe" xml:space="preserve">
+    <value>无法打开数据库</value>
+  </data>
+  <data name="ReportedLabel" xml:space="preserve">
+    <value>错误信息</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>从备份恢复</value>
+  </data>
+  <data name="TheMostRecentIsNote" xml:space="preserve">
+    <value>已选中最新的备份。该备份之后记录的所有数据都需要重新轮询。</value>
+  </data>
+  <data name="NoBackupsWereFoundNote" xml:space="preserve">
+    <value>数据库所在的文件夹中没有找到任何备份，因此无法恢复。重新开始会新建一个空数据库，并将已损坏的数据库原样保留。</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="StartFresh" xml:space="preserve">
+    <value>重新开始</value>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>恢复备份</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>已是最新</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>有可用更新</value>
+  </data>
+  <data name="BackgroundLabel" xml:space="preserve">
+    <value>后台：</value>
+  </data>
+  <data name="NoneOfYourCharactersAre" xml:space="preserve">
+    <value>你的角色均不在线。</value>
+  </data>
+  <data name="FmtStaticDataExport" xml:space="preserve">
+    <value>静态数据导出（SDE）：{0}</value>
+  </data>
+  <data name="FmtNewestFromCcpIs" xml:space="preserve">
+    <value>CCP 发布的最新版本为 {0}</value>
+  </data>
+  <data name="FmtNewestIsOpenTheSde" xml:space="preserve">
+    <value>最新版本为 {0}——打开 SDE 设置</value>
+  </data>
+  <data name="FmtToggleAiCompanion" xml:space="preserve">
+    <value>打开或关闭 AI 助手 {0}</value>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>正在初始化…</value>
+  </data>
+  <data name="TitleUpdateAvailable" xml:space="preserve">
+    <value>有可用更新</value>
+  </data>
+  <data name="ANewVersionOfNote" xml:space="preserve">
+    <value>EVE Console 有新版本可用。</value>
+  </data>
+  <data name="CurrentLabel" xml:space="preserve">
+    <value>当前：</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>最新：</value>
+  </data>
+  <data name="TheAppWillDownloadNote" xml:space="preserve">
+    <value>应用将下载更新，并重启以完成安装。</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>立即更新</value>
+  </data>
+  <data name="NotNow" xml:space="preserve">
+    <value>以后再说</value>
+  </data>
+  <data name="UpdatingEveConsole" xml:space="preserve">
+    <value>正在更新 EVE Console…</value>
+  </data>
+  <data name="ThisBuildIsOlderNote" xml:space="preserve">
+    <value>此版本比数据库旧</value>
+  </data>
+  <data name="CheckingForAnUpdate" xml:space="preserve">
+    <value>正在检查更新…</value>
+  </data>
+  <data name="ReleasesPage" xml:space="preserve">
+    <value>发布页面</value>
+  </data>
+  <data name="UpdateAndRestart" xml:space="preserve">
+    <value>更新并重启</value>
+  </data>
+  <data name="TitleWelcomeToEveConsole" xml:space="preserve">
+    <value>欢迎使用 EVE Console</value>
+  </data>
+  <data name="WelcomeToEve" xml:space="preserve">
+    <value>欢迎使用 EVE </value>
+  </data>
+  <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
+    <value>EVE Console 正在后台下载所需的 EVE 游戏数据（静态数据导出和 Hoboleaks 数据）。这可能需要几分钟——随着下载完成，物品查询、市场定价和工业工具中的数据会逐步补全。你可以在“设置”的 SDE 标签页中查看进度。</value>
+  </data>
+  <data name="OnceThatFinishesRestartNote" xml:space="preserve">
+    <value>下载完成后，请重启 EVE Console。部分工具会在首次打开时加载参考数据，因此重启可以确保所有功能都能读取刚导入的数据。</value>
+  </data>
+  <data name="ToPullInYourNote" xml:space="preserve">
+    <value>要导入你自己的角色和军团数据，请添加角色的 ESI 令牌。接下来会打开设置窗口的“ESI 令牌”标签页——在那里点击添加角色，即可通过 EVE 的 SSO 登录。</value>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>开始使用</value>
+  </data>
 </root>

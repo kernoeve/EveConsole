@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Dismiss" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="AcknowledgeStopTheSound" xml:space="preserve">
+    <value>确认并停止声音</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="SoundLabel" xml:space="preserve">
+    <value>声音</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>音量</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>▶ 试听</value>
+  </data>
+  <data name="AddSound" xml:space="preserve">
+    <value>添加声音…</value>
+  </data>
+  <data name="RepeatUntilAcknowledgedOr" xml:space="preserve">
+    <value>重复播放，直到被确认或情况自行结束</value>
+  </data>
+  <data name="WordsToSayOptionalLabel" xml:space="preserve">
+    <value>朗读内容（可选）</value>
+  </data>
+  <data name="HintLeaveEmptyToSay" xml:space="preserve">
+    <value>留空则朗读检查项生成的内容</value>
+  </data>
+  <data name="SpokenAtOnceByNote" xml:space="preserve">
+    <value>立即通过文字转语音朗读，不经过 AI 助手——需要在“设置 → 助手”中配置语音（而不是模型），AI 助手关闭时同样有效。在 AI 助手窗口中显示为应用自身的发言。占位符：{alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="ExtraInstructionForTheAgent" xml:space="preserve">
+    <value>给 AI 助手的额外指示（可选）</value>
+  </data>
+  <data name="HintEGMentionWhich" xml:space="preserve">
+    <value>例如：说明是哪个星系，并尽量简短</value>
+  </data>
+  <data name="TheAgentIsToldNote" xml:space="preserve">
+    <value>AI 助手会得知触发了什么，并自行组织措辞。如果已配置文字转语音，它会大声说出来；如果尚未设置 AI 助手，则改为记录一条提醒。</value>
+  </data>
+  <data name="UseTheDefaultWording" xml:space="preserve">
+    <value>使用此检查项的默认措辞</value>
+  </data>
+  <data name="TitleLabel" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>消息</value>
+  </data>
+  <data name="Placeholders" xml:space="preserve">
+    <value>占位符：{alarm} {summary} {count} {time} {date}</value>
+  </data>
+  <data name="NewAlarm" xml:space="preserve">
+    <value>新建警报</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="TipSoundDialogsAndAgent" xml:space="preserve">
+    <value>仅限本机的声音、对话框和 AI 助手通知。无论如何，提醒都会继续记录，其他客户端也不受影响。</value>
+  </data>
+  <data name="EarlyDevelopmentThisToolNote" xml:space="preserve">
+    <value>早期开发阶段——此工具仍在成形中，其行为、布局和已保存的设置都可能发生变化。</value>
+  </data>
+  <data name="Agent" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="OpenAlertsLabel" xml:space="preserve">
+    <value>未关闭的提醒</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="HintWhatIsThisAlarmFor" xml:space="preserve">
+    <value>这个警报是做什么用的？</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="ActiveFromLabel" xml:space="preserve">
+    <value>生效时间自</value>
+  </data>
+  <data name="HintAlways" xml:space="preserve">
+    <value>始终</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>至</value>
+  </data>
+  <data name="HoursOnThisMachinesNote" xml:space="preserve">
+    <value>时间以本机时钟为准，例如 18:00 至 02:00。留空表示始终生效。在此时段之外，完全不会检查该警报。</value>
+  </data>
+  <data name="WhenLabel" xml:space="preserve">
+    <value>触发时机</value>
+  </data>
+  <data name="CheckLabel" xml:space="preserve">
+    <value>检查项</value>
+  </data>
+  <data name="HintStartTypingAnItemName" xml:space="preserve">
+    <value>开始输入物品名称…</value>
+  </data>
+  <data name="HintStartTypingANameThen" xml:space="preserve">
+    <value>开始输入名称，然后点击“添加”…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AfterFiringLabel" xml:space="preserve">
+    <value>触发后</value>
+  </data>
+  <data name="CheckEverySecLabel" xml:space="preserve">
+    <value>检查间隔（秒）</value>
+  </data>
+  <data name="CooldownSecLabel" xml:space="preserve">
+    <value>冷却时间（秒）</value>
+  </data>
+  <data name="AnAlarmOnlyAnnouncesNote" xml:space="preserve">
+    <value>警报只会通报之前没有通报过的情况，因此一直成立的条件不会重复通报。“持续”模式会一直保持待命，直到你将其停用；“单次”模式在触发一次后会自行停用。冷却时间则在此基础上再增加一个最短间隔。</value>
+  </data>
+  <data name="ThenLabel" xml:space="preserve">
+    <value>执行操作</value>
+  </data>
+  <data name="AddAction" xml:space="preserve">
+    <value>添加操作</value>
+  </data>
+  <data name="After" xml:space="preserve">
+    <value>经过</value>
+  </data>
+  <data name="NoActionsAtThisNote" xml:space="preserve">
+    <value>此阶段没有操作——请添加一个，或不勾选此阶段。</value>
+  </data>
+  <data name="SelectAnAlarmOrCreate" xml:space="preserve">
+    <value>选择一个警报，或新建一个。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="TestSounds" xml:space="preserve">
+    <value>测试声音</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="RecentFiringsEveTimeLabel" xml:space="preserve">
+    <value>最近触发记录（EVE 时间）</value>
+  </data>
+  <data name="NewTask" xml:space="preserve">
+    <value>新建任务</value>
+  </data>
+  <data name="TimesAreEveTime" xml:space="preserve">
+    <value>时间均为 EVE 时间</value>
+  </data>
+  <data name="SelectATaskOrCreate" xml:space="preserve">
+    <value>选择一个任务，或新建一个。</value>
+  </data>
+  <data name="HintWhatDoesThisTaskDo" xml:space="preserve">
+    <value>这个任务是做什么的？</value>
+  </data>
+  <data name="TaskTypeLabel" xml:space="preserve">
+    <value>任务类型</value>
+  </data>
+  <data name="RepeatsLabel" xml:space="preserve">
+    <value>重复</value>
+  </data>
+  <data name="EveryLabel" xml:space="preserve">
+    <value>每隔</value>
+  </data>
+  <data name="Minutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>小时</value>
+  </data>
+  <data name="OnTheseDaysLabel" xml:space="preserve">
+    <value>在以下几天</value>
+  </data>
+  <data name="DayOfMonthLabel" xml:space="preserve">
+    <value>每月日期</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>月份</value>
+  </data>
+  <data name="DayLabel" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="AtHhMmEveLabel" xml:space="preserve">
+    <value>时间（HH:MM EVE）</value>
+  </data>
+  <data name="SkipIfTheApp" xml:space="preserve">
+    <value>若当天应用未开启则跳过</value>
+  </data>
+  <data name="PostToLabel" xml:space="preserve">
+    <value>发布到</value>
+  </data>
+  <data name="WorkspaceChannelsAndWebhooksNote" xml:space="preserve">
+    <value>Slack 设置中定义的工作区频道和 Webhook，汇总在同一个列表中。</value>
+  </data>
+  <data name="DoNotPostIf" xml:space="preserve">
+    <value>动态区块为空时不发布</value>
+  </data>
+  <data name="OffTheMessageGoesNote" xml:space="preserve">
+    <value>关闭时，无论数据如何，消息都会发出。开启时，只有当至少一个读取数据的区块（即“文本”以外的任何区块）确实有内容时，消息才会发出。</value>
+  </data>
+  <data name="AddSection" xml:space="preserve">
+    <value>添加区块</value>
+  </data>
+  <data name="Preview2" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="TipRendersTheSectionsAs" xml:space="preserve">
+    <value>按实际发布时的样子渲染各区块，但不会发布。</value>
+  </data>
+  <data name="NothingToSayYetNote" xml:space="preserve">
+    <value>还没有任何内容。请选择一种区块类型并添加——各区块会按此顺序组成一条消息发出。</value>
+  </data>
+  <data name="HintWhatToSaySlack" xml:space="preserve">
+    <value>要说的内容。此处支持 Slack 标记格式。</value>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ListsToIncludeLabel" xml:space="preserve">
+    <value>要包含的榜单</value>
+  </data>
+  <data name="ShowOnlyTheShare" xml:space="preserve">
+    <value>只显示占总额的比例，不显示 ISK</value>
+  </data>
+  <data name="EachListPrintsTheNote" xml:space="preserve">
+    <value>每个榜单都会列出金额及其占比。勾选后会去掉金额——“击毁”除外，因为它的数字是次数而不是价值。</value>
+  </data>
+  <data name="TwelveMonthsOfTrendsNote" xml:space="preserve">
+    <value>十二个月的趋势，绘制成图片并上传到消息下方。</value>
+  </data>
+  <data name="ThisSectionWillNotNote" xml:space="preserve">
+    <value>此区块不会被发布。该任务的目标是 Webhook，而 Webhook 无法附带图片——请在上方选择一个工作区频道，否则任务运行时会跳过此区块。</value>
+  </data>
+  <data name="PostingLabel" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="PricedAndCountedExactlyNote" xml:space="preserve">
+    <value>价格和数量与“销售发布”工具中显示的完全一致。它的各个发布块会按顺序合并到这一个区块中。</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>项目类型</value>
+  </data>
+  <data name="ReportLabel" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="MissingIsAnythingNoNote" xml:space="preserve">
+    <value>“缺失”指当前没有任何进行中的项目覆盖的内容——包括应用无法检查的内容。“偏低”会另外加入剩余不足 10%、即将需要更换的项目。</value>
+  </data>
+  <data name="SectionTitleLabel" xml:space="preserve">
+    <value>区块标题</value>
+  </data>
+  <data name="HintNoTitle" xml:space="preserve">
+    <value>无标题</value>
+  </data>
+  <data name="ColumnHeaders" xml:space="preserve">
+    <value>列标题</value>
+  </data>
+  <data name="IskLeftColumn" xml:space="preserve">
+    <value>“剩余 ISK”列</value>
+  </data>
+  <data name="LastCompletedColumn" xml:space="preserve">
+    <value>“上次完成”列</value>
+  </data>
+  <data name="ProjectsToIncludeLabel" xml:space="preserve">
+    <value>要包含的项目</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>全不选</value>
+  </data>
+  <data name="OneRowPerProjectNote" xml:space="preserve">
+    <value>每个已定义的项目占一行；范围为星域或星座的项目在此只列出一次，发布时会展开为每个符合条件的星系各占一行。保存时勾选了哪些，就发布哪些——之后定义的项目不会自动加入。</value>
+  </data>
+  <data name="PreviewLabel" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="PressPreviewToRenderNote" xml:space="preserve">
+    <value>点击“预览”，即可按实际发布时的样子渲染各区块。</value>
+  </data>
+  <data name="AlertLabel" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="HeadlineLabel" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="HintLeaveEmptyToUse" xml:space="preserve">
+    <value>留空则使用任务名称。</value>
+  </data>
+  <data name="TextLabel" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="HintWhatTheAlertShouldSay" xml:space="preserve">
+    <value>提醒要显示的内容。</value>
+  </data>
+  <data name="ShowsOnTheOverviewNote" xml:space="preserve">
+    <value>会显示在“概览”和“警报”工具中，直到被关闭为止，与警报自身产生的提醒相同。</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>放弃更改</value>
+  </data>
+  <data name="TipPutsTheEditorBack" xml:space="preserve">
+    <value>将编辑器恢复为已保存的内容。</value>
+  </data>
+  <data name="TipRunsWhatIsOn" xml:space="preserve">
+    <value>按屏幕上的当前内容真实运行一次，并计为本次计划运行。</value>
+  </data>
+</root>

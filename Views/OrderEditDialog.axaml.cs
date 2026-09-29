@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -44,7 +45,7 @@ public partial class OrderEditDialog : Window
 
         if (initial is not null)
         {
-            Title = "Edit Order";
+            Title = SalesText.TitleEditOrder;
             // ⚠️ Assigning BuyerBox.Text raises TextChanged, which runs the buyer search and opens
             // the results list — for a buyer the user already picked and has not touched.
             //
@@ -61,7 +62,7 @@ public partial class OrderEditDialog : Window
             _buyerId   = initial.BuyerId;
             _buyerType = initial.BuyerType;
             _buyerName = initial.Buyer;
-            SelectedBuyerText.Text = initial.Buyer.Length > 0 ? initial.Buyer : "(none selected)";
+            SelectedBuyerText.Text = initial.Buyer.Length > 0 ? initial.Buyer : SalesText.NoneSelected;
             BuyerBox.Text = initial.Buyer;
             EstDateBox.Text = initial.EstimatedDate ?? "";
             PriceBox.Value = (decimal)initial.PurchasePrice;
@@ -118,7 +119,7 @@ public partial class OrderEditDialog : Window
         if (text != _buyerName)
         {
             _buyerId = 0; _buyerType = ""; _buyerName = text;
-            SelectedBuyerText.Text = text.Length > 0 ? $"{text}  (not linked)" : "(none selected)";
+            SelectedBuyerText.Text = text.Length > 0 ? string.Format(SalesText.NotLinked, text) : SalesText.NoneSelected;
         }
 
         // The picker belongs to typing. Anything that changes the text while the box is not focused
