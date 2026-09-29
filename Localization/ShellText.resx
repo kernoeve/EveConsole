@@ -367,10 +367,6 @@
     <value>Welcome to EVE Console</value>
     <comment>Window title in WelcomeWindow.</comment>
   </data>
-  <data name="WelcomeToEve" xml:space="preserve">
-    <value>Welcome to EVE </value>
-    <comment>Text in WelcomeWindow.</comment>
-  </data>
   <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
     <value>EVE Console is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings.</value>
     <comment>Note in WelcomeWindow.</comment>

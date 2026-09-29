@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:EveConsole.Localization"
+        xmlns:views="using:EveConsole.Views"
         x:Class="EveConsole.Views.WelcomeWindow"
         Title="{x:Static loc:ShellText.TitleWelcomeToEveConsole}"
         Icon="avares://EveConsole/Assets/ec.ico"
@@ -12,15 +13,11 @@
 
   <StackPanel Margin="36 30 36 26" Spacing="0">
 
-    <!-- Two-tone app name -->
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 6">
-      <TextBlock Text="{x:Static loc:ShellText.WelcomeToEve}"
-                 FontSize="22" FontWeight="Bold"
-                 Foreground="{DynamicResource TextBrightBrush}" />
-      <TextBlock Text="Console"
-                 FontSize="22" FontWeight="Bold"
-                 Foreground="{DynamicResource AccentBrush}" />
-    </StackPanel>
+    <!-- Two-tone app name, wherever the language puts it (see WelcomeWindow.axaml.cs).
+         ⚠️ The runs on one line, touching: a line break between them is drawn as a space. -->
+    <TextBlock HorizontalAlignment="Center" Margin="0 0 0 6"
+               FontSize="22" FontWeight="Bold"
+               Foreground="{DynamicResource TextBrightBrush}"><Run Text="{x:Static views:WelcomeWindow.HeadingBefore}" /><Run Text="EVE " /><Run Text="Console" Foreground="{DynamicResource AccentBrush}" /><Run Text="{x:Static views:WelcomeWindow.HeadingAfter}" /></TextBlock>
 
     <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 18 0 20" />
 

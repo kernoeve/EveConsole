@@ -301,9 +301,6 @@
   <data name="TitleWelcomeToEveConsole" xml:space="preserve">
     <value>Добро пожаловать в EVE Console</value>
   </data>
-  <data name="WelcomeToEve" xml:space="preserve">
-    <value>Добро пожаловать в EVE </value>
-  </data>
   <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
     <value>EVE Console загружает в фоне нужные ей игровые данные EVE (Static Data Export и данные Hoboleaks). Это может занять несколько минут — поиск предметов, рыночные цены и промышленные инструменты заработают по мере загрузки. Ход загрузки виден на вкладке SDE в настройках.</value>
   </data>

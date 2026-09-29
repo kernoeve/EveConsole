@@ -301,9 +301,6 @@
   <data name="TitleWelcomeToEveConsole" xml:space="preserve">
     <value>Te damos la bienvenida a EVE Console</value>
   </data>
-  <data name="WelcomeToEve" xml:space="preserve">
-    <value>Te damos la bienvenida a EVE </value>
-  </data>
   <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
     <value>EVE Console está descargando en segundo plano los datos del juego que necesita (los datos estáticos del SDE y los de Hoboleaks). Puede tardar unos minutos: las búsquedas de objetos, los precios de mercado y las herramientas de industria se irán completando a medida que termine. Puedes seguir el progreso en la pestaña SDE de Ajustes.</value>
   </data>
