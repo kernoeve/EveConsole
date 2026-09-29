@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Controls;
 
@@ -695,28 +696,28 @@ public class MapCanvas : Control
     /// </summary>
     internal static readonly (SystemServices Service, IBrush Brush, string Label, string Detail)[] ServiceLegend =
     [
-        (SystemServices.Manufacturing, SvcManufacturing, "Manufacturing",
-            "NPC factory, or a Standup Manufacturing Plant or Shipyard"),
-        (SystemServices.Research,      SvcResearch,      "Research / Invention",
-            "NPC laboratory, or a Standup Research or Invention Lab"),
-        (SystemServices.Reprocessing,  SvcReprocessing,  "Reprocessing",
-            "NPC reprocessing plant or refinery, or a Standup Reprocessing Facility"),
-        (SystemServices.Reactions,     SvcReactions,     "Reactions",
-            "A Standup reactor. No NPC station reacts, so this is always a player structure"),
-        (SystemServices.Cloning,       SvcCloning,       "Clone bay",
-            "NPC cloning or jump clone facility, or a Standup Cloning Center"),
-        (SystemServices.Market,        SvcMarket,        "Market",
-            "NPC market, or a Standup Market Hub"),
+        (SystemServices.Manufacturing, SvcManufacturing, MapText.ServiceManufacturing,
+            MapText.TipServiceManufacturing),
+        (SystemServices.Research,      SvcResearch,      MapText.ServiceResearch,
+            MapText.TipServiceResearch),
+        (SystemServices.Reprocessing,  SvcReprocessing,  MapText.ServiceReprocessing,
+            MapText.TipServiceReprocessing),
+        (SystemServices.Reactions,     SvcReactions,     MapText.ServiceReactions,
+            MapText.TipServiceReactions),
+        (SystemServices.Cloning,       SvcCloning,       MapText.ServiceCloning,
+            MapText.TipServiceCloning),
+        (SystemServices.Market,        SvcMarket,        MapText.ServiceMarket,
+            MapText.TipServiceMarket),
     ];
 
     internal static readonly (DockClass Dock, IBrush Brush, string Label, string Detail)[] DockLegend =
     [
-        (DockClass.Super,   DockSuper,   "Supers & titans — Keepstar only",
-            "A Keepstar is here. Supercarriers and titans can dock"),
-        (DockClass.Capital, DockCapital, "Capitals — Fortizar or NPC station",
-            "Capitals can dock, supers cannot"),
-        (DockClass.Subcap,  DockSubcap,  "Subcapitals — any other structure",
-            "Something dockable is here, but nothing that takes a capital"),
+        (DockClass.Super,   DockSuper,   MapText.DockSupers,
+            MapText.TipDockSupers),
+        (DockClass.Capital, DockCapital, MapText.DockCapitals,
+            MapText.TipDockCapitals),
+        (DockClass.Subcap,  DockSubcap,  MapText.DockSubcaps,
+            MapText.TipDockSubcaps),
     ];
 
     private static IBrush? DockBrush(DockClass d) => d switch
@@ -820,7 +821,7 @@ public class MapCanvas : Control
         var style  = Overlay is not null && Overlay.TryGetValue(n.Id, out var s) ? s : null;
         var detail = style?.Detail;
         // The box already names the region, so the tooltip explains the gesture instead.
-        if (n.IsOutsideRegion) detail = $"Double-click to open {n.RegionName}";
+        if (n.IsOutsideRegion) detail = string.Format(MapText.TipDoubleClickToOpenRegion, n.RegionName);
 
         DrawTooltipBox(ctx, n.Name, detail);
     }

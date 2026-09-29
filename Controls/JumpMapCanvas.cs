@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Controls;
 
@@ -555,7 +556,7 @@ public class JumpMapCanvas : Control
 
         if (route is null || route.Count == 0)
         {
-            DrawCentred(ctx, "Plan a route to see it on the map.");
+            DrawCentred(ctx, MapText.JumpMapPlanFirst);
             return;
         }
 
@@ -619,7 +620,7 @@ public class JumpMapCanvas : Control
 
         if (_hoverDot is { } tipDot) DrawTooltip(ctx, tipDot);
 
-        DrawHint(ctx, "drag a midpoint to move it · click one for alternatives · scroll to zoom");
+        DrawHint(ctx, MapText.JumpMapHint);
     }
 
     /// <summary>
@@ -641,7 +642,7 @@ public class JumpMapCanvas : Control
         if (dot.Badges.Length > 0)
             lines.Add(new FormattedText(dot.Badges, culture, FlowDirection.LeftToRight, Face, 10, TipBody));
         else
-            lines.Add(new FormattedText("no known station or structure", culture,
+            lines.Add(new FormattedText(MapText.TipNoKnownDocking, culture,
                 FlowDirection.LeftToRight, Face, 10, TipBody));
 
         // Only meaningful mid-drag, and only for a system that could actually be chosen.

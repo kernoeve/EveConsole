@@ -12,6 +12,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -104,7 +105,7 @@ public class SysStructureVm : IconRowVm
         Alliance    = r.Alliance;
         Location    = r.Location;
         Owner       = r.Owner;
-        Kind        = r.IsNpc ? "NPC" : "Player";
+        Kind        = r.IsNpc ? MapText.StructureKindNpc : MapText.StructureKindPlayer;
         KindColor   = r.IsNpc ? "#6a7f99" : "#c8a84b";
 
         // An id without a name is a link to a blank page, and a name without an id is a link that
@@ -218,7 +219,7 @@ public class AgentVm
         Division    = a.Division;
         AgentType   = a.AgentType;
         Level       = a.Level.ToString();
-        Locator     = a.IsLocator ? "Locator" : "";
+        Locator     = a.IsLocator ? MapText.AgentLocator : "";
 
         HasCorporation = a.CorporationId > 0 && a.Corporation.Length > 0;
         HasStation     = a.StationId     > 0 && a.Location.Length    > 0;
@@ -289,8 +290,8 @@ public class IntelFaceVm : ReactiveObject
 
         // Fall back to the id when the name cache has not caught up: "Corporation 98000000" is
         // still something you can look up, where a blank tooltip is not.
-        CorporationName = corpName.Length > 0 ? corpName : corpId     > 0 ? $"Corporation {corpId}"     : "";
-        AllianceName    = allianceName.Length > 0 ? allianceName : allianceId > 0 ? $"Alliance {allianceId}" : "";
+        CorporationName = corpName.Length > 0 ? corpName : corpId     > 0 ? string.Format(MapText.CorporationNumbered, corpId)     : "";
+        AllianceName    = allianceName.Length > 0 ? allianceName : allianceId > 0 ? string.Format(MapText.AllianceNumbered, allianceId) : "";
 
         HasCorporation = corpId     > 0;
         HasAlliance    = allianceId > 0;
@@ -359,10 +360,10 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public string Message  { get; } = r.Message;
 
     /// <summary>"No visual": someone is there but the reporter could not see them.</summary>
-    public string NoVisual   { get; } = r.NoVisual ? "NV" : "";
+    public string NoVisual   { get; } = r.NoVisual ? MapText.IntelNoVisual : "";
 
     public bool   IsStanding { get; } = !r.Obsolete;
-    public string Status     { get; } = r.Obsolete ? "superseded" : "standing";
+    public string Status     { get; } = r.Obsolete ? MapText.IntelSuperseded : MapText.IntelStanding;
 
     /// <summary>
     /// Whether standing-versus-superseded is worth drawing attention to.
@@ -678,10 +679,7 @@ public class SystemPageViewModel : ReactiveObject
     private bool _hasIntel;
     public bool HasIntel { get => _hasIntel; private set => this.RaiseAndSetIfChanged(ref _hasIntel, value); }
 
-    public string IntelNote =>
-        "No intel recorded for this system. Reports are parsed from the channels ticked as " +
-        "Intel under Settings → Chat Logs; use \"Parse Stored History\" there to read the " +
-        "messages already on disk.";
+    public string IntelNote => MapText.NoIntelNote;
 
     private string _killsNote = "";
     public string KillsNote { get => _killsNote; private set => this.RaiseAndSetIfChanged(ref _killsNote, value); }
@@ -768,14 +766,14 @@ public class SystemPageViewModel : ReactiveObject
                 header.Industry.Select(i => $"{i.ShortName} {i.Index * 100:F2}%"));
 
             var bits = new List<string>();
-            if (header.Power > 0)                bits.Add($"{header.Power:N0} power");
-            if (header.Workforce > 0)            bits.Add($"{header.Workforce:N0} workforce");
-            if (header.MagmaticGasPerHour > 0)   bits.Add($"{header.MagmaticGasPerHour:N0}/h magmatic gas");
-            if (header.SublimatedIcePerHour > 0) bits.Add($"{header.SublimatedIcePerHour:N0}/h sublimated ice");
+            if (header.Power > 0)                bits.Add(string.Format(MapText.ProductionPower, header.Power));
+            if (header.Workforce > 0)            bits.Add(string.Format(MapText.ProductionWorkforce, header.Workforce));
+            if (header.MagmaticGasPerHour > 0)   bits.Add(string.Format(MapText.ProductionMagmaticGas, header.MagmaticGasPerHour));
+            if (header.SublimatedIcePerHour > 0) bits.Add(string.Format(MapText.ProductionSublimatedIce, header.SublimatedIcePerHour));
             Production    = string.Join("  ·  ", bits);
             HasProduction = bits.Count > 0;
             Holder = string.IsNullOrEmpty(header.AllianceName)
-                ? (string.IsNullOrEmpty(header.CorporationName) ? "Unclaimed" : header.CorporationName)
+                ? (string.IsNullOrEmpty(header.CorporationName) ? MapText.SovUnclaimed : header.CorporationName)
                 : string.IsNullOrEmpty(header.CorporationName)
                     ? header.AllianceName
                     : $"{header.AllianceName}  ·  {header.CorporationName}";
@@ -817,22 +815,21 @@ public class SystemPageViewModel : ReactiveObject
             HasIntel = intel.Count > 0;
             IntelSummary = intel.Count == 0
                 ? ""
-                : $"{intel.Count:N0} report(s), {intel.Count(i => !i.Obsolete):N0} still standing. " +
-                  "Superseded reports are shown dimmed.";
+                : string.Format(MapText.IntelSummary, intel.Count, intel.Count(i => !i.Obsolete));
             AgentNote = agents.Count == 0
-                ? "No agents in this system."
-                : $"{agents.Count} agents across {agents.Select(a => a.Location).Distinct().Count()} stations.";
+                ? MapText.AgentsNone
+                : string.Format(MapText.AgentsSummary, agents.Count, agents.Select(a => a.Location).Distinct().Count());
 
             // Stated plainly: the history only reaches back as far as the snapshots, and
             // without saying so an empty list reads as "nothing ever happened here".
             HistoryNote = since is null
-                ? "No sovereignty history stored yet."
-                : $"Derived from stored snapshots since {since:yyyy-MM-dd}. Earlier changes were " +
-                  "before this app began recording and cannot be recovered.";
+                ? MapText.SovHistoryNone
+                : string.Format(MapText.SovHistoryNote, since);
 
             KillsNote = killPage.Rows.Count == 0
-                ? "No killmails stored for this system."
-                : $"{killPage.Rows.Count} most recent" + (killPage.HasMore ? " (more exist)" : "");
+                ? MapText.KillsNone
+                : string.Format(killPage.HasMore ? MapText.KillsMostRecentMore : MapText.KillsMostRecent,
+                                killPage.Rows.Count);
         });
 
         // Deliberately not awaited. The caller reveals the page as soon as this method returns,
@@ -917,13 +914,12 @@ public class SystemPageViewModel : ReactiveObject
         if (hourly.Count == 0)
         {
             HourJumpSeries = HourNpcSeries = HourShipSeries = HourPodSeries = [];
-            HourNote = "No hourly history stored yet.";
+            HourNote = MapText.HourlyNone;
             return;
         }
 
         var span = (hourly[^1].Hour - hourly[0].Hour).TotalHours + 1;
-        HourNote = $"Last {span:F0} hours, hour by hour. " +
-                   "Raise \"keep hourly detail\" in Settings for a longer span.";
+        HourNote = string.Format(MapText.HourlyNote, span);
 
         static ISeries[] Spark(IEnumerable<int> values, string hex) =>
         [
@@ -973,12 +969,11 @@ public class SystemPageViewModel : ReactiveObject
         if (history.Count == 0)
         {
             JumpSeries = ShipKillSeries = PodKillSeries = NpcKillSeries = [];
-            GraphNote  = "No activity history stored for this system yet.";
+            GraphNote  = MapText.GraphNone;
             return;
         }
 
-        GraphNote = $"Daily totals, {history[0].Day:yyyy-MM-dd} to {history[^1].Day:yyyy-MM-dd}. " +
-                    "Each point is a full UTC day; the last may be partial.";
+        GraphNote = string.Format(MapText.GraphNote, history[0].Day, history[^1].Day);
 
         static ISeries[] Line(string name, IEnumerable<int> values, string hex) =>
         [
@@ -993,10 +988,10 @@ public class SystemPageViewModel : ReactiveObject
             },
         ];
 
-        JumpSeries     = Line("Jumps",      history.Select(h => h.Jumps),     "#6FC8F0");
-        ShipKillSeries = Line("Ship kills", history.Select(h => h.ShipKills), "#FF6A3D");
-        PodKillSeries  = Line("Pod kills",  history.Select(h => h.PodKills),  "#F0D040");
-        NpcKillSeries  = Line("NPC kills",  history.Select(h => h.NpcKills),  "#7FD070");
+        JumpSeries     = Line(MapText.SeriesJumps, history.Select(h => h.Jumps),     "#6FC8F0");
+        ShipKillSeries = Line(MapText.ShipKills,   history.Select(h => h.ShipKills), "#FF6A3D");
+        PodKillSeries  = Line(MapText.PodKills,    history.Select(h => h.PodKills),  "#F0D040");
+        NpcKillSeries  = Line(MapText.NpcKills,    history.Select(h => h.NpcKills),  "#7FD070");
 
         var labels = history.Select(h => h.Day.ToString("MM-dd")).ToArray();
         HistoryXAxes =
@@ -1034,17 +1029,17 @@ public class SystemPageViewModel : ReactiveObject
         if (!HasAdmGraph)
         {
             AdmSeries = [];
-            AdmNote   = "No ADM history: this system holds no sovereignty structure.";
+            AdmNote   = MapText.AdmNone;
             return;
         }
 
-        AdmNote = $"Daily peak ADM, {points[0].Day:yyyy-MM-dd} to {points[^1].Day:yyyy-MM-dd}.";
+        AdmNote = string.Format(MapText.AdmNote, points[0].Day, points[^1].Day);
 
         AdmSeries =
         [
             new LineSeries<double>
             {
-                Name           = "ADM",
+                Name           = MapText.SeriesAdm,
                 Values         = points.Select(p => p.Adm).ToArray(),
                 GeometrySize   = 0,
                 LineSmoothness = 0.3,
@@ -1080,10 +1075,16 @@ public class SystemPageViewModel : ReactiveObject
         ["reaction"]                = "#E06A9A",
     };
 
+    /// <summary>An activity as the chart legend names it; ESI's own word, capitalised, for one not
+    /// listed.</summary>
     private static string PrettyActivity(string a) => a switch
     {
-        "researching_time_efficiency"     => "Time efficiency",
-        "researching_material_efficiency" => "Material efficiency",
+        "manufacturing"                   => MapText.ActivityManufacturing,
+        "researching_time_efficiency"     => MapText.ActivityTimeEfficiency,
+        "researching_material_efficiency" => MapText.ActivityMaterialEfficiency,
+        "copying"                         => MapText.ActivityCopying,
+        "invention"                       => MapText.ActivityInvention,
+        "reaction"                        => MapText.ActivityReaction,
         _ => char.ToUpperInvariant(a[0]) + a[1..].Replace('_', ' '),
     };
 
@@ -1098,7 +1099,7 @@ public class SystemPageViewModel : ReactiveObject
         if (!HasIndexGraph)
         {
             IndexSeries = [];
-            IndexNote   = "No industry cost index history stored for this system yet.";
+            IndexNote   = MapText.IndexNone;
             return;
         }
 
@@ -1107,8 +1108,7 @@ public class SystemPageViewModel : ReactiveObject
         // shifted left against the others.
         var days = series.SelectMany(s => s.Points.Select(p => p.Day)).Distinct().OrderBy(d => d).ToList();
 
-        IndexNote = $"Daily cost index, {days[0]:yyyy-MM-dd} to {days[^1]:yyyy-MM-dd}. " +
-                    "Shown as a percentage, as the industry window does.";
+        IndexNote = string.Format(MapText.IndexNote, days[0], days[^1]);
 
         IndexSeries = series.Select(s =>
         {
