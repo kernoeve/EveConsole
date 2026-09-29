@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -28,9 +29,9 @@ namespace EveConsole.Services;
 /// assumption broke in production (empty daily-dump results, then a JSON conversion
 /// exception once the raw dump's real object-not-array shape was hit).
 ///
-/// zKillboard publishes no rate-limit response headers (unlike ESI) — callers are
-/// responsible for their own pacing between calls; this client only performs the HTTP
-/// call and JSON parse.
+/// zKillboard publishes no rate-limit response headers (unlike ESI). Callers of
+/// zkillboard.com's API pace themselves. R2Z2 (the stream and the daily dumps) is paced
+/// here instead: every request to it passes one gate — see "R2Z2: one gate" below.
 /// </summary>
 public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorLogger errorLogger)
 {
@@ -72,6 +73,140 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     public sealed class DumpStatus
     {
         public bool Available { get; set; }
+    }
+
+    // ── R2Z2: one gate ────────────────────────────────────────────────────────
+    //
+    // ⚠️ R2Z2 allows 15 requests a second from an IP — an IP, not an app — and answers any more
+    // with a 429, "exceeded rate limit of 15/s! ban will last up to 1 hour", refusing everything
+    // from that IP meanwhile. On 2026-09-28 a release and a dev build on one machine, both on
+    // the firehose and each sending ten requests at once, went over it. Both were then refused
+    // for five hours: each retried every seven seconds and never backed off, over 25,000
+    // refusals apiece, and both status lines said "caught up".
+    //
+    // So every R2Z2 request — the stream, the position search, the daily dumps — passes here:
+    //   • At most R2Z2PerSecond start in any second, so three copies of the app on one machine
+    //     stay under the limit together.
+    //   • A 429 stops them all. Nothing is sent until the pause is over — Retry-After when R2Z2
+    //     gives one; otherwise five minutes, doubling while it goes on refusing, up to an hour —
+    //     and the pause is logged once, not once per refused request.
+
+    /// <summary>R2Z2 requests that may start in any one second. R2Z2 allows 15 an IP.</summary>
+    public const int R2Z2PerSecond = 4;
+
+    // A second, and a little over, for the network's jitter between here and R2Z2's clock.
+    private static readonly TimeSpan R2Z2Window   = TimeSpan.FromMilliseconds(1050);
+    private static readonly TimeSpan FirstPause   = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan LongestPause = TimeSpan.FromHours(1);
+
+    private readonly SemaphoreSlim _r2z2Turn   = new(1, 1);
+    private readonly Queue<long>   _r2z2Starts = new();   // when the latest requests started
+    private readonly object        _r2z2Lock   = new();
+    private DateTimeOffset _r2z2PausedUntil;
+    private int            _r2z2Refusals;                 // in a row, without an answer between
+
+    /// <summary>While R2Z2 is refusing this machine, when it may be asked again; otherwise null.</summary>
+    public DateTimeOffset? R2Z2PausedUntil
+    {
+        get { lock (_r2z2Lock) return _r2z2PausedUntil > DateTimeOffset.UtcNow ? _r2z2PausedUntil : null; }
+    }
+
+    /// <summary>What came of one R2Z2 request.</summary>
+    public enum R2Z2Answer
+    {
+        /// <summary>200, with something usable in it.</summary>
+        Found,
+        /// <summary>404 — past the live edge, expired, or a dump not published yet — or a 200
+        /// with nothing usable in it.</summary>
+        Missing,
+        /// <summary>R2Z2 is refusing this machine: a 429, or a request not sent because of an
+        /// earlier one. <see cref="R2Z2PausedUntil"/> says until when.</summary>
+        Refused,
+        /// <summary>Anything else: no connection, a timeout, a 5xx.</summary>
+        Failed,
+    }
+
+    /// <summary>One sequence of the stream; <see cref="Kill"/> is set when it was Found.</summary>
+    public readonly record struct StreamEntry(R2Z2Answer Answer, ZkbFullKill? Kill);
+
+    /// <summary>A daily dump was not fetched: R2Z2 is refusing this machine until <see cref="Until"/>.</summary>
+    public sealed class R2Z2RefusedException(DateTimeOffset until)
+        : Exception($"zKillboard is limiting this machine's requests until {until.ToLocalTime():t}")
+    {
+        public DateTimeOffset Until { get; } = until;
+    }
+
+    /// <summary>
+    /// Sends one R2Z2 request through the gate. Null when it was not sent, because R2Z2 is
+    /// refusing this machine. A 429 comes back as the response, having started the pause.
+    /// </summary>
+    private async Task<HttpResponseMessage?> SendR2Z2Async(
+        string url, HttpCompletionOption completion, string context, CancellationToken ct)
+    {
+        if (R2Z2PausedUntil is not null) return null;
+
+        await _r2z2Turn.WaitAsync(ct);
+        try
+        {
+            // Another may start once the oldest of the last R2Z2PerSecond is a window old.
+            if (_r2z2Starts.Count >= R2Z2PerSecond)
+            {
+                var wait = R2Z2Window - Stopwatch.GetElapsedTime(_r2z2Starts.Dequeue());
+                if (wait > TimeSpan.Zero) await Task.Delay(wait, ct);
+            }
+            _r2z2Starts.Enqueue(Stopwatch.GetTimestamp());
+        }
+        finally
+        {
+            _r2z2Turn.Release();
+        }
+
+        // A pause may have begun while this waited its turn.
+        if (R2Z2PausedUntil is not null) return null;
+
+        var response = await _http.GetAsync(url, completion, ct);
+        if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            await NoteRefusalAsync(response, context, ct);
+        else if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound)
+            lock (_r2z2Lock) _r2z2Refusals = 0;
+        return response;
+    }
+
+    /// <summary>Starts the pause a 429 asks for, and logs it — once, however many requests
+    /// were refused with it.</summary>
+    private async Task NoteRefusalAsync(HttpResponseMessage response, string context, CancellationToken ct)
+    {
+        var body = "";
+        try { body = (await response.Content.ReadAsStringAsync(ct)).Trim(); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { /* the status says enough */ }
+
+        DateTimeOffset until;
+        int refusals;
+        lock (_r2z2Lock)
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            // The rest of a batch was already in flight when the first refusal came back and
+            // began the pause; they are that refusal, not more of them.
+            if (_r2z2PausedUntil > now) return;
+
+            refusals = ++_r2z2Refusals;
+            var pause = RetryAfter(response, now)
+                ?? TimeSpan.FromTicks(Math.Min(LongestPause.Ticks, FirstPause.Ticks << Math.Min(refusals - 1, 5)));
+            until = _r2z2PausedUntil = now + pause;
+        }
+
+        errorLogger.Log(nameof(ZkillboardApiClient), $"R2Z2 refused {context}",
+            $"HTTP 429{(body.Length > 0 ? $" {body}" : "")} — refusal {refusals} in a row; "
+            + $"nothing more goes to R2Z2 until {until.ToLocalTime():t}");
+    }
+
+    /// <summary>The wait a 429's Retry-After asks for, if it gives one — up to two hours.</summary>
+    private static TimeSpan? RetryAfter(HttpResponseMessage response, DateTimeOffset now)
+    {
+        var header = response.Headers.RetryAfter;
+        var wait   = header?.Delta ?? (header?.Date is { } at ? at - now : null);
+        return wait is { } w && w > TimeSpan.Zero ? (w < 2 * LongestPause ? w : 2 * LongestPause) : null;
     }
 
     /// <summary>
@@ -372,6 +507,9 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     /// object graph for entries that are about to be discarded anyway was the dominant
     /// cost in an early version of this method. Leave both null (All scope) to
     /// deserialize and yield every entry.
+    ///
+    /// <para>Throws <see cref="R2Z2RefusedException"/>, having fetched nothing, while R2Z2 is
+    /// refusing this machine.</para>
     /// </summary>
     public async IAsyncEnumerable<ZkbFullKill> GetDailyDumpAsync(
         DateOnly date,
@@ -382,7 +520,9 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     {
         var url = $"https://r2z2.zkillboard.com/history/raw/{date:yyyyMMdd}.json";
 
-        using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+        using var response = await SendR2Z2Async(url, HttpCompletionOption.ResponseHeadersRead, $"GetDailyDumpAsync {date:yyyyMMdd}", ct);
+        if (response is null || response.StatusCode == HttpStatusCode.TooManyRequests)
+            throw new R2Z2RefusedException(R2Z2PausedUntil ?? DateTimeOffset.UtcNow);
         if (response.StatusCode == HttpStatusCode.NotFound) yield break;
         response.EnsureSuccessStatusCode();
         if (status is not null) status.Available = true;
@@ -465,6 +605,10 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     /// — i.e. "where in the stream was this moment". Null if the position could not be
     /// established.
     ///
+    /// ⚠️ Including when a probe is refused or fails partway. Those once read as "expired",
+    /// the same as a 404, so a search that R2Z2 started refusing walked its lower bound up to
+    /// the head — and the firehose, seeded there, would skip everything between.
+    ///
     /// R2Z2 publishes no time→sequence index, but sequences are time-ordered and every
     /// entry carries its killmail time, so this bisects the retained range (~17 probes for
     /// a full 8-day window). Entries older than retention 404; since the search only ever
@@ -491,7 +635,9 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
             var mid = lo + (hi - lo) / 2;
 
             var entry = await GetEphemeralAsync(mid, ct);
-            if (entry is null || entry.Kill.KillMailTime < target)
+            if (entry.Answer is R2Z2Answer.Refused or R2Z2Answer.Failed)
+                return null;
+            if (entry.Kill is null || entry.Kill.Kill.KillMailTime < target)
                 lo = mid + 1;   // expired (so certainly older) or genuinely earlier
             else
                 hi = mid;
@@ -501,14 +647,25 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     }
 
     /// <summary>Current R2Z2 stream position ("now"). Used to seed the firehose cursor
-    /// when there is no saved position, or the saved one has gone stale.</summary>
+    /// when there is no saved position, or the saved one has gone stale. Null when it could
+    /// not be read — <see cref="R2Z2PausedUntil"/> says whether R2Z2 is refusing.</summary>
     public async Task<long?> GetSequenceAsync(CancellationToken ct = default)
     {
         try
         {
-            var result = await _http.GetFromJsonAsync<ZkbSequence>(
-                "https://r2z2.zkillboard.com/ephemeral/sequence.json", JsonOptions, ct);
+            using var response = await SendR2Z2Async("https://r2z2.zkillboard.com/ephemeral/sequence.json",
+                HttpCompletionOption.ResponseContentRead, nameof(GetSequenceAsync), ct);
+            if (response is null || response.StatusCode == HttpStatusCode.TooManyRequests) return null;
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ZkbSequence>(JsonOptions, ct);
             return result?.Sequence;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            errorLogger.Log(nameof(ZkillboardApiClient), nameof(GetSequenceAsync),
+                new TimeoutException("R2Z2 did not answer within 30 seconds"));
+            return null;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -517,34 +674,44 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
         }
     }
 
-    /// <summary>One entry from the R2Z2 firehose. Null on a 404 ("nothing at this
-    /// sequence yet" — the documented signal to back off and retry), or on any other
-    /// failure. Response shape: <c>{"killmail_id":..,"hash":"..","esi":{ESI killmail
-    /// body},"zkb":{...},"uploaded_at":..,"sequence_id":..}</c> — the killmail body is
-    /// nested under "esi", not at the root.</summary>
-    public async Task<ZkbFullKill?> GetEphemeralAsync(long sequenceId, CancellationToken ct = default)
+    /// <summary>One entry from the R2Z2 firehose, and what R2Z2 made of the request: Missing
+    /// on a 404 ("nothing at this sequence yet" — the documented signal to back off and
+    /// retry), Refused while R2Z2 is limiting this machine, Failed on anything else. Response
+    /// shape: <c>{"killmail_id":..,"hash":"..","esi":{ESI killmail body},"zkb":{...},
+    /// "uploaded_at":..,"sequence_id":..}</c> — the killmail body is nested under "esi", not
+    /// at the root.</summary>
+    public async Task<StreamEntry> GetEphemeralAsync(long sequenceId, CancellationToken ct = default)
     {
-        var url = $"https://r2z2.zkillboard.com/ephemeral/{sequenceId}.json";
+        var url     = $"https://r2z2.zkillboard.com/ephemeral/{sequenceId}.json";
+        var context = $"GetEphemeralAsync {sequenceId}";
         try
         {
-            using var response = await _http.GetAsync(url, ct);
-            if (response.StatusCode == HttpStatusCode.NotFound) return null;
+            using var response = await SendR2Z2Async(url, HttpCompletionOption.ResponseContentRead, context, ct);
+            if (response is null || response.StatusCode == HttpStatusCode.TooManyRequests)
+                return new(R2Z2Answer.Refused, null);
+            if (response.StatusCode == HttpStatusCode.NotFound) return new(R2Z2Answer.Missing, null);
             response.EnsureSuccessStatusCode();
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
             var root = doc.RootElement;
 
             var hash = root.TryGetProperty("hash", out var h) ? h.GetString() : null;
-            if (string.IsNullOrEmpty(hash)) return null;
+            if (string.IsNullOrEmpty(hash)) return new(R2Z2Answer.Missing, null);
 
             var esiElement = root.TryGetProperty("esi", out var esi) ? esi : root;
             var kill = esiElement.Deserialize<EsiKillMailFull>(JsonOptions);
-            return kill is null ? null : new ZkbFullKill(kill, hash);
+            return kill is null ? new(R2Z2Answer.Missing, null) : new(R2Z2Answer.Found, new ZkbFullKill(kill, hash));
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // HttpClient's own timeout, not a cancel: a failure like any other.
+            errorLogger.Log(nameof(ZkillboardApiClient), context, new TimeoutException("R2Z2 did not answer within 30 seconds"));
+            return new(R2Z2Answer.Failed, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            errorLogger.Log(nameof(ZkillboardApiClient), $"GetEphemeralAsync {sequenceId}", ex);
-            return null;
+            errorLogger.Log(nameof(ZkillboardApiClient), context, ex);
+            return new(R2Z2Answer.Failed, null);
         }
     }
 }
