@@ -212,4 +212,148 @@
     <value>Split</value>
     <comment>A price type: halfway between the best buy and the best sell.</comment>
   </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>Ready</value>
+    <comment>Time left on an industry job that has finished and waits to be delivered.</comment>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0}d {1}h {2}m</value>
+    <comment>Time left, as in "2d 5h 30m". {0} is days, {1} hours, {2} minutes.</comment>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0}h {1}m</value>
+    <comment>Time left, as in "5h 30m". {0} is hours, {1} minutes.</comment>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0}m {1}s</value>
+    <comment>Time left, as in "30m 15s". {0} is minutes, {1} seconds.</comment>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0}s</value>
+    <comment>Time left, as in "15s". {0} is seconds.</comment>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>Sound</value>
+    <comment>What an alarm does when it goes off: play a sound. In the alarm editor's action list.</comment>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>TTS direct (agent bypass)</value>
+    <comment>What an alarm does when it goes off: speak its message straight away, without the AI agent. TTS is text to speech.</comment>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>Agent notify</value>
+    <comment>What an alarm does when it goes off: tell the AI agent.</comment>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>Alert</value>
+    <comment>What an alarm does when it goes off: show an alert.</comment>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>Dialog</value>
+    <comment>What an alarm does when it goes off: open a dialog.</comment>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>No results</value>
+    <comment>Under a paged grid, when nothing was found.</comment>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>Page {0:N0} of {1:N0}  ·  {2:N0}</value>
+    <comment>Under a paged grid. {0} is the page, {1} the number of pages, {2} the number of rows.</comment>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— No Park —</value>
+    <comment>First entry in the Add Items From Blueprint dialog's park list: no Indy Park.</comment>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>Select a blueprint first.</value>
+    <comment>Error in the Add Items From Blueprint dialog when no blueprint has been chosen.</comment>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>Type {0} to confirm:</value>
+    <comment>Prompt in a confirmation dialog. {0} is the name the user has to type.</comment>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+    <comment>Error in the name dialog when the box is empty.</comment>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>Loading market groups…</value>
+    <comment>Status in the Add Items From Market Group window while it loads.</comment>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>Select a market group to add its items.</value>
+    <comment>Status in the Add Items From Market Group window once it has loaded.</comment>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>P</value>
+    <comment>One-letter badge on a fitting saved by a character. Keep it to one character.</comment>
+  </data>
+  <data name="FitBadgeCorp" xml:space="preserve">
+    <value>C</value>
+    <comment>One-letter badge on a fitting saved by a corporation. Keep it to one character.</comment>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>Fetching fits from ESI…</value>
+    <comment>Status in the Add Items From Fit window while the fittings are fetched.</comment>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>Building tree…</value>
+    <comment>Status in the Add Items From Fit window while the list of fittings is built.</comment>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>No fits found. Ensure characters have the esi-fittings.read_fittings.v1 scope.</value>
+    <comment>Status in the Add Items From Fit window when there are no fittings. Keep the scope name as it is.</comment>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>TypeId {0}</value>
+    <comment>Shown for an item type whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>{0} fit(s) across {1} ship type(s)</value>
+    <comment>Status in the Add Items From Fit window. {0} is the number of fittings, {1} the number of ship types.</comment>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>HIGH SLOTS</value>
+    <comment>Heading in a fitting's contents: high slots. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>MED SLOTS</value>
+    <comment>Heading in a fitting's contents: medium slots. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>LOW SLOTS</value>
+    <comment>Heading in a fitting's contents: low slots. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>RIGS</value>
+    <comment>Heading in a fitting's contents: rigs. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>SUBSYSTEMS</value>
+    <comment>Heading in a fitting's contents: subsystems. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>DRONES</value>
+    <comment>Heading in a fitting's contents: drones. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>FIGHTERS</value>
+    <comment>Heading in a fitting's contents: fighters. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>CARGO</value>
+    <comment>Heading in a fitting's contents: cargo. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>FLEET HANGAR</value>
+    <comment>Heading in a fitting's contents: fleet hangar. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>OTHER</value>
+    <comment>Heading in a fitting's contents: anything else. Upper case in English.</comment>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>HULL</value>
+    <comment>Heading in a fitting's contents: the ship itself. Upper case in English.</comment>
+  </data>
 </root>

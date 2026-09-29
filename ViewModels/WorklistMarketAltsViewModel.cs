@@ -7,6 +7,7 @@ using EveConsole.Services;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -182,9 +183,8 @@ public class WorklistMarketAltsViewModel : ReactiveObject
                                                 Characters, SaveRowAsync));
 
             Status = rows.Count == 0
-                ? "No marketAlts yet. Until a station has one, its items show as blocked because "
-                + "nothing knows which character should do the work."
-                : $"{rows.Count:N0} market alt(s)";
+                ? WorklistText.MarketAltsNone
+                : string.Format(WorklistText.MarketAltsCount, rows.Count);
         });
     }
 
@@ -218,12 +218,12 @@ public class WorklistMarketAltsViewModel : ReactiveObject
                     .SetProperty(x => x.CharacterName, row.Alt.CharacterName)
                     .SetProperty(x => x.Note,          row.Alt.Note));
 
-            Status = "Saved.";
+            Status = WorklistText.StatusSaved;
             if (MarketAltsChanged is not null) await MarketAltsChanged();
         }
         catch (Exception ex)
         {
-            Status = $"Could not save that change: {ex.Message}";
+            Status = string.Format(WorklistText.StatusSaveFailed, ex.Message);
         }
     }
 
@@ -231,12 +231,12 @@ public class WorklistMarketAltsViewModel : ReactiveObject
     {
         if (SelectedLocation is not SdeStationResult loc)
         {
-            Status = "Pick a station or structure from the list.";
+            Status = WorklistText.PickStationFromList;
             return;
         }
         if (SelectedCharacter is null)
         {
-            Status = "Pick the character who works there.";
+            Status = WorklistText.PickMarketAltCharacter;
             return;
         }
 

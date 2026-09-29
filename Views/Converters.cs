@@ -9,6 +9,7 @@ using EveConsole.Agent;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -236,11 +237,11 @@ public class AlarmActionKindNameConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value switch
         {
-            Models.AlarmActionKind.Sound       => "Sound",
-            Models.AlarmActionKind.TtsDirect   => "TTS direct (agent bypass)",
-            Models.AlarmActionKind.AgentNotify => "Agent notify",
-            Models.AlarmActionKind.Alert       => "Alert",
-            Models.AlarmActionKind.Dialog      => "Dialog",
+            Models.AlarmActionKind.Sound       => CommonText.AlarmActionSound,
+            Models.AlarmActionKind.TtsDirect   => CommonText.AlarmActionTtsDirect,
+            Models.AlarmActionKind.AgentNotify => CommonText.AlarmActionAgentNotify,
+            Models.AlarmActionKind.Alert       => CommonText.AlarmActionAlert,
+            Models.AlarmActionKind.Dialog      => CommonText.AlarmActionDialog,
             _                                  => value?.ToString() ?? "",
         };
 

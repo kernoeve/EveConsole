@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -73,7 +74,7 @@ public class MarketGroupPickerViewModel : ReactiveObject
 
     public bool CanConfirm => _selectedNode != null;
 
-    private string _statusText = "Loading market groups…";
+    private string _statusText = CommonText.LoadingMarketGroups;
     public string StatusText
     {
         get => _statusText;
@@ -127,7 +128,7 @@ public class MarketGroupPickerViewModel : ReactiveObject
         RootNodes.Clear();
         foreach (var r in roots) RootNodes.Add(r);
 
-        StatusText = "Select a market group to add its items.";
+        StatusText = CommonText.SelectMarketGroup;
     }
 
     private static void SortChildren(IEnumerable<MarketGroupPickerNode> nodes)

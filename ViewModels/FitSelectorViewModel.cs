@@ -10,6 +10,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -50,8 +51,8 @@ public class FitTreeNode : ReactiveObject
     public bool   IsFit  => Kind == FitNodeKind.Fit;
     public string SourceBadge => Source switch
     {
-        FitSource.Personal => "P",
-        FitSource.Corp     => "C",
+        FitSource.Personal => CommonText.FitBadgePersonal,
+        FitSource.Corp     => CommonText.FitBadgeCorp,
         _                  => ""
     };
     public IBrush SourceBrush => Source switch
@@ -113,7 +114,7 @@ public class FitSelectorViewModel : ReactiveObject
         }
     }
 
-    private string _statusText = "Fetching fits from ESI…";
+    private string _statusText = CommonText.FetchingFits;
     public string StatusText
     {
         get => _statusText;
@@ -157,12 +158,12 @@ public class FitSelectorViewModel : ReactiveObject
         try
         {
             var fits = await _svc.FetchAllFitsAsync(_characters, _corporations, ct);
-            StatusText = "Building tree…";
+            StatusText = CommonText.BuildingFitTree;
             await BuildTreeAsync(fits, ct);
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
             IsLoading  = false;
         }
     }
@@ -171,7 +172,7 @@ public class FitSelectorViewModel : ReactiveObject
     {
         if (fits.Count == 0)
         {
-            StatusText = "No fits found. Ensure characters have the esi-fittings.read_fittings.v1 scope.";
+            StatusText = CommonText.NoFitsFound;
             IsLoading  = false;
             return;
         }
@@ -230,7 +231,7 @@ public class FitSelectorViewModel : ReactiveObject
         foreach (var (typeId, groupId) in shipGroupIdMap)
         {
             if (!fitsByShip.TryGetValue(typeId, out var typeFits)) continue;
-            var name = shipInfo.TryGetValue(typeId, out var si) ? si.Name : $"TypeId {typeId}";
+            var name = shipInfo.TryGetValue(typeId, out var si) ? si.Name : string.Format(CommonText.TypeIdWithId, typeId);
             if (!shipsByGroup.TryGetValue(groupId, out var ships))
                 shipsByGroup[groupId] = ships = [];
             ships.Add((typeId, name, typeFits));
@@ -281,7 +282,7 @@ public class FitSelectorViewModel : ReactiveObject
         foreach (var rootId in rootIds)
             RootNodes.Add(BuildGroupNode(rootId));
 
-        StatusText = $"{fits.Count} fit(s) across {fitsByShip.Count} ship type(s)";
+        StatusText = string.Format(CommonText.FitsSummary, fits.Count, fitsByShip.Count);
         IsLoading  = false;
     }
 
@@ -290,26 +291,43 @@ public class FitSelectorViewModel : ReactiveObject
     private static readonly HashSet<string> SkipFlags = new(StringComparer.OrdinalIgnoreCase)
         { "Invalid", "Implant", "BoosterBay" };
 
-    private static string GetCategory(string flag)
+    /// <summary>
+    /// Where a fitted item sits, declared in the order the detail panel lists them.
+    ///
+    /// <para>⚠️ Grouped and ordered by this, never by the heading: the heading is looked up only
+    /// when it is shown, so a translated one cannot split or reorder the sections.</para>
+    /// </summary>
+    private enum FitSection { High, Med, Low, Rigs, Subsystems, Drones, Fighters, Cargo, FleetHangar, Other }
+
+    private static FitSection GetCategory(string flag)
     {
-        if (flag.StartsWith("HiSlot",    StringComparison.OrdinalIgnoreCase)) return "HIGH SLOTS";
-        if (flag.StartsWith("MedSlot",   StringComparison.OrdinalIgnoreCase)) return "MED SLOTS";
-        if (flag.StartsWith("LoSlot",    StringComparison.OrdinalIgnoreCase)) return "LOW SLOTS";
-        if (flag.StartsWith("RigSlot",   StringComparison.OrdinalIgnoreCase)) return "RIGS";
-        if (flag.StartsWith("SubSystem", StringComparison.OrdinalIgnoreCase)) return "SUBSYSTEMS";
-        if (flag.Equals("DroneBay",      StringComparison.OrdinalIgnoreCase)) return "DRONES";
-        if (flag.Equals("FighterBay",    StringComparison.OrdinalIgnoreCase)) return "FIGHTERS";
+        if (flag.StartsWith("HiSlot",    StringComparison.OrdinalIgnoreCase)) return FitSection.High;
+        if (flag.StartsWith("MedSlot",   StringComparison.OrdinalIgnoreCase)) return FitSection.Med;
+        if (flag.StartsWith("LoSlot",    StringComparison.OrdinalIgnoreCase)) return FitSection.Low;
+        if (flag.StartsWith("RigSlot",   StringComparison.OrdinalIgnoreCase)) return FitSection.Rigs;
+        if (flag.StartsWith("SubSystem", StringComparison.OrdinalIgnoreCase)) return FitSection.Subsystems;
+        if (flag.Equals("DroneBay",      StringComparison.OrdinalIgnoreCase)) return FitSection.Drones;
+        if (flag.Equals("FighterBay",    StringComparison.OrdinalIgnoreCase)) return FitSection.Fighters;
         if (flag.Equals("Cargo",         StringComparison.OrdinalIgnoreCase) ||
-            flag.Equals("CargoHold",     StringComparison.OrdinalIgnoreCase)) return "CARGO";
-        if (flag.Equals("FleetHangar",   StringComparison.OrdinalIgnoreCase)) return "FLEET HANGAR";
-        return "OTHER";
+            flag.Equals("CargoHold",     StringComparison.OrdinalIgnoreCase)) return FitSection.Cargo;
+        if (flag.Equals("FleetHangar",   StringComparison.OrdinalIgnoreCase)) return FitSection.FleetHangar;
+        return FitSection.Other;
     }
 
-    private static readonly string[] CategoryOrder =
-    [
-        "HIGH SLOTS", "MED SLOTS", "LOW SLOTS", "RIGS", "SUBSYSTEMS",
-        "DRONES", "FIGHTERS", "CARGO", "FLEET HANGAR", "OTHER"
-    ];
+    /// <summary>A section's heading in the detail panel.</summary>
+    private static string Heading(FitSection section) => section switch
+    {
+        FitSection.High        => CommonText.FitSectionHigh,
+        FitSection.Med         => CommonText.FitSectionMed,
+        FitSection.Low         => CommonText.FitSectionLow,
+        FitSection.Rigs        => CommonText.FitSectionRigs,
+        FitSection.Subsystems  => CommonText.FitSectionSubsystems,
+        FitSection.Drones      => CommonText.FitSectionDrones,
+        FitSection.Fighters    => CommonText.FitSectionFighters,
+        FitSection.Cargo       => CommonText.FitSectionCargo,
+        FitSection.FleetHangar => CommonText.FitSectionFleetHangar,
+        _                      => CommonText.FitSectionOther,
+    };
 
     private async Task LoadDetailLinesAsync(FitEntry? entry, CancellationToken ct)
     {
@@ -319,7 +337,7 @@ public class FitSelectorViewModel : ReactiveObject
         await using var db = _dbFactory.CreateDbContext();
 
         // Aggregate items by TypeId per category
-        var byCategory = new Dictionary<string, Dictionary<int, int>>();
+        var byCategory = new Dictionary<FitSection, Dictionary<int, int>>();
         foreach (var item in entry.Data.Items)
         {
             if (SkipFlags.Contains(item.Flag)) continue;
@@ -339,15 +357,15 @@ public class FitSelectorViewModel : ReactiveObject
             .Where(t => allTypeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-        string Name(int id) => typeNames.GetValueOrDefault(id, $"TypeId {id}");
+        string Name(int id) => typeNames.GetValueOrDefault(id, string.Format(CommonText.TypeIdWithId, id));
 
-        DetailLines.Add(new FitDetailLine { IsHeader = true, Text = "HULL" });
+        DetailLines.Add(new FitDetailLine { IsHeader = true, Text = CommonText.FitSectionHull });
         DetailLines.Add(new FitDetailLine { Text = $"1× {Name(entry.Data.ShipTypeId)}" });
 
-        foreach (var cat in CategoryOrder)
+        foreach (var cat in Enum.GetValues<FitSection>())
         {
             if (!byCategory.TryGetValue(cat, out var items)) continue;
-            DetailLines.Add(new FitDetailLine { IsHeader = true, Text = cat });
+            DetailLines.Add(new FitDetailLine { IsHeader = true, Text = Heading(cat) });
             foreach (var (typeId, qty) in items.OrderBy(kv => Name(kv.Key)))
                 DetailLines.Add(new FitDetailLine { Text = $"{qty:N0}× {Name(typeId)}" });
         }

@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -104,15 +105,15 @@ public class WorklistFinalProductsViewModel : ReactiveObject
 
     public IReadOnlyList<ChartGrain> Grains { get; } =
     [
-        new("Daily",   "d"),
-        new("Weekly",  "w"),
-        new("Monthly", "m"),
+        new(WorklistText.GrainDaily,   "d"),
+        new(WorklistText.GrainWeekly,  "w"),
+        new(WorklistText.GrainMonthly, "m"),
     ];
 
     public IReadOnlyList<ValuationMode> Valuations { get; } =
     [
-        new("Market value",  "market"),
-        new("% over build",  "pct"),
+        new(WorklistText.ValuationMarket,    "market"),
+        new(WorklistText.ValuationOverBuild, "pct"),
     ];
 
     private ChartGrain _grain;
@@ -258,7 +259,7 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(WorklistFinalProductsViewModel), nameof(LoadAsync), ex);
-            StatusText = $"Could not load: {ex.Message}";
+            StatusText = string.Format(WorklistText.FinalLoadFailed, ex.Message);
         }
         finally { IsLoading = false; }
     }
@@ -373,13 +374,13 @@ public class WorklistFinalProductsViewModel : ReactiveObject
 
             list.Add(new RawJob(
                 j.JobId, typeId,
-                names.GetValueOrDefault(typeId, $"Type {typeId}"),
+                names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)),
 
                 // Which list put it here. An item on both is a final product that also happens to
                 // have been ordered, and saying so is more use than picking one.
-                finalSet.Contains(typeId) && orderSet.Contains(typeId) ? "Final · ordered"
-              : finalSet.Contains(typeId)                              ? "Final product"
-              :                                                          "Ordered",
+                finalSet.Contains(typeId) && orderSet.Contains(typeId) ? WorklistText.SourceFinalAndOrdered
+              : finalSet.Contains(typeId)                              ? WorklistText.SourceFinalProduct
+              :                                                          WorklistText.SourceOrdered,
 
                 j.Status.Length > 0 ? char.ToUpper(j.Status[0]) + j.Status[1..] : j.Status,
                 j.Runs, units,
@@ -428,9 +429,10 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         foreach (var r in rows) Jobs.Add(r);
 
         StatusText = rows.Count == 0
-            ? "No jobs in this range."
-            : $"{rows.Count:N0} job(s) · {MarketFmt.Isk(rows.Sum(r => r.MarketValue))} value · "
-            + $"{MarketFmt.Isk(rows.Sum(r => r.PotentialProfit))} potential profit";
+            ? WorklistText.FinalNoJobs
+            : string.Format(WorklistText.FinalSummary, rows.Count,
+                            MarketFmt.Isk(rows.Sum(r => r.MarketValue)),
+                            MarketFmt.Isk(rows.Sum(r => r.PotentialProfit)));
 
         BuildCharts();
     }
@@ -465,8 +467,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             profit.Add(new DateTimePoint(day, hit.Profit));
         }
 
-        MarketSeries = [Line("Market value",     market, new SKColor(0x55, 0x99, 0xaa))];
-        ProfitSeries = [Line("Potential profit", profit, new SKColor(0x4a, 0x8a, 0x5a))];
+        MarketSeries = [Line(WorklistText.MarketValue,     market, new SKColor(0x55, 0x99, 0xaa))];
+        ProfitSeries = [Line(WorklistText.PotentialProfit, profit, new SKColor(0x4a, 0x8a, 0x5a))];
     }
 
     /// <summary>Every bucket start from <paramref name="first"/> to <paramref name="last"/>.</summary>

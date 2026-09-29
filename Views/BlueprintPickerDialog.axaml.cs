@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -25,7 +26,7 @@ public partial class BlueprintPickerDialog : Window
 
         // Populate park ComboBox; pre-select the default park
         ParkBox.Items.Clear();
-        ParkBox.Items.Add(new ComboBoxItem { Content = "— No Park —", Tag = (int?)null });
+        ParkBox.Items.Add(new ComboBoxItem { Content = CommonText.NoPark, Tag = (int?)null });
         int defaultIdx = 0;
         for (int i = 0; i < parks.Count; i++)
         {
@@ -76,7 +77,7 @@ public partial class BlueprintPickerDialog : Window
 
         if (_selected is null)
         {
-            ErrorText.Text      = "Select a blueprint first.";
+            ErrorText.Text      = CommonText.SelectBlueprintFirst;
             ErrorText.IsVisible = true;
             return;
         }

@@ -65,7 +65,7 @@
     <comment>Hint in an empty box in WorklistView.</comment>
   </data>
   <data name="TipSearchesTheDetailThe" xml:space="preserve">
-    <value>Searches the detail, the blocked reason and the snooze line together — everything behind the row-s information marker.</value>
+    <value>Searches the detail, the blocked reason and the snooze line together — everything behind the row's information marker.</value>
     <comment>Tooltip in WorklistView.</comment>
   </data>
   <data name="Clear" xml:space="preserve">
@@ -813,8 +813,8 @@
     <comment>Hint in an empty box in WorklistView.</comment>
   </data>
   <data name="DecidedByTheIndyNote" xml:space="preserve">
-    <value>Decided by the Indy Park on the Industry tab</value>
-    <comment>Note in WorklistView.</comment>
+    <value>Decided by the Indy Park on the Other tab</value>
+    <comment>Note on the Inventory Rules tab, in place of a station for a Build rule. "Other" is the Worklist settings tab that holds "Plan against park".</comment>
   </data>
   <data name="TipBuyPlacesAMarket" xml:space="preserve">
     <value>Buy places a market order for the shortfall; Build starts a job for it</value>
@@ -1023,5 +1023,753 @@
   <data name="ColRecent30d" xml:space="preserve">
     <value>30d</value>
     <comment>Column header: the last 30 days, abbreviated. Keep short.</comment>
+  </data>
+  <data name="KindBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Task kind: buying something. Group heading and filter option on the Worklist, and the task-kind icon's tooltip.</comment>
+  </data>
+  <data name="KindHaul" xml:space="preserve">
+    <value>Haul</value>
+    <comment>Task kind: moving goods to another station. Group heading and filter option on the Worklist, and the task-kind icon's tooltip.</comment>
+  </data>
+  <data name="KindRefine" xml:space="preserve">
+    <value>Refine</value>
+    <comment>Task kind: reprocessing ore. Group heading and filter option on the Worklist.</comment>
+  </data>
+  <data name="KindDecompress" xml:space="preserve">
+    <value>Decompress</value>
+    <comment>Task kind: decompressing gas. Group heading and filter option on the Worklist.</comment>
+  </data>
+  <data name="KindJob" xml:space="preserve">
+    <value>Job</value>
+    <comment>Task kind: an industry job to install. Group heading and filter option on the Worklist.</comment>
+  </data>
+  <data name="KindAssetSafety" xml:space="preserve">
+    <value>Asset Safety</value>
+    <comment>Task kind: items in asset safety. Group heading and filter option on the Worklist.</comment>
+  </data>
+  <data name="KindSkillQueue" xml:space="preserve">
+    <value>Skill Queue</value>
+    <comment>Task kind: a character's skill queue. Group heading and filter option on the Worklist.</comment>
+  </data>
+  <data name="KindCorpProject" xml:space="preserve">
+    <value>Corp Project</value>
+    <comment>Task kind: delivering to a corporation project. Group heading and filter option on the Worklist.</comment>
+  </data>
+  <data name="KindTipRefine" xml:space="preserve">
+    <value>Reprocess ore</value>
+    <comment>Tooltip on the task-kind icon: a reprocessing task.</comment>
+  </data>
+  <data name="KindTipDecompress" xml:space="preserve">
+    <value>Decompress gas</value>
+    <comment>Tooltip on the task-kind icon: a gas decompression task.</comment>
+  </data>
+  <data name="KindTipManufacturing" xml:space="preserve">
+    <value>Manufacturing job</value>
+    <comment>Tooltip on the task-kind icon: a manufacturing job.</comment>
+  </data>
+  <data name="KindTipReaction" xml:space="preserve">
+    <value>Reaction job</value>
+    <comment>Tooltip on the task-kind icon: a reaction job.</comment>
+  </data>
+  <data name="KindTipScience" xml:space="preserve">
+    <value>Science job — copying or invention</value>
+    <comment>Tooltip on the task-kind icon: a science job.</comment>
+  </data>
+  <data name="KindTipIndustry" xml:space="preserve">
+    <value>Industry job</value>
+    <comment>Tooltip on the task-kind icon: an industry job whose slot type is not known.</comment>
+  </data>
+  <data name="KindTipCorpProject" xml:space="preserve">
+    <value>Corp project</value>
+    <comment>Tooltip on the task-kind icon: a corporation project.</comment>
+  </data>
+  <data name="KindTipAssetSafety" xml:space="preserve">
+    <value>Asset safety</value>
+    <comment>Tooltip on the task-kind icon: items in asset safety.</comment>
+  </data>
+  <data name="KindTipSkillQueue" xml:space="preserve">
+    <value>Skill queue</value>
+    <comment>Tooltip on the task-kind icon: a skill queue.</comment>
+  </data>
+  <data name="BlueprintMeTe" xml:space="preserve">
+    <value>ME{0} TE{1}</value>
+    <comment>The blueprint a job would use, as in "ME9 TE20". {0} is its material efficiency, {1} its time efficiency. Keep ME and TE if the game client does.</comment>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>Ready</value>
+    <comment>A task's state: it can be started now. Filter option and tooltip on the Worklist.</comment>
+  </data>
+  <data name="StateBlocked" xml:space="preserve">
+    <value>Blocked</value>
+    <comment>A task's state: something has to happen before it can start.</comment>
+  </data>
+  <data name="StateWaiting" xml:space="preserve">
+    <value>Waiting</value>
+    <comment>A task's state: only time is in the way — a job finishing, an order expiring.</comment>
+  </data>
+  <data name="DataAge" xml:space="preserve">
+    <value>data {0}</value>
+    <comment>How old the data behind a Worklist row is. {0} is an age such as "5m ago".</comment>
+  </data>
+  <data name="SnoozedUntil" xml:space="preserve">
+    <value>snoozed until {0:d MMM HH:mm}</value>
+    <comment>Why a Worklist row is hidden. {0} is the date and time the snooze ends.</comment>
+  </data>
+  <data name="AgoJustNow" xml:space="preserve">
+    <value>just now</value>
+    <comment>An age: less than a minute.</comment>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0}m ago</value>
+    <comment>An age in minutes, as in "5m ago". {0} is the number.</comment>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0}h ago</value>
+    <comment>An age in hours, as in "3h ago". {0} is the number.</comment>
+  </data>
+  <data name="AgoDays" xml:space="preserve">
+    <value>{0}d ago</value>
+    <comment>An age in days, as in "2d ago". {0} is the number.</comment>
+  </data>
+  <data name="PoolManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>A kind of industry slot: manufacturing. Heading on the Bottlenecks → Slots tab.</comment>
+  </data>
+  <data name="PoolReaction" xml:space="preserve">
+    <value>Reaction</value>
+    <comment>A kind of industry slot: reactions. Heading on the Bottlenecks → Slots tab.</comment>
+  </data>
+  <data name="PoolScience" xml:space="preserve">
+    <value>Science</value>
+    <comment>A kind of industry slot: science (copying, invention, research). Heading on the Bottlenecks → Slots tab.</comment>
+  </data>
+  <data name="SlotsQueued" xml:space="preserve">
+    <value>{0:N0} job(s) queued — {1:N0} day(s) to work through at {2:N0} slot(s), which have been turning out {3:N1} job(s) a day.</value>
+    <comment>Slot pool line on the Slots tab. {0} is the jobs queued, {1} the days needed to work through them, {2} the slots, {3} the jobs a day those slots have been finishing.</comment>
+  </data>
+  <data name="SlotsNothingQueued" xml:space="preserve">
+    <value>Nothing is queued behind this pool. {0:N0} free of {1:N0}.</value>
+    <comment>Slot pool line on the Slots tab. {0} is the free slots, {1} all of them.</comment>
+  </data>
+  <data name="SlotsNoCharacterManufacturing" xml:space="preserve">
+    <value>No character is configured to run manufacturing jobs.</value>
+    <comment>Slot pool line on the Slots tab when no character may run manufacturing jobs.</comment>
+  </data>
+  <data name="SlotsNoCharacterReaction" xml:space="preserve">
+    <value>No character is configured to run reaction jobs.</value>
+    <comment>Slot pool line on the Slots tab when no character may run reaction jobs.</comment>
+  </data>
+  <data name="SlotsNoCharacterScience" xml:space="preserve">
+    <value>No character is configured to run science jobs.</value>
+    <comment>Slot pool line on the Slots tab when no character may run science jobs.</comment>
+  </data>
+  <data name="DaysN0" xml:space="preserve">
+    <value>{0:N0}d</value>
+    <comment>A number of days, abbreviated as in "12d". {0} is the number.</comment>
+  </data>
+  <data name="PerDayN1" xml:space="preserve">
+    <value>{0:N1}/d</value>
+    <comment>A rate per day, abbreviated as in "1.5/d". {0} is the number.</comment>
+  </data>
+  <data name="DaysN1" xml:space="preserve">
+    <value>{0:N1}d</value>
+    <comment>A number of days, abbreviated as in "1.5d". {0} is the number.</comment>
+  </data>
+  <data name="HoursN1" xml:space="preserve">
+    <value>{0:N1}h</value>
+    <comment>A number of hours, abbreviated as in "3.5h". {0} is the number.</comment>
+  </data>
+  <data name="StateRunning" xml:space="preserve">
+    <value>Running</value>
+    <comment>A task's state: an industry job that is installed and running.</comment>
+  </data>
+  <data name="RoleTrip" xml:space="preserve">
+    <value>the trip</value>
+    <comment>In a row's list of related tasks: this one is the haul bringing the material. Lower case.</comment>
+  </data>
+  <data name="RoleNeeds" xml:space="preserve">
+    <value>needs</value>
+    <comment>In a row's list of related tasks: the stopped job needs this item. Lower case.</comment>
+  </data>
+  <data name="RoleUsesIt" xml:space="preserve">
+    <value>uses it</value>
+    <comment>In a row's list of related tasks: this job would use the blueprint. Lower case.</comment>
+  </data>
+  <data name="RoleMakesIt" xml:space="preserve">
+    <value>makes it</value>
+    <comment>In a row's list of related tasks: this job makes the material. Lower case.</comment>
+  </data>
+  <data name="RoleNeedsIt" xml:space="preserve">
+    <value>needs it</value>
+    <comment>In a row's list of related tasks: this one is directly short of the material. Lower case.</comment>
+  </data>
+  <data name="RoleBehind" xml:space="preserve">
+    <value>behind ({0})</value>
+    <comment>In a row's list of related tasks: this one is stopped further up the chain. {0} is how many steps away.</comment>
+  </data>
+  <data name="ContentionVerdictBuyNow" xml:space="preserve">
+    <value>Buy now</value>
+    <comment>Verdict on the Item Contention tab: nothing here makes it, so it has to be bought now.</comment>
+  </data>
+  <data name="ContentionVerdictOnOrder" xml:space="preserve">
+    <value>On order</value>
+    <comment>Verdict on the Item Contention tab: short, but already bid for on the market.</comment>
+  </data>
+  <data name="ContentionVerdictBufferSpent" xml:space="preserve">
+    <value>Buffer spent</value>
+    <comment>Verdict on the Item Contention tab: a wave of demand used up the stock kept in reserve.</comment>
+  </data>
+  <data name="ContentionVerdictBlocked" xml:space="preserve">
+    <value>Blocked</value>
+    <comment>Verdict on the Item Contention tab: the stock kept in reserve is empty and work is stopped.</comment>
+  </data>
+  <data name="ContentionVerdictLevelTooLow" xml:space="preserve">
+    <value>Level too low</value>
+    <comment>Verdict on the Item Contention tab: the stock level is met, but the work needs more than exists.</comment>
+  </data>
+  <data name="ContentionVerdictNoBuffer" xml:space="preserve">
+    <value>No buffer</value>
+    <comment>Verdict on the Item Contention tab: nothing is kept in reserve for it.</comment>
+  </data>
+  <data name="ContentionVerdictNotTheShelf" xml:space="preserve">
+    <value>Not the shelf</value>
+    <comment>Verdict on the Item Contention tab: work is stopped, but not because the shelf is empty.</comment>
+  </data>
+  <data name="ContentionVerdictMakingTooFew" xml:space="preserve">
+    <value>Making too few</value>
+    <comment>Verdict on the Item Contention tab: used faster than it is made.</comment>
+  </data>
+  <data name="ContentionVerdictBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Verdict on the Item Contention tab: nothing here makes it, so it is bought.</comment>
+  </data>
+  <data name="ContentionVerdictBufferThin" xml:space="preserve">
+    <value>Buffer thin</value>
+    <comment>Verdict on the Item Contention tab: less than a week of stock in reserve.</comment>
+  </data>
+  <data name="ContentionVerdictNoLevelSet" xml:space="preserve">
+    <value>No level set</value>
+    <comment>Verdict on the Item Contention tab: no stock level is set for it.</comment>
+  </data>
+  <data name="ContentionVerdictWave" xml:space="preserve">
+    <value>Wave</value>
+    <comment>Verdict on the Item Contention tab: drawn on harder than usual right now.</comment>
+  </data>
+  <data name="ContentionVerdictHolding" xml:space="preserve">
+    <value>Holding</value>
+    <comment>Verdict on the Item Contention tab: nothing wrong.</comment>
+  </data>
+  <data name="FindingStartHere" xml:space="preserve">
+    <value>START HERE</value>
+    <comment>Marker on the Bottlenecks summary: the finding to act on first. Upper case in English.</comment>
+  </data>
+  <data name="FindingSlots" xml:space="preserve">
+    <value>SLOTS</value>
+    <comment>Marker on a Bottlenecks summary finding about industry slots. Upper case in English.</comment>
+  </data>
+  <data name="FindingBlueprints" xml:space="preserve">
+    <value>BLUEPRINTS</value>
+    <comment>Marker on a Bottlenecks summary finding about blueprints. Upper case in English.</comment>
+  </data>
+  <data name="FindingFormulas" xml:space="preserve">
+    <value>FORMULAS</value>
+    <comment>Marker on a Bottlenecks summary finding about reaction formulas. Upper case in English.</comment>
+  </data>
+  <data name="FindingBuying" xml:space="preserve">
+    <value>BUYING</value>
+    <comment>Marker on a Bottlenecks summary finding about buying. Upper case in English.</comment>
+  </data>
+  <data name="FindingBuffers" xml:space="preserve">
+    <value>BUFFERS</value>
+    <comment>Marker on a Bottlenecks summary finding about stock kept in reserve. Upper case in English.</comment>
+  </data>
+  <data name="FindingHauling" xml:space="preserve">
+    <value>HAULING</value>
+    <comment>Marker on a Bottlenecks summary finding about hauling. Upper case in English.</comment>
+  </data>
+  <data name="LocationWithId" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>Shown for a station or structure whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="HaulingVerdictNothingMoving" xml:space="preserve">
+    <value>Nothing moving</value>
+    <comment>Verdict on the Hauling tab: the material exists and no haul brings it.</comment>
+  </data>
+  <data name="HaulingVerdictSeveralStops" xml:space="preserve">
+    <value>Several stops</value>
+    <comment>Verdict on the Hauling tab: a haul is raised, but the material has to be picked up from more than one place.</comment>
+  </data>
+  <data name="HaulingVerdictHaulRaised" xml:space="preserve">
+    <value>Haul raised</value>
+    <comment>Verdict on the Hauling tab: a haul is already raised to bring the material.</comment>
+  </data>
+  <data name="PerDayN2" xml:space="preserve">
+    <value>{0:N2}/d</value>
+    <comment>A rate per day, abbreviated as in "0.28/d". {0} is the number.</comment>
+  </data>
+  <data name="RankTopPercent" xml:space="preserve">
+    <value>top {0:N0}%</value>
+    <comment>Where a blueprint ranks among the operation's own, as in "top 10%". {0} is the percentage.</comment>
+  </data>
+  <data name="BlueprintVerdictBlocking" xml:space="preserve">
+    <value>Blocking</value>
+    <comment>Verdict on the BPO / Formula tab: every copy is busy and jobs cannot start now.</comment>
+  </data>
+  <data name="BlueprintVerdictSteady" xml:space="preserve">
+    <value>Steady</value>
+    <comment>Verdict on the BPO / Formula tab: every copy is busy with more jobs queued — a lasting shortage of prints.</comment>
+  </data>
+  <data name="BlueprintVerdictContended" xml:space="preserve">
+    <value>Contended</value>
+    <comment>Verdict on the BPO / Formula tab: every copy is often busy, but nothing is queued today.</comment>
+  </data>
+  <data name="BlueprintVerdictBlocked" xml:space="preserve">
+    <value>Blocked</value>
+    <comment>Verdict on the BPO / Formula tab: jobs cannot start, though the copies are rarely all busy.</comment>
+  </data>
+  <data name="BlueprintVerdictSurge" xml:space="preserve">
+    <value>Surge</value>
+    <comment>Verdict on the BPO / Formula tab: a sudden queue for prints that are usually free.</comment>
+  </data>
+  <data name="BlueprintVerdictBuilding" xml:space="preserve">
+    <value>Building</value>
+    <comment>Verdict on the BPO / Formula tab: jobs are queued for it.</comment>
+  </data>
+  <data name="BlueprintVerdictMinor" xml:space="preserve">
+    <value>Minor</value>
+    <comment>Verdict on the BPO / Formula tab: busy at times, but not among the busiest here.</comment>
+  </data>
+  <data name="BlueprintTrendRising" xml:space="preserve">
+    <value>Rising</value>
+    <comment>Trend on the BPO / Formula tab: lately every copy is busy more often than over the whole period.</comment>
+  </data>
+  <data name="BlueprintTrendEasing" xml:space="preserve">
+    <value>Easing</value>
+    <comment>Trend on the BPO / Formula tab: lately every copy is busy less often than over the whole period.</comment>
+  </data>
+  <data name="BlueprintTrendSteady" xml:space="preserve">
+    <value>Steady</value>
+    <comment>Trend on the BPO / Formula tab: about the same lately as over the whole period.</comment>
+  </data>
+  <data name="StatusNotLoadedYet" xml:space="preserve">
+    <value>Not loaded yet.</value>
+    <comment>Bottlenecks status line before anything is loaded.</comment>
+  </data>
+  <data name="BottlenecksWorklistEmpty" xml:space="preserve">
+    <value>The worklist is empty — generate it first and this will have something to read.</value>
+    <comment>Bottlenecks status line when the worklist has no tasks.</comment>
+  </data>
+  <data name="BottlenecksNone" xml:space="preserve">
+    <value>Nothing is bottlenecked: no pool has work waiting on a slot, and no blueprint has had every copy busy often enough to make anything wait. {0}</value>
+    <comment>Bottlenecks status line. {0} is a note on how the flags were measured, or empty.</comment>
+  </data>
+  <data name="BottlenecksSummaryCrossed" xml:space="preserve">
+    <value>{0} pool(s) with work waiting on a slot; {1} blueprint(s) worth a look; {2} material(s) being used faster than they are made. ⚠ {3:N0} slot(s) sitting free while {4} blueprint(s) have every copy busy — the constraint here is prints, not slots. {5}</value>
+    <comment>Bottlenecks status line. {0} is the slot pools with work waiting, {1} the blueprints worth a look, {2} the materials used faster than made, {3} the free slots, {4} the blueprints with every copy busy, {5} a note on how the flags were measured, or empty.</comment>
+  </data>
+  <data name="BottlenecksSummary" xml:space="preserve">
+    <value>{0} pool(s) with work waiting on a slot; {1} blueprint(s) worth a look; {2} material(s) being used faster than they are made. {3}</value>
+    <comment>Bottlenecks status line. {0} is the slot pools with work waiting, {1} the blueprints worth a look, {2} the materials used faster than made, {3} a note on how the flags were measured, or empty.</comment>
+  </data>
+  <data name="NeedsNotLoaded" xml:space="preserve">
+    <value>Open this tab to work out what every station wants.</value>
+    <comment>Station Needs status line before the tab has been opened.</comment>
+  </data>
+  <data name="NeedsNoLogistics" xml:space="preserve">
+    <value>The Logistics source is not available.</value>
+    <comment>Station Needs status line when the logistics source is missing.</comment>
+  </data>
+  <data name="NeedsNothingWanted" xml:space="preserve">
+    <value>Nothing is wanted anywhere — no build rules, orders or station levels are asking for material.</value>
+    <comment>Station Needs status line when nothing is wanted anywhere.</comment>
+  </data>
+  <data name="NeedsSummary" xml:space="preserve">
+    <value>{0:N0} need(s) across {1} station(s); {2:N0} short. Shortest first. These are wants, not tasks — a small shortfall may sit inside the station-level deadband and raise no haul.</value>
+    <comment>Station Needs status line. {0} is the needs, {1} the stations, {2} the needs that are short.</comment>
+  </data>
+  <data name="NeedsError" xml:space="preserve">
+    <value>Could not work out station needs: {0}</value>
+    <comment>Station Needs status line when it fails. {0} is the error.</comment>
+  </data>
+  <data name="BottlenecksError" xml:space="preserve">
+    <value>Could not read the bottlenecks: {0}</value>
+    <comment>Bottlenecks status line when it fails. {0} is the error.</comment>
+  </data>
+  <data name="SourceIncludeTip" xml:space="preserve">
+    <value>Include this source in the worklist.</value>
+    <comment>Description under each source's switch on the Sources tab.</comment>
+  </data>
+  <data name="SourceCustomerOrders" xml:space="preserve">
+    <value>Customer orders</value>
+    <comment>A switch on the Sources tab: plan the pending customer orders.</comment>
+  </data>
+  <data name="SourceCustomerOrdersTip" xml:space="preserve">
+    <value>Plan the pending orders from the Order Tracker, netted against what is already built or in production. Uses the park set on the Other tab and the buy location set on the Market tab.</value>
+    <comment>Description under the Customer orders switch on the Sources tab.</comment>
+  </data>
+  <data name="ConditionMissing" xml:space="preserve">
+    <value>Missing orders</value>
+    <comment>A switch on the Sources tab: raise a task when a standing buy order has no live order.</comment>
+  </data>
+  <data name="ConditionMissingTip" xml:space="preserve">
+    <value>A standing order with no live buy order at its station.</value>
+    <comment>Description under the Missing orders switch.</comment>
+  </data>
+  <data name="ConditionOutbid" xml:space="preserve">
+    <value>Outbid</value>
+    <comment>A switch on the Sources tab: raise a task when a standing buy order is outbid.</comment>
+  </data>
+  <data name="ConditionOutbidTip" xml:space="preserve">
+    <value>Someone else is bidding higher, so the order is buying nothing.</value>
+    <comment>Description under the Outbid switch.</comment>
+  </data>
+  <data name="ConditionRunningLow" xml:space="preserve">
+    <value>Running low</value>
+    <comment>A switch on the Sources tab: raise a task when a buy order is nearly filled.</comment>
+  </data>
+  <data name="ConditionRunningLowTip" xml:space="preserve">
+    <value>Remaining volume has fallen below the top-up threshold.</value>
+    <comment>Description under the Running low switch.</comment>
+  </data>
+  <data name="ConditionExpiring" xml:space="preserve">
+    <value>Expiring soon</value>
+    <comment>A switch on the Sources tab: raise a task when a buy order is about to expire.</comment>
+  </data>
+  <data name="ConditionExpiringTip" xml:space="preserve">
+    <value>The order is close to the end of its duration.</value>
+    <comment>Description under the Expiring soon switch.</comment>
+  </data>
+  <data name="ShowNotReady" xml:space="preserve">
+    <value>Show blocked / waiting</value>
+    <comment>Check box on the Worklist: also list tasks that are blocked or waiting.</comment>
+  </data>
+  <data name="ShowSnoozed" xml:space="preserve">
+    <value>Show snoozed</value>
+    <comment>Check box on the Worklist: also list snoozed tasks.</comment>
+  </data>
+  <data name="FilterAny" xml:space="preserve">
+    <value>(any)</value>
+    <comment>First entry in each Worklist filter list: no filter.</comment>
+  </data>
+  <data name="EmptyListHelp" xml:space="preserve">
+    <value>Items are rebuilt from live data each refresh — one disappears once the work is done. Detection runs off polled ESI data, so each row shows how old the data behind it is. The summary above is counted off the whole run, not the filters.</value>
+    <comment>Shown when the Worklist grid is empty: how the list is built.</comment>
+  </data>
+  <data name="ChipBuy" xml:space="preserve">
+    <value>buy</value>
+    <comment>Worklist summary chip under a count: ready tasks that buy something. Lower case.</comment>
+  </data>
+  <data name="ChipHaul" xml:space="preserve">
+    <value>haul</value>
+    <comment>Worklist summary chip under a count: ready hauls. Lower case.</comment>
+  </data>
+  <data name="ChipManufacturing" xml:space="preserve">
+    <value>manufacturing</value>
+    <comment>Worklist summary chip under a count: ready manufacturing jobs. Lower case.</comment>
+  </data>
+  <data name="ChipReactions" xml:space="preserve">
+    <value>reactions</value>
+    <comment>Worklist summary chip under a count: ready reaction jobs. Lower case.</comment>
+  </data>
+  <data name="ChipScience" xml:space="preserve">
+    <value>science</value>
+    <comment>Worklist summary chip under a count: ready science jobs. Lower case.</comment>
+  </data>
+  <data name="StatusShown" xml:space="preserve">
+    <value>{0:N0} shown</value>
+    <comment>Part of the Worklist status line: how many tasks are listed. {0} is the number.</comment>
+  </data>
+  <data name="StatusNothingReady" xml:space="preserve">
+    <value>Nothing ready{0}.</value>
+    <comment>Worklist status line when nothing can be started. {0} is empty, or the parts that follow — "  ·  12 shown" and " (3 blocked hidden)" — each beginning with its own space.</comment>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>{0:N0} ready{1}</value>
+    <comment>Worklist status line. {0} is the tasks that can be started now; {1} is empty, or the parts that follow — "  ·  12 shown" and " (3 blocked hidden)" — each beginning with its own space.</comment>
+  </data>
+  <data name="RefreshedAt" xml:space="preserve">
+    <value>Refreshed {0:HH:mm}</value>
+    <comment>When the Worklist was last rebuilt. {0} is the time.</comment>
+  </data>
+  <data name="ShowNotReadyCount" xml:space="preserve">
+    <value>Show blocked / waiting ({0:N0})</value>
+    <comment>Check box on the Worklist: also list tasks that are blocked or waiting. {0} is how many there are.</comment>
+  </data>
+  <data name="ShowSnoozedCount" xml:space="preserve">
+    <value>Show snoozed ({0:N0})</value>
+    <comment>Check box on the Worklist: also list snoozed tasks. {0} is how many there are.</comment>
+  </data>
+  <data name="HiddenBlocked" xml:space="preserve">
+    <value>{0} blocked</value>
+    <comment>In the list of hidden tasks at the end of the Worklist status line. {0} is a number.</comment>
+  </data>
+  <data name="HiddenWaiting" xml:space="preserve">
+    <value>{0} waiting</value>
+    <comment>In the list of hidden tasks at the end of the Worklist status line. {0} is a number.</comment>
+  </data>
+  <data name="HiddenSnoozed" xml:space="preserve">
+    <value>{0} snoozed</value>
+    <comment>In the list of hidden tasks at the end of the Worklist status line. {0} is a number.</comment>
+  </data>
+  <data name="HiddenList" xml:space="preserve">
+    <value>({0} hidden)</value>
+    <comment>End of the Worklist status line. {0} is a list such as "3 blocked, 2 waiting".</comment>
+  </data>
+  <data name="GroupWithId" xml:space="preserve">
+    <value>Group {0}</value>
+    <comment>Shown for an inventory level group whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="FromPark" xml:space="preserve">
+    <value>— from park —</value>
+    <comment>Location cell of a Build rule on the Inventory Rules tab: the Indy Park decides where the job runs.</comment>
+  </data>
+  <data name="BySkill" xml:space="preserve">
+    <value>— by skill —</value>
+    <comment>Character cell of a Build rule on the Inventory Rules tab: the character is chosen by skills and free slots.</comment>
+  </data>
+  <data name="RuleActionBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>An inventory rule's action: place a buy order for the shortfall.</comment>
+  </data>
+  <data name="RuleActionBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>An inventory rule's action: start an industry job for the shortfall.</comment>
+  </data>
+  <data name="GroupWithIdLower" xml:space="preserve">
+    <value>group {0}</value>
+    <comment>In the list of buy rules with no market alt: an inventory level group whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="NoStationSet" xml:space="preserve">
+    <value>no station set</value>
+    <comment>In the list of buy rules with no market alt: the rule has no station.</comment>
+  </data>
+  <data name="AltWarningMore" xml:space="preserve">
+    <value>{0} buy rule(s) point at a station with no market alt, so their purchases have no character to place them and will show as blocked: {1}, and {2} more. Assign an alt on the Market tab, or re-pick the station on the rule.</value>
+    <comment>Warning on the Inventory Rules tab. {0} is the number of buy rules, {1} a list of them ("group → station"), {2} how many more there are beyond the list.</comment>
+  </data>
+  <data name="AltWarning" xml:space="preserve">
+    <value>{0} buy rule(s) point at a station with no market alt, so their purchases have no character to place them and will show as blocked: {1}. Assign an alt on the Market tab, or re-pick the station on the rule.</value>
+    <comment>Warning on the Inventory Rules tab. {0} is the number of buy rules, {1} a list of them ("group → station").</comment>
+  </data>
+  <data name="Unassigned" xml:space="preserve">
+    <value>— unassigned —</value>
+    <comment>Character cell of a buy rule whose station has no market alt.</comment>
+  </data>
+  <data name="RulesNoGroups" xml:space="preserve">
+    <value>No inventory level groups exist yet — create one in Inventory Levels first.</value>
+    <comment>Inventory Rules status line when no inventory level groups exist.</comment>
+  </data>
+  <data name="RulesNone" xml:space="preserve">
+    <value>No rules yet.</value>
+    <comment>Inventory Rules status line when there are no rules.</comment>
+  </data>
+  <data name="RulesCount" xml:space="preserve">
+    <value>{0:N0} rule(s)</value>
+    <comment>Inventory Rules status line. {0} is the number of rules.</comment>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Saved.</value>
+    <comment>Status line after a change on a Worklist settings tab was saved.</comment>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Could not save that change: {0}</value>
+    <comment>Status line when a change on a Worklist settings tab could not be saved. {0} is the error.</comment>
+  </data>
+  <data name="PickInventoryLevelGroup" xml:space="preserve">
+    <value>Pick an inventory level group.</value>
+    <comment>Inventory Rules status line: no group was picked for the new rule.</comment>
+  </data>
+  <data name="PickStationForBuyOrder" xml:space="preserve">
+    <value>Pick a station or structure for the buy order.</value>
+    <comment>Inventory Rules status line: no station was picked for the new rule.</comment>
+  </data>
+  <data name="ThresholdNotPositive" xml:space="preserve">
+    <value>Threshold must be a number above zero.</value>
+    <comment>Inventory Rules status line: the trigger percentage is not a positive number.</comment>
+  </data>
+  <data name="FillNotPositive" xml:space="preserve">
+    <value>Fill target must be a number above zero.</value>
+    <comment>Inventory Rules status line: the fill percentage is not a positive number.</comment>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>What a character's slots are used for (Settings → Characters): manufacturing. Joined into a list with commas.</comment>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Reactions</value>
+    <comment>What a character's slots are used for (Settings → Characters): reactions. Joined into a list with commas.</comment>
+  </data>
+  <data name="ActivityScience" xml:space="preserve">
+    <value>Science</value>
+    <comment>What a character's slots are used for (Settings → Characters): science. Joined into a list with commas.</comment>
+  </data>
+  <data name="ActivitiesNone" xml:space="preserve">
+    <value>— none —</value>
+    <comment>What a character's slots are used for (Settings → Characters), when nothing is ticked.</comment>
+  </data>
+  <data name="ParkDefault" xml:space="preserve">
+    <value>&lt;Default&gt;</value>
+    <comment>Park choice on the Other tab: follow whichever park is starred in Indy Parks. Keep the angle brackets.</comment>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>Everywhere</value>
+    <comment>How far to look for materials (Other tab): count stock anywhere.</comment>
+  </data>
+  <data name="ScopeRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>How far to look for materials (Other tab): within one region.</comment>
+  </data>
+  <data name="ScopeSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>How far to look for materials (Other tab): within one solar system.</comment>
+  </data>
+  <data name="PickScopeStation" xml:space="preserve">
+    <value>Pick a station to add to the scope.</value>
+    <comment>Status line on the Other tab: no station was picked to add to the asset scope.</comment>
+  </data>
+  <data name="SlotsFreeOfTotal" xml:space="preserve">
+    <value>M {0}/{1}  ·  R {2}/{3}  ·  S {4}/{5}</value>
+    <comment>A character's free and total industry slots (Settings → Characters). M, R and S stand for manufacturing, reaction and science; {0}/{1}, {2}/{3} and {4}/{5} are free/total for each.</comment>
+  </data>
+  <data name="BuyNoLocation" xml:space="preserve">
+    <value>No buy location set. Shortfalls will still be reported on the jobs they block, but the purchases have nowhere to be raised.</value>
+    <comment>Warning on the Market tab: no buy location is set.</comment>
+  </data>
+  <data name="BuyNoAlt" xml:space="preserve">
+    <value>No market alt is assigned to {0} on the Market tab, so buy tasks there will have no character.</value>
+    <comment>Warning on the Market tab. {0} is the buy location.</comment>
+  </data>
+  <data name="ParkNoDefault" xml:space="preserve">
+    <value>{0} is selected and no park is marked default in Indy Parks. Industry jobs stay silent until a park is starred there or picked here, because the park decides facilities and rigs.</value>
+    <comment>Warning on the Other tab. {0} is the name of the default park choice, "&lt;Default&gt;".</comment>
+  </data>
+  <data name="ParkUnlinked" xml:space="preserve">
+    <value>{0} structure(s) in this park are not linked to a real location ({1}). Materials there cannot be counted, so jobs may read as blocked when the inputs are actually present.</value>
+    <comment>Warning on the Other tab. {0} is the number of structures, {1} the first few of their names.</comment>
+  </data>
+  <data name="ParkNoStructures" xml:space="preserve">
+    <value>This park has no structures. Nothing can be checked for materials.</value>
+    <comment>Warning on the Other tab: the chosen park has no structures.</comment>
+  </data>
+  <data name="IndustryLoadFailed" xml:space="preserve">
+    <value>Could not load the industry settings: {0}</value>
+    <comment>Status line on the Other tab when its settings cannot be loaded. {0} is the error.</comment>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>Daily</value>
+    <comment>Final Products chart option: one point per day.</comment>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>Weekly</value>
+    <comment>Final Products chart option: one point per week.</comment>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>Monthly</value>
+    <comment>Final Products chart option: one point per month.</comment>
+  </data>
+  <data name="ValuationMarket" xml:space="preserve">
+    <value>Market value</value>
+    <comment>How Final Products values what a job made: at its market value.</comment>
+  </data>
+  <data name="ValuationOverBuild" xml:space="preserve">
+    <value>% over build</value>
+    <comment>How Final Products values what a job made: its build cost plus a percentage.</comment>
+  </data>
+  <data name="FinalLoadFailed" xml:space="preserve">
+    <value>Could not load: {0}</value>
+    <comment>Final Products status line when loading fails. {0} is the error.</comment>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>Shown for an item type whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="SourceFinalAndOrdered" xml:space="preserve">
+    <value>Final · ordered</value>
+    <comment>Why a job is on the Final Products list: what it makes is a final product, and a customer has ordered it too.</comment>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>Final product</value>
+    <comment>Why a job is on the Final Products list: what it makes is a final product.</comment>
+  </data>
+  <data name="SourceOrdered" xml:space="preserve">
+    <value>Ordered</value>
+    <comment>Why a job is on the Final Products list: a customer has ordered what it makes.</comment>
+  </data>
+  <data name="FinalNoJobs" xml:space="preserve">
+    <value>No jobs in this range.</value>
+    <comment>Final Products status line when no job finished in the chosen dates.</comment>
+  </data>
+  <data name="FinalSummary" xml:space="preserve">
+    <value>{0:N0} job(s) · {1} value · {2} potential profit</value>
+    <comment>Final Products status line. {0} is the number of jobs, {1} their value, {2} the potential profit (both in ISK, abbreviated).</comment>
+  </data>
+  <data name="LevelClash" xml:space="preserve">
+    <value>{0} already has a level at {1} — that change was not saved.</value>
+    <comment>Station Levels status line: the edit would make a second level for the same group and station. {0} is the group, {1} the station.</comment>
+  </data>
+  <data name="PickInventoryGroup" xml:space="preserve">
+    <value>Pick an inventory group.</value>
+    <comment>Station Levels status line: no group was picked for the new level.</comment>
+  </data>
+  <data name="PickStationOrStructure" xml:space="preserve">
+    <value>Pick a station or structure.</value>
+    <comment>Status line on a Worklist settings tab: no station or structure was picked.</comment>
+  </data>
+  <data name="LevelsNone" xml:space="preserve">
+    <value>No station levels yet. Without one, material is only moved to where a job is waiting for it.</value>
+    <comment>Station Levels status line when there are no levels.</comment>
+  </data>
+  <data name="LevelsCount" xml:space="preserve">
+    <value>{0:N0} level(s)</value>
+    <comment>Station Levels status line. {0} is the number of levels.</comment>
+  </data>
+  <data name="CorpWithId" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>Shown for a corporation whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="CorpProjectsNone" xml:space="preserve">
+    <value>No standing projects defined yet — set them up in Corp Activity first.</value>
+    <comment>Status line under Corp Projects (Other tab) when no corporation has standing projects.</comment>
+  </data>
+  <data name="CorpProjectsUnassigned" xml:space="preserve">
+    <value>{0:N0} standing project(s) across {1} corporation(s) · {2} corporation(s) unassigned, so their items show as blocked</value>
+    <comment>Status line under Corp Projects (Other tab). {0} is the standing projects, {1} the corporations they belong to, {2} the corporations with nobody assigned.</comment>
+  </data>
+  <data name="CorpProjectsCount" xml:space="preserve">
+    <value>{0:N0} standing project(s) across {1} corporation(s)</value>
+    <comment>Status line under Corp Projects (Other tab). {0} is the standing projects, {1} the corporations they belong to.</comment>
+  </data>
+  <data name="PickCorporation" xml:space="preserve">
+    <value>Pick a corporation.</value>
+    <comment>Status line under Corp Projects: no corporation was picked.</comment>
+  </data>
+  <data name="PickProjectCharacter" xml:space="preserve">
+    <value>Pick the character who maintains its projects.</value>
+    <comment>Status line under Corp Projects: no character was picked to maintain the projects.</comment>
+  </data>
+  <data name="MarketAltsNone" xml:space="preserve">
+    <value>No market alts yet. Until a station has one, its items show as blocked because nothing knows which character should do the work.</value>
+    <comment>Market tab status line when no station has a market alt.</comment>
+  </data>
+  <data name="MarketAltsCount" xml:space="preserve">
+    <value>{0:N0} market alt(s)</value>
+    <comment>Market tab status line. {0} is the number of market alts.</comment>
+  </data>
+  <data name="PickStationFromList" xml:space="preserve">
+    <value>Pick a station or structure from the list.</value>
+    <comment>Market tab status line: no station or structure was picked from the list.</comment>
+  </data>
+  <data name="PickMarketAltCharacter" xml:space="preserve">
+    <value>Pick the character who works there.</value>
+    <comment>Market tab status line: no character was picked for the station.</comment>
+  </data>
+  <data name="TasksOne" xml:space="preserve">
+    <value>{0:N0} Task</value>
+    <comment>Count in a Worklist group heading, one task. {0} is the number.</comment>
+  </data>
+  <data name="TasksOther" xml:space="preserve">
+    <value>{0:N0} Tasks</value>
+    <comment>Count in a Worklist group heading, several tasks. {0} is the number.</comment>
   </data>
 </root>

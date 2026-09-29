@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -33,7 +34,7 @@ internal static class TimeRemainingHelper
     {
         var status = row["Status"].ToLowerInvariant();
         if (status is "delivered" or "cancelled" or "reverted") return "";
-        if (status == "ready") return "Ready";
+        if (status == "ready") return CommonText.JobReady;
 
         var raw = row["End Date Raw"];
         if (string.IsNullOrEmpty(raw)) return row["Time Remaining"];
@@ -47,12 +48,12 @@ internal static class TimeRemainingHelper
             return row["Time Remaining"];
 
         var rem = end.ToUniversalTime() - DateTimeOffset.UtcNow;
-        if (rem <= TimeSpan.Zero) return "Ready";
+        if (rem <= TimeSpan.Zero) return CommonText.JobReady;
 
-        if (rem.TotalDays >= 1)  return $"{(int)rem.TotalDays}d {rem.Hours}h {rem.Minutes}m";
-        if (rem.TotalHours >= 1) return $"{(int)rem.TotalHours}h {rem.Minutes}m";
-        if (rem.TotalMinutes >= 1) return $"{(int)rem.TotalMinutes}m {rem.Seconds}s";
-        return $"{rem.Seconds}s";
+        if (rem.TotalDays >= 1)  return string.Format(CommonText.DurationDaysHoursMinutes, (int)rem.TotalDays, rem.Hours, rem.Minutes);
+        if (rem.TotalHours >= 1) return string.Format(CommonText.DurationHoursMinutes, (int)rem.TotalHours, rem.Minutes);
+        if (rem.TotalMinutes >= 1) return string.Format(CommonText.DurationMinutesSeconds, (int)rem.TotalMinutes, rem.Seconds);
+        return string.Format(CommonText.DurationSeconds, rem.Seconds);
     }
 }
 
