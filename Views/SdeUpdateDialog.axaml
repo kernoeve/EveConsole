@@ -59,7 +59,8 @@
                  FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
       <TextBlock Text="{Binding StatusText}"
-                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                 TextWrapping="Wrap" />
 
       <Button Content="{x:Static loc:SettingsText.Close}" Click="OnClose"
               HorizontalAlignment="Right" Padding="16 5" />

@@ -415,6 +415,14 @@ public class App : Application
                 catch { }
             };
 
+            // Names in the interface language that could not be read, said out loud for the same
+            // reason: the screens quietly staying in English is otherwise all anybody would see.
+            SdeNames.LoadFailed = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("SdeNames", "names not loaded", reason); }
+                catch { }
+            };
+
             // The move out of the install folder runs before there is a log to write to; what it
             // could not do is said here, once per start until it succeeds.
             if (AppConfig.DataMoveProblem is { } moveProblem)
@@ -3685,12 +3693,14 @@ public class App : Application
                 var alarms   = Services.GetRequiredService<AlarmActionRunner>();
                 var activity = Services.GetRequiredService<WorkerActivityService>();
 
-                // ⚠️ Activity first, and it says whether the payload was its own. Both kinds arrive
+                // ⚠️ Activity first, and it says whether the payload was its own. Every kind arrives
                 // on one channel, and each handler ignores what is not addressed to it — so the
-                // alarm path is only reached by something that really is an alarm.
+                // alarm path is only reached by something that really is an alarm. An SDE import
+                // on any client means new names for every client, each in its own language.
                 signals.Received += payload =>
                 {
                     if (activity.TryApplySignal(payload)) return;
+                    if (SdeNames.TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
                 signals.Start();

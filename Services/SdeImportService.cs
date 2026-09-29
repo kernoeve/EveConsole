@@ -5,6 +5,8 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using YamlDotNet.Core;
+using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
 using EveConsole.Localization;
 
@@ -36,18 +38,29 @@ public class SdeImportService
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IHttpClientFactory   _httpFactory;
+    private readonly ClientSignals        _signals;
     private readonly IDeserializer        _yaml;
     private readonly AppErrorLogger       _errors;
 
-    public SdeImportService(IServiceScopeFactory scopeFactory, IHttpClientFactory httpFactory)
+    public SdeImportService(IServiceScopeFactory scopeFactory, IHttpClientFactory httpFactory, ClientSignals signals)
     {
         _scopeFactory = scopeFactory;
         _httpFactory  = httpFactory;
+        _signals      = signals;
         _errors = new AppErrorLogger(scopeFactory);
         _yaml = new DeserializerBuilder()
             .IgnoreUnmatchedProperties()
+            // Every localised field — see LocalizedTextConverter for why not YamlDotNet's own.
+            .WithTypeConverter(new LocalizedTextConverter())
             .Build();
     }
+
+    /// <summary>
+    /// How many names the last import that committed stored in each of the client's other
+    /// languages, by the SDE's key (de … zh). Null before one has, and when the count itself
+    /// failed. Shown with the import's result: a language at 0 is one the SDE did not carry.
+    /// </summary>
+    public IReadOnlyDictionary<string, int>? LastNamesByLanguage { get; private set; }
 
     // -----------------------------------------------------------------------
     // Entry point
@@ -177,6 +190,11 @@ public class SdeImportService
                 await db.SaveChangesAsync(ct);
             }
 
+            // How many names each language got: the one place that says whether the SDE carried all
+            // eight. Counted from the table rather than tallied on the way in, so it reports what
+            // was stored rather than what was meant to be.
+            var namesStored = await CountNamesAsync(db, ct);
+
             // Inside the transaction, so "this import lost a table" is still a decision and not
             // merely a note about something that has already happened.
             Report(progress, SettingsText.ImportStageVerifying, SettingsText.ImportCheckingRowCounts, 0.99);
@@ -197,6 +215,18 @@ public class SdeImportService
 
             foreach (var line in warnings)
                 _errors.Log("SdeImport", "Verification", line);
+
+            // A result, not a fault — logged all the same, because the log is what stays: it is how
+            // anyone can see which languages the SDE really carried, and how many names came of it.
+            _errors.Log("SdeImport", "Names", namesStored.Summary, namesStored.ByKind);
+            LastNamesByLanguage = namesStored.ByLanguage;
+
+            // The names on screen come from what was just replaced: this client's, and on a shared
+            // server every other client's too, each in its own language. See SdeNames. On SQLite
+            // there is no other client to tell.
+            SdeNames.Reload();
+            if (DbEngine.IsPostgres)
+                await _signals.PublishAsync(SdeNames.ImportedSignal, CancellationToken.None);
 
             Report(progress, SettingsText.ImportStageDone, SettingsText.SdeImportComplete, 1.0);
             return warnings;
@@ -411,6 +441,12 @@ public class SdeImportService
             // PostgresSchema, and to no list SQLite reads.
             """CREATE TABLE IF NOT EXISTS "SdeIndustryModifierSources" ("TypeId" INTEGER NOT NULL, "Activity" TEXT NOT NULL, "BonusKind" TEXT NOT NULL, "DogmaAttributeId" INTEGER NOT NULL, "FilterId" INTEGER NULL, CONSTRAINT "PK_SdeIndustryModifierSources" PRIMARY KEY ("TypeId", "Activity", "BonusKind", "DogmaAttributeId"))""",
             """CREATE TABLE IF NOT EXISTS "EsiNpcCorpProfiles" ("CorporationId" INTEGER NOT NULL CONSTRAINT "PK_EsiNpcCorpProfiles" PRIMARY KEY, "Ticker" TEXT NOT NULL, "Description" TEXT NOT NULL, "Url" TEXT NOT NULL, "CeoId" INTEGER NOT NULL, "HomeStationId" INTEGER NOT NULL, "MemberCount" INTEGER NOT NULL, "TaxRate" REAL NOT NULL, "FetchedUtc" TEXT NOT NULL)""",
+
+            // ── Names in the client's other languages ───────────────────────────
+            // Display only: the English stays in every Name column. See SdeName. A new table, so
+            // on an existing database the fingerprint grows and the import that fills it starts on
+            // its own after the upgrade.
+            """CREATE TABLE IF NOT EXISTS "SdeNames" ("Kind" INTEGER NOT NULL, "Id" INTEGER NOT NULL, "Lang" TEXT NOT NULL, "Name" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdeNames" PRIMARY KEY ("Kind", "Id", "Lang"))""",
         };
         foreach (var sql in creates)
             db.Database.ExecuteSqlRaw(sql);
@@ -579,6 +615,7 @@ public class SdeImportService
         var raw = _yaml.Deserialize<Dictionary<int, CategoryYaml>>(reader) ?? [];
         var rows = raw.Select(kv => new SdeCategory { CategoryId = kv.Key, Name = kv.Value.name?.en ?? "", Published = kv.Value.published, IconId = kv.Value.iconID });
         await SaveBatchesAsync(db, db.SdeCategories, rows, SettingsText.ImportStageCategories, raw.Count, p, 0.32, 0.33, ct);
+        await SaveNamesAsync(db, SdeNameKind.Category, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.33, ct);
     }
 
     private async Task ImportGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -603,6 +640,7 @@ public class SdeImportService
             UseBasePrice         = kv.Value.useBasePrice,
         });
         await SaveBatchesAsync(db, db.SdeGroups, rows, SettingsText.ImportStageGroups, raw.Count, p, 0.335, 0.35, ct);
+        await SaveNamesAsync(db, SdeNameKind.Group, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.35, ct);
     }
 
     private async Task ImportMarketGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -621,6 +659,7 @@ public class SdeImportService
             IconId = kv.Value.iconID, HasTypes = kv.Value.hasTypes,
         });
         await SaveBatchesAsync(db, db.SdeMarketGroups, rows, SettingsText.ImportStageMarketGroups, raw.Count, p, 0.35, 0.36, ct);
+        await SaveNamesAsync(db, SdeNameKind.MarketGroup, raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)), p, 0.36, ct);
     }
 
     private async Task ImportTypesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -661,6 +700,7 @@ public class SdeImportService
             Published     = kv.Value.published,
         });
         await SaveBatchesAsync(db, db.SdeTypes, rows, SettingsText.ImportStageTypes, raw.Count, p, 0.37, 0.50, ct);
+        await SaveNamesAsync(db, SdeNameKind.Type, raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)), p, 0.50, ct);
     }
 
     private async Task ImportDogmaAttributeCategoriesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -674,6 +714,7 @@ public class SdeImportService
 
         Report(p, SettingsText.ImportStageAttrCategories, SettingsText.ImportParsing, 0.495);
         List<SdeDogmaAttributeCategory> rows;
+        List<(long, LocalizedName?)>    names;
         try
         {
             using var reader = OpenEntry(entry);
@@ -681,8 +722,9 @@ public class SdeImportService
             rows = raw.Select(kv => new SdeDogmaAttributeCategory
             {
                 CategoryId = kv.Key,
-                Name       = kv.Value.nameID?.en ?? kv.Value.name ?? ""
+                Name       = kv.Value.nameID?.en ?? kv.Value.name?.en ?? ""
             }).ToList();
+            names = raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)).ToList();
         }
         catch
         {
@@ -696,13 +738,16 @@ public class SdeImportService
                 rows = raw.Where(x => x.categoryID.HasValue).Select(x => new SdeDogmaAttributeCategory
                 {
                     CategoryId = x.categoryID!.Value,
-                    Name       = x.nameID?.en ?? x.name ?? ""
+                    Name       = x.nameID?.en ?? x.name?.en ?? ""
                 }).ToList();
+                names = raw.Where(x => x.categoryID.HasValue)
+                    .Select(x => ((long)x.categoryID!.Value, x.nameID ?? x.name)).ToList();
             }
             catch { return; }
         }
 
         await SaveBatchesAsync(db, db.SdeDogmaAttributeCategories, rows, SettingsText.ImportStageAttrCategories, rows.Count, p, 0.495, 0.50, ct);
+        await SaveNamesAsync(db, SdeNameKind.DogmaAttributeCategory, names, p, 0.50, ct);
     }
 
     private async Task ImportDogmaAttributesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -717,7 +762,8 @@ public class SdeImportService
         {
             AttributeId  = kv.Key,
             Name         = kv.Value.name ?? "",
-            // New SDE uses displayName as localized string; old used displayName as scalar (→null here, falls back to name)
+            // New SDE: displayName is a localised mapping; old: a plain string. The converter reads
+            // either as the English, and an attribute with neither falls back to its internal name.
             DisplayName  = kv.Value.displayName?.en ?? kv.Value.displayNameID?.en ?? kv.Value.name ?? "",
             // New SDE uses attributeCategoryID; old used categoryID
             CategoryId   = kv.Value.attributeCategoryID ?? kv.Value.categoryID,
@@ -726,17 +772,22 @@ public class SdeImportService
             Stackable    = kv.Value.stackable,
             UnitId       = kv.Value.unitID,
             Published    = kv.Value.published,
-            Description  = kv.Value.description ?? "",
+            Description  = kv.Value.description?.en ?? "",
             IconId       = kv.Value.iconID,
             MinAttributeId = kv.Value.minAttributeID,
             MaxAttributeId = kv.Value.maxAttributeID,
-            TooltipTitle       = kv.Value.tooltipTitleID?.en ?? "",
-            TooltipDescription = kv.Value.tooltipDescriptionID?.en ?? "",
+            // ⚠️ Both spellings, whichever the file has. Only the ...ID keys used to be read, the
+            // current SDE writes tooltipTitle / tooltipDescription, and every one of these came out
+            // empty. English only: the other languages are kept for names, not for text.
+            TooltipTitle       = kv.Value.tooltipTitle?.en       ?? kv.Value.tooltipTitleID?.en       ?? "",
+            TooltipDescription = kv.Value.tooltipDescription?.en ?? kv.Value.tooltipDescriptionID?.en ?? "",
             DataType     = kv.Value.dataType,
             DisplayWhenZero = kv.Value.displayWhenZero,
             ChargeRechargeTimeId = kv.Value.chargeRechargeTimeID,
         });
         await SaveBatchesAsync(db, db.SdeDogmaAttributes, rows, SettingsText.ImportStageDogmaAttributes, raw.Count, p, 0.50, 0.52, ct);
+        await SaveNamesAsync(db, SdeNameKind.DogmaAttribute,
+            raw.Select(kv => ((long)kv.Key, kv.Value.displayName ?? kv.Value.displayNameID)), p, 0.52, ct);
     }
 
     private async Task ImportDogmaEffectsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -752,13 +803,18 @@ public class SdeImportService
             EffectId    = kv.Key,
             // New SDE uses "name"; old SDE used "effectName"
             Name        = kv.Value.name ?? kv.Value.effectName ?? "",
-            DisplayName = kv.Value.displayNameID?.en ?? kv.Value.name ?? kv.Value.effectName ?? "",
-            Description = kv.Value.descriptionID?.en ?? "",
+            // ⚠️ Both spellings of each, whichever the file has — as for the attributes' tooltips.
+            // Only displayNameID and descriptionID used to be read: every Description came out
+            // empty, and every DisplayName fell through to the internal name.
+            DisplayName = kv.Value.displayName?.en ?? kv.Value.displayNameID?.en ?? kv.Value.name ?? kv.Value.effectName ?? "",
+            Description = kv.Value.description?.en ?? kv.Value.descriptionID?.en ?? "",
             IsOffensive = kv.Value.isOffensive,
             IsAssistance = kv.Value.isAssistance,
             Published   = kv.Value.published,
         });
         await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, SettingsText.ImportStageDogmaEffects, raw.Count, p, 0.52, 0.54, ct);
+        await SaveNamesAsync(db, SdeNameKind.DogmaEffect,
+            raw.Select(kv => ((long)kv.Key, kv.Value.displayName ?? kv.Value.displayNameID)), p, 0.54, ct);
     }
 
     private async Task ImportTypeDogmaAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -903,6 +959,7 @@ public class SdeImportService
                 Z = kv.Value.position?.z ?? 0,
             });
             await SaveBatchesAsync(db, db.SdeRegions, rows, SettingsText.ImportStageRegions, raw.Count, p, 0.76, 0.78, ct);
+            await SaveNamesAsync(db, SdeNameKind.Region, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.78, ct);
         }
 
         Report(p, SettingsText.ImportStageUniverse, Parsing("mapConstellations.yaml"), 0.78);
@@ -922,6 +979,7 @@ public class SdeImportService
                 Z = kv.Value.position?.z ?? 0,
             });
             await SaveBatchesAsync(db, db.SdeConstellations, rows, SettingsText.ImportStageConstellations, raw.Count, p, 0.78, 0.80, ct);
+            await SaveNamesAsync(db, SdeNameKind.Constellation, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.80, ct);
         }
 
         Report(p, SettingsText.ImportStageUniverse, Parsing("mapSolarSystems.yaml"), 0.80);
@@ -963,6 +1021,7 @@ public class SdeImportService
                 StarId        = kv.Value.starID,
             });
             await SaveBatchesAsync(db, db.SdeSolarSystems, rows, SettingsText.ImportStageSolarSystems, raw.Count, p, 0.80, 0.82, ct);
+            await SaveNamesAsync(db, SdeNameKind.SolarSystem, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.82, ct);
             foreach (var (sysId, sys) in raw) sysNames[sysId] = sys.name?.en ?? "";
 
             // Stars are their own top-level file, mapStars.yaml — not a field on the system,
@@ -1123,6 +1182,8 @@ public class SdeImportService
                     Name = kv.Value.name?.en ?? kv.Value.internalName ?? "",
                 }),
                 SettingsText.ImportStageCorpDivisions, raw.Count, p, 0.873, 0.874, ct);
+            await SaveNamesAsync(db, SdeNameKind.NpcCorporationDivision,
+                raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.874, ct);
         }
 
         Report(p, SettingsText.ImportStageAgents, Parsing("npcCharacters.yaml"), 0.874);
@@ -1148,6 +1209,10 @@ public class SdeImportService
             .ToList();
 
         await SaveBatchesAsync(db, db.SdeAgents, agents, SettingsText.ImportStageAgents, agents.Count, p, 0.874, 0.88, ct);
+
+        // The agents' names only: the rest of the file's characters have no table to name.
+        await SaveNamesAsync(db, SdeNameKind.Agent,
+            chars.Where(kv => kv.Value.agent is not null).Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.88, ct);
     }
 
     private class AgentTypeYaml
@@ -1158,14 +1223,14 @@ public class SdeImportService
     private class CorpDivisionYaml
     {
         public string?          internalName { get; set; }
-        public LocalizedString? name         { get; set; }
+        public LocalizedName?   name         { get; set; }
     }
 
     private class NpcCharacterYaml
     {
         public int              corporationID { get; set; }
         public long             locationID    { get; set; }
-        public LocalizedString? name          { get; set; }
+        public LocalizedName?   name          { get; set; }
         public NpcAgentYaml?    agent         { get; set; }
     }
 
@@ -1411,6 +1476,7 @@ public class SdeImportService
             UniqueName       = kv.Value.uniqueName,
         });
         await SaveBatchesAsync(db, db.SdeFactions, rows, SettingsText.ImportStageFactions, raw.Count, p, 0.89, 0.91, ct);
+        await SaveNamesAsync(db, SdeNameKind.Faction, raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)), p, 0.91, ct);
     }
 
     private async Task ImportNpcCorporationsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1446,6 +1512,7 @@ public class SdeImportService
             Deleted       = kv.Value.deleted,
         });
         await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, SettingsText.ImportStageNpcCorporations, raw.Count, p, 0.91, 0.93, ct);
+        await SaveNamesAsync(db, SdeNameKind.NpcCorporation, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.93, ct);
     }
 
     /// <summary>
@@ -1500,6 +1567,7 @@ public class SdeImportService
             ShipTypeId  = kv.Value.shipTypeID,
         });
         await SaveBatchesAsync(db, db.SdeRaces, rows, SettingsText.ImportStageRaces, raw.Count, p, 0.93, 0.94, ct);
+        await SaveNamesAsync(db, SdeNameKind.Race, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.94, ct);
     }
 
     private async Task ImportMetaGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1520,6 +1588,7 @@ public class SdeImportService
             ColorHex    = kv.Value.color?.Hex ?? "",
         });
         await SaveBatchesAsync(db, db.SdeMetaGroups, rows, SettingsText.ImportStageMetaGroups, raw.Count, p, 0.94, 0.96, ct);
+        await SaveNamesAsync(db, SdeNameKind.MetaGroup, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.96, ct);
     }
 
     private async Task ImportCertificatesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1538,6 +1607,7 @@ public class SdeImportService
             Description = kv.Value.description?.en ?? "",
         });
         await SaveBatchesAsync(db, db.SdeCertificates, rows, SettingsText.ImportStageCertificates, raw.Count, p, 0.96, 0.97, ct);
+        await SaveNamesAsync(db, SdeNameKind.Certificate, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.97, ct);
     }
 
     private async Task ImportTypeMaterialsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1576,6 +1646,7 @@ public class SdeImportService
             .DistinctBy(x => (x.SchematicId, x.TypeId));
         await SaveBatchesAsync(db, db.SdePlanetSchematics,     schematics, SettingsText.ImportStagePiSchematics,      raw.Count, p, 0.975, 0.985, ct);
         await SaveBatchesAsync(db, db.SdePlanetSchematicTypes, types,      SettingsText.ImportStagePiSchematicTypes,  -1,        p, 0.985, 0.987, ct);
+        await SaveNamesAsync(db, SdeNameKind.PlanetSchematic, raw.Select(kv => ((long)kv.Key, kv.Value.name ?? kv.Value.nameID)), p, 0.987, ct);
     }
 
     private async Task ImportDogmaUnitsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1593,6 +1664,7 @@ public class SdeImportService
             DisplayName = kv.Value.displayName?.en ?? "",
         });
         await SaveBatchesAsync(db, db.SdeDogmaUnits, rows, SettingsText.ImportStageDogmaUnits, raw.Count, p, 0.987, 0.989, ct);
+        await SaveNamesAsync(db, SdeNameKind.DogmaUnit, raw.Select(kv => ((long)kv.Key, kv.Value.displayName)), p, 0.989, ct);
     }
 
     private async Task ImportIconsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1679,7 +1751,8 @@ public class SdeImportService
         IProgress<SdeImportProgress> p,
         double fracStart,
         double fracEnd,
-        CancellationToken ct) where T : class
+        CancellationToken ct,
+        bool emptyIsNormal = false) where T : class
     {
         var buffer = new List<T>(Batch);
         int saved  = 0;
@@ -1721,11 +1794,83 @@ public class SdeImportService
         //
         // Logged under the table's name rather than the stage's: the stage is shown to the person
         // importing, in their language, and the error log stays in English.
-        if (saved == 0)
+        //
+        // emptyIsNormal is for a stage where nothing IS a possible right answer — the names of a
+        // kind that reads the same in every language — and which reports in some other way.
+        if (saved == 0 && !emptyIsNormal)
             _errors.Log("SdeImport", db.Model.FindEntityType(typeof(T))?.GetTableName() ?? typeof(T).Name,
                 estimatedTotal > 0
                     ? $"Stored 0 of {estimatedTotal:N0} row(s) parsed. The file was read and nothing reached the database."
                     : "Stored 0 rows: the file was found but parsed to nothing.");
+    }
+
+    /// <summary>
+    /// Stores one kind's names in the client's other languages: each language only where it differs
+    /// from the English, which stays in the entity's own Name column. See <see cref="SdeName"/>.
+    /// </summary>
+    /// <remarks>
+    /// Straight after the stage that read them, so each file's names are let go with the file
+    /// rather than all held to the end — the types alone come to a few hundred thousand. A kind
+    /// that stores none is not a fault: solar systems, say, are largely called the same in every
+    /// language. Whether a whole LANGUAGE is missing is what the count at the end of the import
+    /// says, which is where to look.
+    /// </remarks>
+    private Task SaveNamesAsync(AppDbContext db, SdeNameKind kind,
+        IEnumerable<(long Id, LocalizedName? Name)> names,
+        IProgress<SdeImportProgress> p, double frac, CancellationToken ct)
+    {
+        return SaveBatchesAsync(db, db.SdeNames, Rows(), SettingsText.ImportStageNames, -1, p, frac, frac, ct,
+            emptyIsNormal: true);
+
+        IEnumerable<SdeName> Rows()
+        {
+            // One row per id and language, which the key insists on — and a list-shaped file
+            // (the old attribute categories) could name an id twice.
+            var seen = new HashSet<long>();
+            foreach (var (id, name) in names)
+            {
+                if (name is null || !seen.Add(id)) continue;
+                foreach (var (lang, text) in name.Translations())
+                    yield return new SdeName { Kind = kind, Id = id, Lang = lang, Name = text };
+            }
+        }
+    }
+
+    /// <summary>
+    /// What this import stored in SdeNames, by language and by kind, as the log line says it.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Throws only when cancelled. It reports; it is not part of what makes the import succeed,
+    /// and a count that failed must not roll back an import that did not.
+    /// </remarks>
+    private static async Task<(string Summary, string? ByKind, IReadOnlyDictionary<string, int>? ByLanguage)> CountNamesAsync(
+        AppDbContext db, CancellationToken ct)
+    {
+        try
+        {
+            var byLang = await db.SdeNames.AsNoTracking()
+                .GroupBy(n => n.Lang)
+                .Select(g => new { Lang = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Lang, x => x.Count, ct);
+            var byKind = await db.SdeNames.AsNoTracking()
+                .GroupBy(n => n.Kind)
+                .Select(g => new { Kind = g.Key, Count = g.Count() })
+                .ToListAsync(ct);
+
+            // Every language named, a missing one as 0: an absent language is the finding.
+            static string N(int n) => n.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+            var languages = string.Join(" · ", SdeNames.OtherLanguages.Select(l => $"{l} {N(byLang.GetValueOrDefault(l))}"));
+
+            return ($"Names stored in the client's other languages: {languages} — {N(byLang.Values.Sum())} in all. "
+                    + "Only a name that differs from the English is stored; a language at 0 is one this SDE did not carry.",
+                    "By kind: " + string.Join(" · ", byKind.OrderBy(k => k.Kind).Select(k => $"{k.Kind} {N(k.Count)}")),
+                    byLang);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            return (AppErrorLogger.Line("Names stored in the client's other languages could not be counted", ex), null, null);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -1756,13 +1901,135 @@ public class SdeImportService
     // YAML DTOs — property names match SDE YAML keys exactly (case-sensitive)
     // -----------------------------------------------------------------------
 
-    private class LocalizedString { public string? en { get; set; } }
+    /// <summary>
+    /// Localised TEXT — a description, a tooltip — of which only the English is kept. The SDE writes
+    /// every language (de, en, es, fr, ja, ko, ru, zh); the other seven are read past, not held, so
+    /// fifty thousand type descriptions are not in memory eight times over.
+    /// </summary>
+    private sealed class LocalizedString { public string? en { get; set; } }
 
-    private class CategoryYaml { public LocalizedString? name { get; set; } public bool published { get; set; } public int? iconID { get; set; } }
+    /// <summary>
+    /// A localised NAME, in every language the SDE writes — the English for the entity's own Name
+    /// column, the other seven for SdeNames.
+    /// </summary>
+    private sealed class LocalizedName
+    {
+        public string? de { get; set; }
+        public string? en { get; set; }
+        public string? es { get; set; }
+        public string? fr { get; set; }
+        public string? ja { get; set; }
+        public string? ko { get; set; }
+        public string? ru { get; set; }
+        public string? zh { get; set; }
+
+        /// <summary>Sets one language by the SDE's key; a key it does not know is ignored.</summary>
+        public void Set(string lang, string value)
+        {
+            switch (lang)
+            {
+                case "de": de = value; break;
+                case "en": en = value; break;
+                case "es": es = value; break;
+                case "fr": fr = value; break;
+                case "ja": ja = value; break;
+                case "ko": ko = value; break;
+                case "ru": ru = value; break;
+                case "zh": zh = value; break;
+            }
+        }
+
+        private string? Get(string lang) => lang switch
+        {
+            "de" => de, "es" => es, "fr" => fr, "ja" => ja, "ko" => ko, "ru" => ru, "zh" => zh,
+            _    => null,
+        };
+
+        /// <summary>
+        /// The other languages worth a row: present, and different from the English. A name the
+        /// same in every language — most ship hulls in the European ones — stores nothing.
+        /// </summary>
+        public IEnumerable<(string Lang, string Name)> Translations()
+        {
+            var english = en?.Trim() ?? "";
+            foreach (var lang in SdeNames.OtherLanguages)
+            {
+                var name = Get(lang)?.Trim();
+                if (string.IsNullOrEmpty(name) || string.Equals(name, english, StringComparison.Ordinal)) continue;
+                yield return (lang, name);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads <see cref="LocalizedString"/> and <see cref="LocalizedName"/> from either shape the
+    /// SDE has used: a mapping of language to text (the current SDE), or a plain string (older ones,
+    /// read as the English).
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Instead of YamlDotNet's own mapping of a class, which THROWS on a plain string — and one
+    /// throw fails the whole file, and with it the import, which is then rolled back. A field that
+    /// changed shape between SDE releases (displayName did) would cost every table, not one column.
+    /// Accepting both is also what lets a DTO offer the old key and the new one side by side and
+    /// take whichever the file has.
+    /// </remarks>
+    private sealed class LocalizedTextConverter : IYamlTypeConverter
+    {
+        public bool Accepts(Type type) => type == typeof(LocalizedString) || type == typeof(LocalizedName);
+
+        public object? ReadYaml(IParser parser, Type type)
+        {
+            var isName = type == typeof(LocalizedName);
+
+            if (parser.TryConsume<Scalar>(out var scalar))
+            {
+                if (IsNull(scalar)) return null;
+                return isName ? new LocalizedName { en = scalar.Value } : new LocalizedString { en = scalar.Value };
+            }
+
+            // Neither a string nor a mapping: not text at all. Stepped over rather than failing the file.
+            if (!parser.TryConsume<MappingStart>(out _))
+            {
+                parser.SkipThisAndNestedEvents();
+                return null;
+            }
+
+            var name = isName ? new LocalizedName() : null;
+            var text = isName ? null : new LocalizedString();
+            while (!parser.TryConsume<MappingEnd>(out _))
+            {
+                if (!parser.TryConsume<Scalar>(out var key))
+                {
+                    parser.SkipThisAndNestedEvents();   // the key
+                    parser.SkipThisAndNestedEvents();   // its value
+                    continue;
+                }
+                if (!parser.TryConsume<Scalar>(out var value))
+                {
+                    parser.SkipThisAndNestedEvents();
+                    continue;
+                }
+                if (IsNull(value)) continue;
+
+                if (name is not null) name.Set(key.Value, value.Value);
+                else if (key.Value == "en") text!.en = value.Value;
+            }
+            return (object?)name ?? text;
+        }
+
+        public void WriteYaml(IEmitter emitter, object? value, Type type) =>
+            throw new NotSupportedException("The SDE import only reads YAML.");
+
+        /// <summary>YAML's null: <c>~</c>, <c>null</c> or nothing at all, unquoted.</summary>
+        private static bool IsNull(Scalar s) =>
+            s.Style == ScalarStyle.Plain && s.Value is "" or "~" or "null" or "Null" or "NULL";
+    }
+
+    private class CategoryYaml { public LocalizedName? name { get; set; } public bool published { get; set; } public int? iconID { get; set; } }
     private class GroupYaml
     {
         public int              categoryID  { get; set; }
-        public LocalizedString? name        { get; set; }
+        public LocalizedName?   name        { get; set; }
         public bool             published   { get; set; }
         public bool             anchorable  { get; set; }
         public bool             anchored    { get; set; }
@@ -1773,8 +2040,8 @@ public class SdeImportService
 
     private class MarketGroupYaml
     {
-        public LocalizedString? name          { get; set; }
-        public LocalizedString? nameID        { get; set; }
+        public LocalizedName?   name          { get; set; }
+        public LocalizedName?   nameID        { get; set; }
         public LocalizedString? description   { get; set; }
         public LocalizedString? descriptionID { get; set; }
         public int?             parentGroupID { get; set; }
@@ -1785,8 +2052,8 @@ public class SdeImportService
     private class TypeYaml
     {
         public int              groupID       { get; set; }
-        public LocalizedString? name          { get; set; }
-        public LocalizedString? nameID        { get; set; }
+        public LocalizedName?   name          { get; set; }
+        public LocalizedName?   nameID        { get; set; }
         public LocalizedString? description   { get; set; }
         public LocalizedString? descriptionID { get; set; }
         public double           volume        { get; set; }
@@ -1815,11 +2082,11 @@ public class SdeImportService
     private class DogmaAttributeYaml
     {
         public string?          name                { get; set; }
-        // New SDE: displayName is a localized string {en: ...}
-        // Old SDE: displayName was a plain scalar string
-        // YamlDotNet will give null when scalar→LocalizedString; fallback to name covers that.
-        public LocalizedString? displayName         { get; set; }
-        public LocalizedString? displayNameID       { get; set; }
+        // New SDE: displayName is a localised mapping {de: ..., en: ..., …}
+        // Old SDE: displayName was a plain scalar string — which LocalizedTextConverter reads as
+        // the English, where YamlDotNet on its own would have thrown.
+        public LocalizedName?   displayName         { get; set; }
+        public LocalizedName?   displayNameID       { get; set; }
         // New SDE uses attributeCategoryID; old SDE used categoryID
         public int?             attributeCategoryID { get; set; }
         public int?             categoryID          { get; set; }
@@ -1827,11 +2094,17 @@ public class SdeImportService
         public bool             highIsGood          { get; set; }
         public bool             stackable           { get; set; }
         public int?             unitID              { get; set; }
-        public string?          description         { get; set; }
+        // A plain string so far; read through the converter all the same, so that the day CCP
+        // localises it costs nothing rather than the whole file.
+        public LocalizedString? description         { get; set; }
         public int?             iconID              { get; set; }
         public int?             minAttributeID      { get; set; }
         public int?             maxAttributeID      { get; set; }
+        // Both spellings, and the import takes whichever is there: the current SDE writes the
+        // plain keys, and only the ...ID ones were read — so every tooltip came out empty.
+        public LocalizedString? tooltipTitle         { get; set; }
         public LocalizedString? tooltipTitleID       { get; set; }
+        public LocalizedString? tooltipDescription   { get; set; }
         public LocalizedString? tooltipDescriptionID { get; set; }
         public int?             dataType            { get; set; }
         public bool             displayWhenZero     { get; set; }
@@ -1842,8 +2115,10 @@ public class SdeImportService
     private class DogmaAttrCategoryYaml
     {
         public int?             categoryID { get; set; }
-        public string?          name       { get; set; }
-        public LocalizedString? nameID     { get; set; }
+        // A plain string in the files seen so far, which the converter reads as the English; a
+        // localised mapping reads as well, with its other languages.
+        public LocalizedName?   name       { get; set; }
+        public LocalizedName?   nameID     { get; set; }
     }
 
     private class DogmaEffectYaml
@@ -1852,7 +2127,11 @@ public class SdeImportService
         public string?          name          { get; set; }
         // Old SDE: "effectName" field
         public string?          effectName    { get; set; }
-        public LocalizedString? displayNameID { get; set; }
+        // Both spellings of each, as for the attributes' tooltips: only the ...ID keys were read,
+        // so every Description came out empty and every DisplayName fell back to the internal name.
+        public LocalizedName?   displayName   { get; set; }
+        public LocalizedName?   displayNameID { get; set; }
+        public LocalizedString? description   { get; set; }
         public LocalizedString? descriptionID { get; set; }
         public bool             isOffensive   { get; set; }
         public bool             isAssistance  { get; set; }
@@ -1950,14 +2229,14 @@ public class SdeImportService
         public LocalizedString? description     { get; set; }
         public int?             nebulaID        { get; set; }
         public int?             wormholeClassID { get; set; }
-        public LocalizedString? name      { get; set; }
+        public LocalizedName?   name      { get; set; }
         public int?             factionID { get; set; }
         public PositionYaml?    position  { get; set; }
     }
     private class MapConstellationYaml
     {
         public int?             wormholeClassID { get; set; }
-        public LocalizedString? name      { get; set; }
+        public LocalizedName?   name      { get; set; }
         public int              regionID  { get; set; }
         public int?             factionID { get; set; }
         public PositionYaml?    position  { get; set; }
@@ -1979,7 +2258,7 @@ public class SdeImportService
         public double           luminosity      { get; set; }
         public string?          visualEffect    { get; set; }
         public int?             starID          { get; set; }
-        public LocalizedString? name           { get; set; }
+        public LocalizedName?   name           { get; set; }
         public int              constellationID { get; set; }
         public int              regionID        { get; set; }
         public double           securityStatus  { get; set; }
@@ -2047,6 +2326,7 @@ public class SdeImportService
             await db.SaveChangesAsync(ct);
             db.ChangeTracker.Clear();
             Report(p, SettingsText.ImportStageStationServices, string.Format(SettingsText.SdeServicesCount, raw.Count), 0.892);
+            await SaveNamesAsync(db, SdeNameKind.StationService, raw.Select(kv => ((long)kv.Key, kv.Value.serviceName)), p, 0.892, ct);
         }
         else Report(p, SettingsText.ImportStageStationServices, NotFoundSkipped("stationServices.yaml"), 0.892);
 
@@ -2085,9 +2365,10 @@ public class SdeImportService
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
         Report(p, SettingsText.ImportStageStationOperations, string.Format(SettingsText.SdeOperationsCount, ops.Count), 0.895);
+        await SaveNamesAsync(db, SdeNameKind.StationOperation, ops.Select(kv => ((long)kv.Key, kv.Value.operationName)), p, 0.895, ct);
     }
 
-    private class StationServiceYaml   { public LocalizedString? serviceName   { get; set; } }
+    private class StationServiceYaml   { public LocalizedName? serviceName   { get; set; } }
     private class StationOperationYaml
     {
         public int?             activityID          { get; set; }
@@ -2099,7 +2380,7 @@ public class SdeImportService
         public double           corridor            { get; set; }
         public double           fringe              { get; set; }
         public double           hub                 { get; set; }
-        public LocalizedString? operationName { get; set; }
+        public LocalizedName?   operationName { get; set; }
         public List<int>?       services      { get; set; }
     }
 
@@ -2122,8 +2403,8 @@ public class SdeImportService
 
     private class FactionYaml
     {
-        public LocalizedString? name                 { get; set; }
-        public LocalizedString? nameID               { get; set; }
+        public LocalizedName?   name                 { get; set; }
+        public LocalizedName?   nameID               { get; set; }
         public LocalizedString? description          { get; set; }
         public LocalizedString? descriptionID        { get; set; }
         public int?             corporationID        { get; set; }
@@ -2144,7 +2425,7 @@ public class SdeImportService
 
     private class NpcCorpYaml
     {
-        public LocalizedString? name        { get; set; }
+        public LocalizedName?   name        { get; set; }
         public LocalizedString? description { get; set; }
         public int?             factionID   { get; set; }
         public int?             stationID   { get; set; }
@@ -2167,14 +2448,14 @@ public class SdeImportService
     }
     private class RaceYaml
     {
-        public LocalizedString? name        { get; set; }
+        public LocalizedName?   name        { get; set; }
         public LocalizedString? description { get; set; }
         public int?             iconID      { get; set; }
         public int?             shipTypeID  { get; set; }
     }
     private class MetaGroupYaml
     {
-        public LocalizedString? name        { get; set; }
+        public LocalizedName?   name        { get; set; }
         public LocalizedString? description { get; set; }
         public int?             iconID      { get; set; }
         public string?          iconSuffix  { get; set; }
@@ -2192,9 +2473,9 @@ public class SdeImportService
     private class CertificateYaml
     {
         public int              groupID     { get; set; }
-        // New SDE uses localized string {en: ...}; old SDE used plain scalar
-        // YamlDotNet gives null on scalar→LocalizedString mismatch; acceptable since we use the new SDE URL
-        public LocalizedString? name        { get; set; }
+        // New SDE uses a localised mapping {de: ..., en: ..., …}; old SDE used a plain scalar,
+        // which LocalizedTextConverter reads as the English.
+        public LocalizedName?   name        { get; set; }
         public LocalizedString? description { get; set; }
     }
 
@@ -2212,8 +2493,8 @@ public class SdeImportService
     {
         public int                                    cycleTime { get; set; }
         // New SDE uses "name" (localized); old used "nameID" (localized)
-        public LocalizedString?                       name      { get; set; }
-        public LocalizedString?                       nameID    { get; set; }
+        public LocalizedName?                         name      { get; set; }
+        public LocalizedName?                         nameID    { get; set; }
         public Dictionary<int, PiSchematicTypeYaml>? types     { get; set; }
     }
     private class PiSchematicTypeYaml
@@ -2226,7 +2507,7 @@ public class SdeImportService
     private class DogmaUnitYaml
     {
         public string?          name        { get; set; }
-        public LocalizedString? displayName { get; set; }
+        public LocalizedName?   displayName { get; set; }
     }
 
     private class IconYaml

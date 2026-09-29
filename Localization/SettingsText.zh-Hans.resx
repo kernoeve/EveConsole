@@ -2275,6 +2275,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="SdeImportCompleteWarnings" xml:space="preserve">
     <value>SDE 导入完成——有 {0} 个表值得查看，请参阅“错误日志”。</value>
   </data>
+  <data name="SdeImportNamesByLanguage" xml:space="preserve">
+    <value>已存储游戏其他语言的名称：{0}。</value>
+  </data>
   <data name="SdeUpdateRequired" xml:space="preserve">
     <value>⚠ 需要更新应用——{0}</value>
   </data>
@@ -2889,6 +2892,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="SdeParsedTypes" xml:space="preserve">
     <value>已从 YAML 解析 {0:N0} 个类型——正在保存…</value>
+  </data>
+  <data name="ImportStageNames" xml:space="preserve">
+    <value>译名</value>
   </data>
   <data name="ImportStageAttrCategories" xml:space="preserve">
     <value>属性类别</value>

@@ -2987,6 +2987,10 @@ The application will restart.</value>
     <value>SDE import complete — {0} table(s) worth a look, see the Error Log.</value>
     <comment>SDE import status. {0} is the number of tables; Errors is the name of the error log view.</comment>
   </data>
+  <data name="SdeImportNamesByLanguage" xml:space="preserve">
+    <value>Names stored in the game's other languages: {0}.</value>
+    <comment>SDE import status, a second line under the result. {0} is a list of the game client's other languages, each in its own name with a count, e.g. "Deutsch 12,345, 中文 23,456". Only names that differ from the English are stored, so a 0 means the SDE did not include that language.</comment>
+  </data>
   <data name="SdeUpdateRequired" xml:space="preserve">
     <value>⚠ Update required — {0}</value>
     <comment>SDE / Hoboleaks import status: this version of the app cannot read the new data. {0} is the reason, in English.</comment>
@@ -3806,6 +3810,10 @@ The application will restart.</value>
   <data name="SdeParsedTypes" xml:space="preserve">
     <value>Parsed {0:N0} types from YAML — saving…</value>
     <comment>Settings → SDE import progress detail. {0} is the number of item types read. YAML is a file format.</comment>
+  </data>
+  <data name="ImportStageNames" xml:space="preserve">
+    <value>Translated Names</value>
+    <comment>Settings → SDE import progress, stage: the names of items, groups, places and NPCs in the game's other languages, stored after each part that has them.</comment>
   </data>
   <data name="ImportStageAttrCategories" xml:space="preserve">
     <value>Attr Categories</value>

@@ -145,9 +145,10 @@ public sealed class AgentService : ReactiveObject
         // ── The interface language ───────────────────────────────────────────
         //
         // Empty in English, so the English prompt — and the cached prefix built on it — is
-        // exactly what it was. ⚠️ Names stay as the database has them: the SDE import keeps
-        // English only, and a name the model translated itself would be its guess at what the
-        // game's own translation says, not the name the capsuleer sees in game.
+        // exactly what it was. ⚠️ Names stay as the database's Name columns have them, which is
+        // English: the game's own translations (SdeNames) are for the screens, and every tool
+        // matches on the English. A name the model translated itself would be its guess at what
+        // the game's own translation says, not the name the capsuleer sees in game.
         var language = EveConsole.Localization.Languages.Active is { Code: not "en" } lang
             ? "\n\n## Language\n" +
               $"The capsuleer's EVE Console is in {lang.EnglishName} ({lang.NativeName}). Reply in that " +

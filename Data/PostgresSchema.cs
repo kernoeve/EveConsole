@@ -293,6 +293,20 @@ public static class PostgresSchema
         )
         """,
 
+        // The SDE's names in the client's other languages, for display; the English stays in every
+        // Name column. See SdeName. The key columns carry no default, as in the other tables made
+        // here: no build older than this one writes to the table, and a row without its key is a
+        // bug to be refused, not filled in. Mirrored for SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeNames" (
+            "Kind" INTEGER NOT NULL,
+            "Id"   BIGINT  NOT NULL,
+            "Lang" TEXT    NOT NULL,
+            "Name" TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeNames" PRIMARY KEY ("Kind", "Id", "Lang")
+        )
+        """,
+
         // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
         // figure, which is 115,000 against 10,000 for a Vexor.
         """

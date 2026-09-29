@@ -290,9 +290,10 @@ public class SdeViewModel : ReactiveObject
 
             // A clean import says so. One that landed but looks odd says that instead, because
             // "complete" over a table that came back empty is how a silent failure stays silent.
-            StatusText      = warnings.Count == 0
+            StatusText      = (warnings.Count == 0
                 ? SettingsText.SdeImportComplete
-                : string.Format(SettingsText.SdeImportCompleteWarnings, warnings.Count);
+                : string.Format(SettingsText.SdeImportCompleteWarnings, warnings.Count))
+                + NamesStored(_sde.LastNamesByLanguage);
             Fraction        = 1;
             UpdateAvailable = false;
             await LoadStoredBuildAsync();
@@ -324,6 +325,20 @@ public class SdeViewModel : ReactiveObject
             _cts.Dispose();
             _cts = null;
         }
+    }
+
+    /// <summary>
+    /// The names each of the game's other languages brought, on a line under the result: the one
+    /// place a language the SDE did not carry shows, as a 0. Each language in its own name, which
+    /// its readers know whatever language this screen is in. Nothing when the count failed; the
+    /// Error Log says why.
+    /// </summary>
+    private static string NamesStored(IReadOnlyDictionary<string, int>? byLanguage)
+    {
+        if (byLanguage is null) return "";
+        var list = string.Join(CommonText.ListSeparator, SdeNames.OtherLanguages.Select(code =>
+            $"{System.Globalization.CultureInfo.GetCultureInfo(code).NativeName} {byLanguage.GetValueOrDefault(code):N0}"));
+        return "\n" + string.Format(SettingsText.SdeImportNamesByLanguage, list);
     }
 
     // ── Hoboleaks import ──────────────────────────────────────────────────

@@ -580,3 +580,61 @@ public class SdeSkinLicense
     public int SkinId        { get; set; }
     public int Duration      { get; set; }
 }
+
+/// <summary>
+/// Which SDE entity an <see cref="SdeName"/> row names — and so which table its Id is a key of.
+///
+/// <para>⚠️ Stored as its number. Never renumber or reuse a value: a database written by one build
+/// is read by every other build pointed at it. A new kind takes the next free number. Zero is
+/// deliberately not a kind.</para>
+/// </summary>
+public enum SdeNameKind
+{
+    Type                   = 1,   // SdeTypes.Name
+    Group                  = 2,   // SdeGroups.Name
+    Category               = 3,   // SdeCategories.Name
+    MarketGroup            = 4,   // SdeMarketGroups.Name
+    MetaGroup              = 5,   // SdeMetaGroups.Name
+    DogmaAttribute         = 6,   // SdeDogmaAttributes.DisplayName — the display name, not Name
+    DogmaUnit              = 7,   // SdeDogmaUnits.DisplayName
+    DogmaAttributeCategory = 8,   // SdeDogmaAttributeCategories.Name
+    DogmaEffect            = 9,   // SdeDogmaEffects.DisplayName
+    Region                 = 10,  // SdeRegions.Name
+    Constellation          = 11,  // SdeConstellations.Name
+    SolarSystem            = 12,  // SdeSolarSystems.Name
+    Faction                = 13,  // SdeFactions.Name
+    NpcCorporation         = 14,  // SdeNpcCorporations.Name
+    NpcCorporationDivision = 15,  // SdeCorpDivisions.Name
+    Agent                  = 16,  // SdeAgents.Name
+    Race                   = 17,  // SdeRaces.Name
+    Certificate            = 18,  // SdeCertificates.Name
+    PlanetSchematic        = 19,  // SdePlanetSchematics.Name
+    StationService         = 20,  // SdeStationServices.Name
+    StationOperation       = 21,  // SdeStationOperations.Name
+}
+
+/// <summary>
+/// An SDE name in one of the game client's other languages.
+///
+/// <para>⚠️ A side table, and the English stays where it was. Every Name and DisplayName column
+/// keeps the English, because everything that MATCHES on a name reads those — the agent, parsers,
+/// saved alarm configs, search, outgoing mail and Slack. These rows are for display only, read
+/// through <c>EveConsole.Localization.SdeNames</c>, which falls back to the English column.</para>
+///
+/// <para>All seven other languages are stored whatever language anybody's interface is in: several
+/// clients can share one PostgreSQL database, each in its own language, so the choice is made when
+/// reading. Only a name that differs from the English is stored — a ship called the same in every
+/// language costs no rows.</para>
+/// </summary>
+public class SdeName
+{
+    public SdeNameKind Kind { get; set; }
+
+    /// <summary>The entity's id in the table <see cref="Kind"/> names.</summary>
+    public long        Id   { get; set; }
+
+    /// <summary>The SDE's own language key: de, es, fr, ja, ko, ru or zh. Never en.</summary>
+    public string      Lang { get; set; } = "";
+
+    public string      Name { get; set; } = "";
+}

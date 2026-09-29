@@ -1905,10 +1905,17 @@ public class ItemBrowserViewModel : ReactiveObject
 
             if (ct.IsCancellationRequested) return;
 
+            // The header's name in the interface language — the reference pattern for SDE names
+            // on screen; see Localization/SdeNames.cs. Display only: nothing reads this Name back,
+            // TypeId is what the rest of the screen keys on, and search goes on matching the English
+            // column. Awaited first so the header does not show English and then never change: at
+            // once in English, and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var vm = new ItemDisplayVm
             {
                 TypeId           = typeId,
-                Name             = type.Name,
+                Name             = SdeNames.Type(typeId, type.Name),
                 Description      = _tagRegex.Replace(type.Description, ""),
                 GroupPath        = groupPath,
                 VolumeText       = type.Volume > 0 ? $"{type.Volume:N2} m³" : "",
