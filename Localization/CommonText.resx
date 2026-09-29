@@ -360,6 +360,10 @@
     <value>, </value>
     <comment>Between the items of a list joined in code ("3 missing, 2 outbid"). A comma and a space in English; your language's list separator.</comment>
   </data>
+  <data name="ClauseSeparator" xml:space="preserve">
+    <value>, </value>
+    <comment>Joins two clauses of one sentence that the app builds from pieces, e.g. Worklist details: "short 5, 3 on order". Not for lists of names (ListSeparator). Include the space after it where your language puts one — the value may end in a space.</comment>
+  </data>
   <data name="DateMonthDay" xml:space="preserve">
     <value>MMM d</value>
     <comment>Chart axes and short dates, e.g. Sep 28. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>

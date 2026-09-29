@@ -252,7 +252,7 @@ public class WorklistService(
     /// </summary>
     private static string Listed(string upToThree, string withMore, IReadOnlyList<WorklistWaitingJob> jobs)
     {
-        var names = string.Join(", ", jobs.Take(3).Select(j => SdeNames.Type(j.TypeId, j.TypeName)));
+        var names = string.Join(CommonText.ListSeparator, jobs.Take(3).Select(j => SdeNames.Type(j.TypeId, j.TypeName)));
         return jobs.Count > 3
             ? string.Format(withMore, jobs.Count, names, jobs.Count - 3)
             : string.Format(upToThree, jobs.Count, names);

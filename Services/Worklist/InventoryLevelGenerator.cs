@@ -165,8 +165,8 @@ public class InventoryLevelGenerator(
                     // "Here" and "elsewhere" kept apart so the detail says where the incoming
                     // material actually is; both count the same against the shortfall.
                     var away  = ordered - onOrder;
-                    var order = (onOrder > 0 ? ", " + string.Format(WorklistText.OnOrderHere, onOrder) : "")
-                              + (away    > 0 ? ", " + string.Format(WorklistText.OnOrderElsewhere, away) : "")
+                    var order = (onOrder > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.OnOrderHere, onOrder) : "")
+                              + (away    > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.OnOrderElsewhere, away) : "")
                               + held.Note;
                     var fill  = need.FillText(rule);
 
@@ -284,8 +284,8 @@ public class InventoryLevelGenerator(
             if (total <= 0) continue;
 
             // A clause of the detail's list, so it opens with the list's own comma.
-            var named = string.Join(", ", from.Take(3));
-            result[typeId] = (total, ", " + (from.Count > 3
+            var named = string.Join(CommonText.ListSeparator, from.Take(3));
+            result[typeId] = (total, CommonText.ClauseSeparator + (from.Count > 3
                 ? string.Format(WorklistText.RecoverableFromMore, total, named, from.Count - 3)
                 : string.Format(WorklistText.RecoverableFrom, total, named)));
         }

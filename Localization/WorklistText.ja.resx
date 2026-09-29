@@ -1,0 +1,2158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabWorklist" xml:space="preserve">
+    <value>ワークリスト</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>ワークリスト</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="ReadyNow" xml:space="preserve">
+    <value>今すぐ実行可能</value>
+  </data>
+  <data name="TipIncludeWorkThatCannot" xml:space="preserve">
+    <value>まだ開始できない作業も、その理由とともに含めます。</value>
+  </data>
+  <data name="TipIncludeItemsHiddenBy" xml:space="preserve">
+    <value>スヌーズボタンで非表示にした項目（スヌーズが切れるまで非表示）も含めます。</value>
+  </data>
+  <data name="HintState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="TipReadyBlockedOrWaiting" xml:space="preserve">
+    <value>実行可能、ブロック中、待機中</value>
+  </data>
+  <data name="HintType" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="TipBuyHaulJobAndThe" xml:space="preserve">
+    <value>購入、運搬、ジョブなど</value>
+  </data>
+  <data name="HintSearchTask" xml:space="preserve">
+    <value>タスクを検索…</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="HintSource" xml:space="preserve">
+    <value>移動元</value>
+  </data>
+  <data name="HintDestination" xml:space="preserve">
+    <value>移動先</value>
+  </data>
+  <data name="HintSearchNote" xml:space="preserve">
+    <value>詳細を検索…</value>
+  </data>
+  <data name="TipSearchesTheDetailThe" xml:space="preserve">
+    <value>詳細、ブロックの理由、スヌーズの行をまとめて検索します — 行の情報マーカーの中身すべてが対象です。</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="TipShowWhatThisTask" xml:space="preserve">
+    <value>このタスクで運ぶものと、このタスクを待っているものを表示します</value>
+  </data>
+  <data name="WaitingOnThisLabel" xml:space="preserve">
+    <value>このタスクを待っているもの</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ManifestLabel" xml:space="preserve">
+    <value>マニフェスト</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>タスク</value>
+  </data>
+  <data name="TipOpenThisItem" xml:space="preserve">
+    <value>このアイテムを開きます</value>
+  </data>
+  <data name="TipMaterialAndTimeEfficiency" xml:space="preserve">
+    <value>このジョブで使うブループリントの資源効率と時間効率</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>このステーションまたはストラクチャを開きます</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="ColPrio" xml:space="preserve">
+    <value>優先度</value>
+  </data>
+  <data name="ColFin" xml:space="preserve">
+    <value>最終</value>
+  </data>
+  <data name="ColBlkd" xml:space="preserve">
+    <value>ブロック</value>
+  </data>
+  <data name="ColCover" xml:space="preserve">
+    <value>充足</value>
+  </data>
+  <data name="ColSeq" xml:space="preserve">
+    <value>順序</value>
+  </data>
+  <data name="ColFrees" xml:space="preserve">
+    <value>解放数</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="Snooze" xml:space="preserve">
+    <value>スヌーズ</value>
+  </data>
+  <data name="TipHideThisItemFor8" xml:space="preserve">
+    <value>この項目を8時間非表示にします</value>
+  </data>
+  <data name="TabStationNeeds" xml:space="preserve">
+    <value>ステーションの必要量</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>ステーションの必要量</value>
+  </data>
+  <data name="ColWhy" xml:space="preserve">
+    <value>理由</value>
+  </data>
+  <data name="TipWhatIsAskingForThis" xml:space="preserve">
+    <value>これを必要としているもの</value>
+  </data>
+  <data name="AskedForByLabel" xml:space="preserve">
+    <value>要求元</value>
+  </data>
+  <data name="TipNothingItemisedThisNeed" xml:space="preserve">
+    <value>この必要量の内訳はありません</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>所持数</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>不足</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>不足分の金額</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>不足分の体積</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>注文のジョブ</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="ColInventoryLevels" xml:space="preserve">
+    <value>在庫レベル</value>
+  </data>
+  <data name="ColStationLevels" xml:space="preserve">
+    <value>ステーション在庫レベル</value>
+  </data>
+  <data name="TabItemNeeds" xml:space="preserve">
+    <value>アイテムの必要量</value>
+  </data>
+  <data name="ItemNeeds" xml:space="preserve">
+    <value>アイテムの必要量</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>製造中</value>
+  </data>
+  <data name="TabBottlenecks" xml:space="preserve">
+    <value>ボトルネック</value>
+  </data>
+  <data name="Bottlenecks" xml:space="preserve">
+    <value>ボトルネック</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="WhatToDoInNote" xml:space="preserve">
+    <value>やるべきことを、取り組む価値の高い順に並べています。すべてのタブを通して、それぞれが止めている作業の量で順位を付けています。裏付けとなる数値は各タブにあります。</value>
+  </data>
+  <data name="TipOpenThisItemIn" xml:space="preserve">
+    <value>このアイテムをアイテムブラウザで開きます</value>
+  </data>
+  <data name="NothingIsHoldingTheNote" xml:space="preserve">
+    <value>パイプラインを止めているものはありません：目立ったキューのあるプールはなく、作業を待たせているブループリントもなく、資源の不足も、配送待ちもありません。</value>
+  </data>
+  <data name="TabSlots" xml:space="preserve">
+    <value>スロット</value>
+  </data>
+  <data name="SlotsLabel" xml:space="preserve">
+    <value>スロット</value>
+  </data>
+  <data name="SlotsAreBandwidthNotNote" xml:space="preserve">
+    <value>スロットは処理能力であり、買い物リストではありません。キューは処理量が需要を下回っている間にたまった作業なので、各対策は、遅れを取り戻すのに必要な時間をどれだけ変えるかで評価します。速度は過去90日間のジョブ履歴から算出しているため、使用中のストラクチャとスキルがすでに反映されています。</value>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>容量</value>
+  </data>
+  <data name="InUse" xml:space="preserve">
+    <value>使用中</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>空き</value>
+  </data>
+  <data name="WaitingOnASlot" xml:space="preserve">
+    <value>スロット待ち</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>ブロック中</value>
+  </data>
+  <data name="DaysToCatchUp" xml:space="preserve">
+    <value>解消までの日数</value>
+  </data>
+  <data name="TabItemContention" xml:space="preserve">
+    <value>アイテムの競合</value>
+  </data>
+  <data name="MaterialsLabel" xml:space="preserve">
+    <value>資源</value>
+  </data>
+  <data name="MaterialsThePipelineRunsNote" xml:space="preserve">
+    <value>パイプラインで不足する資源です — 誰も所有していないものであり、別のステーションにあるだけのもの（それは運搬の問題で、別の場所で扱います）ではありません。それぞれが止めている作業の量で順位を付けています。列見出しにカーソルを合わせると意味が表示されます。⚠ ここでの速度はすべて下限値です：作れなかったものは消費もされていないため、作業をブロックしていたアイテムは、本来必要だった速度ではなく、ブロックが許した速度で使われたことになります。</value>
+  </data>
+  <data name="TipShowTheTasksBehindThese" xml:space="preserve">
+    <value>これらの数の元になっているタスクを表示します</value>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>資源</value>
+  </data>
+  <data name="TipTheItemThatRan" xml:space="preserve">
+    <value>不足したアイテムです。クリックするとアイテムブラウザが開きます。</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>消費</value>
+  </data>
+  <data name="TipConsumedPerDayOver" xml:space="preserve">
+    <value>過去90日間の1日あたりの消費量で、それを消費するすべてのブループリントの合計です。4つの親に使われるアイテムは、4倍不足することになります。</value>
+  </data>
+  <data name="Made" xml:space="preserve">
+    <value>生産</value>
+  </data>
+  <data name="TipProducedPerDayOver" xml:space="preserve">
+    <value>同じ期間の1日あたりの生産量です。ダッシュは、ここではまったく生産されていないことを意味し、補充するには購入するしかありません。</value>
+  </data>
+  <data name="Balance" xml:space="preserve">
+    <value>バランス</value>
+  </data>
+  <data name="TipMadePerUnitConsumed" xml:space="preserve">
+    <value>消費1単位あたりの生産量です。1.00未満なら、どれほど在庫が多く見えても減り続けており、どんな大きさのバッファーでも持ちこたえられません。需要が急増している間は赤ではなく琥珀色で表示します。まさにそれを吸収するのがバッファーの役目だからです。</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>在庫レベル</value>
+  </data>
+  <data name="TipWhatTheInventoryLevels" xml:space="preserve">
+    <value>在庫レベルで保持するよう指定されている数量です。空欄は在庫レベルがまったく設定されていないことを意味し、それ自体が一つの発見です。</value>
+  </data>
+  <data name="OnHand" xml:space="preserve">
+    <value>所持数</value>
+  </data>
+  <data name="TipUnitsTheIndustryScope" xml:space="preserve">
+    <value>インダストリーの対象範囲から実際に使える数量です。範囲外の在庫は計画で使えないため、数えません。</value>
+  </data>
+  <data name="Need" xml:space="preserve">
+    <value>必要数</value>
+  </data>
+  <data name="TipWhatTheWorkOn" xml:space="preserve">
+    <value>リスト上の作業が必要とする数量です：ここにある数量と不足した数量の合計。存在する数量を超えると赤で表示します。これは在庫レベルを完全に満たしていても起こり得ます。</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>在庫日数</value>
+  </data>
+  <data name="TipTheLevelMeasuredIn" xml:space="preserve">
+    <value>在庫レベルを、現在の消費ペースでの日数で表したものです。バッファーは数量ではなく時間の長さです：1日に2個消費するものが200個あれば100日分、1日に200個消費するものが200個なら1日分です。</value>
+  </data>
+  <data name="Surge" xml:space="preserve">
+    <value>急増</value>
+  </data>
+  <data name="TipHowMuchHarderThis" xml:space="preserve">
+    <value>期間全体と比べて、現在どれだけ多く消費されているかです。1.2倍未満は空欄です。これで一時的な製造の波と慢性的な不足を区別します。</value>
+  </data>
+  <data name="Blocking" xml:space="preserve">
+    <value>ブロック数</value>
+  </data>
+  <data name="TipTasksThisShortageIs" xml:space="preserve">
+    <value>この不足が止めているタスクです：直接不足しているタスクに加え、それらが作るはずだったものが足りずに止まっているタスクなど、チェーンの上流までを含みます。アイテムの種類ではなく、タスクの数です。</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>実行中</value>
+  </data>
+  <data name="TipJobsMakingThisItem" xml:space="preserve">
+    <value>このアイテムを作るジョブのうち、現在ゲーム内でインストールされ実行中のものです。タスクではないため、リスト上で要求されることはありません。</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>実行可能</value>
+  </data>
+  <data name="TipTasksToMakeThis" xml:space="preserve">
+    <value>このアイテムを作るタスクのうち、今日開始できるものです。</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>待機中</value>
+  </data>
+  <data name="TipTasksToMakeThis2" xml:space="preserve">
+    <value>このアイテムを作るタスクのうち、スロットが埋まっていることだけが原因で止まっているものです。</value>
+  </data>
+  <data name="Stuck" xml:space="preserve">
+    <value>停滞</value>
+  </data>
+  <data name="TipTasksToMakeThis3" xml:space="preserve">
+    <value>このアイテムを作るタスクのうち、それ自体がブロックされているものです。実行中や実行可能なものも1つもない場合は赤で表示します。それは自然には解消しない状態です。</value>
+  </data>
+  <data name="Verdict" xml:space="preserve">
+    <value>判定</value>
+  </data>
+  <data name="TipWhatTheRowAmounts" xml:space="preserve">
+    <value>この行が意味することを、ひとことで表したものです。</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>提案</value>
+  </data>
+  <data name="TipWhatIsHappeningAnd" xml:space="preserve">
+    <value>何が起きていて、何をすれば変わるかを、どこを見るべきかを示す代わりに、この行の数値を使って説明します。</value>
+  </data>
+  <data name="TabBpoFormula" xml:space="preserve">
+    <value>BPO・フォーミュラ</value>
+  </data>
+  <data name="BlueprintsLabel" xml:space="preserve">
+    <value>ブループリント</value>
+  </data>
+  <data name="ABlueprintBottleneckIsNote" xml:space="preserve">
+    <value>ブループリントのボトルネックとは、オリジナルが空くのを「待たなければならない」ことであり、1つを頻繁に使うことではありません。使用率で順位を付けると、問題より解決策が上に来てしまいます：8つのオリジナルでフル稼働しているフォーミュラは何もブロックしたことがなく、それを解決したのは8つ目の購入なのです。「全稼働」が5%以上のもの（BPOが1つだけのアイテムでは15%以上。この場合、指標は単なる使用率と同じになります）を表示します。列見出しにカーソルを合わせると意味が表示されます。</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>製品</value>
+  </data>
+  <data name="TipWhatThisBlueprintOr" xml:space="preserve">
+    <value>このブループリントまたはフォーミュラで作るものです。クリックするとアイテムブラウザが開きます。</value>
+  </data>
+  <data name="Cycle" xml:space="preserve">
+    <value>サイクル</value>
+  </data>
+  <data name="TipHowLongOneRun" xml:space="preserve">
+    <value>1回の実行にかかる時間で、ブループリントの値ではなく、実際に実行したジョブの平均です。</value>
+  </data>
+  <data name="TipOriginalsOwnedCopiesAre" xml:space="preserve">
+    <value>「所有している」オリジナルの数です。コピーは意図的に数えていません：競合とは、自分のオリジナルが空いていたかどうかの問題だからです。</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>インストール済み</value>
+  </data>
+  <data name="TipHowManyOfThose" xml:space="preserve">
+    <value>それらのオリジナルのうち、現在ジョブに入っている数です。</value>
+  </data>
+  <data name="Ceiling" xml:space="preserve">
+    <value>上限</value>
+  </data>
+  <data name="TipUnitsADayThe" xml:space="preserve">
+    <value>手元のオリジナルを休みなく稼働させた場合に、合わせて1日に生産できる数量です。</value>
+  </data>
+  <data name="TipUnitsADayActually" xml:space="preserve">
+    <value>過去90日間に実際に生産された1日あたりの数量です。上限を超えることはないため、需要の測定には使えません。</value>
+  </data>
+  <data name="TipShareOfEachOriginals" xml:space="preserve">
+    <value>各オリジナルがジョブに入っていた時間の割合です。参考情報にすぎません：ボトルネックを特定するものではなく、これで順位を付けると、実際の制約より多用されているものが上に来てしまいます。</value>
+  </data>
+  <data name="AllBusy" xml:space="preserve">
+    <value>全稼働</value>
+  </data>
+  <data name="TipShareOfTheLast" xml:space="preserve">
+    <value>過去90日間のうち、「すべての」オリジナルが同時に使用中だった時間の割合です。製造に加え、研究とコピーも数えます。もう1つジョブを実行したいときに待つ必要があったかどうかを示すのがこの数値です。</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>順位</value>
+  </data>
+  <data name="TipWhereThisSitsAmong" xml:space="preserve">
+    <value>自分のすべてのブループリントの中での位置です。ここでは固定のしきい値を使わないため、フラグは自分のブループリント全体の分布に対して付けられます。</value>
+  </data>
+  <data name="TipTheSameAllBusy" xml:space="preserve">
+    <value>同じ「全稼働」の値を過去30日間で計算したものです。これにより、忙しい1か月が落ち着いた3か月の中に埋もれません。</value>
+  </data>
+  <data name="Trend" xml:space="preserve">
+    <value>傾向</value>
+  </data>
+  <data name="TipWhetherTheRecentSqueeze" xml:space="preserve">
+    <value>最近の逼迫が、期間全体と比べて強まっているか、和らいでいるか、横ばいかを示します。</value>
+  </data>
+  <data name="N1Print" xml:space="preserve">
+    <value>オリジナル+1</value>
+  </data>
+  <data name="TipWhatTheCeilingBecomes" xml:space="preserve">
+    <value>オリジナルがもう1つあった場合の上限です。1つ購入する価値があるかどうかの答えになります。</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>キュー</value>
+  </data>
+  <data name="TipJobsForThisProduct" xml:space="preserve">
+    <value>現在ワークリストにあるこの製品のジョブです。履歴からはわからない、現在の需要です。</value>
+  </data>
+  <data name="BlockedNow" xml:space="preserve">
+    <value>現在ブロック中</value>
+  </data>
+  <data name="TipJobsHeldUpBy" xml:space="preserve">
+    <value>ブループリント「だけ」が原因で止まっているジョブです。その製品の資源も不足している場合、オリジナルを増やしても何も変わらないため、0として数えます。</value>
+  </data>
+  <data name="TipTasksWaitingOnWhat" xml:space="preserve">
+    <value>これが作るものを待っているタスクです：直接待っているものと、チェーンの上流でその後ろに待っているもの。ブループリント自体にまったく競合がなくても、その生産物の後ろにキューがたまっていることがあります。</value>
+  </data>
+  <data name="TipWhatTheRowAmounts2" xml:space="preserve">
+    <value>この行が意味することを、ひとことで表したものです。</value>
+  </data>
+  <data name="TipWhatIsHappeningAnd2" xml:space="preserve">
+    <value>何が起きていて、何をすれば変わるか。</value>
+  </data>
+  <data name="TabHauling" xml:space="preserve">
+    <value>運搬</value>
+  </data>
+  <data name="TripsLabel" xml:space="preserve">
+    <value>便</value>
+  </data>
+  <data name="JobsStoppedForWantNote" xml:space="preserve">
+    <value>すでに所有しているが別の場所にある資源が足りずに止まっているジョブです — 「アイテムの競合」のもう半分で、解決策は購入ではなく運搬です。どの行も、資源が届いた瞬間に実行できるジョブです。列見出しにカーソルを合わせると意味が表示されます。</value>
+  </data>
+  <data name="OneTripSeveralJobsLabel" xml:space="preserve">
+    <value>1便で複数のジョブ</value>
+  </data>
+  <data name="Job" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="TipTheStoppedJobIt" xml:space="preserve">
+    <value>止まっているジョブです。不足しているのはすでに所有している資源だけなので、その資源が届けばすぐに実行されます。</value>
+  </data>
+  <data name="TipOpenWhatThisJobMakes" xml:space="preserve">
+    <value>このジョブで作るものを開きます</value>
+  </data>
+  <data name="WaitingAt" xml:space="preserve">
+    <value>待機場所</value>
+  </data>
+  <data name="TipWhereTheJobWould" xml:space="preserve">
+    <value>ジョブを実行する場所、つまり資源を届ける必要がある場所です。</value>
+  </data>
+  <data name="TipOpenThisStation" xml:space="preserve">
+    <value>このステーションを開きます</value>
+  </data>
+  <data name="TipJobsStoppedBehindThis" xml:space="preserve">
+    <value>このジョブの後ろで止まっているジョブです：このジョブが作るはずだったものが足りないジョブと、チェーンの上流でさらにその後ろにあるジョブ。このジョブを実行できれば、再び動き出すものです。</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="TipDistinctItemTypesThis" xml:space="preserve">
+    <value>このジョブが待っているアイテムの種類数です。</value>
+  </data>
+  <data name="TipCubicMetresThisJob" xml:space="preserve">
+    <value>このジョブで不足している体積（m³）です。計画する前に便の規模を見積もれます。</value>
+  </data>
+  <data name="Stops" xml:space="preserve">
+    <value>立ち寄り</value>
+  </data>
+  <data name="TipStopsAHaulerWould" xml:space="preserve">
+    <value>不足分をまかなうために運搬者が立ち寄る必要のある場所の数です（保管量の多い場所から順に数えます）。アイテムを保管しているハンガーの数では「ありません」：トリタニウムが13か所のハンガーにあっても、1か所でジョブに足りることがあります。</value>
+  </data>
+  <data name="Hauls" xml:space="preserve">
+    <value>運搬</value>
+  </data>
+  <data name="TipHaulsAlreadyOnThe" xml:space="preserve">
+    <value>このジョブに不足している資源のいずれかを運んでくる、すでにワークリストにある運搬タスクです。空欄こそが問題点です：資源は存在し、ジョブは止まっているのに、それを運んでいるものがありません。</value>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>最終製品</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>完了日</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>開始 yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>終了 yyyy-MM-dd</value>
+  </data>
+  <data name="ValueAt" xml:space="preserve">
+    <value>評価基準</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>グラフの単位</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>ステータス</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>製造コスト</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>マーケット価値</value>
+  </data>
+  <data name="ColPotentialProfit" xml:space="preserve">
+    <value>見込み利益</value>
+  </data>
+  <data name="ColPotential" xml:space="preserve">
+    <value>見込み利益率</value>
+  </data>
+  <data name="MarketValue" xml:space="preserve">
+    <value>マーケット価値</value>
+  </data>
+  <data name="PotentialProfit" xml:space="preserve">
+    <value>見込み利益</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="TabSources" xml:space="preserve">
+    <value>ソース</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>ソース</value>
+  </data>
+  <data name="ASourceThatIsNote" xml:space="preserve">
+    <value>オフにしたソースは完全にスキップされます — 実行して結果を捨てるのではなく、クエリを一切実行しません。</value>
+  </data>
+  <data name="StandingBuyOrdersWhatTo" xml:space="preserve">
+    <value>常設の買い注文 — タスクにする条件</value>
+  </data>
+  <data name="WhichConditionsBecomeTasksNote" xml:space="preserve">
+    <value>どの条件をタスクにするかです。それぞれ別の作業なので、個別に切り替えられます。</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="WhereShortfallsAreBoughtNote" xml:space="preserve">
+    <value>不足分をどこで購入するか、各ステーションの注文をどのキャラクターが管理するかを設定します。アイテムはここを経由するため、サブキャラクターが割り当てられていないステーションでは、担当者のいないブロック中の項目が生じます。</value>
+  </data>
+  <data name="BuyShortfallsAt" xml:space="preserve">
+    <value>不足分の購入場所</value>
+  </data>
+  <data name="HintTradeHub" xml:space="preserve">
+    <value>トレードハブ…</value>
+  </data>
+  <data name="TipWherePurchasesAreRaised" xml:space="preserve">
+    <value>購入をどこで行い、誰のマーケット用サブキャラクターに割り当てるかです。ブループリントは割り当てられません — BPOやBPCはマーケットの注文ではなく契約で入手するためです。</value>
+  </data>
+  <data name="StationOrStructure" xml:space="preserve">
+    <value>ステーションまたはストラクチャ</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>メモ</value>
+  </data>
+  <data name="HintStationOrStructure" xml:space="preserve">
+    <value>ステーションまたはストラクチャ…</value>
+  </data>
+  <data name="HintCharacter2" xml:space="preserve">
+    <value>キャラクター…</value>
+  </data>
+  <data name="HintOptional" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>メモ</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TabInventoryRules" xml:space="preserve">
+    <value>在庫ルール</value>
+  </data>
+  <data name="WhenAGroupDropsNote" xml:space="preserve">
+    <value>グループがしきい値を下回ったときに、そのステーションに買い注文を出すためのルールです。1つのグループに複数のルールを設定でき（100%未満ならその場で注文し、75%未満ならハブでも注文する、など）、ルールは互いに置き換わるのではなく積み重なります。注文を出すのは、そのステーションのマーケット用サブキャラクターです。</value>
+  </data>
+  <data name="InventoryGroup" xml:space="preserve">
+    <value>在庫グループ</value>
+  </data>
+  <data name="Site" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>アクション</value>
+  </data>
+  <data name="TriggerBelow" xml:space="preserve">
+    <value>発動しきい値（%）</value>
+  </data>
+  <data name="FillUpTo" xml:space="preserve">
+    <value>補充目標（%）</value>
+  </data>
+  <data name="HintPickAGroup" xml:space="preserve">
+    <value>グループを選択…</value>
+  </data>
+  <data name="HintTypeTwoCharacters" xml:space="preserve">
+    <value>2文字入力…</value>
+  </data>
+  <data name="DecidedByTheIndyNote" xml:space="preserve">
+    <value>「その他」タブのインディパークで決まります</value>
+  </data>
+  <data name="TipBuyPlacesAMarket" xml:space="preserve">
+    <value>「購入」は不足分のマーケット注文を出し、「製造」は不足分のジョブを開始します</value>
+  </data>
+  <data name="TipRaiseATaskWhen" xml:space="preserve">
+    <value>在庫がグループの目標数量のこの割合を下回ったらタスクを作成します</value>
+  </data>
+  <data name="TipFillBackUpTo" xml:space="preserve">
+    <value>グループの目標数量のこの割合まで補充します</value>
+  </data>
+  <data name="AddRule" xml:space="preserve">
+    <value>ルールを追加</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="ColAction" xml:space="preserve">
+    <value>アクション</value>
+  </data>
+  <data name="ColTriggerBelow" xml:space="preserve">
+    <value>発動しきい値（%）</value>
+  </data>
+  <data name="ColFillTo" xml:space="preserve">
+    <value>補充目標（%）</value>
+  </data>
+  <data name="ColFinal" xml:space="preserve">
+    <value>最終製品</value>
+  </data>
+  <data name="TipThisGroupIsSold" xml:space="preserve">
+    <value>このグループは販売するか自分で使うもので、材料ではありません。これのブロックを解除する作業は、バッファーを補充するだけの作業より上位になります。</value>
+  </data>
+  <data name="TipDoubleClickToChangeThe" xml:space="preserve">
+    <value>ダブルクリックでステーションを変更します</value>
+  </data>
+  <data name="TabStationLevels" xml:space="preserve">
+    <value>ステーション在庫レベル</value>
+  </data>
+  <data name="WhereEachGroupsStockNote" xml:space="preserve">
+    <value>各グループの在庫をどこに置くべきかを設定します。これは資源を追加で要求するのではなく配分するもので（数量は「在庫ルール」ですでに設定されています）、作成するのは運搬タスクだけで、購入や製造は作成しません。他で必要とされていない余剰在庫を集めるステーションには「余剰を受け入れる」にチェックを入れてください。</value>
+  </data>
+  <data name="HintGroup" xml:space="preserve">
+    <value>グループ…</value>
+  </data>
+  <data name="HintNeedNotBeInThe" xml:space="preserve">
+    <value>パーク外でもかまいません…</value>
+  </data>
+  <data name="AcceptsSurplus" xml:space="preserve">
+    <value>余剰を受け入れる</value>
+  </data>
+  <data name="TipSpareStockOfThis" xml:space="preserve">
+    <value>どのステーションにも必要とされていないとき、このグループの余剰在庫はここに集められます。</value>
+  </data>
+  <data name="RestockWhenBelowLevelBy" xml:space="preserve">
+    <value>在庫レベルを下回ったら補充（%）</value>
+  </data>
+  <data name="TipAStationIsLeft" xml:space="preserve">
+    <value>ステーションは在庫レベルをこの割合だけ下回るまで放置され、下回ると完全に補充されます。0にすると、わずかな不足でも補充します。</value>
+  </data>
+  <data name="SweepSurplusWhenAboveLevel" xml:space="preserve">
+    <value>在庫レベルを上回ったら余剰を回収（%）</value>
+  </data>
+  <data name="TipExcessIsLeftWhere" xml:space="preserve">
+    <value>ステーションが在庫レベルをこの割合だけ上回るまで超過分はそのままにし、上回るとレベルまで減らします。0にすると、わずかな超過でも回収します。</value>
+  </data>
+  <data name="ColInventoryGroup" xml:space="preserve">
+    <value>在庫グループ</value>
+  </data>
+  <data name="ColAcceptsSurplus" xml:space="preserve">
+    <value>余剰の受け入れ</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="WhereIndustryWorkIsNote" xml:space="preserve">
+    <value>生産作業を計画する場所、その資源を数える場所、不足分を購入する場所を設定します。</value>
+  </data>
+  <data name="Industry" xml:space="preserve">
+    <value>インダストリー</value>
+  </data>
+  <data name="PlanAgainstPark" xml:space="preserve">
+    <value>計画に使うパーク</value>
+  </data>
+  <data name="MaxJobLengthManufacturing" xml:space="preserve">
+    <value>ジョブの最大期間 — 製造</value>
+  </data>
+  <data name="Reactions" xml:space="preserve">
+    <value>反応</value>
+  </data>
+  <data name="Science" xml:space="preserve">
+    <value>科学</value>
+  </data>
+  <data name="TipDefaultFollowsWhicheverPark" xml:space="preserve">
+    <value>&lt;既定&gt;は、作業を計画するたびに「インディパーク」で星印の付いたパークを使います — 星印を移すと、計画もそれに合わせて移ります。</value>
+  </data>
+  <data name="TipDaysAShortfallNeeding" xml:space="preserve">
+    <value>日数です。これより長くかかる不足分は複数のジョブに分割され、別々のスロットやキャラクターで実行できます。空欄にすると無制限です — その場合はブループリント自体の実行回数の上限だけが適用されます。</value>
+  </data>
+  <data name="TipDaysReactionsAreSet" xml:space="preserve">
+    <value>日数です。反応は通常、より短いサイクルで連続して実行するため、製造とは別に設定します。</value>
+  </data>
+  <data name="TipDaysCoveringCopyingAnd" xml:space="preserve">
+    <value>日数で、コピーと発明が対象です。これにより、複数回実行の発明バッチを1つにするか2つに分けるかが決まります：バッチは終了するまで何も生み出さず、主力艦のブループリントでは1回の試行だけで約8日かかるため、製造と同じくらいの上限にすると、ジョブごとに1回しか試行できず、そのたびに科学スロットを1つ使うことになります。</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="AssetScope" xml:space="preserve">
+    <value>資産の対象範囲</value>
+  </data>
+  <data name="CountMaterial" xml:space="preserve">
+    <value>資源を数える範囲</value>
+  </data>
+  <data name="RegionSystem" xml:space="preserve">
+    <value>リージョン・システム</value>
+  </data>
+  <data name="TipHowFarToLook" xml:space="preserve">
+    <value>ジョブに何かが不足しているかを判断するときに、どこまで探すかです。この範囲外の在庫は所有していないものとして扱われるため、運搬ではなく購入のタスクが作成されます。</value>
+  </data>
+  <data name="IncludeNonPersonalCorpAssets" xml:space="preserve">
+    <value>個人コーポ以外のコーポの資産を含める</value>
+  </data>
+  <data name="TipOffByDefaultOnly" xml:space="preserve">
+    <value>既定ではオフです。「コーポレーション」タブで個人として設定したコーポレーションだけが資源として数えられます — そうしないと、大規模なアライアンスのコーポに所属するキャラクターを認証しただけで、そのコーポのハンガー全体（あなたのものは一つもありません）がツールに渡されてしまいます。</value>
+  </data>
+  <data name="AlsoCountTheseStations" xml:space="preserve">
+    <value>次のステーションも数える</value>
+  </data>
+  <data name="HintJitaAmarr" xml:space="preserve">
+    <value>ジタ、アマー…</value>
+  </data>
+  <data name="TipTradeHubsYouImport" xml:space="preserve">
+    <value>輸入に使うトレードハブです。これらのいずれかに置いてある在庫は所持している在庫なので、二重に購入タスクを作成しません。</value>
+  </data>
+  <data name="TipClickToRemoveFromThe" xml:space="preserve">
+    <value>クリックすると対象範囲から外します</value>
+  </data>
+  <data name="CorpProjects" xml:space="preserve">
+    <value>コーポのプロジェクト</value>
+  </data>
+  <data name="StandingProjectsAreDefinedNote" xml:space="preserve">
+    <value>常設プロジェクトは「コーポの活動」で定義します。ワークリストに必要なのは、誰がそれを管理するかだけです。プロジェクトはコーポレーションに属するため、ステーションではなくコーポレーションごとに割り当てます。実際に常設プロジェクトがあるコーポレーションだけが表示されます。</value>
+  </data>
+  <data name="Corporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="MaintainedBy" xml:space="preserve">
+    <value>管理者</value>
+  </data>
+  <data name="HintPickACorporation" xml:space="preserve">
+    <value>コーポレーションを選択…</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ColRecent30d" xml:space="preserve">
+    <value>30日</value>
+  </data>
+  <data name="KindBuy" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="KindHaul" xml:space="preserve">
+    <value>運搬</value>
+  </data>
+  <data name="KindRefine" xml:space="preserve">
+    <value>再処理</value>
+  </data>
+  <data name="KindDecompress" xml:space="preserve">
+    <value>減圧</value>
+  </data>
+  <data name="KindJob" xml:space="preserve">
+    <value>ジョブ</value>
+  </data>
+  <data name="KindAssetSafety" xml:space="preserve">
+    <value>アセットセーフティ</value>
+  </data>
+  <data name="KindSkillQueue" xml:space="preserve">
+    <value>スキルキュー</value>
+  </data>
+  <data name="KindCorpProject" xml:space="preserve">
+    <value>コーポのプロジェクト</value>
+  </data>
+  <data name="KindTipRefine" xml:space="preserve">
+    <value>鉱石の再処理</value>
+  </data>
+  <data name="KindTipDecompress" xml:space="preserve">
+    <value>ガスの減圧</value>
+  </data>
+  <data name="KindTipManufacturing" xml:space="preserve">
+    <value>製造ジョブ</value>
+  </data>
+  <data name="KindTipReaction" xml:space="preserve">
+    <value>反応ジョブ</value>
+  </data>
+  <data name="KindTipScience" xml:space="preserve">
+    <value>科学ジョブ — コピーまたは発明</value>
+  </data>
+  <data name="KindTipIndustry" xml:space="preserve">
+    <value>生産ジョブ</value>
+  </data>
+  <data name="KindTipCorpProject" xml:space="preserve">
+    <value>コーポのプロジェクト</value>
+  </data>
+  <data name="KindTipAssetSafety" xml:space="preserve">
+    <value>アセットセーフティ</value>
+  </data>
+  <data name="KindTipSkillQueue" xml:space="preserve">
+    <value>スキルキュー</value>
+  </data>
+  <data name="BlueprintMeTe" xml:space="preserve">
+    <value>ME{0} TE{1}</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>実行可能</value>
+  </data>
+  <data name="StateBlocked" xml:space="preserve">
+    <value>ブロック中</value>
+  </data>
+  <data name="StateWaiting" xml:space="preserve">
+    <value>待機中</value>
+  </data>
+  <data name="DataAge" xml:space="preserve">
+    <value>データ：{0}</value>
+  </data>
+  <data name="SnoozedUntil" xml:space="preserve">
+    <value>{0:M月d日 HH:mm}までスヌーズ中</value>
+  </data>
+  <data name="AgoJustNow" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0}分前</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0}時間前</value>
+  </data>
+  <data name="AgoDays" xml:space="preserve">
+    <value>{0}日前</value>
+  </data>
+  <data name="PoolManufacturing" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="PoolReaction" xml:space="preserve">
+    <value>反応</value>
+  </data>
+  <data name="PoolScience" xml:space="preserve">
+    <value>科学</value>
+  </data>
+  <data name="SlotsQueued" xml:space="preserve">
+    <value>キューにジョブ{0:N0}件 — {2:N0}スロットで処理するには{1:N0}日かかります（これらのスロットは1日あたり{3:N1}件のジョブを完了しています）。</value>
+  </data>
+  <data name="SlotsNothingQueued" xml:space="preserve">
+    <value>このプールの後ろにキューはありません。{1:N0}スロット中{0:N0}スロットが空いています。</value>
+  </data>
+  <data name="SlotsNoCharacterManufacturing" xml:space="preserve">
+    <value>製造ジョブを実行するよう設定されたキャラクターがいません。</value>
+  </data>
+  <data name="SlotsNoCharacterReaction" xml:space="preserve">
+    <value>反応ジョブを実行するよう設定されたキャラクターがいません。</value>
+  </data>
+  <data name="SlotsNoCharacterScience" xml:space="preserve">
+    <value>科学ジョブを実行するよう設定されたキャラクターがいません。</value>
+  </data>
+  <data name="DaysN0" xml:space="preserve">
+    <value>{0:N0}日</value>
+  </data>
+  <data name="PerDayN1" xml:space="preserve">
+    <value>{0:N1}/日</value>
+  </data>
+  <data name="DaysN1" xml:space="preserve">
+    <value>{0:N1}日</value>
+  </data>
+  <data name="HoursN1" xml:space="preserve">
+    <value>{0:N1}時間</value>
+  </data>
+  <data name="StateRunning" xml:space="preserve">
+    <value>実行中</value>
+  </data>
+  <data name="RoleTrip" xml:space="preserve">
+    <value>運搬便</value>
+  </data>
+  <data name="RoleNeeds" xml:space="preserve">
+    <value>必要</value>
+  </data>
+  <data name="RoleUsesIt" xml:space="preserve">
+    <value>使用</value>
+  </data>
+  <data name="RoleMakesIt" xml:space="preserve">
+    <value>生産</value>
+  </data>
+  <data name="RoleNeedsIt" xml:space="preserve">
+    <value>直接不足</value>
+  </data>
+  <data name="RoleBehind" xml:space="preserve">
+    <value>後続（{0}）</value>
+  </data>
+  <data name="ContentionVerdictBuyNow" xml:space="preserve">
+    <value>今すぐ購入</value>
+  </data>
+  <data name="ContentionVerdictOnOrder" xml:space="preserve">
+    <value>注文済み</value>
+  </data>
+  <data name="ContentionVerdictBufferSpent" xml:space="preserve">
+    <value>バッファー切れ</value>
+  </data>
+  <data name="ContentionVerdictBlocked" xml:space="preserve">
+    <value>ブロック中</value>
+  </data>
+  <data name="ContentionVerdictLevelTooLow" xml:space="preserve">
+    <value>レベル不足</value>
+  </data>
+  <data name="ContentionVerdictNoBuffer" xml:space="preserve">
+    <value>バッファーなし</value>
+  </data>
+  <data name="ContentionVerdictNotTheShelf" xml:space="preserve">
+    <value>在庫以外が原因</value>
+  </data>
+  <data name="ContentionVerdictMakingTooFew" xml:space="preserve">
+    <value>生産不足</value>
+  </data>
+  <data name="ContentionVerdictBuy" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="ContentionVerdictBufferThin" xml:space="preserve">
+    <value>バッファー僅少</value>
+  </data>
+  <data name="ContentionVerdictNoLevelSet" xml:space="preserve">
+    <value>レベル未設定</value>
+  </data>
+  <data name="ContentionVerdictWave" xml:space="preserve">
+    <value>需要の波</value>
+  </data>
+  <data name="ContentionVerdictHolding" xml:space="preserve">
+    <value>安定</value>
+  </data>
+  <data name="FindingStartHere" xml:space="preserve">
+    <value>ここから開始</value>
+  </data>
+  <data name="FindingSlots" xml:space="preserve">
+    <value>スロット</value>
+  </data>
+  <data name="FindingBlueprints" xml:space="preserve">
+    <value>ブループリント</value>
+  </data>
+  <data name="FindingFormulas" xml:space="preserve">
+    <value>フォーミュラ</value>
+  </data>
+  <data name="FindingBuying" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="FindingBuffers" xml:space="preserve">
+    <value>バッファー</value>
+  </data>
+  <data name="FindingHauling" xml:space="preserve">
+    <value>運搬</value>
+  </data>
+  <data name="LocationWithId" xml:space="preserve">
+    <value>場所{0}</value>
+  </data>
+  <data name="HaulingVerdictNothingMoving" xml:space="preserve">
+    <value>運搬なし</value>
+  </data>
+  <data name="HaulingVerdictSeveralStops" xml:space="preserve">
+    <value>複数の立ち寄り</value>
+  </data>
+  <data name="HaulingVerdictHaulRaised" xml:space="preserve">
+    <value>運搬タスクあり</value>
+  </data>
+  <data name="PerDayN2" xml:space="preserve">
+    <value>{0:N2}/日</value>
+  </data>
+  <data name="RankTopPercent" xml:space="preserve">
+    <value>上位{0:N0}%</value>
+  </data>
+  <data name="BlueprintVerdictBlocking" xml:space="preserve">
+    <value>阻害中</value>
+  </data>
+  <data name="BlueprintVerdictSteady" xml:space="preserve">
+    <value>恒常的</value>
+  </data>
+  <data name="BlueprintVerdictContended" xml:space="preserve">
+    <value>競合</value>
+  </data>
+  <data name="BlueprintVerdictBlocked" xml:space="preserve">
+    <value>ブロック中</value>
+  </data>
+  <data name="BlueprintVerdictSurge" xml:space="preserve">
+    <value>急増</value>
+  </data>
+  <data name="BlueprintVerdictBuilding" xml:space="preserve">
+    <value>ジョブ待ち</value>
+  </data>
+  <data name="BlueprintVerdictMinor" xml:space="preserve">
+    <value>軽微</value>
+  </data>
+  <data name="BlueprintTrendRising" xml:space="preserve">
+    <value>上昇</value>
+  </data>
+  <data name="BlueprintTrendEasing" xml:space="preserve">
+    <value>緩和</value>
+  </data>
+  <data name="BlueprintTrendSteady" xml:space="preserve">
+    <value>横ばい</value>
+  </data>
+  <data name="StatusNotLoadedYet" xml:space="preserve">
+    <value>まだ読み込まれていません。</value>
+  </data>
+  <data name="BottlenecksWorklistEmpty" xml:space="preserve">
+    <value>ワークリストが空です — 先にワークリストを生成すると、ここで分析できるようになります。</value>
+  </data>
+  <data name="BottlenecksNone" xml:space="preserve">
+    <value>ボトルネックはありません：スロット待ちの作業があるプールはなく、すべてのオリジナルが使用中になって何かを待たせるほどのブループリントもありません。{0}</value>
+  </data>
+  <data name="BottlenecksSummaryCrossed" xml:space="preserve">
+    <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。⚠ ブループリント{4}件のオリジナルがすべて使用中なのに、スロットは{3:N0}個空いています — ここでの制約はスロットではなくオリジナルです。{5}</value>
+  </data>
+  <data name="BottlenecksSummary" xml:space="preserve">
+    <value>スロット待ちの作業があるプール{0}件、確認すべきブループリント{1}件、生産より速く消費されている資源{2}件。{3}</value>
+  </data>
+  <data name="NeedsNotLoaded" xml:space="preserve">
+    <value>このタブを開くと、各ステーションが必要としているものを算出します。</value>
+  </data>
+  <data name="NeedsNoLogistics" xml:space="preserve">
+    <value>「ロジスティクス」ソースを利用できません。</value>
+  </data>
+  <data name="NeedsNothingWanted" xml:space="preserve">
+    <value>どこにも必要なものはありません — 資源を要求している製造ルール、注文、ステーション在庫レベルはありません。</value>
+  </data>
+  <data name="NeedsSummary" xml:space="preserve">
+    <value>{1}か所のステーションで必要量{0:N0}件、うち不足{2:N0}件。不足の大きい順です。これは要求であってタスクではありません — 小さな不足はステーション在庫レベルの不感帯に収まり、運搬タスクが作成されないことがあります。</value>
+  </data>
+  <data name="NeedsError" xml:space="preserve">
+    <value>ステーションの必要量を算出できませんでした：{0}</value>
+  </data>
+  <data name="BottlenecksError" xml:space="preserve">
+    <value>ボトルネックを読み取れませんでした：{0}</value>
+  </data>
+  <data name="SourceIncludeTip" xml:space="preserve">
+    <value>このソースをワークリストに含めます。</value>
+  </data>
+  <data name="SourceCustomerOrders" xml:space="preserve">
+    <value>顧客の注文</value>
+  </data>
+  <data name="SourceCustomerOrdersTip" xml:space="preserve">
+    <value>「注文管理」の未処理の注文を、製造済みまたは製造中のものと差し引きして計画します。「その他」タブで設定したパークと、「マーケット」タブで設定した購入場所を使います。</value>
+  </data>
+  <data name="ConditionMissing" xml:space="preserve">
+    <value>注文なし</value>
+  </data>
+  <data name="ConditionMissingTip" xml:space="preserve">
+    <value>ステーションに有効な買い注文がない常設の注文です。</value>
+  </data>
+  <data name="ConditionOutbid" xml:space="preserve">
+    <value>価格で上回られた</value>
+  </data>
+  <data name="ConditionOutbidTip" xml:space="preserve">
+    <value>他の誰かがより高い価格を提示しているため、注文で何も買えていません。</value>
+  </data>
+  <data name="ConditionRunningLow" xml:space="preserve">
+    <value>残りわずか</value>
+  </data>
+  <data name="ConditionRunningLowTip" xml:space="preserve">
+    <value>残りの数量が補充のしきい値を下回りました。</value>
+  </data>
+  <data name="ConditionExpiring" xml:space="preserve">
+    <value>まもなく期限切れ</value>
+  </data>
+  <data name="ConditionExpiringTip" xml:space="preserve">
+    <value>注文の期間が終わりに近づいています。</value>
+  </data>
+  <data name="ShowNotReady" xml:space="preserve">
+    <value>ブロック中・待機中を表示</value>
+  </data>
+  <data name="ShowSnoozed" xml:space="preserve">
+    <value>スヌーズ中を表示</value>
+  </data>
+  <data name="FilterAny" xml:space="preserve">
+    <value>（すべて）</value>
+  </data>
+  <data name="EmptyListHelp" xml:space="preserve">
+    <value>項目は更新のたびに最新のデータから作り直されます — 作業が終わると項目は消えます。検出はポーリングしたESIのデータに基づくため、各行には元のデータがどれだけ古いかが表示されます。上の集計はフィルターではなく、実行結果全体から数えています。</value>
+  </data>
+  <data name="ChipBuy" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="ChipHaul" xml:space="preserve">
+    <value>運搬</value>
+  </data>
+  <data name="ChipManufacturing" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="ChipReactions" xml:space="preserve">
+    <value>反応</value>
+  </data>
+  <data name="ChipScience" xml:space="preserve">
+    <value>科学</value>
+  </data>
+  <data name="StatusShown" xml:space="preserve">
+    <value>{0:N0}件を表示</value>
+  </data>
+  <data name="StatusNothingReady" xml:space="preserve">
+    <value>実行可能なものはありません{0}。</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>実行可能{0:N0}件{1}</value>
+  </data>
+  <data name="RefreshedAt" xml:space="preserve">
+    <value>{0:HH:mm}に更新</value>
+  </data>
+  <data name="ShowNotReadyCount" xml:space="preserve">
+    <value>ブロック中・待機中を表示（{0:N0}）</value>
+  </data>
+  <data name="ShowSnoozedCount" xml:space="preserve">
+    <value>スヌーズ中を表示（{0:N0}）</value>
+  </data>
+  <data name="HiddenBlocked" xml:space="preserve">
+    <value>ブロック中{0}件</value>
+  </data>
+  <data name="HiddenWaiting" xml:space="preserve">
+    <value>待機中{0}件</value>
+  </data>
+  <data name="HiddenSnoozed" xml:space="preserve">
+    <value>スヌーズ中{0}件</value>
+  </data>
+  <data name="HiddenList" xml:space="preserve">
+    <value>（{0}を非表示）</value>
+  </data>
+  <data name="GroupWithId" xml:space="preserve">
+    <value>グループ{0}</value>
+  </data>
+  <data name="FromPark" xml:space="preserve">
+    <value>— パークから —</value>
+  </data>
+  <data name="BySkill" xml:space="preserve">
+    <value>— スキルで決定 —</value>
+  </data>
+  <data name="RuleActionBuy" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="RuleActionBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="GroupWithIdLower" xml:space="preserve">
+    <value>グループ{0}</value>
+  </data>
+  <data name="NoStationSet" xml:space="preserve">
+    <value>ステーション未設定</value>
+  </data>
+  <data name="AltWarningMore" xml:space="preserve">
+    <value>購入ルール{0}件が、マーケット用サブキャラクターのいないステーションを指しているため、その購入を行うキャラクターがおらず、ブロック中と表示されます：{1}、ほか{2}件。「マーケット」タブでサブキャラクターを割り当てるか、ルールのステーションを選び直してください。</value>
+  </data>
+  <data name="AltWarning" xml:space="preserve">
+    <value>購入ルール{0}件が、マーケット用サブキャラクターのいないステーションを指しているため、その購入を行うキャラクターがおらず、ブロック中と表示されます：{1}。「マーケット」タブでサブキャラクターを割り当てるか、ルールのステーションを選び直してください。</value>
+  </data>
+  <data name="Unassigned" xml:space="preserve">
+    <value>— 未割り当て —</value>
+  </data>
+  <data name="RulesNoGroups" xml:space="preserve">
+    <value>在庫レベルのグループがまだありません — 先に「在庫レベル」で作成してください。</value>
+  </data>
+  <data name="RulesNone" xml:space="preserve">
+    <value>ルールはまだありません。</value>
+  </data>
+  <data name="RulesCount" xml:space="preserve">
+    <value>ルール{0:N0}件</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>保存しました。</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>変更を保存できませんでした：{0}</value>
+  </data>
+  <data name="PickInventoryLevelGroup" xml:space="preserve">
+    <value>在庫レベルのグループを選択してください。</value>
+  </data>
+  <data name="PickStationForBuyOrder" xml:space="preserve">
+    <value>買い注文のステーションまたはストラクチャを選択してください。</value>
+  </data>
+  <data name="ThresholdNotPositive" xml:space="preserve">
+    <value>しきい値は0より大きい数値にしてください。</value>
+  </data>
+  <data name="FillNotPositive" xml:space="preserve">
+    <value>補充目標は0より大きい数値にしてください。</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>反応</value>
+  </data>
+  <data name="ActivityScience" xml:space="preserve">
+    <value>科学</value>
+  </data>
+  <data name="ActivitiesNone" xml:space="preserve">
+    <value>— なし —</value>
+  </data>
+  <data name="ParkDefault" xml:space="preserve">
+    <value>&lt;既定&gt;</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>すべての場所</value>
+  </data>
+  <data name="ScopeRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="ScopeSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="PickScopeStation" xml:space="preserve">
+    <value>対象範囲に追加するステーションを選択してください。</value>
+  </data>
+  <data name="SlotsFreeOfTotal" xml:space="preserve">
+    <value>製造{0}/{1}  ·  反応{2}/{3}  ·  科学{4}/{5}</value>
+  </data>
+  <data name="BuyNoLocation" xml:space="preserve">
+    <value>購入場所が設定されていません。不足はブロックしているジョブ上で引き続き報告されますが、購入タスクを作成する場所がありません。</value>
+  </data>
+  <data name="BuyNoAlt" xml:space="preserve">
+    <value>「マーケット」タブで{0}にマーケット用サブキャラクターが割り当てられていないため、そこでの購入タスクには担当キャラクターがいません。</value>
+  </data>
+  <data name="ParkNoDefault" xml:space="preserve">
+    <value>{0}が選択されていますが、「インディパーク」で既定に設定されたパークがありません。施設とリグはパークで決まるため、そこでパークに星印を付けるか、ここでパークを選ぶまで、生産ジョブは作成されません。</value>
+  </data>
+  <data name="ParkUnlinked" xml:space="preserve">
+    <value>このパークのストラクチャ{0}基が実際の場所にリンクされていません（{1}）。そこにある資源は数えられないため、実際には材料があってもジョブがブロック中と表示されることがあります。</value>
+  </data>
+  <data name="ParkNoStructures" xml:space="preserve">
+    <value>このパークにはストラクチャがありません。資源を確認できるものがありません。</value>
+  </data>
+  <data name="IndustryLoadFailed" xml:space="preserve">
+    <value>インダストリーの設定を読み込めませんでした：{0}</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>日別</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>週別</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>月別</value>
+  </data>
+  <data name="ValuationMarket" xml:space="preserve">
+    <value>マーケット価値</value>
+  </data>
+  <data name="ValuationOverBuild" xml:space="preserve">
+    <value>製造コスト＋%</value>
+  </data>
+  <data name="FinalLoadFailed" xml:space="preserve">
+    <value>読み込めませんでした：{0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="SourceFinalAndOrdered" xml:space="preserve">
+    <value>最終製品 · 注文あり</value>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>最終製品</value>
+  </data>
+  <data name="SourceOrdered" xml:space="preserve">
+    <value>注文あり</value>
+  </data>
+  <data name="FinalNoJobs" xml:space="preserve">
+    <value>この期間のジョブはありません。</value>
+  </data>
+  <data name="FinalSummary" xml:space="preserve">
+    <value>ジョブ{0:N0}件 · 価値{1} · 見込み利益{2}</value>
+  </data>
+  <data name="LevelClash" xml:space="preserve">
+    <value>{0}にはすでに{1}の在庫レベルがあります — その変更は保存されませんでした。</value>
+  </data>
+  <data name="PickInventoryGroup" xml:space="preserve">
+    <value>在庫グループを選択してください。</value>
+  </data>
+  <data name="PickStationOrStructure" xml:space="preserve">
+    <value>ステーションまたはストラクチャを選択してください。</value>
+  </data>
+  <data name="LevelsNone" xml:space="preserve">
+    <value>ステーション在庫レベルはまだありません。設定がない場合、資源はジョブが待っている場所にだけ運ばれます。</value>
+  </data>
+  <data name="LevelsCount" xml:space="preserve">
+    <value>在庫レベル{0:N0}件</value>
+  </data>
+  <data name="CorpWithId" xml:space="preserve">
+    <value>コーポ{0}</value>
+  </data>
+  <data name="CorpProjectsNone" xml:space="preserve">
+    <value>常設プロジェクトはまだ定義されていません — 先に「コーポの活動」で設定してください。</value>
+  </data>
+  <data name="CorpProjectsUnassigned" xml:space="preserve">
+    <value>{1}社のコーポレーションに常設プロジェクト{0:N0}件 · {2}社が未割り当てのため、その項目はブロック中と表示されます</value>
+  </data>
+  <data name="CorpProjectsCount" xml:space="preserve">
+    <value>{1}社のコーポレーションに常設プロジェクト{0:N0}件</value>
+  </data>
+  <data name="PickCorporation" xml:space="preserve">
+    <value>コーポレーションを選択してください。</value>
+  </data>
+  <data name="PickProjectCharacter" xml:space="preserve">
+    <value>プロジェクトを管理するキャラクターを選択してください。</value>
+  </data>
+  <data name="MarketAltsNone" xml:space="preserve">
+    <value>マーケット用サブキャラクターはまだいません。ステーションに割り当てられるまで、どのキャラクターが作業すべきか分からないため、その項目はブロック中と表示されます。</value>
+  </data>
+  <data name="MarketAltsCount" xml:space="preserve">
+    <value>マーケット用サブキャラクター{0:N0}人</value>
+  </data>
+  <data name="PickStationFromList" xml:space="preserve">
+    <value>一覧からステーションまたはストラクチャを選択してください。</value>
+  </data>
+  <data name="PickMarketAltCharacter" xml:space="preserve">
+    <value>そこで作業するキャラクターを選択してください。</value>
+  </data>
+  <data name="TasksOther" xml:space="preserve">
+    <value>タスク{0:N0}件</value>
+  </data>
+  <data name="SourceSkillQueues" xml:space="preserve">
+    <value>スキルキュー</value>
+  </data>
+  <data name="SkillQueueEmpty" xml:space="preserve">
+    <value>スキルキューが空です</value>
+  </data>
+  <data name="SkillQueueEmptyDetail" xml:space="preserve">
+    <value>何もトレーニングしていません。1分ごとに、得られるはずのスキルポイントを失っています。</value>
+  </data>
+  <data name="SkillQueuePaused" xml:space="preserve">
+    <value>スキルキューが一時停止しています</value>
+  </data>
+  <data name="SkillQueuePausedDetail" xml:space="preserve">
+    <value>キューにスキルはありますが、トレーニング中のものはありません。</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}日{1}時間</value>
+  </data>
+  <data name="SkillQueueEndsIn" xml:space="preserve">
+    <value>スキルキューはあと{0}で終了します</value>
+  </data>
+  <data name="SkillQueueEndsDetail" xml:space="preserve">
+    <value>{0:M月d日 HH:mm}に空になります（{1}日前の警告期間内）。</value>
+  </data>
+  <data name="SourceStandingProjects" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="BlockedNoCharacterForCorp" xml:space="preserve">
+    <value>このコーポレーションに割り当てられたキャラクターがいません</value>
+  </data>
+  <data name="ProjectNotActive" xml:space="preserve">
+    <value>この定義に一致する有効なプロジェクトはありません。</value>
+  </data>
+  <data name="ProjectCheckAdm" xml:space="preserve">
+    <value>ADMデータを確認 — {0}：{1}</value>
+  </data>
+  <data name="ProjectCheckAdmDetail" xml:space="preserve">
+    <value>領有権のデータを読み取れなかったため、どのシステムもしきい値と比較できません。これは取得の失敗であり、対象範囲が空なのではありません。</value>
+  </data>
+  <data name="ProjectCheckScope" xml:space="preserve">
+    <value>対象範囲を確認 — {0}：{1}</value>
+  </data>
+  <data name="ProjectCheckScopeDetail" xml:space="preserve">
+    <value>対象範囲を展開してもシステムが1つもないため、何も作成できません。</value>
+  </data>
+  <data name="ProjectNothingToRaise" xml:space="preserve">
+    <value>{0} — {1}で作成するものはありません</value>
+  </data>
+  <data name="ProjectNothingToRaiseDetail" xml:space="preserve">
+    <value>対象範囲のすべてのシステムがしきい値以上のため、今日はルールで選ばれるものがありません。ADMが下がれば自動的に再表示されます。</value>
+  </data>
+  <data name="ProjectDeliverTo" xml:space="preserve">
+    <value>{0} — {1}を{2}へ</value>
+  </data>
+  <data name="ProjectDeliverToAnyOffice" xml:space="preserve">
+    <value>{0} — {1}を任意のコーポのオフィスへ</value>
+  </data>
+  <data name="ProjectNotActiveByRule" xml:space="preserve">
+    <value>この定義に一致する有効なプロジェクトはありません。このシステムはADMルールの条件に該当しているため、ADMが回復すれば自動的にリストから外れます。</value>
+  </data>
+  <data name="ProjectNotActiveNamed" xml:space="preserve">
+    <value>この定義に一致する有効なプロジェクトはありません。このシステムは定義自体で指定されています。</value>
+  </data>
+  <data name="SourceStandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文</value>
+  </data>
+  <data name="BlockedNoCharacterAtLocation" xml:space="preserve">
+    <value>この場所に割り当てられたキャラクターがいません</value>
+  </data>
+  <data name="TitleRaiseBid" xml:space="preserve">
+    <value>{0} — 価格を引き上げる</value>
+  </data>
+  <data name="TitlePlaceOrder" xml:space="preserve">
+    <value>{0} — 注文を出す</value>
+  </data>
+  <data name="TitleTopUpOrder" xml:space="preserve">
+    <value>{0} — 注文を補充する</value>
+  </data>
+  <data name="TitleReplaceOrder" xml:space="preserve">
+    <value>{0} — 注文を出し直す</value>
+  </data>
+  <data name="StandingOutbidBy" xml:space="preserve">
+    <value>{0:N2} ISK差で価格を上回られています — 競合の最高価格{1}。自分の価格：{2}。</value>
+  </data>
+  <data name="StandingOutbid" xml:space="preserve">
+    <value>価格で上回られています — 競合の最高価格{0}。自分の価格：{1}。</value>
+  </data>
+  <data name="StandingNoOrderAt" xml:space="preserve">
+    <value>{0}に注文が見つかりません。</value>
+  </data>
+  <data name="CompetingBidsUnknown" xml:space="preserve">
+    <value>競合の価格は不明です — この場所はマーケットソースとして設定されていません。</value>
+  </data>
+  <data name="StandingRunningLow" xml:space="preserve">
+    <value>残り{0}（元の数量の{1}）。</value>
+  </data>
+  <data name="StandingExpires" xml:space="preserve">
+    <value>期限：{0}。</value>
+  </data>
+  <data name="OutbidDetail" xml:space="preserve">
+    <value>{0}：自分の価格{1:N2} ISKが{2:N2}に上回られています — 差は{3:N2}（{4:N1}%）。まだ{5:N0}個が注文中ですが、必要とされているのに何も買えていません。</value>
+  </data>
+  <data name="WhyShort" xml:space="preserve">
+    <value>{2}が{1:N0}個中{0:N0}個不足</value>
+  </data>
+  <data name="WhyShortOwnedElsewhere" xml:space="preserve">
+    <value>{2}が{1:N0}個中{0:N0}個不足（所有しているが、ジョブの場所にない）</value>
+  </data>
+  <data name="SharedTripRestarts" xml:space="preserve">
+    <value>{0}を{1}へ：{2:N0}個（{3:N0} m3）を1回配送すると、ジョブ{4:N0}件が再開します</value>
+  </data>
+  <data name="SharedTripRestartsBehind" xml:space="preserve">
+    <value>{0}を{1}へ：{2:N0}個（{3:N0} m3）を1回配送すると、ジョブ{4:N0}件とその後ろのタスク{5:N0}件が再開します</value>
+  </data>
+  <data name="SharedTripWanted" xml:space="preserve">
+    <value>{0}を{1}へ：{2:N0}個（{3:N0} m3）の1回の配送をジョブ{4:N0}件が必要としていますが、この配送だけで再開するものはありません</value>
+  </data>
+  <data name="SharedTripOthersShort" xml:space="preserve">
+    <value>ほかに{0:N0}件が必要としていますが、他のものも不足しています</value>
+  </data>
+  <data name="SharedTripRaised" xml:space="preserve">
+    <value>作成済み。</value>
+  </data>
+  <data name="SharedTripNothingMoving" xml:space="preserve">
+    <value>運搬なし。</value>
+  </data>
+  <data name="WaitStartsOnArrival" xml:space="preserve">
+    <value>到着時に開始</value>
+  </data>
+  <data name="WaitWants" xml:space="preserve">
+    <value>{0:N0}個必要</value>
+  </data>
+  <data name="WaitQueuedBehind" xml:space="preserve">
+    <value>別のジョブの後ろで待機中</value>
+  </data>
+  <data name="WaitAlsoShortOther" xml:space="preserve">
+    <value>他に{0:N0}種類のアイテムも不足</value>
+  </data>
+  <data name="WaitTipPlanned" xml:space="preserve">
+    <value>この配送の対象となる製造です。プランナーがこの便を作成した理由であり、まだ独立したタスクに分けられていません。</value>
+  </data>
+  <data name="WaitTipStarts" xml:space="preserve">
+    <value>この運搬でジョブに不足しているものがすべて届くため、積荷が到着すればジョブが開始されます。</value>
+  </data>
+  <data name="WaitTipQueued" xml:space="preserve">
+    <value>このジョブはこのマニフェストにあるものを必要としていますが、先のジョブがすでにその在庫を確保しています — この積荷はこのジョブには届きません。</value>
+  </data>
+  <data name="WaitTipStillShort" xml:space="preserve">
+    <value>まだ{0}が不足しています。</value>
+  </data>
+  <data name="WaitTipStillShortMore" xml:space="preserve">
+    <value>まだ{0}、ほか{1:N0}件が不足しています。</value>
+  </data>
+  <data name="WaitTipAlsoBehind" xml:space="preserve">
+    <value>このマニフェストにあるものについて、別のジョブの後ろでも待っています。</value>
+  </data>
+  <data name="MergedDetailPooled" xml:space="preserve">
+    <value>合計{0:N0}個 — 全体で{1:N0}個が必要で、そこから所持済み・注文済み・回収可能な{2:N0}個を重複なく差し引いています。{3}</value>
+  </data>
+  <data name="MergedDetail" xml:space="preserve">
+    <value>合計{0:N0}個。{1}</value>
+  </data>
+  <data name="HaulRestartsJobs" xml:space="preserve">
+    <value>到着すると、止まっているジョブ{0:N0}件が再開します：{1}。</value>
+  </data>
+  <data name="HaulRestartsJobsMore" xml:space="preserve">
+    <value>到着すると、止まっているジョブ{0:N0}件が再開します：{1}、ほか{2:N0}件。</value>
+  </data>
+  <data name="HaulOthersWantPart" xml:space="preserve">
+    <value>ほかにジョブ{0:N0}件がこの積荷の一部を必要としていますが、この積荷だけでは開始しません。</value>
+  </data>
+  <data name="HaulPlannedWantIt" xml:space="preserve">
+    <value>ここにあるほかのアイテム{0:N0}件は、止まっているジョブのない計画中の作業が必要としています。</value>
+  </data>
+  <data name="BuyReleasesJobs" xml:space="preserve">
+    <value>止まっているジョブ{0:N0}件を開始できるようにします：{1}。</value>
+  </data>
+  <data name="BuyReleasesJobsMore" xml:space="preserve">
+    <value>止まっているジョブ{0:N0}件を開始できるようにします：{1}、ほか{2:N0}件。</value>
+  </data>
+  <data name="BuyOthersWantIt" xml:space="preserve">
+    <value>ほかにジョブ{0:N0}件がこれを必要としていますが、他のものも不足しています。</value>
+  </data>
+  <data name="TitleTagBpoBpc" xml:space="preserve">
+    <value>BPO/BPC</value>
+  </data>
+  <data name="StockOfTarget" xml:space="preserve">
+    <value>在庫{1:N0}個中{0:N0}個（{2:0.#}%）</value>
+  </data>
+  <data name="FillingTo" xml:space="preserve">
+    <value>{0:0.#}%（{1:N0}個）まで補充します。</value>
+  </data>
+  <data name="SourceInventoryLevels" xml:space="preserve">
+    <value>在庫レベル</value>
+  </data>
+  <data name="SourceMaterialPurchases" xml:space="preserve">
+    <value>資源の購入</value>
+  </data>
+  <data name="BlockedNoMarketAltAt" xml:space="preserve">
+    <value>{0}にマーケット用サブキャラクターが割り当てられていません</value>
+  </data>
+  <data name="BlockedNoBuyLocation" xml:space="preserve">
+    <value>「マーケット」タブで購入場所が設定されていません</value>
+  </data>
+  <data name="WantedByPlannedBuilds" xml:space="preserve">
+    <value>計画中の製造</value>
+  </data>
+  <data name="NameRuns" xml:space="preserve">
+    <value>{0}（{1:N0}回）</value>
+  </data>
+  <data name="BlueprintWithId" xml:space="preserve">
+    <value>ブループリント{0}</value>
+  </data>
+  <data name="PrintRunsToStock" xml:space="preserve">
+    <value>在庫用に{0:N0}回</value>
+  </data>
+  <data name="PrintTitle" xml:space="preserve">
+    <value>{0} — BPO/BPC × {1:N0}回</value>
+  </data>
+  <data name="OnOrderHere" xml:space="preserve">
+    <value>ここで{0:N0}個注文済み</value>
+  </data>
+  <data name="OnOrderElsewhere" xml:space="preserve">
+    <value>他の場所で{0:N0}個注文済み</value>
+  </data>
+  <data name="OnOrder" xml:space="preserve">
+    <value>{0:N0}個注文済み</value>
+  </data>
+  <data name="InProduction" xml:space="preserve">
+    <value>{0:N0}個製造中</value>
+  </data>
+  <data name="HeldAndOnOrder" xml:space="preserve">
+    <value>{1}を{0:N0}個所持、{2:N0}個注文済み</value>
+  </data>
+  <data name="RecoverableFrom" xml:space="preserve">
+    <value>{1}から{0:N0}個回収可能</value>
+  </data>
+  <data name="RecoverableFromMore" xml:space="preserve">
+    <value>{1}、ほか{2}件から{0:N0}個回収可能</value>
+  </data>
+  <data name="ShortBy" xml:space="preserve">
+    <value>{0:N0}個不足。</value>
+  </data>
+  <data name="ShortByTail" xml:space="preserve">
+    <value>{0:N0}個不足。</value>
+  </data>
+  <data name="BelowThreshold" xml:space="preserve">
+    <value>{0:0.#}%未満</value>
+  </data>
+  <data name="PurchaseNeedOnHand" xml:space="preserve">
+    <value>{0}：必要数{1:N0}、所持数{2:N0}</value>
+  </data>
+  <data name="PurchaseNeedOnHandIn" xml:space="preserve">
+    <value>{0}：必要数{1:N0}、{3}での所持数{2:N0}</value>
+  </data>
+  <data name="PurchaseNeedOnHandTaken" xml:space="preserve">
+    <value>{0}：必要数{1:N0}、所持数{2:N0}（うち{3:N0}個は、資産のポーリングにまだ反映されていないジョブですでに使用済み）</value>
+  </data>
+  <data name="PurchaseNeedOnHandInTaken" xml:space="preserve">
+    <value>{0}：必要数{1:N0}、{3}での所持数{2:N0}（うち{4:N0}個は、資産のポーリングにまだ反映されていないジョブですでに使用済み）</value>
+  </data>
+  <data name="WantedForOne" xml:space="preserve">
+    <value>{0}用</value>
+  </data>
+  <data name="WantedForTwo" xml:space="preserve">
+    <value>{0}と{1}用</value>
+  </data>
+  <data name="WantedForTwoMore" xml:space="preserve">
+    <value>{0}、{1}、ほか{2}件用</value>
+  </data>
+  <data name="PrintContractPrice" xml:space="preserve">
+    <value>契約では、1回あたり{0:N0} ISKからのコピーが見つかっています。</value>
+  </data>
+  <data name="PrintRunsFor" xml:space="preserve">
+    <value>{1}用に{0:N0}回</value>
+  </data>
+  <data name="PrintRunsForQueued" xml:space="preserve">
+    <value>キュー中の製造用に{0:N0}回</value>
+  </data>
+  <data name="PrintOriginalOwned" xml:space="preserve">
+    <value>オリジナル所有</value>
+  </data>
+  <data name="PrintCopiesOwned" xml:space="preserve">
+    <value>{0:N0}回分所有</value>
+  </data>
+  <data name="PrintNoneOwned" xml:space="preserve">
+    <value>所有なし</value>
+  </data>
+  <data name="PrintShortRuns" xml:space="preserve">
+    <value>{0:N0}回分不足。</value>
+  </data>
+  <data name="SourceIndustryJobs" xml:space="preserve">
+    <value>生産ジョブ</value>
+  </data>
+  <data name="JobDetailBuild" xml:space="preserve">
+    <value>{0}{1:N0}個を製造します。</value>
+  </data>
+  <data name="BlockedNoSkilledCharacter" xml:space="preserve">
+    <value>このジョブに必要なスキルを持つ有効なキャラクターがいません</value>
+  </data>
+  <data name="BlockedNoCharacterRunsActivity" xml:space="preserve">
+    <value>この作業を実行する有効なキャラクターがいません</value>
+  </data>
+  <data name="BlockedSiteNotLinked" xml:space="preserve">
+    <value>{0}が実際のストラクチャにリンクされていないため、資源を確認できません</value>
+  </data>
+  <data name="BlockedNoLinkedStructure" xml:space="preserve">
+    <value>このジョブにリンクされたストラクチャがないため、資源を確認できません</value>
+  </data>
+  <data name="WaitingAllSlotsBusy" xml:space="preserve">
+    <value>これを実行できるすべてのキャラクターのスロットが埋まっています</value>
+  </data>
+  <data name="JobTitleRunsMaking" xml:space="preserve">
+    <value>{0} — {1:N0}回 → {2:N0}個</value>
+  </data>
+  <data name="JobTitleRuns" xml:space="preserve">
+    <value>{0} — {1:N0}回</value>
+  </data>
+  <data name="BlockedNoBlueprintOwned" xml:space="preserve">
+    <value>ブループリントを所有していません — 入手する必要があります</value>
+  </data>
+  <data name="BlockedBlueprintBusy" xml:space="preserve">
+    <value>ブループリントは実行中のジョブで使用中です（{0}）</value>
+  </data>
+  <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
+    <value>{0}に空いているブループリントがありません（{1}）</value>
+  </data>
+  <data name="JobDetailShort" xml:space="preserve">
+    <value>{0}{1:N0}個不足。</value>
+  </data>
+  <data name="BlockedPlannerSilent" xml:space="preserve">
+    <value>プランナーがこれのタスクを作成せず、理由も示しませんでした — 報告してください</value>
+  </data>
+  <data name="BlockedNothingMakesIt" xml:space="preserve">
+    <value>SDEにはこれを製造するものがないため、購入するしかありません</value>
+  </data>
+  <data name="JobTitleNeeded" xml:space="preserve">
+    <value>{0} — {1:N0}個必要</value>
+  </data>
+  <data name="JobDetailShortOf" xml:space="preserve">
+    <value>{0}{1:N0}個不足（{3}件中{2}件目のジョブ）。</value>
+  </data>
+  <data name="PrintAt" xml:space="preserve">
+    <value>{1}で{0}を使用。</value>
+  </data>
+  <data name="JobCutToMaterials" xml:space="preserve">
+    <value>手元の資源でまかなえる分に縮小しています — 残りの{0:N0}回は別の行にあります。</value>
+  </data>
+  <data name="JobRestWaiting" xml:space="preserve">
+    <value>このジョブの残りの分で、資源を待っています。</value>
+  </data>
+  <data name="JobRunsNoFreePrint" xml:space="preserve">
+    <value>さらに{0:N0}回分は空いているブループリントがありません — 別に表示しています。</value>
+  </data>
+  <data name="JobCapGameLimit" xml:space="preserve">
+    <value>EVEの1ジョブあたり30日の上限で制限されています。</value>
+  </data>
+  <data name="JobCapCopyRuns" xml:space="preserve">
+    <value>コピーの残り実行回数で制限されています。</value>
+  </data>
+  <data name="JobCapJobLength" xml:space="preserve">
+    <value>ジョブの最大期間（{0:0.#}日）で制限されています。</value>
+  </data>
+  <data name="JobSizedFullyResearched" xml:space="preserve">
+    <value>完全に研究済みのブループリント（TE{0}）を前提に算出しています — 所有しているものはありません。</value>
+  </data>
+  <data name="JobSizedAgainst" xml:space="preserve">
+    <value>{0}を前提に算出しています。</value>
+  </data>
+  <data name="JobNeedsBlueprintAt" xml:space="preserve">
+    <value>{0}にブループリントが必要です。</value>
+  </data>
+  <data name="BlockedMaterialsNotAt" xml:space="preserve">
+    <value>{0}にない資源：{1}</value>
+  </data>
+  <data name="BlockedNotOwned" xml:space="preserve">
+    <value>未所有：{0}</value>
+  </data>
+  <data name="BlockedNotOwnedIn" xml:space="preserve">
+    <value>{0}で未所有：{1}</value>
+  </data>
+  <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
+    <value>未所有：{0}、別の場所：{1}</value>
+  </data>
+  <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
+    <value>{0}で未所有：{1}、別の場所：{2}</value>
+  </data>
+  <data name="NamesAndMore" xml:space="preserve">
+    <value>{0}、ほか{1}件</value>
+  </data>
+  <data name="ReasonPendingOrders" xml:space="preserve">
+    <value>未処理の注文{0}件で{1:N0}個。</value>
+  </data>
+  <data name="ReasonForParent" xml:space="preserve">
+    <value>{1}用に{0:N0}個。</value>
+  </data>
+  <data name="ReasonsAndMore" xml:space="preserve">
+    <value>ほか{0}件。</value>
+  </data>
+  <data name="ReasonKeepingConsuming" xml:space="preserve">
+    <value>在庫として{0:N0}個を保持し、{1:N0}個を消費する予定で、所持数は{2:N0}個です。</value>
+  </data>
+  <data name="PrintDescribeBpo" xml:space="preserve">
+    <value>BPO ME{0}/TE{1}</value>
+  </data>
+  <data name="PrintDescribeBpc" xml:space="preserve">
+    <value>BPC ME{0}/TE{1}、残り{2:N0}回</value>
+  </data>
+  <data name="JobLengthMinutes" xml:space="preserve">
+    <value>{0:0}分</value>
+  </data>
+  <data name="JobLengthHours" xml:space="preserve">
+    <value>{0:0.#}時間</value>
+  </data>
+  <data name="JobLengthDays" xml:space="preserve">
+    <value>{0:0.#}日</value>
+  </data>
+  <data name="HeadDownstream" xml:space="preserve">
+    <value>[下流のアイテム{0:N0}件がこれを待っています]</value>
+  </data>
+  <data name="SourceInvention" xml:space="preserve">
+    <value>発明・コピー</value>
+  </data>
+  <data name="InventionHead" xml:space="preserve">
+    <value>{0}：T2製造が{1:N0}回分不足しています。</value>
+  </data>
+  <data name="WaitingScienceSlotsBusy" xml:space="preserve">
+    <value>科学ジョブを実行するすべてのキャラクターのスロットが埋まっています</value>
+  </data>
+  <data name="BlockedNotAt" xml:space="preserve">
+    <value>{0}にないもの：{1}</value>
+  </data>
+  <data name="InventionTitle" xml:space="preserve">
+    <value>{0} — {1:N0}回発明する</value>
+  </data>
+  <data name="InventionNoCopyDetail" xml:space="preserve">
+    <value>{0}成功率は1回あたり{1:P1} → {3}回分のBPCが{2:N0}個必要です。</value>
+  </data>
+  <data name="BlockedNoCopyToInvent" xml:space="preserve">
+    <value>{1}に発明の元となる{0}のコピーがありません</value>
+  </data>
+  <data name="CopyTitleNoOriginal" xml:space="preserve">
+    <value>{0} — コピー元のオリジナルがありません</value>
+  </data>
+  <data name="CopyNeedsRunsDetail" xml:space="preserve">
+    <value>{0}発明にはコピーが{1:N0}回分必要で、所有しているのは{2:N0}回分です。</value>
+  </data>
+  <data name="BlockedNoBpoToCopy" xml:space="preserve">
+    <value>どのキャラクターもBPOを所有していません — BPOを入手するか、コピーを直接購入する必要があります</value>
+  </data>
+  <data name="CopyTitle" xml:space="preserve">
+    <value>{0} — コピー{1:N0}個 × {2:N0}回分</value>
+  </data>
+  <data name="BlockedOriginalNotAt" xml:space="preserve">
+    <value>オリジナルが{0}にありません — 先にそこへ移動する必要があります</value>
+  </data>
+  <data name="NoDecryptor" xml:space="preserve">
+    <value>解読器なし</value>
+  </data>
+  <data name="NameHaveOfWant" xml:space="preserve">
+    <value>{0}（{2:N0}個中{1:N0}個）</value>
+  </data>
+  <data name="InventionCutToDatacores" xml:space="preserve">
+    <value>手元のデータコアでまかなえる分に縮小しています — 残りの{0:N0}回の試行は別の行にあります。</value>
+  </data>
+  <data name="InventionRestWaiting" xml:space="preserve">
+    <value>このバッチの残りの分で、データコアを待っています。</value>
+  </data>
+  <data name="JobIndexOf" xml:space="preserve">
+    <value>（{1}件中{0}件目のジョブ）</value>
+  </data>
+  <data name="JobCapSourceCopyRuns" xml:space="preserve">
+    <value>元のコピーの残り実行回数で制限されています。</value>
+  </data>
+  <data name="InventionAttemptsNoCopy" xml:space="preserve">
+    <value>さらに{0:N0}回の試行には元のコピーが必要です — 空いているものがありません。</value>
+  </data>
+  <data name="InventionOdds" xml:space="preserve">
+    <value>成功率は1回あたり{0:P1}（基本{1:P0}、{2}） → {7:N0}回の試行で、ME{5}/TE{6}・{4}回分のBPCを{3:N0}個作成。</value>
+  </data>
+  <data name="CopyFeedsDetail" xml:space="preserve">
+    <value>{0}発明の試行{1:N0}回分に使います。所有済みのコピーは{2:N0}回分です。</value>
+  </data>
+  <data name="SourceRefining" xml:space="preserve">
+    <value>再処理</value>
+  </data>
+  <data name="RefineTitleOne" xml:space="preserve">
+    <value>{0}を再処理 — {1:N0}個</value>
+  </data>
+  <data name="RefineTitleMany" xml:space="preserve">
+    <value>鉱石{0}種類を再処理 — {1:N0}個</value>
+  </data>
+  <data name="DecompressTitleOne" xml:space="preserve">
+    <value>{0}を減圧 — {1:N0}個</value>
+  </data>
+  <data name="DecompressTitleMany" xml:space="preserve">
+    <value>圧縮ガス{0}種類を減圧 — {1:N0}個</value>
+  </data>
+  <data name="RefineDetail" xml:space="preserve">
+    <value>{0}：バッチ単位で再処理できるのは{1:N0}個です — {2}。1バッチに満たない分はそのまま残ります。</value>
+  </data>
+  <data name="RefineDetailMore" xml:space="preserve">
+    <value>{0}：バッチ単位で再処理できるのは{1:N0}個です — {2}、ほか{3}種類。1バッチに満たない分はそのまま残ります。</value>
+  </data>
+  <data name="DecompressDetail" xml:space="preserve">
+    <value>{0}：減圧する数量は{1:N0}個です — {2}。</value>
+  </data>
+  <data name="DecompressDetailMore" xml:space="preserve">
+    <value>{0}：減圧する数量は{1:N0}個です — {2}、ほか{3}種類。</value>
+  </data>
+  <data name="SourceAssetSafety" xml:space="preserve">
+    <value>アセットセーフティ</value>
+  </data>
+  <data name="StationWithIdLower" xml:space="preserve">
+    <value>ステーション{0}</value>
+  </data>
+  <data name="UnnamedStructureWithId" xml:space="preserve">
+    <value>名前のないストラクチャ{0}</value>
+  </data>
+  <data name="CharacterWithId" xml:space="preserve">
+    <value>キャラクター{0}</value>
+  </data>
+  <data name="SafetyChooseDestinationOther" xml:space="preserve">
+    <value>アセットセーフティラップ{0:N0}個の配送先を選択</value>
+  </data>
+  <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
+    <value>1個のラップにアイテム{0:N0}種類</value>
+  </data>
+  <data name="SafetyTypesAcrossWraps" xml:space="preserve">
+    <value>{1:N0}個のラップにアイテム{0:N0}種類</value>
+  </data>
+  <data name="SafetyDetail" xml:space="preserve">
+    <value>{0}。{1}。放置すると、{3}日{4}時間後（{5:M月d日 HH:mm}）に高い手数料で{2}へ自動配送されます。</value>
+  </data>
+  <data name="SourceLogistics" xml:space="preserve">
+    <value>ロジスティクス</value>
+  </data>
+  <data name="HaulTitleItems" xml:space="preserve">
+    <value>アイテム{0}種類</value>
+  </data>
+  <data name="HaulWhyUnblocking" xml:space="preserve">
+    <value>ジョブがこれを待っています。</value>
+  </data>
+  <data name="HaulWhyRestock" xml:space="preserve">
+    <value>ステーションを在庫レベルまで補充します。</value>
+  </data>
+  <data name="HaulWhyRefine" xml:space="preserve">
+    <value>再処理または減圧用です。</value>
+  </data>
+  <data name="HaulWhySurplus" xml:space="preserve">
+    <value>余剰在庫を、そのグループの保管場所へ運びます。</value>
+  </data>
+  <data name="PlaceInSpace" xml:space="preserve">
+    <value>{0}（宇宙空間）</value>
+  </data>
+  <data name="DriverBuild" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="DriverBlueprintFor" xml:space="preserve">
+    <value>ブループリント</value>
+  </data>
+  <data name="DriverInvention" xml:space="preserve">
+    <value>発明</value>
+  </data>
+  <data name="DriverCopiesForInvention" xml:space="preserve">
+    <value>発明用のコピー</value>
+  </data>
+  <data name="DriverStationLevel" xml:space="preserve">
+    <value>ステーション在庫レベル</value>
+  </data>
+  <data name="HaulAdviceIdleNowhere" xml:space="preserve">
+    <value>すでに所有しているアイテム{0:N0}種類が足りずに止まっています。運ぶ必要があるのは{1:N0} m3ですが、対象範囲内から届けられるものはありません。これをここへ運ぶ運搬タスクがリストにないため、このままでは何も変わりません。</value>
+  </data>
+  <data name="HaulAdviceIdleOnePlace" xml:space="preserve">
+    <value>すでに所有しているアイテム{0:N0}種類が足りずに止まっています。運ぶ必要があるのは{1:N0} m3で、すべて1か所からです。これをここへ運ぶ運搬タスクがリストにないため、このままでは何も変わりません。</value>
+  </data>
+  <data name="HaulAdviceIdlePlaces" xml:space="preserve">
+    <value>すでに所有しているアイテム{0:N0}種類が足りずに止まっています。運ぶ必要があるのは{1:N0} m3で、{2:N0}か所からです。これをここへ運ぶ運搬タスクがリストにないため、このままでは何も変わりません。</value>
+  </data>
+  <data name="HaulAdviceSeveralStops" xml:space="preserve">
+    <value>アイテム{0:N0}種類（合計{1:N0} m3、{2:N0}か所から）が足りずに止まっており、運搬タスクはすでに{3:N0}件作成されています。受け取り場所が複数あるため、最後の荷物が届くまで止まったままです。</value>
+  </data>
+  <data name="HaulAdviceRaised" xml:space="preserve">
+    <value>止まっていますが、{1:N0} m3をここへ運ぶ運搬タスクがすでに{0:N0}件作成されています。判断すべきことはありません — 資源が届けば開始します。</value>
+  </data>
+  <data name="HaulAdviceBehind" xml:space="preserve">
+    <value>その後ろでさらにタスク{0:N0}件が止まっています。</value>
+  </data>
+  <data name="HaulNeedNowhere" xml:space="preserve">
+    <value>{1:N0}個中{0:N0}個不足、{2:N0} m3 — 対象範囲内に入手元なし</value>
+  </data>
+  <data name="HaulNeedFrom" xml:space="preserve">
+    <value>{1:N0}個中{0:N0}個不足、{2:N0} m3 — {3}から</value>
+  </data>
+  <data name="HaulNeedFromMore" xml:space="preserve">
+    <value>{1:N0}個中{0:N0}個不足、{2:N0} m3 — {3}、ほか{4:N0}か所から</value>
+  </data>
+  <data name="StopsOther" xml:space="preserve">
+    <value>{0:N0}か所</value>
+  </data>
+  <data name="WhyOnListFrom" xml:space="preserve">
+    <value>リストに作成済み、{0}から</value>
+  </data>
+  <data name="WhyOnList" xml:space="preserve">
+    <value>リストに作成済み</value>
+  </data>
+  <data name="WhyReadyToInstall" xml:space="preserve">
+    <value>インストール可能</value>
+  </data>
+  <data name="RunsInstalled" xml:space="preserve">
+    <value>{0:N0}回をインストール済み</value>
+  </data>
+  <data name="JobLands" xml:space="preserve">
+    <value>{0:M月d日 HH:mm}に完了</value>
+  </data>
+  <data name="AdviceStopped" xml:space="preserve">
+    <value>タスク{0:N0}件が停止中</value>
+  </data>
+  <data name="AdviceStoppedChain" xml:space="preserve">
+    <value>タスク{0:N0}件（うち{1:N0}件はこれが直接不足）が停止中</value>
+  </data>
+  <data name="AdviceNothingMade" xml:space="preserve">
+    <value>過去{0}日間に1つも生産されておらず、それが在庫が尽きた原因です。</value>
+  </data>
+  <data name="AdviceMakingRunning" xml:space="preserve">
+    <value>これを作るジョブ{0:N0}件が現在実行中です。</value>
+  </data>
+  <data name="AdviceMakingReady" xml:space="preserve">
+    <value>これを作るタスク{0:N0}件がすぐに開始できます — それを開始するのが解決策です。</value>
+  </data>
+  <data name="AdviceMakingWaiting" xml:space="preserve">
+    <value>これを作るタスク{0:N0}件が空きスロットを待っています。</value>
+  </data>
+  <data name="AdviceMakingBlocked" xml:space="preserve">
+    <value>補充しているものはありません：これを作るタスク{0:N0}件もすべてブロックされています。</value>
+  </data>
+  <data name="AdviceMakingNone" xml:space="preserve">
+    <value>リスト上でこれを作っているものはまったくありません。</value>
+  </data>
+  <data name="AdviceOnOrder" xml:space="preserve">
+    <value>{0}で、ここではこれを作るものがありません — ただし、不足{2:N0}個に対して、マーケットですでに{1:N0}個の買い注文を出しています。これ以上作成するものはありません。買い注文が約定すればジョブは開始されます。</value>
+  </data>
+  <data name="AdviceBuyNow" xml:space="preserve">
+    <value>{0}で、ここではこれを作るものがありません。</value>
+  </data>
+  <data name="AdviceBuyNowOnOrder" xml:space="preserve">
+    <value>不足{1:N0}個に対して{0:N0}個を注文済みなので、新たに注文を出すのではなく、価格を引き上げる必要があります。</value>
+  </data>
+  <data name="AdviceBuyNowLevel" xml:space="preserve">
+    <value>在庫レベル{1:N0}に対して1日{0:N1}個消費されています。それらを開始できるのは購入だけです。</value>
+  </data>
+  <data name="AdviceBuyNowNoLevel" xml:space="preserve">
+    <value>1日{0:N1}個消費されていますが、在庫レベルが設定されていません。それらを開始できるのは購入だけです。</value>
+  </data>
+  <data name="AdviceBufferSpent" xml:space="preserve">
+    <value>{0}で、残りは{1:N0}個です。需要は{3}日平均の{2:N1}倍で推移しており、在庫レベル{4:N0}は通常の消費の{5:N0}日分はまかなえましたが、今回は足りませんでした。在庫レベルを上げれば次の波を吸収できます。このような波が日常的なら、根本的な解決策は生産を増やすことです。補充できない速度で消費されれば、どんな在庫レベルも持ちこたえられないからです。</value>
+  </data>
+  <data name="AdviceLevelTooLow" xml:space="preserve">
+    <value>{0}です。リスト上の作業には{1:N0}個が必要で、所持数は{2:N0}個です — 在庫レベル{3:N0}は満たされているので、バッファーが尽きたのではありません。通常の消費{4:N0}日分に合わせたバッファーに対して、目の前の作業が、存在する数量より{5:N0}個多く必要としているのです。この差を埋めるには、在庫レベルを上げるか、生産を増やしてください。</value>
+  </data>
+  <data name="AdviceLevelTooLowWave" xml:space="preserve">
+    <value>{0}です。リスト上の作業には{1:N0}個が必要で、所持数は{2:N0}個です — 在庫レベル{3:N0}は満たされているので、バッファーが尽きたのではありません。通常の消費{4:N0}日分に合わせたバッファーに対して、目の前の作業が、存在する数量より{5:N0}個多く必要としているのです（需要は{7}日平均の{6:N1}倍で推移しています）。この差を埋めるには、在庫レベルを上げるか、生産を増やしてください。</value>
+  </data>
+  <data name="AdviceNoBuffer" xml:space="preserve">
+    <value>{0}で、1日{1:N1}個消費されているのに、在庫レベルがまったく設定されていません。構造的に余裕がなく、すべての数量を必要になったその時に製造するか購入しなければなりません。リストが必要とする数量に対して{2:N0}個不足しています。</value>
+  </data>
+  <data name="AdviceNotTheShelf" xml:space="preserve">
+    <value>{0}ですが、所持数は{1:N0}個で、作業に必要なのは{2:N0}個です — 止まっている原因はこの資源ではありません。それらのジョブで他の何かが不足しているか、スロット、ブループリント、または別のステーションにある在庫を待っています。</value>
+  </data>
+  <data name="AdviceBlocked" xml:space="preserve">
+    <value>{0}で、在庫レベル{2:N0}に対して残りは{1:N0}個です — 1日{4:N1}個の消費で約{3:N0}日分でしたが、尽きました。消費の速さに対して在庫レベルが低すぎるか、補充が間に合っていません。</value>
+  </data>
+  <data name="AdviceBuy" xml:space="preserve">
+    <value>所有しておらず、ここではこれを作るものもなく、1日{0:N1}個消費されています。まだ何も止まっていません。</value>
+  </data>
+  <data name="AdviceMakingTooFew" xml:space="preserve">
+    <value>生産1日{1:N1}個に対して消費は1日{0:N1}個で、需要は横ばいです。必要なのはバッファーを増やすことではなく、生産を増やすことです。</value>
+  </data>
+  <data name="AdviceMakingTooFewEmpty" xml:space="preserve">
+    <value>生産1日{1:N1}個に対して消費は1日{0:N1}個で、需要は横ばいです。このペースでは約{2:N0}日で尽きます。必要なのはバッファーを増やすことではなく、生産を増やすことです。</value>
+  </data>
+  <data name="AdviceWave" xml:space="preserve">
+    <value>通常の{0:N1}倍のペースで消費されています — 製造の波が通過中です。残りは{1:N0}個で、現在のペースで約{2:N0}日分です。まだ何も止まっていません。対応するより様子を見る段階です。</value>
+  </data>
+  <data name="AdviceNoLevelSet" xml:space="preserve">
+    <value>1日{0:N1}個消費されていますが、在庫として保持するよう指定されていないため、需要が増えたときの余裕がまったくありません。</value>
+  </data>
+  <data name="AdviceBufferThin" xml:space="preserve">
+    <value>在庫レベル{0:N0}は、1日{2:N1}個のペースで{1:N0}日分です。補充にそれ以上かかるものは、届く前にブロックが発生します。</value>
+  </data>
+  <data name="AdviceHolding" xml:space="preserve">
+    <value>1日{1:N1}個の消費で{0:N0}日分の在庫があり、補充は1日{2:N1}個です。</value>
+  </data>
+  <data name="RemedyEffect" xml:space="preserve">
+    <value>滞留は{1:N0}日ではなく{0:N0}日で解消</value>
+  </data>
+  <data name="RemedyTrain" xml:space="preserve">
+    <value>すでにこれを実行しているキャラクターをトレーニングする</value>
+  </data>
+  <data name="RemedyTrainNone" xml:space="preserve">
+    <value>このプールを実行している全員が、すでにスキルの上限に達しています。</value>
+  </data>
+  <data name="RemedyTrainDetail" xml:space="preserve">
+    <value>上限{1}スロットに達していないキャラクター{0}人：{2}</value>
+  </data>
+  <data name="RemedyEnable" xml:space="preserve">
+    <value>このプールで現在オフになっているキャラクターを有効にする</value>
+  </data>
+  <data name="RemedyEnableNone" xml:space="preserve">
+    <value>設定済みのキャラクターは全員、すでにこのプールを実行しています。</value>
+  </data>
+  <data name="RemedyEnableDetail" xml:space="preserve">
+    <value>オフになっているキャラクター{0}人で、現在{1:N0}スロットを持っています — 通常は理由があってオフにしているので、計画ではなく規模の目安として見てください。{2}</value>
+  </data>
+  <data name="RemedyAccount" xml:space="preserve">
+    <value>上限までトレーニングしたキャラクター{0}人（1アカウント）を追加する</value>
+  </data>
+  <data name="RemedyAccountDetail" xml:space="preserve">
+    <value>現在稼働中の{2:N0}スロットに対して、{0} × {1}スロットです。トレーニングはすぐには終わりません — これは得られる上限です。</value>
+  </data>
+  <data name="ContentionScale" xml:space="preserve">
+    <value>ブループリント{0:N0}件を{1}日間にわたって測定：すべてのオリジナルが同時に使用中になったことがないものが{2:N0}件、中央値は{3:N0}%、上位10%は{4:N0}%からで、これがフラグの基準線です。</value>
+  </data>
+  <data name="PrintAdviceBlockingBpo" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのBPOが使用中で、現在ジョブ{2:N0}件が開始できません。BPOをもう1つ増やすと、上限は1日{3:N2}から{4:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceBlockingFormula" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのフォーミュラが使用中で、現在ジョブ{2:N0}件が開始できません。フォーミュラをもう1つ増やすと、上限は1日{3:N2}から{4:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceSteadyBpo" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのBPOが使用中で、ジョブ{2:N0}件がキューにあります — もう1つジョブを実行したければ、BPOが空くのを待つことになります。BPOをさらに1つ増やすと、上限は1日{3:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceSteadyFormula" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのフォーミュラが使用中で、ジョブ{2:N0}件がキューにあります — もう1つジョブを実行したければ、フォーミュラが空くのを待つことになります。フォーミュラをさらに1つ増やすと、上限は1日{3:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceContendedBpo" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのBPOが使用中でしたが、現在これを待っているジョブはありません。購入するより様子を見る段階です。</value>
+  </data>
+  <data name="PrintAdviceContendedFormula" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのフォーミュラが使用中でしたが、現在これを待っているジョブはありません。購入するより様子を見る段階です。</value>
+  </data>
+  <data name="PrintAdviceBlockedBpo" xml:space="preserve">
+    <value>ジョブ{0:N0}件が開始できませんが、手元のBPOがすべて同時に使用中になることはめったにありません（{1:N0}%）。BPOを追加で購入する前に、本当に不足しているものを確認してください — ブループリント以外の原因のようです。</value>
+  </data>
+  <data name="PrintAdviceBlockedFormula" xml:space="preserve">
+    <value>ジョブ{0:N0}件が開始できませんが、手元のフォーミュラがすべて同時に使用中になることはめったにありません（{1:N0}%）。フォーミュラを追加で購入する前に、本当に不足しているものを確認してください — フォーミュラ以外の原因のようです。</value>
+  </data>
+  <data name="PrintAdviceSurgeBpo" xml:space="preserve">
+    <value>現在ジョブ{0:N0}件がこれを必要としていますが、過去{1}日間のほぼすべての時間、どのBPOも空いていました。恒常的な需要ではなく一時的なものです — オリジナルよりBPCのほうが適しているかもしれません。</value>
+  </data>
+  <data name="PrintAdviceSurgeFormula" xml:space="preserve">
+    <value>現在ジョブ{0:N0}件がこれを必要としていますが、過去{1}日間のほぼすべての時間、どのフォーミュラも空いていました。恒常的な需要ではなく一時的なものです — フォーミュラを追加で購入するより、実行をキューに入れて待ってください。</value>
+  </data>
+  <data name="PrintAdviceMinorBpo" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのBPOが使用中でした — 実際の制約ですが、ここでの上位10%には入らず、これを待っているジョブもありません。BPOをもう1つ増やすと、上限は1日{2:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceMinorFormula" xml:space="preserve">
+    <value>過去{1}日間の{0:N0}%ですべてのフォーミュラが使用中でした — 実際の制約ですが、ここでの上位10%には入らず、これを待っているジョブもありません。フォーミュラをもう1つ増やすと、上限は1日{2:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceBuildingBpo" xml:space="preserve">
+    <value>ジョブ{0:N0}件がキューにあります。期間中の{1:N0}%ですべてのBPOが使用中でした。BPOをもう1つ増やすと、上限は1日{2:N2}になります。</value>
+  </data>
+  <data name="PrintAdviceBuildingFormula" xml:space="preserve">
+    <value>ジョブ{0:N0}件がキューにあります。期間中の{1:N0}%ですべてのフォーミュラが使用中でした。フォーミュラをもう1つ増やすと、上限は1日{2:N2}になります。</value>
+  </data>
+  <data name="SummarySlotRemedy" xml:space="preserve">
+    <value>{0} — +{1:N0}スロット（{2:N0}%）</value>
+  </data>
+  <data name="SummaryBuyPrint" xml:space="preserve">
+    <value>{0} — 所有{1:N0}個に1個追加購入（生産量+{2:N0}%）</value>
+  </data>
+  <data name="SummaryPlaceBuyOrders" xml:space="preserve">
+    <value>買い注文を{0:N0}件出す</value>
+  </data>
+  <data name="SummarySetLevel" xml:space="preserve">
+    <value>{0} — 在庫レベルを{1}に設定</value>
+  </data>
+  <data name="SummaryRaiseLevel" xml:space="preserve">
+    <value>{0} — 在庫レベルを{1:N0}から{2}に引き上げ</value>
+  </data>
+  <data name="SummaryChangeLevels" xml:space="preserve">
+    <value>在庫レベルを{0:N0}件変更する</value>
+  </data>
+  <data name="SummaryLevelsSized" xml:space="preserve">
+    <value>現在の消費ペースで{0}日分に合わせています。</value>
+  </data>
+  <data name="SummaryHaulAt" xml:space="preserve">
+    <value>{1}の{0} — {2:N0} m3</value>
+  </data>
+  <data name="SummaryRaiseHauls" xml:space="preserve">
+    <value>運搬タスクを{0:N0}件作成する</value>
+  </data>
+  <data name="SummaryHaulsIdle" xml:space="preserve">
+    <value>ジョブ{0:N0}件がすでに所有している資源を待っていますが、何も運ばれていません。</value>
+  </data>
+  <data name="SummaryAddManufacturingSlots" xml:space="preserve">
+    <value>製造スロットを増やす</value>
+  </data>
+  <data name="SummaryAddReactionSlots" xml:space="preserve">
+    <value>反応スロットを増やす</value>
+  </data>
+  <data name="SummaryAddScienceSlots" xml:space="preserve">
+    <value>科学スロットを増やす</value>
+  </data>
+  <data name="SummarySlotsWaiting" xml:space="preserve">
+    <value>ジョブ{0:N0}件がスロットを待っています。</value>
+  </data>
+  <data name="SummarySlotsWaitingBehind" xml:space="preserve">
+    <value>ジョブ{0:N0}件がスロットを待っており、その後ろでさらに{1:N0}件が止まっています。</value>
+  </data>
+  <data name="SummaryBuyBlueprints" xml:space="preserve">
+    <value>ブループリントを{0:N0}件購入する</value>
+  </data>
+  <data name="SummaryBuyFormulas" xml:space="preserve">
+    <value>フォーミュラを{0:N0}件購入する</value>
+  </data>
+  <data name="SummaryBuyUnblocks" xml:space="preserve">
+    <value>{0} — タスク{1:N0}件のブロックを解除</value>
+  </data>
+  <data name="SummaryTripRestarts" xml:space="preserve">
+    <value>{0}を{1}へ — {2:N0}個（{3:N0} m3）、ジョブ{4:N0}件が再開</value>
+  </data>
+  <data name="SummaryTripWanted" xml:space="preserve">
+    <value>{0}を{1}へ — {2:N0}個（{3:N0} m3）、ジョブ{4:N0}件が必要としていますが、これだけで再開するものはありません</value>
+  </data>
+  <data name="SummaryWorstShown" xml:space="preserve">
+    <value>深刻な上位{0}件を表示しています。残りはタブにあります。</value>
+  </data>
+</root>

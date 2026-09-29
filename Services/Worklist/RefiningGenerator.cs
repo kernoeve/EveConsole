@@ -144,7 +144,7 @@ public class RefiningGenerator(
             (false, false) => string.Format(WorklistText.DecompressTitleMany, lines.Count, total),
         };
 
-        var biggest = string.Join(", ", lines.Take(3).Select(l => $"{l.Quantity:N0} {Shown(l)}"));
+        var biggest = string.Join(CommonText.ListSeparator, lines.Take(3).Select(l => $"{l.Quantity:N0} {Shown(l)}"));
         var more    = lines.Count - 3;
 
         return new WorklistItem

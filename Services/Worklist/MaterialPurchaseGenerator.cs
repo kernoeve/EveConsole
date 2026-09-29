@@ -288,8 +288,8 @@ public class MaterialPurchaseGenerator(
                 GrossDemand    = need.Units,
                 SupplyCredited = (have - taken) + ordered + building + held.Units,
                 Detail        = OnHandText(WantedBy(need), need.Units, have, taken)
-                              + (ordered  > 0 ? ", " + string.Format(WorklistText.OnOrder, ordered) : "")
-                              + (building > 0 ? ", " + string.Format(WorklistText.InProduction, building) : "")
+                              + (ordered  > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.OnOrder, ordered) : "")
+                              + (building > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.InProduction, building) : "")
                               + held.Note
                               + " — " + string.Format(WorklistText.ShortByTail, short_),
                 Readiness     = alt is null ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
@@ -518,7 +518,7 @@ public class MaterialPurchaseGenerator(
                                          : string.Format(WorklistText.PrintRunsForQueued, jobs));
             if (shelf > 0) parts.Add(string.Format(WorklistText.PrintRunsToStock, shelf));
 
-            var haveText = ", " + (anyOriginal ? WorklistText.PrintOriginalOwned
+            var haveText = CommonText.ClauseSeparator + (anyOriginal ? WorklistText.PrintOriginalOwned
                                  : held > 0    ? string.Format(WorklistText.PrintCopiesOwned, held)
                                                : WorklistText.PrintNoneOwned);
 
@@ -635,8 +635,8 @@ public class MaterialPurchaseGenerator(
             if (total <= 0) continue;
 
             // A clause of the detail's list, so it opens with the list's own comma.
-            var named = string.Join(", ", from.Take(3));
-            result[typeId] = (total, ", " + (from.Count > 3
+            var named = string.Join(CommonText.ListSeparator, from.Take(3));
+            result[typeId] = (total, CommonText.ClauseSeparator + (from.Count > 3
                 ? string.Format(WorklistText.RecoverableFromMore, total, named, from.Count - 3)
                 : string.Format(WorklistText.RecoverableFrom, total, named)));
         }

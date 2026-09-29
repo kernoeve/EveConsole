@@ -276,7 +276,7 @@ public class InventionGenerator(
                     .ToList();
 
                 Emit(restRuns, restMats, WorklistReadiness.Blocked,
-                     string.Format(WorklistText.BlockedNotAt, lab.Name, string.Join(", ", shortNames)),
+                     string.Format(WorklistText.BlockedNotAt, lab.Name, string.Join(CommonText.ListSeparator, shortNames)),
                      runnable > 0 ? ":short" : "",
                      runnable > 0 ? " " + WorklistText.InventionRestWaiting : "");
             }

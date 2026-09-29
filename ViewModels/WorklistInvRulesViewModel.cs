@@ -345,7 +345,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
 
         if (offenders.Count == 0) return "";
 
-        var named = string.Join(", ", offenders.Take(4).Select(o => $"{o.Group} → {o.Where}"));
+        var named = string.Join(CommonText.ListSeparator, offenders.Take(4).Select(o => $"{o.Group} → {o.Where}"));
 
         // A sentence for each case, rather than ", and N more" dropped into the one.
         return offenders.Count > 4

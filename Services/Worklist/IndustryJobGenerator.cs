@@ -1346,8 +1346,8 @@ public class IndustryJobGenerator(
     /// <summary>Names for a message, capped so a job short of thirty things stays readable.</summary>
     private static string Names(IReadOnlyList<string> names) =>
         names.Count > 4
-            ? string.Format(WorklistText.NamesAndMore, string.Join(", ", names.Take(4)), names.Count - 4)
-            : string.Join(", ", names);
+            ? string.Format(WorklistText.NamesAndMore, string.Join(CommonText.ListSeparator, names.Take(4)), names.Count - 4)
+            : string.Join(CommonText.ListSeparator, names);
 
     /// <summary>What is on hand at the park's facilities, indexed by who can reach it. Materials
     /// in a corp hangar serve every alt in that corporation; personal stock serves only its

@@ -108,8 +108,8 @@ public sealed record WorklistWaitingJob(
         : StillShortOf.Count == 0 ? WorklistText.WaitTipQueued
         : (StillShortOf.Count > 6
               ? string.Format(WorklistText.WaitTipStillShortMore,
-                              string.Join(", ", StillShortOf.Take(6)), StillShortOf.Count - 6)
-              : string.Format(WorklistText.WaitTipStillShort, string.Join(", ", StillShortOf)))
+                              string.Join(CommonText.ListSeparator, StillShortOf.Take(6)), StillShortOf.Count - 6)
+              : string.Format(WorklistText.WaitTipStillShort, string.Join(CommonText.ListSeparator, StillShortOf)))
           + (QueuedBehind ? " " + WorklistText.WaitTipAlsoBehind : "");
 
     public Avalonia.Media.IBrush StatusColor =>

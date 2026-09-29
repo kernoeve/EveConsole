@@ -271,6 +271,9 @@
   <data name="ListSeparator" xml:space="preserve">
     <value>、</value>
   </data>
+  <data name="ClauseSeparator" xml:space="preserve">
+    <value>，</value>
+  </data>
   <data name="DateMonthDay" xml:space="preserve">
     <value>M月d日</value>
   </data>

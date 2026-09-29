@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="IncomeExpense" xml:space="preserve">
+    <value>収支</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="DailyIncomeExpenseCashflow" xml:space="preserve">
+    <value>日別の収入・支出・キャッシュフロー</value>
+  </data>
+  <data name="FmtNet" xml:space="preserve">
+    <value>純額：{0}</value>
+  </data>
+  <data name="AutoRange" xml:space="preserve">
+    <value>自動範囲</value>
+  </data>
+  <data name="LogScale" xml:space="preserve">
+    <value>対数スケール</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="NetWorthLabel" xml:space="preserve">
+    <value>純資産</value>
+  </data>
+  <data name="AssetsLabel" xml:space="preserve">
+    <value>資産</value>
+  </data>
+  <data name="WalletLabel" xml:space="preserve">
+    <value>ウォレット</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>インダストリー</value>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>売り注文</value>
+  </data>
+  <data name="BuyEscrowLabel" xml:space="preserve">
+    <value>買い注文のエスクロー</value>
+  </data>
+  <data name="ContractCollatLabel" xml:space="preserve">
+    <value>契約の担保</value>
+  </data>
+  <data name="ContractValueLabel" xml:space="preserve">
+    <value>契約の価値</value>
+  </data>
+  <data name="NoNetWorthDataNote" xml:space="preserve">
+    <value>この期間の純資産データはありません。</value>
+  </data>
+  <data name="DataIsRecordedAutomaticallyNote" xml:space="preserve">
+    <value>ESIのポーリングで資産、ウォレット、注文、契約が更新されるたびに、データが自動で記録されます。</value>
+  </data>
+  <data name="TitleNetWorth" xml:space="preserve">
+    <value>純資産</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>所有者：</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ 更新</value>
+  </data>
+  <data name="BalanceLabel" xml:space="preserve">
+    <value>残高：</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>この期間の収入データはありません。</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>この期間の支出データはありません。</value>
+  </data>
+  <data name="TabJournal" xml:space="preserve">
+    <value>ジャーナル</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>タイプ：</value>
+  </data>
+  <data name="HintFilter" xml:space="preserve">
+    <value>フィルター…</value>
+  </data>
+  <data name="DivLabel" xml:space="preserve">
+    <value>部門：</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>開始：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>終了：</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>並び順：</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日付</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="ColBalance" xml:space="preserve">
+    <value>残高</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="ColDiv" xml:space="preserve">
+    <value>部門</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>説明</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 最初</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 前へ</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>次へ ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>最後 ⏭</value>
+  </data>
+  <data name="TabMarketTransactions" xml:space="preserve">
+    <value>マーケットの取引記録</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>アイテム：</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>場所：</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>単価</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>このステーションまたはストラクチャを開きます</value>
+  </data>
+  <data name="TabDivisions" xml:space="preserve">
+    <value>部門</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="TitleWallet" xml:space="preserve">
+    <value>ウォレット</value>
+  </data>
+  <data name="BuySellLabel" xml:space="preserve">
+    <value>売買：</value>
+  </data>
+  <data name="ColBuySell" xml:space="preserve">
+    <value>売買</value>
+  </data>
+  <data name="MasterWallet" xml:space="preserve">
+    <value>マスターウォレット</value>
+  </data>
+  <data name="DivisionShort" xml:space="preserve">
+    <value>部門{0}</value>
+  </data>
+  <data name="DirBuy" xml:space="preserve">
+    <value>購入</value>
+  </data>
+  <data name="DirSell" xml:space="preserve">
+    <value>売却</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>日付：新しい順</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>日付：古い順</value>
+  </data>
+  <data name="SortAmountHighLow" xml:space="preserve">
+    <value>金額：高い順</value>
+  </data>
+  <data name="SortAmountLowHigh" xml:space="preserve">
+    <value>金額：低い順</value>
+  </data>
+  <data name="SortBalanceHighLow" xml:space="preserve">
+    <value>残高：高い順</value>
+  </data>
+  <data name="SortTotalHighLow" xml:space="preserve">
+    <value>合計：高い順</value>
+  </data>
+  <data name="SortTotalLowHigh" xml:space="preserve">
+    <value>合計：低い順</value>
+  </data>
+  <data name="SortUnitPriceHighLow" xml:space="preserve">
+    <value>単価：高い順</value>
+  </data>
+  <data name="SortQuantityHighLow" xml:space="preserve">
+    <value>数量：多い順</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>過去24時間</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>過去7日間</value>
+  </data>
+  <data name="Last30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="Last90Days" xml:space="preserve">
+    <value>過去90日間</value>
+  </data>
+  <data name="OwnerAllCharsCorps" xml:space="preserve">
+    <value>全キャラクターと個人コーポ</value>
+  </data>
+  <data name="LoadingBalances" xml:space="preserve">
+    <value>残高を読み込み中…</value>
+  </data>
+  <data name="BuildingCharts" xml:space="preserve">
+    <value>グラフを作成中…</value>
+  </data>
+  <data name="LoadingDivisions" xml:space="preserve">
+    <value>部門を読み込み中…</value>
+  </data>
+  <data name="SliceMarketSales" xml:space="preserve">
+    <value>マーケットでの売却</value>
+  </data>
+  <data name="SliceNpcBounties" xml:space="preserve">
+    <value>NPC懸賞金</value>
+  </data>
+  <data name="SliceContractSales" xml:space="preserve">
+    <value>契約での売却</value>
+  </data>
+  <data name="SliceOtherIncome" xml:space="preserve">
+    <value>その他の収入</value>
+  </data>
+  <data name="SliceMarketPurchases" xml:space="preserve">
+    <value>マーケットでの購入</value>
+  </data>
+  <data name="SliceContractPurchases" xml:space="preserve">
+    <value>契約での購入</value>
+  </data>
+  <data name="SliceBrokerFees" xml:space="preserve">
+    <value>仲介手数料</value>
+  </data>
+  <data name="SliceTransactionTax" xml:space="preserve">
+    <value>取引税</value>
+  </data>
+  <data name="SliceIndustryTax" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="SliceOtherExpenses" xml:space="preserve">
+    <value>その他の支出</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>第{0}部門</value>
+  </data>
+  <data name="Last365Days" xml:space="preserve">
+    <value>過去365日間</value>
+  </data>
+  <data name="YearToDate" xml:space="preserve">
+    <value>年初来</value>
+  </data>
+  <data name="PriorYear" xml:space="preserve">
+    <value>前年</value>
+  </data>
+  <data name="CustomRange" xml:space="preserve">
+    <value>期間を指定</value>
+  </data>
+  <data name="OwnerPersonal" xml:space="preserve">
+    <value>個人</value>
+  </data>
+  <data name="LineNetWorthTotal" xml:space="preserve">
+    <value>純資産（合計）</value>
+  </data>
+  <data name="LineAssets" xml:space="preserve">
+    <value>資産</value>
+  </data>
+  <data name="LineWallet" xml:space="preserve">
+    <value>ウォレット</value>
+  </data>
+  <data name="LineIndustryJobs" xml:space="preserve">
+    <value>生産ジョブ</value>
+  </data>
+  <data name="LineSellOrders" xml:space="preserve">
+    <value>売り注文</value>
+  </data>
+  <data name="LineBuyEscrow" xml:space="preserve">
+    <value>買い注文のエスクロー</value>
+  </data>
+  <data name="LineContractCollateral" xml:space="preserve">
+    <value>契約の担保</value>
+  </data>
+  <data name="LineContractValue" xml:space="preserve">
+    <value>契約の価値</value>
+  </data>
+  <data name="AsOfDate" xml:space="preserve">
+    <value>{0}時点</value>
+  </data>
+  <data name="CategoryOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="NoCharacters" xml:space="preserve">
+    <value>キャラクターがいません。</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="SeriesExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="SeriesCashflow" xml:space="preserve">
+    <value>キャッシュフロー</value>
+  </data>
+  <data name="LastDaysNoteOther" xml:space="preserve">
+    <value>過去{0}日間 — 自分のウォレット間で移動したISKは含みません</value>
+  </data>
+  <data name="DirAll" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+</root>

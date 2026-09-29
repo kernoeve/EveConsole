@@ -754,6 +754,6 @@ public class BottleneckService(
     private static string Name(IEnumerable<(IndustryCandidate C, int N)> people)
     {
         var list = people.Take(4).Select(x => $"{x.C.Config.CharacterName} +{x.N}").ToList();
-        return list.Count == 0 ? "" : string.Join(", ", list);
+        return list.Count == 0 ? "" : string.Join(CommonText.ListSeparator, list);
     }
 }
