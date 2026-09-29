@@ -592,4 +592,884 @@
     <value>Select an entry to view its full detail.</value>
     <comment>Note in GameLogViewerView.</comment>
   </data>
+  <data name="CellYes" xml:space="preserve">
+    <value>yes</value>
+    <comment>Background Processes table cell: yes. In the LP Store tab's Store column (the corporation has a store) and the Alarms tab's Enabled column.</comment>
+  </data>
+  <data name="CellStoreNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Background Processes, LP Store tab, Store column: the corporation has no LP store.</comment>
+  </data>
+  <data name="TimeNeverLower" xml:space="preserve">
+    <value>never</value>
+    <comment>A time that has not come yet, in lower case: an alarm that has never fired, a corporation never checked.</comment>
+  </data>
+  <data name="CellNo" xml:space="preserve">
+    <value>no</value>
+    <comment>Background Processes, Alarms tab, Enabled column: the alarm is switched off.</comment>
+  </data>
+  <data name="EveryHours" xml:space="preserve">
+    <value>{0} h</value>
+    <comment>Background Processes, Alarms tab, Every column: how often the alarm is checked. {0} is a number of hours; "h" abbreviates hours.</comment>
+  </data>
+  <data name="EveryMinutes" xml:space="preserve">
+    <value>{0} min</value>
+    <comment>Background Processes, Alarms tab, Every column: how often the alarm is checked. {0} is a number of minutes; "min" abbreviates minutes.</comment>
+  </data>
+  <data name="EverySeconds" xml:space="preserve">
+    <value>{0} s</value>
+    <comment>Background Processes, Alarms tab, Every column: how often the alarm is checked. {0} is a number of seconds; "s" abbreviates seconds.</comment>
+  </data>
+  <data name="StatusBarLabel" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Status bar: a background process and what it is doing, e.g. "Price History: idle". {0} is the process's name, {1} its state.</comment>
+  </data>
+  <data name="HistoryNoTrackedItems" xml:space="preserve">
+    <value>No tracked items</value>
+    <comment>Background Processes, Price History tab, Status column: the region has no items to track.</comment>
+  </data>
+  <data name="HistoryCurrent" xml:space="preserve">
+    <value>Current</value>
+    <comment>Background Processes, Price History tab, Status column: every item in the region has fresh history.</comment>
+  </data>
+  <data name="HistoryEmpty" xml:space="preserve">
+    <value>Empty</value>
+    <comment>Background Processes, Price History tab, Status column: nothing in the region has been refreshed yet.</comment>
+  </data>
+  <data name="HistoryFilling" xml:space="preserve">
+    <value>Filling</value>
+    <comment>Background Processes, Price History tab, Status column: some of the region's items are refreshed, some still queued.</comment>
+  </data>
+  <data name="TimeNever" xml:space="preserve">
+    <value>Never</value>
+    <comment>A time that has not come yet, standing alone in a cell: an endpoint never called, a check never run.</comment>
+  </data>
+  <data name="ScheduleDue" xml:space="preserve">
+    <value>Due</value>
+    <comment>Background Processes, ESI Call Schedule, Time Until column: the next call is due now.</comment>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0}h {1:00}m</value>
+    <comment>Time until the next call, compact. {0} is hours, {1} minutes (two digits); "h" and "m" abbreviate hours and minutes.</comment>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0}m {1:00}s</value>
+    <comment>Time until the next call, compact. {0} is minutes, {1} seconds (two digits); "m" and "s" abbreviate minutes and seconds.</comment>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0}s</value>
+    <comment>Time until the next call, compact. {0} is seconds; "s" abbreviates seconds.</comment>
+  </data>
+  <data name="LogCountFiltered" xml:space="preserve">
+    <value>{0:N0} of {1:N0} entries shown · the last 1,000 calls are kept</value>
+    <comment>Background Processes, ESI Activity Log, under the filters. {0} is the number of entries shown, {1} the number in the log.</comment>
+  </data>
+  <data name="RelayNothingReported" xml:space="preserve">
+    <value>○ Nothing reported yet by the client running the background processes</value>
+    <comment>Background Processes: a process run by another client (the one running the background work) that has not reported anything yet.</comment>
+  </data>
+  <data name="BarEsiCalls" xml:space="preserve">
+    <value>ESI Calls</value>
+    <comment>Status bar: the name of the ESI call process, shown before a colon and its state.</comment>
+  </data>
+  <data name="BarPriceHistory" xml:space="preserve">
+    <value>Price History</value>
+    <comment>Status bar: the name of the price history sweep, shown before a colon and its state.</comment>
+  </data>
+  <data name="BarContractItems" xml:space="preserve">
+    <value>Contract Items</value>
+    <comment>Status bar: the name of the contract items sweep, shown before a colon and its state.</comment>
+  </data>
+  <data name="BarLpStore" xml:space="preserve">
+    <value>LP Store</value>
+    <comment>Status bar: the name of the LP store sweep, shown before a colon and its state.</comment>
+  </data>
+  <data name="BarKillmails" xml:space="preserve">
+    <value>Killmails</value>
+    <comment>Status bar: the name of the killmail import, shown before a colon and its state.</comment>
+  </data>
+  <data name="StageKillmailDetails" xml:space="preserve">
+    <value>ESI kill mail details</value>
+    <comment>Background Processes, Killmails tab, Stage column: fetching each kill mail's details from ESI.</comment>
+  </data>
+  <data name="StageLiveCapture" xml:space="preserve">
+    <value>Live capture</value>
+    <comment>Background Processes, Killmails tab, Stage column: new kills captured from zKillboard as they happen.</comment>
+  </data>
+  <data name="StageDailyDumpBackfill" xml:space="preserve">
+    <value>Daily dump backfill</value>
+    <comment>Background Processes, Killmails tab, Stage column: past kills imported from zKillboard's daily dumps.</comment>
+  </data>
+  <data name="StagePostingToZkb" xml:space="preserve">
+    <value>Posting to zKillboard</value>
+    <comment>Background Processes, Killmails tab, Stage column: sending kills to zKillboard.</comment>
+  </data>
+  <data name="StageHourlySweep" xml:space="preserve">
+    <value>Hourly sweep</value>
+    <comment>Background Processes, Structures tab, Sweep column: the hourly structure sweep.</comment>
+  </data>
+  <data name="StagePublicListDaily" xml:space="preserve">
+    <value>Public list, daily</value>
+    <comment>Background Processes, Structures tab, Sweep column: the public structure list, walked once a day.</comment>
+  </data>
+  <data name="SourcePublicListings" xml:space="preserve">
+    <value>Public listings</value>
+    <comment>Background Processes, Contract Items tab, Source column: the regions' public contracts.</comment>
+  </data>
+  <data name="SourceCharacterAndCorporation" xml:space="preserve">
+    <value>Character and corporation</value>
+    <comment>Background Processes, Contract Items tab, Source column: the characters' and corporations' own contracts.</comment>
+  </data>
+  <data name="SourceRefused" xml:space="preserve">
+    <value>Refused</value>
+    <comment>Background Processes, Contract Items tab, Source column: contracts whose items ESI refused to give.</comment>
+  </data>
+  <data name="StateFetching" xml:space="preserve">
+    <value>Fetching</value>
+    <comment>Background Processes, State column: the process is fetching now.</comment>
+  </data>
+  <data name="StateIdle" xml:space="preserve">
+    <value>Idle</value>
+    <comment>Background Processes, State column: the process is at rest.</comment>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>Off</value>
+    <comment>Background Processes, State column: the process is switched off.</comment>
+  </data>
+  <data name="StateFirehose" xml:space="preserve">
+    <value>Firehose</value>
+    <comment>Background Processes, Killmails tab, State column: live capture through zKillboard's firehose (a live stream of every kill).</comment>
+  </data>
+  <data name="StateIntervalPoll" xml:space="preserve">
+    <value>Interval poll</value>
+    <comment>Background Processes, Killmails tab, State column: live capture by asking zKillboard at intervals.</comment>
+  </data>
+  <data name="StateImporting" xml:space="preserve">
+    <value>Importing</value>
+    <comment>Background Processes, Killmails tab, State column: importing now.</comment>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>On</value>
+    <comment>Background Processes, State column: the process is switched on.</comment>
+  </data>
+  <data name="StateSweeping" xml:space="preserve">
+    <value>Sweeping</value>
+    <comment>Background Processes, Structures tab, State column: a sweep is running now.</comment>
+  </data>
+  <data name="StateWatching" xml:space="preserve">
+    <value>Watching</value>
+    <comment>Background Processes, Structures tab, State column: waiting for the next sweep.</comment>
+  </data>
+  <data name="NextRunOnceADay" xml:space="preserve">
+    <value>once a day</value>
+    <comment>Background Processes, Structures tab, Next run column: the public list is walked once a day.</comment>
+  </data>
+  <data name="ZkbLiveDisabled" xml:space="preserve">
+    <value>○ Disabled — zKillboard import is switched off</value>
+    <comment>Background Processes, Killmails tab: state line when the zKillboard import is off.</comment>
+  </data>
+  <data name="ZkbLiveAllKills" xml:space="preserve">
+    <value>● All kills — live capture via the R2Z2 firehose</value>
+    <comment>Background Processes, Killmails tab: state line when every kill in the game is captured.</comment>
+  </data>
+  <data name="ZkbLiveMine" xml:space="preserve">
+    <value>● My characters &amp; corp — live capture via interval poll</value>
+    <comment>Background Processes, Killmails tab: state line when only the user's own characters' and corporations' kills are captured.</comment>
+  </data>
+  <data name="ZkbScopeAll" xml:space="preserve">
+    <value>All kills (universe-wide)</value>
+    <comment>Background Processes, Killmails tab, after "Scope:": every kill in the game.</comment>
+  </data>
+  <data name="ZkbScopeMine" xml:space="preserve">
+    <value>My characters &amp; corp</value>
+    <comment>Background Processes, Killmails tab, after "Scope:": only the user's own characters' and corporations' kills.</comment>
+  </data>
+  <data name="ZkbPostOff" xml:space="preserve">
+    <value>○ Off — not submitting kills to zKillboard</value>
+    <comment>Background Processes, Killmails tab, Posting to zKillboard row: posting is switched off.</comment>
+  </data>
+  <data name="ZkbCoverageThrough" xml:space="preserve">
+    <value>Daily dumps imported through {0:yyyy-MM-dd}</value>
+    <comment>Background Processes, Killmails tab, after "Coverage:". {0} is the last day imported.</comment>
+  </data>
+  <data name="ZkbCoverageNone" xml:space="preserve">
+    <value>No daily dump imported yet</value>
+    <comment>Background Processes, Killmails tab, after "Coverage:": no daily dump imported yet.</comment>
+  </data>
+  <data name="IntelDisabled" xml:space="preserve">
+    <value>○ Disabled — chat log import is switched off</value>
+    <comment>Background Processes, Intel tab: state line when chat log import is off.</comment>
+  </data>
+  <data name="IntelNoChannels" xml:space="preserve">
+    <value>○ No intel channels — tick one under Settings → Chat Logs</value>
+    <comment>Background Processes, Intel tab: state line when no chat channel is ticked as an intel channel.</comment>
+  </data>
+  <data name="IntelParsing" xml:space="preserve">
+    <value>● Parsing intel channels</value>
+    <comment>Background Processes, Intel tab: state line while intel messages are being parsed.</comment>
+  </data>
+  <data name="IntelWatching" xml:space="preserve">
+    <value>● Watching intel channels</value>
+    <comment>Background Processes, Intel tab: state line while waiting for new intel messages.</comment>
+  </data>
+  <data name="IntelChannelsNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Background Processes, Intel tab, Channels: no intel channel is chosen.</comment>
+  </data>
+  <data name="IntelBacklogCount" xml:space="preserve">
+    <value>{0:N0} message(s) still to consider</value>
+    <comment>Background Processes, Intel tab, Backlog. {0} is the number of chat messages not yet parsed.</comment>
+  </data>
+  <data name="IntelCaughtUp" xml:space="preserve">
+    <value>Caught up</value>
+    <comment>Background Processes, Intel tab, Backlog: every message has been parsed.</comment>
+  </data>
+  <data name="StructuresSweeping" xml:space="preserve">
+    <value>● Sweeping — resolving structures now</value>
+    <comment>Background Processes, Structures tab: state line while a sweep is running.</comment>
+  </data>
+  <data name="StructuresWatching" xml:space="preserve">
+    <value>● Watching — sweeps hourly, public list daily</value>
+    <comment>Background Processes, Structures tab: state line between sweeps.</comment>
+  </data>
+  <data name="StructuresNotYet" xml:space="preserve">
+    <value>not yet this session</value>
+    <comment>Background Processes, Structures tab, Last run: no sweep has run since the app started.</comment>
+  </data>
+  <data name="StructuresDueNow" xml:space="preserve">
+    <value>due now</value>
+    <comment>Background Processes, Structures tab, Next run: the sweep is due now.</comment>
+  </data>
+  <data name="StructuresNextAt" xml:space="preserve">
+    <value>{0:HH:mm:ss} ({1:N0} min)</value>
+    <comment>Background Processes, Structures tab, Next run. {0} is the time, {1} the minutes until then; "min" abbreviates minutes.</comment>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>○ No alarms armed — create one in the Alarms tool</value>
+    <comment>Background Processes, Alarms tab: state line when no alarm is switched on.</comment>
+  </data>
+  <data name="AlarmsWatching" xml:space="preserve">
+    <value>● Watching {0} alarm(s)</value>
+    <comment>Background Processes, Alarms tab: state line. {0} is the number of alarms switched on.</comment>
+  </data>
+  <data name="AlarmsNothingFired" xml:space="preserve">
+    <value>Nothing has fired this session</value>
+    <comment>Background Processes, Alarms tab, after "Last firing:": no alarm has fired since the app started.</comment>
+  </data>
+  <data name="NameCacheCount" xml:space="preserve">
+    <value>{0:N0} name(s) cached</value>
+    <comment>Background Processes, Name Cache tab. {0} is the number of character, corporation and alliance names kept.</comment>
+  </data>
+  <data name="ContractsPulledQueued" xml:space="preserve">
+    <value>{0:N0} / {1:N0} pulled · {2:N0} queued</value>
+    <comment>Background Processes, Contract Items tab. {0} is the contracts whose items were pulled, {1} all contracts, {2} those still waiting.</comment>
+  </data>
+  <data name="ContractsRefusedCount" xml:space="preserve">
+    <value>{0:N0} refused (ESI answered 400/403/404 and holds no items of them)</value>
+    <comment>Background Processes, Contract Items tab. {0} is the number of contracts whose items ESI refused to give.</comment>
+  </data>
+  <data name="ContractsRunning" xml:space="preserve">
+    <value>● Running — {0:N0} contracts queued for items</value>
+    <comment>Background Processes, Contract Items tab: state line while pulling. {0} is the number of contracts still waiting for their items.</comment>
+  </data>
+  <data name="ContractsIdleQueued" xml:space="preserve">
+    <value>○ Idle — {0:N0} contracts queued for items</value>
+    <comment>Background Processes, Contract Items tab: state line at rest. {0} is the number of contracts still waiting for their items.</comment>
+  </data>
+  <data name="ContractsIdleComplete" xml:space="preserve">
+    <value>○ Idle — all item pulls complete</value>
+    <comment>Background Processes, Contract Items tab: state line when every contract's items are pulled.</comment>
+  </data>
+  <data name="ContractsNotePublic" xml:space="preserve">
+    <value>the regions' public listings, browsed</value>
+    <comment>Background Processes, Contract Items tab, Note column for the public listings row.</comment>
+  </data>
+  <data name="ContractsNoteOwned" xml:space="preserve">
+    <value>held by your characters and corporations — yours first, then the ones open to a corporation</value>
+    <comment>Background Processes, Contract Items tab, Note column for the characters' and corporations' own contracts.</comment>
+  </data>
+  <data name="ContractsNoteRefused" xml:space="preserve">
+    <value>asked for and refused — ESI answered 400, 403 or 404 through every endpoint that had them; counted among the pulled</value>
+    <comment>Background Processes, Contract Items tab, Note column for the refused contracts.</comment>
+  </data>
+  <data name="LpStoreProgress" xml:space="preserve">
+    <value>{0:N0} / {1:N0} corporations checked · {2:N0} to go</value>
+    <comment>Background Processes, LP Store tab. {0} is the NPC corporations checked, {1} all of them, {2} those left.</comment>
+  </data>
+  <data name="LpStoreOffers" xml:space="preserve">
+    <value>{0:N0} offer(s) from {1:N0} store(s)</value>
+    <comment>Background Processes, LP Store tab. {0} is the number of offers found, {1} the number of corporations with a store.</comment>
+  </data>
+  <data name="LpStoreSweeping" xml:space="preserve">
+    <value>● Sweeping — {0:N0} corporation(s) still to check</value>
+    <comment>Background Processes, LP Store tab: state line while sweeping. {0} is the number of NPC corporations left to check.</comment>
+  </data>
+  <data name="LpStoreIdleNoneChecked" xml:space="preserve">
+    <value>○ Idle — no corporation checked yet; the first sweep starts shortly after launch</value>
+    <comment>Background Processes, LP Store tab: state line before the first sweep.</comment>
+  </data>
+  <data name="LpStoreIdleIncomplete" xml:space="preserve">
+    <value>○ Idle — {0:N0} corporation(s) not yet checked, catalogue incomplete</value>
+    <comment>Background Processes, LP Store tab: state line at rest. {0} is the number of NPC corporations not yet checked.</comment>
+  </data>
+  <data name="LpStoreIdleComplete" xml:space="preserve">
+    <value>○ Idle — every corporation checked</value>
+    <comment>Background Processes, LP Store tab: state line when every NPC corporation has been checked.</comment>
+  </data>
+  <data name="HistoryIdleCurrent" xml:space="preserve">
+    <value>○ Idle — all tracked items current</value>
+    <comment>Background Processes, Price History tab: state line when every tracked item is current.</comment>
+  </data>
+  <data name="TokenCorpName" xml:space="preserve">
+    <value>[Corp] {0}</value>
+    <comment>Background Processes, ESI Call Schedule, Token list: a corporation's token. {0} is the corporation's name.</comment>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Background Processes, ESI Activity Log: the first entry of the Character and Endpoint filters, which filters nothing out.</comment>
+  </data>
+  <data name="LogCountOne" xml:space="preserve">
+    <value>{0:N0} entry · the last 1,000 calls are kept</value>
+    <comment>Background Processes, ESI Activity Log, when no filter is set. {0} is the number of entries in the log (this form: one).</comment>
+  </data>
+  <data name="LogCountOther" xml:space="preserve">
+    <value>{0:N0} entries · the last 1,000 calls are kept</value>
+    <comment>Background Processes, ESI Activity Log, when no filter is set. {0} is the number of entries in the log.</comment>
+  </data>
+  <data name="BadTokensOne" xml:space="preserve">
+    <value>{0} bad token</value>
+    <comment>Status bar, in red beside ESI Calls: characters or corporations whose login the EVE server refused; clicking opens Settings → ESI Tokens. {0} is the number (this form: one).</comment>
+  </data>
+  <data name="BadTokensOther" xml:space="preserve">
+    <value>{0} bad tokens</value>
+    <comment>Status bar, in red beside ESI Calls: characters or corporations whose login the EVE server refused; clicking opens Settings → ESI Tokens. {0} is the number.</comment>
+  </data>
+  <data name="HistoryRunningQueuedOne" xml:space="preserve">
+    <value>● Running — {0:N0} item queued</value>
+    <comment>Background Processes, Price History tab: state line while the sweep runs. {0} is the number of items still to refresh (this form: one).</comment>
+  </data>
+  <data name="HistoryRunningQueuedOther" xml:space="preserve">
+    <value>● Running — {0:N0} items queued</value>
+    <comment>Background Processes, Price History tab: state line while the sweep runs. {0} is the number of items still to refresh.</comment>
+  </data>
+  <data name="HistoryIdleQueuedOne" xml:space="preserve">
+    <value>○ Idle — {0:N0} item queued for next sweep</value>
+    <comment>Background Processes, Price History tab: state line at rest. {0} is the number of items waiting for the next sweep (this form: one).</comment>
+  </data>
+  <data name="HistoryIdleQueuedOther" xml:space="preserve">
+    <value>○ Idle — {0:N0} items queued for next sweep</value>
+    <comment>Background Processes, Price History tab: state line at rest. {0} is the number of items waiting for the next sweep.</comment>
+  </data>
+  <data name="OpContains" xml:space="preserve">
+    <value>Contains</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows: the column contains the value typed.</comment>
+  </data>
+  <data name="OpDoesNotContain" xml:space="preserve">
+    <value>Does Not Contain</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows: the column does not contain the value typed.</comment>
+  </data>
+  <data name="OpEqual" xml:space="preserve">
+    <value>Equal</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows: the column is equal to the value typed.</comment>
+  </data>
+  <data name="OpNotEqual" xml:space="preserve">
+    <value>Not Equal</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows: the column is not equal to the value typed.</comment>
+  </data>
+  <data name="OpGreaterThan" xml:space="preserve">
+    <value>Greater Than</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows.</comment>
+  </data>
+  <data name="OpGreaterThanOrEqual" xml:space="preserve">
+    <value>Greater Than or Equal</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows.</comment>
+  </data>
+  <data name="OpLessThan" xml:space="preserve">
+    <value>Less Than</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows.</comment>
+  </data>
+  <data name="OpLessThanOrEqual" xml:space="preserve">
+    <value>Less Than or Equal</value>
+    <comment>Filter operator in the ESI Data Explorer and Asset Browser filter rows.</comment>
+  </data>
+  <data name="TableWalletBalances" xml:space="preserve">
+    <value>Wallet Balances</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableWalletJournal" xml:space="preserve">
+    <value>Wallet Journal</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableWalletTransactions" xml:space="preserve">
+    <value>Wallet Transactions</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableSkills" xml:space="preserve">
+    <value>Skills</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableSkillQueue" xml:space="preserve">
+    <value>Skill Queue</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableAttributes" xml:space="preserve">
+    <value>Attributes</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds: the character's attributes (Intelligence, Memory…).</comment>
+  </data>
+  <data name="TableFatigue" xml:space="preserve">
+    <value>Fatigue</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds: the character's jump fatigue.</comment>
+  </data>
+  <data name="TableCloneState" xml:space="preserve">
+    <value>Clone State</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableJumpClones" xml:space="preserve">
+    <value>Jump Clones</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableJumpCloneImplants" xml:space="preserve">
+    <value>Jump Clone Implants</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableImplants" xml:space="preserve">
+    <value>Implants</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableBlueprints" xml:space="preserve">
+    <value>Blueprints</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableMarketOrders" xml:space="preserve">
+    <value>Market Orders</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableContacts" xml:space="preserve">
+    <value>Contacts</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableKillMails" xml:space="preserve">
+    <value>Kill Mails</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableStandings" xml:space="preserve">
+    <value>Standings</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableMining" xml:space="preserve">
+    <value>Mining</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds: the mining ledger.</comment>
+  </data>
+  <data name="TableNotifications" xml:space="preserve">
+    <value>Notifications</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TablePlanetaryColonies" xml:space="preserve">
+    <value>Planetary Colonies</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableAgentResearch" xml:space="preserve">
+    <value>Agent Research</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableLoyaltyPoints" xml:space="preserve">
+    <value>Loyalty Points</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableMedals" xml:space="preserve">
+    <value>Medals</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableTitles" xml:space="preserve">
+    <value>Titles</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds: the corporation titles a character holds.</comment>
+  </data>
+  <data name="TableRoles" xml:space="preserve">
+    <value>Roles</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds: the corporation roles a character holds.</comment>
+  </data>
+  <data name="TableFittings" xml:space="preserve">
+    <value>Fittings</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableFittingItems" xml:space="preserve">
+    <value>Fitting Items</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpDivisions" xml:space="preserve">
+    <value>Corp Divisions</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpMembers" xml:space="preserve">
+    <value>Corp Members</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpMemberRoles" xml:space="preserve">
+    <value>Corp Member Roles</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpTitles" xml:space="preserve">
+    <value>Corp Titles</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpMedals" xml:space="preserve">
+    <value>Corp Medals</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpStructures" xml:space="preserve">
+    <value>Corp Structures</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpStarbases" xml:space="preserve">
+    <value>Corp Starbases</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableCorpFacilities" xml:space="preserve">
+    <value>Corp Facilities</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds.</comment>
+  </data>
+  <data name="TableApiCallRecords" xml:space="preserve">
+    <value>API Call Records</value>
+    <comment>ESI Data Explorer: a table in the list on the left, named for the ESI data it holds: when each ESI endpoint was last called.</comment>
+  </data>
+  <data name="ExplorerSelectTable" xml:space="preserve">
+    <value>Select a table from the list to view its data.</value>
+    <comment>ESI Data Explorer: status line before a table is chosen.</comment>
+  </data>
+  <data name="ExportCancel" xml:space="preserve">
+    <value>Cancel export</value>
+    <comment>ESI Data Explorer: the export button while an export runs; clicking it stops the export.</comment>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>Export CSV</value>
+    <comment>ESI Data Explorer: the export button, and the title of the save dialog it opens. "Export" is a verb; CSV is the file format.</comment>
+  </data>
+  <data name="ExplorerNoRows" xml:space="preserve">
+    <value>No rows.</value>
+    <comment>ESI Data Explorer: status line when the table, as filtered, is empty.</comment>
+  </data>
+  <data name="ExplorerShowingRows" xml:space="preserve">
+    <value>Showing {0:N0} of {1:N0} rows</value>
+    <comment>ESI Data Explorer: status line. {0} is the number of rows loaded so far, {1} the number that match.</comment>
+  </data>
+  <data name="ExplorerRowsTotal" xml:space="preserve">
+    <value>{0:N0} rows total</value>
+    <comment>ESI Data Explorer: status line when every matching row is loaded. {0} is the number of rows.</comment>
+  </data>
+  <data name="ExportRunning" xml:space="preserve">
+    <value>Exporting…</value>
+    <comment>ESI Data Explorer: status line as an export to CSV starts.</comment>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Exporting… {0:N0} rows</value>
+    <comment>ESI Data Explorer: status line during an export to CSV. {0} is the number of rows written so far.</comment>
+  </data>
+  <data name="ExportDone" xml:space="preserve">
+    <value>Exported {0:N0} rows to {1}</value>
+    <comment>ESI Data Explorer: status line after an export to CSV. {0} is the number of rows, {1} the file's name.</comment>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Export cancelled after {0:N0} rows; the file was not kept.</value>
+    <comment>ESI Data Explorer: status line after an export was stopped. {0} is the number of rows written before it stopped.</comment>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Export failed: {0}</value>
+    <comment>ESI Data Explorer: status line when an export to CSV fails. {0} is the error.</comment>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>column…</value>
+    <comment>ESI Data Explorer, a filter row: hint in the empty column picker.</comment>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>value…</value>
+    <comment>ESI Data Explorer, a filter row: hint in the empty box for the value to filter by.</comment>
+  </data>
+  <data name="KindAgent" xml:space="preserve">
+    <value>Agent</value>
+    <comment>AI Usage &amp; Cost: a kind of service, the agent's language model. In the Service filter and the Service column.</comment>
+  </data>
+  <data name="KindSpeechOut" xml:space="preserve">
+    <value>Speech out</value>
+    <comment>AI Usage &amp; Cost: a kind of service, the voice that reads replies aloud (text to speech). In the Service filter and the Service column.</comment>
+  </data>
+  <data name="KindSpeechIn" xml:space="preserve">
+    <value>Speech in</value>
+    <comment>AI Usage &amp; Cost: a kind of service, the transcription of what the user says (speech to text). In the Service filter and the Service column.</comment>
+  </data>
+  <data name="RatePer1MTokens" xml:space="preserve">
+    <value>per 1M tokens</value>
+    <comment>AI Usage &amp; Cost, Rates tab: the scale a language model's price is entered at. "1M" is one million.</comment>
+  </data>
+  <data name="RatePer1MCharacters" xml:space="preserve">
+    <value>per 1M characters</value>
+    <comment>AI Usage &amp; Cost, Rates tab: the scale a voice's price is entered at. "1M" is one million.</comment>
+  </data>
+  <data name="RatePerMinute" xml:space="preserve">
+    <value>per minute</value>
+    <comment>AI Usage &amp; Cost, Rates tab: the scale a transcription price is entered at.</comment>
+  </data>
+  <data name="RatePerUnit" xml:space="preserve">
+    <value>per unit</value>
+    <comment>AI Usage &amp; Cost, Rates tab: the scale of any other price.</comment>
+  </data>
+  <data name="RateAnyModel" xml:space="preserve">
+    <value>(any model)</value>
+    <comment>AI Usage &amp; Cost, Rates tab, Model column: a rate that applies to every model of the provider.</comment>
+  </data>
+  <data name="SecondsOneDecimal" xml:space="preserve">
+    <value>{0:0.0}s</value>
+    <comment>AI Usage &amp; Cost: a duration in seconds, in the Avg and Took columns. {0} is the number of seconds; "s" abbreviates seconds.</comment>
+  </data>
+  <data name="CostLocal" xml:space="preserve">
+    <value>local</value>
+    <comment>AI Usage &amp; Cost, Cost column: a service running on the user's own machine, which costs nothing.</comment>
+  </data>
+  <data name="CostNoRate" xml:space="preserve">
+    <value>no rate</value>
+    <comment>AI Usage &amp; Cost, Cost column: a paid service with no price entered on the Rates tab, so its cost is unknown.</comment>
+  </data>
+  <data name="UsageNothingRecorded" xml:space="preserve">
+    <value>Nothing recorded in this range.</value>
+    <comment>AI Usage &amp; Cost: status line when nothing was used between the dates chosen.</comment>
+  </data>
+  <data name="UsageServiceCalls" xml:space="preserve">
+    <value>{0:N0} service call(s)</value>
+    <comment>AI Usage &amp; Cost: status line. {0} is the number of calls to AI services between the dates chosen.</comment>
+  </data>
+  <data name="UsageCalls" xml:space="preserve">
+    <value>{0:N0} call(s)</value>
+    <comment>AI Usage &amp; Cost, under CALLS in the totals strip. {0} is the number of calls.</comment>
+  </data>
+  <data name="CaveatNoPrices" xml:space="preserve">
+    <value>no prices could be read, so every cost above is zero — {0}</value>
+    <comment>AI Usage &amp; Cost: a warning under the totals, in lower case because several are joined with " · ". {0} is the error that stopped the prices being read.</comment>
+  </data>
+  <data name="CaveatRowCeiling" xml:space="preserve">
+    <value>only the most recent {0:N0} rows were read — narrow the range for a true total</value>
+    <comment>AI Usage &amp; Cost: a warning under the totals, in lower case because several are joined with " · ". {0} is the most rows read at once.</comment>
+  </data>
+  <data name="CaveatUnpriced" xml:space="preserve">
+    <value>{0:N0} call(s) have no rate set and are NOT in the total</value>
+    <comment>AI Usage &amp; Cost: a warning under the totals, in lower case because several are joined with " · ". {0} is the number of calls with no price.</comment>
+  </data>
+  <data name="CaveatEstimated" xml:space="preserve">
+    <value>{0:N0} call(s) have estimated rather than reported counts</value>
+    <comment>AI Usage &amp; Cost: a warning under the totals, in lower case because several are joined with " · ". {0} is the number of calls whose counts the app worked out itself because the provider did not report them.</comment>
+  </data>
+  <data name="EstimatedShort" xml:space="preserve">
+    <value>est.</value>
+    <comment>AI Usage &amp; Cost, Detail tab: marks counts the app worked out itself rather than the provider reporting them. Short for "estimated".</comment>
+  </data>
+  <data name="ActivityRounds" xml:space="preserve">
+    <value>{0} rounds</value>
+    <comment>AI Usage &amp; Cost, Detail tab, Activity column: how many round trips to the model one answer took. {0} is the number (always more than one).</comment>
+  </data>
+  <data name="ActivityFailed" xml:space="preserve">
+    <value>failed</value>
+    <comment>AI Usage &amp; Cost, Detail tab, Activity column: the agent's turn ended in an error.</comment>
+  </data>
+  <data name="RatesNothingChanged" xml:space="preserve">
+    <value>Nothing changed.</value>
+    <comment>AI Usage &amp; Cost, Rates tab: after Save Rates when no rate was edited.</comment>
+  </data>
+  <data name="RatesSaved" xml:space="preserve">
+    <value>Saved {0} rate(s).</value>
+    <comment>AI Usage &amp; Cost, Rates tab: after Save Rates. {0} is the number of rates saved.</comment>
+  </data>
+  <data name="PeriodWeekOf" xml:space="preserve">
+    <value>Week of {0:yyyy-MM-dd}</value>
+    <comment>AI Usage &amp; Cost, Period column when grouped by week. {0} is the week's Monday.</comment>
+  </data>
+  <data name="PeriodDay" xml:space="preserve">
+    <value>Day</value>
+    <comment>AI Usage &amp; Cost, "Group by" list: one line per day.</comment>
+  </data>
+  <data name="PeriodWeek" xml:space="preserve">
+    <value>Week</value>
+    <comment>AI Usage &amp; Cost, "Group by" list: one line per week.</comment>
+  </data>
+  <data name="PeriodMonth" xml:space="preserve">
+    <value>Month</value>
+    <comment>AI Usage &amp; Cost, "Group by" list: one line per month.</comment>
+  </data>
+  <data name="KindAllServices" xml:space="preserve">
+    <value>All services</value>
+    <comment>AI Usage &amp; Cost, Service filter: the first entry, which shows every kind of service.</comment>
+  </data>
+  <data name="UnitTokens" xml:space="preserve">
+    <value>tokens</value>
+    <comment>AI Usage &amp; Cost, Units column: a language model's input and output are counted in tokens.</comment>
+  </data>
+  <data name="UnitCharacters" xml:space="preserve">
+    <value>characters</value>
+    <comment>AI Usage &amp; Cost, Units column: speech out is counted in characters of text read aloud.</comment>
+  </data>
+  <data name="UnitSeconds" xml:space="preserve">
+    <value>seconds</value>
+    <comment>AI Usage &amp; Cost, Units column: speech in is counted in seconds of audio transcribed.</comment>
+  </data>
+  <data name="GameLogMinedResidue" xml:space="preserve">
+    <value>{0:N0} × {1} (residue {2:N0})</value>
+    <comment>Game Log, Summary column for a mining line. {0} is the units mined, {1} the ore, {2} the units lost as residue.</comment>
+  </data>
+  <data name="GameLogBounty" xml:space="preserve">
+    <value>{0:N0} ISK bounty</value>
+    <comment>Game Log, Summary column for a bounty line. {0} is the amount of ISK.</comment>
+  </data>
+  <data name="GameLogFieldCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The character whose log it is.</comment>
+  </data>
+  <data name="GameLogFieldAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The amount (damage, units, ISK).</comment>
+  </data>
+  <data name="GameLogFieldSecondary" xml:space="preserve">
+    <value>Secondary</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. A second amount, e.g. mining residue.</comment>
+  </data>
+  <data name="GameLogFieldSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. Who or what acted.</comment>
+  </data>
+  <data name="GameLogFieldSourceShip" xml:space="preserve">
+    <value>Source ship</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The ship of whoever acted.</comment>
+  </data>
+  <data name="GameLogFieldSourceCorp" xml:space="preserve">
+    <value>Source corp</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The corporation of whoever acted.</comment>
+  </data>
+  <data name="GameLogFieldSourceAlliance" xml:space="preserve">
+    <value>Source alli</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The alliance of whoever acted ("alli" abbreviates alliance).</comment>
+  </data>
+  <data name="GameLogFieldTarget" xml:space="preserve">
+    <value>Target</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. Who or what was acted on.</comment>
+  </data>
+  <data name="GameLogFieldTargetShip" xml:space="preserve">
+    <value>Target ship</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The target's ship.</comment>
+  </data>
+  <data name="GameLogFieldTargetCorp" xml:space="preserve">
+    <value>Target corp</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The target's corporation.</comment>
+  </data>
+  <data name="GameLogFieldTargetAlliance" xml:space="preserve">
+    <value>Target alli</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The target's alliance ("alli" abbreviates alliance).</comment>
+  </data>
+  <data name="GameLogFieldWeapon" xml:space="preserve">
+    <value>Weapon</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short.</comment>
+  </data>
+  <data name="GameLogFieldQuality" xml:space="preserve">
+    <value>Quality</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. How well a shot hit (EVE's own words, e.g. "Smashes").</comment>
+  </data>
+  <data name="GameLogFieldFromSystem" xml:space="preserve">
+    <value>From system</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The solar system jumped from.</comment>
+  </data>
+  <data name="GameLogFieldToSystem" xml:space="preserve">
+    <value>To system</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The solar system jumped or undocked into.</comment>
+  </data>
+  <data name="GameLogFieldLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The station undocked from.</comment>
+  </data>
+  <data name="GameLogFieldSourceFile" xml:space="preserve">
+    <value>Source file</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The log file the line came from.</comment>
+  </data>
+  <data name="GameLogFieldLine" xml:space="preserve">
+    <value>Line</value>
+    <comment>Game Log, detail pane: label of a field of the selected line, padded to 16 characters, so keep it short. The line's number in the log file.</comment>
+  </data>
+  <data name="GameLogNoEntries" xml:space="preserve">
+    <value>No entries in range.</value>
+    <comment>Game Log: status line when nothing was logged between the dates chosen.</comment>
+  </data>
+  <data name="GameLogEntriesCapped" xml:space="preserve">
+    <value>{0:N0} entries (capped — narrow the range)</value>
+    <comment>Game Log: status line when more lines match than are shown. {0} is the number shown.</comment>
+  </data>
+  <data name="ChatChannelCount" xml:space="preserve">
+    <value>{0:N0} channel(s)</value>
+    <comment>Chat Log, above the channel list. {0} is the number of channels with messages between the dates chosen.</comment>
+  </data>
+  <data name="ChatImportOff" xml:space="preserve">
+    <value>Chat log import is turned off — enable it in Settings → Chat Logs.</value>
+    <comment>Chat Log: why the list is empty — chat log import is switched off.</comment>
+  </data>
+  <data name="ChatNoChannels" xml:space="preserve">
+    <value>No channels selected — pick channels in Settings → Chat Logs.</value>
+    <comment>Chat Log: why the list is empty — no chat channel is chosen for import.</comment>
+  </data>
+  <data name="ChatNothingImported" xml:space="preserve">
+    <value>Nothing imported yet for the selected channels. New messages are picked up as they happen; use Import Past Chat in Settings for older ones.</value>
+    <comment>Chat Log: why the list is empty — nothing has been imported yet. "Import Past Chat" is a button in Settings.</comment>
+  </data>
+  <data name="ChatSelectChannel" xml:space="preserve">
+    <value>Select a channel.</value>
+    <comment>Chat Log: status line before a channel is chosen.</comment>
+  </data>
+  <data name="ChatNoMessages" xml:space="preserve">
+    <value>No messages in range.</value>
+    <comment>Chat Log: status line when the channel has no messages between the dates chosen.</comment>
+  </data>
+  <data name="ChatMessagesCapped" xml:space="preserve">
+    <value>{0:N0} messages (capped — narrow the range)</value>
+    <comment>Chat Log: status line when more messages match than are shown. {0} is the number shown.</comment>
+  </data>
+  <data name="ChatMessageCount" xml:space="preserve">
+    <value>{0:N0} message(s)</value>
+    <comment>Chat Log: status line. {0} is the number of messages shown.</comment>
+  </data>
+  <data name="ErrorClientWorker" xml:space="preserve">
+    <value>{0} (worker)</value>
+    <comment>Error Log, Client column: a client running the background work without a window. {0} is the computer's name.</comment>
+  </data>
+  <data name="ErrorLogNone" xml:space="preserve">
+    <value>No errors in range.</value>
+    <comment>Error Log: status line when no error was logged between the dates chosen.</comment>
+  </data>
+  <data name="ErrorLogCount" xml:space="preserve">
+    <value>{0:N0} error(s)</value>
+    <comment>Error Log: status line. {0} is the number of errors shown.</comment>
+  </data>
+  <data name="ErrorInner" xml:space="preserve">
+    <value>Inner: {0}</value>
+    <comment>Error Log, detail pane, below the error's message. {0} is the message of the error that caused it (the inner exception).</comment>
+  </data>
+  <data name="GameLogAllTypes" xml:space="preserve">
+    <value>(all types)</value>
+    <comment>Game Log, Type filter: the first entry, which shows lines of every type.</comment>
+  </data>
+  <data name="GameLogFieldRaw" xml:space="preserve">
+    <value>Raw:</value>
+    <comment>Game Log, detail pane: heading above the line exactly as EVE wrote it in the log file.</comment>
+  </data>
+  <data name="GameLogEntriesOne" xml:space="preserve">
+    <value>{0:N0} entry</value>
+    <comment>Game Log: status line. {0} is the number of lines shown (this form: one).</comment>
+  </data>
+  <data name="GameLogEntriesOther" xml:space="preserve">
+    <value>{0:N0} entries</value>
+    <comment>Game Log: status line. {0} is the number of lines shown.</comment>
+  </data>
 </root>

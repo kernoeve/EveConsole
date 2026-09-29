@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -56,15 +57,15 @@ public partial class AgentGridView : ReactiveUserControl<AgentGridViewModel>
 
         var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title                  = "Save grid",
+            Title                  = AgentText.TitleSaveGrid,
             SuggestedFileName      = suggestedName,
             DefaultExtension       = Path.GetExtension(suggestedName).TrimStart('.'),
             ShowOverwritePrompt    = true,
             FileTypeChoices =
             [
-                new FilePickerFileType("CSV")      { Patterns = ["*.csv"] },
-                new FilePickerFileType("Markdown") { Patterns = ["*.md"]  },
-                new FilePickerFileType("All files"){ Patterns = ["*"]     },
+                new FilePickerFileType("CSV")                      { Patterns = ["*.csv"] },
+                new FilePickerFileType("Markdown")                 { Patterns = ["*.md"]  },
+                new FilePickerFileType(AgentText.FileTypeAllFiles) { Patterns = ["*"]     },
             ],
         });
         if (file is null) return null;   // cancelled

@@ -1,6 +1,7 @@
 using Avalonia.Media;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -83,7 +84,7 @@ public sealed class LpStoreCorpRowVm(int corporationId, string name) : ReactiveO
 
     public void Set(bool hasStore, int offers, DateTime? checkedAt)
     {
-        StoreText = hasStore ? "yes" : "none"; Offers = offers; CheckedAt = checkedAt;
+        StoreText = hasStore ? DataText.CellYes : DataText.CellStoreNone; Offers = offers; CheckedAt = checkedAt;
     }
 }
 
@@ -108,7 +109,7 @@ public sealed class AlarmMonitorRowVm(long id, string name) : ReactiveObject
 
     private DateTimeOffset? _lastFired;
     public DateTimeOffset? LastFired { get => _lastFired; private set { this.RaiseAndSetIfChanged(ref _lastFired, value); this.RaisePropertyChanged(nameof(LastFiredText)); } }
-    public string LastFiredText => LastFired is { } t ? t.ToLocalTime().ToString("d MMM HH:mm:ss") : "never";
+    public string LastFiredText => LastFired is { } t ? t.ToLocalTime().ToString("d MMM HH:mm:ss") : DataText.TimeNeverLower;
 
     private int _fireCount;
     public int FireCount { get => _fireCount; private set => this.RaiseAndSetIfChanged(ref _fireCount, value); }
@@ -119,10 +120,10 @@ public sealed class AlarmMonitorRowVm(long id, string name) : ReactiveObject
     public void Set(string condition, bool enabled, int pollSeconds, DateTimeOffset? lastChecked, DateTimeOffset? lastFired, int fireCount, string? error)
     {
         Condition   = condition;
-        EnabledText = enabled ? "yes" : "no";
-        EveryText   = pollSeconds >= 3600 && pollSeconds % 3600 == 0 ? $"{pollSeconds / 3600} h"
-                    : pollSeconds >= 60   && pollSeconds % 60   == 0 ? $"{pollSeconds / 60} min"
-                    : $"{pollSeconds} s";
+        EnabledText = enabled ? DataText.CellYes : DataText.CellNo;
+        EveryText   = pollSeconds >= 3600 && pollSeconds % 3600 == 0 ? string.Format(DataText.EveryHours, pollSeconds / 3600)
+                    : pollSeconds >= 60   && pollSeconds % 60   == 0 ? string.Format(DataText.EveryMinutes, pollSeconds / 60)
+                    : string.Format(DataText.EverySeconds, pollSeconds);
         LastChecked = lastChecked;
         LastFired   = lastFired;
         FireCount   = fireCount;

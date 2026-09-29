@@ -8,6 +8,7 @@ using EveConsole.Agent.Tools.Actions;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -120,7 +121,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         : string.IsNullOrWhiteSpace(_service.Settings.AgentName)
             ? AgentSettings.DefaultAgentName : _service.Settings.AgentName.Trim();
     public string AgentNameUpper => AgentName.ToUpperInvariant();
-    public string AskWatermark   => $"Ask {AgentName}…";
+    public string AskWatermark   => string.Format(AgentText.AskWatermark, AgentName);
 
     // ── Speech input (push-to-talk) ───────────────────────────────────────────
     public bool HasSpeechInput => _speech?.IsAvailable == true;
@@ -139,7 +140,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         else
         {
             StatusText = "";
-            ErrorText  = "Microphone recording failed to start. Check your microphone in Settings → Agent.";
+            ErrorText  = AgentText.ErrMicrophoneFailed;
         }
     }
 
@@ -153,7 +154,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
     {
         IsRecording = true;
         ErrorText   = "";
-        StatusText  = "Recording…";
+        StatusText  = AgentText.StatusRecording;
 
         _captureGuard?.Cancel();
         var guard = _captureGuard = new CancellationTokenSource();
@@ -177,7 +178,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         if (_speech is null) return;
         _captureGuard?.Cancel();
         IsRecording = false;
-        StatusText  = "Transcribing…";
+        StatusText  = AgentText.StatusTranscribing;
         ErrorText   = "";
         try
         {
@@ -192,14 +193,14 @@ public sealed class AgentPanelViewModel : ReactiveObject
             else
             {
                 StatusText = pcm is null
-                    ? "No speech captured — hold the key while you speak."
-                    : "No speech detected — try speaking a bit longer.";
+                    ? AgentText.StatusNoSpeechCaptured
+                    : AgentText.StatusNoSpeechDetected;
             }
         }
         catch (Exception ex)
         {
             StatusText = "";
-            ErrorText  = $"Transcription failed: {ex.Message}";
+            ErrorText  = string.Format(AgentText.ErrTranscriptionFailed, ex.Message);
         }
     }
 
@@ -535,8 +536,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
         if (roles.Conversation is not { CanAnswer: true })
         {
             ErrorText = _service.Settings.Enabled
-                ? "No model is set up. Add one, with its key or its server's address, in Settings → AI Agent."
-                : "Agent is disabled. Enable it in Settings → Agent.";
+                ? AgentText.ErrNoModel
+                : AgentText.ErrAgentDisabled;
             return;
         }
 
@@ -547,7 +548,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // If a background summarization is still running, wait for it first.
         if (_summarizationTask is { IsCompleted: false })
         {
-            StatusText = "Organizing context…";
+            StatusText = AgentText.StatusOrganizingContext;
             try   { await _summarizationTask; }
             catch { /* summarization failure is non-fatal */ }
             StatusText = "";
@@ -590,7 +591,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         // Says what is happening while nothing is on screen. A question needing discovery can run
         // six round trips over twenty seconds, and an empty panel through all of it is
         // indistinguishable from a hang — which is exactly how it was read.
-        SetStatus("Thinking…");
+        SetStatus(AgentText.StatusThinking);
 
         var answered = false;
         var failure  = "";
@@ -613,7 +614,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
                 if (result.HandedOff)
                 {
                     part = Part.Analyst;
-                    SetStatus("Looking into it…");
+                    SetStatus(AgentText.StatusLookingIntoIt);
                     continue;
                 }
 
@@ -630,7 +631,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
 
                     failure = error is OperationCanceledException && ct.IsCancellationRequested ? "cancelled" : error.Message;
                     if (failure != "cancelled")
-                        await Dispatcher.UIThread.InvokeAsync(() => ErrorText = $"Error: {error.Message}");
+                        await Dispatcher.UIThread.InvokeAsync(() => ErrorText = string.Format(CommonText.ErrorWithMessage, error.Message));
                 }
 
                 answered = result.Answered;
@@ -644,7 +645,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 StreamingText = "";
-                ErrorText     = $"Error: {ex.Message}";
+                ErrorText     = string.Format(CommonText.ErrorWithMessage, ex.Message);
             });
         }
         finally
@@ -1007,16 +1008,16 @@ public sealed class AgentPanelViewModel : ReactiveObject
     /// </summary>
     private static string ToolStatus(string tool) => tool switch
     {
-        "query_database"        => "Reading the database…",
-        "describe_tables"       => "Checking the schema…",
-        "get_assets"            => "Looking up assets…",
-        "get_industry_jobs"     => "Looking up industry jobs…",
-        "get_character_info"    => "Looking up the character…",
-        "get_market_prices"     => "Checking market prices…",
-        "search_items"          => "Searching items…",
-        "capture_tab"           => "Looking at the screen…",
-        "manage_alarms"         => "Setting up the alarm…",
-        _                       => "Working…",
+        "query_database"        => AgentText.ToolStatusQueryDatabase,
+        "describe_tables"       => AgentText.ToolStatusDescribeTables,
+        "get_assets"            => AgentText.ToolStatusGetAssets,
+        "get_industry_jobs"     => AgentText.ToolStatusGetIndustryJobs,
+        "get_character_info"    => AgentText.ToolStatusGetCharacterInfo,
+        "get_market_prices"     => AgentText.ToolStatusGetMarketPrices,
+        "search_items"          => AgentText.ToolStatusSearchItems,
+        "capture_tab"           => AgentText.ToolStatusCaptureTab,
+        "manage_alarms"         => AgentText.ToolStatusManageAlarms,
+        _                       => AgentText.ToolStatusWorking,
     };
 
     public void ClearHistory()

@@ -38,7 +38,7 @@ public sealed class StatusBarItem(string name, string tab) : ReactiveObject
     /// <summary>Busy right now: what colours the label.</summary>
     public bool Running { get => _running; private set => this.RaiseAndSetIfChanged(ref _running, value); }
 
-    public string Label => $"{Name}: {Text}";
+    public string Label => string.Format(DataText.StatusBarLabel, Name, Text);
 
     public void Set(BackgroundStatus.Line line) { Text = line.Text; Running = line.Running; }
 
@@ -86,10 +86,10 @@ public class HistoryRegionRowVm : ReactiveObject
     public string CountsText => $"{Refreshed:N0} / {Total:N0}";
 
     // Current = fully refreshed; Filling = partial; Empty = nothing fresh yet.
-    public string StatusText => Total == 0 ? "No tracked items"
-                              : Queue == 0 ? "Current"
-                              : Refreshed == 0 ? "Empty"
-                              : "Filling";
+    public string StatusText => Total == 0 ? DataText.HistoryNoTrackedItems
+                              : Queue == 0 ? DataText.HistoryCurrent
+                              : Refreshed == 0 ? DataText.HistoryEmpty
+                              : DataText.HistoryFilling;
 
     public IBrush StatusColor => Total == 0 ? Palette.TextDim
                                : Queue == 0 ? Palette.Good
@@ -106,7 +106,7 @@ public class ScheduleRowVm
 
     public string LastCalledText => LastCalledAt.HasValue
         ? LastCalledAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
-        : "Never";
+        : DataText.TimeNever;
 
     public string NextCallText => NextCallAt.HasValue
         ? NextCallAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
@@ -118,10 +118,10 @@ public class ScheduleRowVm
         {
             if (!NextCallAt.HasValue) return "—";
             var remaining = NextCallAt.Value - DateTimeOffset.UtcNow;
-            if (remaining <= TimeSpan.Zero) return "Due";
-            if (remaining.TotalHours >= 1)   return $"{(int)remaining.TotalHours}h {remaining.Minutes:00}m";
-            if (remaining.TotalMinutes >= 1) return $"{(int)remaining.TotalMinutes}m {remaining.Seconds:00}s";
-            return $"{(int)remaining.TotalSeconds}s";
+            if (remaining <= TimeSpan.Zero) return DataText.ScheduleDue;
+            if (remaining.TotalHours >= 1)   return string.Format(DataText.DurationHoursMinutes, (int)remaining.TotalHours, remaining.Minutes);
+            if (remaining.TotalMinutes >= 1) return string.Format(DataText.DurationMinutesSeconds, (int)remaining.TotalMinutes, remaining.Seconds);
+            return string.Format(DataText.DurationSeconds, (int)remaining.TotalSeconds);
         }
     }
 }
@@ -159,31 +159,36 @@ public class ApiActivityViewModel : ReactiveObject
     // log's own collection; filtered, a copy kept in step entry by entry, because the log inserts
     // at the front in bursts and trims from the back.
 
-    public const string AllOption = "All";
+    // The value of an entry is the name or endpoint as the log holds it; "All" has the empty value,
+    // which none of those can be (Offer passes an empty one by), and a label of its own.
+    private const string AllValue = "";
+    private static readonly Choice<string> AllOption = new(AllValue, DataText.FilterAll);
 
-    public ObservableCollection<string> CharacterOptions { get; } = [AllOption];
-    public ObservableCollection<string> EndpointOptions  { get; } = [AllOption];
+    public ObservableCollection<Choice<string>> CharacterOptions { get; } = [AllOption];
+    public ObservableCollection<Choice<string>> EndpointOptions  { get; } = [AllOption];
 
-    private string _characterFilter = AllOption;
-    public string CharacterFilter
+    private string _characterFilter = AllValue;
+    public Choice<string> CharacterFilter
     {
-        get => _characterFilter;
+        get => CharacterOptions.FirstOrDefault(o => o.Value == _characterFilter) ?? AllOption;
         set
         {
-            if (value is null || value == _characterFilter) return;
-            this.RaiseAndSetIfChanged(ref _characterFilter, value);
+            if (value is null || value.Value == _characterFilter) return;
+            _characterFilter = value.Value;
+            this.RaisePropertyChanged();
             Refilter();
         }
     }
 
-    private string _endpointFilter = AllOption;
-    public string EndpointFilter
+    private string _endpointFilter = AllValue;
+    public Choice<string> EndpointFilter
     {
-        get => _endpointFilter;
+        get => EndpointOptions.FirstOrDefault(o => o.Value == _endpointFilter) ?? AllOption;
         set
         {
-            if (value is null || value == _endpointFilter) return;
-            this.RaiseAndSetIfChanged(ref _endpointFilter, value);
+            if (value is null || value.Value == _endpointFilter) return;
+            _endpointFilter = value.Value;
+            this.RaisePropertyChanged();
             Refilter();
         }
     }
@@ -196,7 +201,7 @@ public class ApiActivityViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _visible, value);
     }
 
-    public bool LogFiltered => _characterFilter != AllOption || _endpointFilter != AllOption;
+    public bool LogFiltered => _characterFilter != AllValue || _endpointFilter != AllValue;
 
     private string _countText = "";
     public string CountText { get => _countText; private set => this.RaiseAndSetIfChanged(ref _countText, value); }
@@ -204,8 +209,8 @@ public class ApiActivityViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ClearLogFiltersCommand { get; }
 
     private bool Passes(ActivityEntry e)
-        => (_characterFilter == AllOption || e.OwnerName == _characterFilter)
-        && (_endpointFilter  == AllOption || e.Endpoint  == _endpointFilter);
+        => (_characterFilter == AllValue || e.OwnerName == _characterFilter)
+        && (_endpointFilter  == AllValue || e.Endpoint  == _endpointFilter);
 
     private void Refilter()
     {
@@ -250,18 +255,18 @@ public class ApiActivityViewModel : ReactiveObject
         Offer(EndpointOptions,  entry.Endpoint);
     }
 
-    private static void Offer(ObservableCollection<string> options, string value)
+    private static void Offer(ObservableCollection<Choice<string>> options, string value)
     {
-        if (string.IsNullOrEmpty(value) || options.Contains(value)) return;
+        if (string.IsNullOrEmpty(value) || options.Any(o => o.Value == value)) return;
         var at = 1;
-        while (at < options.Count && string.Compare(options[at], value, StringComparison.OrdinalIgnoreCase) < 0) at++;
-        options.Insert(at, value);
+        while (at < options.Count && string.Compare(options[at].Value, value, StringComparison.OrdinalIgnoreCase) < 0) at++;
+        options.Insert(at, new Choice<string>(value, value));
     }
 
     private void UpdateCountText()
         => CountText = LogFiltered
-            ? $"{_visible.Count:N0} of {Entries.Count:N0} entries shown · the last 1,000 calls are kept"
-            : $"{Entries.Count:N0} entr{(Entries.Count == 1 ? "y" : "ies")} · the last 1,000 calls are kept";
+            ? string.Format(DataText.LogCountFiltered, _visible.Count, Entries.Count)
+            : Plurals.Format(DataText.ResourceManager, nameof(DataText.LogCountOther), Entries.Count);
     public ObservableCollection<TokenOption>         TokenOptions   { get; } = [];
     public ObservableCollection<ScheduleRowVm>       Schedule       { get; } = [];
     public ObservableCollection<ScheduleRowVm>       MarketSchedule { get; } = [];
@@ -326,7 +331,7 @@ public class ApiActivityViewModel : ReactiveObject
 
         return _activity.Get(key)?.Status is { Length: > 0 } status
             ? status
-            : "○ Nothing reported yet by the client running the background processes";
+            : DataText.RelayNothingReported;
     }
 
     private bool RelayRunning(string key, Func<bool> local)
@@ -430,11 +435,11 @@ public class ApiActivityViewModel : ReactiveObject
 
     // ⚠️ The tab is found by its header, so it is named by the same resource the header is built
     // from — the English words would find nothing in any other language.
-    public StatusBarItem BarEsiCalls      { get; } = new("ESI Calls",      DataText.TabEsiActivityLog);
-    public StatusBarItem BarPriceHistory  { get; } = new("Price History",  DataText.TabPriceHistory);
-    public StatusBarItem BarContractItems { get; } = new("Contract Items", DataText.TabContractItems);
-    public StatusBarItem BarLpStore       { get; } = new("LP Store",       DataText.TabLpStore);
-    public StatusBarItem BarKillmails     { get; } = new("Killmails",      DataText.TabKillmails);
+    public StatusBarItem BarEsiCalls      { get; } = new(DataText.BarEsiCalls,      DataText.TabEsiActivityLog);
+    public StatusBarItem BarPriceHistory  { get; } = new(DataText.BarPriceHistory,  DataText.TabPriceHistory);
+    public StatusBarItem BarContractItems { get; } = new(DataText.BarContractItems, DataText.TabContractItems);
+    public StatusBarItem BarLpStore       { get; } = new(DataText.BarLpStore,       DataText.TabLpStore);
+    public StatusBarItem BarKillmails     { get; } = new(DataText.BarKillmails,     DataText.TabKillmails);
 
     /// <summary>The five, in the order the bar shows them.</summary>
     public IReadOnlyList<StatusBarItem> StatusBarItems { get; }
@@ -510,7 +515,7 @@ public class ApiActivityViewModel : ReactiveObject
             {
                 _badTokensCounting = false;
                 if (count < 0) return;
-                BarEsiCalls.Warning = count == 0 ? "" : count == 1 ? "1 bad token" : $"{count} bad tokens";
+                BarEsiCalls.Warning = count == 0 ? "" : Plurals.Format(DataText.ResourceManager, nameof(DataText.BadTokensOther), count);
             });
         });
     }
@@ -534,19 +539,19 @@ public class ApiActivityViewModel : ReactiveObject
     // and scroll. ⚠️ A first fill goes in as one collection rather than row by row: a bound
     // collection filled item by item is how a grid of a few hundred rows freezes the window.
 
-    public StageRowVm KillmailFetchRow    { get; } = new("ESI kill mail details");
-    public StageRowVm KillmailLiveRow     { get; } = new("Live capture");
-    public StageRowVm KillmailBackfillRow { get; } = new("Daily dump backfill");
-    public StageRowVm KillmailPostRow     { get; } = new("Posting to zKillboard");
+    public StageRowVm KillmailFetchRow    { get; } = new(DataText.StageKillmailDetails);
+    public StageRowVm KillmailLiveRow     { get; } = new(DataText.StageLiveCapture);
+    public StageRowVm KillmailBackfillRow { get; } = new(DataText.StageDailyDumpBackfill);
+    public StageRowVm KillmailPostRow     { get; } = new(DataText.StagePostingToZkb);
     public IReadOnlyList<StageRowVm> KillmailStages { get; }
 
-    public StageRowVm StructureSweepRow  { get; } = new("Hourly sweep");
-    public StageRowVm StructurePublicRow { get; } = new("Public list, daily");
+    public StageRowVm StructureSweepRow  { get; } = new(DataText.StageHourlySweep);
+    public StageRowVm StructurePublicRow { get; } = new(DataText.StagePublicListDaily);
     public IReadOnlyList<StageRowVm> StructureSweeps { get; }
 
-    public ContractSourceRowVm ContractPublicRow   { get; } = new("Public listings");
-    public ContractSourceRowVm ContractOwnedRow    { get; } = new("Character and corporation");
-    public ContractSourceRowVm ContractDeferredRow { get; } = new("Refused");
+    public ContractSourceRowVm ContractPublicRow   { get; } = new(DataText.SourcePublicListings);
+    public ContractSourceRowVm ContractOwnedRow    { get; } = new(DataText.SourceCharacterAndCorporation);
+    public ContractSourceRowVm ContractDeferredRow { get; } = new(DataText.SourceRefused);
     public IReadOnlyList<ContractSourceRowVm> ContractSources { get; }
 
     private ObservableCollection<LpStoreCorpRowVm> _lpStoreCorps = [];
@@ -561,21 +566,21 @@ public class ApiActivityViewModel : ReactiveObject
     private void SyncStageTables()
     {
         var fetch = BarLine(WorkerActivityService.KillMailFetch, _sampler.KillmailFetch());
-        KillmailFetchRow.Set(fetch.Running ? "Fetching" : "Idle", fetch.Running, fetch.Text);
+        KillmailFetchRow.Set(fetch.Running ? DataText.StateFetching : DataText.StateIdle, fetch.Running, fetch.Text);
 
         var enabled  = _zkbSettings.Enabled;
         var allScope = _zkbSettings.Scope == ZkbScope.All;
-        KillmailLiveRow.Set(!enabled ? "Off" : allScope ? "Firehose" : "Interval poll", enabled, ZkbLiveDetail);
+        KillmailLiveRow.Set(!enabled ? DataText.StateOff : allScope ? DataText.StateFirehose : DataText.StateIntervalPoll, enabled, ZkbLiveDetail);
 
         var backfilling = RelayRunning(WorkerActivityService.ZkbBackfill, () => _zkbBackfill.IsImporting);
-        KillmailBackfillRow.Set(!enabled ? "Off" : backfilling ? "Importing" : "Idle", backfilling, ZkbBackfillDetail);
+        KillmailBackfillRow.Set(!enabled ? DataText.StateOff : backfilling ? DataText.StateImporting : DataText.StateIdle, backfilling, ZkbBackfillDetail);
 
         var posting = enabled && _zkbSettings.PostEnabled;
-        KillmailPostRow.Set(posting ? "On" : "Off", posting, ZkbPostDetail);
+        KillmailPostRow.Set(posting ? DataText.StateOn : DataText.StateOff, posting, ZkbPostDetail);
 
-        StructureSweepRow.Set(StructureSweepRunning ? "Sweeping" : "Watching", StructureSweepRunning,
+        StructureSweepRow.Set(StructureSweepRunning ? DataText.StateSweeping : DataText.StateWatching, StructureSweepRunning,
                               StructureCountsText, StructureSweepText, StructureNextText);
-        StructurePublicRow.Set("Watching", false, PublicStructureText, "", "once a day");
+        StructurePublicRow.Set(DataText.StateWatching, false, PublicStructureText, "", DataText.NextRunOnceADay);
     }
 
     /// <summary>The alarms as the loop sees them, from the table: on the slower tick.</summary>
@@ -711,36 +716,36 @@ public class ApiActivityViewModel : ReactiveObject
         var allScope = _zkbSettings.Scope == ZkbScope.All;
 
         ZkbLiveState = !enabled
-            ? "○ Disabled — zKillboard import is switched off"
+            ? DataText.ZkbLiveDisabled
             : allScope
-                ? "● All kills — live capture via the R2Z2 firehose"
-                : "● My characters & corp — live capture via interval poll";
+                ? DataText.ZkbLiveAllKills
+                : DataText.ZkbLiveMine;
 
-        ZkbScopeText     = allScope ? "All kills (universe-wide)" : "My characters & corp";
+        ZkbScopeText     = allScope ? DataText.ZkbScopeAll : DataText.ZkbScopeMine;
         ZkbLiveDetail    = allScope ? Relay(WorkerActivityService.ZkbFirehose, () => _zkbFirehose.StatusText)
                                  : Relay(WorkerActivityService.ZkbPolling,  () => _zkbPolling.StatusText);
         ZkbBackfillDetail = Relay(WorkerActivityService.ZkbBackfill, () => _zkbBackfill.StatusText);
-        ZkbPostDetail    = _zkbSettings.PostEnabled ? Relay(WorkerActivityService.ZkbPost, () => _zkbPost.StatusText) : "○ Off — not submitting kills to zKillboard";
+        ZkbPostDetail    = _zkbSettings.PostEnabled ? Relay(WorkerActivityService.ZkbPost, () => _zkbPost.StatusText) : DataText.ZkbPostOff;
         ZkbCoverageText  = _zkbSettings.LastFullDay is { } d
-            ? $"Daily dumps imported through {d:yyyy-MM-dd}"
-            : "No daily dump imported yet";
+            ? string.Format(DataText.ZkbCoverageThrough, d)
+            : DataText.ZkbCoverageNone;
 
         // Intel. Chat import is the gate — parsing runs off its loop, so with chat off nothing
         // reaches the parser however many channels are ticked.
         var intelChannels = _monitoring.ChatIntelChannels;
         IntelState = !_monitoring.ChatEnabled
-            ? "○ Disabled — chat log import is switched off"
+            ? DataText.IntelDisabled
             : intelChannels.Count == 0
-                ? "○ No intel channels — tick one under Settings → Chat Logs"
+                ? DataText.IntelNoChannels
                 : _intel.IsRunning
-                    ? "● Parsing intel channels"
-                    : "● Watching intel channels";
+                    ? DataText.IntelParsing
+                    : DataText.IntelWatching;
 
-        IntelChannelsText = intelChannels.Count == 0 ? "none" : string.Join(", ", intelChannels);
+        IntelChannelsText = intelChannels.Count == 0 ? DataText.IntelChannelsNone : string.Join(", ", intelChannels);
         IntelDetail       = _intel.StatusText;
         IntelBacklogText  = _intel.Backlog > 0
-            ? $"{_intel.Backlog:N0} message(s) still to consider"
-            : "Caught up";
+            ? string.Format(DataText.IntelBacklogCount, _intel.Backlog)
+            : DataText.IntelCaughtUp;
 
         NameCacheState = Relay(WorkerActivityService.NameCache, () => _nameCache.StatusText);
 
@@ -748,17 +753,17 @@ public class ApiActivityViewModel : ReactiveObject
         // endpoint, so without this it appears in neither the call schedule nor the activity log
         // except during the brief bursts when it is actually resolving.
         StructureState = RelayRunning(WorkerActivityService.Structures, () => _polling.StructureSweepRunning)
-            ? "● Sweeping — resolving structures now"
-            : "● Watching — sweeps hourly, public list daily";
+            ? DataText.StructuresSweeping
+            : DataText.StructuresWatching;
 
         StructureSweepText = RelayTime(WorkerActivityService.Structures, () => _polling.StructureSweepAt, next: false) is { } at
             ? $"{at.ToLocalTime():yyyy-MM-dd HH:mm:ss}"
-            : "not yet this session";
+            : DataText.StructuresNotYet;
 
         var next = RelayTime(WorkerActivityService.Structures, () => _polling.StructureSweepNextAt, next: true) ?? DateTimeOffset.UtcNow;
         StructureNextText = next <= DateTimeOffset.UtcNow
-            ? "due now"
-            : $"{next.ToLocalTime():HH:mm:ss} ({(next - DateTimeOffset.UtcNow).TotalMinutes:N0} min)";
+            ? DataText.StructuresDueNow
+            : string.Format(DataText.StructuresNextAt, next.ToLocalTime(), (next - DateTimeOffset.UtcNow).TotalMinutes);
 
         StructureCountsText   = Relay(WorkerActivityService.Structures, () => _polling.StructureSweepSummary);
         PublicStructureText   = Relay(WorkerActivityService.PublicStructs, () => _polling.PublicStructureSummary);
@@ -768,14 +773,14 @@ public class ApiActivityViewModel : ReactiveObject
         // state rather than a fault.
         var armed = RelayCount(WorkerActivityService.Alarms, () => _alarms.ArmedCount);
         AlarmState = armed == 0
-            ? "○ No alarms armed — create one in the Alarms tool"
-            : $"● Watching {armed} alarm(s)";
+            ? DataText.AlarmsNoneArmed
+            : string.Format(DataText.AlarmsWatching, armed);
 
         OrderFulfilState = Relay(WorkerActivityService.OrderFulfilment, () => _orderFulfilment.StatusText);
         OrderFulfilLast  = RelayTime(WorkerActivityService.OrderFulfilment,
                                      () => _orderFulfilment.LastRunAt, next: false) is { } ran
             ? ran.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
-            : "Never";
+            : DataText.TimeNever;
         OrderFulfilNext  = RelayTime(WorkerActivityService.OrderFulfilment,
                                      () => _orderFulfilment.NextRunAt, next: true) is { } nextRun
             ? nextRun.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
@@ -787,7 +792,7 @@ public class ApiActivityViewModel : ReactiveObject
             : "—";
         AlarmLastFireText = RelayTime(WorkerActivityService.Alarms, () => _alarms.LastFireAt, next: false) is { } fired
             ? fired.ToLocalTime().ToString("d MMM HH:mm:ss")
-            : "Nothing has fired this session";
+            : DataText.AlarmsNothingFired;
 
         SyncStageTables();
     }
@@ -800,7 +805,7 @@ public class ApiActivityViewModel : ReactiveObject
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var total = await db.UniverseNames.CountAsync();
-            NameCacheCountText = $"{total:N0} name(s) cached";
+            NameCacheCountText = string.Format(DataText.NameCacheCount, total);
         }
         catch { /* best-effort monitor */ }
     }
@@ -816,18 +821,18 @@ public class ApiActivityViewModel : ReactiveObject
         int pubQueue   = s.PublicTotal - s.PublicPulled;
         int ownedQueue = s.OwnedTotal  - s.OwnedPulled;
 
-        ContractsPublicText   = $"{s.PublicPulled:N0} / {s.PublicTotal:N0} pulled · {pubQueue:N0} queued";
-        ContractsOwnedText    = $"{s.OwnedPulled:N0} / {s.OwnedTotal:N0} pulled · {ownedQueue:N0} queued";
-        ContractsDeferredText = $"{s.Refused:N0} refused (ESI answered 400/403/404 and holds no items of them)";
+        ContractsPublicText   = string.Format(DataText.ContractsPulledQueued, s.PublicPulled, s.PublicTotal, pubQueue);
+        ContractsOwnedText    = string.Format(DataText.ContractsPulledQueued, s.OwnedPulled, s.OwnedTotal, ownedQueue);
+        ContractsDeferredText = string.Format(DataText.ContractsRefusedCount, s.Refused);
         ContractsState = s.Running
-            ? $"● Running — {pubQueue + ownedQueue:N0} contracts queued for items"
+            ? string.Format(DataText.ContractsRunning, pubQueue + ownedQueue)
             : (pubQueue + ownedQueue) > 0
-                ? $"○ Idle — {pubQueue + ownedQueue:N0} contracts queued for items"
-                : "○ Idle — all item pulls complete";
+                ? string.Format(DataText.ContractsIdleQueued, pubQueue + ownedQueue)
+                : DataText.ContractsIdleComplete;
 
-        ContractPublicRow.Set($"{s.PublicTotal:N0}", $"{s.PublicPulled:N0}", $"{pubQueue:N0}", "the regions' public listings, browsed");
-        ContractOwnedRow.Set($"{s.OwnedTotal:N0}", $"{s.OwnedPulled:N0}", $"{ownedQueue:N0}", "held by your characters and corporations — yours first, then the ones open to a corporation");
-        ContractDeferredRow.Set($"{s.Refused:N0}", "—", "—", "asked for and refused — ESI answered 400, 403 or 404 through every endpoint that had them; counted among the pulled");
+        ContractPublicRow.Set($"{s.PublicTotal:N0}", $"{s.PublicPulled:N0}", $"{pubQueue:N0}", DataText.ContractsNotePublic);
+        ContractOwnedRow.Set($"{s.OwnedTotal:N0}", $"{s.OwnedPulled:N0}", $"{ownedQueue:N0}", DataText.ContractsNoteOwned);
+        ContractDeferredRow.Set($"{s.Refused:N0}", "—", "—", DataText.ContractsNoteRefused);
     }
 
     // ── LP store monitor ────────────────────────────────────────────────────────
@@ -855,22 +860,22 @@ public class ApiActivityViewModel : ReactiveObject
 
         int remaining = Math.Max(0, s.CorpsTotal - s.CorpsChecked);
 
-        LpStoreProgressText = $"{s.CorpsChecked:N0} / {s.CorpsTotal:N0} corporations checked · {remaining:N0} to go";
-        LpStoreOffersText   = $"{s.Offers:N0} offer(s) from {s.CorpsWithStore:N0} store(s)";
+        LpStoreProgressText = string.Format(DataText.LpStoreProgress, s.CorpsChecked, s.CorpsTotal, remaining);
+        LpStoreOffersText   = string.Format(DataText.LpStoreOffers, s.Offers, s.CorpsWithStore);
         LpStoreLastText     = s.LastCheckedAt is { } t
             ? t.ToLocalTime().ToString("d MMM HH:mm:ss")
-            : "never";
+            : DataText.TimeNeverLower;
         LpStoreDetail       = Relay(WorkerActivityService.LpStore, () => _lpStore.StatusText);
 
         // The first pass is the one worth watching: until it finishes, an item with no LP
         // tab is indistinguishable from one that simply has not been fetched yet.
         LpStoreState = s.Running
-            ? $"● Sweeping — {remaining:N0} corporation(s) still to check"
+            ? string.Format(DataText.LpStoreSweeping, remaining)
             : s.CorpsChecked == 0
-                ? "○ Idle — no corporation checked yet; the first sweep starts shortly after launch"
+                ? DataText.LpStoreIdleNoneChecked
                 : remaining > 0
-                    ? $"○ Idle — {remaining:N0} corporation(s) not yet checked, catalogue incomplete"
-                    : "○ Idle — every corporation checked";
+                    ? string.Format(DataText.LpStoreIdleIncomplete, remaining)
+                    : DataText.LpStoreIdleComplete;
 
         await RefreshLpStoreCorpsAsync();
     }
@@ -939,10 +944,10 @@ public class ApiActivityViewModel : ReactiveObject
 
         int totalQueue = snap.Sum(s => s.Queue);
         HistoryState = RelayRunning(WorkerActivityService.MarketHistory, () => _history.IsSweeping)
-            ? $"● Running — {totalQueue:N0} item{(totalQueue == 1 ? "" : "s")} queued"
+            ? Plurals.Format(DataText.ResourceManager, nameof(DataText.HistoryRunningQueuedOther), totalQueue)
             : totalQueue > 0
-                ? $"○ Idle — {totalQueue:N0} item{(totalQueue == 1 ? "" : "s")} queued for next sweep"
-                : "○ Idle — all tracked items current";
+                ? Plurals.Format(DataText.ResourceManager, nameof(DataText.HistoryIdleQueuedOther), totalQueue)
+                : DataText.HistoryIdleCurrent;
     }
 
     public async Task LoadTokenOptionsAsync()
@@ -964,7 +969,7 @@ public class ApiActivityViewModel : ReactiveObject
         foreach (var c in chars)
             TokenOptions.Add(new TokenOption(c.Id, "character", c.Name));
         foreach (var corp in corps)
-            TokenOptions.Add(new TokenOption(corp.Id, "corporation", $"[Corp] {corp.Name}"));
+            TokenOptions.Add(new TokenOption(corp.Id, "corporation", string.Format(DataText.TokenCorpName, corp.Name)));
 
         if (_selectedToken is null && TokenOptions.Count > 0)
             SelectedToken = TokenOptions[0];

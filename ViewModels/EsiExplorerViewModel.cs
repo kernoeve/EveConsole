@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -82,57 +83,57 @@ public class EsiExplorerViewModel : ReactiveObject
 
     public static readonly List<FilterOp> Operators =
     [
-        new("Contains",              "LIKE",     useLike: true),
-        new("Does Not Contain",      "NOT LIKE", useLike: true),
-        new("Equal",                 "="),
-        new("Not Equal",             "!="),
-        new("Greater Than",          ">"),
-        new("Greater Than or Equal", ">="),
-        new("Less Than",             "<"),
-        new("Less Than or Equal",    "<="),
+        new(DataText.OpContains,           "LIKE",     useLike: true),
+        new(DataText.OpDoesNotContain,     "NOT LIKE", useLike: true),
+        new(DataText.OpEqual,              "="),
+        new(DataText.OpNotEqual,           "!="),
+        new(DataText.OpGreaterThan,        ">"),
+        new(DataText.OpGreaterThanOrEqual, ">="),
+        new(DataText.OpLessThan,           "<"),
+        new(DataText.OpLessThanOrEqual,    "<="),
     ];
 
     // ── All tables (flat list — shared tables show full contents) ────────────
 
     public List<TableEntry> AllTables { get; } = [
-        new("Wallet Balances",     "EsiWalletBalances"),
-        new("Wallet Journal",      "EsiWalletJournal",      "\"Date\" DESC"),
-        new("Wallet Transactions", "EsiWalletTransactions", "\"Date\" DESC"),
-        new("Skills",              "EsiSkills"),
-        new("Skill Queue",         "EsiSkillQueue",         "QueuePosition"),
-        new("Attributes",          "EsiCharacterAttributes"),
-        new("Fatigue",             "EsiCharacterFatigues"),
-        new("Clone State",         "EsiCloneStates"),
-        new("Jump Clones",         "EsiJumpClones"),
-        new("Jump Clone Implants", "EsiJumpCloneImplants"),
-        new("Implants",            "EsiImplants"),
-        new("Assets",              "EsiAssets"),
-        new("Blueprints",          "EsiBlueprints"),
-        new("Industry Jobs",       "EsiIndustryJobs",       "\"StartDate\" DESC"),
-        new("Market Orders",       "EsiMarketOrders",       "\"Issued\" DESC"),
-        new("Contracts",           "EsiContracts",          "\"DateIssued\" DESC"),
-        new("Contacts",            "EsiContacts"),
-        new("Kill Mails",          "EsiKillMailRefs"),
-        new("Standings",           "EsiStandings"),
-        new("Mining",              "EsiMining",             "\"Date\" DESC"),
-        new("Notifications",       "EsiNotifications",      "\"Timestamp\" DESC"),
-        new("Planetary Colonies",  "EsiPlanetaryColonies"),
-        new("Agent Research",      "EsiAgentResearch"),
-        new("Loyalty Points",      "EsiLoyaltyPoints"),
-        new("Medals",              "EsiMedals"),
-        new("Titles",              "EsiTitles"),
-        new("Roles",               "EsiRoles"),
-        new("Fittings",            "EsiFittings"),
-        new("Fitting Items",       "EsiFittingItems"),
-        new("Corp Divisions",      "EsiCorpDivisions",      "Division"),
-        new("Corp Members",        "EsiCorpMembers"),
-        new("Corp Member Roles",   "EsiCorpMemberRoles"),
-        new("Corp Titles",         "EsiCorpTitles"),
-        new("Corp Medals",         "EsiCorpMedals"),
-        new("Corp Structures",     "EsiCorpStructures"),
-        new("Corp Starbases",      "EsiCorpStarbases"),
-        new("Corp Facilities",     "EsiCorpFacilities"),
-        new("API Call Records",    "EsiCallRecords",        "\"LastCalledAt\" DESC"),
+        new(DataText.TableWalletBalances,     "EsiWalletBalances"),
+        new(DataText.TableWalletJournal,      "EsiWalletJournal",      "\"Date\" DESC"),
+        new(DataText.TableWalletTransactions, "EsiWalletTransactions", "\"Date\" DESC"),
+        new(DataText.TableSkills,             "EsiSkills"),
+        new(DataText.TableSkillQueue,         "EsiSkillQueue",         "QueuePosition"),
+        new(DataText.TableAttributes,         "EsiCharacterAttributes"),
+        new(DataText.TableFatigue,            "EsiCharacterFatigues"),
+        new(DataText.TableCloneState,         "EsiCloneStates"),
+        new(DataText.TableJumpClones,         "EsiJumpClones"),
+        new(DataText.TableJumpCloneImplants,  "EsiJumpCloneImplants"),
+        new(DataText.TableImplants,           "EsiImplants"),
+        new(DataText.TableAssets,             "EsiAssets"),
+        new(DataText.TableBlueprints,         "EsiBlueprints"),
+        new(DataText.TableIndustryJobs,       "EsiIndustryJobs",       "\"StartDate\" DESC"),
+        new(DataText.TableMarketOrders,       "EsiMarketOrders",       "\"Issued\" DESC"),
+        new(DataText.TableContracts,          "EsiContracts",          "\"DateIssued\" DESC"),
+        new(DataText.TableContacts,           "EsiContacts"),
+        new(DataText.TableKillMails,          "EsiKillMailRefs"),
+        new(DataText.TableStandings,          "EsiStandings"),
+        new(DataText.TableMining,             "EsiMining",             "\"Date\" DESC"),
+        new(DataText.TableNotifications,      "EsiNotifications",      "\"Timestamp\" DESC"),
+        new(DataText.TablePlanetaryColonies,  "EsiPlanetaryColonies"),
+        new(DataText.TableAgentResearch,      "EsiAgentResearch"),
+        new(DataText.TableLoyaltyPoints,      "EsiLoyaltyPoints"),
+        new(DataText.TableMedals,             "EsiMedals"),
+        new(DataText.TableTitles,             "EsiTitles"),
+        new(DataText.TableRoles,              "EsiRoles"),
+        new(DataText.TableFittings,           "EsiFittings"),
+        new(DataText.TableFittingItems,       "EsiFittingItems"),
+        new(DataText.TableCorpDivisions,      "EsiCorpDivisions",      "Division"),
+        new(DataText.TableCorpMembers,        "EsiCorpMembers"),
+        new(DataText.TableCorpMemberRoles,    "EsiCorpMemberRoles"),
+        new(DataText.TableCorpTitles,         "EsiCorpTitles"),
+        new(DataText.TableCorpMedals,         "EsiCorpMedals"),
+        new(DataText.TableCorpStructures,     "EsiCorpStructures"),
+        new(DataText.TableCorpStarbases,      "EsiCorpStarbases"),
+        new(DataText.TableCorpFacilities,     "EsiCorpFacilities"),
+        new(DataText.TableApiCallRecords,     "EsiCallRecords",        "\"LastCalledAt\" DESC"),
     ];
 
     // ── Reactive state ───────────────────────────────────────────────────────
@@ -165,7 +166,7 @@ public class EsiExplorerViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _columns, value);
     }
 
-    private string _statusText = "Select a table from the list to view its data.";
+    private string _statusText = DataText.ExplorerSelectTable;
     public string StatusText
     {
         get => _statusText;
@@ -195,7 +196,7 @@ public class EsiExplorerViewModel : ReactiveObject
         private set { this.RaiseAndSetIfChanged(ref _isExporting, value); this.RaisePropertyChanged(nameof(ExportButtonText)); }
     }
 
-    public string ExportButtonText => IsExporting ? "Cancel export" : "Export CSV";
+    public string ExportButtonText => IsExporting ? DataText.ExportCancel : DataText.ExportCsv;
 
     // ── Constructor ──────────────────────────────────────────────────────────
 
@@ -260,7 +261,7 @@ public class EsiExplorerViewModel : ReactiveObject
         Columns    = [];
         HasMore    = false;
         HasTable   = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
 
         try
         {
@@ -278,7 +279,7 @@ public class EsiExplorerViewModel : ReactiveObject
             await AppendPageAsync(conn, entry, total, ct);
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; }
+        catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     public async Task LoadMoreAsync()
@@ -288,7 +289,7 @@ public class EsiExplorerViewModel : ReactiveObject
         _cts.Cancel();
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
 
         try
         {
@@ -306,7 +307,7 @@ public class EsiExplorerViewModel : ReactiveObject
             await AppendPageAsync(conn, _currentEntry, total, ct);
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusText = $"Error: {ex.Message}"; }
+        catch (Exception ex) { StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     private async Task AppendPageAsync(DbConnection conn, TableEntry entry, int total, CancellationToken ct)
@@ -344,9 +345,9 @@ public class EsiExplorerViewModel : ReactiveObject
                 Columns = newColumns;
 
             HasMore    = loadedCount < total;
-            StatusText = total == 0         ? "No rows."
-                : loadedCount < total ? $"Showing {loadedCount:N0} of {total:N0} rows"
-                                      : $"{total:N0} rows total";
+            StatusText = total == 0         ? DataText.ExplorerNoRows
+                : loadedCount < total ? string.Format(DataText.ExplorerShowingRows, loadedCount, total)
+                                      : string.Format(DataText.ExplorerRowsTotal, total);
         });
     }
 
@@ -375,7 +376,7 @@ public class EsiExplorerViewModel : ReactiveObject
         var cts   = new CancellationTokenSource();
         _exportCts  = cts;
         IsExporting = true;
-        StatusText  = "Exporting…";
+        StatusText  = DataText.ExportRunning;
         var written = 0;
         try
         {
@@ -401,22 +402,22 @@ public class EsiExplorerViewModel : ReactiveObject
                     if (++written % 5000 == 0)
                     {
                         var soFar = written;
-                        await Dispatcher.UIThread.InvokeAsync(() => StatusText = $"Exporting… {soFar:N0} rows");
+                        await Dispatcher.UIThread.InvokeAsync(() => StatusText = string.Format(DataText.ExportProgress, soFar));
                     }
                 }
                 await writer.FlushAsync(ct);
             });
-            StatusText = $"Exported {written:N0} rows to {fileName}";
+            StatusText = string.Format(DataText.ExportDone, written, fileName);
             return true;
         }
         catch (OperationCanceledException)
         {
-            StatusText = $"Export cancelled after {written:N0} rows; the file was not kept.";
+            StatusText = string.Format(DataText.ExportCancelled, written);
             return false;
         }
         catch (Exception ex)
         {
-            StatusText = $"Export failed: {ex.Message}";
+            StatusText = string.Format(DataText.ExportFailed, ex.Message);
             return false;
         }
         finally

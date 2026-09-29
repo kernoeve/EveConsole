@@ -6,6 +6,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -36,10 +37,19 @@ internal static class UsageFormat
     /// <summary>The stored kind code as something a person would say.</summary>
     public static string Kind(string code) => code switch
     {
-        "llm" => "Agent",
-        "tts" => "Speech out",
-        "stt" => "Speech in",
+        "llm" => DataText.KindAgent,
+        "tts" => DataText.KindSpeechOut,
+        "stt" => DataText.KindSpeechIn,
         _     => code,
+    };
+
+    /// <summary>The stored unit word — what the counts are counted in — as the Units column shows it.</summary>
+    public static string Unit(string code) => code switch
+    {
+        "tokens"     => DataText.UnitTokens,
+        "characters" => DataText.UnitCharacters,
+        "seconds"    => DataText.UnitSeconds,
+        _            => code,
     };
 
     public static string Units(long n) => n == 0 ? "" : n.ToString("N0", CultureInfo.CurrentCulture);
@@ -65,10 +75,10 @@ public class ServiceRateVm : ReactiveObject
         Row = row;
         (_scale, ScaleLabel) = row.Kind switch
         {
-            "llm" => (1_000_000m, "per 1M tokens"),
-            "tts" => (1_000_000m, "per 1M characters"),
-            "stt" => (60m,        "per minute"),
-            _     => (1m,         "per unit"),
+            "llm" => (1_000_000m, DataText.RatePer1MTokens),
+            "tts" => (1_000_000m, DataText.RatePer1MCharacters),
+            "stt" => (60m,        DataText.RatePerMinute),
+            _     => (1m,         DataText.RatePerUnit),
         };
 
         _input      = Show(row.InputPerUnit);
@@ -81,7 +91,7 @@ public class ServiceRateVm : ReactiveObject
     public string ScaleLabel { get; }
     public string KindText   => UsageFormat.Kind(Row.Kind);
     public string Provider   => Row.Provider;
-    public string ModelText  => Row.Model.Length == 0 ? "(any model)" : Row.Model;
+    public string ModelText  => Row.Model.Length == 0 ? DataText.RateAnyModel : Row.Model;
 
     /// <summary>Only the LLM providers bill a cache separately; the columns are blank elsewhere.</summary>
     public bool HasCache => Row.Kind == "llm";
@@ -155,7 +165,7 @@ public class UsageSummaryRowVm
     public string ErrorText => Errors == 0 ? "" : Errors.ToString("N0", CultureInfo.CurrentCulture);
 
     public long TotalMs    { get; init; }
-    public string AvgText  => Calls == 0 ? "" : $"{TotalMs / (double)Calls / 1000.0:0.0}s";
+    public string AvgText  => Calls == 0 ? "" : string.Format(DataText.SecondsOneDecimal, TotalMs / (double)Calls / 1000.0);
 
     public decimal Cost    { get; init; }
 
@@ -167,8 +177,8 @@ public class UsageSummaryRowVm
     /// ⚠️ Three states, not two. A local service is genuinely free; a paid service with no rate row
     /// is unknown. Showing "$0" for both would understate a bill and hide the missing rate.
     /// </summary>
-    public string CostText => IsLocal   ? "local"
-                            : !IsPriced ? "no rate"
+    public string CostText => IsLocal   ? DataText.CostLocal
+                            : !IsPriced ? DataText.CostNoRate
                             :             UsageFormat.Money(Cost);
 }
 
@@ -201,7 +211,7 @@ public class UsageDetailRowVm
     public decimal Cost  { get; init; }
     public bool IsPriced { get; init; }
     public bool IsLocal  { get; init; }
-    public string CostText => IsLocal ? "local" : !IsPriced ? "no rate" : UsageFormat.Money(Cost);
+    public string CostText => IsLocal ? DataText.CostLocal : !IsPriced ? DataText.CostNoRate : UsageFormat.Money(Cost);
 
     /// <summary>What the turn was doing, for the rows that belong to one. Blank for speech.</summary>
     public string Activity { get; init; } = "";
@@ -266,22 +276,49 @@ public class AgentUsageViewModel : ReactiveObject
 
     // ── Filters ──────────────────────────────────────────────────────────────
 
-    public string[] PeriodOptions { get; } = ["Day", "Week", "Month"];
+    public IReadOnlyList<Choice<string>> PeriodOptions { get; } =
+    [
+        new("Day",   DataText.PeriodDay),
+        new("Week",  DataText.PeriodWeek),
+        new("Month", DataText.PeriodMonth),
+    ];
 
     private string _period = "Day";
-    public string Period
+    public Choice<string> Period
     {
-        get => _period;
-        set { this.RaiseAndSetIfChanged(ref _period, value); Rebuild(); }
+        get => PeriodOptions.FirstOrDefault(o => o.Value == _period) ?? PeriodOptions[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _period = value.Value;
+            this.RaisePropertyChanged();
+            Rebuild();
+        }
     }
 
-    public string[] KindOptions { get; } = ["All services", "Agent", "Speech out", "Speech in"];
+    // The value is the stored kind code, or empty for every service.
+    public IReadOnlyList<Choice<string>> KindOptions { get; } =
+    [
+        new("",    DataText.KindAllServices),
+        new("llm", DataText.KindAgent),
+        new("tts", DataText.KindSpeechOut),
+        new("stt", DataText.KindSpeechIn),
+    ];
 
-    private string _kindFilter = "All services";
-    public string KindFilter
+    private string _kindFilter = "";
+    public Choice<string> KindFilter
     {
-        get => _kindFilter;
-        set { this.RaiseAndSetIfChanged(ref _kindFilter, value); Pager.Reset(); Rebuild(); }
+        get => KindOptions.FirstOrDefault(o => o.Value == _kindFilter) ?? KindOptions[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _kindFilter = value.Value;
+            this.RaisePropertyChanged();
+            Pager.Reset();
+            Rebuild();
+        }
     }
 
     private string _dateFrom;
@@ -371,7 +408,7 @@ public class AgentUsageViewModel : ReactiveObject
     {
         if (_isLoading) return;
         _isLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             var parts = new List<string>();
@@ -432,8 +469,8 @@ public class AgentUsageViewModel : ReactiveObject
             RatesStatus = ratesMissing;
 
             StatusText = usage.Count == 0
-                ? "Nothing recorded in this range."
-                : $"{usage.Count:N0} service call(s)";
+                ? DataText.UsageNothingRecorded
+                : string.Format(DataText.UsageServiceCalls, usage.Count);
 
             Pager.Reset();
             Rebuild();
@@ -452,13 +489,7 @@ public class AgentUsageViewModel : ReactiveObject
     /// <summary>Re-buckets what is already loaded. Called on every filter change but the dates.</summary>
     private void Rebuild()
     {
-        var kind = _kindFilter switch
-        {
-            "Agent"      => "llm",
-            "Speech out" => "tts",
-            "Speech in"  => "stt",
-            _            => "",
-        };
+        var kind = _kindFilter;
         var rows = kind.Length == 0 ? _rows : _rows.Where(r => r.Kind == kind).ToList();
 
         BuildSummary(rows);
@@ -494,7 +525,7 @@ public class AgentUsageViewModel : ReactiveObject
                     OutputUnits     = outp,
                     CacheReadUnits  = cr,
                     CacheWriteUnits = cw,
-                    UnitKind        = g.Key.Kind switch { "llm" => "tokens", "tts" => "characters", "stt" => "seconds", _ => "" },
+                    UnitKind        = UsageFormat.Unit(g.Key.Kind switch { "llm" => "tokens", "tts" => "characters", "stt" => "seconds", _ => "" }),
                     Errors          = g.Count(r => r.Error.Length > 0),
                     TotalMs         = g.Sum(r => (long)r.DurationMs),
                     Cost            = RateBook.Cost(rate, inp, outp, cr, cw),
@@ -537,31 +568,25 @@ public class AgentUsageViewModel : ReactiveObject
         AgentCostText = UsageFormat.Money(llm);
         TtsCostText   = UsageFormat.Money(tts);
         SttCostText   = UsageFormat.Money(stt);
-        CallsText     = $"{rows.Count:N0} call(s)";
+        CallsText     = string.Format(DataText.UsageCalls, rows.Count);
 
         var caveats = new List<string>();
         if (_ratesMissing.Length > 0)
-            caveats.Add($"no prices could be read, so every cost above is zero — {_ratesMissing}");
+            caveats.Add(string.Format(DataText.CaveatNoPrices, _ratesMissing));
         if (_rows.Count >= MaxRows)
-            caveats.Add($"only the most recent {MaxRows:N0} rows were read — narrow the range for a true total");
+            caveats.Add(string.Format(DataText.CaveatRowCeiling, MaxRows));
         // Only when the table was readable — if it was not, the line above already said so, and
         // repeating "nothing is priced" underneath it is noise.
         if (unpriced > 0 && _ratesMissing.Length == 0)
-            caveats.Add($"{unpriced:N0} call(s) have no rate set and are NOT in the total");
+            caveats.Add(string.Format(DataText.CaveatUnpriced, unpriced));
         if (estimated > 0)
-            caveats.Add($"{estimated:N0} call(s) have estimated rather than reported counts");
+            caveats.Add(string.Format(DataText.CaveatEstimated, estimated));
         CaveatText = caveats.Count == 0 ? "" : "⚠️ " + string.Join(" · ", caveats);
     }
 
     private void FillDetailPage()
     {
-        var kind = _kindFilter switch
-        {
-            "Agent"      => "llm",
-            "Speech out" => "tts",
-            "Speech in"  => "stt",
-            _            => "",
-        };
+        var kind = _kindFilter;
 
         var page = (kind.Length == 0 ? _rows : _rows.Where(r => r.Kind == kind))
             .Skip(Pager.Offset)
@@ -582,9 +607,9 @@ public class AgentUsageViewModel : ReactiveObject
                     OutputUnits     = r.OutputUnits,
                     CacheReadUnits  = r.CacheReadUnits,
                     CacheWriteUnits = r.CacheWriteUnits,
-                    UnitKind        = r.UnitKind,
-                    DurationText    = r.DurationMs <= 0 ? "" : $"{r.DurationMs / 1000.0:0.0}s",
-                    EstimatedText   = r.UnitsAreEstimated ? "est." : "",
+                    UnitKind        = UsageFormat.Unit(r.UnitKind),
+                    DurationText    = r.DurationMs <= 0 ? "" : string.Format(DataText.SecondsOneDecimal, r.DurationMs / 1000.0),
+                    EstimatedText   = r.UnitsAreEstimated ? DataText.EstimatedShort : "",
                     Cost            = RateBook.Cost(rate, r.InputUnits, r.OutputUnits, r.CacheReadUnits, r.CacheWriteUnits),
                     IsPriced        = rate is not null,
                     IsLocal         = r.IsLocal,
@@ -605,11 +630,11 @@ public class AgentUsageViewModel : ReactiveObject
         // ⚠️ Describes the TURN, and every usage row belonging to that turn repeats it. A turn is
         // what a capsuleer asked for; the rows under it are provider round trips they never see.
         var bits = new List<string>();
-        if (t.RoundTrips    > 1) bits.Add($"{t.RoundTrips} rounds");
+        if (t.RoundTrips    > 1) bits.Add(string.Format(DataText.ActivityRounds, t.RoundTrips));
         // Which tools, not just how many — the same words the chat shows under the reply. "No
         // tool calls" is said out loud: it is the one that matters when the answer looked real.
         bits.Add(Agent.ToolUseSummary.Describe(t.ToolsUsed));
-        if (t.Error.Length  > 0) bits.Add("failed");
+        if (t.Error.Length  > 0) bits.Add(DataText.ActivityFailed);
         return string.Join(" · ", bits);
     }
 
@@ -618,7 +643,7 @@ public class AgentUsageViewModel : ReactiveObject
     private async Task SaveRatesAsync()
     {
         var dirty = Rates.Where(r => r.IsDirty).ToList();
-        if (dirty.Count == 0) { RatesStatus = "Nothing changed."; return; }
+        if (dirty.Count == 0) { RatesStatus = DataText.RatesNothingChanged; return; }
 
         try
         {
@@ -648,7 +673,7 @@ public class AgentUsageViewModel : ReactiveObject
             _rates = new RateBook(Rates.Select(r => r.Row));
             Rebuild();
 
-            RatesStatus = $"Saved {dirty.Count} rate(s).";
+            RatesStatus = string.Format(DataText.RatesSaved, dirty.Count);
         }
         catch (Exception ex)
         {
@@ -670,7 +695,7 @@ public class AgentUsageViewModel : ReactiveObject
             case "Week":
                 // ISO-style: the week starts on Monday, whatever the machine's culture says.
                 var w = d.AddDays(-(((int)d.DayOfWeek + 6) % 7));
-                return ($"Week of {w:yyyy-MM-dd}", w.Ticks);
+                return (string.Format(DataText.PeriodWeekOf, w), w.Ticks);
             default:
                 return (d.ToString("yyyy-MM-dd ddd", CultureInfo.CurrentCulture), d.Ticks);
         }

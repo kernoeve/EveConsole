@@ -6,6 +6,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -39,9 +40,9 @@ public class GameLogRowVm(GameLogEvent e)
         "movement.jumped"   => $"{e.FromSystem} → {e.ToSystem}",
         "movement.undocked" => $"{e.LocationName} → {e.ToSystem}",
         "industry.units_mined" => e.SecondaryAmount is { } r
-            ? $"{e.Amount:N0} × {e.TargetName} (residue {r:N0})"
+            ? string.Format(DataText.GameLogMinedResidue, e.Amount, e.TargetName, r)
             : $"{e.Amount:N0} × {e.TargetName}",
-        "combat.bounty"     => $"{e.Amount:N0} ISK bounty",
+        "combat.bounty"     => string.Format(DataText.GameLogBounty, e.Amount),
         _ => string.Join("  ", new[] { e.Weapon, e.Quality }.Where(s => !string.IsNullOrWhiteSpace(s))!),
     };
 
@@ -52,27 +53,27 @@ public class GameLogRowVm(GameLogEvent e)
         void Add(string label, string? v)
         { if (!string.IsNullOrWhiteSpace(v)) lines.Add($"{label,-16}{v}"); }
 
-        Add("Character",  e.CharacterName ?? e.CharacterId?.ToString());
-        Add("Amount",     e.Amount?.ToString("N0"));
-        Add("Secondary",  e.SecondaryAmount?.ToString("N0"));
-        Add("Source",     e.SourceName);
-        Add("Source ship", e.SourceShip);
-        Add("Source corp", e.SourceCorp);
-        Add("Source alli", e.SourceAlliance);
-        Add("Target",     e.TargetName);
-        Add("Target ship", e.TargetShip);
-        Add("Target corp", e.TargetCorp);
-        Add("Target alli", e.TargetAlliance);
-        Add("Weapon",     e.Weapon);
-        Add("Quality",    e.Quality);
-        Add("From system", e.FromSystem);
-        Add("To system",  e.ToSystem);
-        Add("Location",   e.LocationName);
-        Add("Source file", Path.GetFileName(e.SourceFile));
-        Add("Line",       e.LineNumber.ToString());
+        Add(DataText.GameLogFieldCharacter,      e.CharacterName ?? e.CharacterId?.ToString());
+        Add(DataText.GameLogFieldAmount,         e.Amount?.ToString("N0"));
+        Add(DataText.GameLogFieldSecondary,      e.SecondaryAmount?.ToString("N0"));
+        Add(DataText.GameLogFieldSource,         e.SourceName);
+        Add(DataText.GameLogFieldSourceShip,     e.SourceShip);
+        Add(DataText.GameLogFieldSourceCorp,     e.SourceCorp);
+        Add(DataText.GameLogFieldSourceAlliance, e.SourceAlliance);
+        Add(DataText.GameLogFieldTarget,         e.TargetName);
+        Add(DataText.GameLogFieldTargetShip,     e.TargetShip);
+        Add(DataText.GameLogFieldTargetCorp,     e.TargetCorp);
+        Add(DataText.GameLogFieldTargetAlliance, e.TargetAlliance);
+        Add(DataText.GameLogFieldWeapon,         e.Weapon);
+        Add(DataText.GameLogFieldQuality,        e.Quality);
+        Add(DataText.GameLogFieldFromSystem,     e.FromSystem);
+        Add(DataText.GameLogFieldToSystem,       e.ToSystem);
+        Add(DataText.GameLogFieldLocation,       e.LocationName);
+        Add(DataText.GameLogFieldSourceFile,     Path.GetFileName(e.SourceFile));
+        Add(DataText.GameLogFieldLine,           e.LineNumber.ToString());
 
         if (!string.IsNullOrWhiteSpace(e.RawText))
-            lines.Add($"\nRaw:\n{e.RawText}");
+            lines.Add("\n" + DataText.GameLogFieldRaw + "\n" + e.RawText);
 
         return string.Join("\n", lines);
     }
@@ -87,15 +88,18 @@ public class GameLogRowVm(GameLogEvent e)
 /// </summary>
 public class GameLogViewerViewModel : ReactiveObject
 {
-    public const string AllTypes = "(all types)";
+    // The value of a type entry is the kind as stored; "(all types)" has the empty value, which no
+    // kind is, and a label of its own.
+    private const string AllKinds = "";
+    private static readonly Choice<string> AllTypes = new(AllKinds, DataText.GameLogAllTypes);
     private const int RowLimit   = 5000;
 
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private bool _isLoading;
 
-    public ObservableCollection<GameLogRowVm> Rows  { get; } = [];
-    public ObservableCollection<string>       Kinds { get; } = [];
+    public ObservableCollection<GameLogRowVm>   Rows  { get; } = [];
+    public ObservableCollection<Choice<string>> Kinds { get; } = [];
 
     public GameLogViewerViewModel(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
@@ -104,7 +108,7 @@ public class GameLogViewerViewModel : ReactiveObject
 
         // Default window is the last 90 days.
         _dateFrom     = DateTime.Now.AddDays(-90).ToString("yyyy-MM-dd");
-        _selectedKind = AllTypes;
+        _selectedKind = AllKinds;
         Kinds.Add(AllTypes);
 
         RefreshCommand = ReactiveCommand.Create(() => { _ = LoadAsync(); });
@@ -118,7 +122,19 @@ public class GameLogViewerViewModel : ReactiveObject
     public string DateThru { get => _dateThru; set { this.RaiseAndSetIfChanged(ref _dateThru, value); _ = LoadAsync(); } }
 
     private string _selectedKind;
-    public string SelectedKind { get => _selectedKind; set { this.RaiseAndSetIfChanged(ref _selectedKind, value); _ = LoadAsync(); } }
+    public Choice<string> SelectedKind
+    {
+        get => Kinds.FirstOrDefault(o => o.Value == _selectedKind) ?? AllTypes;
+        set
+        {
+            // A detaching ComboBox, or one whose list is being refilled, sets null; that is not a
+            // choice. The list is re-selected once it is full again.
+            if (value is null) return;
+            _selectedKind = value.Value;
+            this.RaisePropertyChanged();
+            _ = LoadAsync();
+        }
+    }
 
     private string _search = "";
     public string Search { get => _search; set { this.RaiseAndSetIfChanged(ref _search, value); _ = LoadAsync(); } }
@@ -135,7 +151,7 @@ public class GameLogViewerViewModel : ReactiveObject
     {
         if (_isLoading) return;
         _isLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
 
         try
         {
@@ -153,19 +169,17 @@ public class GameLogViewerViewModel : ReactiveObject
             // Type list reflects what's actually in the chosen window.
             var kinds = await q.Select(e => e.Kind).Distinct().OrderBy(k => k).ToListAsync();
 
-            var previous = _selectedKind;
             Kinds.Clear();
             Kinds.Add(AllTypes);
-            foreach (var k in kinds) Kinds.Add(k);
+            foreach (var k in kinds) Kinds.Add(new Choice<string>(k, k));
 
-            if (previous != AllTypes && !kinds.Contains(previous))
-            {
-                _selectedKind = AllTypes;
-                this.RaisePropertyChanged(nameof(SelectedKind));
-            }
+            if (_selectedKind != AllKinds && !kinds.Contains(_selectedKind))
+                _selectedKind = AllKinds;
+            this.RaisePropertyChanged(nameof(SelectedKind));
 
-            if (_selectedKind != AllTypes)
-                q = q.Where(e => e.Kind == _selectedKind);
+            var kind = _selectedKind;
+            if (kind != AllKinds)
+                q = q.Where(e => e.Kind == kind);
 
             if (!string.IsNullOrWhiteSpace(_search))
             {
@@ -182,10 +196,10 @@ public class GameLogViewerViewModel : ReactiveObject
             foreach (var e in list) Rows.Add(new GameLogRowVm(e));
 
             StatusText = list.Count == 0
-                ? "No entries in range."
+                ? DataText.GameLogNoEntries
                 : list.Count >= RowLimit
-                    ? $"{list.Count:N0} entries (capped — narrow the range)"
-                    : $"{list.Count:N0} entr{(list.Count == 1 ? "y" : "ies")}";
+                    ? string.Format(DataText.GameLogEntriesCapped, list.Count)
+                    : Plurals.Format(DataText.ResourceManager, nameof(DataText.GameLogEntriesOther), list.Count);
         }
         catch (Exception ex)
         {

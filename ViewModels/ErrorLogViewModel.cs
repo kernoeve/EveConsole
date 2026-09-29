@@ -6,6 +6,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -24,7 +25,7 @@ public class ErrorLogRowVm
     public string Client   { get; }
 
     // Combined message shown in the detail pane.
-    public string Detail => Inner.Length > 0 ? $"{Message}\n\nInner: {Inner}" : Message;
+    public string Detail => Inner.Length > 0 ? Message + "\n\n" + string.Format(DataText.ErrorInner, Inner) : Message;
 
     public ErrorLogRowVm(AppErrorEntry e)
     {
@@ -39,7 +40,7 @@ public class ErrorLogRowVm
         // ⚠️ Host and kind together, as one column. Either alone is ambiguous: one machine can run
         // a desktop client and the worker at once, and "headless" says nothing about where.
         Client     = e.HostName.Length == 0 ? ""
-                   : e.Headless            ? $"{e.HostName} (worker)"
+                   : e.Headless            ? string.Format(DataText.ErrorClientWorker, e.HostName)
                    :                          e.HostName;
     }
 }
@@ -96,7 +97,7 @@ public class ErrorLogViewModel : ReactiveObject
     {
         if (_isLoading) return;
         _isLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             // DateTimeOffset can't be compared in a LINQ Where against SQLite, so filter in raw SQL
@@ -118,7 +119,7 @@ public class ErrorLogViewModel : ReactiveObject
 
             Rows.Clear();
             foreach (var e in list) Rows.Add(new ErrorLogRowVm(e));
-            StatusText = list.Count == 0 ? "No errors in range." : $"{list.Count:N0} error(s)";
+            StatusText = list.Count == 0 ? DataText.ErrorLogNone : string.Format(DataText.ErrorLogCount, list.Count);
         }
         catch (Exception ex)
         {
