@@ -316,4 +316,400 @@
   <data name="TipRunsWhatIsOn" xml:space="preserve">
     <value>按屏幕上的当前内容真实运行一次，并计为本次计划运行。</value>
   </data>
+  <data name="MonthCurrent" xml:space="preserve">
+    <value>本月</value>
+  </data>
+  <data name="MonthLast" xml:space="preserve">
+    <value>上个月</value>
+  </data>
+  <data name="ProjectTypeDeliverItem" xml:space="preserve">
+    <value>交付物品</value>
+  </data>
+  <data name="ProjectTypeDestroyNpc" xml:space="preserve">
+    <value>摧毁 NPC</value>
+  </data>
+  <data name="FilterMissingProjects" xml:space="preserve">
+    <value>缺失的项目</value>
+  </data>
+  <data name="FilterMissingAndLowProjects" xml:space="preserve">
+    <value>缺失及偏低的项目</value>
+  </data>
+  <data name="FilterAllProjects" xml:space="preserve">
+    <value>全部项目</value>
+  </data>
+  <data name="HeadingTop10" xml:space="preserve">
+    <value>前十榜单</value>
+  </data>
+  <data name="HeadingMonthlySummary" xml:space="preserve">
+    <value>军团月度摘要</value>
+  </data>
+  <data name="HeadingSalePosting" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="HeadingStandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="HeadingIskChart" xml:space="preserve">
+    <value>军团 ISK 趋势图表</value>
+  </data>
+  <data name="HeadingActivityChart" xml:space="preserve">
+    <value>军团活动趋势图表</value>
+  </data>
+  <data name="HeadingKillChart" xml:space="preserve">
+    <value>军团击毁 / 损失图表</value>
+  </data>
+  <data name="HeadingMiningChart" xml:space="preserve">
+    <value>军团采矿图表</value>
+  </data>
+  <data name="HeadingText" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="MonthInProgress" xml:space="preserve">
+    <value>进行中——{0:yyyy年M月}，以当前数据为准。</value>
+  </data>
+  <data name="MonthAsThingsStand" xml:space="preserve">
+    <value>{0:yyyy年M月}，以当前数据为准。</value>
+  </data>
+  <data name="ErrReadProjects" xml:space="preserve">
+    <value>无法读取项目：{0}</value>
+  </data>
+  <data name="NoDeliverProjects" xml:space="preserve">
+    <value>此军团没有定义“交付物品”项目。</value>
+  </data>
+  <data name="NoDestroyNpcProjects" xml:space="preserve">
+    <value>此军团没有定义“摧毁 NPC”项目。</value>
+  </data>
+  <data name="StatusCommandFailed" xml:space="preserve">
+    <value>失败：{0}</value>
+  </data>
+  <data name="DiscardMoveToTask" xml:space="preserve">
+    <value>要切换到其他任务并放弃这些更改吗？</value>
+  </data>
+  <data name="TaskTypeSlackPost" xml:space="preserve">
+    <value>发布到 Slack</value>
+  </data>
+  <data name="TaskTypeRaiseAlert" xml:space="preserve">
+    <value>发出提醒</value>
+  </data>
+  <data name="SectionTypeText" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="SectionTypeTop10" xml:space="preserve">
+    <value>军团前十</value>
+  </data>
+  <data name="SectionTypeMonthly" xml:space="preserve">
+    <value>军团月度摘要</value>
+  </data>
+  <data name="SectionTypeSale" xml:space="preserve">
+    <value>销售发布</value>
+  </data>
+  <data name="SectionTypeProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="SectionTypeIskChart" xml:space="preserve">
+    <value>军团 ISK 趋势图表</value>
+  </data>
+  <data name="SectionTypeActivityChart" xml:space="preserve">
+    <value>军团活动趋势图表</value>
+  </data>
+  <data name="SectionTypeKillChart" xml:space="preserve">
+    <value>军团击毁 / 损失图表</value>
+  </data>
+  <data name="SectionTypeMiningChart" xml:space="preserve">
+    <value>军团采矿图表</value>
+  </data>
+  <data name="KindInterval" xml:space="preserve">
+    <value>每隔一段时间</value>
+  </data>
+  <data name="KindWeekly" xml:space="preserve">
+    <value>每周指定日</value>
+  </data>
+  <data name="KindMonthly" xml:space="preserve">
+    <value>每月一次</value>
+  </data>
+  <data name="KindYearly" xml:space="preserve">
+    <value>每年一次</value>
+  </data>
+  <data name="DaySun" xml:space="preserve">
+    <value>周日</value>
+  </data>
+  <data name="DayMon" xml:space="preserve">
+    <value>周一</value>
+  </data>
+  <data name="DayTue" xml:space="preserve">
+    <value>周二</value>
+  </data>
+  <data name="DayWed" xml:space="preserve">
+    <value>周三</value>
+  </data>
+  <data name="DayThu" xml:space="preserve">
+    <value>周四</value>
+  </data>
+  <data name="DayFri" xml:space="preserve">
+    <value>周五</value>
+  </data>
+  <data name="DaySat" xml:space="preserve">
+    <value>周六</value>
+  </data>
+  <data name="MonthJanuary" xml:space="preserve">
+    <value>一月</value>
+  </data>
+  <data name="MonthFebruary" xml:space="preserve">
+    <value>二月</value>
+  </data>
+  <data name="MonthMarch" xml:space="preserve">
+    <value>三月</value>
+  </data>
+  <data name="MonthApril" xml:space="preserve">
+    <value>四月</value>
+  </data>
+  <data name="MonthMay" xml:space="preserve">
+    <value>五月</value>
+  </data>
+  <data name="MonthJune" xml:space="preserve">
+    <value>六月</value>
+  </data>
+  <data name="MonthJuly" xml:space="preserve">
+    <value>七月</value>
+  </data>
+  <data name="MonthAugust" xml:space="preserve">
+    <value>八月</value>
+  </data>
+  <data name="MonthSeptember" xml:space="preserve">
+    <value>九月</value>
+  </data>
+  <data name="MonthOctober" xml:space="preserve">
+    <value>十月</value>
+  </data>
+  <data name="MonthNovember" xml:space="preserve">
+    <value>十一月</value>
+  </data>
+  <data name="MonthDecember" xml:space="preserve">
+    <value>十二月</value>
+  </data>
+  <data name="HintInterval" xml:space="preserve">
+    <value>从上次运行时开始计时。如果应用关闭的时间超过了间隔，它会在应用打开时运行一次——而不是每错过一个周期就补运行一次。</value>
+  </data>
+  <data name="HintWeekly" xml:space="preserve">
+    <value>勾选的每一天都各按每日任务运行一次。应用关闭期间过去的日子之后不会补运行，因此时间设在午夜刚过，比设在午夜之前更好。</value>
+  </data>
+  <data name="HintMonthly" xml:space="preserve">
+    <value>每月运行一次，在设定的日期和时间或其后运行。若所选日期超出短月份的天数，则在该月最后一天运行，因此设为 31 日的任务在二月同样会运行。</value>
+  </data>
+  <data name="HintYearly" xml:space="preserve">
+    <value>每年运行一次，在设定的日期和时间或其后运行。在没有 2 月 29 日的年份（每四年中有三年），设为 2 月 29 日的任务改在 28 日运行。</value>
+  </data>
+  <data name="DiscardRefresh" xml:space="preserve">
+    <value>要刷新并放弃这些更改吗？</value>
+  </data>
+  <data name="UnnamedTask" xml:space="preserve">
+    <value>（未命名）</value>
+  </data>
+  <data name="NeverRun" xml:space="preserve">
+    <value>从未运行</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>上次运行：{0:yyyy-MM-dd HH:mm} EVE</value>
+  </data>
+  <data name="TaskCount" xml:space="preserve">
+    <value>{0} 个任务。</value>
+  </data>
+  <data name="WebhookDestination" xml:space="preserve">
+    <value>Webhook：{0}</value>
+  </data>
+  <data name="DiscardNewTask" xml:space="preserve">
+    <value>要新建任务并放弃这些更改吗？</value>
+  </data>
+  <data name="StatusNewTask" xml:space="preserve">
+    <value>新任务。</value>
+  </data>
+  <data name="ThisTask" xml:space="preserve">
+    <value>此任务</value>
+  </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>“{0}”有未保存的更改。</value>
+  </data>
+  <data name="ErrTaskName" xml:space="preserve">
+    <value>请为任务命名。</value>
+  </data>
+  <data name="ErrTimeOfDay" xml:space="preserve">
+    <value>时间必须为 HH:mm 格式（EVE 时间）。</value>
+  </data>
+  <data name="ErrPickDay" xml:space="preserve">
+    <value>请至少选择一天。</value>
+  </data>
+  <data name="ErrNoDestinations" xml:space="preserve">
+    <value>还没有频道或 Webhook——请在“设置 → Slack”中添加。</value>
+  </data>
+  <data name="ErrPickDestination" xml:space="preserve">
+    <value>请选择发布位置。</value>
+  </data>
+  <data name="ErrNothingToSay" xml:space="preserve">
+    <value>请添加要发布的内容。</value>
+  </data>
+  <data name="ErrAlertText" xml:space="preserve">
+    <value>请填写提醒的内容。</value>
+  </data>
+  <data name="SectionNeedsCorp" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）需要选择军团。</value>
+  </data>
+  <data name="SectionNeedsPosting" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）需要选择销售发布。</value>
+  </data>
+  <data name="SectionNeedsList" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）至少需要一个榜单。</value>
+  </data>
+  <data name="SectionEmpty" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）为空。</value>
+  </data>
+  <data name="SectionNeedsProject" xml:space="preserve">
+    <value>第 {0} 个区块（{1}）至少需要勾选一个项目。</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>已保存。</value>
+  </data>
+  <data name="StatusNothingToDiscard" xml:space="preserve">
+    <value>没有可放弃的更改。</value>
+  </data>
+  <data name="StatusDiscarded" xml:space="preserve">
+    <value>已放弃更改。</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>已删除。</value>
+  </data>
+  <data name="StatusNoBlocks" xml:space="preserve">
+    <value>没有可渲染的内容：此任务没有任何区块。</value>
+  </data>
+  <data name="StatusRendering" xml:space="preserve">
+    <value>正在渲染…</value>
+  </data>
+  <data name="PreviewChartSkipped" xml:space="preserve">
+    <value>[{0}——已跳过：目标为 Webhook]</value>
+  </data>
+  <data name="PreviewChartUploaded" xml:space="preserve">
+    <value>[{0}——以图片形式上传]</value>
+  </data>
+  <data name="PreviewEmpty" xml:space="preserve">
+    <value>（各区块渲染后为空）</value>
+  </data>
+  <data name="StatusWouldNotPost" xml:space="preserve">
+    <value>已渲染，但没有任何动态区块有内容——此消息不会发布。</value>
+  </data>
+  <data name="StatusCharacters" xml:space="preserve">
+    <value>{0:N0} 个字符。</value>
+  </data>
+  <data name="StatusPreviewFailed" xml:space="preserve">
+    <value>预览失败：{0}</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>正在运行…</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>立即运行</value>
+  </data>
+  <data name="MonthsBackOther" xml:space="preserve">
+    <value>{0} 个月前</value>
+  </data>
+  <data name="AlarmStatusDisabled" xml:space="preserve">
+    <value>已停用</value>
+  </data>
+  <data name="AlarmStatusError" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="AlarmStatusArmedFired" xml:space="preserve">
+    <value>待命 · 已触发 {0} 次</value>
+  </data>
+  <data name="AlarmStatusArmed" xml:space="preserve">
+    <value>待命</value>
+  </data>
+  <data name="ZoneEveTime" xml:space="preserve">
+    <value>EVE 时间</value>
+  </data>
+  <data name="ZoneLocalTime" xml:space="preserve">
+    <value>本地时间</value>
+  </data>
+  <data name="EquivalentLocal" xml:space="preserve">
+    <value>= 本地时间 {0:M月d日 HH:mm}</value>
+  </data>
+  <data name="EquivalentEve" xml:space="preserve">
+    <value>= EVE 时间 {0:M月d日 HH:mm}</value>
+  </data>
+  <data name="NotAKnownName" xml:space="preserve">
+    <value>“{0}”不是应用已知的名称——请从列表中选择。</value>
+  </data>
+  <data name="UnsupportedSoundFile" xml:space="preserve">
+    <value>不支持该文件类型。</value>
+  </data>
+  <data name="StageTitle" xml:space="preserve">
+    <value>第 {0} 阶段</value>
+  </data>
+  <data name="RepeatContinuous" xml:space="preserve">
+    <value>持续</value>
+  </data>
+  <data name="RepeatOneShot" xml:space="preserve">
+    <value>单次</value>
+  </data>
+  <data name="AlarmsStatus" xml:space="preserve">
+    <value>{0} 个警报 · {1} 个未关闭的提醒</value>
+  </data>
+  <data name="DefaultAlarmName" xml:space="preserve">
+    <value>新警报</value>
+  </data>
+  <data name="PreviewSampleDetail" xml:space="preserve">
+    <value>…此处显示匹配到的详情</value>
+  </data>
+  <data name="ThisAlarm" xml:space="preserve">
+    <value>此警报</value>
+  </data>
+  <data name="DefaultWordingFromCheck" xml:space="preserve">
+    <value>措辞将由检查项提供。</value>
+  </data>
+  <data name="DefaultWordingExample" xml:space="preserve">
+    <value>例如“{0}”，下方再列出匹配项。</value>
+  </data>
+  <data name="ErrPickCondition" xml:space="preserve">
+    <value>请先选择检查项。</value>
+  </data>
+  <data name="ErrAlarmName" xml:space="preserve">
+    <value>请为警报命名。</value>
+  </data>
+  <data name="NotAnItem" xml:space="preserve">
+    <value>“{0}”不是物品——请从列表中选择。</value>
+  </data>
+  <data name="ErrAddListEntry" xml:space="preserve">
+    <value>请在“{0}”下至少添加一项。</value>
+  </data>
+  <data name="ErrActiveFrom" xml:space="preserve">
+    <value>生效起始时间须为类似 18:00 的时间。</value>
+  </data>
+  <data name="ErrActiveThru" xml:space="preserve">
+    <value>生效结束时间须为类似 18:00 的时间。</value>
+  </data>
+  <data name="AlarmCreated" xml:space="preserve">
+    <value>已创建警报。</value>
+  </data>
+  <data name="AlarmSaved" xml:space="preserve">
+    <value>已保存警报。</value>
+  </data>
+  <data name="AlarmDeleted" xml:space="preserve">
+    <value>已删除警报。</value>
+  </data>
+  <data name="PlayedSounds" xml:space="preserve">
+    <value>已播放警报的声音。要测试其他操作，请先保存。</value>
+  </data>
+  <data name="SoundWindowTitle" xml:space="preserve">
+    <value>警报响起——{0}</value>
+  </data>
+  <data name="SoundRepeatsUntilAck" xml:space="preserve">
+    <value>声音会一直重复，直到你确认为止。</value>
+  </data>
+  <data name="PickSoundTitle" xml:space="preserve">
+    <value>选择警报声音</value>
+  </data>
+  <data name="PickSoundFileType" xml:space="preserve">
+    <value>音频</value>
+  </data>
+  <data name="DialogDefaultTitle" xml:space="preserve">
+    <value>警报</value>
+  </data>
 </root>

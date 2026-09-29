@@ -625,8 +625,584 @@
   <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>
+  <data name="StatusNoSystemsBelowMinAdm" xml:space="preserve">
+    <value>没有 ADM 低于下限的星系</value>
+  </data>
+  <data name="StatusScopeNoSystems" xml:space="preserve">
+    <value>范围内没有任何星系</value>
+  </data>
+  <data name="StatusSovUnavailableNote" xml:space="preserve">
+    <value>主权数据不可用——{0}</value>
+  </data>
+  <data name="StatusSovUnavailable" xml:space="preserve">
+    <value>主权数据不可用</value>
+  </data>
+  <data name="StatusOfficeUnavailableNote" xml:space="preserve">
+    <value>办公室位置不可用——{0}</value>
+  </data>
+  <data name="StatusOfficeUnavailableLoading" xml:space="preserve">
+    <value>办公室位置不可用——资产数据仍在加载</value>
+  </data>
+  <data name="StatusProjectNotActive" xml:space="preserve">
+    <value>项目未激活</value>
+  </data>
+  <data name="StatusSelectCorp" xml:space="preserve">
+    <value>请在上方选择一个军团以加载数据。</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>最近 30 天</value>
+  </data>
+  <data name="PeriodLast60Days" xml:space="preserve">
+    <value>最近 60 天</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>最近 90 天</value>
+  </data>
+  <data name="PeriodLast6Months" xml:space="preserve">
+    <value>最近 6 个月</value>
+  </data>
+  <data name="PeriodLastYear" xml:space="preserve">
+    <value>最近一年</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>最近 7 天</value>
+  </data>
+  <data name="StatusFilterFailed" xml:space="preserve">
+    <value>筛选失败：{0}</value>
+  </data>
+  <data name="FormatPlainText" xml:space="preserve">
+    <value>纯文本</value>
+  </data>
+  <data name="FormatEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="StepMining" xml:space="preserve">
+    <value>采矿</value>
+  </data>
+  <data name="StepRatting" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="StepIndustry" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="StepDonations" xml:space="preserve">
+    <value>捐赠</value>
+  </data>
+  <data name="StepKills" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="StepIncome" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="StepExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="StepWallet" xml:space="preserve">
+    <value>钱包</value>
+  </data>
+  <data name="StepDailyChart" xml:space="preserve">
+    <value>每日图表</value>
+  </data>
+  <data name="StepMonthlyActivity" xml:space="preserve">
+    <value>月度活动</value>
+  </data>
+  <data name="StepProjects" xml:space="preserve">
+    <value>项目</value>
+  </data>
+  <data name="StepTop10" xml:space="preserve">
+    <value>前十榜单</value>
+  </data>
+  <data name="StepMonthlySummary" xml:space="preserve">
+    <value>月度摘要</value>
+  </data>
+  <data name="StepIncomeByType" xml:space="preserve">
+    <value>收入（按类型）</value>
+  </data>
+  <data name="StepExpenseByType" xml:space="preserve">
+    <value>支出（按类型）</value>
+  </data>
+  <data name="Step24hActivity" xml:space="preserve">
+    <value>近 24 小时活动</value>
+  </data>
+  <data name="StatusLoadingStep" xml:space="preserve">
+    <value>正在加载{0}…</value>
+  </data>
+  <data name="StatusStepFailed" xml:space="preserve">
+    <value>警告：{0}加载失败——{1}</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>已加载——{0}</value>
+  </data>
+  <data name="StatusLoadedWithFailures" xml:space="preserve">
+    <value>已加载——{0}，但以下部分失败：{1}。请查看错误日志了解原因。</value>
+  </data>
+  <data name="StatusRefreshingStep" xml:space="preserve">
+    <value>正在刷新{0}…</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="StatusStepReloadFailed" xml:space="preserve">
+    <value>警告：{0}重新加载失败——{1}</value>
+  </data>
+  <data name="SlackViaWebhook" xml:space="preserve">
+    <value>通过 Webhook</value>
+  </data>
+  <data name="SlackNoDestination" xml:space="preserve">
+    <value>未配置 Slack 频道或 Webhook。</value>
+  </data>
+  <data name="Top10AlreadyPosted" xml:space="preserve">
+    <value>这份前十榜单已发布到 Slack（{0}）。</value>
+  </data>
+  <data name="PostItAgain" xml:space="preserve">
+    <value>要再次发布吗？</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>已取消发布。</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>正在发布到 Slack…</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>已发布到 {0}——{1:t}</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>发布到 Slack 失败：{0}</value>
+  </data>
+  <data name="SlackPostedPartly" xml:space="preserve">
+    <value>已向 {2} 发布 {1} 条消息中的 {0} 条；Slack 拒绝了下一条：{3}</value>
+  </data>
+  <data name="SummaryAlreadyPosted" xml:space="preserve">
+    <value>这份月度摘要已发布到 Slack（{0}）。</value>
+  </data>
+  <data name="Top10ExportHeader" xml:space="preserve">
+    <value>前十榜单——{1} 年 {0}</value>
+  </data>
+  <data name="Top10ExportHeaderCorp" xml:space="preserve">
+    <value>{0}——前十榜单——{2} 年 {1}</value>
+  </data>
+  <data name="StepTop10Ratters" xml:space="preserve">
+    <value>刷怪前十</value>
+  </data>
+  <data name="StepTop10Industry" xml:space="preserve">
+    <value>工业前十</value>
+  </data>
+  <data name="StepTop10Killers" xml:space="preserve">
+    <value>击毁前十</value>
+  </data>
+  <data name="StepTop10Miners" xml:space="preserve">
+    <value>采矿前十</value>
+  </data>
+  <data name="StepTop10Contributors" xml:space="preserve">
+    <value>项目贡献者前十</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>全部类型</value>
+  </data>
+  <data name="SeriesAmount" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="Step24hSummary" xml:space="preserve">
+    <value>近 24 小时汇总</value>
+  </data>
+  <data name="Step24hRatters" xml:space="preserve">
+    <value>近 24 小时刷怪</value>
+  </data>
+  <data name="Step24hIndustry" xml:space="preserve">
+    <value>近 24 小时工业</value>
+  </data>
+  <data name="Step24hMiners" xml:space="preserve">
+    <value>近 24 小时采矿</value>
+  </data>
+  <data name="Step24hKills" xml:space="preserve">
+    <value>近 24 小时击毁</value>
+  </data>
+  <data name="RefBountyPrizes" xml:space="preserve">
+    <value>赏金奖励</value>
+  </data>
+  <data name="RefEssTransfer" xml:space="preserve">
+    <value>ESS 转账</value>
+  </data>
+  <data name="RefDailyGoalPayout" xml:space="preserve">
+    <value>每日目标奖励</value>
+  </data>
+  <data name="RefMiningTax" xml:space="preserve">
+    <value>采矿税</value>
+  </data>
+  <data name="RefPlayerDonation" xml:space="preserve">
+    <value>玩家捐赠</value>
+  </data>
+  <data name="RefCorpReward" xml:space="preserve">
+    <value>军团奖励</value>
+  </data>
+  <data name="RefIndustryTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="RefManufacturingTax" xml:space="preserve">
+    <value>制造税</value>
+  </data>
+  <data name="RefReprocessingTax" xml:space="preserve">
+    <value>精炼税</value>
+  </data>
+  <data name="RefContractIncome" xml:space="preserve">
+    <value>合同收入</value>
+  </data>
+  <data name="RefCorpContract" xml:space="preserve">
+    <value>军团合同</value>
+  </data>
+  <data name="RefMarketTransaction" xml:space="preserve">
+    <value>市场交易</value>
+  </data>
+  <data name="RefMarketEscrow" xml:space="preserve">
+    <value>市场托管金</value>
+  </data>
+  <data name="RefProjectPayouts" xml:space="preserve">
+    <value>项目奖励</value>
+  </data>
+  <data name="RefCorpAccountWithdrawal" xml:space="preserve">
+    <value>军团账户提款</value>
+  </data>
+  <data name="RefAgentMissionReward" xml:space="preserve">
+    <value>代理人任务奖励</value>
+  </data>
+  <data name="RefAgentMissionTimeBonus" xml:space="preserve">
+    <value>代理人任务限时奖励</value>
+  </data>
+  <data name="RefProjectDiscoveryReward" xml:space="preserve">
+    <value>发现计划奖励</value>
+  </data>
+  <data name="RefFreelanceJobsReward" xml:space="preserve">
+    <value>自由职业项目奖励</value>
+  </data>
+  <data name="RefBrokersFee" xml:space="preserve">
+    <value>中介费</value>
+  </data>
+  <data name="RefTransactionTax" xml:space="preserve">
+    <value>交易税</value>
+  </data>
+  <data name="RefOfficeRentalFee" xml:space="preserve">
+    <value>办公室租金</value>
+  </data>
+  <data name="RefInsurance" xml:space="preserve">
+    <value>保险</value>
+  </data>
+  <data name="RefPlanetaryImportTax" xml:space="preserve">
+    <value>行星进口税</value>
+  </data>
+  <data name="RefPlanetaryExportTax" xml:space="preserve">
+    <value>行星出口税</value>
+  </data>
+  <data name="RefContractBrokersFee" xml:space="preserve">
+    <value>合同中介费</value>
+  </data>
+  <data name="RefContractSalesTax" xml:space="preserve">
+    <value>合同销售税</value>
+  </data>
+  <data name="RefContractReward" xml:space="preserve">
+    <value>合同报酬</value>
+  </data>
+  <data name="RefContractCollateral" xml:space="preserve">
+    <value>合同保证金</value>
+  </data>
+  <data name="RefWarFee" xml:space="preserve">
+    <value>宣战费用</value>
+  </data>
+  <data name="RefStructureGateJump" xml:space="preserve">
+    <value>建筑跳跃门通行费</value>
+  </data>
+  <data name="RefJumpCloneInstallationFee" xml:space="preserve">
+    <value>跳跃克隆安装费</value>
+  </data>
+  <data name="RefJumpCloneActivationFee" xml:space="preserve">
+    <value>跳跃克隆激活费</value>
+  </data>
+  <data name="SeriesTotal" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="FallbackCharacterName" xml:space="preserve">
+    <value>角色 {0}</value>
+  </data>
+  <data name="SeriesKills" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="SeriesLosses" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="FieldName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="FieldState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="FieldCareer" xml:space="preserve">
+    <value>职业</value>
+  </data>
+  <data name="FieldCreated" xml:space="preserve">
+    <value>创建时间</value>
+  </data>
+  <data name="FieldLastModified" xml:space="preserve">
+    <value>最后修改时间</value>
+  </data>
+  <data name="FieldCreator" xml:space="preserve">
+    <value>创建者</value>
+  </data>
+  <data name="FieldProgress" xml:space="preserve">
+    <value>进度</value>
+  </data>
+  <data name="FieldTotalReward" xml:space="preserve">
+    <value>总奖励</value>
+  </data>
+  <data name="FieldRemainingReward" xml:space="preserve">
+    <value>剩余奖励</value>
+  </data>
+  <data name="FieldDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="ProjectTypeCaptureFwComplex" xml:space="preserve">
+    <value>占领势力战争据点</value>
+  </data>
+  <data name="ProjectTypeDamageShip" xml:space="preserve">
+    <value>伤害舰船</value>
+  </data>
+  <data name="ProjectTypeDefendFwComplex" xml:space="preserve">
+    <value>防守势力战争据点</value>
+  </data>
+  <data name="ProjectTypeDestroyNonCapsuleers" xml:space="preserve">
+    <value>摧毁非克隆飞行员</value>
+  </data>
+  <data name="ProjectTypeDestroyShip" xml:space="preserve">
+    <value>摧毁舰船</value>
+  </data>
+  <data name="ProjectTypeEarnLoyaltyPoints" xml:space="preserve">
+    <value>获取忠诚点</value>
+  </data>
+  <data name="ProjectTypeLoseShip" xml:space="preserve">
+    <value>损失舰船</value>
+  </data>
+  <data name="ProjectTypeManual" xml:space="preserve">
+    <value>手动</value>
+  </data>
+  <data name="ProjectTypeManufactureItem" xml:space="preserve">
+    <value>制造物品</value>
+  </data>
+  <data name="ProjectTypeMineMaterial" xml:space="preserve">
+    <value>开采材料</value>
+  </data>
+  <data name="ProjectTypeRemoteBoostShield" xml:space="preserve">
+    <value>远程回充护盾</value>
+  </data>
+  <data name="ProjectTypeRemoteRepairArmor" xml:space="preserve">
+    <value>远程维修装甲</value>
+  </data>
+  <data name="ProjectTypeSalvageWreck" xml:space="preserve">
+    <value>打捞残骸</value>
+  </data>
+  <data name="ProjectTypeScanSignature" xml:space="preserve">
+    <value>扫描信号</value>
+  </data>
+  <data name="ProjectTypeShipInsurance" xml:space="preserve">
+    <value>舰船保险</value>
+  </data>
+  <data name="ProjectTypeUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>建筑 {0}</value>
+  </data>
+  <data name="ConfigLocations" xml:space="preserve">
+    <value>地点</value>
+  </data>
+  <data name="ConfigItems" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="ConfigDestinations" xml:space="preserve">
+    <value>目的地</value>
+  </data>
+  <data name="ConfigDestination" xml:space="preserve">
+    <value>目的地</value>
+  </data>
+  <data name="ConfigOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ConfigShipTypes" xml:space="preserve">
+    <value>舰船类型</value>
+  </data>
+  <data name="ConfigTargets" xml:space="preserve">
+    <value>目标</value>
+  </data>
+  <data name="ConfigKilledBy" xml:space="preserve">
+    <value>击毁者</value>
+  </data>
+  <data name="ConfigConflictType" xml:space="preserve">
+    <value>冲突类型</value>
+  </data>
+  <data name="ConfigMaterials" xml:space="preserve">
+    <value>材料</value>
+  </data>
+  <data name="ConfigSignatureTypes" xml:space="preserve">
+    <value>信号类型</value>
+  </data>
+  <data name="ConfigFactions" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="ConfigArchetypes" xml:space="preserve">
+    <value>据点类型</value>
+  </data>
+  <data name="ConfigCorporations" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ConfigSubType" xml:space="preserve">
+    <value>子类型</value>
+  </data>
+  <data name="StatusMaintainLoadFailed" xml:space="preserve">
+    <value>长期项目加载失败：{0}</value>
+  </data>
+  <data name="SlackPostedInPartsOther" xml:space="preserve">
+    <value>已分 {0} 条消息发布到 {1}——{2:t}</value>
+  </data>
+  <data name="ConfirmDeleteStandingProject" xml:space="preserve">
+    <value>确定要删除此长期项目吗？</value>
+  </data>
+  <data name="ErrSelectItemType" xml:space="preserve">
+    <value>请选择物品类型。</value>
+  </data>
+  <data name="ErrSelectDestination" xml:space="preserve">
+    <value>请选择目的地空间站或建筑。</value>
+  </data>
+  <data name="ErrSelectSolarSystem" xml:space="preserve">
+    <value>请选择星系。</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>请选择星域。</value>
+  </data>
+  <data name="ErrSelectAlliance" xml:space="preserve">
+    <value>请选择联盟。</value>
+  </data>
+  <data name="ErrSelectConstellation" xml:space="preserve">
+    <value>请选择星座。</value>
+  </data>
+  <data name="KillQtyDestroyed" xml:space="preserve">
+    <value>x{0} 摧毁</value>
+  </data>
+  <data name="KillQtyDropped" xml:space="preserve">
+    <value>x{0} 掉落</value>
+  </data>
+  <data name="RoleFinalBlow" xml:space="preserve">
+    <value>★ 最后一击</value>
+  </data>
+  <data name="RoleTopDamage" xml:space="preserve">
+    <value>▲ 最高伤害</value>
+  </data>
+  <data name="DamageTaken" xml:space="preserve">
+    <value>{0:N0} 点伤害</value>
+  </data>
+  <data name="StatusLoadingKillmails" xml:space="preserve">
+    <value>正在加载击毁报告…</value>
+  </data>
+  <data name="KillmailsLoadedMore" xml:space="preserve">
+    <value>已加载 {0:N0} 份击毁报告——还有更多，请点击“加载更多”</value>
+  </data>
+  <data name="KillmailsCount" xml:space="preserve">
+    <value>{0:N0} 份击毁报告</value>
+  </data>
+  <data name="EntitySearchTruncated" xml:space="preserve">
+    <value>显示 {1:N0} 个匹配项中的 {0:N0} 个——继续输入以缩小范围。</value>
+  </data>
+  <data name="TabMemberCorps" xml:space="preserve">
+    <value>成员军团</value>
+  </data>
+  <data name="TabCorpHistory" xml:space="preserve">
+    <value>军团履历</value>
+  </data>
+  <data name="TabAllianceHistory" xml:space="preserve">
+    <value>联盟履历</value>
+  </data>
+  <data name="ColHistoryCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColHistoryAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="StationsCount" xml:space="preserve">
+    <value>{0:N0} 个空间站</value>
+  </data>
+  <data name="NoStationsFound" xml:space="preserve">
+    <value>未找到空间站。</value>
+  </data>
+  <data name="NoStationsMilitia" xml:space="preserve">
+    <value>没有空间站——这是 {0} 的民兵军团，而民兵 LP 商店并不依托任何空间站运营。</value>
+  </data>
+  <data name="OrdersScopeNoMarketData" xml:space="preserve">
+    <value>此军团设有空间站的星域均未拉取市场数据</value>
+  </data>
+  <data name="OrdersScopeCoverage" xml:space="preserve">
+    <value>市场数据覆盖其 {1} 个星域中的 {0} 个</value>
+  </data>
+  <data name="NoOrdersFoundScoped" xml:space="preserve">
+    <value>未找到订单——{0}。</value>
+  </data>
+  <data name="NoOrdersFound" xml:space="preserve">
+    <value>在目前已拉取的市场数据中未找到订单。</value>
+  </data>
+  <data name="OrdersCountScoped" xml:space="preserve">
+    <value>{0:N0} 个卖单，{1:N0} 个买单——{2}</value>
+  </data>
+  <data name="OrdersCount" xml:space="preserve">
+    <value>{0:N0} 个卖单，{1:N0} 个买单</value>
+  </data>
+  <data name="NoLpOffersFound" xml:space="preserve">
+    <value>未找到 LP 兑换项。</value>
+  </data>
+  <data name="LpOffersCount" xml:space="preserve">
+    <value>{0:N0} 个 LP 兑换项</value>
+  </data>
+  <data name="NoWarfareSystemsFound" xml:space="preserve">
+    <value>未找到势力战争星系。</value>
+  </data>
+  <data name="WarfareSystemsCount" xml:space="preserve">
+    <value>{0:N0} 个势力战争星系</value>
+  </data>
+  <data name="NoMemberCorpsReturned" xml:space="preserve">
+    <value>未返回任何成员军团。ESI 只报告当前的成员。</value>
+  </data>
+  <data name="NoAgentsFound" xml:space="preserve">
+    <value>未找到代理人。</value>
+  </data>
+  <data name="NoMemberCorpsFound" xml:space="preserve">
+    <value>未找到成员军团。</value>
+  </data>
+  <data name="AgentsCount" xml:space="preserve">
+    <value>{0:N0} 个代理人</value>
+  </data>
+  <data name="MemberCorpsCount" xml:space="preserve">
+    <value>{0:N0} 个成员军团</value>
+  </data>
+  <data name="NoAllianceHistory" xml:space="preserve">
+    <value>没有此军团的联盟履历记录。</value>
+  </data>
+  <data name="HistoryPeriodsCount" xml:space="preserve">
+    <value>{0:N0} 个时段，最新的在前</value>
+  </data>
+  <data name="NoKillmailsForEntity" xml:space="preserve">
+    <value>没有此实体的击毁报告记录。</value>
+  </data>
+  <data name="RecentKillmailsCapped" xml:space="preserve">
+    <value>最近的 {0:N0} 份击毁报告（已达上限）</value>
+  </data>
+  <data name="RecentKillmailsCount" xml:space="preserve">
+    <value>最近的 {0:N0} 份击毁报告</value>
+  </data>
+  <data name="NoIntelSightings" xml:space="preserve">
+    <value>没有情报目击记录。这些记录由聊天日志导入器从情报频道中读取。</value>
+  </data>
+  <data name="IntelSightingsCount" xml:space="preserve">
+    <value>{0:N0} 次目击</value>
+  </data>
   <data name="SlackDestinationWebhook" xml:space="preserve">
-    <value>Slack（webhook）</value>
+    <value>Slack（Webhook）</value>
   </data>
   <data name="SlackDestinationSlack" xml:space="preserve">
     <value>Slack</value>

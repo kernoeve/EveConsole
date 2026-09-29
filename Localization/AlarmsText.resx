@@ -893,7 +893,7 @@
     <comment>Alarm editor, beside "Use the default wording for this check". {0} is an example of the headline the check would write.</comment>
   </data>
   <data name="ErrPickCondition" xml:space="preserve">
-    <value>Pick a condition first.</value>
+    <value>Pick a check first.</value>
     <comment>Alarms status line on Save with no check chosen.</comment>
   </data>
   <data name="ErrAlarmName" xml:space="preserve">

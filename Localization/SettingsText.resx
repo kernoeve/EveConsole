@@ -331,11 +331,11 @@
     <comment>Text in SettingsWindow.</comment>
   </data>
   <data name="FuzzworkFetchesPreComputedNote" xml:space="preserve">
-    <value>Fuzzwork: fetches pre-computed percentile prices from fuzzwork.co.uk. Fast, requires no auth, and stores very little data locally (one price row per item). Does not store individual orders — the Market Orders tab in the Item Browser requires ESI Region or ESI Structure.</value>
+    <value>Fuzzwork: fetches pre-computed percentile prices from fuzzwork.co.uk. Fast, requires no auth, and stores very little data locally (one price row per item). Does not store individual orders — the Market Orders tab in the Item Browser requires Region or Player Structure.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
   <data name="EsiRegionFetchesAllNote" xml:space="preserve">
-    <value>ESI Region: fetches all public orders for an entire region from ESI. Use this for NPC trade hubs (e.g. Jita → The Forge). Note: orders posted inside player-owned structures are not included — only regional buy orders placed in structures appear.</value>
+    <value>Region: fetches all public orders for an entire region from ESI. Use this for NPC trade hubs (e.g. Jita → The Forge). Note: orders posted inside player-owned structures are not included — only regional buy orders placed in structures appear.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
   <data name="PlayerStructureFetchesAllNote" xml:space="preserve">
@@ -2984,7 +2984,7 @@ The application will restart.</value>
     <comment>SDE import status.</comment>
   </data>
   <data name="SdeImportCompleteWarnings" xml:space="preserve">
-    <value>SDE import complete — {0} table(s) worth a look, see Errors.</value>
+    <value>SDE import complete — {0} table(s) worth a look, see the Error Log.</value>
     <comment>SDE import status. {0} is the number of tables; Errors is the name of the error log view.</comment>
   </data>
   <data name="SdeUpdateRequired" xml:space="preserve">
@@ -3004,7 +3004,7 @@ The application will restart.</value>
     <comment>Hoboleaks import status. Hoboleaks is a site name.</comment>
   </data>
   <data name="HoboImportCompleteWarnings" xml:space="preserve">
-    <value>Hoboleaks import complete — {0} table(s) worth a look, see Errors.</value>
+    <value>Hoboleaks import complete — {0} table(s) worth a look, see the Error Log.</value>
     <comment>Hoboleaks import status. {0} is the number of tables; Errors is the name of the error log view.</comment>
   </data>
   <data name="HoboImportError" xml:space="preserve">

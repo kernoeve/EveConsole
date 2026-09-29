@@ -994,7 +994,7 @@
   </data>
   <data name="SlackViaWebhook" xml:space="preserve">
     <value>via webhook</value>
-    <comment>Tooltip of the Post to Slack button when it posts through a webhook, which has no channel name. Also fills {0} in "Posted to {0}".</comment>
+    <comment>Tooltip of the Post to Slack button when it posts through a webhook, which has no channel name.</comment>
   </data>
   <data name="SlackNoDestination" xml:space="preserve">
     <value>No Slack channel or webhook configured.</value>
@@ -1409,8 +1409,8 @@
     <comment>Label in a corporation project's configuration.</comment>
   </data>
   <data name="StatusMaintainLoadFailed" xml:space="preserve">
-    <value>MAINTAIN load failed: {0}</value>
-    <comment>Status line when the standing projects failed to load. MAINTAIN was the tab's old name. {0} is the error.</comment>
+    <value>Standing projects failed to load: {0}</value>
+    <comment>Status line when the standing projects failed to load. {0} is the error.</comment>
   </data>
   <data name="SlackPostedInPartsOne" xml:space="preserve">
     <value>Posted to {1} in {0} message — {2:t}</value>
