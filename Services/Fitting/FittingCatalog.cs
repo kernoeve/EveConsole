@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Fitting;
 
-public enum CatalogKind { Hull, Module, Rig, Subsystem, Charge, Drone, Fighter, Implant, Booster }
+/// <summary>What an item is to a fit. <see cref="Item"/> is everything else — fuel, ore, scripts
+/// with no module, blueprints — which a fit can only carry in its hold.</summary>
+public enum CatalogKind { Hull, Module, Rig, Subsystem, Charge, Drone, Fighter, Implant, Booster, Item }
 
 /// <summary>One thing the fitting tool can put on a fit, as the finder lists it.</summary>
 public sealed record CatalogEntry(int TypeId, string Name, string GroupName, CatalogKind Kind, FitSlot Slot, int? MetaGroupId)
@@ -19,7 +21,7 @@ public sealed record CatalogEntry(int TypeId, string Name, string GroupName, Cat
         CatalogKind.Fighter   => "Fighter",
         CatalogKind.Implant   => "Implant",
         CatalogKind.Booster   => "Booster",
-        _                     => "",
+        _                     => GroupName,
     };
     public override string ToString() => Name;
 }
@@ -48,15 +50,10 @@ public sealed class FittingCatalog
 
     public static async Task<FittingCatalog> LoadAsync(DogmaData data, IDbContextFactory<AppDbContext> dbFactory, CancellationToken ct = default)
     {
-        int[] categories =
-        [
-            DogmaData.CategoryShip, DogmaData.CategoryModule, DogmaData.CategoryCharge, DogmaData.CategoryDrone,
-            DogmaData.CategoryImplant, DogmaData.CategorySubsystem, DogmaData.CategoryFighter,
-        ];
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var rows = await (from t in db.SdeTypes.AsNoTracking()
                           join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
-                          where t.Published && categories.Contains(g.CategoryId)
+                          where t.Published
                           select new { t.TypeId, t.Name, GroupName = g.Name, g.CategoryId, t.MetaGroupId }).ToListAsync(ct);
 
         // The slot a module takes is one of its effects; read them for every module at once.
@@ -85,12 +82,14 @@ public sealed class FittingCatalog
                 DogmaData.CategoryFighter   => CatalogKind.Fighter,
                 DogmaData.CategorySubsystem => CatalogKind.Subsystem,
                 DogmaData.CategoryImplant   => boosters.Contains(r.TypeId) ? CatalogKind.Booster : CatalogKind.Implant,
-                _                           => slot == FitSlot.Rig ? CatalogKind.Rig : CatalogKind.Module,
+                DogmaData.CategoryModule or DogmaData.CategoryStructureModule
+                                            => slot == FitSlot.Rig ? CatalogKind.Rig : CatalogKind.Module,
+                _                           => CatalogKind.Item,
             };
             return new CatalogEntry(r.TypeId, r.Name, r.GroupName, kind, slot, r.MetaGroupId);
         })
-        // A module with no slot cannot be fitted (fleet-only and deprecated items).
-        .Where(e => e.Kind is not (CatalogKind.Module or CatalogKind.Rig) || e.Slot != FitSlot.None)
+        // A module with no slot cannot be fitted (fleet-only and deprecated items); it can still be carried.
+        .Select(e => e.Kind is CatalogKind.Module or CatalogKind.Rig && e.Slot == FitSlot.None ? e with { Kind = CatalogKind.Item } : e)
         .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
         .ToList();
 

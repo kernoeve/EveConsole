@@ -137,7 +137,18 @@ public static class EftFormat
         var cargo = new List<(int TypeId, int Quantity)>();
 
         static int SlotIndex(string flag) => int.TryParse(new string(flag.SkipWhile(c => !char.IsDigit(c)).ToArray()), out var n) ? n : 0;
-        foreach (var item in esi.Items.OrderBy(i => i.Flag).ThenBy(i => SlotIndex(i.Flag)))
+        // Racks in the game's order — high, mid, low, rigs, subsystems, services — each by slot number.
+        static int Rack(string flag) => flag switch
+        {
+            _ when flag.StartsWith("HiSlot")        => 0,
+            _ when flag.StartsWith("MedSlot")       => 1,
+            _ when flag.StartsWith("LoSlot")        => 2,
+            _ when flag.StartsWith("RigSlot")       => 3,
+            _ when flag.StartsWith("SubSystemSlot") => 4,
+            _ when flag.StartsWith("ServiceSlot")   => 5,
+            _                                       => 6,
+        };
+        foreach (var item in esi.Items.OrderBy(i => Rack(i.Flag)).ThenBy(i => SlotIndex(i.Flag)))
         {
             if (!data.TryType(item.TypeId, out var type)) continue;
             var flag = item.Flag;
@@ -157,7 +168,9 @@ public static class EftFormat
         {
             var valid = (await catalog.ChargesForAsync(fit.Modules[i].TypeId, ct)).Select(c => c.TypeId).ToHashSet();
             if (valid.Count == 0) continue;
-            var loaded = cargo.FirstOrDefault(c => valid.Contains(c.TypeId));
+            // The charge the hold carries most of: the ammunition actually in use, rather than a
+            // spare stack of something else that happens to fit.
+            var loaded = cargo.Where(c => valid.Contains(c.TypeId)).OrderByDescending(c => c.Quantity).FirstOrDefault();
             if (loaded.TypeId != 0) fit.Modules[i] = fit.Modules[i] with { ChargeTypeId = loaded.TypeId };
         }
         fit.Cargo.AddRange(cargo);

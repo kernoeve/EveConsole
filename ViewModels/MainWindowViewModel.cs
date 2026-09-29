@@ -946,7 +946,7 @@ public class MainWindowViewModel : ReactiveObject
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
-        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
+        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, CharacterVm.Corporations, esi);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned

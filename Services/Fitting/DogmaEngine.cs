@@ -91,6 +91,9 @@ public sealed class DogmaEngine
     public IReadOnlyList<DogmaItem> Drones   { get; }
     public IReadOnlyList<DogmaItem> Implants { get; }
     public IReadOnlyList<DogmaItem> Boosters { get; }
+    /// <summary>What the fit carries in its hold. Cargo takes no part in the calculation; it is here so
+    /// the fit is whole — volume, value, and what is written back to the game.</summary>
+    public IReadOnlyList<(int TypeId, int Quantity)> Cargo { get; }
     public SkillSet SkillSet { get; }
 
     private readonly Dictionary<(DogmaItem, int), List<Modification>> _mods = new();
@@ -147,6 +150,7 @@ public sealed class DogmaEngine
         }).ToList();
         Implants = fit.Implants.Select(id => new DogmaItem { Kind = DogmaItemKind.Implant, Type = data.Type(id) }).ToList();
         Boosters = fit.Boosters.Select(id => new DogmaItem { Kind = DogmaItemKind.Booster, Type = data.Type(id) }).ToList();
+        Cargo    = fit.Cargo.ToList();
 
         foreach (var item in AllItems())
             RegisterEffects(item);

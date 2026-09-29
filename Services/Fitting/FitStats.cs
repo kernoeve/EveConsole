@@ -68,6 +68,9 @@ public sealed class FitStats
     public double DroneBay   => Ship("droneCapacity");
     public double DroneBayUsed => _e.Drones.Sum(d => _e.Value(d, DogmaData.AttrVolume) * d.Count);
     public double DroneBandwidth => Ship("droneBandwidth");
+    public double CargoCapacity => _e.Value(_e.Ship, DogmaData.AttrCapacity);
+    /// <summary>What the cargo list takes up, at each item's own volume.</summary>
+    public double CargoUsed => _e.Cargo.Sum(c => (_e.Data.TryType(c.TypeId, out var t) ? t.Attr(DogmaData.AttrVolume) ?? 0 : 0) * c.Quantity);
     public double DroneBandwidthUsed => _e.Drones.Sum(d => _e.Value(d, "droneBandwidthUsed") * d.ActiveCount);
 
     public int Slots(FitSlot slot) => (int)Ship(slot switch
