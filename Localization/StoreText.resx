@@ -65,7 +65,7 @@
     <comment>A store's how-to-order mail to a buyer: what the command word ORDER does, after "ORDER — ". ORDER itself stays in English.</comment>
   </data>
   <data name="UsageDragIn" xml:space="preserve">
-    <value>The easiest way is to &lt;b&gt;drag the item in&lt;/b&gt; — from this price list, from the market, from your hangar — then put the quantity beside it if you want more than one.</value>
+    <value>The easiest way is to &lt;b&gt;drag the item in&lt;/b&gt; — from the price list, from the market, from your hangar — then put the quantity beside it if you want more than one.</value>
     <comment>A store's how-to-order mail to a buyer, under ORDER: how to put an item in an order. Followed by two example items as links. Keep &lt;b&gt;…&lt;/b&gt; around the words for dragging the item in.</comment>
   </data>
   <data name="UsageTyping" xml:space="preserve">
@@ -132,6 +132,10 @@
     <value>({0} each)</value>
     <comment>A store's mail to a buyer, in an order's confirmation and status: after a line's total, when there is more than one, the price of one. {0} is the price with its unit, such as "1,200,000 ISK".</comment>
   </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+    <comment>A store's mail to a buyer: every amount of ISK in an order's confirmation, status and cancellation. {0:N0} is the amount, already grouped the language's way. Keep ISK; put it where the language's EVE client does, with the space the language uses before a unit (French: a no-break space).</comment>
+  </data>
   <data name="OrderTotalLine" xml:space="preserve">
     <value>Total {0}</value>
     <comment>A store's mail to a buyer: the line under an order's confirmation that adds it up. {0} is the sum with its unit, such as "2,400,000 ISK".</comment>
@@ -149,8 +153,8 @@
     <comment>A store's mail to a buyer, in an order's confirmation, in red: the order was cut down to what one mail may place. {0} is the most items one mail may order (40), {1} the most of each one (10,000).</comment>
   </data>
   <data name="ReplyWithStatus" xml:space="preserve">
-    <value>Reply with STATUS for progress, or CANCEL and this reference to withdraw it.</value>
-    <comment>A store's mail to a buyer: the last line of an order's confirmation. Keep STATUS and CANCEL in English: they are the words the buyer must write in the subject.</comment>
+    <value>Send STATUS for progress, or CANCEL and this reference to withdraw it.</value>
+    <comment>A store's mail to a buyer: the last line of an order's confirmation. Keep STATUS and CANCEL in English: they are the words the buyer must write in the subject. "Send", not "reply": a reply's subject starts "Re:", and the store leaves those for a person.</comment>
   </data>
   <data name="NoOpenOrders" xml:space="preserve">
     <value>You have no open orders with us.</value>
@@ -181,8 +185,8 @@
     <comment>A store's mail to a buyer, answering CANCEL: their mail held nothing that looked like an order's reference.</comment>
   </data>
   <data name="ReferencesLookLike" xml:space="preserve">
-    <value>References look like K7P2QX and are in the confirmation mail. Reply STATUS on its own to list your open orders.</value>
-    <comment>A store's mail to a buyer, answering CANCEL when no order matched. Keep the example reference K7P2QX as it is, and STATUS in English: it is the word the buyer must write in the subject.</comment>
+    <value>References look like K7P2QX and are in the confirmation mail. Send STATUS on its own to list your open orders.</value>
+    <comment>A store's mail to a buyer, answering CANCEL when no order matched. Keep the example reference K7P2QX as it is, and STATUS in English: it is the word the buyer must write in the subject. "Send", not "reply": a reply's subject starts "Re:", and the store leaves those for a person.</comment>
   </data>
   <data name="OrderCancelled" xml:space="preserve">
     <value>Order {0} cancelled</value>
@@ -225,8 +229,12 @@
     <comment>A store's mail to a buyer: the heading of one mail of an answer too long for one. {0} is the answer's heading, {1} this mail's number, {2} how many there are.</comment>
   </data>
   <data name="PagesDidNotFitOther" xml:space="preserve">
-    <value>{0} further page(s) did not fit — reply again to see the rest, or STATUS with an order reference to ask about one order.</value>
-    <comment>A store's mail to a buyer: the end of the last mail of an answer longer than the store will send at once. {0} is how many more mails it would have taken. Keep STATUS in English: it is the word the buyer must write in the subject. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+    <value>{0} further page(s) did not fit.</value>
+    <comment>A store's mail to a buyer: the end of the last mail of an answer longer than the store will send at once (a price list, or a buyer's orders). {0} is how many more mails it would have taken; they are not sent, and asking again sends the same first ones. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>Send STATUS with an order reference to ask about one order.</value>
+    <comment>A store's mail to a buyer: the line under PagesDidNotFit when the answer cut short was a list of the buyer's orders. Keep STATUS in English: it is the word the buyer must write in the subject.</comment>
   </data>
   <data name="MessageCut" xml:space="preserve">
     <value>… this message was too long for EVE mail and has been cut here.</value>

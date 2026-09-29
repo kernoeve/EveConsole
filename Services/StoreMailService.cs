@@ -879,6 +879,7 @@ public class StoreMailService(
                      .Select(n => new { n.Id, n.Name })
                      .ToListAsync(ct))
             if (byTypeId.TryGetValue((int)n.Id, out var item)) byName.TryAdd(n.Name, item);
+        AddFoldedNames(byName);
 
         var parsed = ParseOrder(log.Body, byName, byTypeId);
 
@@ -1151,7 +1152,8 @@ public class StoreMailService(
             blocks.Add(block.ToString());
         }
 
-        await ReplyInPartsAsync(store, log, string.Format(StoreText.SubjectOrderStatus, store.Name), titled, blocks, ct);
+        await ReplyInPartsAsync(store, log, string.Format(StoreText.SubjectOrderStatus, store.Name), titled, blocks, ct,
+                                StoreText.StatusOneOrderHint);
     }
 
     /// <summary>
@@ -1440,7 +1442,7 @@ public class StoreMailService(
     /// <summary>A subject that is a reply or a forward — "RE:" or "FW:", any case.</summary>
     public static bool IsConversation(string? subject)
     {
-        var s = (subject ?? "").TrimStart();
+        var s = Fold(subject ?? "").TrimStart();
         return s.StartsWith("RE:", StringComparison.OrdinalIgnoreCase)
             || s.StartsWith("FW:", StringComparison.OrdinalIgnoreCase);
     }
@@ -1501,9 +1503,11 @@ public class StoreMailService(
     /// <para>Bounded, because every part is a send against the same rate limit as everything
     /// else. What does not fit says so rather than vanishing.</para>
     /// </summary>
+    /// <param name="whenCut">A line for the end of the last part when some did not fit: where
+    /// the reader can go instead (a status answer: ask about one order by its reference).</param>
     private async Task ReplyInPartsAsync(
         Store store, StoreMail log, string subject, string heading,
-        IReadOnlyList<string> blocks, CancellationToken ct)
+        IReadOnlyList<string> blocks, CancellationToken ct, string? whenCut = null)
     {
         var parts = Paginate(store, heading, blocks);
 
@@ -1526,7 +1530,8 @@ public class StoreMailService(
                 : parts.Count > 1 ? string.Format(StoreText.HeadingPart, heading, i + 1, parts.Count) : heading;
 
             var tail  = last && dropped > 0
-                ? Dim(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PagesDidNotFitOther), dropped))
+                ? Dim(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PagesDidNotFitOther), dropped)
+                      + (whenCut is null ? "" : Br + whenCut))
                 : "";
 
             await ReplyAsync(store, log,
@@ -1570,7 +1575,7 @@ public class StoreMailService(
     /// <summary>
     /// What a part adds after its blocks are measured that <see cref="HeadroomBytes"/> may not
     /// cover: its "(2 of 5)" marker and, on the last one, the note that pages were left out, in
-    /// the words of the store's language. English needs about 165 of the 200 held back and
+    /// the words of the store's language. English needs about 140 of the 200 held back and
     /// reserves nothing more; Russian's two bytes a letter, or three in Chinese, Japanese and
     /// Korean, take the note past it, and a full last part would come out cut by
     /// <see cref="Fit"/> — so the difference is reserved here.
@@ -1581,7 +1586,8 @@ public class StoreMailService(
             ? Weigh(Head(string.Format(StoreText.PageOf, MaxParts, MaxParts)))
             : Weigh(Head(string.Format(StoreText.HeadingPart, heading, MaxParts, MaxParts)));
         var note = new[] { 1, 2, 5, 999 }.Max(n =>
-            Weigh(Dim(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PagesDidNotFitOther), n))));
+            Weigh(Dim(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PagesDidNotFitOther), n)
+                      + Br + StoreText.StatusOneOrderHint)));
         return Math.Max(0, marker - Weigh(Head(heading)) + note - HeadroomBytes);
     }
 
@@ -1692,7 +1698,7 @@ public class StoreMailService(
     {
         if (string.IsNullOrWhiteSpace(subject)) return "";
 
-        var s = subject;
+        var s = Fold(subject);
         // Repeatedly, because "Re: Fwd: Re: ORDER" is a real subject line.
         for (var i = 0; i < 5; i++)
         {
@@ -1717,8 +1723,13 @@ public class StoreMailService(
              : "";
     }
 
+    /// <summary>
+    /// ⚠️ Bounded by ASCII letters and digits, not <c>\b</c>: .NET counts kana and hanzi as word
+    /// characters, and Chinese and Japanese write a reference straight against the words around
+    /// it — 注文QABCDEを — where <c>\b</c> finds no edge and the reference goes unseen.
+    /// </summary>
     private static readonly Regex RefPattern =
-        new(@"\b([ABCDEFGHJKLMNPQRTUVWXYZ2346789]{6})\b", RegexOptions.Compiled);
+        new(@"(?<![A-Za-z0-9_])([ABCDEFGHJKLMNPQRTUVWXYZ2346789]{6})(?![A-Za-z0-9_])", RegexOptions.Compiled);
 
     /// <summary>
     /// Everything in the text shaped like an order reference.
@@ -1731,7 +1742,22 @@ public class StoreMailService(
     internal static IEnumerable<string> References(string? text) =>
         string.IsNullOrWhiteSpace(text)
             ? []
-            : RefPattern.Matches(Strip(text)).Select(m => m.Groups[1].Value);
+            : RefPattern.Matches(Fold(Strip(text))).Select(m => m.Groups[1].Value);
+
+    /// <summary>
+    /// A buyer's text as the parser reads it: full-width letters, digits, brackets and spaces as
+    /// their ordinary forms (Unicode NFKC). A Chinese, Japanese or Korean keyboard types ＳＴＡＴＵＳ,
+    /// ５ and a full-width space as readily as the ASCII ones, and means the same.
+    /// </summary>
+    internal static string Fold(string s) => s.Normalize(NormalizationForm.FormKC);
+
+    /// <summary>Adds each name folded the way <see cref="Fold"/> folds a buyer's line, so a name
+    /// written with full-width characters in the catalogue is still found in a folded line.</summary>
+    internal static void AddFoldedNames(Dictionary<string, PostingItemView> byName)
+    {
+        foreach (var (name, item) in byName.ToList())
+            byName.TryAdd(Fold(name), item);
+    }
 
     // Codes come from OrderReference, shared with orders entered by hand — they draw from one
     // pool because a buyer quoting a code is answered by a lookup that knows nothing about which
@@ -1781,12 +1807,22 @@ public class StoreMailService(
     /// ⚠️ Only in threes, so "2.5" is never read as 25.</summary>
     private const string Count = @"(\d{1,3}(?:[,.'’   ]\d{3})+|\d+)";
 
-    /// <summary>Quantity forms — the count always after the item, never before it.</summary>
-    private static readonly Regex QtyTrailing = new($@"^\s*(.+?)\s*[x*×]\s*{Count}\s*$",   RegexOptions.Compiled);
-    private static readonly Regex QtyBare     = new($@"^\s*(.+?)\s+{Count}\s*$",           RegexOptions.Compiled);
+    /// <summary>
+    /// A counter word after the count, as buyers write one in their own language: 5個, 5个, 5개,
+    /// 5隻 / 5艘 / 5척 for ships, 5台, 5件, 5 шт., 5 pcs, 5 units. ⚠️ Without it a count beside a
+    /// dragged-in item matched nothing and the line was ordered as ONE — no error, the wrong
+    /// quantity.
+    /// </summary>
+    private const string Counter = @"(?:\s*(?:個|个|隻|只|艘|機|台|件|点|개|척|대|шт\.?|штук[аи]?|pcs?\.?|units?))?";
+
+    /// <summary>Quantity forms — the count always after the item, never before it. A name in
+    /// Chinese, Japanese, Korean or Cyrillic may run straight into its count (リフター5個), as
+    /// those languages write it; a Latin one needs the space, so "Archon2" is not split.</summary>
+    private static readonly Regex QtyTrailing = new($@"^\s*(.+?)\s*[x*×]\s*{Count}{Counter}\s*$",   RegexOptions.Compiled);
+    private static readonly Regex QtyBare     = new($@"^\s*(.+?)(?:\s+|(?<=[^\x00-\x7F])){Count}{Counter}\s*$", RegexOptions.Compiled);
 
     /// <summary>Just a count, with or without an x — what is left beside a dragged item link.</summary>
-    private static readonly Regex CountOnly   = new($@"^\s*[x*×]?\s*{Count}\s*[x*×]?\s*$", RegexOptions.Compiled);
+    private static readonly Regex CountOnly   = new($@"^\s*[x*×]?\s*{Count}{Counter}\s*[x*×]?\s*$", RegexOptions.Compiled);
 
     /// <summary>What one mail asked to buy.</summary>
     internal sealed record ParsedOrder(
@@ -1881,8 +1917,9 @@ public class StoreMailService(
             // to, so it is passed over rather than misread.
             contractTo ??= links.FirstOrDefault(l => l.IsContractable);
 
-            // The line with its links taken out, which is where any count is.
-            var rest = Decode(Tags.Replace(ShowInfo.Replace(line, " "), "")).Trim();
+            // The line with its links taken out, which is where any count is — folded, so a
+            // full-width ５ counts and a full-width name meets the folded catalogue.
+            var rest = Fold(Decode(Tags.Replace(ShowInfo.Replace(line, " "), ""))).Trim();
 
             var items = links.Where(l => l.IsItem).ToList();
             if (items.Count > 0)
@@ -2045,7 +2082,7 @@ public class StoreMailService(
     /// <summary>⚠️ Whole ISK, because every figure reaching a mail has been through
     /// <see cref="MarketFmt.RoundToDisplay"/> — at billions the decimals are always ".00", and
     /// printing them suggests a precision the price does not have.</summary>
-    private static string Isk(double v) => v.ToString("N0") + " ISK";
+    private static string Isk(double v) => string.Format(StoreText.IskAmount, v);
 
     /// <summary>
     /// The store's own header and footer around a message body.
