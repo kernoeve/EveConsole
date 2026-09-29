@@ -2896,6 +2896,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ImportStageNames" xml:space="preserve">
     <value>译名</value>
   </data>
+  <data name="ImportStageDescriptions" xml:space="preserve">
+    <value>描述译文</value>
+  </data>
   <data name="ImportStageAttrCategories" xml:space="preserve">
     <value>属性类别</value>
   </data>

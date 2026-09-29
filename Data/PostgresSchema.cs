@@ -306,6 +306,18 @@ public static class PostgresSchema
             CONSTRAINT "PK_SdeNames" PRIMARY KEY ("Kind", "Id", "Lang")
         )
         """,
+        // Its descriptions, in a table of their own because they are never loaded whole: read a
+        // row at a time, by the key. See SdeText. The same shape and the same rules as SdeNames.
+        // Mirrored for SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeTexts" (
+            "Kind" INTEGER NOT NULL,
+            "Id"   BIGINT  NOT NULL,
+            "Lang" TEXT    NOT NULL,
+            "Text" TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeTexts" PRIMARY KEY ("Kind", "Id", "Lang")
+        )
+        """,
 
         // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
         // figure, which is 115,000 against 10,000 for a Vexor.

@@ -151,12 +151,13 @@ public class SdeImportService
             await ImportGroupsAsync(archive, fsdRoot, db, progress, ct);
             await ImportMarketGroupsAsync(archive, fsdRoot, db, progress, ct);
             await ImportTypesAsync(archive, fsdRoot, db, progress, ct);
+            await ImportTypeDescriptionsAsync(archive, fsdRoot, db, progress, ct);
             await ImportDogmaAttributeCategoriesAsync(archive, fsdRoot, db, progress, ct);
             await ImportDogmaAttributesAsync(archive, fsdRoot, db, progress, ct);
             await ImportDogmaEffectsAsync(archive, fsdRoot, db, progress, ct);
             await ImportTypeDogmaAsync(archive, fsdRoot, db, progress, ct);
             await ImportBlueprintsAsync(archive, fsdRoot, db, progress, ct);
-            await ImportUniverseAsync(archive, fsdRoot, db, progress, ct);
+            var customNames = await ImportUniverseAsync(archive, fsdRoot, db, progress, ct);
             await ImportStationsAsync(archive, fsdRoot, db, progress, ct);
             await ImportAgentsAsync(archive, fsdRoot, db, progress, ct);
             await ImportFactionsAsync(archive, fsdRoot, db, progress, ct);
@@ -172,6 +173,9 @@ public class SdeImportService
             await ImportGraphicsAsync(archive, fsdRoot, db, progress, ct);
             await ImportSkinsAsync(archive, fsdRoot, db, progress, ct);
             await ImportSkinLicensesAsync(archive, fsdRoot, db, progress, ct);
+
+            // Last of the stages, because it is built from theirs: see the method.
+            var stationNames = await ImportStationNamesAsync(db, customNames, progress, ct);
 
             // Save build metadata (upsert the single row).
             if (buildInfo is not null)
@@ -192,8 +196,10 @@ public class SdeImportService
 
             // How many names each language got: the one place that says whether the SDE carried all
             // eight. Counted from the table rather than tallied on the way in, so it reports what
-            // was stored rather than what was meant to be.
+            // was stored rather than what was meant to be. The descriptions likewise, on a line of
+            // their own — and only in the log: the result on the Settings screen stays names.
             var namesStored = await CountNamesAsync(db, ct);
+            var textsStored = await CountTextsAsync(db, ct);
 
             // Inside the transaction, so "this import lost a table" is still a decision and not
             // merely a note about something that has already happened.
@@ -219,6 +225,9 @@ public class SdeImportService
             // A result, not a fault — logged all the same, because the log is what stays: it is how
             // anyone can see which languages the SDE really carried, and how many names came of it.
             _errors.Log("SdeImport", "Names", namesStored.Summary, namesStored.ByKind);
+            _errors.Log("SdeImport", "Descriptions", textsStored.Summary, textsStored.ByKind);
+            if (stationNames is not null)
+                _errors.Log("SdeImport", "Station names", stationNames.Summary, stationNames.Detail);
             LastNamesByLanguage = namesStored.ByLanguage;
 
             // The names on screen come from what was just replaced: this client's, and on a shared
@@ -447,6 +456,9 @@ public class SdeImportService
             // on an existing database the fingerprint grows and the import that fills it starts on
             // its own after the upgrade.
             """CREATE TABLE IF NOT EXISTS "SdeNames" ("Kind" INTEGER NOT NULL, "Id" INTEGER NOT NULL, "Lang" TEXT NOT NULL, "Name" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdeNames" PRIMARY KEY ("Kind", "Id", "Lang"))""",
+            // And the descriptions, which are read a row at a time rather than loaded: see SdeText.
+            // A new table too, with the same consequence.
+            """CREATE TABLE IF NOT EXISTS "SdeTexts" ("Kind" INTEGER NOT NULL, "Id" INTEGER NOT NULL, "Lang" TEXT NOT NULL, "Text" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdeTexts" PRIMARY KEY ("Kind", "Id", "Lang"))""",
         };
         foreach (var sql in creates)
             db.Database.ExecuteSqlRaw(sql);
@@ -660,6 +672,8 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeMarketGroups, rows, SettingsText.ImportStageMarketGroups, raw.Count, p, 0.35, 0.36, ct);
         await SaveNamesAsync(db, SdeNameKind.MarketGroup, raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)), p, 0.36, ct);
+        await SaveTextsAsync(db, SdeTextKind.MarketGroupDescription,
+            raw.Select(kv => ((long)kv.Key, kv.Value.descriptionID ?? kv.Value.description)), p, 0.36, ct);
     }
 
     private async Task ImportTypesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -701,6 +715,60 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeTypes, rows, SettingsText.ImportStageTypes, raw.Count, p, 0.37, 0.50, ct);
         await SaveNamesAsync(db, SdeNameKind.Type, raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)), p, 0.50, ct);
+    }
+
+    /// <summary>
+    /// The published types' descriptions in the client's other languages, in a pass of their own
+    /// over types.yaml.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ A second pass rather than more fields in the first, for memory. The first deserializes the
+    /// whole file into one dictionary, and the descriptions are most of the file: all eight languages
+    /// of them would be a hundred and more megabytes of strings held at once, beside everything else
+    /// the first pass holds. This walks the file's top-level mapping instead, deserializing one type
+    /// at a time and keeping only the batch of rows on its way to the database. It reads the archive
+    /// as a stream, too, where every other stage buffers its whole file before parsing it.
+    ///
+    /// <para>Published types only: nothing shows the others, and they are a third of the text.</para>
+    /// </remarks>
+    private async Task ImportTypeDescriptionsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}types.yaml");
+        if (entry is null) return;   // the types stage has said so already
+        Report(p, SettingsText.ImportStageDescriptions, ParsingLarge("types.yaml"), 0.50);
+
+        using var reader = OpenEntryStreaming(entry);
+        await SaveTextsAsync(db, SdeTextKind.TypeDescription, PublishedTypeDescriptions(reader), p, 0.50, ct);
+    }
+
+    /// <summary>Each published type's description, one type at a time, as the parser reaches it.</summary>
+    private IEnumerable<(long Id, LocalizedName? Text)> PublishedTypeDescriptions(TextReader reader)
+    {
+        var parser = new Parser(reader);
+        parser.Consume<StreamStart>();
+        // An empty file, or one that is not a mapping of types: the first pass has read the same
+        // file and said what was wrong with it.
+        if (!parser.TryConsume<DocumentStart>(out _) || !parser.TryConsume<MappingStart>(out _)) yield break;
+
+        while (!parser.TryConsume<MappingEnd>(out _))
+        {
+            if (!parser.TryConsume<Scalar>(out var key))
+            {
+                parser.SkipThisAndNestedEvents();   // the key
+                parser.SkipThisAndNestedEvents();   // its value
+                continue;
+            }
+
+            // Deserializes the one node the parser is at — this type — and leaves it at the next key.
+            var type = _yaml.Deserialize<TypeDescriptionYaml?>(parser);
+            if (type is null || !type.published
+                || !long.TryParse(key.Value, System.Globalization.NumberStyles.Integer,
+                                  System.Globalization.CultureInfo.InvariantCulture, out var typeId))
+                continue;
+
+            yield return (typeId, type.descriptionID ?? type.description);
+        }
     }
 
     private async Task ImportDogmaAttributeCategoriesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -872,14 +940,8 @@ public class SdeImportService
         await SaveBatchesAsync(db, db.SdeBlueprintSkills,    skills, SettingsText.ImportStageBlueprintSkills,    -1,        p, 0.74, 0.76, ct);
     }
 
-    private static string RomanNumeral(int n)
-    {
-        if (n <= 0) return n.ToString();
-        var map = new (int v, string s)[] { (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I") };
-        var sb = new System.Text.StringBuilder();
-        foreach (var (v, s) in map) while (n >= v) { sb.Append(s); n -= v; }
-        return sb.ToString();
-    }
+    // The client's numerals, and the same ones the station names are built with.
+    private static string RomanNumeral(int n) => LocationNames.Roman(n);
 
     // Nested universe (old SDE): flattens a system's inline planets+moons into celestial rows.
     private static void AddPlanetCelestials(List<SdeCelestial> list, int systemId, string systemName,
@@ -920,25 +982,43 @@ public class SdeImportService
         }
     }
 
-    private async Task ImportUniverseAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+    /// <returns>
+    /// The planets, moons and asteroid belts that have a name of their own, by id, in every
+    /// language the SDE gives it — for the station names built at the end of the import, which is
+    /// the only thing that needs them. Empty for the old nested SDE, which carries none.
+    /// </returns>
+    private async Task<Dictionary<long, LocalizedName>> ImportUniverseAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
         // New SDE: flat files mapRegions.yaml, mapConstellations.yaml, mapSolarSystems.yaml, mapStargates.yaml
         // Old SDE: nested universe/ directory walk
         var regEntry = zip.GetEntry($"{fsdRoot}mapRegions.yaml");
         if (regEntry != null)
-        {
-            await ImportUniverseFlatAsync(zip, fsdRoot, db, p, ct);
-            return;
-        }
+            return await ImportUniverseFlatAsync(zip, fsdRoot, db, p, ct);
 
         // Old nested-directory format
         await ImportUniverseNestedAsync(zip, fsdRoot, db, p, ct);
+        return [];
     }
 
-    private async Task ImportUniverseFlatAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+    private async Task<Dictionary<long, LocalizedName>> ImportUniverseFlatAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
+        // A few hundred bodies have a name of their own — "Amarr VIII (Oris)" — which the SDE gives
+        // in every language (see NamedCelestialYaml). The English goes in the celestial's Name
+        // column; all of them are kept for the station names. Only a name that differs from the
+        // one the body would be given anyway counts, which also bounds this should the SDE ever
+        // name every body: there are some 450,000.
+        var customNames = new Dictionary<long, LocalizedName>();
+        string Named(long id, NamedCelestialYaml body, string generated)
+        {
+            var own = body.CustomName();
+            var english = own?.en?.Trim();
+            if (own is null || string.IsNullOrEmpty(english) || english == generated) return generated;
+            customNames[id] = own;
+            return english;
+        }
+
         Report(p, SettingsText.ImportStageUniverse, Parsing("mapRegions.yaml"), 0.76);
         var regEntry = zip.GetEntry($"{fsdRoot}mapRegions.yaml")!;
         using (var r = OpenEntry(regEntry))
@@ -1083,7 +1163,7 @@ public class SdeImportService
                 if (pl.position is { } pp)
                     celestials.Add(new SdeCelestial { ItemId = pid, SolarSystemId = pl.solarSystemID,
                         TypeId = pl.typeID, Kind = 0, X = pp.x, Y = pp.y, Z = pp.z,
-                        Name = $"{sysNames.GetValueOrDefault(pl.solarSystemID, "")} {RomanNumeral(pl.celestialIndex)}".Trim() });
+                        Name = Named(pid, pl, $"{sysNames.GetValueOrDefault(pl.solarSystemID, "")} {RomanNumeral(pl.celestialIndex)}".Trim()) });
         }
 
         Report(p, SettingsText.ImportStageUniverse, Parsing("mapMoons.yaml"), 0.84);
@@ -1096,7 +1176,7 @@ public class SdeImportService
                 if (mo.position is { } mp)
                     celestials.Add(new SdeCelestial { ItemId = mid, SolarSystemId = mo.solarSystemID,
                         TypeId = mo.typeID, Kind = 1, X = mp.x, Y = mp.y, Z = mp.z,
-                        Name = $"{sysNames.GetValueOrDefault(mo.solarSystemID, "")} {RomanNumeral(mo.celestialIndex)} - Moon {mo.orbitIndex}".Trim() });
+                        Name = Named(mid, mo, $"{sysNames.GetValueOrDefault(mo.solarSystemID, "")} {RomanNumeral(mo.celestialIndex)} - Moon {mo.orbitIndex}".Trim()) });
         }
 
         // Asteroid belts. CCP has shipped these under more than one name across SDE revisions,
@@ -1116,8 +1196,8 @@ public class SdeImportService
                     {
                         ItemId = bid, SolarSystemId = b.solarSystemID, TypeId = b.typeID,
                         Kind = 3, X = bp.x, Y = bp.y, Z = bp.z,
-                        Name = $"{sysNames.GetValueOrDefault(b.solarSystemID, "")} " +
-                               $"{RomanNumeral(b.celestialIndex)} - Asteroid Belt {b.orbitIndex}".Trim(),
+                        Name = Named(bid, b, $"{sysNames.GetValueOrDefault(b.solarSystemID, "")} " +
+                                             $"{RomanNumeral(b.celestialIndex)} - Asteroid Belt {b.orbitIndex}".Trim()),
                     });
             break;
         }
@@ -1144,6 +1224,8 @@ public class SdeImportService
             await SaveBatchesAsync(db, db.SdePlanetResources, rows, SettingsText.ImportStagePlanetResources,
                 raw.Count, p, 0.868, 0.87, ct);
         }
+
+        return customNames;
     }
 
     /// <summary>
@@ -1477,6 +1559,8 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeFactions, rows, SettingsText.ImportStageFactions, raw.Count, p, 0.89, 0.91, ct);
         await SaveNamesAsync(db, SdeNameKind.Faction, raw.Select(kv => ((long)kv.Key, kv.Value.nameID ?? kv.Value.name)), p, 0.91, ct);
+        await SaveTextsAsync(db, SdeTextKind.FactionDescription,
+            raw.Select(kv => ((long)kv.Key, kv.Value.descriptionID ?? kv.Value.description)), p, 0.91, ct);
     }
 
     private async Task ImportNpcCorporationsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1513,6 +1597,8 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeNpcCorporations, rows, SettingsText.ImportStageNpcCorporations, raw.Count, p, 0.91, 0.93, ct);
         await SaveNamesAsync(db, SdeNameKind.NpcCorporation, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.93, ct);
+        await SaveTextsAsync(db, SdeTextKind.NpcCorporationDescription,
+            raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.93, ct);
     }
 
     /// <summary>
@@ -1568,6 +1654,7 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeRaces, rows, SettingsText.ImportStageRaces, raw.Count, p, 0.93, 0.94, ct);
         await SaveNamesAsync(db, SdeNameKind.Race, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.94, ct);
+        await SaveTextsAsync(db, SdeTextKind.RaceDescription, raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.94, ct);
     }
 
     private async Task ImportMetaGroupsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1589,6 +1676,7 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeMetaGroups, rows, SettingsText.ImportStageMetaGroups, raw.Count, p, 0.94, 0.96, ct);
         await SaveNamesAsync(db, SdeNameKind.MetaGroup, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.96, ct);
+        await SaveTextsAsync(db, SdeTextKind.MetaGroupDescription, raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.96, ct);
     }
 
     private async Task ImportCertificatesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1608,6 +1696,7 @@ public class SdeImportService
         });
         await SaveBatchesAsync(db, db.SdeCertificates, rows, SettingsText.ImportStageCertificates, raw.Count, p, 0.96, 0.97, ct);
         await SaveNamesAsync(db, SdeNameKind.Certificate, raw.Select(kv => ((long)kv.Key, kv.Value.name)), p, 0.97, ct);
+        await SaveTextsAsync(db, SdeTextKind.CertificateDescription, raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.97, ct);
     }
 
     private async Task ImportTypeMaterialsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1739,6 +1828,172 @@ public class SdeImportService
     }
 
     // -----------------------------------------------------------------------
+    // NPC station names, built
+    // -----------------------------------------------------------------------
+
+    /// <summary>What <see cref="ImportStationNamesAsync"/> found, for its line in the log.</summary>
+    private sealed record StationNamesCheck(string Summary, string? Detail);
+
+    private sealed record StationParts(int StationId, string Name, int SolarSystemId, int? CorporationId,
+        int? OperationId, bool UseOperationName, long? OrbitId, int? CelestialIndex, int? OrbitIndex);
+
+    private sealed record OrbitParts(long ItemId, int Kind, int SolarSystemId, int TypeId);
+
+    /// <summary>
+    /// NPC station names in the client's other languages. Nothing ships them, so they are built the
+    /// way the game client builds them: what the station orbits, its owner and its operation, each in
+    /// that language, in the client's own format for it — see <see cref="LocationNames"/>.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ After every stage, because it needs their work: the owners are NPC corporations, imported
+    /// after the stations. Everything is read back from what the import has written — the parts'
+    /// English columns and their SdeNames rows — except the names some planets, moons and belts have
+    /// of their own, which have no table and are handed on from the universe stage.
+    ///
+    /// <para>A station's own celestialIndex and orbitIndex are its orbit's — the planet's place and
+    /// the moon's number. Measured on the live database: every one of the 5,209 stations at a planet
+    /// or a moon agrees with the name of its celestial. What it orbits decides the format. One
+    /// station orbits its system's star; ESI names that orbit after the system, and so does this.</para>
+    ///
+    /// <para>The English is built too, by the same code, and compared with ESI's. That count is the
+    /// one check there is on the formats and the parts — nothing publishes the other languages to
+    /// compare them with — so it is logged whatever it says. Only a name that differs from ESI's
+    /// English is stored, as for every other name.</para>
+    /// </remarks>
+    /// <returns>The check, for the log; null when there are no stations to name.</returns>
+    private async Task<StationNamesCheck?> ImportStationNamesAsync(AppDbContext db,
+        IReadOnlyDictionary<long, LocalizedName> customNames, IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var stations = await db.SdeStations.AsNoTracking()
+            .OrderBy(s => s.StationId)
+            .Select(s => new StationParts(s.StationId, s.Name, s.SolarSystemId, s.CorporationId, s.OperationId,
+                                          s.UseOperationName, s.OrbitId, s.CelestialIndex, s.OrbitIndex))
+            .ToListAsync(ct);
+        if (stations.Count == 0) return null;
+
+        // What they orbit. Kind is SdeCelestial's: 0 planet, 1 moon, 3 asteroid belt, 4 star.
+        var orbitIds = stations.Where(s => s.OrbitId is not null).Select(s => s.OrbitId!.Value).Distinct().ToList();
+        var orbits = await db.SdeCelestials.AsNoTracking()
+            .Where(c => orbitIds.Contains(c.ItemId))
+            .Select(c => new OrbitParts(c.ItemId, c.Kind, c.SolarSystemId, c.TypeId))
+            .ToDictionaryAsync(c => c.ItemId, ct);
+
+        // Each part's English: what each language falls back to where the SDE gives it no other.
+        var systemIds   = stations.Select(s => s.SolarSystemId).Concat(orbits.Values.Select(o => o.SolarSystemId)).Distinct().ToList();
+        var beltTypeIds = orbits.Values.Where(o => o.Kind == 3).Select(o => o.TypeId).Distinct().ToList();
+        var systems = await db.SdeSolarSystems.AsNoTracking().Where(s => systemIds.Contains(s.SolarSystemId))
+            .Select(s => new { s.SolarSystemId, s.Name }).ToDictionaryAsync(s => s.SolarSystemId, s => s.Name, ct);
+        var corps = await db.SdeNpcCorporations.AsNoTracking()
+            .Select(c => new { c.CorporationId, c.Name }).ToDictionaryAsync(c => c.CorporationId, c => c.Name, ct);
+        var operations = await db.SdeStationOperations.AsNoTracking()
+            .Select(o => new { o.OperationId, o.Name }).ToDictionaryAsync(o => o.OperationId, o => o.Name, ct);
+        var beltTypes = await db.SdeTypes.AsNoTracking().Where(t => beltTypeIds.Contains(t.TypeId))
+            .Select(t => new { t.TypeId, t.Name }).ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+
+        // And every other language of each, as the stages above stored them.
+        var systemKeys = systemIds.Select(id => (long)id).ToList();
+        var beltKeys   = beltTypeIds.Select(id => (long)id).ToList();
+        var translated = (await db.SdeNames.AsNoTracking()
+                .Where(n => (n.Kind == SdeNameKind.SolarSystem && systemKeys.Contains(n.Id))
+                         || n.Kind == SdeNameKind.NpcCorporation
+                         || n.Kind == SdeNameKind.StationOperation
+                         || (n.Kind == SdeNameKind.Type && beltKeys.Contains(n.Id)))
+                .Select(n => new { n.Kind, n.Id, n.Lang, n.Name })
+                .ToListAsync(ct))
+            .ToDictionary(n => (n.Kind, n.Id, n.Lang), n => n.Name);
+
+        string Part(SdeNameKind kind, long id, string lang, string english) =>
+            lang != "en" && translated.TryGetValue((kind, id, lang), out var name) ? name : english;
+
+        // One station's name in one language; null when a part it needs is missing.
+        string? Build(StationParts s, string lang)
+        {
+            if (s.OrbitId is not { } orbitId || !orbits.TryGetValue(orbitId, out var orbit)) return null;
+            if (s.CorporationId is not { } corpId || !corps.TryGetValue(corpId, out var corpEnglish)) return null;
+            if (!systems.TryGetValue(orbit.SolarSystemId, out var systemEnglish)) return null;
+
+            string? operation = null;
+            if (s.UseOperationName)
+            {
+                if (s.OperationId is not { } opId || !operations.TryGetValue(opId, out var opEnglish)) return null;
+                operation = Part(SdeNameKind.StationOperation, opId, lang, opEnglish);
+            }
+
+            // A body's name of its own, in this language, is its name — "Amarr VIII (Oris)" — and
+            // otherwise the client's format for what it is.
+            var system = Part(SdeNameKind.SolarSystem, orbit.SolarSystemId, lang, systemEnglish);
+            var own    = customNames.TryGetValue(orbitId, out var custom) ? custom.Get(lang)?.Trim() : null;
+            var orbitName = !string.IsNullOrEmpty(own) ? own : (orbit.Kind, s.CelestialIndex, s.OrbitIndex) switch
+            {
+                (0, { } planet, _)        => LocationNames.Planet(lang, system, planet),
+                (1, { } planet, { } moon) => LocationNames.Moon(lang, system, planet, moon),
+                (3, { } planet, { } belt) when beltTypes.TryGetValue(orbit.TypeId, out var beltEnglish)
+                                          => LocationNames.Belt(lang, system, planet,
+                                                 Part(SdeNameKind.Type, orbit.TypeId, lang, beltEnglish), belt),
+                (4, _, _)                 => system,
+                _                         => null,
+            };
+            if (orbitName is null) return null;
+
+            return LocationNames.Station(lang, orbitName, Part(SdeNameKind.NpcCorporation, corpId, lang, corpEnglish), operation);
+        }
+
+        int matched = 0, unbuilt = 0, withoutEsiName = 0;
+        var examples = new List<string>();
+        var names    = new List<(long, LocalizedName?)>(stations.Count);
+        var filled   = new Dictionary<int, string>();
+        foreach (var s in stations)
+        {
+            var english = Build(s, "en");
+            if (english is not null && english == s.Name) matched++;
+            else
+            {
+                if (english is null)    unbuilt++;
+                if (s.Name.Length == 0) withoutEsiName++;
+                if (examples.Count < 5)
+                    examples.Add(english is null
+                        ? $"{s.StationId} \"{s.Name}\": could not be built — what it orbits, its owner or its operation is missing."
+                        : $"{s.StationId}: built \"{english}\", ESI has \"{s.Name}\".");
+            }
+
+            // ESI gave this one no English — it was down during the import, or left the name out — so
+            // the built English stands in rather than no name at all: where both exist it IS ESI's,
+            // which is what the count above measures.
+            if (s.Name.Length == 0 && english is not null) filled[s.StationId] = english;
+
+            // The English is the one each language is stored only if it differs from.
+            var name = new LocalizedName { en = s.Name.Length > 0 ? s.Name : english ?? "" };
+            foreach (var lang in SdeNames.OtherLanguages)
+                if (Build(s, lang) is { } built) name.Set(lang, built);
+            names.Add((s.StationId, name));
+        }
+
+        if (filled.Count > 0)
+        {
+            var ids = filled.Keys.ToList();
+            foreach (var station in await db.SdeStations.Where(s => ids.Contains(s.StationId)).ToListAsync(ct))
+                station.Name = filled[station.StationId];
+            // ⚠️ The import turns automatic change detection off for its bulk inserts.
+            db.ChangeTracker.DetectChanges();
+            await db.SaveChangesAsync(ct);
+            db.ChangeTracker.Clear();
+        }
+
+        await SaveNamesAsync(db, SdeNameKind.Station, names, p, 0.999, ct);
+
+        static string N(int n) => n.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+        var detail = new List<string>();
+        if (unbuilt > 0)        detail.Add($"{N(unbuilt)} could not be built from their parts.");
+        if (withoutEsiName > 0) detail.Add($"ESI gave no English name for {N(withoutEsiName)}, so there was nothing to compare those with; {N(filled.Count)} of them now carry the built English.");
+        detail.AddRange(examples);
+
+        return new StationNamesCheck(
+            $"Station names rebuilt from their parts: {N(matched)} of {N(stations.Count)} match ESI's English. "
+            + "The other languages are built the same way and nothing else checks them: a low number means they are wrong too.",
+            detail.Count == 0 ? null : string.Join("\n", detail));
+    }
+
+    // -----------------------------------------------------------------------
     // Batch save helper
     // -----------------------------------------------------------------------
 
@@ -1837,6 +2092,34 @@ public class SdeImportService
     }
 
     /// <summary>
+    /// Stores one kind's descriptions in the client's other languages, as <see cref="SaveNamesAsync"/>
+    /// does names: each language only where it differs from the English, which stays in the entity's
+    /// own Description column. See <see cref="SdeText"/>.
+    /// </summary>
+    /// <remarks>
+    /// Pulls <paramref name="texts"/> a batch at a time, so a source that parses as it is read — the
+    /// types' — is never held whole.
+    /// </remarks>
+    private Task SaveTextsAsync(AppDbContext db, SdeTextKind kind,
+        IEnumerable<(long Id, LocalizedName? Text)> texts,
+        IProgress<SdeImportProgress> p, double frac, CancellationToken ct)
+    {
+        return SaveBatchesAsync(db, db.SdeTexts, Rows(), SettingsText.ImportStageDescriptions, -1, p, frac, frac, ct,
+            emptyIsNormal: true);
+
+        IEnumerable<SdeText> Rows()
+        {
+            var seen = new HashSet<long>();
+            foreach (var (id, text) in texts)
+            {
+                if (text is null || !seen.Add(id)) continue;
+                foreach (var (lang, translation) in text.Translations())
+                    yield return new SdeText { Kind = kind, Id = id, Lang = lang, Text = translation };
+            }
+        }
+    }
+
+    /// <summary>
     /// What this import stored in SdeNames, by language and by kind, as the log line says it.
     /// </summary>
     /// <remarks>
@@ -1873,6 +2156,38 @@ public class SdeImportService
         }
     }
 
+    /// <summary>
+    /// What this import stored in SdeTexts, by language and by kind, as its log line says it — the
+    /// descriptions' counterpart of <see cref="CountNamesAsync"/>, and like it, it reports and never
+    /// fails the import.
+    /// </summary>
+    private static async Task<(string Summary, string? ByKind)> CountTextsAsync(AppDbContext db, CancellationToken ct)
+    {
+        try
+        {
+            var byLang = await db.SdeTexts.AsNoTracking()
+                .GroupBy(t => t.Lang)
+                .Select(g => new { Lang = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Lang, x => x.Count, ct);
+            var byKind = await db.SdeTexts.AsNoTracking()
+                .GroupBy(t => t.Kind)
+                .Select(g => new { Kind = g.Key, Count = g.Count() })
+                .ToListAsync(ct);
+
+            static string N(int n) => n.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
+            var languages = string.Join(" · ", SdeNames.OtherLanguages.Select(l => $"{l} {N(byLang.GetValueOrDefault(l))}"));
+
+            return ($"Descriptions stored in the client's other languages: {languages} — {N(byLang.Values.Sum())} in all. "
+                    + "Only a description that differs from the English is stored, and an item's only if it is published.",
+                    "By kind: " + string.Join(" · ", byKind.OrderBy(k => k.Kind).Select(k => $"{k.Kind} {N(k.Count)}")));
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            return (AppErrorLogger.Line("Descriptions stored in the client's other languages could not be counted", ex), null);
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
@@ -1887,6 +2202,53 @@ public class SdeImportService
             src.CopyTo(ms);
         ms.Position = 0;
         return new StreamReader(ms, System.Text.Encoding.UTF8, leaveOpen: false);
+    }
+
+    /// <summary>
+    /// An entry read as it is decompressed, for a pass that must not hold its whole file — the types'
+    /// descriptions, where the file with every language in it runs past a hundred megabytes, and
+    /// <see cref="OpenEntry"/> would hold all of it for as long as the pass takes. Every read is
+    /// filled, as the buffered copy's are, so the parser sees the same stream it always has.
+    /// </summary>
+    private static StreamReader OpenEntryStreaming(ZipArchiveEntry e) =>
+        new(new FilledReads(e.Open()), System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1 << 16);
+
+    /// <summary>
+    /// Returns as many bytes as each read asks for, and fewer only at the end — as a MemoryStream
+    /// does. A stream straight off the archive hands back whatever it has decompressed so far, which
+    /// a reader is entitled to take for the end of what is available.
+    /// </summary>
+    private sealed class FilledReads(Stream inner) : Stream
+    {
+        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+        public override int Read(Span<byte> buffer)
+        {
+            var filled = 0;
+            while (filled < buffer.Length)
+            {
+                var n = inner.Read(buffer[filled..]);
+                if (n == 0) break;
+                filled += n;
+            }
+            return filled;
+        }
+
+        public override bool CanRead  => true;
+        public override bool CanSeek  => false;
+        public override bool CanWrite => false;
+        public override long Length   => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) inner.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
     private static void Report(IProgress<SdeImportProgress> p, string stage, string detail, double frac)
@@ -1904,13 +2266,16 @@ public class SdeImportService
     /// <summary>
     /// Localised TEXT — a description, a tooltip — of which only the English is kept. The SDE writes
     /// every language (de, en, es, fr, ja, ko, ru, zh); the other seven are read past, not held, so
-    /// fifty thousand type descriptions are not in memory eight times over.
+    /// fifty thousand type descriptions are not in memory eight times over. The descriptions that
+    /// ARE kept in every language are read as <see cref="LocalizedName"/>: the small files' in
+    /// their own stage, the types' in a pass of their own (ImportTypeDescriptionsAsync).
     /// </summary>
     private sealed class LocalizedString { public string? en { get; set; } }
 
     /// <summary>
     /// A localised NAME, in every language the SDE writes — the English for the entity's own Name
-    /// column, the other seven for SdeNames.
+    /// column, the other seven for SdeNames. Also a description kept in every language, for
+    /// SdeTexts, and a celestial's name of its own, for the station names.
     /// </summary>
     private sealed class LocalizedName
     {
@@ -1939,9 +2304,10 @@ public class SdeImportService
             }
         }
 
-        private string? Get(string lang) => lang switch
+        /// <summary>One language by the SDE's key, English included; null for a key it does not know.</summary>
+        public string? Get(string lang) => lang switch
         {
-            "de" => de, "es" => es, "fr" => fr, "ja" => ja, "ko" => ko, "ru" => ru, "zh" => zh,
+            "de" => de, "en" => en, "es" => es, "fr" => fr, "ja" => ja, "ko" => ko, "ru" => ru, "zh" => zh,
             _    => null,
         };
 
@@ -2042,8 +2408,9 @@ public class SdeImportService
     {
         public LocalizedName?   name          { get; set; }
         public LocalizedName?   nameID        { get; set; }
-        public LocalizedString? description   { get; set; }
-        public LocalizedString? descriptionID { get; set; }
+        // Every language, for SdeTexts: a small file. The types' are read in a pass of their own.
+        public LocalizedName?   description   { get; set; }
+        public LocalizedName?   descriptionID { get; set; }
         public int?             parentGroupID { get; set; }
         public bool             hasTypes      { get; set; }
         public int?             iconID        { get; set; }
@@ -2077,6 +2444,15 @@ public class SdeImportService
         public int?             raceID        { get; set; }
         public int?             metaGroupID   { get; set; }
         public bool             published     { get; set; }
+    }
+
+    /// <summary>What the descriptions pass reads of a type, in every language — see
+    /// ImportTypeDescriptionsAsync. Every other field of the type is stepped over.</summary>
+    private class TypeDescriptionYaml
+    {
+        public bool             published     { get; set; }
+        public LocalizedName?   description   { get; set; }
+        public LocalizedName?   descriptionID { get; set; }
     }
 
     private class DogmaAttributeYaml
@@ -2190,8 +2566,27 @@ public class SdeImportService
         public Dictionary<int, MoonYaml>? asteroidBelts { get; set; }
     }
 
+    /// <summary>
+    /// A planet, moon or asteroid belt of the flat SDE, and the name it has of its own where it has
+    /// one — "Amarr VIII (Oris)" rather than "Amarr VIII" — in every language. A few hundred do;
+    /// every other is named from its system and indices.
+    /// </summary>
+    /// <remarks>
+    /// The field arrived in the SDE's schema on 2025-09-22 as <c>name</c>, and the belts' has shipped
+    /// as <c>uniqueName</c>, so both are read on all three. As a localised mapping or a plain string,
+    /// like every other name — see LocalizedTextConverter.
+    /// </remarks>
+    private abstract class NamedCelestialYaml
+    {
+        public LocalizedName?  name       { get; set; }
+        public LocalizedName?  uniqueName { get; set; }
+
+        // A method rather than a property, so that the deserializer never sees it as a field.
+        public LocalizedName?  CustomName() => name ?? uniqueName;
+    }
+
     // Flat universe: asteroid belts alongside mapPlanets/mapMoons, same shape as a moon.
-    private class MapAsteroidBeltYaml
+    private class MapAsteroidBeltYaml : NamedCelestialYaml
     {
         public int           celestialIndex { get; set; }
         public int           orbitIndex     { get; set; }
@@ -2207,14 +2602,14 @@ public class SdeImportService
     // Flat universe (current SDE): mapPlanets.yaml / mapMoons.yaml are separate top-level files.
     // Moons carry celestialIndex (of their planet) + orbitIndex (moon number), so a moon can be
     // named without joining back to its planet.
-    private class MapPlanetYaml
+    private class MapPlanetYaml : NamedCelestialYaml
     {
         public int           celestialIndex { get; set; }
         public int           solarSystemID  { get; set; }
         public int           typeID         { get; set; }
         public PositionYaml? position       { get; set; }
     }
-    private class MapMoonYaml
+    private class MapMoonYaml : NamedCelestialYaml
     {
         public int           celestialIndex { get; set; }
         public int           orbitIndex     { get; set; }
@@ -2405,8 +2800,8 @@ public class SdeImportService
     {
         public LocalizedName?   name                 { get; set; }
         public LocalizedName?   nameID               { get; set; }
-        public LocalizedString? description          { get; set; }
-        public LocalizedString? descriptionID        { get; set; }
+        public LocalizedName?   description          { get; set; }   // every language, for SdeTexts
+        public LocalizedName?   descriptionID        { get; set; }
         public int?             corporationID        { get; set; }
         public int?             militiaCorporationID { get; set; }
         public int?             solarSystemID        { get; set; }
@@ -2426,7 +2821,7 @@ public class SdeImportService
     private class NpcCorpYaml
     {
         public LocalizedName?   name        { get; set; }
-        public LocalizedString? description { get; set; }
+        public LocalizedName?   description { get; set; }   // every language, for SdeTexts
         public int?             factionID   { get; set; }
         public int?             stationID   { get; set; }
         public int?             solarSystemID { get; set; }
@@ -2449,14 +2844,14 @@ public class SdeImportService
     private class RaceYaml
     {
         public LocalizedName?   name        { get; set; }
-        public LocalizedString? description { get; set; }
+        public LocalizedName?   description { get; set; }   // every language, for SdeTexts
         public int?             iconID      { get; set; }
         public int?             shipTypeID  { get; set; }
     }
     private class MetaGroupYaml
     {
         public LocalizedName?   name        { get; set; }
-        public LocalizedString? description { get; set; }
+        public LocalizedName?   description { get; set; }   // every language, for SdeTexts
         public int?             iconID      { get; set; }
         public string?          iconSuffix  { get; set; }
         public MetaColorYaml?   color       { get; set; }
@@ -2476,7 +2871,7 @@ public class SdeImportService
         // New SDE uses a localised mapping {de: ..., en: ..., …}; old SDE used a plain scalar,
         // which LocalizedTextConverter reads as the English.
         public LocalizedName?   name        { get; set; }
-        public LocalizedString? description { get; set; }
+        public LocalizedName?   description { get; set; }   // every language, for SdeTexts
     }
 
     private class TypeMaterialsYaml

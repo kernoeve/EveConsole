@@ -3815,6 +3815,10 @@ The application will restart.</value>
     <value>Translated Names</value>
     <comment>Settings → SDE import progress, stage: the names of items, groups, places and NPCs in the game's other languages, stored after each part that has them.</comment>
   </data>
+  <data name="ImportStageDescriptions" xml:space="preserve">
+    <value>Translated Descriptions</value>
+    <comment>Settings → SDE import progress, stage: the descriptions of items, market groups, factions, NPC corporations and the like in the game's other languages. The items' descriptions are read in a pass of their own, which takes a while.</comment>
+  </data>
   <data name="ImportStageAttrCategories" xml:space="preserve">
     <value>Attr Categories</value>
     <comment>Settings → SDE import progress, stage: the categories of item attributes (short for attribute categories).</comment>

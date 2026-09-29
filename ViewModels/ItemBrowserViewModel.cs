@@ -1926,13 +1926,18 @@ public class ItemBrowserViewModel : ReactiveObject
                 ? FormatIsk(reprVal.Value)
                 : "";
 
+            // The description in the interface language, where the SDE has it: one row, read as the
+            // item opens — see Localization/SdeTexts.cs. At once in English, and the English column
+            // is the fallback. Display only, with its markup stripped as the English's always was.
+            var description = await SdeTexts.GetAsync(SdeTextKind.TypeDescription, typeId, type.Description, ct);
+
             if (ct.IsCancellationRequested) return;
 
             var vm = new ItemDisplayVm
             {
                 TypeId           = typeId,
                 Name             = SdeNames.Type(typeId, type.Name),
-                Description      = _tagRegex.Replace(type.Description, ""),
+                Description      = _tagRegex.Replace(description, ""),
                 GroupPath        = groupPath,
                 VolumeText       = type.Volume > 0 ? $"{type.Volume:N2} m³" : "",
                 PortionSize      = type.PortionSize,

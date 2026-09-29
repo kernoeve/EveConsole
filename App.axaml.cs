@@ -422,6 +422,11 @@ public class App : Application
                 try { Services.GetRequiredService<AppErrorLogger>().Log("SdeNames", "names not loaded", reason); }
                 catch { }
             };
+            SdeTexts.LoadFailed = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("SdeTexts", "description not read", reason); }
+                catch { }
+            };
 
             // The move out of the install folder runs before there is a log to write to; what it
             // could not do is said here, once per start until it succeeds.

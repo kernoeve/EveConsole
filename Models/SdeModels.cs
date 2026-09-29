@@ -611,6 +611,10 @@ public enum SdeNameKind
     PlanetSchematic        = 19,  // SdePlanetSchematics.Name
     StationService         = 20,  // SdeStationServices.Name
     StationOperation       = 21,  // SdeStationOperations.Name
+    // SdeStations.Name, which is ESI's English. ⚠️ The one kind the SDE does not carry: neither it
+    // nor ESI has a station's name in another language, so the import BUILDS those from the
+    // station's parts, the way the game client does — see Localization/LocationNames.cs.
+    Station                = 22,
 }
 
 /// <summary>
@@ -637,4 +641,47 @@ public class SdeName
     public string      Lang { get; set; } = "";
 
     public string      Name { get; set; } = "";
+}
+
+/// <summary>
+/// Which SDE text an <see cref="SdeText"/> row holds — and so which table its Id is a key of.
+///
+/// <para>⚠️ Stored as its number, as <see cref="SdeNameKind"/> is: never renumber or reuse a value,
+/// and a new kind takes the next free number. Zero is deliberately not a kind.</para>
+/// </summary>
+public enum SdeTextKind
+{
+    TypeDescription           = 1,  // SdeTypes.Description — published types only
+    MarketGroupDescription    = 2,  // SdeMarketGroups.Description
+    FactionDescription        = 3,  // SdeFactions.Description
+    NpcCorporationDescription = 4,  // SdeNpcCorporations.Description
+    RaceDescription           = 5,  // SdeRaces.Description
+    CertificateDescription    = 6,  // SdeCertificates.Description
+    MetaGroupDescription      = 7,  // SdeMetaGroups.Description
+}
+
+/// <summary>
+/// An SDE description in one of the game client's other languages.
+///
+/// <para>⚠️ A table of its own rather than more rows in <see cref="SdeName"/>, because of its size:
+/// the English type descriptions alone come to 12.5 MB, and the other seven languages to several
+/// times that. <c>SdeNames</c> is loaded whole, one language at a time, and these must never be —
+/// they are read a row at a time, when a screen shows one, through
+/// <c>EveConsole.Localization.SdeTexts</c>.</para>
+///
+/// <para>The same rules as <see cref="SdeName"/> otherwise: display only, the English stays in the
+/// entity's own Description column, every language is stored whatever anybody's interface is in,
+/// and only a text that differs from the English costs a row.</para>
+/// </summary>
+public class SdeText
+{
+    public SdeTextKind Kind { get; set; }
+
+    /// <summary>The entity's id in the table <see cref="Kind"/> names.</summary>
+    public long        Id   { get; set; }
+
+    /// <summary>The SDE's own language key: de, es, fr, ja, ko, ru or zh. Never en.</summary>
+    public string      Lang { get; set; } = "";
+
+    public string      Text { get; set; } = "";
 }

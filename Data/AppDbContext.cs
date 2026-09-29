@@ -192,6 +192,10 @@ public class AppDbContext : DbContext
     // CREATEs in both schema paths (SdeImportService.EnsureSdeSchema, PostgresSchema).
     public DbSet<SdeName>               SdeNames               => Set<SdeName>();
 
+    // And its descriptions, which are too large to load the way the names are — read a row at a
+    // time. The same two hand-written CREATEs.
+    public DbSet<SdeText>               SdeTexts               => Set<SdeText>();
+
     // ── Which client is doing the background work ────────────────────────────
     public DbSet<BackgroundWorkerStatus> BackgroundWorkerStatuses => Set<BackgroundWorkerStatus>();
     public DbSet<WorkerActivity>         WorkerActivities         => Set<WorkerActivity>();
@@ -583,6 +587,12 @@ public class AppDbContext : DbContext
             e.Property(x => x.Kind).ValueGeneratedNever();
             e.Property(x => x.Id).ValueGeneratedNever();
             e.ToTable("SdeNames"); });
+
+        mb.Entity<SdeText>(e => {
+            e.HasKey(x => new { x.Kind, x.Id, x.Lang });
+            e.Property(x => x.Kind).ValueGeneratedNever();
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("SdeTexts"); });
 
         // ── Market Levels ────────────────────────────────────────────────
         mb.Entity<MarketLevelGroup>(e => { e.HasKey(x => x.Id); });

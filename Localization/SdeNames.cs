@@ -93,6 +93,28 @@ public static class SdeNames
     public static string NpcCorporation(long corporationId, string english) => Get(SdeNameKind.NpcCorporation, corporationId,   english);
     public static string Agent(long agentId, string english)                => Get(SdeNameKind.Agent,          agentId,         english);
 
+    /// <summary>
+    /// An NPC station's name: pass SdeStations.Name, which is ESI's English. ⚠️ Not the SDE's words
+    /// but the import's — nothing ships a station's name in another language, so the import builds
+    /// each from the station's parts the way the game client does (<see cref="LocationNames"/>).
+    /// Safe with any location id: a player structure has no row and comes back as it is.
+    /// </summary>
+    public static string Station(long stationId, string english) => Get(SdeNameKind.Station, stationId, english);
+
+    /// <summary>
+    /// A location by its EVE id, for a column that can hold several kinds: a region, constellation,
+    /// solar system or NPC station, told apart by the id's range. Anything else — a player
+    /// structure, a planet or moon, a character, an asset container — comes back as it is.
+    /// </summary>
+    public static string Location(long id, string english) => id switch
+    {
+        >= 10_000_000 and <= 10_999_999 => Region(id, english),
+        >= 20_000_000 and <= 20_999_999 => Constellation(id, english),
+        >= 30_000_000 and <= 32_999_999 => SolarSystem(id, english),
+        >= 60_000_000 and <= 63_999_999 => Station(id, english),
+        _                               => english,
+    };
+
     /// <summary>An attribute's DISPLAY name: pass SdeDogmaAttributes.DisplayName, not Name.</summary>
     public static string DogmaAttribute(long attributeId, string englishDisplayName) =>
         Get(SdeNameKind.DogmaAttribute, attributeId, englishDisplayName);
@@ -104,9 +126,9 @@ public static class SdeNames
     /// <summary>
     /// A name ESI resolved — /universe/names/ and the UniverseNames cache — by its ESI category,
     /// in the interface language where the SDE has it: item types, solar systems, constellations,
-    /// regions and factions, and the NPC corporations and agents among corporations and characters.
-    /// Everything else comes back as it is: players, their corporations and alliances, stations
-    /// and structures.
+    /// regions, factions and NPC stations, and the NPC corporations and agents among corporations
+    /// and characters. Everything else comes back as it is: players, their corporations and
+    /// alliances, and structures.
     /// </summary>
     public static string ForEsiCategory(string? category, long id, string english) => category switch
     {
@@ -115,6 +137,7 @@ public static class SdeNames
         "constellation"  => Constellation(id, english),
         "region"         => Region(id, english),
         "faction"        => Faction(id, english),
+        "station"        => Station(id, english),
         "corporation"    => NpcCorporation(id, english),   // a player corporation has no row
         "character"      => Agent(id, english),            // nor has a player
         _                => english,
@@ -217,7 +240,9 @@ public static class SdeNames
     /// <summary>
     /// Reads the names again, after an SDE import has replaced them. What is loaded goes on
     /// answering until the new names are in, so a screen never drops back to English in between.
-    /// A language nobody has asked for yet stays unloaded until somebody does.
+    /// A language nobody has asked for yet stays unloaded until somebody does. The descriptions
+    /// kept by <see cref="SdeTexts"/> are let go too: the import replaced those as well, and this
+    /// is the one call — and <see cref="ImportedSignal"/> the one signal — that says so.
     /// </summary>
     public static void Reload()
     {
@@ -227,6 +252,7 @@ public static class SdeNames
             _retryAfterUtc = default;
         }
 
+        SdeTexts.Reload();
         if (Language is { } lang && _snapshot is not null) StartLoad(lang);
     }
 
