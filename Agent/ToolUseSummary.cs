@@ -30,6 +30,31 @@ public static class ToolUseSummary
         return Plurals.Format(AgentText.ResourceManager, nameof(AgentText.ToolCallsOther), total, string.Join(", ", parts));
     }
 
+    /// <summary>The counts as the chat history and the telemetry keep them,
+    /// <c>{"query_database":2,"show_table":1}</c>; <c>{}</c> for a turn that called nothing.</summary>
+    public static string Encode(IReadOnlyDictionary<string, int> counts) => JsonSerializer.Serialize(counts);
+
+    /// <summary>
+    /// What a reply saved before the counts were kept: the English words, "no tool calls" or
+    /// "3 tool calls: query_database ×2, show_table". Read back into counts, so they are worded in
+    /// the language of the day too; null for anything else.
+    /// </summary>
+    public static IReadOnlyList<KeyValuePair<string, int>>? ReadEnglish(string text)
+    {
+        if (text == "no tool calls") return [];
+        var m = System.Text.RegularExpressions.Regex.Match(text, @"^\d+ tool calls?: (.+)$");
+        if (!m.Success) return null;
+        var counts = new List<KeyValuePair<string, int>>();
+        foreach (var part in m.Groups[1].Value.Split(", "))
+        {
+            var x = part.LastIndexOf(" ×", StringComparison.Ordinal);
+            if (x < 0) counts.Add(new(part, 1));
+            else if (int.TryParse(part[(x + 2)..], out var n)) counts.Add(new(part[..x], n));
+            else return null;
+        }
+        return counts;
+    }
+
     /// <summary>From the telemetry's own record, <c>{"query_database":2,"show_table":1}</c>.</summary>
     public static string Describe(string toolsUsedJson)
     {

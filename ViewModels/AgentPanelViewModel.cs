@@ -796,8 +796,10 @@ public sealed class AgentPanelViewModel : ReactiveObject
                 return new Attempt(false, false, null, actedHere);
             }
 
+            // The counts, not the words: the line under the reply is worded when it is shown, in
+            // whatever language the app is in then.
             string toolsUsed;
-            lock (toolCounts) toolsUsed = ToolUseSummary.Describe(toolCounts);
+            lock (toolCounts) toolsUsed = ToolUseSummary.Encode(toolCounts);
             var assistantMsg = new AgentMessage(MessageRole.Assistant, finalText)
             {
                 ToolsUsed  = toolsUsed,

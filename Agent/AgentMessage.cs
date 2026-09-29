@@ -68,17 +68,22 @@ public sealed record AgentMessage
         new[] { TimeText, AnsweredBy, ToolsUsedLabel(ToolsUsed) }.Where(s => !string.IsNullOrEmpty(s)));
 
     /// <summary>
-    /// <see cref="ToolsUsed"/> as the line above the bubble shows it. The app's own lines carry a
-    /// marker there rather than a summary — "alarm", "voice change", "model change" — which stays
-    /// in English in the saved history, because the agent panel compares it; only here is it put
-    /// into words. Anything else is shown as it was saved.
+    /// <see cref="ToolsUsed"/> as the line above the bubble shows it, in the language of the day.
+    /// A reply keeps its tool counts (<c>{"query_database":2}</c>); older replies kept English words,
+    /// which are read back. The app's own lines carry a marker instead — "alarm", "voice change",
+    /// "model change" — which stays in English in the saved history, because the agent panel
+    /// compares it. Anything else is shown as it was saved.
     /// </summary>
     private static string? ToolsUsedLabel(string? toolsUsed) => toolsUsed switch
     {
+        null or ""     => toolsUsed,
         "alarm"        => AgentText.MetaAlarm,
         "voice change" => AgentText.MetaVoiceChange,
         "model change" => AgentText.MetaModelChange,
-        _              => toolsUsed,
+        ['{', ..]      => ToolUseSummary.Describe(toolsUsed),
+        _              => ToolUseSummary.ReadEnglish(toolsUsed) is { } counts
+                              ? ToolUseSummary.Describe(counts)
+                              : toolsUsed,
     };
 
     /// <summary>

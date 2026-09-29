@@ -499,7 +499,7 @@ PID：{2}
     <value>离线</value>
   </data>
   <data name="ServerPlayersOnline" xml:space="preserve">
-    <value>{0:N0} 人在线</value>
+    <value>{0:N0} 人</value>
   </data>
   <data name="ThemeDark" xml:space="preserve">
     <value>深色</value>
