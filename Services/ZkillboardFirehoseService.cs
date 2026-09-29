@@ -108,7 +108,7 @@ public sealed class ZkillboardFirehoseService(
                 _cursor = null; // re-seed from "now" next time All scope is activated
                 StatusText = !settings.Enabled
                     ? DataText.ZkbFirehoseDisabled
-                    : DataText.ZkbFirehoseIdle;
+                    : string.Format(DataText.ZkbFirehoseIdle, DataText.ZkbScopeMine);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(IdleTickSecs), ct);

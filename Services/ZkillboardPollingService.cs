@@ -86,7 +86,7 @@ public sealed class ZkillboardPollingService(
             {
                 StatusText = !settings.Enabled
                     ? DataText.ZkbPollDisabled
-                    : DataText.ZkbPollIdle;
+                    : string.Format(DataText.ZkbPollIdle, DataText.ZkbScopeAll);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(TickSeconds), ct);

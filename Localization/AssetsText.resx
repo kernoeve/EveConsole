@@ -1674,7 +1674,7 @@ away: Edit list brings it back.</value>
     <comment>Item Valuation, valuing the reprocessed output: a small note under an item that has no materials to reprocess into.</comment>
   </data>
   <data name="ProblemShortOfBatch" xml:space="preserve">
-    <value>{0:N0} short of a batch of {1:N0}</value>
+    <value>{0:N0} left over, less than a batch of {1:N0}</value>
     <comment>Item Valuation, valuing the reprocessed output: a small note under the part of a stack too small to reprocess. {0} is how many units are left over, {1} how many units make one batch.</comment>
   </data>
   <data name="SectionOutput" xml:space="preserve">

@@ -733,8 +733,8 @@
   <data name="CategoryCompositeReactions" xml:space="preserve">
     <value>复合反应</value>
   </data>
-  <data name="CategoryHybridReactions" xml:space="preserve">
-    <value>混合反应</value>
+  <data name="CategoryMoonReactions" xml:space="preserve">
+    <value>卫星材料反应</value>
   </data>
   <data name="CategoryBioGasReactions" xml:space="preserve">
     <value>生化和气相反应</value>
@@ -966,5 +966,113 @@
   </data>
   <data name="OwnerTypeCorp" xml:space="preserve">
     <value>军团</value>
+  </data>
+  <data name="RigNoteNoRigs" xml:space="preserve">
+    <value>{0} 未安装任何工业改装件</value>
+  </data>
+  <data name="RigNoteNotRiggedFor" xml:space="preserve">
+    <value>{0} 未安装适用于{1}的改装件</value>
+  </data>
+  <data name="RigCatSmallShips" xml:space="preserve">
+    <value>小型舰船</value>
+  </data>
+  <data name="RigCatMediumShips" xml:space="preserve">
+    <value>中型舰船</value>
+  </data>
+  <data name="RigCatLargeShips" xml:space="preserve">
+    <value>大型舰船</value>
+  </data>
+  <data name="RigCatAdvSmallShips" xml:space="preserve">
+    <value>高级小型舰船</value>
+  </data>
+  <data name="RigCatAdvMediumShips" xml:space="preserve">
+    <value>高级中型舰船</value>
+  </data>
+  <data name="RigCatAdvLargeShips" xml:space="preserve">
+    <value>高级大型舰船</value>
+  </data>
+  <data name="RigCatCapitalShips" xml:space="preserve">
+    <value>旗舰</value>
+  </data>
+  <data name="RigCatDronesFighters" xml:space="preserve">
+    <value>无人机和铁骑舰载机</value>
+  </data>
+  <data name="RigCatEquipment" xml:space="preserve">
+    <value>装备</value>
+  </data>
+  <data name="RigCatAmmunition" xml:space="preserve">
+    <value>弹药</value>
+  </data>
+  <data name="RigCatCapitalComponents" xml:space="preserve">
+    <value>旗舰组件</value>
+  </data>
+  <data name="RigCatAdvComponents" xml:space="preserve">
+    <value>高级组件</value>
+  </data>
+  <data name="RigCatStructuresFuel" xml:space="preserve">
+    <value>建筑和燃料</value>
+  </data>
+  <data name="RigCatGasReactions" xml:space="preserve">
+    <value>气相反应</value>
+  </data>
+  <data name="RigCatMoonReactions" xml:space="preserve">
+    <value>卫星材料反应</value>
+  </data>
+  <data name="RigCatCompositeReactions" xml:space="preserve">
+    <value>复合反应</value>
+  </data>
+  <data name="RigCatReactions" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>类型 ID {0}</value>
+  </data>
+  <data name="FormulaRecalc" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} 流程) → {3:N0}</value>
+  </data>
+  <data name="BpcPriceNeverSeen" xml:space="preserve">
+    <value>{0}——从未在合同中出现；按 0 ISK 计算</value>
+  </data>
+  <data name="FormulaBpc" xml:space="preserve">
+    <value>每流程 1 份 BPC，按 ME{0} 的合同价格</value>
+  </data>
+  <data name="SourceIntermediate" xml:space="preserve">
+    <value>中间产物</value>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>最终产品</value>
+  </data>
+  <data name="SourceBuy" xml:space="preserve">
+    <value>购买</value>
+  </data>
+  <data name="SourceBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="JobModifiers" xml:space="preserve">
+    <value>ME -{0:F0}%  改装件 -{1:F2}%  建筑 -{2:F1}%  → ×{3:F4}</value>
+  </data>
+  <data name="FormulaMaterial" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} 流程) = ceil({3:N2} × {2:N0}) → {4:N0}</value>
+  </data>
+  <data name="BpcTypeName" xml:space="preserve">
+    <value>{0}（BPC）</value>
+  </data>
+  <data name="BpcPriceStale" xml:space="preserve">
+    <value>{0}——每流程 {1:N0} ISK，取自一份于 {2:yyyy-MM-dd} 结束的合同；此后再没有合同出售</value>
+  </data>
+  <data name="BpcPriceStaleUndated" xml:space="preserve">
+    <value>{0}——每流程 {1:N0} ISK，取自一份已结束一段时间的合同；此后再没有合同出售</value>
+  </data>
+  <data name="WarnUnrecognizedPlannedIn" xml:space="preserve">
+    <value>{0}（无法识别的类型——请更新 ItemCategoryKey；已在 {1} 中规划，不计改装件加成）</value>
+  </data>
+  <data name="WarnUnrecognizedUnplanned" xml:space="preserve">
+    <value>{0}（无法识别的类型——请更新 ItemCategoryKey；规划时未使用任何建筑，也不计任何加成——请为此园区设置兜底设施）</value>
+  </data>
+  <data name="WarnUnassignedPlannedIn" xml:space="preserve">
+    <value>{0}（此园区未分配类别“{1}”；已在 {2} 中规划，不计改装件加成）</value>
+  </data>
+  <data name="WarnUnassignedUnplanned" xml:space="preserve">
+    <value>{0}（此园区未分配类别“{1}”；规划时未使用任何建筑，也不计任何加成——请为此园区设置兜底设施）</value>
   </data>
 </root>

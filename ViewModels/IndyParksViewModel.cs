@@ -593,7 +593,7 @@ public class IndyParksViewModel : ReactiveObject
         ("structure_ammo",     IndustryText.CategoryStructuresFuel),
         // Reactions
         ("react_composite",    IndustryText.CategoryCompositeReactions),
-        ("react_biochemical",  IndustryText.CategoryHybridReactions),
+        ("react_biochemical",  IndustryText.CategoryMoonReactions),
         ("react_bio_gas",      IndustryText.CategoryBioGasReactions),
         // "react_structure" was listed here and nothing ever mapped to it — no rig, no item, in
         // any of the three matchers. A facility assigned to it received no work, and its name

@@ -976,9 +976,9 @@
     <value>Composite Reactions</value>
     <comment>Indy Parks production category (reactions).</comment>
   </data>
-  <data name="CategoryHybridReactions" xml:space="preserve">
-    <value>Hybrid Reactions</value>
-    <comment>Indy Parks production category (reactions).</comment>
+  <data name="CategoryMoonReactions" xml:space="preserve">
+    <value>Moon Reactions</value>
+    <comment>Indy Parks production category: simple moon reactions (intermediate materials).</comment>
   </data>
   <data name="CategoryBioGasReactions" xml:space="preserve">
     <value>Bio and Gas Phase Reactions</value>

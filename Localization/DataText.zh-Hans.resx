@@ -1090,6 +1090,420 @@
   <data name="GameLogEntriesOther" xml:space="preserve">
     <value>{0:N0} 个条目</value>
   </data>
+  <data name="ZkbFirehoseNotStarted" xml:space="preserve">
+    <value>zKillboard 实时数据流：未启动</value>
+  </data>
+  <data name="ZkbFirehoseStopped" xml:space="preserve">
+    <value>zKillboard 实时数据流：已停止</value>
+  </data>
+  <data name="ZkbFirehoseError" xml:space="preserve">
+    <value>zKillboard 实时数据流：错误——{0}</value>
+  </data>
+  <data name="ZkbFirehoseDisabled" xml:space="preserve">
+    <value>zKillboard 实时数据流：已禁用</value>
+  </data>
+  <data name="ZkbFirehoseIdle" xml:space="preserve">
+    <value>zKillboard 实时数据流：空闲（“{0}”范围改用定时轮询）</value>
+  </data>
+  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
+    <value>zKillboard 实时数据流：无法连接 zKillboard，正在重试</value>
+  </data>
+  <data name="ZkbFirehoseSequence" xml:space="preserve">
+    <value>zKillboard 实时数据流：序号 {0:N0}——本次启动后已导入 {1:N0} 条击毁</value>
+  </data>
+  <data name="ZkbFirehoseSkipped" xml:space="preserve">
+    <value>zKillboard 实时数据流：已跳过空序号 {0:N0}（最新序号 {1:N0}）</value>
+  </data>
+  <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
+    <value>zKillboard 实时数据流：已追上最新（序号 {0:N0}）</value>
+  </data>
+  <data name="ZkbFirehoseWaitingBackfill" xml:space="preserve">
+    <value>zKillboard 实时数据流：等待每日数据包回填完成</value>
+  </data>
+  <data name="ZkbFirehoseResuming" xml:space="preserve">
+    <value>zKillboard 实时数据流：从 {0:yyyy-MM-dd} 恢复（序号 {1:N0}）；更早的日期由每日数据包补充</value>
+  </data>
+  <data name="ZkbPollNotStarted" xml:space="preserve">
+    <value>zKillboard 实时轮询：未启动</value>
+  </data>
+  <data name="ZkbPollStopped" xml:space="preserve">
+    <value>zKillboard 实时轮询：已停止</value>
+  </data>
+  <data name="ZkbPollError" xml:space="preserve">
+    <value>zKillboard 实时轮询：错误——{0}</value>
+  </data>
+  <data name="ZkbPollDisabled" xml:space="preserve">
+    <value>zKillboard 实时轮询：已禁用</value>
+  </data>
+  <data name="ZkbPollIdle" xml:space="preserve">
+    <value>zKillboard 实时轮询：空闲（“{0}”范围改用实时数据流）</value>
+  </data>
+  <data name="ZkbPollNoOwners" xml:space="preserve">
+    <value>zKillboard 实时轮询：没有跟踪的角色 / 军团</value>
+  </data>
+  <data name="ZkbPollAdded" xml:space="preserve">
+    <value>zKillboard 实时轮询：+{0} 条新击毁引用（共 {1} 个所有者）</value>
+  </data>
+  <data name="ZkbPollWatching" xml:space="preserve">
+    <value>zKillboard 实时轮询：正在监视 {0} 个所有者</value>
+  </data>
+  <data name="ZkbPollWatchingPending" xml:space="preserve">
+    <value>zKillboard 实时轮询：正在监视 {0} 个所有者（等待下次检查）</value>
+  </data>
+  <data name="ZkbBackfillNotStarted" xml:space="preserve">
+    <value>zKillboard 回填：未启动</value>
+  </data>
+  <data name="ZkbBackfillStarting" xml:space="preserve">
+    <value>正在启动…</value>
+  </data>
+  <data name="ZkbBackfillDay" xml:space="preserve">
+    <value>第 {0:N0} / {1:N0} 天——{2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbBackfillCancelled" xml:space="preserve">
+    <value>zKillboard 回填：已取消，已完成 {0:N0} 天，导入 {1:N0} 条击毁</value>
+  </data>
+  <data name="ZkbBackfillImported" xml:space="preserve">
+    <value>zKillboard 回填：已导入 {0:N0} 条击毁，共 {1:N0} 天</value>
+  </data>
+  <data name="ZkbBackfillFailed" xml:space="preserve">
+    <value>zKillboard 回填：失败——{0}</value>
+  </data>
+  <data name="ZkbGapFillDay" xml:space="preserve">
+    <value>缺口补齐：第 {0:N0} / {1:N0} 天——{2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillCancelled" xml:space="preserve">
+    <value>zKillboard 缺口补齐：已取消，已补齐至 {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillDone" xml:space="preserve">
+    <value>zKillboard 缺口补齐：已补齐至 {0:yyyy-MM-dd}，导入 {1:N0} 条击毁</value>
+  </data>
+  <data name="ZkbGapFillFailed" xml:space="preserve">
+    <value>zKillboard 缺口补齐：失败——{0}</value>
+  </data>
+  <data name="ZkbPostingNotStarted" xml:space="preserve">
+    <value>zKillboard 提交：未启动</value>
+  </data>
+  <data name="ZkbCoverageChecking" xml:space="preserve">
+    <value>正在检查…</value>
+  </data>
+  <data name="ZkbCoverageNoneYet" xml:space="preserve">
+    <value>尚无——zKillboard 上还没有已确认的击毁</value>
+  </data>
+  <data name="ZkbPostingOff" xml:space="preserve">
+    <value>zKillboard 提交：已关闭</value>
+  </data>
+  <data name="ZkbPostingDisabled" xml:space="preserve">
+    <value>zKillboard 提交：已禁用</value>
+  </data>
+  <data name="ZkbPostingError" xml:space="preserve">
+    <value>zKillboard 提交：错误——{0}</value>
+  </data>
+  <data name="ZkbPostingNoConfirmed" xml:space="preserve">
+    <value>zKillboard 提交：zKillboard 上还没有已确认的击毁——请先运行回填</value>
+  </data>
+  <data name="ZkbPostingNoFullDay" xml:space="preserve">
+    <value>zKillboard 提交：还没有任何一天的数据从 zKillboard 完整导入</value>
+  </data>
+  <data name="ZkbPostingNothing" xml:space="preserve">
+    <value>zKillboard 提交：没有需要提交的击毁（自 {0} 起已覆盖）</value>
+  </data>
+  <data name="ZkbPostingHalted" xml:space="preserve">
+    <value>zKillboard 提交：已停止——zKillboard 将此客户端视为不受信任，拒绝了提交</value>
+  </data>
+  <data name="NameCacheNotStarted" xml:space="preserve">
+    <value>名称缓存：未启动</value>
+  </data>
+  <data name="NameCacheError" xml:space="preserve">
+    <value>名称缓存：错误——{0}</value>
+  </data>
+  <data name="NameCacheIdleResolved" xml:space="preserve">
+    <value>○ 空闲——所有已知实体均已解析</value>
+  </data>
+  <data name="NameCacheRunningCapped" xml:space="preserve">
+    <value>● 运行中——本轮 {1:N0} 个中已解析 {0:N0} 个（还有更多待处理）</value>
+  </data>
+  <data name="NameCacheRunning" xml:space="preserve">
+    <value>● 运行中——{1:N0} 个缺失名称中已解析 {0:N0} 个</value>
+  </data>
+  <data name="NameCacheIdleAddedCapped" xml:space="preserve">
+    <value>○ 空闲——本轮新增 {0:N0} 个名称，还有更多待处理</value>
+  </data>
+  <data name="NameCacheIdleAdded" xml:space="preserve">
+    <value>○ 空闲——新增 {0:N0} 个名称，所有已知实体均已解析</value>
+  </data>
+  <data name="IntelStatusIdle" xml:space="preserve">
+    <value>情报：空闲</value>
+  </data>
+  <data name="IntelStatusParsingMore" xml:space="preserve">
+    <value>情报：正在解析 {0}——已发现 {1:N0} 条目击报告，还剩 {2:N0} 条消息</value>
+  </data>
+  <data name="IntelStatusParsing" xml:space="preserve">
+    <value>情报：正在解析 {0}——已发现 {1:N0} 条目击报告</value>
+  </data>
+  <data name="IntelStatusNothing" xml:space="preserve">
+    <value>情报：尚未解析到任何目击报告</value>
+  </data>
+  <data name="IntelStatusUpToDate" xml:space="preserve">
+    <value>情报：已是最新——共 {0:N0} 条目击报告，最新一条于 {1}</value>
+  </data>
+  <data name="IntelStatusUnavailable" xml:space="preserve">
+    <value>情报：状态不可用</value>
+  </data>
+  <data name="NotRunYet" xml:space="preserve">
+    <value>尚未运行</value>
+  </data>
+  <data name="OrderFulfilmentFailed" xml:space="preserve">
+    <value>上一轮失败：{0}</value>
+  </data>
+  <data name="OrderFulfilmentNoPending" xml:space="preserve">
+    <value>没有待处理的订单</value>
+  </data>
+  <data name="OrderFulfilmentLinked" xml:space="preserve">
+    <value>{1:N0} 个待处理订单中，{0:N0} 个已有来源</value>
+  </data>
+  <data name="LpStoreStatusIdle" xml:space="preserve">
+    <value>LP 商店：空闲</value>
+  </data>
+  <data name="LpStoreStatusNoSde" xml:space="preserve">
+    <value>LP 商店：SDE 中没有 NPC 军团——请先导入 SDE</value>
+  </data>
+  <data name="LpStoreStatusProgress" xml:space="preserve">
+    <value>LP 商店：{0:N0}/{1:N0} 个军团，{2:N0} 个兑换项…</value>
+  </data>
+  <data name="AlarmsStatusNoneArmed" xml:space="preserve">
+    <value>没有已启用的警报</value>
+  </data>
+  <data name="EndpointSkills" xml:space="preserve">
+    <value>技能</value>
+  </data>
+  <data name="EndpointSkillQueue" xml:space="preserve">
+    <value>技能队列</value>
+  </data>
+  <data name="EndpointWalletBalance" xml:space="preserve">
+    <value>钱包余额</value>
+  </data>
+  <data name="EndpointWalletJournal" xml:space="preserve">
+    <value>钱包日志</value>
+  </data>
+  <data name="EndpointWalletTransactions" xml:space="preserve">
+    <value>钱包交易</value>
+  </data>
+  <data name="EndpointIndustryJobs" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="EndpointActiveOrders" xml:space="preserve">
+    <value>有效订单</value>
+  </data>
+  <data name="EndpointOrderHistory" xml:space="preserve">
+    <value>订单历史</value>
+  </data>
+  <data name="EndpointAssets" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="EndpointBlueprints" xml:space="preserve">
+    <value>蓝图</value>
+  </data>
+  <data name="EndpointContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="EndpointAttributes" xml:space="preserve">
+    <value>属性</value>
+  </data>
+  <data name="EndpointClones" xml:space="preserve">
+    <value>克隆</value>
+  </data>
+  <data name="EndpointImplants" xml:space="preserve">
+    <value>植入体</value>
+  </data>
+  <data name="EndpointJumpFatigue" xml:space="preserve">
+    <value>跳跃疲劳</value>
+  </data>
+  <data name="EndpointMiningLedger" xml:space="preserve">
+    <value>采矿记录</value>
+  </data>
+  <data name="EndpointNotifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="EndpointContacts" xml:space="preserve">
+    <value>联系人</value>
+  </data>
+  <data name="EndpointKillMails" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="EndpointPlanetaryInteraction" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="EndpointAgentResearch" xml:space="preserve">
+    <value>代理人研究</value>
+  </data>
+  <data name="EndpointLoyaltyPoints" xml:space="preserve">
+    <value>忠诚点</value>
+  </data>
+  <data name="EndpointMedals" xml:space="preserve">
+    <value>勋章</value>
+  </data>
+  <data name="EndpointStandings" xml:space="preserve">
+    <value>声望</value>
+  </data>
+  <data name="EndpointTitles" xml:space="preserve">
+    <value>头衔</value>
+  </data>
+  <data name="EndpointRoles" xml:space="preserve">
+    <value>职权</value>
+  </data>
+  <data name="EndpointFittings" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="EndpointEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="EndpointOnlineStatus" xml:space="preserve">
+    <value>在线状态</value>
+  </data>
+  <data name="EndpointLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="EndpointCurrentShip" xml:space="preserve">
+    <value>当前舰船</value>
+  </data>
+  <data name="EndpointWalletBalances" xml:space="preserve">
+    <value>钱包余额</value>
+  </data>
+  <data name="EndpointDivisions" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="EndpointStructures" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="EndpointStarbases" xml:space="preserve">
+    <value>星堡</value>
+  </data>
+  <data name="EndpointFacilities" xml:space="preserve">
+    <value>设施</value>
+  </data>
+  <data name="EndpointMembers" xml:space="preserve">
+    <value>成员</value>
+  </data>
+  <data name="EndpointMemberTracking" xml:space="preserve">
+    <value>成员跟踪</value>
+  </data>
+  <data name="EndpointCorpProjects" xml:space="preserve">
+    <value>军团项目</value>
+  </data>
+  <data name="EndpointMiningExtractions" xml:space="preserve">
+    <value>月矿提取</value>
+  </data>
+  <data name="EndpointMiningObservers" xml:space="preserve">
+    <value>采矿观察者与月矿记录</value>
+  </data>
+  <data name="EndpointMarketPriceRefresh" xml:space="preserve">
+    <value>市场价格刷新</value>
+  </data>
+  <data name="EndpointBuildCostCalculation" xml:space="preserve">
+    <value>制造成本计算</value>
+  </data>
+  <data name="EndpointPublicContracts" xml:space="preserve">
+    <value>公开合同</value>
+  </data>
+  <data name="EndpointContractItems" xml:space="preserve">
+    <value>合同物品</value>
+  </data>
+  <data name="StructureSweepNotRun" xml:space="preserve">
+    <value>本次启动后尚未运行</value>
+  </data>
+  <data name="PublicStructuresSummary" xml:space="preserve">
+    <value>列出 {0:N0} 个 · 已知 {1:N0} 个 · 待解析 {2:N0} 个</value>
+  </data>
+  <data name="StructureSweepFailed" xml:space="preserve">
+    <value>失败——{0}</value>
+  </data>
+  <data name="CallOk" xml:space="preserve">
+    <value>成功</value>
+  </data>
+  <data name="StructureSweepCounts" xml:space="preserve">
+    <value>已检查 {0:N0} 个 ID · 已同步 {1:N0} 个 · 已清除 {2:N0} 个 · 存有 {3:N0} 个建筑，其中 {4:N0} 个已识别</value>
+  </data>
+  <data name="StructureSweepSuperseded" xml:space="preserve">
+    <value>{0:N0} 个手动装配已被资产数据取代</value>
+  </data>
+  <data name="StructureSweepEveRef" xml:space="preserve">
+    <value>EVE Ref：已知 {0:N0} 个，补全 {1:N0} 个</value>
+  </data>
+  <data name="StructureSweepLinked" xml:space="preserve">
+    <value>已更新 {0:N0} 个关联园区建筑的装配</value>
+  </data>
+  <data name="ZkbPostingSubmitted" xml:space="preserve">
+    <value>zKillboard 提交：已提交 {0:N0} 条，{1:N0} 条已在 zKillboard 上</value>
+  </data>
+  <data name="ZkbPostingSubmittedRejected" xml:space="preserve">
+    <value>zKillboard 提交：已提交 {0:N0} 条，{1:N0} 条已在 zKillboard 上，{2:N0} 条被拒绝</value>
+  </data>
+  <data name="LpStoreStatusDone" xml:space="preserve">
+    <value>LP 商店：{0:N0} 个商店，{1:N0} 个兑换项，{2:N0} 个军团没有商店——{3:t}</value>
+  </data>
+  <data name="LpStoreStatusDoneFailed" xml:space="preserve">
+    <value>LP 商店：{0:N0} 个商店，{1:N0} 个兑换项，{2:N0} 个军团没有商店，{3:N0} 个失败——{4:t}</value>
+  </data>
+  <data name="AlarmsStatusNextCheck" xml:space="preserve">
+    <value>已启用 {0} 个 · 下次检查：{1}</value>
+  </data>
+  <data name="AlarmsNextCheckNow" xml:space="preserve">
+    <value>现在</value>
+  </data>
+  <data name="AlarmsNextCheckInSeconds" xml:space="preserve">
+    <value>{0:F0} 秒后</value>
+  </data>
+  <data name="AlarmsNextCheckInMinutes" xml:space="preserve">
+    <value>{0:F0} 分钟后</value>
+  </data>
+  <data name="AlarmsNextCheckInHours" xml:space="preserve">
+    <value>{0:F0} 小时后</value>
+  </data>
+  <data name="AlarmsStatusChecked" xml:space="preserve">
+    <value>已启用 {0} 个 · 本次检查 {1} 个</value>
+  </data>
+  <data name="AlarmsStatusCheckedFired" xml:space="preserve">
+    <value>已启用 {0} 个 · 本次检查 {1} 个 · 触发 {2} 个</value>
+  </data>
+  <data name="BarEsiActiveQueued" xml:space="preserve">
+    <value>{0:N0} 个进行中，{1:N0} 个排队中</value>
+  </data>
+  <data name="BarProcessing" xml:space="preserve">
+    <value>处理中</value>
+  </data>
+  <data name="BarProcessingItemsOther" xml:space="preserve">
+    <value>正在处理 {0:N0} 个物品</value>
+  </data>
+  <data name="BarStarting" xml:space="preserve">
+    <value>启动中</value>
+  </data>
+  <data name="BarContractsProgressOther" xml:space="preserve">
+    <value>{1:N0} / {0:N0} 个合同</value>
+  </data>
+  <data name="BarCorporationsProgressOther" xml:space="preserve">
+    <value>{1:N0} / {0:N0} 个军团</value>
+  </data>
+  <data name="BarFetching" xml:space="preserve">
+    <value>获取中</value>
+  </data>
+  <data name="BarFetchingProgress" xml:space="preserve">
+    <value>正在获取 {0:N0} / {1:N0}</value>
+  </data>
+  <data name="BarFetchingProgressMore" xml:space="preserve">
+    <value>正在获取 {0:N0} / {1:N0}，还有 {2:N0} 条待获取</value>
+  </data>
+  <data name="KillmailsWithoutDetailsOther" xml:space="preserve">
+    <value>{0:N0} 条击毁报告尚无详情——下次轮询最多获取 200 条</value>
+  </data>
+  <data name="KillmailsAllDetailed" xml:space="preserve">
+    <value>本应用已知的所有击毁报告均已有详情</value>
+  </data>
+  <data name="BarBackfill" xml:space="preserve">
+    <value>回填中</value>
+  </data>
+  <data name="BarBackfillProgress" xml:space="preserve">
+    <value>回填 {0:N0} / {1:N0} 天</value>
+  </data>
   <data name="CallsNotRelayedOther" xml:space="preserve">
     <value>（另有 {0} 次调用未转发）</value>
   </data>

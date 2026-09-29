@@ -1407,4 +1407,106 @@
   <data name="LegendIncursionsActive" xml:space="preserve">
     <value>{0} 处入侵进行中</value>
   </data>
+  <data name="SecBandHigh" xml:space="preserve">
+    <value>高安</value>
+  </data>
+  <data name="SecBandLow" xml:space="preserve">
+    <value>低安</value>
+  </data>
+  <data name="SecBandNull" xml:space="preserve">
+    <value>00 区</value>
+  </data>
+  <data name="SecurityTip" xml:space="preserve">
+    <value>{0} · 真实安全等级 {1}</value>
+  </data>
+  <data name="GoToRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="AlternativeDetail" xml:space="preserve">
+    <value>{0} · 跳入 {1:N2} 光年 · 跳出 {2:N2} 光年</value>
+  </data>
+  <data name="FuelIsotopes" xml:space="preserve">
+    <value>同位素</value>
+  </data>
+  <data name="BadgeNpcStation" xml:space="preserve">
+    <value>NPC 空间站</value>
+  </data>
+  <data name="BadgePlayerStructuresOther" xml:space="preserve">
+    <value>{0} 个玩家建筑</value>
+  </data>
+  <data name="BadgeMoreStructures" xml:space="preserve">
+    <value>另有 {0} 个建筑</value>
+  </data>
+  <data name="RouteStartHighSec" xml:space="preserve">
+    <value>起点星系位于高安空间，不对旗舰开放——跳跃引擎无法从那里出发。</value>
+  </data>
+  <data name="RouteDestinationHighSec" xml:space="preserve">
+    <value>终点星系无法通过跳跃引擎到达——高安空间不对旗舰开放。</value>
+  </data>
+  <data name="RouteSameSystem" xml:space="preserve">
+    <value>起点和终点是同一个星系。</value>
+  </data>
+  <data name="RouteNoneKeepstar" xml:space="preserve">
+    <value>在每跳 {0:N2} 光年的范围内，仅经由已知的 Keepstar 星系找不到路线。需要放宽中转点限制，或解析更多建筑。</value>
+  </data>
+  <data name="RouteNoneStations" xml:space="preserve">
+    <value>在每跳 {0:N2} 光年的范围内，仅经由有空间站或建筑的星系找不到路线。</value>
+  </data>
+  <data name="RouteNone" xml:space="preserve">
+    <value>在每跳 {0:N2} 光年的范围内找不到路线。需要跳跃距离更远的船体，或更高的跳跃引擎校准技能等级。</value>
+  </data>
+  <data name="IndexShortManufacturing" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="IndexShortTimeEfficiency" xml:space="preserve">
+    <value>TE</value>
+  </data>
+  <data name="IndexShortMaterialEfficiency" xml:space="preserve">
+    <value>ME</value>
+  </data>
+  <data name="IndexShortCopying" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="IndexShortInvention" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="IndexShortReaction" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="SovWindow" xml:space="preserve">
+    <value>{0:yyyy-MM-dd HH:mm} → {1:HH:mm}（{2:F0} 小时）</value>
+  </data>
+  <data name="SovStructureFallbackType" xml:space="preserve">
+    <value>主权建筑</value>
+  </data>
+  <data name="SovHolderNoOne" xml:space="preserve">
+    <value>无主</value>
+  </data>
+  <data name="FallbackStationType" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="FallbackUnknownType" xml:space="preserve">
+    <value>未知类型</value>
+  </data>
+  <data name="SovStateVulnerable" xml:space="preserve">
+    <value>可攻击</value>
+  </data>
+  <data name="SovStateInvulnerable" xml:space="preserve">
+    <value>不可攻击</value>
+  </data>
+  <data name="SovStateUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="SovEventGained" xml:space="preserve">
+    <value>获得主权</value>
+  </data>
+  <data name="SovEventLost" xml:space="preserve">
+    <value>失去主权</value>
+  </data>
+  <data name="ReagentMagmaticGasPerHour" xml:space="preserve">
+    <value>岩浆气体 {0:N0}/小时</value>
+  </data>
+  <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
+    <value>超离子冰 {0:N0}/小时</value>
+  </data>
 </root>

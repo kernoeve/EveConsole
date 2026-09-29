@@ -1183,6 +1183,45 @@ Warrior II 5
   <data name="ErrSelectRegion" xml:space="preserve">
     <value>请选择一个星域，或选择“{0}”。</value>
   </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>建筑 {0}</value>
+  </data>
+  <data name="ProblemNotAnItem" xml:space="preserve">
+    <value>不是物品名称</value>
+  </data>
+  <data name="SectionLeftOver" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ProblemCannotReprocess" xml:space="preserve">
+    <value>无法精炼</value>
+  </data>
+  <data name="ProblemShortOfBatch" xml:space="preserve">
+    <value>{0:N0} 个，不足一批所需的 {1:N0} 个</value>
+  </data>
+  <data name="SectionOutput" xml:space="preserve">
+    <value>产出</value>
+  </data>
+  <data name="ImportedCollectionName" xml:space="preserve">
+    <value>导入的集合</value>
+  </data>
+  <data name="LocUnknownStation" xml:space="preserve">
+    <value>&lt;未知空间站&gt;</value>
+  </data>
+  <data name="LocUnknownSystem" xml:space="preserve">
+    <value>&lt;未知星系&gt;</value>
+  </data>
+  <data name="LocUnknownStructure" xml:space="preserve">
+    <value>&lt;未知建筑&gt;</value>
+  </data>
+  <data name="LocUnresolved" xml:space="preserve">
+    <value>&lt;未解析，请刷新&gt;</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>部门 {0}</value>
+  </data>
+  <data name="FlagIndustryJob" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
   <data name="ColItemVolume" xml:space="preserve">
     <value>体积</value>
   </data>

@@ -1971,7 +1971,7 @@ Owned by {3}</value>
     <comment>Jump Planner map tooltip, after Keepstar or Fortizar in the line of things a system offers: how many other player structures the system has. {0} is the number.</comment>
   </data>
   <data name="RouteStartHighSec" xml:space="preserve">
-    <value>The starting system cannot be reached by jump drive — high security space is closed to capitals.</value>
+    <value>The starting system is in high security space, which is closed to capitals — a jump drive cannot leave from there.</value>
     <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
   </data>
   <data name="RouteDestinationHighSec" xml:space="preserve">

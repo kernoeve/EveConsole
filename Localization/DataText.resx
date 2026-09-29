@@ -1489,8 +1489,8 @@
     <comment>zKillboard live capture status: the zKillboard import is switched off.</comment>
   </data>
   <data name="ZkbFirehoseIdle" xml:space="preserve">
-    <value>zKillboard firehose: idle (Mine+Corp scope uses the interval poll instead)</value>
-    <comment>zKillboard live capture status: the firehose is idle because the "Mine+Corp" scope is chosen, which uses the interval poll.</comment>
+    <value>zKillboard firehose: idle (“{0}” uses the interval poll instead)</value>
+    <comment>zKillboard live capture status: the firehose is idle because the scope named in {0} (My characters &amp; corp) uses the interval poll.</comment>
   </data>
   <data name="ZkbFirehoseUnreachable" xml:space="preserve">
     <value>zKillboard firehose: could not reach zKillboard, retrying</value>
@@ -1533,8 +1533,8 @@
     <comment>zKillboard live capture status: the zKillboard import is switched off.</comment>
   </data>
   <data name="ZkbPollIdle" xml:space="preserve">
-    <value>zKillboard live poll: idle (All-kills scope uses the firehose instead)</value>
-    <comment>zKillboard live capture status: the interval poll is idle because the "All kills" scope is chosen, which uses the firehose.</comment>
+    <value>zKillboard live poll: idle (“{0}” uses the firehose instead)</value>
+    <comment>zKillboard live capture status: the interval poll is idle because the scope named in {0} (All kills) uses the firehose.</comment>
   </data>
   <data name="ZkbPollNoOwners" xml:space="preserve">
     <value>zKillboard live poll: no tracked characters/corps</value>

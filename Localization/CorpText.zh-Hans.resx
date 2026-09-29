@@ -1210,4 +1210,556 @@
   <data name="NoCorpHistory" xml:space="preserve">
     <value>没有此角色的军团履历记录。</value>
   </data>
+  <data name="FallbackSystemName" xml:space="preserve">
+    <value>星系 {0}</value>
+  </data>
+  <data name="SovAdmNoLevels" xml:space="preserve">
+    <value>主权接口未返回任何 ADM 数值</value>
+  </data>
+  <data name="ScopeRegionAdm" xml:space="preserve">
+    <value>星域：{0}（ADM &lt; {1:F1}）</value>
+  </data>
+  <data name="ScopeAllianceSov" xml:space="preserve">
+    <value>主权：{0}（ADM &lt; {1:F1}）</value>
+  </data>
+  <data name="ScopeConstellationAdm" xml:space="preserve">
+    <value>星座：{0}（ADM &lt; {1:F1}）</value>
+  </data>
+  <data name="RemainingComplete" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="StandingProjectSummary" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="ReportStatusActive" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="ReportStatusAllHealthy" xml:space="preserve">
+    <value>全部正常</value>
+  </data>
+  <data name="ReportStatusNoProject" xml:space="preserve">
+    <value>无项目</value>
+  </data>
+  <data name="ReportStatusNoSystems" xml:space="preserve">
+    <value>范围内无星系</value>
+  </data>
+  <data name="ReportStatusNoOffice" xml:space="preserve">
+    <value>无办公室</value>
+  </data>
+  <data name="ReportStatusAdmUnavailable" xml:space="preserve">
+    <value>ADM 不可用</value>
+  </data>
+  <data name="ReportColProject" xml:space="preserve">
+    <value>项目</value>
+  </data>
+  <data name="ReportColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ReportColRemaining" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ReportColIskLeft" xml:space="preserve">
+    <value>剩余 ISK</value>
+  </data>
+  <data name="ReportColLastCompleted" xml:space="preserve">
+    <value>上次完成</value>
+  </data>
+  <data name="PickerScopeRegionAdm" xml:space="preserve">
+    <value>{0}——星域，ADM 低于 {1:0.##}</value>
+  </data>
+  <data name="PickerScopeConstellationAdm" xml:space="preserve">
+    <value>{0}——星座，ADM 低于 {1:0.##}</value>
+  </data>
+  <data name="PickerScopeAllianceSov" xml:space="preserve">
+    <value>{0}——主权，ADM 低于 {1:0.##}</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissing" xml:space="preserve">
+    <value>交付物品项目——缺失的项目</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissing" xml:space="preserve">
+    <value>摧毁 NPC 项目——缺失的项目</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissingLow" xml:space="preserve">
+    <value>交付物品项目——缺失及偏低的项目</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissingLow" xml:space="preserve">
+    <value>摧毁 NPC 项目——缺失及偏低的项目</value>
+  </data>
+  <data name="ProjectsTitleDeliverAll" xml:space="preserve">
+    <value>交付物品项目</value>
+  </data>
+  <data name="ProjectsTitleDestroyAll" xml:space="preserve">
+    <value>摧毁 NPC 项目</value>
+  </data>
+  <data name="Top10TitleRatting" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="Top10TitleMining" xml:space="preserve">
+    <value>采矿——精炼价值</value>
+  </data>
+  <data name="Top10TitleKills" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="Top10TitleProjects" xml:space="preserve">
+    <value>项目贡献者</value>
+  </data>
+  <data name="Top10TitleIndustry" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="SummarySectionIncome" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="SummarySectionExpenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="SummarySectionNet" xml:space="preserve">
+    <value>净额</value>
+  </data>
+  <data name="SummarySectionCombat" xml:space="preserve">
+    <value>战斗</value>
+  </data>
+  <data name="SummarySectionMining" xml:space="preserve">
+    <value>采矿</value>
+  </data>
+  <data name="SummarySectionProjects" xml:space="preserve">
+    <value>军团项目</value>
+  </data>
+  <data name="SummarySectionMembers" xml:space="preserve">
+    <value>成员</value>
+  </data>
+  <data name="SummaryRowRattingTax" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="SummaryRowIndustryTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="SummaryRowDonations" xml:space="preserve">
+    <value>捐赠</value>
+  </data>
+  <data name="SummaryRowContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="SummaryRowMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="SummaryRowOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="SummaryRowTotalIncome" xml:space="preserve">
+    <value>总收入</value>
+  </data>
+  <data name="SummaryRowProjectPayouts" xml:space="preserve">
+    <value>项目奖励</value>
+  </data>
+  <data name="SummaryRowWithdrawals" xml:space="preserve">
+    <value>提款</value>
+  </data>
+  <data name="SummaryRowTotalExpenses" xml:space="preserve">
+    <value>总支出</value>
+  </data>
+  <data name="SummaryRowNetPosition" xml:space="preserve">
+    <value>净收支</value>
+  </data>
+  <data name="SummaryRowKills" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="SummaryRowLosses" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="SummaryRowIskDestroyed" xml:space="preserve">
+    <value>击毁价值</value>
+  </data>
+  <data name="SummaryRowIskLost" xml:space="preserve">
+    <value>损失价值</value>
+  </data>
+  <data name="SummaryRowIskEfficiency" xml:space="preserve">
+    <value>ISK 效率</value>
+  </data>
+  <data name="SummaryChangePoints" xml:space="preserve">
+    <value>{0}{1:F1} 个百分点</value>
+  </data>
+  <data name="SummaryRowUnitsMined" xml:space="preserve">
+    <value>开采数量</value>
+  </data>
+  <data name="SummaryRowMinedValue" xml:space="preserve">
+    <value>采矿价值</value>
+  </data>
+  <data name="SummaryRowCreated" xml:space="preserve">
+    <value>已创建</value>
+  </data>
+  <data name="SummaryRowCreatedValue" xml:space="preserve">
+    <value>已创建价值</value>
+  </data>
+  <data name="SummaryRowCompleted" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="SummaryRowCompletedValue" xml:space="preserve">
+    <value>已完成价值</value>
+  </data>
+  <data name="SummaryRowActivePlayers" xml:space="preserve">
+    <value>活跃玩家</value>
+  </data>
+  <data name="SummaryExportSubtitle" xml:space="preserve">
+    <value>“变化”列均与上月比较。</value>
+  </data>
+  <data name="SummaryColItem" xml:space="preserve">
+    <value>条目</value>
+  </data>
+  <data name="SummaryColAmount" xml:space="preserve">
+    <value>数值</value>
+  </data>
+  <data name="SummaryHeader" xml:space="preserve">
+    <value>月度摘要——{1} 年 {0}</value>
+  </data>
+  <data name="SummaryHeaderCorp" xml:space="preserve">
+    <value>{0}——月度摘要——{2} 年 {1}</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="SeriesExpenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="SeriesRattingTax" xml:space="preserve">
+    <value>刷怪税</value>
+  </data>
+  <data name="SeriesIndustryTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="SeriesProjPayouts" xml:space="preserve">
+    <value>项目奖励</value>
+  </data>
+  <data name="ChartTitleIskTrends" xml:space="preserve">
+    <value>ISK 趋势（十亿）</value>
+  </data>
+  <data name="SeriesUnitsMined" xml:space="preserve">
+    <value>开采数量</value>
+  </data>
+  <data name="ChartTitleActivityTrends" xml:space="preserve">
+    <value>活动趋势（左轴为击毁与损失，右轴为开采数量）</value>
+  </data>
+  <data name="SeriesIskEfficiency" xml:space="preserve">
+    <value>ISK 效率</value>
+  </data>
+  <data name="ChartTitleKillTrends" xml:space="preserve">
+    <value>击毁与损失（右轴为 ISK 效率）</value>
+  </data>
+  <data name="SeriesMinedValue" xml:space="preserve">
+    <value>采矿价值</value>
+  </data>
+  <data name="ChartTitleMining" xml:space="preserve">
+    <value>采矿（精炼价值）</value>
+  </data>
+  <data name="ChartPlayersActive" xml:space="preserve">
+    <value>活跃玩家</value>
+  </data>
+  <data name="SlotShip" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="KillmailItemCopy" xml:space="preserve">
+    <value>{0}（拷贝）</value>
+  </data>
+  <data name="KillmailGroupOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="SlotHigh" xml:space="preserve">
+    <value>高槽</value>
+  </data>
+  <data name="SlotMid" xml:space="preserve">
+    <value>中槽</value>
+  </data>
+  <data name="SlotLow" xml:space="preserve">
+    <value>低槽</value>
+  </data>
+  <data name="SlotRig" xml:space="preserve">
+    <value>改装件槽</value>
+  </data>
+  <data name="SlotSubsystem" xml:space="preserve">
+    <value>子系统槽</value>
+  </data>
+  <data name="SlotDroneBay" xml:space="preserve">
+    <value>无人机挂舱</value>
+  </data>
+  <data name="SlotFighterBay" xml:space="preserve">
+    <value>舰载机机库</value>
+  </data>
+  <data name="SlotFighterTubes" xml:space="preserve">
+    <value>舰载机发射管</value>
+  </data>
+  <data name="SlotShipHangar" xml:space="preserve">
+    <value>舰船维护舱</value>
+  </data>
+  <data name="SlotFleetHangar" xml:space="preserve">
+    <value>舰队机库</value>
+  </data>
+  <data name="SlotFuelBay" xml:space="preserve">
+    <value>燃料舱</value>
+  </data>
+  <data name="SlotOreHold" xml:space="preserve">
+    <value>矿石舱</value>
+  </data>
+  <data name="SlotIceHold" xml:space="preserve">
+    <value>冰矿舱</value>
+  </data>
+  <data name="SlotAsteroidHold" xml:space="preserve">
+    <value>小行星舱</value>
+  </data>
+  <data name="SlotGasHold" xml:space="preserve">
+    <value>气云舱</value>
+  </data>
+  <data name="SlotMineralHold" xml:space="preserve">
+    <value>矿物舱</value>
+  </data>
+  <data name="SlotSalvageHold" xml:space="preserve">
+    <value>打捞舱</value>
+  </data>
+  <data name="SlotShipHold" xml:space="preserve">
+    <value>舰船舱</value>
+  </data>
+  <data name="SlotSmallShipHold" xml:space="preserve">
+    <value>小型舰船舱</value>
+  </data>
+  <data name="SlotMediumShipHold" xml:space="preserve">
+    <value>中型舰船舱</value>
+  </data>
+  <data name="SlotLargeShipHold" xml:space="preserve">
+    <value>大型舰船舱</value>
+  </data>
+  <data name="SlotIndustrialShipHold" xml:space="preserve">
+    <value>工业舰船舱</value>
+  </data>
+  <data name="SlotAmmoHold" xml:space="preserve">
+    <value>弹药舱</value>
+  </data>
+  <data name="SlotCargoHold" xml:space="preserve">
+    <value>货舱</value>
+  </data>
+  <data name="SearchViaEsi" xml:space="preserve">
+    <value>来自 ESI</value>
+  </data>
+  <data name="FactCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="FactAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="FactSecurityStatus" xml:space="preserve">
+    <value>安全等级</value>
+  </data>
+  <data name="FactFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="FactGender" xml:space="preserve">
+    <value>性别</value>
+  </data>
+  <data name="FactRace" xml:space="preserve">
+    <value>种族</value>
+  </data>
+  <data name="FactBloodline" xml:space="preserve">
+    <value>血统</value>
+  </data>
+  <data name="FactAchievementScore" xml:space="preserve">
+    <value>成就分数</value>
+  </data>
+  <data name="FactBorn" xml:space="preserve">
+    <value>出生日期</value>
+  </data>
+  <data name="FactTitle" xml:space="preserve">
+    <value>头衔</value>
+  </data>
+  <data name="FactTicker" xml:space="preserve">
+    <value>简称</value>
+  </data>
+  <data name="FactMembers" xml:space="preserve">
+    <value>成员数量</value>
+  </data>
+  <data name="FactCeo" xml:space="preserve">
+    <value>CEO</value>
+  </data>
+  <data name="FactFounded" xml:space="preserve">
+    <value>创立日期</value>
+  </data>
+  <data name="FactTaxRate" xml:space="preserve">
+    <value>税率</value>
+  </data>
+  <data name="FactWarEligible" xml:space="preserve">
+    <value>可被宣战</value>
+  </data>
+  <data name="FactYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="FactUrl" xml:space="preserve">
+    <value>网址</value>
+  </data>
+  <data name="FactCreator" xml:space="preserve">
+    <value>创建者</value>
+  </data>
+  <data name="FactCreatorCorp" xml:space="preserve">
+    <value>创建者军团</value>
+  </data>
+  <data name="FactExecutorCorp" xml:space="preserve">
+    <value>执政军团</value>
+  </data>
+  <data name="FallbackCorporationName" xml:space="preserve">
+    <value>军团 {0}</value>
+  </data>
+  <data name="FallbackAllianceName" xml:space="preserve">
+    <value>联盟 {0}</value>
+  </data>
+  <data name="HistoryNoAlliance" xml:space="preserve">
+    <value>— 无联盟 —</value>
+  </data>
+  <data name="HistoryPresent" xml:space="preserve">
+    <value>至今</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>{0:N0} 天</value>
+  </data>
+  <data name="GenderMale" xml:space="preserve">
+    <value>男性</value>
+  </data>
+  <data name="GenderFemale" xml:space="preserve">
+    <value>女性</value>
+  </data>
+  <data name="SubtitleOurCharacter" xml:space="preserve">
+    <value>你的角色之一</value>
+  </data>
+  <data name="SubtitlePlayerCharacter" xml:space="preserve">
+    <value>玩家角色</value>
+  </data>
+  <data name="FactCharacterId" xml:space="preserve">
+    <value>角色 ID</value>
+  </data>
+  <data name="FactKillmailsOn" xml:space="preserve">
+    <value>相关击毁报告</value>
+  </data>
+  <data name="FactKillsLosses" xml:space="preserve">
+    <value>{0:N0} 次击毁，{1:N0} 次损失</value>
+  </data>
+  <data name="FactLastSeen" xml:space="preserve">
+    <value>上次出现</value>
+  </data>
+  <data name="SubtitleOurCorporation" xml:space="preserve">
+    <value>你的军团之一</value>
+  </data>
+  <data name="SubtitlePlayerCorporation" xml:space="preserve">
+    <value>玩家军团</value>
+  </data>
+  <data name="SubtitlePlayerAlliance" xml:space="preserve">
+    <value>玩家联盟</value>
+  </data>
+  <data name="FactCorporationId" xml:space="preserve">
+    <value>军团 ID</value>
+  </data>
+  <data name="FactAllianceId" xml:space="preserve">
+    <value>联盟 ID</value>
+  </data>
+  <data name="FactPilotsSeen" xml:space="preserve">
+    <value>出现过的飞行员</value>
+  </data>
+  <data name="FactCorporationsSeen" xml:space="preserve">
+    <value>出现过的军团</value>
+  </data>
+  <data name="SubtitleAgent" xml:space="preserve">
+    <value>{0} 级 {1} 代理人</value>
+  </data>
+  <data name="FactAgentId" xml:space="preserve">
+    <value>代理人 ID</value>
+  </data>
+  <data name="FactStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="FactDivision" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="FactAgentType" xml:space="preserve">
+    <value>代理人类型</value>
+  </data>
+  <data name="FactLocator" xml:space="preserve">
+    <value>定位服务</value>
+  </data>
+  <data name="FactNo" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="FactHeadquarters" xml:space="preserve">
+    <value>总部</value>
+  </data>
+  <data name="FactStations" xml:space="preserve">
+    <value>空间站数量</value>
+  </data>
+  <data name="FactAgents" xml:space="preserve">
+    <value>代理人数量</value>
+  </data>
+  <data name="FactToJoin" xml:space="preserve">
+    <value>加入条件</value>
+  </data>
+  <data name="FactToJoinValue" xml:space="preserve">
+    <value>声望不低于 {0:N1}，安全等级不低于 {1:N1}</value>
+  </data>
+  <data name="FactLpStore" xml:space="preserve">
+    <value>LP 商店</value>
+  </data>
+  <data name="FactLpOffers" xml:space="preserve">
+    <value>{0:N0} 个兑换项</value>
+  </data>
+  <data name="FactLpStoreNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="FactYourLp" xml:space="preserve">
+    <value>你的 LP</value>
+  </data>
+  <data name="FactIskPerLp" xml:space="preserve">
+    <value>每 LP 的 ISK</value>
+  </data>
+  <data name="FactWebsite" xml:space="preserve">
+    <value>网站</value>
+  </data>
+  <data name="SubtitleNpcCorp" xml:space="preserve">
+    <value>NPC 军团</value>
+  </data>
+  <data name="SubtitleFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="FactFactionId" xml:space="preserve">
+    <value>势力 ID</value>
+  </data>
+  <data name="FactMilitiaCorp" xml:space="preserve">
+    <value>民兵军团</value>
+  </data>
+  <data name="FactHomeSystem" xml:space="preserve">
+    <value>家园星系</value>
+  </data>
+  <data name="FactCorporations" xml:space="preserve">
+    <value>军团数量</value>
+  </data>
+  <data name="SubtitleNpcStation" xml:space="preserve">
+    <value>NPC 空间站</value>
+  </data>
+  <data name="FactStationId" xml:space="preserve">
+    <value>空间站 ID</value>
+  </data>
+  <data name="FactSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="FactConstellation" xml:space="preserve">
+    <value>星座</value>
+  </data>
+  <data name="FactRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="FactSecurity" xml:space="preserve">
+    <value>安全等级</value>
+  </data>
+  <data name="FactSecurityValue" xml:space="preserve">
+    <value>{0}（真实值 {1}）</value>
+  </data>
+  <data name="FactType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="FactReprocessing" xml:space="preserve">
+    <value>精炼</value>
+  </data>
+  <data name="FactReprocessingValue" xml:space="preserve">
+    <value>{0:0.#}% · 税率 {1:0.#}%</value>
+  </data>
 </root>
