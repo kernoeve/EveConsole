@@ -1592,4 +1592,265 @@ No se destruye nada: sus encargos se quedan en Seguimiento de encargos, y se con
   <data name="MoreItemsTailOther" xml:space="preserve">
     <value>+{0} objetos más</value>
   </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>La última pasada ha fallado: {0}</value>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>No hay tiendas abiertas.</value>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>{0} tiendas abiertas, sin novedades.</value>
+  </data>
+  <data name="MailStoreNothingNewOne" xml:space="preserve">
+    <value>{0} tienda abierta, sin novedades.</value>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>Mensajes atendidos: {0}; actualizaciones enviadas: {1}.</value>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>En pausa — {0}.</value>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>{0} de {1} llamadas de correo disponibles en esta ventana de 15 minutos</value>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>Error al enviar la actualización: {0}</value>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>Una respuesta o un reenvío: forma parte de una conversación, no es un comando.</value>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>El correo no tiene remitente: no se puede responder nada con seguridad.</value>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>El remitente no está en la lista de esta tienda.</value>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>No hay ningún comando en el asunto y las instrucciones ya se enviaron hace poco: se deja para que lo atienda una persona.</value>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>No hay ningún comando en el asunto: se han enviado las instrucciones.</value>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>Esta tienda no tiene información escrita: se han enviado las instrucciones en su lugar.</value>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>La publicación de la tienda no ha generado nada: comprueba que tenga bloques de publicación.</value>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>La tienda no tiene ninguna publicación de la que tomar los precios.</value>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>No se ha reconocido nada. Sin coincidencias: {0}</value>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>No se han encontrado líneas de encargo en el cuerpo del mensaje.</value>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>Este remitente no tiene encargos abiertos.</value>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>Ningún encargo de este remitente coincide con {0}.</value>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>No se ha encontrado ninguna referencia de encargo en el correo.</value>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>Error al responder: {0}</value>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>Recortado para ajustarse al límite de longitud del correo.</value>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>No se ha enviado: {0} ({1:N0} caracteres, {2:N0} bytes)</value>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>No hay tiendas web abiertas.</value>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>Tiendas web: {0}; no se ha podido contactar con {1} de ellas (consulta la pantalla Tiendas).</value>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>Tiendas web sincronizadas: {0}; encargos registrados: {1}.</value>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>Tiendas web sincronizadas: {0}; sesiones de compradores activas: {1}.</value>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>Sincronizado — encargos registrados: {0}; eventos aplicados: {1}.</value>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>Sincronizado — eventos aplicados: {0}; filas de encargos enviadas: {1}; sesiones activas: {2}.</value>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>La tienda ya no existe.</value>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>La tienda web no está configurada: hay que activarla con una dirección del sitio y un secreto.</value>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>No se ha podido preparar el envío al sitio: {0}</value>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>La publicación de la tienda no ha generado nada: comprueba que tenga secciones y objetos.</value>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>Sin respuesta.</value>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>Tipo de evento desconocido: «{0}».</value>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>No se ha podido aplicar</value>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>La dirección del sitio «{0}» no es una dirección https válida.</value>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>El sitio ha rechazado la firma. El secreto de aquí y el del sitio no coinciden, o los relojes se diferencian en más de cinco minutos.</value>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>El sitio no tiene ningún endpoint de sincronización en esa dirección. Comprueba la dirección y que el sitio esté desplegado.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>El sitio usa el protocolo {0} y esta aplicación, el {1}. Actualiza la aplicación.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>El sitio usa el protocolo {0} y esta aplicación, el {1}. Actualiza el sitio.</value>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>El sitio y la aplicación no coinciden en la versión del protocolo.</value>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>El sitio ha respondido con {0} {1}.</value>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>El sitio ha respondido con {0} {1}: {2}.</value>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>La respuesta del sitio estaba vacía.</value>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>El sitio no ha respondido en el plazo de un minuto.</value>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>No se ha podido contactar con el sitio: {0}</value>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>No se ha podido leer la respuesta del sitio: {0}</value>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>No se ha podido enviar el banner: la dirección del sitio «{0}» no es una dirección https válida.</value>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>No se ha podido enviar el banner: el sitio no ha respondido en el plazo de un minuto.</value>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>No se ha podido enviar el banner porque no hay conexión con el sitio: {0}.</value>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>El sitio es demasiado antiguo para admitir un banner; actualízalo.</value>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>El sitio ha rechazado el banner ({0}).</value>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>El sitio ha rechazado el banner ({0}): {1}.</value>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>Ha iniciado sesión en el sitio.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOne" xml:space="preserve">
+    <value>Ha vuelto al sitio tras {0} día de ausencia.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>Ha vuelto al sitio tras {0} días de ausencia.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOne" xml:space="preserve">
+    <value>Ha vuelto al sitio tras {0} hora de ausencia.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>Ha vuelto al sitio tras {0} horas de ausencia.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>Ha vuelto al sitio tras {0} minutos de ausencia.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOne" xml:space="preserve">
+    <value>Ha vuelto al sitio tras {0} minuto de ausencia.</value>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>La tienda no tiene ninguna publicación con la que comprobar el encargo.</value>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>La línea de {0} no tiene precio.</value>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>{0} no está en la lista de esta tienda.</value>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>{0} ya no tiene precio en la publicación.</value>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>El sitio ha indicado un precio de {0:N0} ISK para {1}; la publicación dice ahora {2:N0} ISK ({3:+0;-0} %).</value>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>{0} líneas, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncBookedLinesOne" xml:space="preserve">
+    <value>{0} línea, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>Retirado antes de que se registrara.</value>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>Ningún encargo coincide.</value>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>El encargo es de otra persona.</value>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>No queda nada abierto en el encargo.</value>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>Se han cancelado {0} líneas. ⚠ El contrato {1} ya está emitido y hay que eliminarlo en el juego.</value>
+  </data>
+  <data name="WebSyncCancelledContractOne" xml:space="preserve">
+    <value>Se ha cancelado {0} línea. ⚠ El contrato {1} ya está emitido y hay que eliminarlo en el juego.</value>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>Se han cancelado {0} líneas.</value>
+  </data>
+  <data name="WebSyncCancelledOne" xml:space="preserve">
+    <value>Se ha cancelado {0} línea.</value>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>Se han cancelado {0} líneas. Motivo indicado: {1}</value>
+  </data>
+  <data name="WebSyncCancelledReasonOne" xml:space="preserve">
+    <value>Se ha cancelado {0} línea. Motivo indicado: {1}</value>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>Ese evento ya no existe.</value>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>Solo se pueden aprobar encargos.</value>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>Ya está registrado.</value>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>No se ha podido leer el evento.</value>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>Aprobado por el propietario. {0}</value>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>Registrado como encargo {0}.</value>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>Ya está registrado: cancélalo en Seguimiento de encargos.</value>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>Rechazado.</value>
+  </data>
 </root>

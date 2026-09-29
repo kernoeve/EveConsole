@@ -758,7 +758,7 @@
     <value>通过 EVE 邮件开放——读取并回复发送到该邮箱的邮件</value>
   </data>
   <data name="BuyersPutTheCommandNote" xml:space="preserve">
-    <value>买家在邮件主题中写入命令：PRICES、ORDER、STATUS、CANCEL 或 HELP。ORDER 邮件的正文每行一个物品——直接把物品拖进去最方便。单独发送 STATUS 会列出所有未完成的订单；CANCEL 需要提供确认邮件中的订单编号。</value>
+    <value>买家在邮件主题中写入命令：PRICES、ORDER、STATUS、CANCEL 或 HELP。ORDER 邮件的正文每行一个物品——直接把物品拖进去最方便。单独发送 STATUS 会列出所有未完成的订单；CANCEL 需要提供确认邮件中的订单号。</value>
   </data>
   <data name="MessageHeaderOnEveryNote" xml:space="preserve">
     <value>消息页眉（附在此商店发出的每封邮件上）</value>
@@ -1579,5 +1579,242 @@
   </data>
   <data name="MoreItemsTailOther" xml:space="preserve">
     <value>及另外 {0} 项物品</value>
+  </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>上一轮失败：{0}</value>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>没有开放的商店。</value>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>{0} 个商店开放中，没有新内容。</value>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>已处理 {0} 封邮件，已发出 {1} 封进度更新。</value>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>暂缓处理——{0}。</value>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>本 15 分钟时段内剩余 {0} 次邮件调用（共 {1} 次）</value>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>进度更新邮件发送失败：{0}</value>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>回复或转发的邮件——属于对话，而非命令。</value>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>邮件没有发件人——无法安全地回复。</value>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>发件人不在此商店的名单上。</value>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>主题中没有命令词——最近已发送过使用说明，留待人工处理。</value>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>主题中没有命令词——已发送使用说明。</value>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>此商店没有填写介绍——已改为发送使用说明。</value>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>商店的销售发布没有生成任何内容——请检查它是否有帖子块。</value>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>商店没有可用于定价的销售发布。</value>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>没有识别出任何物品。未匹配：{0}</value>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>正文中没有找到任何订单行。</value>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>此发件人没有未完成的订单。</value>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>此发件人没有与 {0} 相符的订单。</value>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>邮件中没有找到订单号。</value>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>回复发送失败：{0}</value>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>已截短，以符合邮件长度上限。</value>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>未发送：{0}（{1:N0} 个字符，{2:N0} 字节）</value>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>没有开放网站的商店。</value>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>{0} 个商店网站，其中 {1} 个无法连接——请查看“商店”页面。</value>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>已同步 {0} 个商店网站，已接 {1} 个订单。</value>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>已同步 {0} 个商店网站；当前有 {1} 个买家会话。</value>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>已同步——已接 {0} 个订单，已处理 {1} 个事件。</value>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>已同步——已处理 {0} 个事件，已推送 {1} 行订单，当前有 {2} 个会话。</value>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>该商店已不存在。</value>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>商店网站尚未设置：需要开启网站渠道，并填写网站地址和密钥。</value>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>无法生成推送内容：{0}</value>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>商店的销售发布没有生成任何内容——请检查它是否有分区和物品。</value>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>网站没有回应。</value>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>未知的事件类型“{0}”。</value>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>执行失败</value>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>网站地址“{0}”不是有效的 https 地址。</value>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>网站拒绝了签名。此处的密钥与网站上的不一致，或两边的时钟相差超过五分钟。</value>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>该地址上没有网站的同步端点。请检查地址，并确认网站已部署。</value>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>网站使用协议版本 {0}，而此应用使用 {1}。请更新应用。</value>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>网站使用协议版本 {0}，而此应用使用 {1}。请更新网站。</value>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>网站与应用的协议版本不一致。</value>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>网站返回了 {0} {1}。</value>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>网站返回了 {0} {1}：{2}。</value>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>网站的回复为空。</value>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>网站在一分钟内没有回应。</value>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>无法连接网站：{0}</value>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>无法读取网站的回复：{0}</value>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>无法发送横幅：网站地址“{0}”不是有效的 https 地址。</value>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>无法发送横幅：网站在一分钟内没有回应。</value>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>无法发送横幅，因为无法连接网站：{0}。</value>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>网站版本过旧，无法接收横幅；请更新网站。</value>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>网站拒绝了横幅（{0}）。</value>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>网站拒绝了横幅（{0}）：{1}。</value>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>已登录网站。</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>离开 {0} 天后回到网站。</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>离开 {0} 小时后回到网站。</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>离开 {0} 分钟后回到网站。</value>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>商店没有可用于核对此订单的销售发布。</value>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>订单中“{0}”这一行没有价格。</value>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>{0} 不在此商店的名单上。</value>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>“{0}”目前在销售发布中没有价格。</value>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>网站对“{1}”的报价为 {0:N0} ISK；销售发布现价为 {2:N0} ISK（{3:+0;-0}%）。</value>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>{0} 种物品，{1:N0} ISK。</value>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>在接单前已被买家撤回。</value>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>没有相符的订单。</value>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>该订单属于其他人。</value>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>该订单中已没有未完成的物品。</value>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>已取消 {0} 种物品。⚠ 合同 {1} 已发出，需要在游戏中撤回。</value>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>已取消 {0} 种物品。</value>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>已取消 {0} 种物品。买家给出的原因：{1}</value>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>该事件已不存在。</value>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>此项不是订单，无法接单。</value>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>已接单。</value>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>无法读取该事件。</value>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>经店主批准。{0}</value>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>已接单，订单号 {0}。</value>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>已接单——请改为在“订单跟踪”中取消。</value>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>已拒绝。</value>
   </data>
 </root>

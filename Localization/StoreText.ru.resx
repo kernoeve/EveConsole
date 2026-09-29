@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="HowToOrder" xml:space="preserve">
+    <value>{0} — как оформить заказ</value>
+  </data>
+  <data name="SubjectAbout" xml:space="preserve">
+    <value>{0} — о магазине</value>
+  </data>
+  <data name="SubjectPriceList" xml:space="preserve">
+    <value>{0} — прайс-лист</value>
+  </data>
+  <data name="SubjectOrderNotUnderstood" xml:space="preserve">
+    <value>{0} — заказ не распознан</value>
+  </data>
+  <data name="SubjectOrderOverLimit" xml:space="preserve">
+    <value>{0} — заказ сверх лимита</value>
+  </data>
+  <data name="SubjectOrder" xml:space="preserve">
+    <value>{0} — заказ {1}</value>
+  </data>
+  <data name="SubjectNoOpenOrders" xml:space="preserve">
+    <value>{0} — нет открытых заказов</value>
+  </data>
+  <data name="SubjectOrderStatus" xml:space="preserve">
+    <value>{0} — статус заказов</value>
+  </data>
+  <data name="SubjectOrderNotFound" xml:space="preserve">
+    <value>{0} — заказ не найден</value>
+  </data>
+  <data name="SubjectOrderCancelled" xml:space="preserve">
+    <value>{0} — заказ {1} отменён</value>
+  </data>
+  <data name="SubjectOrdersCancelled" xml:space="preserve">
+    <value>{0} — заказы {1} отменены</value>
+  </data>
+  <data name="SubjectPart" xml:space="preserve">
+    <value>{0} ({1}/{2})</value>
+  </data>
+  <data name="UsageSubjectWord" xml:space="preserve">
+    <value>Напишите одно из этих слов в &lt;b&gt;теме&lt;/b&gt; письма.</value>
+  </data>
+  <data name="UsagePrices" xml:space="preserve">
+    <value>текущий прайс-лист.</value>
+  </data>
+  <data name="UsageOrder" xml:space="preserve">
+    <value>оформить заказ, по одному предмету в строке текста письма.</value>
+  </data>
+  <data name="UsageDragIn" xml:space="preserve">
+    <value>Проще всего &lt;b&gt;перетащить предмет в письмо&lt;/b&gt; — из прайс-листа, с рынка или из своего ангара. Если нужно больше одного, укажите рядом количество.</value>
+  </data>
+  <data name="UsageTyping" xml:space="preserve">
+    <value>Можно и написать название. Количество всегда пишется ПОСЛЕ предмета:</value>
+  </data>
+  <data name="UsageSomeoneElse" xml:space="preserve">
+    <value>&lt;b&gt;Заказываете для кого-то другого?&lt;/b&gt; Перетащите в любое место текста письма нужного персонажа или корпорацию — контракт будет выставлен на это имя, а не на ваше.</value>
+  </data>
+  <data name="UsageStatus" xml:space="preserve">
+    <value>на каком этапе ваши заказы.</value>
+  </data>
+  <data name="UsageStatusNoReference" xml:space="preserve">
+    <value>Номер не нужен — придёт список всех ваших открытых заказов.</value>
+  </data>
+  <data name="UsageStatusOneOrder" xml:space="preserve">
+    <value>Чтобы узнать об одном заказе, укажите его номер в теме или в тексте письма:</value>
+  </data>
+  <data name="UsageCancel" xml:space="preserve">
+    <value>отозвать заказ.</value>
+  </data>
+  <data name="UsageCancelReference" xml:space="preserve">
+    <value>Для отмены номер нужен всегда — он указан в письме-подтверждении. Можно в теме или в тексте письма:</value>
+  </data>
+  <data name="UsageInfo" xml:space="preserve">
+    <value>об этом магазине.</value>
+  </data>
+  <data name="UsageHelp" xml:space="preserve">
+    <value>это письмо.</value>
+  </data>
+  <data name="UsagePricesNote" xml:space="preserve">
+    <value>Цены — те, что указаны в прайс-листе на момент прочтения заказа. — {0}</value>
+  </data>
+  <data name="NotRecognised" xml:space="preserve">
+    <value>Ваше письмо не распознано как заказ.</value>
+  </data>
+  <data name="NothingMatched" xml:space="preserve">
+    <value>Ничего из этого заказа не нашлось в прайс-листе.</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Не найдено: {0}</value>
+  </data>
+  <data name="OverLimitNotTaken" xml:space="preserve">
+    <value>Этот заказ превышает лимит покупок магазина, поэтому он не принят.</value>
+  </data>
+  <data name="OrderReceived" xml:space="preserve">
+    <value>Заказ {0} получен</value>
+  </data>
+  <data name="PriceEach" xml:space="preserve">
+    <value>({0} за единицу)</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="OrderTotalLine" xml:space="preserve">
+    <value>Итого: {0}</value>
+  </data>
+  <data name="ContractMadeOutTo" xml:space="preserve">
+    <value>Контракт будет выставлен на имя &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="NotOrdered" xml:space="preserve">
+    <value>Нет в прайс-листе, поэтому НЕ заказано: {0}</value>
+  </data>
+  <data name="OrderTrimmed" xml:space="preserve">
+    <value>Этот заказ оказался больше, чем можно оформить одним письмом (предметов — не более {0}, каждого — не более {1:N0} ед.), поэтому он сокращён. Проверьте строки выше, а для заказа крупнее напишите нам напрямую.</value>
+  </data>
+  <data name="ReplyWithStatus" xml:space="preserve">
+    <value>Отправьте STATUS, чтобы узнать о ходе заказа, или CANCEL с этим номером, чтобы отозвать его.</value>
+  </data>
+  <data name="NoOpenOrders" xml:space="preserve">
+    <value>У вас нет открытых заказов в нашем магазине.</value>
+  </data>
+  <data name="OrderHeading" xml:space="preserve">
+    <value>Заказ {0}</value>
+  </data>
+  <data name="YourOpenOrders" xml:space="preserve">
+    <value>Ваши открытые заказы</value>
+  </data>
+  <data name="ContractTo" xml:space="preserve">
+    <value>Контракт на имя: {0}</value>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>Сумма заказа: {0}</value>
+  </data>
+  <data name="NoOrderMatches" xml:space="preserve">
+    <value>У вас нет открытого заказа с номером &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="NoReferenceFound" xml:space="preserve">
+    <value>В этом письме не найден номер заказа.</value>
+  </data>
+  <data name="ReferencesLookLike" xml:space="preserve">
+    <value>Номер заказа выглядит как K7P2QX и указан в письме-подтверждении. Чтобы получить список открытых заказов, отправьте STATUS без номера.</value>
+  </data>
+  <data name="OrderCancelled" xml:space="preserve">
+    <value>Заказ {0} отменён</value>
+  </data>
+  <data name="OrdersCancelled" xml:space="preserve">
+    <value>Заказы {0} отменены</value>
+  </data>
+  <data name="NothingOpenToCancelSingle" xml:space="preserve">
+    <value>В этом заказе уже нечего отменять.</value>
+  </data>
+  <data name="NothingOpenToCancelSeveral" xml:space="preserve">
+    <value>В этих заказах уже нечего отменять.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOther" xml:space="preserve">
+    <value>{0} позиции уже доставлены или отменены и оставлены без изменений.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOne" xml:space="preserve">
+    <value>{0} позиция уже доставлена или отменена и оставлена без изменений.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreFew" xml:space="preserve">
+    <value>{0} позиции уже доставлены или отменены и оставлены без изменений.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreMany" xml:space="preserve">
+    <value>{0} позиций уже доставлены или отменены и оставлены без изменений.</value>
+  </data>
+  <data name="UpdateHeading" xml:space="preserve">
+    <value>Заказ &lt;b&gt;{0}&lt;/b&gt; — изменение статуса</value>
+  </data>
+  <data name="TypeFallback" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="UnknownLink" xml:space="preserve">
+    <value>тип {0}</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>Страница {0} из {1}</value>
+  </data>
+  <data name="HeadingPart" xml:space="preserve">
+    <value>{0} ({1} из {2})</value>
+  </data>
+  <data name="PagesDidNotFitOther" xml:space="preserve">
+    <value>Ещё {0} страницы не поместились.</value>
+  </data>
+  <data name="PagesDidNotFitOne" xml:space="preserve">
+    <value>Ещё {0} страница не поместилась.</value>
+  </data>
+  <data name="PagesDidNotFitFew" xml:space="preserve">
+    <value>Ещё {0} страницы не поместились.</value>
+  </data>
+  <data name="PagesDidNotFitMany" xml:space="preserve">
+    <value>Ещё {0} страниц не поместилось.</value>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>Отправьте STATUS с номером заказа, чтобы узнать об одном заказе.</value>
+  </data>
+  <data name="MessageCut" xml:space="preserve">
+    <value>… это письмо оказалось слишком длинным для почты EVE и обрезано здесь.</value>
+  </data>
+  <data name="ExpectContractWaiting" xml:space="preserve">
+    <value>Контракт уже выставлен и ждёт, когда вы его примете.</value>
+  </data>
+  <data name="ExpectInStock" xml:space="preserve">
+    <value>В наличии и зарезервировано для вас — мы сообщим, когда контракт будет выставлен.</value>
+  </data>
+  <data name="ExpectInStockDue" xml:space="preserve">
+    <value>В наличии и зарезервировано для вас — контракт ожидается {0}.</value>
+  </data>
+  <data name="ExpectInBuild" xml:space="preserve">
+    <value>Уже в производстве.</value>
+  </data>
+  <data name="ExpectInBuildDue" xml:space="preserve">
+    <value>Уже в производстве, ожидается {0}.</value>
+  </data>
+  <data name="ExpectOutOfStock" xml:space="preserve">
+    <value>Нет в наличии — ваш заказ в очереди, а дату готовности мы сообщим, когда начнётся производство.</value>
+  </data>
+  <data name="ExpectOutOfStockDue" xml:space="preserve">
+    <value>Нет в наличии — ваш заказ в очереди, ожидается {0}.</value>
+  </data>
+  <data name="StateDelivered" xml:space="preserve">
+    <value>доставлен</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOther" xml:space="preserve">
+    <value>{0:N0} единицы из {1:N0} доставлены, остальные отменены</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOne" xml:space="preserve">
+    <value>{0:N0} единица из {1:N0} доставлена, остальные отменены</value>
+  </data>
+  <data name="StateDeliveredRestCancelledFew" xml:space="preserve">
+    <value>{0:N0} единицы из {1:N0} доставлены, остальные отменены</value>
+  </data>
+  <data name="StateDeliveredRestCancelledMany" xml:space="preserve">
+    <value>{0:N0} единиц из {1:N0} доставлены, остальные отменены</value>
+  </data>
+  <data name="StateContractDeclined" xml:space="preserve">
+    <value>контракт отклонён, поэтому заказ закрыт</value>
+  </data>
+  <data name="StateCancelled" xml:space="preserve">
+    <value>отменён</value>
+  </data>
+  <data name="StateContractWaiting" xml:space="preserve">
+    <value>контракт выставлен — ждёт, когда вы его примете</value>
+  </data>
+  <data name="StateReadyContractDue" xml:space="preserve">
+    <value>уже готов — контракт ожидается {0}</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>уже готов — мы сообщим, когда контракт будет выставлен</value>
+  </data>
+  <data name="StateInProductionDue" xml:space="preserve">
+    <value>в производстве, ожидается {0}</value>
+  </data>
+  <data name="StateInProduction" xml:space="preserve">
+    <value>в производстве</value>
+  </data>
+  <data name="StateExpected" xml:space="preserve">
+    <value>ожидается {0}</value>
+  </data>
+  <data name="StateWaitingOnMaterials" xml:space="preserve">
+    <value>ожидает материалов</value>
+  </data>
+  <data name="PartDeliveredOther" xml:space="preserve">
+    <value>{0:N0} единицы из {1:N0} доставлены</value>
+  </data>
+  <data name="PartDeliveredOne" xml:space="preserve">
+    <value>{0:N0} единица из {1:N0} доставлена</value>
+  </data>
+  <data name="PartDeliveredFew" xml:space="preserve">
+    <value>{0:N0} единицы из {1:N0} доставлены</value>
+  </data>
+  <data name="PartDeliveredMany" xml:space="preserve">
+    <value>{0:N0} единиц из {1:N0} доставлены</value>
+  </data>
+  <data name="PartOnContractOther" xml:space="preserve">
+    <value>{0:N0} единицы в контракте, который вам нужно принять</value>
+  </data>
+  <data name="PartOnContractOne" xml:space="preserve">
+    <value>{0:N0} единица в контракте, который вам нужно принять</value>
+  </data>
+  <data name="PartOnContractFew" xml:space="preserve">
+    <value>{0:N0} единицы в контракте, который вам нужно принять</value>
+  </data>
+  <data name="PartOnContractMany" xml:space="preserve">
+    <value>{0:N0} единиц в контракте, который вам нужно принять</value>
+  </data>
+  <data name="PartReadyOther" xml:space="preserve">
+    <value>{0:N0} единицы уже готовы</value>
+  </data>
+  <data name="PartReadyOne" xml:space="preserve">
+    <value>{0:N0} единица уже готова</value>
+  </data>
+  <data name="PartReadyFew" xml:space="preserve">
+    <value>{0:N0} единицы уже готовы</value>
+  </data>
+  <data name="PartReadyMany" xml:space="preserve">
+    <value>{0:N0} единиц уже готовы</value>
+  </data>
+  <data name="PartReadyContractDueOther" xml:space="preserve">
+    <value>{0:N0} единицы уже готовы, контракт ожидается {1}</value>
+  </data>
+  <data name="PartReadyContractDueOne" xml:space="preserve">
+    <value>{0:N0} единица уже готова, контракт ожидается {1}</value>
+  </data>
+  <data name="PartReadyContractDueFew" xml:space="preserve">
+    <value>{0:N0} единицы уже готовы, контракт ожидается {1}</value>
+  </data>
+  <data name="PartReadyContractDueMany" xml:space="preserve">
+    <value>{0:N0} единиц уже готовы, контракт ожидается {1}</value>
+  </data>
+  <data name="PartInProductionOther" xml:space="preserve">
+    <value>{0:N0} единицы в производстве</value>
+  </data>
+  <data name="PartInProductionOne" xml:space="preserve">
+    <value>{0:N0} единица в производстве</value>
+  </data>
+  <data name="PartInProductionFew" xml:space="preserve">
+    <value>{0:N0} единицы в производстве</value>
+  </data>
+  <data name="PartInProductionMany" xml:space="preserve">
+    <value>{0:N0} единиц в производстве</value>
+  </data>
+  <data name="PartInProductionDueOther" xml:space="preserve">
+    <value>{0:N0} единицы в производстве, ожидаются {1}</value>
+  </data>
+  <data name="PartInProductionDueOne" xml:space="preserve">
+    <value>{0:N0} единица в производстве, ожидается {1}</value>
+  </data>
+  <data name="PartInProductionDueFew" xml:space="preserve">
+    <value>{0:N0} единицы в производстве, ожидаются {1}</value>
+  </data>
+  <data name="PartInProductionDueMany" xml:space="preserve">
+    <value>{0:N0} единиц в производстве, ожидаются {1}</value>
+  </data>
+  <data name="PartWaitingOnMaterialsOther" xml:space="preserve">
+    <value>{0:N0} единицы ожидают материалов</value>
+  </data>
+  <data name="PartWaitingOnMaterialsOne" xml:space="preserve">
+    <value>{0:N0} единица ожидает материалов</value>
+  </data>
+  <data name="PartWaitingOnMaterialsFew" xml:space="preserve">
+    <value>{0:N0} единицы ожидают материалов</value>
+  </data>
+  <data name="PartWaitingOnMaterialsMany" xml:space="preserve">
+    <value>{0:N0} единиц ожидают материалов</value>
+  </data>
+  <data name="PartExpectedOther" xml:space="preserve">
+    <value>{0:N0} единицы ожидаются {1}</value>
+  </data>
+  <data name="PartExpectedOne" xml:space="preserve">
+    <value>{0:N0} единица ожидается {1}</value>
+  </data>
+  <data name="PartExpectedFew" xml:space="preserve">
+    <value>{0:N0} единицы ожидаются {1}</value>
+  </data>
+  <data name="PartExpectedMany" xml:space="preserve">
+    <value>{0:N0} единиц ожидаются {1}</value>
+  </data>
+  <data name="PartsSeparator" xml:space="preserve">
+    <value>; </value>
+  </data>
+  <data name="LimitScopeItem" xml:space="preserve">
+    <value>каждого предмета</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>из каждой группы предметов</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>на весь магазин</value>
+  </data>
+  <data name="LimitPerDay" xml:space="preserve">
+    <value>в день</value>
+  </data>
+  <data name="LimitPerDaysOther" xml:space="preserve">
+    <value>за {0} дня</value>
+  </data>
+  <data name="LimitPerDaysOne" xml:space="preserve">
+    <value>за {0} день</value>
+  </data>
+  <data name="LimitPerDaysFew" xml:space="preserve">
+    <value>за {0} дня</value>
+  </data>
+  <data name="LimitPerDaysMany" xml:space="preserve">
+    <value>за {0} дней</value>
+  </data>
+  <data name="LimitPerMonth" xml:space="preserve">
+    <value>в месяц</value>
+  </data>
+  <data name="LimitPerMonthsOther" xml:space="preserve">
+    <value>за {0} месяца</value>
+  </data>
+  <data name="LimitPerMonthsOne" xml:space="preserve">
+    <value>за {0} месяц</value>
+  </data>
+  <data name="LimitPerMonthsFew" xml:space="preserve">
+    <value>за {0} месяца</value>
+  </data>
+  <data name="LimitPerMonthsMany" xml:space="preserve">
+    <value>за {0} месяцев</value>
+  </data>
+  <data name="LimitPerYear" xml:space="preserve">
+    <value>в год</value>
+  </data>
+  <data name="LimitPerYearsOther" xml:space="preserve">
+    <value>за {0} года</value>
+  </data>
+  <data name="LimitPerYearsOne" xml:space="preserve">
+    <value>за {0} год</value>
+  </data>
+  <data name="LimitPerYearsFew" xml:space="preserve">
+    <value>за {0} года</value>
+  </data>
+  <data name="LimitPerYearsMany" xml:space="preserve">
+    <value>за {0} лет</value>
+  </data>
+  <data name="LimitEver" xml:space="preserve">
+    <value>за всё время</value>
+  </data>
+  <data name="LimitRuleOne" xml:space="preserve">
+    <value>Каждый покупатель может заказать {0:N0} единицу {1} {2}.</value>
+  </data>
+  <data name="LimitRuleOther" xml:space="preserve">
+    <value>Каждый покупатель может заказать {0:N0} единицы {1} {2}.</value>
+  </data>
+  <data name="LimitRuleFew" xml:space="preserve">
+    <value>Каждый покупатель может заказать {0:N0} единицы {1} {2}.</value>
+  </data>
+  <data name="LimitRuleMany" xml:space="preserve">
+    <value>Каждый покупатель может заказать {0:N0} единиц {1} {2}.</value>
+  </data>
+  <data name="LimitOver" xml:space="preserve">
+    <value>Превышен лимит магазина ({0:N0} ед. {1} {2}): {3:N0} × {4}, уже заказано {5:N0} ед.</value>
+  </data>
+  <data name="PriceListLimitReached" xml:space="preserve">
+    <value>лимит исчерпан</value>
+  </data>
+  <data name="WebNoBuyer" xml:space="preserve">
+    <value>В заказе не указан покупатель.</value>
+  </data>
+  <data name="WebNoLines" xml:space="preserve">
+    <value>В заказе нет ни одной позиции.</value>
+  </data>
+  <data name="WebTooManyLinesOther" xml:space="preserve">
+    <value>В заказе {0} позиции, а допускается не больше {1}.</value>
+  </data>
+  <data name="WebTooManyLinesOne" xml:space="preserve">
+    <value>В заказе {0} позиция, а допускается не больше {1}.</value>
+  </data>
+  <data name="WebTooManyLinesFew" xml:space="preserve">
+    <value>В заказе {0} позиции, а допускается не больше {1}.</value>
+  </data>
+  <data name="WebTooManyLinesMany" xml:space="preserve">
+    <value>В заказе {0} позиций, а допускается не больше {1}.</value>
+  </data>
+  <data name="WebNotOnPriceList" xml:space="preserve">
+    <value>Тип {0} отсутствует в прайс-листе.</value>
+  </data>
+  <data name="WebUnitsAskedOther" xml:space="preserve">
+    <value>В одной из позиций указано количество {0}.</value>
+  </data>
+  <data name="WebUnitsAskedOne" xml:space="preserve">
+    <value>В одной из позиций указано количество {0}.</value>
+  </data>
+  <data name="WebUnitsAskedFew" xml:space="preserve">
+    <value>В одной из позиций указано количество {0}.</value>
+  </data>
+  <data name="WebUnitsAskedMany" xml:space="preserve">
+    <value>В одной из позиций указано количество {0}.</value>
+  </data>
+  <data name="WebTooManyUnitsOther" xml:space="preserve">
+    <value>В позиции {0:N0} единицы, а допускается не больше {1:N0}.</value>
+  </data>
+  <data name="WebTooManyUnitsOne" xml:space="preserve">
+    <value>В позиции {0:N0} единица, а допускается не больше {1:N0}.</value>
+  </data>
+  <data name="WebTooManyUnitsFew" xml:space="preserve">
+    <value>В позиции {0:N0} единицы, а допускается не больше {1:N0}.</value>
+  </data>
+  <data name="WebTooManyUnitsMany" xml:space="preserve">
+    <value>В позиции {0:N0} единиц, а допускается не больше {1:N0}.</value>
+  </data>
+  <data name="WebWithdrawn" xml:space="preserve">
+    <value>Отозван покупателем до принятия магазином.</value>
+  </data>
+  <data name="WebDeclined" xml:space="preserve">
+    <value>Отклонён магазином.</value>
+  </data>
+</root>

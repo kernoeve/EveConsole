@@ -758,7 +758,7 @@
     <value>EVE 메일로 열기 — 메일함으로 온 메일을 읽고 답장</value>
   </data>
   <data name="BuyersPutTheCommandNote" xml:space="preserve">
-    <value>구매자는 메일 '제목'에 명령을 씁니다: PRICES, ORDER, STATUS, CANCEL 또는 HELP. ORDER 메일의 본문에는 한 줄에 아이템 하나를 씁니다 — 아이템을 끌어다 놓는 것이 가장 쉽습니다. STATUS만 보내면 진행 중인 모든 주문이 표시되며, CANCEL에는 확인 메일에 있는 참조 번호가 필요합니다.</value>
+    <value>구매자는 메일 '제목'에 명령을 씁니다: PRICES, ORDER, STATUS, CANCEL 또는 HELP. ORDER 메일의 본문에는 한 줄에 아이템 하나를 씁니다 — 아이템을 끌어다 놓는 것이 가장 쉽습니다. STATUS만 보내면 진행 중인 모든 주문이 표시되며, CANCEL에는 주문 확정 메일에 있는 주문 번호가 필요합니다.</value>
   </data>
   <data name="MessageHeaderOnEveryNote" xml:space="preserve">
     <value>메시지 머리글  (이 상점이 보내는 모든 메일에 붙음)</value>
@@ -1579,5 +1579,242 @@
   </data>
   <data name="MoreItemsTailOther" xml:space="preserve">
     <value>외 아이템 {0}개</value>
+  </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>마지막 처리 실패: {0}</value>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>열린 상점이 없습니다.</value>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>상점 {0}개 열림, 새로 처리할 항목 없음.</value>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>메일 {0}통 처리, 진행 상황 알림 {1}통 발송.</value>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>잠시 대기 중 — {0}.</value>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>이번 15분 구간에 메일 호출 {1}회 중 {0}회 남음</value>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>진행 상황 알림 실패: {0}</value>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>답장 또는 전달 메일 — 명령이 아닌 대화의 일부입니다.</value>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>메일에 보낸 사람이 없습니다 — 안전하게 답장할 수 없습니다.</value>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>보낸 사람이 이 상점의 목록에 없습니다.</value>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>제목에 명령이 없습니다 — 최근에 이미 사용법을 보냈으므로 직접 확인하도록 남겨 두었습니다.</value>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>제목에 명령이 없어 사용법을 보냈습니다.</value>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>이 상점에 작성된 정보가 없어 대신 사용법을 보냈습니다.</value>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>상점 게시물에서 생성된 내용이 없습니다 — 게시 블록이 있는지 확인하십시오.</value>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>상점에 가격 기준으로 삼을 게시물이 없습니다.</value>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>인식된 항목이 없습니다. 일치하지 않음: {0}</value>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>본문에서 주문 항목을 찾지 못했습니다.</value>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>이 보낸 사람의 진행 중인 주문이 없습니다.</value>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>이 보낸 사람의 주문 중 {0}에 해당하는 주문이 없습니다.</value>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>메일에서 주문 번호를 찾지 못했습니다.</value>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>답장 실패: {0}</value>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>메일 길이 제한에 맞게 줄였습니다.</value>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>보내지 못함: {0} ({1:N0}자, {2:N0}바이트)</value>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>열린 웹 상점이 없습니다.</value>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>웹 상점 {0}개 중 {1}개에 연결하지 못함 — 상점 화면을 확인하십시오.</value>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>웹 상점 {0}개 동기화, 주문 {1}건 접수.</value>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>웹 상점 {0}개 동기화, 구매자 세션 {1}개 활성.</value>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>동기화 완료 — 주문 {0}건 접수, 이벤트 {1}건 적용.</value>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>동기화 완료 — 이벤트 {0}건 적용, 주문 행 {1}개 전송, 활성 세션 {2}개.</value>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>상점이 더 이상 존재하지 않습니다.</value>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>웹 상점이 설정되지 않았습니다: 사이트 주소와 비밀 키를 입력하고 켜야 합니다.</value>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>사이트로 보낼 데이터를 만들지 못했습니다: {0}</value>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>상점 게시물에서 생성된 내용이 없습니다 — 섹션과 아이템이 있는지 확인하십시오.</value>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>응답 없음.</value>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>알 수 없는 이벤트 유형입니다: "{0}".</value>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>적용하지 못했습니다</value>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>사이트 주소 "{0}"은(는) 올바른 https 주소가 아닙니다.</value>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>사이트가 서명을 거부했습니다. 여기의 비밀 키와 사이트의 비밀 키가 다르거나, 두 시계가 5분 넘게 차이 납니다.</value>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>그 주소에는 사이트의 동기화 엔드포인트가 없습니다. 주소를 확인하고, 사이트가 배포되었는지 확인하십시오.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>사이트의 프로토콜은 {0}, 이 앱의 프로토콜은 {1}입니다. 앱을 업데이트하십시오.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>사이트의 프로토콜은 {0}, 이 앱의 프로토콜은 {1}입니다. 사이트를 업데이트하십시오.</value>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>사이트와 앱의 프로토콜 버전이 서로 맞지 않습니다.</value>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>사이트가 {0} {1} 응답을 보냈습니다.</value>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>사이트가 {0} {1} 응답을 보냈습니다: {2}.</value>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>사이트의 응답이 비어 있습니다.</value>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>사이트가 1분 안에 응답하지 않았습니다.</value>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>사이트에 연결할 수 없습니다: {0}</value>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>사이트의 응답을 읽을 수 없습니다: {0}</value>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>배너를 보낼 수 없습니다: 사이트 주소 "{0}"은(는) 올바른 https 주소가 아닙니다.</value>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>배너를 보낼 수 없습니다: 사이트가 1분 안에 응답하지 않았습니다.</value>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>배너를 보낼 수 없습니다: 사이트에 연결할 수 없습니다: {0}.</value>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>사이트 버전이 낮아 배너를 받을 수 없습니다. 사이트를 업데이트하십시오.</value>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>사이트가 배너를 거부했습니다({0}).</value>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>사이트가 배너를 거부했습니다({0}): {1}.</value>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>사이트에 로그인했습니다.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>{0}일 만에 사이트를 다시 방문했습니다.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>{0}시간 만에 사이트를 다시 방문했습니다.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>{0}분 만에 사이트를 다시 방문했습니다.</value>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>상점에 주문을 확인할 기준 게시물이 없습니다.</value>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>{0} 항목에 가격이 없습니다.</value>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>{0} 캐릭터는 이 상점의 목록에 없습니다.</value>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>현재 게시물에 {0}의 가격이 없습니다.</value>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>사이트는 {1}의 가격을 {0:N0} ISK로 제시했지만, 현재 게시물 가격은 {2:N0} ISK입니다({3:+0;-0}%).</value>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>항목 {0}개, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>접수되기 전에 철회되었습니다.</value>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>일치하는 주문이 없습니다.</value>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>다른 사람의 주문입니다.</value>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>이 주문에는 더 이상 진행 중인 항목이 없습니다.</value>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>항목 {0}개를 취소했습니다. ⚠ 계약 {1}은(는) 이미 발행되었으므로 게임에서 삭제해야 합니다.</value>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>항목 {0}개를 취소했습니다.</value>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>항목 {0}개를 취소했습니다. 사유: {1}</value>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>그 이벤트는 더 이상 존재하지 않습니다.</value>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>주문만 승인할 수 있습니다.</value>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>이미 접수되었습니다.</value>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>이벤트를 읽을 수 없습니다.</value>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>운영자가 승인했습니다. {0}</value>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>주문 {0}(으)로 접수했습니다.</value>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>이미 접수되었습니다 — 대신 주문 추적에서 취소하십시오.</value>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>거절했습니다.</value>
   </data>
 </root>

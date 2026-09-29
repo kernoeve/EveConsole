@@ -758,7 +758,7 @@
     <value>EVEメールで開店 — メールボックスに届いたメールを読んで返信する</value>
   </data>
   <data name="BuyersPutTheCommandNote" xml:space="preserve">
-    <value>買い手はメールの件名にコマンドを書きます：PRICES、ORDER、STATUS、CANCEL、HELP。ORDERの本文は1行に1アイテムです — アイテムをドラッグして入れるのが最も簡単です。STATUSだけを送ると未完了の注文がすべて一覧表示されます。CANCELには確認メールに記載された参照番号が必要です。</value>
+    <value>買い手はメールの件名にコマンドを書きます：PRICES、ORDER、STATUS、CANCEL、HELP。ORDERの本文は1行に1アイテムです — アイテムをドラッグして入れるのが最も簡単です。STATUSだけを送ると未完了の注文がすべて一覧表示されます。CANCELには注文確認メールに記載された注文番号が必要です。</value>
   </data>
   <data name="MessageHeaderOnEveryNote" xml:space="preserve">
     <value>メッセージのヘッダー（このストアが送るすべてのメールに付きます）</value>
@@ -1579,5 +1579,242 @@
   </data>
   <data name="MoreItemsTailOther" xml:space="preserve">
     <value>ほか{0}種類</value>
+  </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>前回の処理に失敗しました：{0}</value>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>営業中のストアはありません。</value>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>営業中のストア{0}件、新着はありません。</value>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>メッセージ{0}件を処理、進捗の通知{1}件を送信しました。</value>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>待機中 — {0}。</value>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>この15分間の枠で、メールの呼び出しは残り{0}回（上限{1}回）</value>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>進捗の通知に失敗しました：{0}</value>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>返信または転送です — コマンドではなく、やり取りの一部です。</value>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>メールに送信者がありません — 安全に返信できません。</value>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>送信者がこのストアのリストにありません。</value>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>件名にコマンドがありません — 最近使い方のメッセージを送信済みのため、手動での対応に残しました。</value>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>件名にコマンドがありません — 使い方のメッセージを送信しました。</value>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>このストアには情報が書かれていません — 代わりに使い方のメッセージを送信しました。</value>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>ストアの投稿から何も生成されませんでした — 投稿ブロックがあるか確認してください。</value>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>ストアに、価格の基準となる投稿がありません。</value>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>認識できたものはありません。一致しなかったもの：{0}</value>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>本文に注文の行が見つかりませんでした。</value>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>この送信者の進行中の注文はありません。</value>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>この送信者の注文に、{0}と一致するものはありません。</value>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>メールに注文番号が見つかりませんでした。</value>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>返信に失敗しました：{0}</value>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>メールの長さの上限に収まるよう短縮しました。</value>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>未送信：{0}（{1:N0}文字、{2:N0}バイト）</value>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>ウェブで営業中のストアはありません。</value>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>ウェブサイト{0}件のうち{1}件に接続できませんでした — 「ストア」画面を確認してください。</value>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>ウェブサイト{0}件を同期、注文{1}件を受注。</value>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>ウェブサイト{0}件を同期、ログイン中の買い手{1}人。</value>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>同期しました — 注文{0}件を受注、イベント{1}件を適用。</value>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>同期しました — イベント{0}件を適用、注文の行{1}件を送信、ログイン中の買い手{2}人。</value>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>ストアはもう存在しません。</value>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>ウェブの窓口が設定されていません：サイトのアドレスとシークレットを設定して、オンにする必要があります。</value>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>サイトへの送信内容を作成できませんでした：{0}</value>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>ストアの投稿から何も生成されませんでした — セクションとアイテムがあるか確認してください。</value>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>応答がありません。</value>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>イベントの種類「{0}」は不明です。</value>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>適用できませんでした</value>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>サイトのアドレス「{0}」は有効なhttpsアドレスではありません。</value>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>サイトが署名を拒否しました。ここのシークレットとサイトのシークレットが異なるか、時計が5分以上ずれています。</value>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>そのアドレスのサイトには同期用のエンドポイントがありません。アドレスと、サイトがデプロイされているかを確認してください。</value>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>サイトのプロトコルは{0}、このアプリは{1}です。アプリをアップデートしてください。</value>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>サイトのプロトコルは{0}、このアプリは{1}です。サイトを更新してください。</value>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>サイトとアプリで、プロトコルのバージョンが一致しません。</value>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>サイトから{0} {1}が返されました。</value>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>サイトから{0} {1}が返されました：{2}。</value>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>サイトからの応答が空でした。</value>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>サイトが1分以内に応答しませんでした。</value>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>サイトに接続できませんでした：{0}</value>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>サイトからの応答を読み取れませんでした：{0}</value>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>バナーを送信できませんでした：サイトのアドレス「{0}」は有効なhttpsアドレスではありません。</value>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>バナーを送信できませんでした：サイトが1分以内に応答しませんでした。</value>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>バナーを送信できませんでした：サイトに接続できませんでした：{0}。</value>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>サイトが古いため、バナーを受け取れません。サイトを更新してください。</value>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>サイトがバナーを拒否しました（{0}）。</value>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>サイトがバナーを拒否しました（{0}）：{1}。</value>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>サイトにログインしました。</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>{0}日ぶりにサイトを訪れました。</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>{0}時間ぶりにサイトを訪れました。</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>{0}分ぶりにサイトを訪れました。</value>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>ストアに、注文を照合する投稿がありません。</value>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>{0}の行に価格がありません。</value>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>{0}はこのストアのリストにありません。</value>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>現在、投稿に{0}の価格がありません。</value>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>サイトは{1}を{0:N0} ISKと提示しましたが、現在の投稿では{2:N0} ISK（{3:+0;-0}%）です。</value>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>アイテム{0}件、{1:N0} ISK。</value>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>受注前に取り下げられました。</value>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>該当する注文はありません。</value>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>その注文はほかの買い手のものです。</value>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>その注文に進行中のものは残っていません。</value>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>アイテム{0}件をキャンセルしました。⚠ 契約{1}はすでに発行済みのため、ゲーム内で削除する必要があります。</value>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>アイテム{0}件をキャンセルしました。</value>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>アイテム{0}件をキャンセルしました。理由：{1}</value>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>そのイベントはもう存在しません。</value>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>受注できるのは注文だけです。</value>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>すでに受注済みです。</value>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>イベントを読み取れませんでした。</value>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>ストアの運営者が承認し、受注しました。{0}</value>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>注文番号{0}として受注しました。</value>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>すでに受注済みです — 代わりに「注文管理」でキャンセルしてください。</value>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>拒否しました。</value>
   </data>
 </root>

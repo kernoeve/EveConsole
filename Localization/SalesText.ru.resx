@@ -1616,4 +1616,313 @@
   <data name="MoreItemsTailMany" xml:space="preserve">
     <value>и ещё {0} предметов</value>
   </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>Последний проход завершился ошибкой: {0}</value>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>Нет открытых магазинов.</value>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>Открыто {0} магазина, ничего нового.</value>
+  </data>
+  <data name="MailStoreNothingNewOne" xml:space="preserve">
+    <value>Открыт {0} магазин, ничего нового.</value>
+  </data>
+  <data name="MailStoreNothingNewFew" xml:space="preserve">
+    <value>Открыто {0} магазина, ничего нового.</value>
+  </data>
+  <data name="MailStoreNothingNewMany" xml:space="preserve">
+    <value>Открыто {0} магазинов, ничего нового.</value>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>Обработано писем: {0}, отправлено уведомлений: {1}.</value>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>Пауза — {0}.</value>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>осталось {0} из {1} запросов к почте в текущем 15-минутном окне</value>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>Не удалось отправить уведомление: {0}</value>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>Ответ или пересылка — часть переписки, а не команда.</value>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>У письма нет отправителя — безопасно ответить нельзя.</value>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>Отправителя нет в списке этого магазина.</value>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>В теме нет команды, а справка недавно уже отправлялась — письмо оставлено для ответа вручную.</value>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>В теме нет команды — отправлена справка.</value>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>Для этого магазина не написана информация — вместо неё отправлена справка.</value>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>Объявление магазина ничего не сформировало — проверьте, есть ли в нём блоки сообщений.</value>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>У магазина нет объявления о продаже, из которого брать цены.</value>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>Ничего не распознано. Без совпадений: {0}</value>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>В тексте письма не найдено ни одной позиции заказа.</value>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>У этого отправителя нет открытых заказов.</value>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>У этого отправителя нет заказа {0}.</value>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>В письме не найден номер заказа.</value>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>Не удалось ответить: {0}</value>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>Обрезано до допустимой длины письма.</value>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>Не отправлено: {0} (символов: {1:N0}, байт: {2:N0})</value>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>Нет магазинов, открытых для сайта.</value>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>Сайтов: {0}, недоступно: {1} — подробности в разделе «Магазины».</value>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>Синхронизировано сайтов: {0}, принято заказов: {1}.</value>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>Синхронизировано сайтов: {0}; активных сеансов покупателей: {1}.</value>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>Синхронизировано — принято заказов: {0}, применено событий: {1}.</value>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>Синхронизировано — применено событий: {0}, отправлено строк заказов: {1}, активных сеансов: {2}.</value>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>Этого магазина больше нет.</value>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>Сайт магазина не настроен: его нужно включить и указать адрес сайта и секрет.</value>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>Не удалось подготовить данные для сайта: {0}</value>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>Объявление магазина ничего не сформировало — проверьте, есть ли в нём разделы и предметы.</value>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>Нет ответа.</value>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>Неизвестный вид события «{0}».</value>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>Не удалось применить</value>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>Адрес сайта «{0}» не является допустимым адресом https.</value>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>Сайт отклонил подпись. Секреты здесь и на сайте различаются, или часы расходятся больше чем на пять минут.</value>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>По этому адресу у сайта нет конечной точки синхронизации. Проверьте адрес и то, что сайт развёрнут.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>Сайт использует протокол версии {0}, а это приложение — версии {1}. Обновите приложение.</value>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>Сайт использует протокол версии {0}, а это приложение — версии {1}. Обновите сайт.</value>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>Сайт и приложение расходятся в версии протокола.</value>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>Сайт ответил: {0} {1}.</value>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>Сайт ответил: {0} {1} — {2}.</value>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>Сайт прислал пустой ответ.</value>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>Сайт не ответил в течение минуты.</value>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>Не удалось связаться с сайтом: {0}</value>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>Не удалось прочитать ответ сайта: {0}</value>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>Не удалось отправить баннер: адрес сайта «{0}» не является допустимым адресом https.</value>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>Не удалось отправить баннер: сайт не ответил в течение минуты.</value>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>Не удалось отправить баннер — нет связи с сайтом: {0}.</value>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>Версия сайта слишком старая для баннера — обновите сайт.</value>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>Сайт отклонил баннер ({0}).</value>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>Сайт отклонил баннер ({0}): {1}.</value>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>Вход на сайт.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOne" xml:space="preserve">
+    <value>Снова на сайте спустя {0} день.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>Снова на сайте спустя {0} дня.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysFew" xml:space="preserve">
+    <value>Снова на сайте спустя {0} дня.</value>
+  </data>
+  <data name="WebSyncBackAfterDaysMany" xml:space="preserve">
+    <value>Снова на сайте спустя {0} дней.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOne" xml:space="preserve">
+    <value>Снова на сайте спустя {0} час.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>Снова на сайте спустя {0} часа.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursFew" xml:space="preserve">
+    <value>Снова на сайте спустя {0} часа.</value>
+  </data>
+  <data name="WebSyncBackAfterHoursMany" xml:space="preserve">
+    <value>Снова на сайте спустя {0} часов.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>Снова на сайте спустя {0} минуты.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesOne" xml:space="preserve">
+    <value>Снова на сайте спустя {0} минуту.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesFew" xml:space="preserve">
+    <value>Снова на сайте спустя {0} минуты.</value>
+  </data>
+  <data name="WebSyncBackAfterMinutesMany" xml:space="preserve">
+    <value>Снова на сайте спустя {0} минут.</value>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>У магазина нет объявления о продаже, с которым можно сверить заказ.</value>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>В позиции не указана цена: {0}.</value>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>Персонажа {0} нет в списке этого магазина.</value>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>У предмета {0} сейчас нет цены в объявлении.</value>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>{1}: сайт указал цену {0:N0} ISK, а в объявлении сейчас {2:N0} ISK ({3:+0;-0}%).</value>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>{0} позиции, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncBookedLinesOne" xml:space="preserve">
+    <value>{0} позиция, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncBookedLinesFew" xml:space="preserve">
+    <value>{0} позиции, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncBookedLinesMany" xml:space="preserve">
+    <value>{0} позиций, {1:N0} ISK.</value>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>Отозван до принятия.</value>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>Подходящего заказа нет.</value>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>Заказ принадлежит кому-то другому.</value>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>В заказе не осталось открытых позиций.</value>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>Отменены {0} позиции. ⚠ Контракт {1} уже выставлен, и его нужно отозвать в игре.</value>
+  </data>
+  <data name="WebSyncCancelledContractOne" xml:space="preserve">
+    <value>Отменена {0} позиция. ⚠ Контракт {1} уже выставлен, и его нужно отозвать в игре.</value>
+  </data>
+  <data name="WebSyncCancelledContractFew" xml:space="preserve">
+    <value>Отменены {0} позиции. ⚠ Контракт {1} уже выставлен, и его нужно отозвать в игре.</value>
+  </data>
+  <data name="WebSyncCancelledContractMany" xml:space="preserve">
+    <value>Отменено {0} позиций. ⚠ Контракт {1} уже выставлен, и его нужно отозвать в игре.</value>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>Отменены {0} позиции.</value>
+  </data>
+  <data name="WebSyncCancelledOne" xml:space="preserve">
+    <value>Отменена {0} позиция.</value>
+  </data>
+  <data name="WebSyncCancelledFew" xml:space="preserve">
+    <value>Отменены {0} позиции.</value>
+  </data>
+  <data name="WebSyncCancelledMany" xml:space="preserve">
+    <value>Отменено {0} позиций.</value>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>Отменены {0} позиции. Указанная причина: {1}</value>
+  </data>
+  <data name="WebSyncCancelledReasonOne" xml:space="preserve">
+    <value>Отменена {0} позиция. Указанная причина: {1}</value>
+  </data>
+  <data name="WebSyncCancelledReasonFew" xml:space="preserve">
+    <value>Отменены {0} позиции. Указанная причина: {1}</value>
+  </data>
+  <data name="WebSyncCancelledReasonMany" xml:space="preserve">
+    <value>Отменено {0} позиций. Указанная причина: {1}</value>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>Этого события больше нет.</value>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>Принять можно только заказ.</value>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>Заказ уже принят.</value>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>Не удалось прочитать событие.</value>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>Принят владельцем. {0}</value>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>Принят как заказ {0}.</value>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>Заказ уже принят — отмените его в «Учёте заказов».</value>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>Заказ отклонён.</value>
+  </data>
 </root>
