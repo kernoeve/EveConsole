@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccelerationGateFee" xml:space="preserve">
+    <value>액셀레이션 게이트 비용</value>
+  </data>
+  <data name="AdvertisementListingFee" xml:space="preserve">
+    <value>광고비</value>
+  </data>
+  <data name="AgentDonation" xml:space="preserve">
+    <value>에이전트 기부</value>
+  </data>
+  <data name="AgentLocationServices" xml:space="preserve">
+    <value>에이전트 위치 확인 서비스</value>
+  </data>
+  <data name="AgentMiscellaneous" xml:space="preserve">
+    <value>에이전트 기타</value>
+  </data>
+  <data name="AgentMissionCollateralPaid" xml:space="preserve">
+    <value>에이전트 미션 담보금 지급</value>
+  </data>
+  <data name="AgentMissionCollateralRefunded" xml:space="preserve">
+    <value>환급한 에이전트 미션 담보금</value>
+  </data>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>에이전트 미션 보상</value>
+  </data>
+  <data name="AgentMissionRewardCorporationTax" xml:space="preserve">
+    <value>에이전트 미션 보상 (코퍼레이션 세금)</value>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>에이전트 미션 추가 보상</value>
+  </data>
+  <data name="AgentMissionTimeBonusRewardCorporationTax" xml:space="preserve">
+    <value>에이전트 미션 추가 보상 (코퍼레이션 세금)</value>
+  </data>
+  <data name="AgentSecurityServices" xml:space="preserve">
+    <value>에이전트 보안 서비스</value>
+  </data>
+  <data name="AgentServicesRendered" xml:space="preserve">
+    <value>에이전트 서비스 제공됨</value>
+  </data>
+  <data name="AirCareerProgramReward" xml:space="preserve">
+    <value>AIR 커리어 프로그램 보상</value>
+  </data>
+  <data name="AllianceRegistrationFee" xml:space="preserve">
+    <value>얼라이언스 설립 비용</value>
+  </data>
+  <data name="AssetSafetyRecoveryTax" xml:space="preserve">
+    <value>보호 자산 회수 수수료</value>
+  </data>
+  <data name="Bounty" xml:space="preserve">
+    <value>현상금</value>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>현상금</value>
+  </data>
+  <data name="BountyPrizeCorporationTax" xml:space="preserve">
+    <value>현상금 상품 코퍼레이션 세금</value>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>현상금</value>
+  </data>
+  <data name="BountyReimbursement" xml:space="preserve">
+    <value>현상금 환급</value>
+  </data>
+  <data name="BountySurcharge" xml:space="preserve">
+    <value>현상금 추가 비용</value>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>중개인 수수료</value>
+  </data>
+  <data name="CloneActivation" xml:space="preserve">
+    <value>클론 활성화</value>
+  </data>
+  <data name="CloneTransfer" xml:space="preserve">
+    <value>클론 전송</value>
+  </data>
+  <data name="ContrabandFine" xml:space="preserve">
+    <value>밀수 벌금</value>
+  </data>
+  <data name="ContractAuctionBid" xml:space="preserve">
+    <value>계약 경매 입찰</value>
+  </data>
+  <data name="ContractAuctionBidCorp" xml:space="preserve">
+    <value>계약 경매 입찰 (코퍼레이션)</value>
+  </data>
+  <data name="ContractAuctionBidRefund" xml:space="preserve">
+    <value>계약 경매 입찰금 환급</value>
+  </data>
+  <data name="ContractAuctionSold" xml:space="preserve">
+    <value>계약 경매 낙찰</value>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>계약 중개 수수료</value>
+  </data>
+  <data name="ContractBrokersFeeCorp" xml:space="preserve">
+    <value>계약 중개인 수수료 (코퍼레이션)</value>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>계약 담보금</value>
+  </data>
+  <data name="ContractCollateralDepositedCorp" xml:space="preserve">
+    <value>계약 담보금 입금 (코퍼레이션)</value>
+  </data>
+  <data name="ContractCollateralPayout" xml:space="preserve">
+    <value>계약 담보금 지불</value>
+  </data>
+  <data name="ContractCollateralRefund" xml:space="preserve">
+    <value>계약 담보금 환급</value>
+  </data>
+  <data name="ContractDeposit" xml:space="preserve">
+    <value>계약 보증금</value>
+  </data>
+  <data name="ContractDepositCorp" xml:space="preserve">
+    <value>계약 보증금 (코퍼레이션)</value>
+  </data>
+  <data name="ContractDepositRefund" xml:space="preserve">
+    <value>계약 보증금 환급</value>
+  </data>
+  <data name="ContractDepositSalesTax" xml:space="preserve">
+    <value>계약 보증금 판매세</value>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>계약 금액</value>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>계약 금액 지불 (코퍼레이션)</value>
+  </data>
+  <data name="ContractReversal" xml:space="preserve">
+    <value>계약 철회</value>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>계약 보상</value>
+  </data>
+  <data name="ContractRewardDeposited" xml:space="preserve">
+    <value>계약 보상금 입금</value>
+  </data>
+  <data name="ContractRewardDepositedCorp" xml:space="preserve">
+    <value>계약 보상금 입금 (코퍼레이션)</value>
+  </data>
+  <data name="ContractRewardRefund" xml:space="preserve">
+    <value>계약 보상 환급</value>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>계약 판매세</value>
+  </data>
+  <data name="Copying" xml:space="preserve">
+    <value>복제</value>
+  </data>
+  <data name="CorporateRewardTax" xml:space="preserve">
+    <value>코퍼레이션 보상 세금</value>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>코퍼레이션 계좌 출금</value>
+  </data>
+  <data name="CorporationBulkPayment" xml:space="preserve">
+    <value>코퍼레이션 대량 지불</value>
+  </data>
+  <data name="CorporationDividendPayment" xml:space="preserve">
+    <value>코퍼레이션 배당금 지불</value>
+  </data>
+  <data name="CorporationLiquidation" xml:space="preserve">
+    <value>코퍼레이션 해산</value>
+  </data>
+  <data name="CorporationLogoChangeCost" xml:space="preserve">
+    <value>코퍼레이션 로고 변경 비용</value>
+  </data>
+  <data name="CorporationPayment" xml:space="preserve">
+    <value>코퍼레이션 지불</value>
+  </data>
+  <data name="CorporationRegistrationFee" xml:space="preserve">
+    <value>코퍼레이션 설립 비용</value>
+  </data>
+  <data name="CourierMissionEscrow" xml:space="preserve">
+    <value>운반 미션 예탁금</value>
+  </data>
+  <data name="DatacoreFee" xml:space="preserve">
+    <value>데이터코어 비용</value>
+  </data>
+  <data name="DnaModificationFee" xml:space="preserve">
+    <value>DNA 개조 비용</value>
+  </data>
+  <data name="DockingFee" xml:space="preserve">
+    <value>도킹 비용</value>
+  </data>
+  <data name="DuelWagerRefund" xml:space="preserve">
+    <value>내기 결투 환불</value>
+  </data>
+  <data name="ExternalTradeDelivery" xml:space="preserve">
+    <value>외부 거래 배송</value>
+  </data>
+  <data name="ExternalTradeFreeze" xml:space="preserve">
+    <value>외부 거래 동결</value>
+  </data>
+  <data name="ExternalTradeThaw" xml:space="preserve">
+    <value>외부 거래 동결 해제</value>
+  </data>
+  <data name="FactorySlotRentalFee" xml:space="preserve">
+    <value>공장 슬롯 대여료</value>
+  </data>
+  <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
+    <value>프리랜서 임무 방송 비용</value>
+  </data>
+  <data name="FreelanceJobsDurationFee" xml:space="preserve">
+    <value>프리랜서 임무 기간 비용</value>
+  </data>
+  <data name="FreelanceJobsEscrowRefund" xml:space="preserve">
+    <value>프리랜서 임무 예탁금 환급금</value>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>프리랜서 임무 보상</value>
+  </data>
+  <data name="FreelanceJobsRewardCorporationTax" xml:space="preserve">
+    <value>프리랜서 임무 보상 코퍼레이션 수수료</value>
+  </data>
+  <data name="FreelanceJobsRewardEscrow" xml:space="preserve">
+    <value>프리랜서 임무 보상 예탁금</value>
+  </data>
+  <data name="GmCashTransfer" xml:space="preserve">
+    <value>GM ISK 이체</value>
+  </data>
+  <data name="Inheritance" xml:space="preserve">
+    <value>상속</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>보험</value>
+  </data>
+  <data name="InsurgencyCorruptionContributionReward" xml:space="preserve">
+    <value>반란 변절 기여 보상</value>
+  </data>
+  <data name="InsurgencySuppressionContributionReward" xml:space="preserve">
+    <value>반란 억제 기여 보상</value>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>점프 클론 활성화 비용</value>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>점프 클론 설치 비용</value>
+  </data>
+  <data name="LpStore" xml:space="preserve">
+    <value>LP 스토어</value>
+  </data>
+  <data name="Manufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>거래소 예탁금</value>
+  </data>
+  <data name="MarketFinePaid" xml:space="preserve">
+    <value>거래소 벌금 지불</value>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>거래소 거래기록</value>
+  </data>
+  <data name="MedalCreation" xml:space="preserve">
+    <value>훈장 제작</value>
+  </data>
+  <data name="MedalIssued" xml:space="preserve">
+    <value>훈장 발행</value>
+  </data>
+  <data name="MissionCompletion" xml:space="preserve">
+    <value>미션 완료</value>
+  </data>
+  <data name="MissionCost" xml:space="preserve">
+    <value>미션 비용</value>
+  </data>
+  <data name="MissionExpiration" xml:space="preserve">
+    <value>미션 만료</value>
+  </data>
+  <data name="MissionReward" xml:space="preserve">
+    <value>미션 보상</value>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>사무실 임대료</value>
+  </data>
+  <data name="OpportunityReward" xml:space="preserve">
+    <value>오퍼튜니티 보상</value>
+  </data>
+  <data name="PlanetaryConstruction" xml:space="preserve">
+    <value>행성 건설</value>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>행성 수출 관세</value>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>행성 수입 관세</value>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>플레이어 기부</value>
+  </data>
+  <data name="PlayerTrading" xml:space="preserve">
+    <value>플레이어 거래</value>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>프로젝트 디스커버리 보상</value>
+  </data>
+  <data name="RedeemedIskToken" xml:space="preserve">
+    <value>ISK 토큰 교환 완료</value>
+  </data>
+  <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
+    <value>압류된 자산 회수 비용</value>
+  </data>
+  <data name="RepairBill" xml:space="preserve">
+    <value>수리비</value>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>재처리 수수료</value>
+  </data>
+  <data name="ResearchingTechnology" xml:space="preserve">
+    <value>기술 연구</value>
+  </data>
+  <data name="ReverseEngineering" xml:space="preserve">
+    <value>역설계</value>
+  </data>
+  <data name="Shares" xml:space="preserve">
+    <value>주식</value>
+  </data>
+  <data name="SkillPurchase" xml:space="preserve">
+    <value>스킬 구매</value>
+  </data>
+  <data name="SkyhookClaimFee" xml:space="preserve">
+    <value>궤도 스카이훅 소유권 획득 수수료</value>
+  </data>
+  <data name="SovereignityBill" xml:space="preserve">
+    <value>소버린티 청구서</value>
+  </data>
+  <data name="StorePurchase" xml:space="preserve">
+    <value>스토어 구매</value>
+  </data>
+  <data name="StorePurchaseRefund" xml:space="preserve">
+    <value>스토어 구매 환불</value>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>거래세</value>
+  </data>
+  <data name="UpkeepAdjustmentFee" xml:space="preserve">
+    <value>유지비 조정 비용</value>
+  </data>
+  <data name="WarAllyContract" xml:space="preserve">
+    <value>전시 동맹 계약</value>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>전쟁 비용</value>
+  </data>
+</root>

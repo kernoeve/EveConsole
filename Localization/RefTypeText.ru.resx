@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccelerationGateFee" xml:space="preserve">
+    <value>Плата за врата ускорения</value>
+  </data>
+  <data name="AdvertisementListingFee" xml:space="preserve">
+    <value>Плата за размещение рекламы</value>
+  </data>
+  <data name="AgentDonation" xml:space="preserve">
+    <value>Подарок агента</value>
+  </data>
+  <data name="AgentLocationServices" xml:space="preserve">
+    <value>Поисковый сервис агента</value>
+  </data>
+  <data name="AgentMiscellaneous" xml:space="preserve">
+    <value>Другие услуги агента</value>
+  </data>
+  <data name="AgentMissionCollateralPaid" xml:space="preserve">
+    <value>Залог за задание агента выплачен</value>
+  </data>
+  <data name="AgentMissionCollateralRefunded" xml:space="preserve">
+    <value>Залог за задание агента возвращен</value>
+  </data>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>Вознаграждение за выполнение задания агента</value>
+  </data>
+  <data name="AgentMissionRewardCorporationTax" xml:space="preserve">
+    <value>Налог корпорации на награды заданий агентов</value>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>Бонус за досрочное выполнение задания агента</value>
+  </data>
+  <data name="AgentMissionTimeBonusRewardCorporationTax" xml:space="preserve">
+    <value>Налог корпорации на бонусы за время прохождения заданий агентов</value>
+  </data>
+  <data name="AgentSecurityServices" xml:space="preserve">
+    <value>Услуги безопасности агента</value>
+  </data>
+  <data name="AgentServicesRendered" xml:space="preserve">
+    <value>Услуги, предоставляемые агентом</value>
+  </data>
+  <data name="AirCareerProgramReward" xml:space="preserve">
+    <value>Награда карьерного плана АМИ</value>
+  </data>
+  <data name="AllianceRegistrationFee" xml:space="preserve">
+    <value>Сбор за регистрацию альянса</value>
+  </data>
+  <data name="AssetSafetyRecoveryTax" xml:space="preserve">
+    <value>Налог на безопасное извлечение активов</value>
+  </data>
+  <data name="Bounty" xml:space="preserve">
+    <value>Награда за голову</value>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>Награда за голову</value>
+  </data>
+  <data name="BountyPrizeCorporationTax" xml:space="preserve">
+    <value>Налог корпорации на награды за голову</value>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>Награда за голову</value>
+  </data>
+  <data name="BountyReimbursement" xml:space="preserve">
+    <value>Возмещение награды за голову</value>
+  </data>
+  <data name="BountySurcharge" xml:space="preserve">
+    <value>Отчисления с награды за голову</value>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>Гонорар брокера</value>
+  </data>
+  <data name="CloneActivation" xml:space="preserve">
+    <value>Активация клона</value>
+  </data>
+  <data name="CloneTransfer" xml:space="preserve">
+    <value>Передача клона</value>
+  </data>
+  <data name="ContrabandFine" xml:space="preserve">
+    <value>Штраф за контрабанду</value>
+  </data>
+  <data name="ContractAuctionBid" xml:space="preserve">
+    <value>Ставка на аукционе</value>
+  </data>
+  <data name="ContractAuctionBidCorp" xml:space="preserve">
+    <value>Ставка на аукционе (корпорация)</value>
+  </data>
+  <data name="ContractAuctionBidRefund" xml:space="preserve">
+    <value>Возмещение ставки на аукционе</value>
+  </data>
+  <data name="ContractAuctionSold" xml:space="preserve">
+    <value>Продано с аукциона</value>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>Гонорар брокера за контракт</value>
+  </data>
+  <data name="ContractBrokersFeeCorp" xml:space="preserve">
+    <value>Гонорар брокера за контракт (корп.)</value>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>Залог за контракт</value>
+  </data>
+  <data name="ContractCollateralDepositedCorp" xml:space="preserve">
+    <value>Залог за контракт размещен (корп.)</value>
+  </data>
+  <data name="ContractCollateralPayout" xml:space="preserve">
+    <value>Выплата залога за контракт</value>
+  </data>
+  <data name="ContractCollateralRefund" xml:space="preserve">
+    <value>Возмещение залога за контракт</value>
+  </data>
+  <data name="ContractDeposit" xml:space="preserve">
+    <value>Депозит по контракту</value>
+  </data>
+  <data name="ContractDepositCorp" xml:space="preserve">
+    <value>Депозит по контракту (корп.)</value>
+  </data>
+  <data name="ContractDepositRefund" xml:space="preserve">
+    <value>Возмещение депозита по контракту</value>
+  </data>
+  <data name="ContractDepositSalesTax" xml:space="preserve">
+    <value>Налог с продаж по контракту</value>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>Стоимость контракта</value>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>Оплата стоимости контракта (корп.)</value>
+  </data>
+  <data name="ContractReversal" xml:space="preserve">
+    <value>Отмена контракта</value>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>Вознаграждение за контракт</value>
+  </data>
+  <data name="ContractRewardDeposited" xml:space="preserve">
+    <value>Вознаграждение за контракт размещен (корп.)</value>
+  </data>
+  <data name="ContractRewardDepositedCorp" xml:space="preserve">
+    <value>Вознаграждение за контракт размещен (корп.)</value>
+  </data>
+  <data name="ContractRewardRefund" xml:space="preserve">
+    <value>Возмещение награды за контракт</value>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>Налог с продаж на контракт</value>
+  </data>
+  <data name="Copying" xml:space="preserve">
+    <value>Kопирование</value>
+  </data>
+  <data name="CorporateRewardTax" xml:space="preserve">
+    <value>Налог на корпоративную премию</value>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>Списание средств со счета корпорации</value>
+  </data>
+  <data name="CorporationBulkPayment" xml:space="preserve">
+    <value>Массовый платеж корпорации</value>
+  </data>
+  <data name="CorporationDividendPayment" xml:space="preserve">
+    <value>Выплата дивидендов по корпорации</value>
+  </data>
+  <data name="CorporationLiquidation" xml:space="preserve">
+    <value>Ликвидация корпорации</value>
+  </data>
+  <data name="CorporationLogoChangeCost" xml:space="preserve">
+    <value>Стоимость изменения логотипа корпорации</value>
+  </data>
+  <data name="CorporationPayment" xml:space="preserve">
+    <value>Корпоративный платеж</value>
+  </data>
+  <data name="CorporationRegistrationFee" xml:space="preserve">
+    <value>Акциз за регистрацию корпорации</value>
+  </data>
+  <data name="CourierMissionEscrow" xml:space="preserve">
+    <value>Залог за курьерское задание</value>
+  </data>
+  <data name="DatacoreFee" xml:space="preserve">
+    <value>Стоимость инфоблоков</value>
+  </data>
+  <data name="DnaModificationFee" xml:space="preserve">
+    <value>Плата за модифицирование ДНК</value>
+  </data>
+  <data name="DockingFee" xml:space="preserve">
+    <value>Оплата стоянки в доке</value>
+  </data>
+  <data name="DuelWagerRefund" xml:space="preserve">
+    <value>Возмещение по ставке на дуэль</value>
+  </data>
+  <data name="ExternalTradeDelivery" xml:space="preserve">
+    <value>Денежный перевод сторонним сервисом</value>
+  </data>
+  <data name="ExternalTradeFreeze" xml:space="preserve">
+    <value>Блокировка средств сторонним сервисом</value>
+  </data>
+  <data name="ExternalTradeThaw" xml:space="preserve">
+    <value>Разблокировка средств сторонним сервисом</value>
+  </data>
+  <data name="FactorySlotRentalFee" xml:space="preserve">
+    <value>Плата за аренду заводской ячейки</value>
+  </data>
+  <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
+    <value>Плата за трансляцию внешних заказов</value>
+  </data>
+  <data name="FreelanceJobsDurationFee" xml:space="preserve">
+    <value>Плата за срок внешних заказов</value>
+  </data>
+  <data name="FreelanceJobsEscrowRefund" xml:space="preserve">
+    <value>Возврат депозита за внешние заказы</value>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>Награда за внешние заказы</value>
+  </data>
+  <data name="FreelanceJobsRewardCorporationTax" xml:space="preserve">
+    <value>Корп. налог на награды за внешние заказы</value>
+  </data>
+  <data name="FreelanceJobsRewardEscrow" xml:space="preserve">
+    <value>Депозит наград за внешние заказы</value>
+  </data>
+  <data name="GmCashTransfer" xml:space="preserve">
+    <value>Денежный перевод GM</value>
+  </data>
+  <data name="Inheritance" xml:space="preserve">
+    <value>Премия</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>Страховка</value>
+  </data>
+  <data name="InsurgencyCorruptionContributionReward" xml:space="preserve">
+    <value>Награда за помощь в дестабилизации во время интервенции</value>
+  </data>
+  <data name="InsurgencySuppressionContributionReward" xml:space="preserve">
+    <value>Награда за помощь в стабилизации во время интервенции</value>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>Комиссия за перенос сознания в джамп-клона</value>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>Гонорар за установку прыжкового клона</value>
+  </data>
+  <data name="LpStore" xml:space="preserve">
+    <value>Магазин наград</value>
+  </data>
+  <data name="Manufacturing" xml:space="preserve">
+    <value>Обработка</value>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>Платеж за покупку (внесен на счет посредника)</value>
+  </data>
+  <data name="MarketFinePaid" xml:space="preserve">
+    <value>Рыночный сбор оплачен</value>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>Рыночная сделка</value>
+  </data>
+  <data name="MedalCreation" xml:space="preserve">
+    <value>Создание медали</value>
+  </data>
+  <data name="MedalIssued" xml:space="preserve">
+    <value>Медаль выдана</value>
+  </data>
+  <data name="MissionCompletion" xml:space="preserve">
+    <value>Завершение задания</value>
+  </data>
+  <data name="MissionCost" xml:space="preserve">
+    <value>Стоимость задания</value>
+  </data>
+  <data name="MissionExpiration" xml:space="preserve">
+    <value>Истечение срока задания</value>
+  </data>
+  <data name="MissionReward" xml:space="preserve">
+    <value>Вознаграждение за выполнение задания</value>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>Арендная плата за офис</value>
+  </data>
+  <data name="OpportunityReward" xml:space="preserve">
+    <value>Награда за возможности</value>
+  </data>
+  <data name="PlanetaryConstruction" xml:space="preserve">
+    <value>Планетарное строительство</value>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>Планетарный налог на экспорт</value>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>Планетарный налог на импорт</value>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>Сделанное игроком пожертвование</value>
+  </data>
+  <data name="PlayerTrading" xml:space="preserve">
+    <value>Коммерческая деятельность игрока</value>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>Вознаграждение за участие в проекте «Дискавери»</value>
+  </data>
+  <data name="RedeemedIskToken" xml:space="preserve">
+    <value>Активирован сертификат ISK</value>
+  </data>
+  <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
+    <value>Cнятие ареста с имущества</value>
+  </data>
+  <data name="RepairBill" xml:space="preserve">
+    <value>Счет за ремонт</value>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>Налог на переработку</value>
+  </data>
+  <data name="ResearchingTechnology" xml:space="preserve">
+    <value>Технология исследования</value>
+  </data>
+  <data name="ReverseEngineering" xml:space="preserve">
+    <value>Инженерный анализ</value>
+  </data>
+  <data name="Shares" xml:space="preserve">
+    <value>Акции</value>
+  </data>
+  <data name="SkillPurchase" xml:space="preserve">
+    <value>Покупка навыка</value>
+  </data>
+  <data name="SkyhookClaimFee" xml:space="preserve">
+    <value>Плата за захват подъёмника</value>
+  </data>
+  <data name="SovereignityBill" xml:space="preserve">
+    <value>Счет за поддержание права владения</value>
+  </data>
+  <data name="StorePurchase" xml:space="preserve">
+    <value>Покупка в магазине</value>
+  </data>
+  <data name="StorePurchaseRefund" xml:space="preserve">
+    <value>Возврат за покупку в магазине</value>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>Налог на сделку</value>
+  </data>
+  <data name="UpkeepAdjustmentFee" xml:space="preserve">
+    <value>Изменение платы за содержание</value>
+  </data>
+  <data name="WarAllyContract" xml:space="preserve">
+    <value>Контракт: военный союзник</value>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>Оплата войны</value>
+  </data>
+</root>

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccelerationGateFee" xml:space="preserve">
+    <value>Tasa de portal de aceleración</value>
+  </data>
+  <data name="AdvertisementListingFee" xml:space="preserve">
+    <value>Tasa por anuncios</value>
+  </data>
+  <data name="AgentDonation" xml:space="preserve">
+    <value>Donación de agente</value>
+  </data>
+  <data name="AgentLocationServices" xml:space="preserve">
+    <value>Servicios de ubicación de agente</value>
+  </data>
+  <data name="AgentMiscellaneous" xml:space="preserve">
+    <value>Servicios varios de agente</value>
+  </data>
+  <data name="AgentMissionCollateralPaid" xml:space="preserve">
+    <value>Garantía de misión de agente pagada</value>
+  </data>
+  <data name="AgentMissionCollateralRefunded" xml:space="preserve">
+    <value>Garantía de misión de agente devuelta</value>
+  </data>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>Retribución de misión de agente</value>
+  </data>
+  <data name="AgentMissionRewardCorporationTax" xml:space="preserve">
+    <value>Impuesto de la corporación sobre la retribución de misión de agente</value>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>Retribución de bonificación de tiempo de misión de agente</value>
+  </data>
+  <data name="AgentMissionTimeBonusRewardCorporationTax" xml:space="preserve">
+    <value>Impuesto de la corporación sobre una retribución de bonificación de tiempo de misión de agente</value>
+  </data>
+  <data name="AgentSecurityServices" xml:space="preserve">
+    <value>Servicios de seguridad de agente</value>
+  </data>
+  <data name="AgentServicesRendered" xml:space="preserve">
+    <value>Servicios de agente prestados</value>
+  </data>
+  <data name="AirCareerProgramReward" xml:space="preserve">
+    <value>Retribución del Programa de Orientación de AIR</value>
+  </data>
+  <data name="AllianceRegistrationFee" xml:space="preserve">
+    <value>Cuota de inscripción de la alianza</value>
+  </data>
+  <data name="AssetSafetyRecoveryTax" xml:space="preserve">
+    <value>Impuesto de recuperación de seguridad de bienes</value>
+  </data>
+  <data name="Bounty" xml:space="preserve">
+    <value>Recompensa</value>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>Pagos de recompensa</value>
+  </data>
+  <data name="BountyPrizeCorporationTax" xml:space="preserve">
+    <value>Impuesto de la corporación sobre un pago de recompensa</value>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>Pagos de recompensa</value>
+  </data>
+  <data name="BountyReimbursement" xml:space="preserve">
+    <value>Reembolso de recompensa</value>
+  </data>
+  <data name="BountySurcharge" xml:space="preserve">
+    <value>Recargo de recompensa</value>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>Comisión</value>
+  </data>
+  <data name="CloneActivation" xml:space="preserve">
+    <value>Activación de clon</value>
+  </data>
+  <data name="CloneTransfer" xml:space="preserve">
+    <value>Transferencia de clon</value>
+  </data>
+  <data name="ContrabandFine" xml:space="preserve">
+    <value>Multa por contrabando</value>
+  </data>
+  <data name="ContractAuctionBid" xml:space="preserve">
+    <value>Puja contractual</value>
+  </data>
+  <data name="ContractAuctionBidCorp" xml:space="preserve">
+    <value>Puja contractual (corporación)</value>
+  </data>
+  <data name="ContractAuctionBidRefund" xml:space="preserve">
+    <value>Devolución de puja contractual</value>
+  </data>
+  <data name="ContractAuctionSold" xml:space="preserve">
+    <value>Venta de subasta contractual</value>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>Comisión contractual</value>
+  </data>
+  <data name="ContractBrokersFeeCorp" xml:space="preserve">
+    <value>Comisión de contrato (corporación)</value>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>Garantía de contrato</value>
+  </data>
+  <data name="ContractCollateralDepositedCorp" xml:space="preserve">
+    <value>Garantía de contrato depositada (corporación)</value>
+  </data>
+  <data name="ContractCollateralPayout" xml:space="preserve">
+    <value>Pago de garantía contractual</value>
+  </data>
+  <data name="ContractCollateralRefund" xml:space="preserve">
+    <value>Devolución de garantía contractual</value>
+  </data>
+  <data name="ContractDeposit" xml:space="preserve">
+    <value>Fianza de contrato</value>
+  </data>
+  <data name="ContractDepositCorp" xml:space="preserve">
+    <value>Fianza de contrato (corporación)</value>
+  </data>
+  <data name="ContractDepositRefund" xml:space="preserve">
+    <value>Devolución de la fianza de un contrato.</value>
+  </data>
+  <data name="ContractDepositSalesTax" xml:space="preserve">
+    <value>Impuesto de venta de fianza contractual</value>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>Precio del contrato</value>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>Pago del precio contractual (corporación)</value>
+  </data>
+  <data name="ContractReversal" xml:space="preserve">
+    <value>Revocación de contrato</value>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>Retribución contractual</value>
+  </data>
+  <data name="ContractRewardDeposited" xml:space="preserve">
+    <value>Retribución contractual ingresada</value>
+  </data>
+  <data name="ContractRewardDepositedCorp" xml:space="preserve">
+    <value>Retribución contractual ingresada (corporación)</value>
+  </data>
+  <data name="ContractRewardRefund" xml:space="preserve">
+    <value>Devolución de retribución contractual</value>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>Impuesto de venta contractual</value>
+  </data>
+  <data name="Copying" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="CorporateRewardTax" xml:space="preserve">
+    <value>Impuesto de retribución corporativa</value>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>Retirada de cuenta corporativa</value>
+  </data>
+  <data name="CorporationBulkPayment" xml:space="preserve">
+    <value>Pago masivo de la corporación</value>
+  </data>
+  <data name="CorporationDividendPayment" xml:space="preserve">
+    <value>Pago de dividendos corporativos</value>
+  </data>
+  <data name="CorporationLiquidation" xml:space="preserve">
+    <value>Liquidación de la corporación</value>
+  </data>
+  <data name="CorporationLogoChangeCost" xml:space="preserve">
+    <value>Coste de cambio del logotipo corporativo</value>
+  </data>
+  <data name="CorporationPayment" xml:space="preserve">
+    <value>Pago corporativo</value>
+  </data>
+  <data name="CorporationRegistrationFee" xml:space="preserve">
+    <value>Cuota de inscripción de la corporación</value>
+  </data>
+  <data name="CourierMissionEscrow" xml:space="preserve">
+    <value>Depósito de misión de reparto</value>
+  </data>
+  <data name="DatacoreFee" xml:space="preserve">
+    <value>Tasa de núcleo de datos</value>
+  </data>
+  <data name="DnaModificationFee" xml:space="preserve">
+    <value>Tasa de modificación del ADN</value>
+  </data>
+  <data name="DockingFee" xml:space="preserve">
+    <value>Tasa de acoplamiento</value>
+  </data>
+  <data name="DuelWagerRefund" xml:space="preserve">
+    <value>Devolución de apuesta en duelo</value>
+  </data>
+  <data name="ExternalTradeDelivery" xml:space="preserve">
+    <value>Entrega de comercio exterior</value>
+  </data>
+  <data name="ExternalTradeFreeze" xml:space="preserve">
+    <value>Congelación de comercio exterior</value>
+  </data>
+  <data name="ExternalTradeThaw" xml:space="preserve">
+    <value>Descongelación de comercio exterior</value>
+  </data>
+  <data name="FactorySlotRentalFee" xml:space="preserve">
+    <value>Alquiler de ranura de fábrica</value>
+  </data>
+  <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
+    <value>Tarifa de transmisión de trabajos por libre</value>
+  </data>
+  <data name="FreelanceJobsDurationFee" xml:space="preserve">
+    <value>Tarifa de duración de trabajos por libre</value>
+  </data>
+  <data name="FreelanceJobsEscrowRefund" xml:space="preserve">
+    <value>Devolución de depósito de trabajos por libre</value>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>Retribución de trabajos por libre</value>
+  </data>
+  <data name="FreelanceJobsRewardCorporationTax" xml:space="preserve">
+    <value>Impuesto de la corporación sobre la retribución de trabajos por libre</value>
+  </data>
+  <data name="FreelanceJobsRewardEscrow" xml:space="preserve">
+    <value>Depósito de retribución de trabajos por libre</value>
+  </data>
+  <data name="GmCashTransfer" xml:space="preserve">
+    <value>Transferencia de dinero de GM</value>
+  </data>
+  <data name="Inheritance" xml:space="preserve">
+    <value>Herencia</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>Seguro</value>
+  </data>
+  <data name="InsurgencyCorruptionContributionReward" xml:space="preserve">
+    <value>Retribución por contribución a la corrupción de la insurgencia</value>
+  </data>
+  <data name="InsurgencySuppressionContributionReward" xml:space="preserve">
+    <value>Retribución por contribución a la represión de la insurgencia</value>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>Tasa de activación de clon de salto</value>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>Tasa de instalación de clon de salto</value>
+  </data>
+  <data name="LpStore" xml:space="preserve">
+    <value>Tienda de PL</value>
+  </data>
+  <data name="Manufacturing" xml:space="preserve">
+    <value>Fabricación</value>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>Depósito de mercado</value>
+  </data>
+  <data name="MarketFinePaid" xml:space="preserve">
+    <value>Multa de mercado pagada</value>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>Transacción del mercado</value>
+  </data>
+  <data name="MedalCreation" xml:space="preserve">
+    <value>Creación de medalla</value>
+  </data>
+  <data name="MedalIssued" xml:space="preserve">
+    <value>Medalla emitida</value>
+  </data>
+  <data name="MissionCompletion" xml:space="preserve">
+    <value>Cumplimiento de la misión</value>
+  </data>
+  <data name="MissionCost" xml:space="preserve">
+    <value>Coste de la misión</value>
+  </data>
+  <data name="MissionExpiration" xml:space="preserve">
+    <value>Caducidad de la misión</value>
+  </data>
+  <data name="MissionReward" xml:space="preserve">
+    <value>Retribución de misión</value>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>Tasa de alquiler de oficina</value>
+  </data>
+  <data name="OpportunityReward" xml:space="preserve">
+    <value>Retribución de la oportunidad</value>
+  </data>
+  <data name="PlanetaryConstruction" xml:space="preserve">
+    <value>Construcción planetaria</value>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>Impuesto de exportación planetaria</value>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>Impuesto de importación planetaria</value>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>Donación de jugador</value>
+  </data>
+  <data name="PlayerTrading" xml:space="preserve">
+    <value>Comercio entre jugadores</value>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>Retribución del proyecto Discovery</value>
+  </data>
+  <data name="RedeemedIskToken" xml:space="preserve">
+    <value>Ficha de ISK canjeada</value>
+  </data>
+  <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
+    <value>Liberación de propiedad embargada</value>
+  </data>
+  <data name="RepairBill" xml:space="preserve">
+    <value>Factura de reparación</value>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>Impuesto de reprocesamiento</value>
+  </data>
+  <data name="ResearchingTechnology" xml:space="preserve">
+    <value>Investigar tecnología</value>
+  </data>
+  <data name="ReverseEngineering" xml:space="preserve">
+    <value>Ingeniería inversa</value>
+  </data>
+  <data name="Shares" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="SkillPurchase" xml:space="preserve">
+    <value>Compra de habilidad</value>
+  </data>
+  <data name="SkyhookClaimFee" xml:space="preserve">
+    <value>Tarifa de reclamación del gancho</value>
+  </data>
+  <data name="SovereignityBill" xml:space="preserve">
+    <value>Factura de soberanía</value>
+  </data>
+  <data name="StorePurchase" xml:space="preserve">
+    <value>Compra en la tienda</value>
+  </data>
+  <data name="StorePurchaseRefund" xml:space="preserve">
+    <value>Devolución de compra de la tienda</value>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>Impuesto de transacción</value>
+  </data>
+  <data name="UpkeepAdjustmentFee" xml:space="preserve">
+    <value>Tasa de ajuste de mantenimiento</value>
+  </data>
+  <data name="WarAllyContract" xml:space="preserve">
+    <value>Contrato de aliado de guerra</value>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>Tasa de guerra</value>
+  </data>
+</root>
