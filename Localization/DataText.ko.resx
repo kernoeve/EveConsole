@@ -1,0 +1,1510 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AiUsageCost" xml:space="preserve">
+    <value>AI 사용량 및 비용</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>종료</value>
+  </data>
+  <data name="HintToday" xml:space="preserve">
+    <value>(오늘)</value>
+  </data>
+  <data name="GroupBy" xml:space="preserve">
+    <value>그룹 기준</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>서비스</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>새로고침</value>
+  </data>
+  <data name="EstimatedCostLabel" xml:space="preserve">
+    <value>예상 비용</value>
+  </data>
+  <data name="AgentLabel" xml:space="preserve">
+    <value>AI 도우미</value>
+  </data>
+  <data name="SpeechOutLabel" xml:space="preserve">
+    <value>음성 출력</value>
+  </data>
+  <data name="SpeechInLabel" xml:space="preserve">
+    <value>음성 입력</value>
+  </data>
+  <data name="CallsLabel" xml:space="preserve">
+    <value>호출</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>기간</value>
+  </data>
+  <data name="ColService" xml:space="preserve">
+    <value>서비스</value>
+  </data>
+  <data name="ColProvider" xml:space="preserve">
+    <value>제공자</value>
+  </data>
+  <data name="ColModel" xml:space="preserve">
+    <value>모델</value>
+  </data>
+  <data name="ColCalls" xml:space="preserve">
+    <value>호출</value>
+  </data>
+  <data name="ColInput" xml:space="preserve">
+    <value>입력</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>출력</value>
+  </data>
+  <data name="ColCacheRd" xml:space="preserve">
+    <value>캐시 읽기</value>
+  </data>
+  <data name="ColCacheWr" xml:space="preserve">
+    <value>캐시 쓰기</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>단위</value>
+  </data>
+  <data name="ColAvg" xml:space="preserve">
+    <value>평균</value>
+  </data>
+  <data name="ColErrors" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>세부 내역</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>시각</value>
+  </data>
+  <data name="ColTook" xml:space="preserve">
+    <value>소요 시간</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>활동</value>
+  </data>
+  <data name="ColError" xml:space="preserve">
+    <value>오류</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 처음</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 이전</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>다음 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>마지막 ⏭</value>
+  </data>
+  <data name="TabRates" xml:space="preserve">
+    <value>요금</value>
+  </data>
+  <data name="WhatEachServiceChargesNote" xml:space="preserve">
+    <value>각 서비스의 요금입니다. 비용은 사용량과 함께 저장되지 않고 볼 때마다 이 요금으로 계산합니다 — 공개 가격은 바뀌며, 6개월 전 릴리스에 박아 둔 수치는 권위 있어 보이지만 틀린 숫자이기 때문입니다. 아래 값은 이 버전을 빌드할 때의 정가이며, 바뀐 것이 있으면 고치십시오. 요금은 각 업체가 제시하는 단위 기준으로 입력하며, 단위는 각 행 옆에 표시됩니다. 여기에 행이 없는 제공자는 무료가 아니라 가격 미정으로 집계됩니다 — 로컬로 표시된 행만 실제로 무료입니다.</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>입력</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>출력</value>
+  </data>
+  <data name="CacheRead" xml:space="preserve">
+    <value>캐시 읽기</value>
+  </data>
+  <data name="CacheWrite" xml:space="preserve">
+    <value>캐시 쓰기</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>메모</value>
+  </data>
+  <data name="SaveRates" xml:space="preserve">
+    <value>요금 저장</value>
+  </data>
+  <data name="TitleBackgroundProcesses" xml:space="preserve">
+    <value>백그라운드 프로세스</value>
+  </data>
+  <data name="TabEsiActivityLog" xml:space="preserve">
+    <value>ESI 활동 로그</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="NoCallsInProgress" xml:space="preserve">
+    <value>진행 중인 호출이 없습니다.</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="Endpoint" xml:space="preserve">
+    <value>엔드포인트</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>시각</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>결과</value>
+  </data>
+  <data name="TabEsiCallSchedule" xml:space="preserve">
+    <value>ESI 호출 일정</value>
+  </data>
+  <data name="TabCharacterCorporation" xml:space="preserve">
+    <value>캐릭터 / 코퍼레이션</value>
+  </data>
+  <data name="TokenLabel" xml:space="preserve">
+    <value>토큰:</value>
+  </data>
+  <data name="SelectATokenToNote" xml:space="preserve">
+    <value>폴링 일정을 보려면 토큰을 선택하십시오.</value>
+  </data>
+  <data name="LastCalled" xml:space="preserve">
+    <value>마지막 호출</value>
+  </data>
+  <data name="NextCall" xml:space="preserve">
+    <value>다음 호출</value>
+  </data>
+  <data name="TimeUntil" xml:space="preserve">
+    <value>남은 시간</value>
+  </data>
+  <data name="TabMarketRefresh" xml:space="preserve">
+    <value>거래소 새로고침</value>
+  </data>
+  <data name="MarketSource" xml:space="preserve">
+    <value>거래소 출처</value>
+  </data>
+  <data name="LastRefresh" xml:space="preserve">
+    <value>마지막 새로고침</value>
+  </data>
+  <data name="NextRefresh" xml:space="preserve">
+    <value>다음 새로고침</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>가격 히스토리</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="RefreshedTotal24h" xml:space="preserve">
+    <value>갱신됨 / 전체 (24시간)</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="TabContractItems" xml:space="preserve">
+    <value>계약 아이템</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="ColItemsPulled" xml:space="preserve">
+    <value>가져온 아이템</value>
+  </data>
+  <data name="ColQueued" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>메모</value>
+  </data>
+  <data name="ItemsArePulledOneNote" xml:space="preserve">
+    <value>아이템은 계약 하나씩, 계약마다 호출 한 번으로 가져옵니다: 먼저 내 계약, 그다음 그 뒤의 공개 계약 목록입니다. 계약은 한 번 가져오면 계속 보관됩니다.</value>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>LP 스토어</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>스토어</value>
+  </data>
+  <data name="ColOffers" xml:space="preserve">
+    <value>상품</value>
+  </data>
+  <data name="ColLastChecked" xml:space="preserve">
+    <value>마지막 확인</value>
+  </data>
+  <data name="LpStoreCataloguesComeNote" xml:space="preserve">
+    <value>LP 스토어 목록은 공개 ESI 엔드포인트에서 NPC 코퍼레이션마다 호출 한 번으로 가져오며, 매일 한 번씩 훑습니다. 첫 번째 수집이 끝나기 전까지는 아이템을 파는 곳이 있든 없든 아이템의 LP 스토어 탭이 숨겨집니다 — 불완전한 목록과 실제로 없는 것이 똑같아 보이기 때문입니다.</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>범위: </value>
+  </data>
+  <data name="CoverageLabel" xml:space="preserve">
+    <value>수집 범위: </value>
+  </data>
+  <data name="ColStage" xml:space="preserve">
+    <value>단계</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColDetail" xml:space="preserve">
+    <value>세부 정보</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>채널</value>
+  </data>
+  <data name="Parsing" xml:space="preserve">
+    <value>분석</value>
+  </data>
+  <data name="Backlog" xml:space="preserve">
+    <value>밀린 작업</value>
+  </data>
+  <data name="ParsingRunsStraightAfterNote" xml:space="preserve">
+    <value>채팅 로그의 새 줄을 읽을 때마다 곧바로 분석하므로, 목격 보고는 메시지를 저장한 바로 그 차례에 지도에 반영됩니다. 채널은 설정 → 채팅 로그에서 선택하며, 그곳에는 디스크에 이미 있는 기록을 분석하는 버튼도 있습니다.</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>알람</value>
+  </data>
+  <data name="NextCheckLabel" xml:space="preserve">
+    <value>다음 확인: </value>
+  </data>
+  <data name="LastFiringLabel" xml:space="preserve">
+    <value>마지막 발생: </value>
+  </data>
+  <data name="ColAlarm" xml:space="preserve">
+    <value>알람</value>
+  </data>
+  <data name="ColCondition" xml:space="preserve">
+    <value>조건</value>
+  </data>
+  <data name="ColEnabled" xml:space="preserve">
+    <value>사용</value>
+  </data>
+  <data name="ColEvery" xml:space="preserve">
+    <value>간격</value>
+  </data>
+  <data name="ColLastFired" xml:space="preserve">
+    <value>마지막 발생</value>
+  </data>
+  <data name="ColFired" xml:space="preserve">
+    <value>발생 횟수</value>
+  </data>
+  <data name="ColLastError" xml:space="preserve">
+    <value>마지막 오류</value>
+  </data>
+  <data name="EachAlarmIsCheckedNote" xml:space="preserve">
+    <value>각 알람은 자체 간격으로 확인하므로, 루프는 실제로 확인할 때가 된 알람이 있을 때만 데이터베이스에 접근합니다. 알람은 전에 알리지 않은 것만 알립니다 — 계속 참인 조건은 반복해서 알리지 않습니다 — 그래서 계속 일치하는 확인은 여기서 거듭 발생하는 것이 아니라 활성 상태로 표시됩니다.</value>
+  </data>
+  <data name="TabOrderFulfilment" xml:space="preserve">
+    <value>주문 처리</value>
+  </data>
+  <data name="OrderFulfilment" xml:space="preserve">
+    <value>주문 처리</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="LastCheck" xml:space="preserve">
+    <value>마지막 확인</value>
+  </data>
+  <data name="NextCheck" xml:space="preserve">
+    <value>다음 확인</value>
+  </data>
+  <data name="EveryThirtySecondsAndNote" xml:space="preserve">
+    <value>30초마다, 그리고 폴링으로 작업, 계약, 자산이 새로 들어오면 즉시, 주문 추적의 대기 중인 각 주문을 처리할 수 있는 것과 대조합니다: 주문 이후에 내 캐릭터나 개인 코퍼레이션이 그 구매자에게 발행한 계약이 있으면 주문은 바로 완료됩니다. 그렇지 않으면 예약되지 않은 보유 재고, 또는 그 아이템을 생산하는 가장 빠른 산업 작업을 사용하며, 그 작업의 완료일이 주문의 예상 날짜가 됩니다. 재고와 작업은 배정되는 즉시 예약되므로 두 주문이 같은 수량을 중복해서 세지 않으며, 이미 한 주문에 연결된 계약은 다른 주문에 다시 쓰이지 않습니다.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="ColSweep" xml:space="preserve">
+    <value>수집</value>
+  </data>
+  <data name="ColLastRun" xml:space="preserve">
+    <value>마지막 실행</value>
+  </data>
+  <data name="ColNextRun" xml:space="preserve">
+    <value>다음 실행</value>
+  </data>
+  <data name="ColResult" xml:space="preserve">
+    <value>결과</value>
+  </data>
+  <data name="SweepNow" xml:space="preserve">
+    <value>지금 수집</value>
+  </data>
+  <data name="CollectsPlayerStructureIdsNote" xml:space="preserve">
+    <value>자산, 계약, 산업 작업, 거래소 주문, 계좌 기록에서 플레이어 구조물 ID를 모은 뒤 각 구조물의 이름, 종류, 소유자, 위치를 확인합니다. 매시간 수집하며, 여기 있는 누구도 가 본 적 없는 구조물을 찾기 위해 공개 구조물 목록을 하루에 한 번 훑습니다. 내 자산으로 함선, 컨테이너, 자산 보호 포장으로 확인된 행은 알 수 없는 구조물로 남기지 않고 제거합니다. 확인하려면 esi-universe.read_structures.v1 권한 범위와 도킹 권한이 필요하므로, 비공개 구조물은 확인되지 않은 채로 남습니다 — 이런 구조물은 구조물 브라우저에서 직접 입력해 둘 만합니다.</value>
+  </data>
+  <data name="TabNameCache" xml:space="preserve">
+    <value>이름 캐시</value>
+  </data>
+  <data name="CachedNames" xml:space="preserve">
+    <value>캐시된 이름</value>
+  </data>
+  <data name="WhatThisDoes" xml:space="preserve">
+    <value>하는 일</value>
+  </data>
+  <data name="ResolvesCharacterCorporationAndNote" xml:space="preserve">
+    <value>데이터베이스 어디에서든 발견된 캐릭터, 코퍼레이션, 얼라이언스 ID를, 화면에서 필요로 하기 전에 미리 이름으로 확인합니다. 매시간 수집합니다. EVE 개체 이름은 바꿀 수 없으므로, 각 이름은 한 번만 가져와 영구히 보관합니다.</value>
+  </data>
+  <data name="ChatLog" xml:space="preserve">
+    <value>채팅 로그</value>
+  </data>
+  <data name="HintNow" xml:space="preserve">
+    <value>(현재)</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>찾기</value>
+  </data>
+  <data name="HintSenderOrText" xml:space="preserve">
+    <value>보낸 사람 또는 텍스트…</value>
+  </data>
+  <data name="HideSystem" xml:space="preserve">
+    <value>시스템 메시지 숨기기</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>보낸 사람</value>
+  </data>
+  <data name="ColMessage" xml:space="preserve">
+    <value>메시지</value>
+  </data>
+  <data name="ColListener" xml:space="preserve">
+    <value>청취자</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>오류 로그</value>
+  </data>
+  <data name="ColClient" xml:space="preserve">
+    <value>클라이언트</value>
+  </data>
+  <data name="ColContext" xml:space="preserve">
+    <value>컨텍스트</value>
+  </data>
+  <data name="ColInner" xml:space="preserve">
+    <value>내부 예외</value>
+  </data>
+  <data name="SelectAnErrorToNote" xml:space="preserve">
+    <value>세부 정보를 보려면 오류를 선택하십시오.</value>
+  </data>
+  <data name="EsiTables" xml:space="preserve">
+    <value>ESI 테이블</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>적용</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ 필터</value>
+  </data>
+  <data name="TipWriteEveryRowThat" xml:space="preserve">
+    <value>필터와 일치하는 모든 행을 이 순서대로 CSV 파일에 씁니다 — 여기에 불러온 행만이 아니라 전부입니다. 선택한 행에서 Ctrl+C를 누르면 머리글 행과 함께 복사됩니다.</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>더 불러오기</value>
+  </data>
+  <data name="TitleEsiDataExplorer" xml:space="preserve">
+    <value>ESI 데이터 탐색기</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>게임 로그</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="HintNameOrText" xml:space="preserve">
+    <value>이름 또는 텍스트…</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>수치</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>대상</value>
+  </data>
+  <data name="SelectAnEntryToNote" xml:space="preserve">
+    <value>전체 세부 정보를 보려면 항목을 선택하십시오.</value>
+  </data>
+  <data name="CellYes" xml:space="preserve">
+    <value>예</value>
+  </data>
+  <data name="CellStoreNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="TimeNeverLower" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="CellNo" xml:space="preserve">
+    <value>아니오</value>
+  </data>
+  <data name="EveryHours" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="EveryMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="EverySeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="StatusBarLabel" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="HistoryNoTrackedItems" xml:space="preserve">
+    <value>추적 중인 아이템 없음</value>
+  </data>
+  <data name="HistoryCurrent" xml:space="preserve">
+    <value>최신</value>
+  </data>
+  <data name="HistoryEmpty" xml:space="preserve">
+    <value>비어 있음</value>
+  </data>
+  <data name="HistoryFilling" xml:space="preserve">
+    <value>채우는 중</value>
+  </data>
+  <data name="TimeNever" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="ScheduleDue" xml:space="preserve">
+    <value>지금</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0}시간 {1:00}분</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0}분 {1:00}초</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="LogCountFiltered" xml:space="preserve">
+    <value>항목 {1:N0}개 중 {0:N0}개 표시 · 최근 호출 1,000개를 보관합니다</value>
+  </data>
+  <data name="RelayNothingReported" xml:space="preserve">
+    <value>○ 백그라운드 프로세스를 실행하는 클라이언트가 아직 아무것도 보고하지 않았습니다</value>
+  </data>
+  <data name="BarEsiCalls" xml:space="preserve">
+    <value>ESI 호출</value>
+  </data>
+  <data name="BarPriceHistory" xml:space="preserve">
+    <value>가격 히스토리</value>
+  </data>
+  <data name="BarContractItems" xml:space="preserve">
+    <value>계약 아이템</value>
+  </data>
+  <data name="BarLpStore" xml:space="preserve">
+    <value>LP 스토어</value>
+  </data>
+  <data name="BarKillmails" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="StageKillmailDetails" xml:space="preserve">
+    <value>ESI 킬 메일 세부 정보</value>
+  </data>
+  <data name="StageLiveCapture" xml:space="preserve">
+    <value>실시간 수집</value>
+  </data>
+  <data name="StageDailyDumpBackfill" xml:space="preserve">
+    <value>일일 덤프로 과거 데이터 채우기</value>
+  </data>
+  <data name="StagePostingToZkb" xml:space="preserve">
+    <value>zKillboard에 등록</value>
+  </data>
+  <data name="StageHourlySweep" xml:space="preserve">
+    <value>매시간 수집</value>
+  </data>
+  <data name="StagePublicListDaily" xml:space="preserve">
+    <value>공개 목록, 매일</value>
+  </data>
+  <data name="SourcePublicListings" xml:space="preserve">
+    <value>공개 계약 목록</value>
+  </data>
+  <data name="SourceCharacterAndCorporation" xml:space="preserve">
+    <value>캐릭터 및 코퍼레이션</value>
+  </data>
+  <data name="SourceRefused" xml:space="preserve">
+    <value>거부됨</value>
+  </data>
+  <data name="StateFetching" xml:space="preserve">
+    <value>가져오는 중</value>
+  </data>
+  <data name="StateIdle" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>꺼짐</value>
+  </data>
+  <data name="StateFirehose" xml:space="preserve">
+    <value>전체 스트림</value>
+  </data>
+  <data name="StateIntervalPoll" xml:space="preserve">
+    <value>주기적 폴링</value>
+  </data>
+  <data name="StateImporting" xml:space="preserve">
+    <value>가져오는 중</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>켜짐</value>
+  </data>
+  <data name="StateSweeping" xml:space="preserve">
+    <value>수집 중</value>
+  </data>
+  <data name="StateWatching" xml:space="preserve">
+    <value>감시 중</value>
+  </data>
+  <data name="NextRunOnceADay" xml:space="preserve">
+    <value>하루 한 번</value>
+  </data>
+  <data name="ZkbLiveDisabled" xml:space="preserve">
+    <value>○ 비활성화됨 — zKillboard 가져오기가 꺼져 있습니다</value>
+  </data>
+  <data name="ZkbLiveAllKills" xml:space="preserve">
+    <value>● 모든 킬 — R2Z2 전체 스트림으로 실시간 수집</value>
+  </data>
+  <data name="ZkbLiveMine" xml:space="preserve">
+    <value>● 내 캐릭터와 코퍼레이션 — 주기적 폴링으로 실시간 수집</value>
+  </data>
+  <data name="ZkbScopeAll" xml:space="preserve">
+    <value>모든 킬 (우주 전체)</value>
+  </data>
+  <data name="ZkbScopeMine" xml:space="preserve">
+    <value>내 캐릭터와 코퍼레이션</value>
+  </data>
+  <data name="ZkbPostOff" xml:space="preserve">
+    <value>○ 꺼짐 — zKillboard에 킬을 제출하지 않습니다</value>
+  </data>
+  <data name="ZkbCoverageThrough" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}까지 일일 덤프 가져옴</value>
+  </data>
+  <data name="ZkbCoverageNone" xml:space="preserve">
+    <value>아직 가져온 일일 덤프 없음</value>
+  </data>
+  <data name="IntelDisabled" xml:space="preserve">
+    <value>○ 비활성화됨 — 채팅 로그 가져오기가 꺼져 있습니다</value>
+  </data>
+  <data name="IntelNoChannels" xml:space="preserve">
+    <value>○ 인텔 채널 없음 — 설정 → 채팅 로그에서 채널을 선택하십시오</value>
+  </data>
+  <data name="IntelParsing" xml:space="preserve">
+    <value>● 인텔 채널 분석 중</value>
+  </data>
+  <data name="IntelWatching" xml:space="preserve">
+    <value>● 인텔 채널 감시 중</value>
+  </data>
+  <data name="IntelChannelsNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="IntelBacklogCount" xml:space="preserve">
+    <value>검토할 메시지 {0:N0}개 남음</value>
+  </data>
+  <data name="IntelCaughtUp" xml:space="preserve">
+    <value>모두 처리됨</value>
+  </data>
+  <data name="StructuresSweeping" xml:space="preserve">
+    <value>● 수집 중 — 지금 구조물을 확인하는 중</value>
+  </data>
+  <data name="StructuresWatching" xml:space="preserve">
+    <value>● 감시 중 — 매시간 수집, 공개 목록은 매일</value>
+  </data>
+  <data name="StructuresNotYet" xml:space="preserve">
+    <value>이번 세션에는 아직 없음</value>
+  </data>
+  <data name="StructuresDueNow" xml:space="preserve">
+    <value>지금 실행 예정</value>
+  </data>
+  <data name="StructuresNextAt" xml:space="preserve">
+    <value>{0:HH:mm:ss} ({1:N0}분 후)</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>○ 활성화된 알람 없음 — 알람 도구에서 알람을 만드십시오</value>
+  </data>
+  <data name="AlarmsWatching" xml:space="preserve">
+    <value>● 알람 {0}개 감시 중</value>
+  </data>
+  <data name="AlarmsNothingFired" xml:space="preserve">
+    <value>이번 세션에 발생한 알람 없음</value>
+  </data>
+  <data name="NameCacheCount" xml:space="preserve">
+    <value>이름 {0:N0}개 캐시됨</value>
+  </data>
+  <data name="ContractsPulledQueued" xml:space="preserve">
+    <value>{0:N0} / {1:N0}개 가져옴 · {2:N0}개 대기 중</value>
+  </data>
+  <data name="ContractsRefusedCount" xml:space="preserve">
+    <value>{0:N0}개 거부됨 (ESI가 400/403/404로 응답했으며 해당 아이템이 없음)</value>
+  </data>
+  <data name="ContractsRunning" xml:space="preserve">
+    <value>● 실행 중 — 아이템을 기다리는 계약 {0:N0}개</value>
+  </data>
+  <data name="ContractsIdleQueued" xml:space="preserve">
+    <value>○ 대기 중 — 아이템을 기다리는 계약 {0:N0}개</value>
+  </data>
+  <data name="ContractsIdleComplete" xml:space="preserve">
+    <value>○ 대기 중 — 모든 아이템 가져오기 완료</value>
+  </data>
+  <data name="ContractsNotePublic" xml:space="preserve">
+    <value>지역의 공개 계약 목록을 검색한 것</value>
+  </data>
+  <data name="ContractsNoteOwned" xml:space="preserve">
+    <value>내 캐릭터와 코퍼레이션이 가진 계약 — 내 계약이 먼저, 그다음 코퍼레이션에 열린 계약</value>
+  </data>
+  <data name="ContractsNoteRefused" xml:space="preserve">
+    <value>요청했지만 거부됨 — 해당 계약이 있는 모든 엔드포인트에서 ESI가 400, 403 또는 404로 응답했습니다. 가져온 계약에 포함하여 셉니다</value>
+  </data>
+  <data name="LpStoreProgress" xml:space="preserve">
+    <value>코퍼레이션 {1:N0}개 중 {0:N0}개 확인 · {2:N0}개 남음</value>
+  </data>
+  <data name="LpStoreOffers" xml:space="preserve">
+    <value>스토어 {1:N0}곳의 상품 {0:N0}개</value>
+  </data>
+  <data name="LpStoreSweeping" xml:space="preserve">
+    <value>● 수집 중 — 확인할 코퍼레이션 {0:N0}개 남음</value>
+  </data>
+  <data name="LpStoreIdleNoneChecked" xml:space="preserve">
+    <value>○ 대기 중 — 아직 확인한 코퍼레이션 없음. 첫 수집은 시작 직후에 시작됩니다</value>
+  </data>
+  <data name="LpStoreIdleIncomplete" xml:space="preserve">
+    <value>○ 대기 중 — 아직 확인하지 않은 코퍼레이션 {0:N0}개, 목록이 불완전합니다</value>
+  </data>
+  <data name="LpStoreIdleComplete" xml:space="preserve">
+    <value>○ 대기 중 — 모든 코퍼레이션 확인 완료</value>
+  </data>
+  <data name="HistoryIdleCurrent" xml:space="preserve">
+    <value>○ 대기 중 — 추적 중인 모든 아이템이 최신입니다</value>
+  </data>
+  <data name="TokenCorpName" xml:space="preserve">
+    <value>[코퍼레이션] {0}</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>전체</value>
+  </data>
+  <data name="LogCountOther" xml:space="preserve">
+    <value>항목 {0:N0}개 · 최근 호출 1,000개를 보관합니다</value>
+  </data>
+  <data name="BadTokensOther" xml:space="preserve">
+    <value>잘못된 토큰 {0}개</value>
+  </data>
+  <data name="HistoryRunningQueuedOther" xml:space="preserve">
+    <value>● 실행 중 — 아이템 {0:N0}개 대기 중</value>
+  </data>
+  <data name="HistoryIdleQueuedOther" xml:space="preserve">
+    <value>○ 대기 중 — 다음 수집을 기다리는 아이템 {0:N0}개</value>
+  </data>
+  <data name="OpContains" xml:space="preserve">
+    <value>포함</value>
+  </data>
+  <data name="OpDoesNotContain" xml:space="preserve">
+    <value>포함 안 함</value>
+  </data>
+  <data name="OpEqual" xml:space="preserve">
+    <value>같음</value>
+  </data>
+  <data name="OpNotEqual" xml:space="preserve">
+    <value>같지 않음</value>
+  </data>
+  <data name="OpGreaterThan" xml:space="preserve">
+    <value>보다 큼</value>
+  </data>
+  <data name="OpGreaterThanOrEqual" xml:space="preserve">
+    <value>크거나 같음</value>
+  </data>
+  <data name="OpLessThan" xml:space="preserve">
+    <value>보다 작음</value>
+  </data>
+  <data name="OpLessThanOrEqual" xml:space="preserve">
+    <value>작거나 같음</value>
+  </data>
+  <data name="TableWalletBalances" xml:space="preserve">
+    <value>계좌 잔고</value>
+  </data>
+  <data name="TableWalletJournal" xml:space="preserve">
+    <value>계좌 저널</value>
+  </data>
+  <data name="TableWalletTransactions" xml:space="preserve">
+    <value>계좌 거래 기록</value>
+  </data>
+  <data name="TableSkills" xml:space="preserve">
+    <value>스킬</value>
+  </data>
+  <data name="TableSkillQueue" xml:space="preserve">
+    <value>스킬 대기열</value>
+  </data>
+  <data name="TableAttributes" xml:space="preserve">
+    <value>능력치</value>
+  </data>
+  <data name="TableFatigue" xml:space="preserve">
+    <value>점프 피로도</value>
+  </data>
+  <data name="TableCloneState" xml:space="preserve">
+    <value>클론 상태</value>
+  </data>
+  <data name="TableJumpClones" xml:space="preserve">
+    <value>점프 클론</value>
+  </data>
+  <data name="TableJumpCloneImplants" xml:space="preserve">
+    <value>점프 클론 임플란트</value>
+  </data>
+  <data name="TableImplants" xml:space="preserve">
+    <value>임플란트</value>
+  </data>
+  <data name="TableAssets" xml:space="preserve">
+    <value>자산</value>
+  </data>
+  <data name="TableBlueprints" xml:space="preserve">
+    <value>블루프린트</value>
+  </data>
+  <data name="TableIndustryJobs" xml:space="preserve">
+    <value>산업 작업</value>
+  </data>
+  <data name="TableMarketOrders" xml:space="preserve">
+    <value>거래소 주문</value>
+  </data>
+  <data name="TableContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="TableContacts" xml:space="preserve">
+    <value>연락처</value>
+  </data>
+  <data name="TableKillMails" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="TableStandings" xml:space="preserve">
+    <value>평판</value>
+  </data>
+  <data name="TableMining" xml:space="preserve">
+    <value>채굴</value>
+  </data>
+  <data name="TableNotifications" xml:space="preserve">
+    <value>알림</value>
+  </data>
+  <data name="TablePlanetaryColonies" xml:space="preserve">
+    <value>행성 콜로니</value>
+  </data>
+  <data name="TableAgentResearch" xml:space="preserve">
+    <value>에이전트 연구</value>
+  </data>
+  <data name="TableLoyaltyPoints" xml:space="preserve">
+    <value>로열티 포인트</value>
+  </data>
+  <data name="TableMedals" xml:space="preserve">
+    <value>훈장</value>
+  </data>
+  <data name="TableTitles" xml:space="preserve">
+    <value>직위</value>
+  </data>
+  <data name="TableRoles" xml:space="preserve">
+    <value>직책</value>
+  </data>
+  <data name="TableFittings" xml:space="preserve">
+    <value>피팅</value>
+  </data>
+  <data name="TableFittingItems" xml:space="preserve">
+    <value>피팅 아이템</value>
+  </data>
+  <data name="TableCorpDivisions" xml:space="preserve">
+    <value>코퍼레이션 부서</value>
+  </data>
+  <data name="TableCorpMembers" xml:space="preserve">
+    <value>코퍼레이션 멤버</value>
+  </data>
+  <data name="TableCorpMemberRoles" xml:space="preserve">
+    <value>코퍼레이션 멤버 직책</value>
+  </data>
+  <data name="TableCorpTitles" xml:space="preserve">
+    <value>코퍼레이션 직위</value>
+  </data>
+  <data name="TableCorpMedals" xml:space="preserve">
+    <value>코퍼레이션 훈장</value>
+  </data>
+  <data name="TableCorpStructures" xml:space="preserve">
+    <value>코퍼레이션 구조물</value>
+  </data>
+  <data name="TableCorpStarbases" xml:space="preserve">
+    <value>코퍼레이션 스타베이스</value>
+  </data>
+  <data name="TableCorpFacilities" xml:space="preserve">
+    <value>코퍼레이션 시설</value>
+  </data>
+  <data name="TableApiCallRecords" xml:space="preserve">
+    <value>API 호출 기록</value>
+  </data>
+  <data name="ExplorerSelectTable" xml:space="preserve">
+    <value>데이터를 보려면 목록에서 테이블을 선택하십시오.</value>
+  </data>
+  <data name="ExportCancel" xml:space="preserve">
+    <value>내보내기 취소</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>CSV 내보내기</value>
+  </data>
+  <data name="ExplorerNoRows" xml:space="preserve">
+    <value>행이 없습니다.</value>
+  </data>
+  <data name="ExplorerShowingRows" xml:space="preserve">
+    <value>{1:N0}행 중 {0:N0}행 표시</value>
+  </data>
+  <data name="ExplorerRowsTotal" xml:space="preserve">
+    <value>총 {0:N0}행</value>
+  </data>
+  <data name="ExportRunning" xml:space="preserve">
+    <value>내보내는 중…</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>내보내는 중… {0:N0}행</value>
+  </data>
+  <data name="ExportDone" xml:space="preserve">
+    <value>{0:N0}행을 {1}에 내보냈습니다</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>{0:N0}행을 내보낸 뒤 취소되었습니다. 파일은 보관하지 않았습니다.</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>내보내기 실패: {0}</value>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>열…</value>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>값…</value>
+  </data>
+  <data name="KindAgent" xml:space="preserve">
+    <value>AI 도우미</value>
+  </data>
+  <data name="KindSpeechOut" xml:space="preserve">
+    <value>음성 출력</value>
+  </data>
+  <data name="KindSpeechIn" xml:space="preserve">
+    <value>음성 입력</value>
+  </data>
+  <data name="RatePer1MTokens" xml:space="preserve">
+    <value>토큰 100만 개당</value>
+  </data>
+  <data name="RatePer1MCharacters" xml:space="preserve">
+    <value>100만 자당</value>
+  </data>
+  <data name="RatePerMinute" xml:space="preserve">
+    <value>분당</value>
+  </data>
+  <data name="RatePerUnit" xml:space="preserve">
+    <value>단위당</value>
+  </data>
+  <data name="RateAnyModel" xml:space="preserve">
+    <value>(모든 모델)</value>
+  </data>
+  <data name="SecondsOneDecimal" xml:space="preserve">
+    <value>{0:0.0}초</value>
+  </data>
+  <data name="CostLocal" xml:space="preserve">
+    <value>로컬</value>
+  </data>
+  <data name="CostNoRate" xml:space="preserve">
+    <value>요금 없음</value>
+  </data>
+  <data name="UsageNothingRecorded" xml:space="preserve">
+    <value>이 기간에 기록된 것이 없습니다.</value>
+  </data>
+  <data name="UsageServiceCalls" xml:space="preserve">
+    <value>서비스 호출 {0:N0}회</value>
+  </data>
+  <data name="UsageCalls" xml:space="preserve">
+    <value>호출 {0:N0}회</value>
+  </data>
+  <data name="CaveatNoPrices" xml:space="preserve">
+    <value>가격을 읽을 수 없어 위의 모든 비용이 0입니다 — {0}</value>
+  </data>
+  <data name="CaveatRowCeiling" xml:space="preserve">
+    <value>가장 최근 {0:N0}행만 읽었습니다 — 정확한 합계를 보려면 기간을 좁히십시오</value>
+  </data>
+  <data name="CaveatUnpriced" xml:space="preserve">
+    <value>호출 {0:N0}회는 요금이 설정되지 않아 합계에 포함되지 '않았습니다'</value>
+  </data>
+  <data name="CaveatEstimated" xml:space="preserve">
+    <value>호출 {0:N0}회는 보고된 값이 아니라 추정한 수치입니다</value>
+  </data>
+  <data name="EstimatedShort" xml:space="preserve">
+    <value>추정</value>
+  </data>
+  <data name="ActivityRounds" xml:space="preserve">
+    <value>{0}회 왕복</value>
+  </data>
+  <data name="ActivityFailed" xml:space="preserve">
+    <value>실패</value>
+  </data>
+  <data name="RatesNothingChanged" xml:space="preserve">
+    <value>변경된 것이 없습니다.</value>
+  </data>
+  <data name="RatesSaved" xml:space="preserve">
+    <value>요금 {0}개를 저장했습니다.</value>
+  </data>
+  <data name="PeriodWeekOf" xml:space="preserve">
+    <value>{0:yyyy-MM-dd} 주</value>
+  </data>
+  <data name="PeriodDay" xml:space="preserve">
+    <value>일별</value>
+  </data>
+  <data name="PeriodWeek" xml:space="preserve">
+    <value>주별</value>
+  </data>
+  <data name="PeriodMonth" xml:space="preserve">
+    <value>월별</value>
+  </data>
+  <data name="KindAllServices" xml:space="preserve">
+    <value>모든 서비스</value>
+  </data>
+  <data name="UnitTokens" xml:space="preserve">
+    <value>토큰</value>
+  </data>
+  <data name="UnitCharacters" xml:space="preserve">
+    <value>글자</value>
+  </data>
+  <data name="UnitSeconds" xml:space="preserve">
+    <value>초</value>
+  </data>
+  <data name="GameLogMinedResidue" xml:space="preserve">
+    <value>{0:N0} × {1} (손실 {2:N0})</value>
+  </data>
+  <data name="GameLogBounty" xml:space="preserve">
+    <value>현상금 {0:N0} ISK</value>
+  </data>
+  <data name="GameLogFieldCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="GameLogFieldAmount" xml:space="preserve">
+    <value>수치</value>
+  </data>
+  <data name="GameLogFieldSecondary" xml:space="preserve">
+    <value>보조 수치</value>
+  </data>
+  <data name="GameLogFieldSource" xml:space="preserve">
+    <value>주체</value>
+  </data>
+  <data name="GameLogFieldSourceShip" xml:space="preserve">
+    <value>주체 함선</value>
+  </data>
+  <data name="GameLogFieldSourceCorp" xml:space="preserve">
+    <value>주체 코퍼레이션</value>
+  </data>
+  <data name="GameLogFieldSourceAlliance" xml:space="preserve">
+    <value>주체 얼라이언스</value>
+  </data>
+  <data name="GameLogFieldTarget" xml:space="preserve">
+    <value>대상</value>
+  </data>
+  <data name="GameLogFieldTargetShip" xml:space="preserve">
+    <value>대상 함선</value>
+  </data>
+  <data name="GameLogFieldTargetCorp" xml:space="preserve">
+    <value>대상 코퍼레이션</value>
+  </data>
+  <data name="GameLogFieldTargetAlliance" xml:space="preserve">
+    <value>대상 얼라이언스</value>
+  </data>
+  <data name="GameLogFieldWeapon" xml:space="preserve">
+    <value>무기</value>
+  </data>
+  <data name="GameLogFieldQuality" xml:space="preserve">
+    <value>명중 정도</value>
+  </data>
+  <data name="GameLogFieldFromSystem" xml:space="preserve">
+    <value>출발 항성계</value>
+  </data>
+  <data name="GameLogFieldToSystem" xml:space="preserve">
+    <value>도착 항성계</value>
+  </data>
+  <data name="GameLogFieldLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="GameLogFieldSourceFile" xml:space="preserve">
+    <value>원본 파일</value>
+  </data>
+  <data name="GameLogFieldLine" xml:space="preserve">
+    <value>줄 번호</value>
+  </data>
+  <data name="GameLogNoEntries" xml:space="preserve">
+    <value>이 기간에 항목이 없습니다.</value>
+  </data>
+  <data name="GameLogEntriesCapped" xml:space="preserve">
+    <value>항목 {0:N0}개 (최대치 — 기간을 좁히십시오)</value>
+  </data>
+  <data name="ChatChannelCount" xml:space="preserve">
+    <value>채널 {0:N0}개</value>
+  </data>
+  <data name="ChatImportOff" xml:space="preserve">
+    <value>채팅 로그 가져오기가 꺼져 있습니다 — 설정 → 채팅 로그에서 켜십시오.</value>
+  </data>
+  <data name="ChatNoChannels" xml:space="preserve">
+    <value>선택한 채널이 없습니다 — 설정 → 채팅 로그에서 채널을 고르십시오.</value>
+  </data>
+  <data name="ChatNothingImported" xml:space="preserve">
+    <value>선택한 채널에서 아직 가져온 것이 없습니다. 새 메시지는 생기는 대로 가져오며, 이전 메시지는 설정의 '지난 채팅 가져오기'를 사용하십시오.</value>
+  </data>
+  <data name="ChatSelectChannel" xml:space="preserve">
+    <value>채널을 선택하십시오.</value>
+  </data>
+  <data name="ChatNoMessages" xml:space="preserve">
+    <value>이 기간에 메시지가 없습니다.</value>
+  </data>
+  <data name="ChatMessagesCapped" xml:space="preserve">
+    <value>메시지 {0:N0}개 (최대치 — 기간을 좁히십시오)</value>
+  </data>
+  <data name="ChatMessageCount" xml:space="preserve">
+    <value>메시지 {0:N0}개</value>
+  </data>
+  <data name="ErrorClientWorker" xml:space="preserve">
+    <value>{0} (워커)</value>
+  </data>
+  <data name="ErrorLogNone" xml:space="preserve">
+    <value>이 기간에 오류가 없습니다.</value>
+  </data>
+  <data name="ErrorLogCount" xml:space="preserve">
+    <value>오류 {0:N0}개</value>
+  </data>
+  <data name="ErrorInner" xml:space="preserve">
+    <value>내부 예외: {0}</value>
+  </data>
+  <data name="GameLogAllTypes" xml:space="preserve">
+    <value>(모든 유형)</value>
+  </data>
+  <data name="GameLogFieldRaw" xml:space="preserve">
+    <value>원본:</value>
+  </data>
+  <data name="GameLogEntriesOther" xml:space="preserve">
+    <value>항목 {0:N0}개</value>
+  </data>
+  <data name="ZkbFirehoseNotStarted" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 시작되지 않음</value>
+  </data>
+  <data name="ZkbFirehoseStopped" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 중지됨</value>
+  </data>
+  <data name="ZkbFirehoseError" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 오류 — {0}</value>
+  </data>
+  <data name="ZkbFirehoseDisabled" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 비활성화됨</value>
+  </data>
+  <data name="ZkbFirehoseIdle" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 대기 중 (“{0}” 범위는 대신 주기적 폴링을 사용함)</value>
+  </data>
+  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
+    <value>zKillboard 전체 스트림: zKillboard에 연결할 수 없어 다시 시도하는 중</value>
+  </data>
+  <data name="ZkbFirehoseSequence" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 시퀀스 {0:N0} — 이번 세션에 {1:N0}개 가져옴</value>
+  </data>
+  <data name="ZkbFirehoseSkipped" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 빈 시퀀스 {0:N0} 건너뜀 (최신 {1:N0})</value>
+  </data>
+  <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 따라잡음 (시퀀스 {0:N0})</value>
+  </data>
+  <data name="ZkbFirehoseWaitingBackfill" xml:space="preserve">
+    <value>zKillboard 전체 스트림: 일일 과거 데이터 채우기가 끝나기를 기다리는 중</value>
+  </data>
+  <data name="ZkbFirehoseResuming" xml:space="preserve">
+    <value>zKillboard 전체 스트림: {0:yyyy-MM-dd}부터 재개 (시퀀스 {1:N0}). 그 이전 날짜는 일일 덤프에서 가져옵니다</value>
+  </data>
+  <data name="ZkbPollNotStarted" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 시작되지 않음</value>
+  </data>
+  <data name="ZkbPollStopped" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 중지됨</value>
+  </data>
+  <data name="ZkbPollError" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 오류 — {0}</value>
+  </data>
+  <data name="ZkbPollDisabled" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 비활성화됨</value>
+  </data>
+  <data name="ZkbPollIdle" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 대기 중 (“{0}” 범위는 대신 전체 스트림을 사용함)</value>
+  </data>
+  <data name="ZkbPollNoOwners" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 추적 중인 캐릭터/코퍼레이션 없음</value>
+  </data>
+  <data name="ZkbPollAdded" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 캐릭터/코퍼레이션 {1}개에서 새 킬 참조 +{0}개</value>
+  </data>
+  <data name="ZkbPollWatching" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 캐릭터/코퍼레이션 {0}개 감시 중</value>
+  </data>
+  <data name="ZkbPollWatchingPending" xml:space="preserve">
+    <value>zKillboard 실시간 폴링: 캐릭터/코퍼레이션 {0}개 감시 중 (다음 확인 대기 중)</value>
+  </data>
+  <data name="ZkbBackfillNotStarted" xml:space="preserve">
+    <value>zKillboard 과거 데이터 채우기: 시작되지 않음</value>
+  </data>
+  <data name="ZkbBackfillStarting" xml:space="preserve">
+    <value>시작 중…</value>
+  </data>
+  <data name="ZkbBackfillDay" xml:space="preserve">
+    <value>{1:N0}일 중 {0:N0}일째 — {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbBackfillCancelled" xml:space="preserve">
+    <value>zKillboard 과거 데이터 채우기: {0:N0}일, 킬 {1:N0}개 처리 후 취소됨</value>
+  </data>
+  <data name="ZkbBackfillImported" xml:space="preserve">
+    <value>zKillboard 과거 데이터 채우기: {1:N0}일에 걸쳐 킬 {0:N0}개 가져옴</value>
+  </data>
+  <data name="ZkbBackfillFailed" xml:space="preserve">
+    <value>zKillboard 과거 데이터 채우기: 실패 — {0}</value>
+  </data>
+  <data name="ZkbGapFillDay" xml:space="preserve">
+    <value>공백 채우기 {1:N0}일 중 {0:N0}일째 — {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillCancelled" xml:space="preserve">
+    <value>zKillboard 공백 채우기: 취소됨, {0:yyyy-MM-dd}까지 따라잡음</value>
+  </data>
+  <data name="ZkbGapFillDone" xml:space="preserve">
+    <value>zKillboard 공백 채우기: {0:yyyy-MM-dd}까지 따라잡음, 킬 {1:N0}개</value>
+  </data>
+  <data name="ZkbGapFillFailed" xml:space="preserve">
+    <value>zKillboard 공백 채우기: 실패 — {0}</value>
+  </data>
+  <data name="ZkbPostingNotStarted" xml:space="preserve">
+    <value>zKillboard 등록: 시작되지 않음</value>
+  </data>
+  <data name="ZkbCoverageChecking" xml:space="preserve">
+    <value>확인 중…</value>
+  </data>
+  <data name="ZkbCoverageNoneYet" xml:space="preserve">
+    <value>아직 없음 — zKillboard에서 확인된 킬 없음</value>
+  </data>
+  <data name="ZkbPostingOff" xml:space="preserve">
+    <value>zKillboard 등록: 꺼짐</value>
+  </data>
+  <data name="ZkbPostingDisabled" xml:space="preserve">
+    <value>zKillboard 등록: 비활성화됨</value>
+  </data>
+  <data name="ZkbPostingError" xml:space="preserve">
+    <value>zKillboard 등록: 오류 — {0}</value>
+  </data>
+  <data name="ZkbPostingNoConfirmed" xml:space="preserve">
+    <value>zKillboard 등록: zKillboard에서 아직 확인된 킬이 없음 — 먼저 과거 데이터 채우기를 실행하십시오</value>
+  </data>
+  <data name="ZkbPostingNoFullDay" xml:space="preserve">
+    <value>zKillboard 등록: 아직 zKillboard에서 하루 전체를 가져온 날이 없음</value>
+  </data>
+  <data name="ZkbPostingNothing" xml:space="preserve">
+    <value>zKillboard 등록: 제출할 것 없음 ({0}부터 수집됨)</value>
+  </data>
+  <data name="ZkbPostingHalted" xml:space="preserve">
+    <value>zKillboard 등록: 중단됨 — zKillboard가 이 클라이언트를 신뢰할 수 없다며 거부했습니다</value>
+  </data>
+  <data name="NameCacheNotStarted" xml:space="preserve">
+    <value>이름 캐시: 시작되지 않음</value>
+  </data>
+  <data name="NameCacheError" xml:space="preserve">
+    <value>이름 캐시: 오류 — {0}</value>
+  </data>
+  <data name="NameCacheIdleResolved" xml:space="preserve">
+    <value>○ 대기 중 — 알려진 모든 개체의 이름 확인 완료</value>
+  </data>
+  <data name="NameCacheRunningCapped" xml:space="preserve">
+    <value>● 실행 중 — 이번 차례 {1:N0}개 중 {0:N0}개 (남은 항목 더 있음)</value>
+  </data>
+  <data name="NameCacheRunning" xml:space="preserve">
+    <value>● 실행 중 — 남은 이름 {1:N0}개 중 {0:N0}개</value>
+  </data>
+  <data name="NameCacheIdleAddedCapped" xml:space="preserve">
+    <value>○ 대기 중 — 이번 차례에 이름 {0:N0}개 추가, 남은 항목 더 있음</value>
+  </data>
+  <data name="NameCacheIdleAdded" xml:space="preserve">
+    <value>○ 대기 중 — 이름 {0:N0}개 추가, 알려진 모든 개체의 이름 확인 완료</value>
+  </data>
+  <data name="IntelStatusIdle" xml:space="preserve">
+    <value>인텔: 대기 중</value>
+  </data>
+  <data name="IntelStatusParsingMore" xml:space="preserve">
+    <value>인텔: {0} 분석 중 — 목격 보고 {1:N0}건, 남은 메시지 {2:N0}개</value>
+  </data>
+  <data name="IntelStatusParsing" xml:space="preserve">
+    <value>인텔: {0} 분석 중 — 목격 보고 {1:N0}건</value>
+  </data>
+  <data name="IntelStatusNothing" xml:space="preserve">
+    <value>인텔: 아직 분석한 것 없음</value>
+  </data>
+  <data name="IntelStatusUpToDate" xml:space="preserve">
+    <value>인텔: 최신 — 목격 보고 {0:N0}건, 최신 보고 {1}</value>
+  </data>
+  <data name="IntelStatusUnavailable" xml:space="preserve">
+    <value>인텔: 상태를 알 수 없음</value>
+  </data>
+  <data name="NotRunYet" xml:space="preserve">
+    <value>아직 실행되지 않음</value>
+  </data>
+  <data name="OrderFulfilmentFailed" xml:space="preserve">
+    <value>마지막 처리 실패: {0}</value>
+  </data>
+  <data name="OrderFulfilmentNoPending" xml:space="preserve">
+    <value>대기 중인 주문 없음</value>
+  </data>
+  <data name="OrderFulfilmentLinked" xml:space="preserve">
+    <value>대기 중인 주문 {1:N0}건 중 {0:N0}건에 조달처가 있음</value>
+  </data>
+  <data name="LpStoreStatusIdle" xml:space="preserve">
+    <value>LP 스토어: 대기 중</value>
+  </data>
+  <data name="LpStoreStatusNoSde" xml:space="preserve">
+    <value>LP 스토어: SDE에 NPC 코퍼레이션이 없음 — 먼저 SDE를 가져오십시오</value>
+  </data>
+  <data name="LpStoreStatusProgress" xml:space="preserve">
+    <value>LP 스토어: 코퍼레이션 {0:N0}/{1:N0}개, 상품 {2:N0}개…</value>
+  </data>
+  <data name="AlarmsStatusNoneArmed" xml:space="preserve">
+    <value>활성화된 알람 없음</value>
+  </data>
+  <data name="EndpointSkills" xml:space="preserve">
+    <value>스킬</value>
+  </data>
+  <data name="EndpointSkillQueue" xml:space="preserve">
+    <value>스킬 대기열</value>
+  </data>
+  <data name="EndpointWalletBalance" xml:space="preserve">
+    <value>계좌 잔고</value>
+  </data>
+  <data name="EndpointWalletJournal" xml:space="preserve">
+    <value>계좌 저널</value>
+  </data>
+  <data name="EndpointWalletTransactions" xml:space="preserve">
+    <value>계좌 거래 기록</value>
+  </data>
+  <data name="EndpointIndustryJobs" xml:space="preserve">
+    <value>산업 작업</value>
+  </data>
+  <data name="EndpointActiveOrders" xml:space="preserve">
+    <value>진행 중인 주문</value>
+  </data>
+  <data name="EndpointOrderHistory" xml:space="preserve">
+    <value>주문 기록</value>
+  </data>
+  <data name="EndpointAssets" xml:space="preserve">
+    <value>자산</value>
+  </data>
+  <data name="EndpointBlueprints" xml:space="preserve">
+    <value>블루프린트</value>
+  </data>
+  <data name="EndpointContracts" xml:space="preserve">
+    <value>계약</value>
+  </data>
+  <data name="EndpointAttributes" xml:space="preserve">
+    <value>능력치</value>
+  </data>
+  <data name="EndpointClones" xml:space="preserve">
+    <value>클론</value>
+  </data>
+  <data name="EndpointImplants" xml:space="preserve">
+    <value>임플란트</value>
+  </data>
+  <data name="EndpointJumpFatigue" xml:space="preserve">
+    <value>점프 피로도</value>
+  </data>
+  <data name="EndpointMiningLedger" xml:space="preserve">
+    <value>채굴 기록</value>
+  </data>
+  <data name="EndpointNotifications" xml:space="preserve">
+    <value>알림</value>
+  </data>
+  <data name="EndpointContacts" xml:space="preserve">
+    <value>연락처</value>
+  </data>
+  <data name="EndpointKillMails" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="EndpointPlanetaryInteraction" xml:space="preserve">
+    <value>행성 개발</value>
+  </data>
+  <data name="EndpointAgentResearch" xml:space="preserve">
+    <value>에이전트 연구</value>
+  </data>
+  <data name="EndpointLoyaltyPoints" xml:space="preserve">
+    <value>로열티 포인트</value>
+  </data>
+  <data name="EndpointMedals" xml:space="preserve">
+    <value>훈장</value>
+  </data>
+  <data name="EndpointStandings" xml:space="preserve">
+    <value>평판</value>
+  </data>
+  <data name="EndpointTitles" xml:space="preserve">
+    <value>직위</value>
+  </data>
+  <data name="EndpointRoles" xml:space="preserve">
+    <value>직책</value>
+  </data>
+  <data name="EndpointFittings" xml:space="preserve">
+    <value>피팅</value>
+  </data>
+  <data name="EndpointEveMail" xml:space="preserve">
+    <value>EVE 메일</value>
+  </data>
+  <data name="EndpointOnlineStatus" xml:space="preserve">
+    <value>접속 상태</value>
+  </data>
+  <data name="EndpointLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="EndpointCurrentShip" xml:space="preserve">
+    <value>현재 함선</value>
+  </data>
+  <data name="EndpointWalletBalances" xml:space="preserve">
+    <value>계좌 구분 잔고</value>
+  </data>
+  <data name="EndpointDivisions" xml:space="preserve">
+    <value>부서</value>
+  </data>
+  <data name="EndpointStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="EndpointStarbases" xml:space="preserve">
+    <value>스타베이스</value>
+  </data>
+  <data name="EndpointFacilities" xml:space="preserve">
+    <value>시설</value>
+  </data>
+  <data name="EndpointMembers" xml:space="preserve">
+    <value>멤버</value>
+  </data>
+  <data name="EndpointMemberTracking" xml:space="preserve">
+    <value>멤버 추적</value>
+  </data>
+  <data name="EndpointCorpProjects" xml:space="preserve">
+    <value>코퍼레이션 프로젝트</value>
+  </data>
+  <data name="EndpointMiningExtractions" xml:space="preserve">
+    <value>위성 파편 분리</value>
+  </data>
+  <data name="EndpointMiningObservers" xml:space="preserve">
+    <value>채굴 관측소 및 기록</value>
+  </data>
+  <data name="EndpointMarketPriceRefresh" xml:space="preserve">
+    <value>거래소 가격 새로고침</value>
+  </data>
+  <data name="EndpointBuildCostCalculation" xml:space="preserve">
+    <value>제조 비용 계산</value>
+  </data>
+  <data name="EndpointPublicContracts" xml:space="preserve">
+    <value>공개 계약</value>
+  </data>
+  <data name="EndpointContractItems" xml:space="preserve">
+    <value>계약 아이템</value>
+  </data>
+  <data name="StructureSweepNotRun" xml:space="preserve">
+    <value>이번 세션에는 아직 실행되지 않음</value>
+  </data>
+  <data name="PublicStructuresSummary" xml:space="preserve">
+    <value>{0:N0}개 등록 · {1:N0}개 이미 알려짐 · 새로 확인할 것 {2:N0}개</value>
+  </data>
+  <data name="StructureSweepFailed" xml:space="preserve">
+    <value>실패 — {0}</value>
+  </data>
+  <data name="CallOk" xml:space="preserve">
+    <value>정상</value>
+  </data>
+  <data name="StructureSweepCounts" xml:space="preserve">
+    <value>ID {0:N0}개 확인 · {1:N0}개 동기화 · {2:N0}개 삭제 · 구조물 {3:N0}개 보유, {4:N0}개 식별됨</value>
+  </data>
+  <data name="StructureSweepSuperseded" xml:space="preserve">
+    <value>피팅 {0:N0}개를 자산 기준으로 대체</value>
+  </data>
+  <data name="StructureSweepEveRef" xml:space="preserve">
+    <value>EVE Ref: {0:N0}개 알려짐, {1:N0}개 채움</value>
+  </data>
+  <data name="StructureSweepLinked" xml:space="preserve">
+    <value>연결된 산업 단지 피팅 {0:N0}개 업데이트</value>
+  </data>
+  <data name="ZkbPostingSubmitted" xml:space="preserve">
+    <value>zKillboard 등록: {0:N0}개 제출, {1:N0}개는 이미 zKillboard에 있음</value>
+  </data>
+  <data name="ZkbPostingSubmittedRejected" xml:space="preserve">
+    <value>zKillboard 등록: {0:N0}개 제출, {1:N0}개는 이미 zKillboard에 있음, {2:N0}개 거부됨</value>
+  </data>
+  <data name="LpStoreStatusDone" xml:space="preserve">
+    <value>LP 스토어: 스토어 {0:N0}곳, 상품 {1:N0}개, 스토어 없음 {2:N0}곳 — {3:t}</value>
+  </data>
+  <data name="LpStoreStatusDoneFailed" xml:space="preserve">
+    <value>LP 스토어: 스토어 {0:N0}곳, 상품 {1:N0}개, 스토어 없음 {2:N0}곳, 실패 {3:N0}곳 — {4:t}</value>
+  </data>
+  <data name="AlarmsStatusNextCheck" xml:space="preserve">
+    <value>{0}개 활성 · 다음 확인 {1}</value>
+  </data>
+  <data name="AlarmsNextCheckNow" xml:space="preserve">
+    <value>지금</value>
+  </data>
+  <data name="AlarmsNextCheckInSeconds" xml:space="preserve">
+    <value>{0:F0}초 후</value>
+  </data>
+  <data name="AlarmsNextCheckInMinutes" xml:space="preserve">
+    <value>{0:F0}분 후</value>
+  </data>
+  <data name="AlarmsNextCheckInHours" xml:space="preserve">
+    <value>{0:F0}시간 후</value>
+  </data>
+  <data name="AlarmsStatusChecked" xml:space="preserve">
+    <value>{0}개 활성 · {1}개 확인</value>
+  </data>
+  <data name="AlarmsStatusCheckedFired" xml:space="preserve">
+    <value>{0}개 활성 · {1}개 확인 · {2}개 발생</value>
+  </data>
+  <data name="BarEsiActiveQueued" xml:space="preserve">
+    <value>{0:N0}개 진행 중, {1:N0}개 대기 중</value>
+  </data>
+  <data name="BarProcessing" xml:space="preserve">
+    <value>처리 중</value>
+  </data>
+  <data name="BarProcessingItemsOther" xml:space="preserve">
+    <value>아이템 {0:N0}개 처리 중</value>
+  </data>
+  <data name="BarStarting" xml:space="preserve">
+    <value>시작 중</value>
+  </data>
+  <data name="BarContractsProgressOther" xml:space="preserve">
+    <value>계약 {0:N0}개 중 {1:N0}개</value>
+  </data>
+  <data name="BarCorporationsProgressOther" xml:space="preserve">
+    <value>코퍼레이션 {0:N0}개 중 {1:N0}개</value>
+  </data>
+  <data name="BarFetching" xml:space="preserve">
+    <value>가져오는 중</value>
+  </data>
+  <data name="BarFetchingProgress" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 가져오는 중</value>
+  </data>
+  <data name="BarFetchingProgressMore" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 가져오는 중, {2:N0}개 더 남음</value>
+  </data>
+  <data name="KillmailsWithoutDetailsOther" xml:space="preserve">
+    <value>세부 정보가 아직 없는 킬 메일 {0:N0}개 — 다음 폴링에서 최대 200개를 가져옵니다</value>
+  </data>
+  <data name="KillmailsAllDetailed" xml:space="preserve">
+    <value>앱이 아는 모든 킬 메일에 세부 정보가 있습니다</value>
+  </data>
+  <data name="BarBackfill" xml:space="preserve">
+    <value>과거 데이터 채우기</value>
+  </data>
+  <data name="BarBackfillProgress" xml:space="preserve">
+    <value>과거 데이터 채우기 {1:N0}일 중 {0:N0}일</value>
+  </data>
+  <data name="CallsNotRelayedOther" xml:space="preserve">
+    <value>(전달되지 않은 호출 {0}개 더 있음)</value>
+  </data>
+</root>
