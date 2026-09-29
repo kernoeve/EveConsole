@@ -69,7 +69,7 @@ public class WebStoreSyncService(
 
     public DateTimeOffset? LastRunAt  { get; private set; }
     public DateTimeOffset? NextRunAt  { get; private set; }
-    public string          StatusText { get; private set; } = "Not run yet";
+    public string          StatusText { get; private set; } = DataText.NotRunYet;
 
     private Task? _loop;
     private CancellationTokenSource? _cts;
@@ -154,7 +154,7 @@ public class WebStoreSyncService(
 
             if (stores.Count == 0)
             {
-                StatusText = "No web stores open.";
+                StatusText = SalesText.WebSyncNoneOpen;
                 NextRunAt  = DateTimeOffset.UtcNow + NoneOpen;
                 _due.Clear();
                 return;
@@ -182,10 +182,10 @@ public class WebStoreSyncService(
             if (synced == 0) return;
             LastRunAt  = DateTimeOffset.UtcNow;
             StatusText = problems > 0
-                ? $"{synced} web store(s), {problems} could not be reached — see the Stores screen."
+                ? string.Format(SalesText.WebSyncUnreachable, synced, problems)
                 : booked > 0
-                    ? $"{synced} web store(s) synced, {booked} order(s) booked."
-                    : $"{synced} web store(s) synced; {sessions} buyer session(s) active.";
+                    ? string.Format(SalesText.WebSyncBooked, synced, booked)
+                    : string.Format(SalesText.WebSyncSessions, synced, sessions);
         }
         finally { _gate.Release(); }
     }
@@ -211,8 +211,8 @@ public class WebStoreSyncService(
         {
             var r = await SyncOneAsync(storeId, ct);
             return r.Error ?? (r.Booked > 0
-                ? $"Synced — {r.Booked} order(s) booked, {r.Events} event(s) applied."
-                : $"Synced — {r.Events} event(s) applied, {r.Pushed} order row(s) pushed, {r.Sessions} session(s) active.");
+                ? string.Format(SalesText.WebSyncNowBooked, r.Booked, r.Events)
+                : string.Format(SalesText.WebSyncNowDone, r.Events, r.Pushed, r.Sessions));
         }
         finally { _gate.Release(); }
     }
@@ -251,9 +251,9 @@ public class WebStoreSyncService(
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var store = await db.Stores.FirstOrDefaultAsync(s => s.Id == storeId, ct);
-        if (store is null) return new Exchange(0, 0, 0, 0, false, "The store no longer exists.");
+        if (store is null) return new Exchange(0, 0, 0, 0, false, SalesText.WebSyncStoreGone);
         if (!store.WebEnabled || store.WebUrl.Length == 0 || store.WebSecret.Length == 0)
-            return new Exchange(0, 0, 0, 0, false, "The web store is not set up: it needs to be switched on with a site address and a secret.");
+            return new Exchange(0, 0, 0, 0, false, SalesText.WebSyncNotSetUp);
 
         SyncRequest request;
         Dictionary<int, string> sentHashes;
@@ -264,15 +264,16 @@ public class WebStoreSyncService(
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            return await FailAsync(db, store, "Could not build the push: " + AppErrorLogger.Line("", ex).TrimStart(':', ' '), ex, ct);
+            return await FailAsync(db, store,
+                string.Format(SalesText.WebSyncBuildFailed, AppErrorLogger.Line("", ex).TrimStart(':', ' ')), ex, ct);
         }
 
         if (request.Catalogue.Sections.Count == 0)
-            return await FailAsync(db, store, "The store's posting produced nothing — check it has sections and items.", null, ct);
+            return await FailAsync(db, store, SalesText.WebSyncPostingEmpty, null, ct);
 
         var (response, error) = await PostAsync(store, request, ct);
         if (response is null)
-            return await FailAsync(db, store, error ?? "No reply.", null, ct);
+            return await FailAsync(db, store, error ?? SalesText.WebSyncNoReply, null, ct);
 
         // ── A new site database: everything the ledger says was pushed, was not ──
         //
@@ -365,7 +366,7 @@ public class WebStoreSyncService(
                     "order"  => await BookAsync(store, ev, force: false, ct),
                     "cancel" => await CancelAsync(store, ev, ct),
                     "visit"  => ("noted", VisitDetail(ev), ""),
-                    _        => ("rejected", $"Unknown event kind \"{ev.Kind}\".", ""),
+                    _        => ("rejected", string.Format(SalesText.WebSyncUnknownEvent, ev.Kind), ""),
                 };
                 record.Outcome  = outcome;
                 record.Detail   = detail;
@@ -380,7 +381,7 @@ public class WebStoreSyncService(
                 // otherwise stop every event behind it.
                 errorLogger.Log(nameof(WebStoreSyncService), $"store {store.Id} event {ev.Seq}", ex);
                 record.Outcome = "error";
-                record.Detail  = AppErrorLogger.Line("Could not apply", ex);
+                record.Detail  = AppErrorLogger.Line(SalesText.WebSyncCouldNotApply, ex);
             }
 
             db.StoreWebEvents.Add(record);
@@ -591,7 +592,7 @@ public class WebStoreSyncService(
 
         if (!Uri.TryCreate(store.WebUrl.TrimEnd('/') + WebStoreProtocol.SyncPath, UriKind.Absolute, out var uri)
             || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
-            return (null, $"The site address \"{store.WebUrl}\" is not a valid https address.");
+            return (null, string.Format(SalesText.WebSyncBadAddress, store.WebUrl));
 
         try
         {
@@ -605,38 +606,45 @@ public class WebStoreSyncService(
             var bytes = await response.Content.ReadAsByteArrayAsync(ct);
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                return (null, "The site refused the signature. The secret here and the one on the site differ, or the clocks are more than five minutes apart.");
+                return (null, SalesText.WebSyncBadSignature);
             if (response.StatusCode == HttpStatusCode.NotFound)
-                return (null, "The site has no sync endpoint at that address. Check the address, and that the site is deployed.");
+                return (null, SalesText.WebSyncNoEndpoint);
             if ((int)response.StatusCode == 409 || (int)response.StatusCode == 426)
             {
                 var theirs = TryProtocol(bytes);
                 return (null, theirs is { } p
-                    ? $"The site speaks protocol {p} and this app speaks {WebStoreProtocol.Version}. Update the {(p > WebStoreProtocol.Version ? "app" : "site")}."
-                    : "The site and the app disagree about the protocol version.");
+                    ? ProtocolMismatch(p)
+                    : SalesText.WebSyncProtocolDisagree);
             }
             if (!response.IsSuccessStatusCode)
-                return (null, $"The site answered {(int)response.StatusCode} {response.ReasonPhrase}{Detail(bytes)}.");
+                return (null, Why(bytes) is { } why
+                    ? string.Format(SalesText.WebSyncAnsweredWhy, (int)response.StatusCode, response.ReasonPhrase, why)
+                    : string.Format(SalesText.WebSyncAnswered, (int)response.StatusCode, response.ReasonPhrase));
 
             var parsed = JsonSerializer.Deserialize<SyncResponse>(bytes, WebStoreProtocol.Json);
-            if (parsed is null) return (null, "The site's reply was empty.");
+            if (parsed is null) return (null, SalesText.WebSyncEmptyReply);
             if (parsed.Protocol != WebStoreProtocol.Version)
-                return (null, $"The site speaks protocol {parsed.Protocol} and this app speaks {WebStoreProtocol.Version}. Update the {(parsed.Protocol > WebStoreProtocol.Version ? "app" : "site")}.");
+                return (null, ProtocolMismatch(parsed.Protocol));
             return (parsed, null);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            return (null, "The site did not answer within a minute.");
+            return (null, SalesText.WebSyncTimeout);
         }
         catch (HttpRequestException ex)
         {
-            return (null, "Could not reach the site: " + ex.Message);
+            return (null, string.Format(SalesText.WebSyncCouldNotReach, ex.Message));
         }
         catch (JsonException ex)
         {
-            return (null, "The site's reply could not be read: " + ex.Message);
+            return (null, string.Format(SalesText.WebSyncUnreadable, ex.Message));
         }
     }
+
+    /// <summary>The site and this app speak different protocols: which of the two to update.</summary>
+    private static string ProtocolMismatch(int site) =>
+        string.Format(site > WebStoreProtocol.Version ? SalesText.WebSyncProtocolUpdateApp : SalesText.WebSyncProtocolUpdateSite,
+                      site, WebStoreProtocol.Version);
 
     /// <summary>Sends the store's banner to the site. Null when it went; else why not, in words.</summary>
     private async Task<string?> PutBannerAsync(AppDbContext db, Store store, string sha256, CancellationToken ct)
@@ -647,20 +655,32 @@ public class WebStoreSyncService(
 
         var body = JsonSerializer.SerializeToUtf8Bytes(
             new BannerUpload { Sha256 = asset.Sha256, ContentType = asset.ContentType, Data = asset.Bytes }, WebStoreProtocol.Json);
-        var (status, reply, error) = await SendSignedAsync(store, HttpMethod.Put, WebStoreProtocol.BannerPath, body, ct);
-        if (error is not null) return "The banner could not be sent: " + error + ".";
-        if (status == HttpStatusCode.NotFound) return "The site is too old to take a banner; update it.";
-        if ((int)status >= 300) return $"The site refused the banner ({(int)status}){Detail(reply)}.";
+        var (status, reply, failure, message) = await SendSignedAsync(store, HttpMethod.Put, WebStoreProtocol.BannerPath, body, ct);
+        switch (failure)
+        {
+            case CallFailure.BadAddress:  return string.Format(SalesText.WebSyncBannerBadAddress, store.WebUrl);
+            case CallFailure.Timeout:     return SalesText.WebSyncBannerTimeout;
+            case CallFailure.Unreachable: return string.Format(SalesText.WebSyncBannerUnreachable, message);
+        }
+        if (status == HttpStatusCode.NotFound) return SalesText.WebSyncBannerSiteTooOld;
+        if ((int)status >= 300)
+            return Why(reply) is { } why
+                ? string.Format(SalesText.WebSyncBannerRefusedWhy, (int)status, why)
+                : string.Format(SalesText.WebSyncBannerRefused, (int)status);
         return null;
     }
 
+    /// <summary>Why a signed call got no answer, for its caller to say in a sentence of its own.</summary>
+    private enum CallFailure { None, BadAddress, Timeout, Unreachable }
+
     /// <summary>One signed call to the site: the sync call's own timestamp and signature headers.</summary>
-    private async Task<(HttpStatusCode Status, byte[] Body, string? Error)> SendSignedAsync(
+    /// <returns>The answer, or why there was none — with the error's own message for <see cref="CallFailure.Unreachable"/>.</returns>
+    private async Task<(HttpStatusCode Status, byte[] Body, CallFailure Failure, string Message)> SendSignedAsync(
         Store store, HttpMethod method, string path, byte[] body, CancellationToken ct)
     {
         if (!Uri.TryCreate(store.WebUrl.TrimEnd('/') + path, UriKind.Absolute, out var uri)
             || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
-            return (0, [], $"the site address \"{store.WebUrl}\" is not a valid https address");
+            return (0, [], CallFailure.BadAddress, "");
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         try
         {
@@ -670,37 +690,37 @@ public class WebStoreSyncService(
             message.Headers.Add(WebStoreProtocol.TimestampHeader, now.ToString());
             message.Headers.Add(WebStoreProtocol.SignatureHeader, WebStoreSigner.Sign(store.WebSecret, now, body));
             using var response = await httpFactory.CreateClient("webstore").SendAsync(message, ct);
-            return (response.StatusCode, await response.Content.ReadAsByteArrayAsync(ct), null);
+            return (response.StatusCode, await response.Content.ReadAsByteArrayAsync(ct), CallFailure.None, "");
         }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return (0, [], "the site did not answer within a minute"); }
-        catch (HttpRequestException ex) { return (0, [], "could not reach the site: " + ex.Message); }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return (0, [], CallFailure.Timeout, ""); }
+        catch (HttpRequestException ex) { return (0, [], CallFailure.Unreachable, ex.Message); }
     }
 
     /// <summary>A visit in words: signed in, or back after so long away.</summary>
     private static string VisitDetail(SiteEventDto ev)
     {
-        if (ev.AwayMinutes is not { } m) return "Signed in to the site.";
-        var away = m >= 1440 ? $"{m / 1440} day{(m / 1440 == 1 ? "" : "s")}"
-                 : m >= 60   ? $"{m / 60} hour{(m / 60 == 1 ? "" : "s")}"
-                 :             $"{m} minutes";
-        return $"Came to the site after {away} away.";
+        if (ev.AwayMinutes is not { } m) return SalesText.WebSyncSignedIn;
+        return m >= 1440 ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncBackAfterDaysOther), m / 1440)
+             : m >= 60   ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncBackAfterHoursOther), m / 60)
+             :             Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncBackAfterMinutesOther), m);
     }
 
-    /// <summary>What the site said with an error, for the status line: its JSON "error", else the start of its text.</summary>
-    private static string Detail(byte[] bytes)
+    /// <summary>What the site said with an error, for the status line: its JSON "error", else the
+    /// start of its text; null when it said nothing worth showing.</summary>
+    private static string? Why(byte[] bytes)
     {
-        if (bytes.Length == 0) return "";
+        if (bytes.Length == 0) return null;
         try
         {
             using var doc = JsonDocument.Parse(bytes);
             if (doc.RootElement.ValueKind == JsonValueKind.Object
                 && doc.RootElement.TryGetProperty("error", out var e) && e.ValueKind == JsonValueKind.String
                 && e.GetString() is { Length: > 0 } why)
-                return $": {why}";
+                return why;
         }
         catch (JsonException) { }
         var text = Encoding.UTF8.GetString(bytes).Trim();
-        return text.Length == 0 || text.StartsWith('<') ? "" : $": {(text.Length > 160 ? text[..160] + "…" : text)}";
+        return text.Length == 0 || text.StartsWith('<') ? null : text.Length > 160 ? text[..160] + "…" : text;
     }
 
     private static int? TryProtocol(byte[] bytes)
@@ -724,13 +744,19 @@ public class WebStoreSyncService(
     private async Task<(string Outcome, string Detail, string OrderRef)> BookAsync(
         Store store, SiteEventDto ev, bool force, CancellationToken ct)
     {
-        if (ev.Buyer.Id <= 0)   return ("rejected", "No buyer on the order.", "");
-        if (ev.Lines.Count == 0) return ("rejected", "No lines on the order.", "");
+        // In the store's language: a rejection's reason goes back to the site for the buyer to
+        // read (BuildRequestAsync). What is held for review, and what was booked, is for the owner
+        // on the Stores screen, and goes back to the app's language through Owner.
+        using var language = LanguageScope.Use(store.Language);
+
+        if (ev.Buyer.Id <= 0)   return Rejected(StoreText.WebNoBuyer);
+        if (ev.Lines.Count == 0) return Rejected(StoreText.WebNoLines);
         if (ev.Lines.Count > StoreMailService.MaxLinesPerOrder)
-            return ("rejected", $"{ev.Lines.Count} lines is more than one order may carry ({StoreMailService.MaxLinesPerOrder}).", "");
+            return Rejected(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.WebTooManyLinesOther),
+                                           ev.Lines.Count, StoreMailService.MaxLinesPerOrder));
 
         var view = await postings.BuildViewAsync(store.PostingId, ct);
-        if (view is null) return ("review", "The store has no posting to check the order against.", "");
+        if (view is null) return Review(() => SalesText.WebSyncNoPosting);
 
         var byTypeId = view.Sections.SelectMany(s => s.Items)
             .GroupBy(i => i.TypeId).ToDictionary(g => g.Key, g => g.First());
@@ -742,17 +768,20 @@ public class WebStoreSyncService(
 
         foreach (var (typeId, units, unitPrice) in lines)
         {
-            if (!byTypeId.ContainsKey(typeId)) return ("rejected", $"Type {typeId} is not on the price list.", "");
-            if (units <= 0)                      return ("rejected", $"A line asks for {units} units.", "");
+            if (!byTypeId.ContainsKey(typeId)) return Rejected(string.Format(StoreText.WebNotOnPriceList, typeId));
+            if (units <= 0)
+                return Rejected(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.WebUnitsAskedOther), units));
             if (units > StoreMailService.MaxUnitsPerLine)
-                return ("rejected", $"{units:N0} units is more than one order line may carry ({StoreMailService.MaxUnitsPerLine:N0}).", "");
-            if (unitPrice <= 0 && !force)        return ("review", $"No price on the line for {byTypeId[typeId].TypeName}.", "");
+                return Rejected(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.WebTooManyUnitsOther),
+                                               units, StoreMailService.MaxUnitsPerLine));
+            if (unitPrice <= 0 && !force)
+                return Review(() => string.Format(SalesText.WebSyncNoLinePrice, byTypeId[typeId].TypeName));
         }
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         if (!force && !await StoreSenderPolicy.IsAllowedAsync(db, esi, store, ev.Buyer.Id, ct))
-            return ("review", $"{ev.Buyer.Name} is not on this store's list.", "");
+            return Review(() => string.Format(SalesText.WebSyncNotOnList, ev.Buyer.Name));
 
         // ⚠️ The price the buyer saw is honoured, and checked. The site prices from the catalogue
         // the app pushed, so a quote far from the posting's current price means the posting moved
@@ -763,21 +792,20 @@ public class WebStoreSyncService(
             {
                 var item = byTypeId[typeId];
                 if (item.SalePrice is not { } sale)
-                    return ("review", $"{item.TypeName} has no price on the posting now.", "");
+                    return Review(() => string.Format(SalesText.WebSyncNoPostingPrice, item.TypeName));
                 var shown = MarketFmt.RoundToDisplay(sale);
                 if (shown > 0 && Math.Abs(unitPrice - shown) / shown > PriceTolerance)
-                    return ("review",
-                        $"The site quoted {unitPrice:N0} ISK for {item.TypeName}; the posting now says {shown:N0} ISK "
-                        + $"({(unitPrice - shown) / shown * 100:+0;-0}%).", "");
+                    return Review(() => string.Format(SalesText.WebSyncPriceMoved,
+                        unitPrice, item.TypeName, shown, (unitPrice - shown) / shown * 100));
             }
 
         // ⚠️ The store's purchase limit, checked here as well as on the site: the site greys out
         // what a buyer may no longer order, but the app holds the whole history and does the
         // booking. Over the limit is a matter for the owner, not a refusal.
         if (!force && store.LimitEnabled
-            && await PurchaseLimit.OverLimitAsync(db, store, ev.Buyer.Id, lines.Select(l => (l.TypeId, (long)l.Units)).ToList(),
-                                                  typeId => byTypeId[typeId].TypeName, ct) is { } over)
-            return ("review", over, "");
+            && await PurchaseLimit.OverLimitAsync(db, store, ev.Buyer.Id, lines.Select(l => (l.TypeId, (long)l.Units)).ToList(), ct)
+                is { } over)
+            return Review(() => over.Words(byTypeId[over.TypeId].TypeName));
 
         var reference = await OrderReference.NewAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;
@@ -823,8 +851,10 @@ public class WebStoreSyncService(
         db.ChangeTracker.Clear();
 
         // ⚠️ Worked out now rather than at the next five-minute pass, so the confirmation the
-        // next cycle carries back says stock, build or waiting rather than nothing yet.
-        try { await fulfilment.RunOnceAsync(ct); }
+        // next cycle carries back says stock, build or waiting rather than nothing yet. In the
+        // app's language, not the store's: the pass is the app's, and its status and whatever it
+        // sets off are read by the owner.
+        try { using (LanguageScope.App()) await fulfilment.RunOnceAsync(ct); }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { errorLogger.Log(nameof(WebStoreSyncService), "fulfilment after order", ex); }
 
@@ -833,7 +863,23 @@ public class WebStoreSyncService(
         foreach (var o in settled) o.NotifiedState = StoreMailService.StateOf(o);
         await db.SaveChangesAsync(ct);
 
-        return ("booked", $"{created.Count} line(s), {created.Sum(o => o.PurchasePrice):N0} ISK.", reference);
+        return ("booked", Owner(() => Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncBookedLinesOther),
+                                                     created.Count, created.Sum(o => o.PurchasePrice))), reference);
+    }
+
+    /// <summary>A web order turned down: its reason goes to the site, for the buyer, in the store's
+    /// language (the scope BookAsync writes in).</summary>
+    private static (string Outcome, string Detail, string OrderRef) Rejected(string reason) => ("rejected", reason, "");
+
+    /// <summary>A web order held for the owner, with why, in the app's language.</summary>
+    private static (string Outcome, string Detail, string OrderRef) Review(Func<string> why) => ("review", Owner(why), "");
+
+    /// <summary>Text for the store's owner — a held order's reason, a booked order's summary — in
+    /// the app's own language, while the store is writing to its buyers in theirs.</summary>
+    private static string Owner(Func<string> text)
+    {
+        using var _ = LanguageScope.App();
+        return text();
     }
 
     // ── Cancelling from the site ──────────────────────────────────────────────
@@ -861,11 +907,14 @@ public class WebStoreSyncService(
                 .ToListAsync(ct);
             if (pending.Count > 0)
             {
-                foreach (var p in pending) { p.Outcome = "rejected"; p.Detail = "Withdrawn by the buyer before it was booked."; }
+                // The reason the site shows the buyer, in the store's language. Everything else
+                // here is the owner's, and stays in the app's.
+                using (LanguageScope.Use(store.Language))
+                    foreach (var p in pending) { p.Outcome = "rejected"; p.Detail = StoreText.WebWithdrawn; }
                 await db.SaveChangesAsync(ct);
-                return ("applied", "Withdrawn before it was booked.", "");
+                return ("applied", SalesText.WebSyncWithdrawn, "");
             }
-            return ("rejected", "No order matches.", "");
+            return ("rejected", SalesText.WebSyncNoOrderMatches, "");
         }
 
         // ⚠️ The buyer's own, or their corporation's. A cancellation is the one thing a buyer can
@@ -874,10 +923,10 @@ public class WebStoreSyncService(
                 o.BuyerId == ev.Buyer.Id
              || (o.BuyerType == "corporation" && o.BuyerId == ev.Buyer.CorporationId))
             .ToList();
-        if (mine.Count == 0) return ("rejected", "The order belongs to somebody else.", "");
+        if (mine.Count == 0) return ("rejected", SalesText.WebSyncNotTheirs, "");
 
         var open = mine.Where(o => o.Status == "pending").ToList();
-        if (open.Count == 0) return ("rejected", "Nothing on the order is still open.", mine[0].OrderRef);
+        if (open.Count == 0) return ("rejected", SalesText.WebSyncNothingOpen, mine[0].OrderRef);
 
         // Only a contract still waiting on the buyer has to be withdrawn; one already accepted
         // for part of the order is a delivery made.
@@ -896,9 +945,11 @@ public class WebStoreSyncService(
         catch (Exception ex) { errorLogger.Log(nameof(WebStoreSyncService), "fulfilment after cancel", ex); }
 
         var detail = contracted.Count > 0
-            ? $"Cancelled {open.Count} line(s). ⚠ Contract {string.Join(", ", contracted.Select(o => o.LinkedContractId))} is already made out and has to be withdrawn in game."
-            : $"Cancelled {open.Count} line(s)."
-              + (ev.Reason.Length > 0 ? $" Reason given: {ev.Reason}" : "");
+            ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncCancelledContractOther),
+                             open.Count, string.Join(", ", contracted.Select(o => o.LinkedContractId)))
+            : ev.Reason.Length > 0
+                ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncCancelledReasonOther), open.Count, ev.Reason)
+                : Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncCancelledOther), open.Count);
 
         return ("applied", detail, mine[0].OrderRef);
     }
@@ -910,19 +961,21 @@ public class WebStoreSyncService(
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var record = await db.StoreWebEvents.FirstOrDefaultAsync(e => e.Id == eventId, ct);
-        if (record is null) return "That event no longer exists.";
-        if (record.Kind != "order") return "Only an order can be approved.";
-        if (record.Outcome is "booked") return "Already booked.";
+        if (record is null) return SalesText.WebSyncEventGone;
+        if (record.Kind != "order") return SalesText.WebSyncOnlyOrders;
+        if (record.Outcome is "booked") return SalesText.WebSyncAlreadyBooked;
 
         var store = await db.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == record.StoreId, ct);
-        if (store is null) return "The store no longer exists.";
+        if (store is null) return SalesText.WebSyncStoreGone;
 
         var ev = JsonSerializer.Deserialize<SiteEventDto>(record.Payload, WebStoreProtocol.Json);
-        if (ev is null) return "The event could not be read.";
+        if (ev is null) return SalesText.WebSyncEventUnreadable;
 
+        // A reason it is still turned down for is the buyer's, in the store's language: BookAsync
+        // writes it in that. The rest is the owner's.
         var (outcome, detail, orderRef) = await BookAsync(store, ev, force: true, ct);
         record.Outcome  = outcome;
-        record.Detail   = outcome == "booked" ? "Approved by the owner. " + detail : detail;
+        record.Detail   = outcome == "booked" ? string.Format(SalesText.WebSyncApproved, detail) : detail;
         record.OrderRef = orderRef;
         await db.SaveChangesAsync(ct);
 
@@ -931,22 +984,32 @@ public class WebStoreSyncService(
         // store's next call, within its interval.
         if (outcome == "booked") fulfilment.Nudge();
         Nudge();
-        return outcome == "booked" ? $"Booked as order {orderRef}." : detail;
+        return outcome == "booked" ? string.Format(SalesText.WebSyncBookedAs, orderRef) : detail;
     }
 
     /// <summary>Turns a held web order down; the buyer sees the reason on the site.</summary>
-    public async Task<string> RejectAsync(int eventId, string reason, CancellationToken ct = default)
+    /// <param name="reason">The owner's own words, sent as they are; none for the stock reason,
+    /// which is worded here in the store's language.</param>
+    public async Task<string> RejectAsync(int eventId, string? reason = null, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var record = await db.StoreWebEvents.FirstOrDefaultAsync(e => e.Id == eventId, ct);
-        if (record is null) return "That event no longer exists.";
-        if (record.Outcome is "booked") return "Already booked — cancel it in the Order Tracker instead.";
+        if (record is null) return SalesText.WebSyncEventGone;
+        if (record.Outcome is "booked") return SalesText.WebSyncRejectBooked;
 
         record.Outcome = "rejected";
-        record.Detail  = reason.Trim().Length > 0 ? reason.Trim() : "Declined by the store.";
+        var own = reason?.Trim() ?? "";
+        if (own.Length > 0) record.Detail = own;
+        else
+        {
+            // The buyer reads it on the site: in the store's language, not the owner's.
+            var language = await db.Stores.AsNoTracking().Where(s => s.Id == record.StoreId)
+                                   .Select(s => s.Language).FirstOrDefaultAsync(ct);
+            using (LanguageScope.Use(language)) record.Detail = StoreText.WebDeclined;
+        }
         await db.SaveChangesAsync(ct);
 
         Nudge();
-        return "Declined.";
+        return SalesText.WebSyncDeclined;
     }
 }

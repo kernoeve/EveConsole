@@ -397,10 +397,12 @@ public class StoresViewModel : ReactiveObject
     }
 
     // The web site hears at once, and the price list is measured again: the same list weighs two
-    // to three times as much in Cyrillic, or in Chinese, Japanese and Korean.
+    // to three times as much in Cyrillic, or in Chinese, Japanese and Korean. The stock usage's
+    // example items are read in the new language, for the text the usage box starts from.
     private async Task SaveLanguageAsync(string language)
     {
         await SaveAsync(s => s.Language = language, nudge: true);
+        await LoadUsageNamesAsync(language);
         await MeasurePostingAsync();
     }
 
@@ -561,13 +563,45 @@ public class StoresViewModel : ReactiveObject
     {
         if (SelectedStore is not StoreRowVm row) return "";
 
+        // In the store's language, which is the one its buyers receive it in.
         return StoreMailService.DefaultUsageForEditing(new Store
         {
             Id            = row.Id,
             Name          = StoreName,
             MessageHeader = MessageHeader,
             MessageFooter = MessageFooter,
-        });
+            Language      = _storeLanguage,
+        }, UsageNames(_storeLanguage));
+    }
+
+    // The stock usage's example items, named in the store's language: read when a store is loaded
+    // and again when its language changes, because the text above is built on the UI thread with
+    // no database to hand.
+    private IReadOnlyDictionary<long, string>? _usageNames;
+    private string? _usageNamesLanguage;
+
+    /// <summary>The example names read for <paramref name="language"/>, or null — their English
+    /// names — while none have been.</summary>
+    private IReadOnlyDictionary<long, string>? UsageNames(string language) =>
+        _usageNamesLanguage == language ? _usageNames : null;
+
+    /// <summary>Reads the stock usage's example names in <paramref name="language"/>.</summary>
+    private async Task LoadUsageNamesAsync(string language)
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var names = await StoreMailService.ExampleNamesAsync(db, language);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _usageNames         = names;
+                _usageNamesLanguage = language;
+            });
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(LoadUsageNamesAsync), ex);
+        }
     }
 
     private string _storeOrderLabels = "";
@@ -1029,7 +1063,8 @@ public class StoresViewModel : ReactiveObject
 
     public async Task DeclineWebEventAsync(StoreWebEventRowVm row)
     {
-        Status = await _webSync.RejectAsync(row.Id, "Declined by the store.");
+        // No reason of the owner's: the service words the stock one, in the store's language.
+        Status = await _webSync.RejectAsync(row.Id);
         await LoadSelectedAsync();
     }
 
@@ -1586,6 +1621,9 @@ public class StoresViewModel : ReactiveObject
             var store = await db.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == row.Id);
             if (store is null) return;
 
+            // The stock usage's example items in the store's language, for the usage box.
+            var usageNames = fields ? await StoreMailService.ExampleNamesAsync(db, store.Language) : null;
+
             var mails = await db.StoreMails.AsNoTracking()
                 .Where(m => m.StoreId == row.Id)
                 .OrderByDescending(m => m.Id)
@@ -1689,6 +1727,7 @@ public class StoresViewModel : ReactiveObject
                     StorePosting   = PostingOptions.FirstOrDefault(p => p.Id == store.PostingId);
                     _senderPolicy  = store.SenderPolicy; this.RaisePropertyChanged(nameof(SenderPolicy));
                     _storeLanguage = store.Language;     this.RaisePropertyChanged(nameof(StoreLanguage));
+                    _usageNames    = usageNames;         _usageNamesLanguage = store.Language;
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;
@@ -1708,7 +1747,7 @@ public class StoresViewModel : ReactiveObject
                     // merely selecting a store does not write anything back.
                     CustomUsage        = store.CustomUsage.Length > 0
                                        ? store.CustomUsage
-                                       : StoreMailService.DefaultUsageForEditing(store);
+                                       : StoreMailService.DefaultUsageForEditing(store, usageNames);
                     MessageHeader      = store.MessageHeader;
                     MessageHeaderColor = store.MessageHeaderColor;
                     MessageFooter      = store.MessageFooter;

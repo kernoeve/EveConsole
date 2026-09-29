@@ -2119,4 +2119,328 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>+{0} more items</value>
     <comment>Shown after the first item's name (a link) in a sale of several items. {0} is the number of other items.</comment>
   </data>
+  <data name="MailStorePassFailed" xml:space="preserve">
+    <value>Last pass failed: {0}</value>
+    <comment>Background Processes, the store mail line: the last look at the stores' mail failed. {0} is the error's message.</comment>
+  </data>
+  <data name="MailStoreNoneOpen" xml:space="preserve">
+    <value>No open stores.</value>
+    <comment>Background Processes, the store mail line: no store is open for mail.</comment>
+  </data>
+  <data name="MailStoreNothingNewOther" xml:space="preserve">
+    <value>{0} store(s) open, nothing new.</value>
+    <comment>Background Processes, the store mail line: the last look found no mail to answer and no update to send. {0} is how many stores are open. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="MailStorePassDone" xml:space="preserve">
+    <value>{0} message(s) handled, {1} update(s) sent.</value>
+    <comment>Background Processes, the store mail line: what the last look did. {0} is how many mails were dealt with, {1} how many order updates were mailed to buyers.</comment>
+  </data>
+  <data name="MailStoreHoldingOff" xml:space="preserve">
+    <value>Holding off — {0}.</value>
+    <comment>Background Processes, the store mail line: the store waits, to leave its character's mail allowance room for everything else. {0} is how much is left (MailBudgetLeft).</comment>
+  </data>
+  <data name="MailBudgetLeft" xml:space="preserve">
+    <value>{0} of {1} mail calls left in this 15-minute window</value>
+    <comment>How much of a character's EVE mail allowance is left, placed in MailStoreHoldingOff as {0}. {0} is the calls left, {1} the allowance (600 every 15 minutes).</comment>
+  </data>
+  <data name="MailStoreUpdateFailed" xml:space="preserve">
+    <value>Update failed: {0}</value>
+    <comment>Stores screen, the mail log: an order update mailed to a buyer did not go. {0} is why, as EVE's mail service said it.</comment>
+  </data>
+  <data name="MailStoreConversation" xml:space="preserve">
+    <value>A reply or forward — part of a conversation, not a command.</value>
+    <comment>Stores screen, the mail log: why a mail was left for a person — its subject starts with Re: or Fw:.</comment>
+  </data>
+  <data name="MailStoreNoSender" xml:space="preserve">
+    <value>No sender on the mail — nothing can be answered safely.</value>
+    <comment>Stores screen, the mail log: why a mail was not answered — it has no sender.</comment>
+  </data>
+  <data name="MailStoreNotOnList" xml:space="preserve">
+    <value>Sender is not on this store's list.</value>
+    <comment>Stores screen, the mail log: why a mail was not answered — the store serves only its list, and the sender is not on it.</comment>
+  </data>
+  <data name="MailStoreNoKeywordAlreadyTold" xml:space="preserve">
+    <value>No keyword in the subject — already sent the usage recently, left for a person.</value>
+    <comment>Stores screen, the mail log: why a mail was not answered — no command word in its subject, and the sender was sent how to order within the last day.</comment>
+  </data>
+  <data name="MailStoreNoKeyword" xml:space="preserve">
+    <value>No keyword in the subject — sent the usage.</value>
+    <comment>Stores screen, the mail log: a mail with no command word in its subject was answered with how to order.</comment>
+  </data>
+  <data name="MailStoreNoInfo" xml:space="preserve">
+    <value>No information written for this store — sent the usage instead.</value>
+    <comment>Stores screen, the mail log: a mail asking for INFO was answered with how to order, since the store has written nothing about itself.</comment>
+  </data>
+  <data name="MailStorePostingEmpty" xml:space="preserve">
+    <value>The store's posting produced nothing — check it has post blocks.</value>
+    <comment>Stores screen, the mail log: why a request for the price list failed.</comment>
+  </data>
+  <data name="MailStoreNoPosting" xml:space="preserve">
+    <value>The store has no posting to price against.</value>
+    <comment>Stores screen, the mail log: why an order by mail failed — the store's sale posting is missing.</comment>
+  </data>
+  <data name="MailStoreNothingRecognised" xml:space="preserve">
+    <value>Nothing recognised. Unmatched: {0}</value>
+    <comment>Stores screen, the mail log: why an order by mail was turned down — nothing in it matched the price list. {0} is what the buyer wrote, separated by commas.</comment>
+  </data>
+  <data name="MailStoreNoOrderLines" xml:space="preserve">
+    <value>No order lines found in the body.</value>
+    <comment>Stores screen, the mail log: why an order by mail was turned down — its body named no items.</comment>
+  </data>
+  <data name="MailStoreNothingOpen" xml:space="preserve">
+    <value>Nothing open for this sender.</value>
+    <comment>Stores screen, the mail log: a request for STATUS found no open orders of the sender's.</comment>
+  </data>
+  <data name="MailStoreNoMatch" xml:space="preserve">
+    <value>No order matching {0} for this sender.</value>
+    <comment>Stores screen, the mail log: why a CANCEL was turned down. {0} is what the mail held that looked like order references, separated by commas.</comment>
+  </data>
+  <data name="MailStoreNoReference" xml:space="preserve">
+    <value>No order reference found in the mail.</value>
+    <comment>Stores screen, the mail log: why a CANCEL was turned down — the mail held nothing like an order's reference.</comment>
+  </data>
+  <data name="MailStoreReplyFailed" xml:space="preserve">
+    <value>Reply failed: {0}</value>
+    <comment>Stores screen, the mail log: the answer to a mail did not go. {0} is why, as EVE's mail service said it.</comment>
+  </data>
+  <data name="MailStoreTrimmed" xml:space="preserve">
+    <value>Trimmed to fit the mail length limit.</value>
+    <comment>Stores screen, the mail log: a mail the store sent was cut short to fit EVE mail's length limit.</comment>
+  </data>
+  <data name="MailStoreNotSent" xml:space="preserve">
+    <value>Not sent: {0} ({1:N0} characters, {2:N0} bytes)</value>
+    <comment>Stores screen, the mail log: a mail the store wrote did not go. {0} is why, as EVE's mail service said it, {1} the mail's length in characters, {2} in bytes.</comment>
+  </data>
+  <data name="WebSyncNoneOpen" xml:space="preserve">
+    <value>No web stores open.</value>
+    <comment>Background Processes, the web store line: no store has its web site switched on.</comment>
+  </data>
+  <data name="WebSyncUnreachable" xml:space="preserve">
+    <value>{0} web store(s), {1} could not be reached — see the Stores screen.</value>
+    <comment>Background Processes, the web store line: the last sync, when some sites could not be reached. {0} is how many were synced, {1} how many of them failed.</comment>
+  </data>
+  <data name="WebSyncBooked" xml:space="preserve">
+    <value>{0} web store(s) synced, {1} order(s) booked.</value>
+    <comment>Background Processes, the web store line: the last sync. {0} is how many web stores were synced, {1} how many orders from their sites were booked.</comment>
+  </data>
+  <data name="WebSyncSessions" xml:space="preserve">
+    <value>{0} web store(s) synced; {1} buyer session(s) active.</value>
+    <comment>Background Processes, the web store line: the last sync. {0} is how many web stores were synced, {1} how many buyers are signed in to their sites.</comment>
+  </data>
+  <data name="WebSyncNowBooked" xml:space="preserve">
+    <value>Synced — {0} order(s) booked, {1} event(s) applied.</value>
+    <comment>Stores screen, after Sync Now. {0} is how many orders from the site were booked, {1} how many things buyers did there were dealt with.</comment>
+  </data>
+  <data name="WebSyncNowDone" xml:space="preserve">
+    <value>Synced — {0} event(s) applied, {1} order row(s) pushed, {2} session(s) active.</value>
+    <comment>Stores screen, after Sync Now. {0} is how many things buyers did on the site were dealt with, {1} how many order rows were sent to the site, {2} how many buyers are signed in there.</comment>
+  </data>
+  <data name="WebSyncStoreGone" xml:space="preserve">
+    <value>The store no longer exists.</value>
+    <comment>Stores screen, the web store: a sync or an approval found the store deleted.</comment>
+  </data>
+  <data name="WebSyncNotSetUp" xml:space="preserve">
+    <value>The web store is not set up: it needs to be switched on with a site address and a secret.</value>
+    <comment>Stores screen, the web store: why a sync did not run.</comment>
+  </data>
+  <data name="WebSyncBuildFailed" xml:space="preserve">
+    <value>Could not build the push: {0}</value>
+    <comment>Stores screen, the web store: a sync failed while putting together what to send the site. {0} is the error's message.</comment>
+  </data>
+  <data name="WebSyncPostingEmpty" xml:space="preserve">
+    <value>The store's posting produced nothing — check it has sections and items.</value>
+    <comment>Stores screen, the web store: why a sync did not send the site anything.</comment>
+  </data>
+  <data name="WebSyncNoReply" xml:space="preserve">
+    <value>No reply.</value>
+    <comment>Stores screen, the web store: the site did not answer a sync.</comment>
+  </data>
+  <data name="WebSyncUnknownEvent" xml:space="preserve">
+    <value>Unknown event kind "{0}".</value>
+    <comment>Stores screen, the web store's events: the site reported something this app does not know. {0} is what the site called it.</comment>
+  </data>
+  <data name="WebSyncCouldNotApply" xml:space="preserve">
+    <value>Could not apply</value>
+    <comment>Stores screen, the web store's events: something a buyer did on the site failed to apply. Followed by ": " and the error's message.</comment>
+  </data>
+  <data name="WebSyncBadAddress" xml:space="preserve">
+    <value>The site address "{0}" is not a valid https address.</value>
+    <comment>Stores screen, the web store: why a sync did not run. {0} is the address the owner entered.</comment>
+  </data>
+  <data name="WebSyncBadSignature" xml:space="preserve">
+    <value>The site refused the signature. The secret here and the one on the site differ, or the clocks are more than five minutes apart.</value>
+    <comment>Stores screen, the web store: why a sync failed.</comment>
+  </data>
+  <data name="WebSyncNoEndpoint" xml:space="preserve">
+    <value>The site has no sync endpoint at that address. Check the address, and that the site is deployed.</value>
+    <comment>Stores screen, the web store: why a sync failed.</comment>
+  </data>
+  <data name="WebSyncProtocolUpdateApp" xml:space="preserve">
+    <value>The site speaks protocol {0} and this app speaks {1}. Update the app.</value>
+    <comment>Stores screen, the web store: why a sync failed — the site is newer than the app. {0} is the site's protocol version, {1} the app's, both numbers.</comment>
+  </data>
+  <data name="WebSyncProtocolUpdateSite" xml:space="preserve">
+    <value>The site speaks protocol {0} and this app speaks {1}. Update the site.</value>
+    <comment>Stores screen, the web store: why a sync failed — the site is older than the app. {0} is the site's protocol version, {1} the app's, both numbers.</comment>
+  </data>
+  <data name="WebSyncProtocolDisagree" xml:space="preserve">
+    <value>The site and the app disagree about the protocol version.</value>
+    <comment>Stores screen, the web store: why a sync failed.</comment>
+  </data>
+  <data name="WebSyncAnswered" xml:space="preserve">
+    <value>The site answered {0} {1}.</value>
+    <comment>Stores screen, the web store: why a sync failed — the site answered with an error. {0} is the HTTP status code, {1} its name as the site gave it (Internal Server Error…).</comment>
+  </data>
+  <data name="WebSyncAnsweredWhy" xml:space="preserve">
+    <value>The site answered {0} {1}: {2}.</value>
+    <comment>Stores screen, the web store: why a sync failed — the site answered with an error. {0} is the HTTP status code, {1} its name as the site gave it (Internal Server Error…), {2} what the site said.</comment>
+  </data>
+  <data name="WebSyncEmptyReply" xml:space="preserve">
+    <value>The site's reply was empty.</value>
+    <comment>Stores screen, the web store: why a sync failed.</comment>
+  </data>
+  <data name="WebSyncTimeout" xml:space="preserve">
+    <value>The site did not answer within a minute.</value>
+    <comment>Stores screen, the web store: why a sync failed.</comment>
+  </data>
+  <data name="WebSyncCouldNotReach" xml:space="preserve">
+    <value>Could not reach the site: {0}</value>
+    <comment>Stores screen, the web store: why a sync failed. {0} is the network error's message.</comment>
+  </data>
+  <data name="WebSyncUnreadable" xml:space="preserve">
+    <value>The site's reply could not be read: {0}</value>
+    <comment>Stores screen, the web store: why a sync failed. {0} is the error's message.</comment>
+  </data>
+  <data name="WebSyncBannerBadAddress" xml:space="preserve">
+    <value>The banner could not be sent: the site address "{0}" is not a valid https address.</value>
+    <comment>Stores screen, the web store: the store's banner image did not reach the site. {0} is the address the owner entered.</comment>
+  </data>
+  <data name="WebSyncBannerTimeout" xml:space="preserve">
+    <value>The banner could not be sent: the site did not answer within a minute.</value>
+    <comment>Stores screen, the web store: the store's banner image did not reach the site.</comment>
+  </data>
+  <data name="WebSyncBannerUnreachable" xml:space="preserve">
+    <value>The banner could not be sent: could not reach the site: {0}.</value>
+    <comment>Stores screen, the web store: the store's banner image did not reach the site. {0} is the network error's message.</comment>
+  </data>
+  <data name="WebSyncBannerSiteTooOld" xml:space="preserve">
+    <value>The site is too old to take a banner; update it.</value>
+    <comment>Stores screen, the web store: the store's banner image did not reach the site.</comment>
+  </data>
+  <data name="WebSyncBannerRefused" xml:space="preserve">
+    <value>The site refused the banner ({0}).</value>
+    <comment>Stores screen, the web store: the store's banner image did not reach the site. {0} is the HTTP status code.</comment>
+  </data>
+  <data name="WebSyncBannerRefusedWhy" xml:space="preserve">
+    <value>The site refused the banner ({0}): {1}.</value>
+    <comment>Stores screen, the web store: the store's banner image did not reach the site. {0} is the HTTP status code, {1} what the site said.</comment>
+  </data>
+  <data name="WebSyncSignedIn" xml:space="preserve">
+    <value>Signed in to the site.</value>
+    <comment>Stores screen, the web store's events: a buyer signed in to the store's site.</comment>
+  </data>
+  <data name="WebSyncBackAfterDaysOne" xml:space="preserve">
+    <value>Came to the site after {0} day away.</value>
+    <comment>Stores screen, the web store's events: a buyer came back to the store's site. {0} is how many days they had been away (one).</comment>
+  </data>
+  <data name="WebSyncBackAfterDaysOther" xml:space="preserve">
+    <value>Came to the site after {0} days away.</value>
+    <comment>Stores screen, the web store's events: a buyer came back to the store's site. {0} is how many days they had been away.</comment>
+  </data>
+  <data name="WebSyncBackAfterHoursOne" xml:space="preserve">
+    <value>Came to the site after {0} hour away.</value>
+    <comment>Stores screen, the web store's events: a buyer came back to the store's site. {0} is how many hours they had been away (one).</comment>
+  </data>
+  <data name="WebSyncBackAfterHoursOther" xml:space="preserve">
+    <value>Came to the site after {0} hours away.</value>
+    <comment>Stores screen, the web store's events: a buyer came back to the store's site. {0} is how many hours they had been away.</comment>
+  </data>
+  <data name="WebSyncBackAfterMinutesOther" xml:space="preserve">
+    <value>Came to the site after {0} minutes away.</value>
+    <comment>Stores screen, the web store's events: a buyer came back to the store's site. {0} is how many minutes they had been away, under an hour. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebSyncNoPosting" xml:space="preserve">
+    <value>The store has no posting to check the order against.</value>
+    <comment>Stores screen, the web store's events: why an order from the site is held for the owner.</comment>
+  </data>
+  <data name="WebSyncNoLinePrice" xml:space="preserve">
+    <value>No price on the line for {0}.</value>
+    <comment>Stores screen, the web store's events: why an order from the site is held for the owner. {0} is the item's name.</comment>
+  </data>
+  <data name="WebSyncNotOnList" xml:space="preserve">
+    <value>{0} is not on this store's list.</value>
+    <comment>Stores screen, the web store's events: why an order from the site is held for the owner — the store serves only its list. {0} is the buyer's character name.</comment>
+  </data>
+  <data name="WebSyncNoPostingPrice" xml:space="preserve">
+    <value>{0} has no price on the posting now.</value>
+    <comment>Stores screen, the web store's events: why an order from the site is held for the owner. {0} is the item's name.</comment>
+  </data>
+  <data name="WebSyncPriceMoved" xml:space="preserve">
+    <value>The site quoted {0:N0} ISK for {1}; the posting now says {2:N0} ISK ({3:+0;-0}%).</value>
+    <comment>Stores screen, the web store's events: why an order from the site is held for the owner — its price is far from the posting's. {0} is the site's price for one, {1} the item's name, {2} the posting's price for one, {3} how far apart they are in percent.</comment>
+  </data>
+  <data name="WebSyncBookedLinesOther" xml:space="preserve">
+    <value>{0} line(s), {1:N0} ISK.</value>
+    <comment>Stores screen, the web store's events: an order from the site was booked. {0} is how many items it has, {1} what it comes to. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebSyncWithdrawn" xml:space="preserve">
+    <value>Withdrawn before it was booked.</value>
+    <comment>Stores screen, the web store's events: a buyer cancelled an order on the site while it was held for the owner.</comment>
+  </data>
+  <data name="WebSyncNoOrderMatches" xml:space="preserve">
+    <value>No order matches.</value>
+    <comment>Stores screen, the web store's events: why a cancellation from the site did nothing — no order has its reference.</comment>
+  </data>
+  <data name="WebSyncNotTheirs" xml:space="preserve">
+    <value>The order belongs to somebody else.</value>
+    <comment>Stores screen, the web store's events: why a cancellation from the site did nothing.</comment>
+  </data>
+  <data name="WebSyncNothingOpen" xml:space="preserve">
+    <value>Nothing on the order is still open.</value>
+    <comment>Stores screen, the web store's events: why a cancellation from the site did nothing — everything on it was delivered or cancelled already.</comment>
+  </data>
+  <data name="WebSyncCancelledContractOther" xml:space="preserve">
+    <value>Cancelled {0} line(s). ⚠ Contract {1} is already made out and has to be withdrawn in game.</value>
+    <comment>Stores screen, the web store's events: a buyer cancelled an order on the site that already has a contract made out. {0} is how many items were cancelled, {1} the contract's number, or several separated by commas. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebSyncCancelledOther" xml:space="preserve">
+    <value>Cancelled {0} line(s).</value>
+    <comment>Stores screen, the web store's events: a buyer cancelled an order on the site. {0} is how many items were cancelled. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebSyncCancelledReasonOther" xml:space="preserve">
+    <value>Cancelled {0} line(s). Reason given: {1}</value>
+    <comment>Stores screen, the web store's events: a buyer cancelled an order on the site and said why. {0} is how many items were cancelled, {1} the buyer's own words. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebSyncEventGone" xml:space="preserve">
+    <value>That event no longer exists.</value>
+    <comment>Stores screen, after Approve or Decline on a web order: it has gone from the list.</comment>
+  </data>
+  <data name="WebSyncOnlyOrders" xml:space="preserve">
+    <value>Only an order can be approved.</value>
+    <comment>Stores screen, after Approve on something from the site that is not an order.</comment>
+  </data>
+  <data name="WebSyncAlreadyBooked" xml:space="preserve">
+    <value>Already booked.</value>
+    <comment>Stores screen, after Approve on a web order that was booked already.</comment>
+  </data>
+  <data name="WebSyncEventUnreadable" xml:space="preserve">
+    <value>The event could not be read.</value>
+    <comment>Stores screen, after Approve on a web order: what the site sent for it could not be read.</comment>
+  </data>
+  <data name="WebSyncApproved" xml:space="preserve">
+    <value>Approved by the owner. {0}</value>
+    <comment>Stores screen, the web store's events: an order held for the owner, approved and booked. {0} is what was booked (WebSyncBookedLines).</comment>
+  </data>
+  <data name="WebSyncBookedAs" xml:space="preserve">
+    <value>Booked as order {0}.</value>
+    <comment>Stores screen, after Approve on a web order. {0} is the new order's reference.</comment>
+  </data>
+  <data name="WebSyncRejectBooked" xml:space="preserve">
+    <value>Already booked — cancel it in the Order Tracker instead.</value>
+    <comment>Stores screen, after Decline on a web order that was booked already.</comment>
+  </data>
+  <data name="WebSyncDeclined" xml:space="preserve">
+    <value>Declined.</value>
+    <comment>Stores screen, after Decline on a web order.</comment>
+  </data>
 </root>

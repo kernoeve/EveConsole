@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 
@@ -200,8 +201,9 @@ internal static class SalePostingRenderer
         if (done.Length > 0) sb.Append(" - ").Append(done);
 
         // A row this reader may not order any more: dimmed and said, whatever colour its state
-        // would give it. The site greys such a row out; a mail can only tell.
-        if (blocked) return fmt.Color(BlockedColor, sb.Append(" - limit reached").ToString());
+        // would give it. The site greys such a row out; a mail can only tell — in the store's
+        // language, since only a store's mail to one buyer marks rows.
+        if (blocked) return fmt.Color(BlockedColor, sb.Append(" - ").Append(StoreText.PriceListLimitReached).ToString());
 
         // The whole line, so the price and counts carry the colour too — a coloured name beside
         // uncoloured numbers reads as a link rather than as a state.

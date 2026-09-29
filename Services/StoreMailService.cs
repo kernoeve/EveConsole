@@ -76,7 +76,7 @@ public class StoreMailService(
     // ── What the background-process view shows ────────────────────────────────
     public DateTimeOffset? LastRunAt  { get; private set; }
     public DateTimeOffset? NextRunAt  { get; private set; }
-    public string          StatusText { get; private set; } = "Not run yet";
+    public string          StatusText { get; private set; } = DataText.NotRunYet;
 
     public void Start(CancellationToken outerCt = default)
     {
@@ -100,7 +100,7 @@ public class StoreMailService(
                 catch (OperationCanceledException) { return; }
                 catch (Exception ex)
                 {
-                    StatusText = $"Last pass failed: {ex.Message}";
+                    StatusText = string.Format(SalesText.MailStorePassFailed, ex.Message);
                     errorLogger.Log(nameof(StoreMailService), "poll", ex);
                 }
 
@@ -148,20 +148,35 @@ public class StoreMailService(
                      && (s.Enabled || (s.WebEnabled && s.WebMailUpdates)))
             .ToListAsync(ct);
 
-        if (stores.Count == 0) { StatusText = "No open stores."; return; }
+        if (stores.Count == 0) { StatusText = SalesText.MailStoreNoneOpen; return; }
 
         var handled = 0;
         var told    = 0;
         foreach (var store in stores)
         {
             ct.ThrowIfCancellationRequested();
+
+            // Everything this store writes to its buyers, in the store's language: the words, the
+            // numbers and the item names. What its owner reads — the log's detail lines, the
+            // status — goes back to the app's own language through Owner.
+            using var language = LanguageScope.Use(store.Language);
             if (store.Enabled) handled += await ServeAsync(db, store, ct);
             told += await NotifyAsync(db, store, ct);
         }
 
         StatusText = handled == 0 && told == 0
-            ? $"{stores.Count} store(s) open, nothing new."
-            : $"{handled} message(s) handled, {told} update(s) sent.";
+            ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.MailStoreNothingNewOther), stores.Count)
+            : string.Format(SalesText.MailStorePassDone, handled, told);
+    }
+
+    /// <summary>
+    /// Text for the store's owner — a log line, a status — in the app's own language, while the
+    /// store is writing to its buyers in theirs.
+    /// </summary>
+    private static string Owner(Func<string> text)
+    {
+        using var _ = LanguageScope.App();
+        return text();
     }
 
     // ── Telling the buyer when something changed ──────────────────────────────
@@ -270,11 +285,11 @@ public class StoreMailService(
             var lines = group.ToList();
 
             var sb = new StringBuilder();
-            sb.Append("Order <b>").Append(group.Key.OrderRef).Append("</b> — update<br><br>");
+            sb.Append(string.Format(StoreText.UpdateHeading, group.Key.OrderRef)).Append(Gap);
             foreach (var o in lines)
                 sb.Append(o.Units.ToString("N0")).Append(" × ")
                   .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-                  .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                  .Append(Esc(NameOf(names, o.TypeId))).Append("</a>")
                   .Append(" — ").Append(Describe(o)).Append("<br>");
 
             var log = new StoreMail
@@ -287,16 +302,17 @@ public class StoreMailService(
                 OrderRef  = group.Key.OrderRef,
             };
 
+            var subject = string.Format(StoreText.SubjectOrder, store.Name, group.Key.OrderRef);
             var (ok, error) = await mail.SendMailAsync(
                 store.CharacterId,
-                Trim($"{store.Name} — order {group.Key.OrderRef}"),
+                Trim(subject),
                 Wrap(store, sb.ToString()),
                 [new EsiMailRecipientItem(group.Key.BuyerId, "character")], ct);
 
-            log.Subject = $"{store.Name} — order {group.Key.OrderRef}";
+            log.Subject = subject;
             log.Body    = sb.ToString();
             log.Outcome = ok ? "ok" : "error";
-            log.Detail  = ok ? "" : $"Update failed: {error}";
+            log.Detail  = ok ? "" : Owner(() => string.Format(SalesText.MailStoreUpdateFailed, error));
             log.At      = DateTimeOffset.UtcNow;
             db.StoreMails.Add(log);
 
@@ -356,7 +372,7 @@ public class StoreMailService(
         // character's mail itself, and anything else on that group.
         if (todo.Count > 0 && !budget.StoreMayUse(store.CharacterId, todo.Count * CallsPerMail))
         {
-            StatusText = $"Holding off — {budget.Describe(store.CharacterId)}.";
+            StatusText = Owner(() => string.Format(SalesText.MailStoreHoldingOff, budget.Describe(store.CharacterId)));
             return 0;
         }
 
@@ -402,7 +418,7 @@ public class StoreMailService(
                     Subject   = header.Subject ?? "",
                     At        = header.Timestamp,
                     Outcome   = "ignored",
-                    Detail    = "A reply or forward — part of a conversation, not a command.",
+                    Detail    = Owner(() => SalesText.MailStoreConversation),
                 });
                 await db.SaveChangesAsync(ct);
                 db.ChangeTracker.Clear();
@@ -437,7 +453,7 @@ public class StoreMailService(
             if (log.PartyId <= 0)
             {
                 log.Outcome = "rejected";
-                log.Detail  = "No sender on the mail — nothing can be answered safely.";
+                log.Detail  = Owner(() => SalesText.MailStoreNoSender);
                 db.StoreMails.Add(log);
                 await db.SaveChangesAsync(ct);
                 db.ChangeTracker.Clear();
@@ -492,7 +508,7 @@ public class StoreMailService(
         if (!await IsAllowedAsync(db, store, log.PartyId, ct))
         {
             log.Outcome = "rejected";
-            log.Detail  = "Sender is not on this store's list.";
+            log.Detail  = Owner(() => SalesText.MailStoreNotOnList);
             return;
         }
 
@@ -504,14 +520,14 @@ public class StoreMailService(
             if (await ToldRecentlyAsync(db, store, log.PartyId, ct))
             {
                 log.Outcome = "unknown";
-                log.Detail  = "No keyword in the subject — already sent the usage recently, left for a person.";
+                log.Detail  = Owner(() => SalesText.MailStoreNoKeywordAlreadyTold);
                 return;
             }
 
             log.Command = "HELP";
-            log.Detail  = "No keyword in the subject — sent the usage.";
-            await ReplyAsync(store, log, $"{store.Name} — how to order",
-                "I did not recognise that as an order.<br><br>" + Usage(store), ct);
+            log.Detail  = Owner(() => SalesText.MailStoreNoKeyword);
+            await ReplyAsync(store, log, string.Format(StoreText.HowToOrder, store.Name),
+                StoreText.NotRecognised + Gap + await UsageAsync(db, store, ct), ct);
             return;
         }
 
@@ -521,9 +537,10 @@ public class StoreMailService(
             case "ORDER":  await OrderAsync(db, store, log, ct); break;
             case "STATUS": await StatusAsync(db, store, log, ct); break;
             case "CANCEL": await CancelAsync(db, store, log, ct); break;
-            case "INFO":  await InfoAsync(store, log, ct); break;
+            case "INFO":  await InfoAsync(db, store, log, ct); break;
             case "HELP":
-                await ReplyAsync(store, log, $"{store.Name} — how to order", Usage(store), ct);
+                await ReplyAsync(store, log, string.Format(StoreText.HowToOrder, store.Name),
+                                 await UsageAsync(db, store, ct), ct);
                 break;
         }
     }
@@ -542,16 +559,17 @@ public class StoreMailService(
     /// the usage before this command existed, and a store that has not filled the box in should
     /// not start replying with an empty mail because the word was given its own meaning.</para>
     /// </summary>
-    private async Task InfoAsync(Store store, StoreMail log, CancellationToken ct)
+    private async Task InfoAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
         if (!HasInfo(store))
         {
-            log.Detail = "No information written for this store — sent the usage instead.";
-            await ReplyAsync(store, log, $"{store.Name} — how to order", Usage(store), ct);
+            log.Detail = Owner(() => SalesText.MailStoreNoInfo);
+            await ReplyAsync(store, log, string.Format(StoreText.HowToOrder, store.Name),
+                             await UsageAsync(db, store, ct), ct);
             return;
         }
 
-        await ReplyAsync(store, log, $"{store.Name} — about", AsBreaks(store.Info), ct);
+        await ReplyAsync(store, log, string.Format(StoreText.SubjectAbout, store.Name), AsBreaks(store.Info), ct);
     }
 
     /// <summary>
@@ -563,10 +581,27 @@ public class StoreMailService(
     /// </summary>
     private static bool HasInfo(Store store) => store.Info.Trim().Length > 0;
 
-    private static string Usage(Store store) =>
+    /// <summary>The store's own usage text when it has written one; otherwise the stock one, its
+    /// example items named in the store's language.</summary>
+    private static async Task<string> UsageAsync(AppDbContext db, Store store, CancellationToken ct) =>
         store.UseCustomUsage && store.CustomUsage.Trim().Length > 0
             ? AsBreaks(store.CustomUsage)
-            : DefaultUsage(store);
+            : DefaultUsage(store, await ExampleNamesAsync(db, store.Language, ct));
+
+    /// <summary>The stock usage's two example items, whose links a buyer is shown how to drag.</summary>
+    private const int ArchonId = 23757, NidhoggurId = 24483;
+
+    /// <summary>
+    /// The names of the stock usage's example items in <paramref name="language"/>, an interface
+    /// code, or the interface's own for an empty one — for <see cref="DefaultUsage"/>. Holds only
+    /// names that differ from the English: empty in English.
+    /// </summary>
+    public static Task<IReadOnlyDictionary<long, string>> ExampleNamesAsync(
+        AppDbContext db, string? language, CancellationToken ct = default) =>
+        SdeNames.InLanguageAsync(db, language, SdeNameKind.Type, [ArchonId, NidhoggurId], ct);
+
+    private static string ExampleName(IReadOnlyDictionary<long, string>? names, int typeId, string english) =>
+        names is not null && names.TryGetValue(typeId, out var name) ? name : english;
 
     /// <summary>
     /// Turns the newlines somebody typed into the breaks EVE draws.
@@ -589,8 +624,15 @@ public class StoreMailService(
     /// <para>⚠️ For the Stores screen only. A usage message is prose, and prose in a text box
     /// with <c>&lt;br&gt;</c> at the end of every line is prose nobody will edit twice.</para>
     /// </summary>
-    public static string DefaultUsageForEditing(Store store) =>
-        Breaks.Replace(DefaultUsage(store), "\n");
+    /// <param name="names">The example items' names in the store's language
+    /// (<see cref="ExampleNamesAsync"/>); null for their English names.</param>
+    public static string DefaultUsageForEditing(Store store, IReadOnlyDictionary<long, string>? names = null)
+    {
+        // In the store's language, as buyers will receive it: this is the text the owner starts
+        // editing from, and what goes out while they have not.
+        using var language = LanguageScope.Use(store.Language);
+        return Breaks.Replace(DefaultUsage(store, names), "\n");
+    }
 
     /// <summary>
     /// The stock explanation, and the starting point for a store that wants its own.
@@ -598,55 +640,65 @@ public class StoreMailService(
     /// <para>⚠️ Public so the Stores screen can put it in the box before anyone edits it. Writing
     /// a usage message from an empty field means rebuilding the markup, the links and the command
     /// list from nothing; starting from this means changing the parts that do not apply.</para>
+    ///
+    /// <para>In the language of the scope it is called in: a store's, or the app's.</para>
     /// </summary>
-    public static string DefaultUsage(Store store) =>
-        Head($"{store.Name} — how to order") +
+    /// <param name="names">The example items' names in that language
+    /// (<see cref="ExampleNamesAsync"/>); null, or a name missing, for the English.</param>
+    public static string DefaultUsage(Store store, IReadOnlyDictionary<long, string>? names = null)
+    {
+        // The examples named as this store's buyers see their items, in the price list and in their
+        // own client. ⚠️ The command words stay English whatever the language: they are what the
+        // subject is read for.
+        var archon    = Esc(ExampleName(names, ArchonId, "Archon"));
+        var nidhoggur = Esc(ExampleName(names, NidhoggurId, "Nidhoggur"));
 
-        "Put one of these words in the mail <b>subject</b>." + Gap +
+        return
+        Head(string.Format(StoreText.HowToOrder, store.Name)) +
 
-        Cmd("PRICES") + "the current price list." + Br + Gap +
+        StoreText.UsageSubjectWord + Gap +
 
-        Cmd("ORDER") + "place an order, one item per line in the body." + Br +
+        Cmd("PRICES") + StoreText.UsagePrices + Br + Gap +
+
+        Cmd("ORDER") + StoreText.UsageOrder + Br +
         // ⚠️ Dragging is offered first because it is the thing that cannot go wrong: the link
         // carries the item's id, so there is nothing to spell and nothing to match.
-        "The easiest way is to <b>drag the item in</b> — from this price list, from the market, " +
-        "from your hangar — then put the quantity beside it if you want more than one." + Br +
+        StoreText.UsageDragIn + Br +
         // ⚠️ Real links, not "[Archon]". The bracketed form was meant to picture a dragged item
         // and instead looked like syntax — someone would reasonably have typed the brackets.
         // These render exactly as a dragged one does, because they are the same thing.
-        Ind + Item(23757, "Archon") + " x2" + Br +
-        Ind + Item(24483, "Nidhoggur") + Br +
-        Dim("Typing the name works too. The quantity always goes AFTER the item:") + Br +
-        Eg("Archon x2     Archon 2     Archon") + Br + Gap +
+        Ind + Item(ArchonId, archon) + " x2" + Br +
+        Ind + Item(NidhoggurId, nidhoggur) + Br +
+        Dim(StoreText.UsageTyping) + Br +
+        Eg($"{archon} x2     {archon} 2     {archon}") + Br + Gap +
 
         // ⚠️ Part of ORDER, not a footnote. It sat under the rule at the bottom, below HELP,
         // where it read as a general remark about the store — but it is an instruction about
         // one command, and it only means anything while somebody is writing an order.
-        Ind + "<b>Sending it to someone else?</b> Drag that character or corporation anywhere " +
-        "into the body and the contract will be made out to them instead of you." + Gap +
+        Ind + StoreText.UsageSomeoneElse + Gap +
 
-        Cmd("STATUS") + "where your orders have got to." + Br +
-        Dim("No reference needed — you will get all of your open ones.") + Br +
-        Dim("To ask about one order, put its reference in the subject or the body:") + Br +
+        Cmd("STATUS") + StoreText.UsageStatus + Br +
+        Dim(StoreText.UsageStatusNoReference) + Br +
+        Dim(StoreText.UsageStatusOneOrder) + Br +
         Eg("STATUS 3FVPA9") + Gap +
 
-        Cmd("CANCEL") + "withdraw an order." + Br +
+        Cmd("CANCEL") + StoreText.UsageCancel + Br +
         // ⚠️ Says WHERE the reference goes. "It needs its reference" left the reader to guess
         // between the subject and the body, and a cancel that silently matches nothing is the
         // worst kind of guess to get wrong.
-        Dim("This one always needs its reference, from the confirmation mail. " +
-            "Subject or body, either works:") + Br +
+        Dim(StoreText.UsageCancelReference) + Br +
         Eg("CANCEL 3FVPA9") + Gap +
 
         // ⚠️ Listed only when the store has written something. A command that answers with an
         // empty mail is worse than one nobody was told about.
-        (HasInfo(store) ? Cmd("INFO") + "about this store." + Gap : "") +
+        (HasInfo(store) ? Cmd("INFO") + StoreText.UsageInfo + Gap : "") +
 
-        Cmd("HELP") + "this message." + Gap +
+        Cmd("HELP") + StoreText.UsageHelp + Gap +
 
         Rule + Gap +
 
-        Dim($"Prices are those on the list at the moment your order is read. — {store.Name}");
+        Dim(string.Format(StoreText.UsagePricesNote, store.Name));
+    }
 
     // ── Mail styling ──────────────────────────────────────────────────────────
     //
@@ -734,7 +786,9 @@ public class StoreMailService(
     public async Task<PriceListSize?> MeasurePriceListAsync(Store store, CancellationToken ct = default)
     {
         // In the store's language: the same list weighs two to three times as much in Cyrillic, or
-        // in Chinese, Japanese and Korean.
+        // in Chinese, Japanese and Korean. Measured in the scope it is sent in, so what this
+        // predicts is what goes out.
+        using var language = LanguageScope.Use(store.Language);
         var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, language: store.Language);
         if (blocks.Count == 0) return null;
 
@@ -774,7 +828,7 @@ public class StoreMailService(
         if (blocks.Count == 0)
         {
             log.Outcome = "error";
-            log.Detail  = "The store's posting produced nothing — check it has post blocks.";
+            log.Detail  = Owner(() => SalesText.MailStorePostingEmpty);
             return;
         }
 
@@ -786,7 +840,7 @@ public class StoreMailService(
         // ⚠️ Sent through the splitter rather than as one body. A price list grows with the
         // stock behind it, and one that outgrows the limit is refused whole — the buyer asks for
         // prices and gets nothing back.
-        await ReplyInPartsAsync(store, log, $"{store.Name} — price list", "",
+        await ReplyInPartsAsync(store, log, string.Format(StoreText.SubjectPriceList, store.Name), "",
                                 PriceListBlocks(blocks), ct);
     }
 
@@ -798,7 +852,7 @@ public class StoreMailService(
         if (view is null)
         {
             log.Outcome = "error";
-            log.Detail  = "The store has no posting to price against.";
+            log.Detail  = Owner(() => SalesText.MailStoreNoPosting);
             return;
         }
 
@@ -831,15 +885,15 @@ public class StoreMailService(
         if (parsed.Lines.Count == 0)
         {
             log.Outcome = "rejected";
-            log.Detail  = parsed.Unknown.Count > 0
-                ? $"Nothing recognised. Unmatched: {string.Join(", ", parsed.Unknown)}"
-                : "No order lines found in the body.";
-            await ReplyAsync(store, log, $"{store.Name} — order not understood",
-                "Nothing on this order matched the price list.<br><br>" +
+            log.Detail  = Owner(() => parsed.Unknown.Count > 0
+                ? string.Format(SalesText.MailStoreNothingRecognised, string.Join(", ", parsed.Unknown))
+                : SalesText.MailStoreNoOrderLines);
+            await ReplyAsync(store, log, string.Format(StoreText.SubjectOrderNotUnderstood, store.Name),
+                StoreText.NothingMatched + Gap +
                 (parsed.Unknown.Count > 0
-                    ? Warn("Not found: " + Esc(string.Join(", ", parsed.Unknown))) + Gap
+                    ? Warn(string.Format(StoreText.NotFound, Esc(string.Join(", ", parsed.Unknown)))) + Gap
                     : "") +
-                Usage(store), ct);
+                await UsageAsync(db, store, ct), ct);
             return;
         }
 
@@ -848,16 +902,17 @@ public class StoreMailService(
         // down, with the sum that says why and the rule itself.
         if (store.LimitEnabled
             && await PurchaseLimit.OverLimitAsync(db, store, log.PartyId,
-                   parsed.Lines.Select(l => (l.Item.TypeId, l.Units)).ToList(),
-                   typeId => byTypeId[typeId].TypeName, ct) is { } over)
+                   parsed.Lines.Select(l => (l.Item.TypeId, l.Units)).ToList(), ct) is { } over)
         {
+            // The buyer is told with the item as their list names it; the owner's log keeps the
+            // English name it always had.
             log.Outcome = "rejected";
-            log.Detail  = over;
-            await ReplyAsync(store, log, $"{store.Name} — order over the limit",
-                "This order is over the store's purchase limit, so it was not taken.<br><br>" +
-                Warn(Esc(over)) + Gap +
+            log.Detail  = Owner(() => over.Words(byTypeId[over.TypeId].TypeName));
+            await ReplyAsync(store, log, string.Format(StoreText.SubjectOrderOverLimit, store.Name),
+                StoreText.OverLimitNotTaken + Gap +
+                Warn(Esc(over.Words(byTypeId[over.TypeId].Shown))) + Gap +
                 Esc(PurchaseLimit.Describe(store)) + Gap +
-                Usage(store), ct);
+                await UsageAsync(db, store, ct), ct);
             return;
         }
 
@@ -927,7 +982,9 @@ public class StoreMailService(
         // is "when", and an answer of "we will let you know" when the item is on the shelf is a
         // worse answer than the truth. This is the same pass that runs every five minutes; asking
         // for it now just means the reply can say what it found.
-        try { await fulfilment.RunOnceAsync(ct); }
+        // ⚠️ In the app's language, not the store's: the pass is the app's, and its status and
+        // whatever it sets off are read by the owner.
+        try { using (LanguageScope.App()) await fulfilment.RunOnceAsync(ct); }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex) { errorLogger.Log(nameof(StoreMailService), "fulfilment after order", ex); }
 
@@ -959,7 +1016,7 @@ public class StoreMailService(
         var total = created.Sum(o => o.PurchasePrice);
 
         var sb = new StringBuilder();
-        sb.Append(Head($"Order {reference} received"));
+        sb.Append(Head(string.Format(StoreText.OrderReceived, reference)));
 
         foreach (var (item, units) in parsed.Lines)
         {
@@ -975,18 +1032,19 @@ public class StoreMailService(
             // Only when there is more than one — on a single item it would print the same
             // number twice with an "each" between them.
             if (units > 1)
-                sb.Append(Dim($" ({Isk(MarketFmt.RoundToDisplay(item.SalePrice ?? 0))} each)"));
+                sb.Append(Dim(" " + string.Format(StoreText.PriceEach, Isk(MarketFmt.RoundToDisplay(item.SalePrice ?? 0)))));
 
             sb.Append(Br).Append(Ind).Append(Dim(Expect(line))).Append(Br);
         }
 
-        sb.Append(Br).Append("<font size=\"14\"><b>Total ").Append(Isk(total)).Append("</b></font>").Append(Br);
+        sb.Append(Br).Append("<font size=\"14\"><b>").Append(string.Format(StoreText.OrderTotalLine, Isk(total)))
+          .Append("</b></font>").Append(Br);
 
         // Always stated, even when it is simply the sender. It is the one detail a buyer cannot
         // check afterwards, and someone who meant to name a third party and whose link did not
         // parse finds out here rather than when the contract lands on the wrong name.
         if (toName.Length > 0)
-            sb.Append("Contract will be made out to <b>").Append(Esc(toName)).Append("</b>.").Append(Br);
+            sb.Append(string.Format(StoreText.ContractMadeOutTo, Esc(toName))).Append(Br);
 
         sb.Append("<br>");
 
@@ -995,23 +1053,19 @@ public class StoreMailService(
         // read as part of the receipt — the buyer discovers what is missing when it does not
         // arrive.
         if (parsed.Unknown.Count > 0)
-            sb.Append(Warn("Not on the list, so NOT ordered: "
-                         + Esc(string.Join(", ", parsed.Unknown))))
+            sb.Append(Warn(string.Format(StoreText.NotOrdered, Esc(string.Join(", ", parsed.Unknown)))))
               .Append(Gap);
 
         // ⚠️ Said out loud. The order was reduced to fit what one mail may ask for, and a
         // quantity quietly changed between what somebody wrote and what they are charged for is
         // the sort of thing that is only ever discovered in an argument.
         if (parsed.Trimmed)
-            sb.Append(Warn($"This order was larger than one mail may place — at most "
-                         + $"{MaxLinesPerOrder} items, {MaxUnitsPerLine:N0} of each — and has been "
-                         + "reduced to fit. Check the lines above, and mail us directly for "
-                         + "anything bigger."))
+            sb.Append(Warn(string.Format(StoreText.OrderTrimmed, MaxLinesPerOrder, MaxUnitsPerLine)))
               .Append(Gap);
 
-        sb.Append(Dim("Reply with STATUS for progress, or CANCEL and this reference to withdraw it."));
+        sb.Append(Dim(StoreText.ReplyWithStatus));
 
-        await ReplyAsync(store, log, $"{store.Name} — order {reference}", sb.ToString(), ct);
+        await ReplyAsync(store, log, string.Format(StoreText.SubjectOrder, store.Name, reference), sb.ToString(), ct);
     }
 
     // ── STATUS ────────────────────────────────────────────────────────────────
@@ -1041,17 +1095,17 @@ public class StoreMailService(
         if (orders.Count == 0)
         {
             log.Outcome = "ok";
-            log.Detail  = "Nothing open for this sender.";
-            await ReplyAsync(store, log, $"{store.Name} — no open orders",
-                "You have no open orders with us.<br><br>" + Usage(store), ct);
+            log.Detail  = Owner(() => SalesText.MailStoreNothingOpen);
+            await ReplyAsync(store, log, string.Format(StoreText.SubjectNoOpenOrders, store.Name),
+                StoreText.NoOpenOrders + Gap + await UsageAsync(db, store, ct), ct);
             return;
         }
 
         var names = await TypeNamesAsync(db, store, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
         var titled  = orders.Count > 0 && log.OrderRef.Length > 0
-            ? $"Order {log.OrderRef}"
-            : "Your open orders";
+            ? string.Format(StoreText.OrderHeading, log.OrderRef)
+            : StoreText.YourOpenOrders;
 
         var several = orders.Select(o => o.OrderRef).Distinct().Count() > 1;
 
@@ -1074,10 +1128,10 @@ public class StoreMailService(
                 // the two mails read alike and the totals line up down the page.
                 block.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
                      .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-                     .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                     .Append(Esc(NameOf(names, o.TypeId))).Append("</a>")
                      .Append(" — <b>").Append(Isk(o.PurchasePrice)).Append("</b>");
 
-                if (o.Units > 1) block.Append(Dim($" ({Isk(unit)} each)"));
+                if (o.Units > 1) block.Append(Dim(" " + string.Format(StoreText.PriceEach, Isk(unit))));
 
                 block.Append(Br).Append(Ind).Append(Dim(Describe(o))).Append(Br);
             }
@@ -1087,17 +1141,17 @@ public class StoreMailService(
             var contractTo = lines.Select(o => o.ContractToName)
                                   .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
             if (contractTo is not null)
-                block.Append(Ind).Append(Dim($"Contract to: {Esc(contractTo)}")).Append(Br);
+                block.Append(Ind).Append(Dim(string.Format(StoreText.ContractTo, Esc(contractTo)))).Append(Br);
 
             if (lines.Count > 1)
-                block.Append(Ind).Append(Dim($"Order total: {Isk(lines.Sum(o => o.PurchasePrice))}"))
+                block.Append(Ind).Append(Dim(string.Format(StoreText.OrderTotal, Isk(lines.Sum(o => o.PurchasePrice)))))
                      .Append(Br);
 
             block.Append(Br);
             blocks.Add(block.ToString());
         }
 
-        await ReplyInPartsAsync(store, log, $"{store.Name} — order status", titled, blocks, ct);
+        await ReplyInPartsAsync(store, log, string.Format(StoreText.SubjectOrderStatus, store.Name), titled, blocks, ct);
     }
 
     /// <summary>
@@ -1115,7 +1169,7 @@ public class StoreMailService(
     private static string Expect(TrackedOrder? o)
     {
         if (o is not null && OrderContractLinks.AwaitsAcceptance(o))
-            return "A contract is already waiting for you to accept.";
+            return StoreText.ExpectContractWaiting;
 
         // ⚠️ The date, wherever there is one. A stock order gets one from the store's own
         // setting and a job order from its job, and a confirmation that says "reserved for you"
@@ -1125,34 +1179,33 @@ public class StoreMailService(
         return o?.FulfilmentSource switch
         {
             "stock" => due is null
-                        ? "In stock and reserved for you — you will be notified when the "
-                        + "contract has been created."
-                        : $"In stock and reserved for you — contract expected {due}.",
+                        ? StoreText.ExpectInStock
+                        : string.Format(StoreText.ExpectInStockDue, due),
 
             "job"   => due is null
-                        ? "Already in build."
-                        : $"Already in build, expected {due}.",
+                        ? StoreText.ExpectInBuild
+                        : string.Format(StoreText.ExpectInBuildDue, due),
 
             _       => due is null
-                        ? "Out of stock — your reservation is placed, and you will be told the "
-                        + "completion date once the build starts."
-                        : $"Out of stock — your reservation is placed, expected {due}.",
+                        ? StoreText.ExpectOutOfStock
+                        : string.Format(StoreText.ExpectOutOfStockDue, due),
         };
     }
 
     /// <summary>What one line of an order is doing, in words a buyer can act on.</summary>
     private static string Describe(TrackedOrder o) => o.Status switch
     {
-        "completed" => "delivered",
+        "completed" => StoreText.StateDelivered,
 
         // ⚠️ Says which kind of cancelled. An order withdrawn by the buyer and one ended because
         // they declined the contract look identical in the row, and only one of them is news —
         // and one cancelled after part of it was delivered says what they did get.
         "canceled"  => o.UnitsDelivered > 0
-                        ? $"{o.UnitsDelivered:N0} of {o.Units:N0} delivered, and the rest cancelled"
+                        ? Plurals.Format(StoreText.ResourceManager, nameof(StoreText.StateDeliveredRestCancelledOther),
+                                         o.UnitsDelivered, o.Units)
                         : o.LinkedContractId is not null
-                        ? "the contract was declined, so this order is closed"
-                        : "cancelled",
+                        ? StoreText.StateContractDeclined
+                        : StoreText.StateCancelled,
 
         // ⚠️ Part delivered, or only part on a contract: each part said. "Waiting for you to
         // accept it" is untrue of the units already accepted, and "delivered" of the rest.
@@ -1161,19 +1214,19 @@ public class StoreMailService(
         // A contract on the table outranks everything else that could be said. It is the only
         // state where the next move is theirs.
         _ when OrderContractLinks.AwaitsAcceptance(o)
-                    => "contract created — waiting for you to accept it",
+                    => StoreText.StateContractWaiting,
 
         _ => o.FulfilmentSource switch
         {
             "stock" => o.EstimatedDate is { Length: > 0 } sd
-                        ? $"ready now — contract expected {sd}"
-                        : "ready now — you will be notified when the contract has been created",
+                        ? string.Format(StoreText.StateReadyContractDue, sd)
+                        : StoreText.StateReady,
             "job"   => o.EstimatedDate is { Length: > 0 } d
-                        ? $"in production, expected {d}"
-                        : "in production",
+                        ? string.Format(StoreText.StateInProductionDue, d)
+                        : StoreText.StateInProduction,
             _       => o.EstimatedDate is { Length: > 0 } e
-                        ? $"expected {e}"
-                        : "waiting on materials",
+                        ? string.Format(StoreText.StateExpected, e)
+                        : StoreText.StateWaitingOnMaterials,
         },
     };
 
@@ -1185,19 +1238,27 @@ public class StoreMailService(
     private static string Parts(TrackedOrder o)
     {
         var parts = new List<string>();
-        if (o.UnitsDelivered  > 0) parts.Add($"{o.UnitsDelivered:N0} of {o.Units:N0} delivered");
-        if (o.UnitsContracted > 0) parts.Add($"{o.UnitsContracted:N0} on a contract waiting for you to accept it");
+        if (o.UnitsDelivered  > 0)
+            parts.Add(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartDeliveredOther), o.UnitsDelivered, o.Units));
+        if (o.UnitsContracted > 0)
+            parts.Add(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartOnContractOther), o.UnitsContracted));
 
         var rest = o.Units - o.UnitsDelivered - o.UnitsContracted;
         var due  = o.EstimatedDate is { Length: > 0 } d ? d : null;
         if (rest > 0)
-            parts.Add($"{rest:N0} " + (o.StockOnHand >= rest
-                ? (due is null ? "ready now" : $"ready now, contract expected {due}")
+            parts.Add(o.StockOnHand >= rest
+                ? due is null
+                    ? Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartReadyOther), rest)
+                    : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartReadyContractDueOther), rest, due)
                 : o.UnitsInBuild > 0
-                    ? (due is null ? "in production" : $"in production, expected {due}")
-                    : (due is null ? "waiting on materials" : $"expected {due}")));
+                    ? due is null
+                        ? Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartInProductionOther), rest)
+                        : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartInProductionDueOther), rest, due)
+                    : due is null
+                        ? Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartWaitingOnMaterialsOther), rest)
+                        : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PartExpectedOther), rest, due));
 
-        return string.Join("; ", parts);
+        return string.Join(StoreText.PartsSeparator, parts);
     }
 
     // ── CANCEL ────────────────────────────────────────────────────────────────
@@ -1213,17 +1274,16 @@ public class StoreMailService(
             var tried = What(log.Subject, log.Body);
 
             log.Outcome = "rejected";
-            log.Detail  = tried.Length > 0
-                ? $"No order matching {tried} for this sender."
-                : "No order reference found in the mail.";
+            log.Detail  = Owner(() => tried.Length > 0
+                ? string.Format(SalesText.MailStoreNoMatch, tried)
+                : SalesText.MailStoreNoReference);
 
-            await ReplyAsync(store, log, $"{store.Name} — order not found",
+            await ReplyAsync(store, log, string.Format(StoreText.SubjectOrderNotFound, store.Name),
                 (tried.Length > 0
-                    ? $"No open order of yours matches <b>{Esc(tried)}</b>."
-                    : "I could not find an order reference in that mail.") +
-                Br + Dim("References look like K7P2QX and are in the confirmation mail. " +
-                         "Reply STATUS on its own to list your open orders.") + Gap +
-                Usage(store), ct);
+                    ? string.Format(StoreText.NoOrderMatches, Esc(tried))
+                    : StoreText.NoReferenceFound) +
+                Br + Dim(StoreText.ReferencesLookLike) + Gap +
+                await UsageAsync(db, store, ct), ct);
             return;
         }
 
@@ -1261,11 +1321,12 @@ public class StoreMailService(
 
         var names = await TypeNamesAsync(db, store, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
-        var word = refs.Count == 1 ? "Order" : "Orders";
+        // One order or several — whether there is more than one, not a count to agree with.
+        var one  = refs.Count == 1;
         var list = string.Join(", ", refs);
 
         var sb = new StringBuilder();
-        sb.Append(Head($"{word} {list} cancelled"));
+        sb.Append(Head(string.Format(one ? StoreText.OrderCancelled : StoreText.OrdersCancelled, list)));
 
         if (open.Count > 0)
         {
@@ -1284,7 +1345,7 @@ public class StoreMailService(
                 foreach (var o in lines)
                     sb.Append("<b>").Append(o.Units.ToString("N0")).Append(" × </b>")
                       .Append("<a href=\"showinfo:").Append(o.TypeId).Append("\">")
-                      .Append(Esc(names.GetValueOrDefault(o.TypeId, $"Type {o.TypeId}"))).Append("</a>")
+                      .Append(Esc(NameOf(names, o.TypeId))).Append("</a>")
                       .Append(Dim($" — {Isk(o.PurchasePrice)}")).Append(Br);
 
                 if (refs.Count > 1) sb.Append(Br);
@@ -1292,16 +1353,16 @@ public class StoreMailService(
         }
         else
         {
-            sb.Append(refs.Count == 1
-                ? "Nothing on this order was still open to cancel."
-                : "Nothing on these orders was still open to cancel.");
+            sb.Append(one ? StoreText.NothingOpenToCancelSingle : StoreText.NothingOpenToCancelSeveral);
         }
 
         if (kept > 0)
             sb.Append(Br).Append(Dim(
-                $"{kept} line(s) were already delivered or cancelled and have been left as they are."));
+                Plurals.Format(StoreText.ResourceManager, nameof(StoreText.LinesLeftAsTheyAreOther), kept)));
 
-        await ReplyAsync(store, log, $"{store.Name} — {word.ToLowerInvariant()} {list} cancelled",
+        await ReplyAsync(store, log,
+                         string.Format(one ? StoreText.SubjectOrderCancelled : StoreText.SubjectOrdersCancelled,
+                                       store.Name, list),
                          sb.ToString(), ct);
     }
 
@@ -1399,7 +1460,7 @@ public class StoreMailService(
     {
         if (Weigh(full) <= MaxBodyBytes) return full;
 
-        const string cut = "<br><br>… this message was too long for EVE mail and has been cut here.";
+        var cut  = Gap + StoreText.MessageCut;
         var room = MaxBodyBytes - Weigh(cut);
 
         var kept = new StringBuilder();
@@ -1461,16 +1522,15 @@ public class StoreMailService(
             // the posting's own title, and a second one above it reads as a mistake. It still
             // needs saying which page this is, so that much is added and nothing more.
             var title = heading.Length == 0
-                ? (parts.Count > 1 ? $"Page {i + 1} of {parts.Count}" : "")
-                : parts.Count > 1 ? $"{heading} ({i + 1} of {parts.Count})" : heading;
+                ? (parts.Count > 1 ? string.Format(StoreText.PageOf, i + 1, parts.Count) : "")
+                : parts.Count > 1 ? string.Format(StoreText.HeadingPart, heading, i + 1, parts.Count) : heading;
 
             var tail  = last && dropped > 0
-                ? Dim($"{dropped} further page(s) did not fit — reply again to see the rest, "
-                    + "or STATUS with an order reference to ask about one order.")
+                ? Dim(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PagesDidNotFitOther), dropped))
                 : "";
 
             await ReplyAsync(store, log,
-                parts.Count > 1 ? $"{subject} ({i + 1}/{parts.Count})" : subject,
+                parts.Count > 1 ? string.Format(StoreText.SubjectPart, subject, i + 1, parts.Count) : subject,
                 (title.Length > 0 ? Head(title) : "") + parts[i] + tail, ct);
         }
     }
@@ -1551,7 +1611,7 @@ public class StoreMailService(
             // retried, and retrying a body EVE has already measured and refused spends three
             // more calls against the character's allowance to be told the same thing again.
             log.Outcome = TooLong(error) ? "failed" : "error";
-            log.Detail  = $"Reply failed: {error}";
+            log.Detail  = Owner(() => string.Format(SalesText.MailStoreReplyFailed, error));
         }
         else if (log.Outcome.Length == 0) log.Outcome = "ok";
 
@@ -1569,9 +1629,9 @@ public class StoreMailService(
             Body      = full,
             Command   = log.Command,
             Outcome   = ok ? "ok" : TooLong(error) ? "failed" : "error",
-            Detail    = ok
-                ? (full.Length < Wrap(store, body).Length ? "Trimmed to fit the mail length limit." : "")
-                : $"Not sent: {error} ({full.Length:N0} characters, {Weigh(full):N0} bytes)",
+            Detail    = Owner(() => ok
+                ? (full.Length < Wrap(store, body).Length ? SalesText.MailStoreTrimmed : "")
+                : string.Format(SalesText.MailStoreNotSent, error, full.Length, Weigh(full))),
             OrderRef  = log.OrderRef,
             At        = DateTimeOffset.UtcNow,
         });
@@ -1591,6 +1651,11 @@ public class StoreMailService(
             names[(int)id] = name;
         return names;
     }
+
+    /// <summary>An item's name from <see cref="TypeNamesAsync"/>, or its type id for one the SDE
+    /// does not have.</summary>
+    private static string NameOf(Dictionary<int, string> names, int typeId) =>
+        names.TryGetValue(typeId, out var name) ? name : string.Format(StoreText.TypeFallback, typeId);
 
     // ── Parsing ───────────────────────────────────────────────────────────────
 
@@ -1815,7 +1880,7 @@ public class StoreMailService(
                     if (byTypeId.TryGetValue(link.TypeId, out var known))
                         lines.Add((known, Math.Max(1, units)));
                     else
-                        unknown.Add(link.Text.Length > 0 ? link.Text : $"type {link.TypeId}");
+                        unknown.Add(link.Text.Length > 0 ? link.Text : string.Format(StoreText.UnknownLink, link.TypeId));
                 }
                 continue;
             }

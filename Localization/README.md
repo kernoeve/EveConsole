@@ -22,6 +22,12 @@ translators.
   reads are entries too (`CommonText.Date*`, ".NET date format patterns"), so a translation can
   put the parts in its own order. Text the AI model reads is formatted invariantly and stays
   English.
+- **A store's buyers** read `StoreText.resx`: what a store writes to them by EVE mail and on its
+  web site, in the store's own language (*Stores → Language*) whatever its owner's interface is.
+  The code that writes it opens `LanguageScope.Use(store.Language)`, and text for the owner written
+  inside one — a log line, a status — goes back to the app's language with `LanguageScope.App()`.
+  The command words PRICES, ORDER, STATUS, CANCEL, INFO and HELP stay English in every language:
+  they are what the store reads a mail's subject for.
 
 ## Languages
 
