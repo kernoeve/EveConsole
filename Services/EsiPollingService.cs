@@ -6,6 +6,7 @@ using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -217,65 +218,65 @@ public class EsiPollingService : ReactiveObject
 
     private static readonly Dictionary<string, string> s_displayNames = new()
     {
-        ["char.skills"]           = "Skills",
-        ["char.skillqueue"]       = "Skill Queue",
-        ["char.wallet.balance"]   = "Wallet Balance",
-        ["char.wallet.journal"]   = "Wallet Journal",
-        ["char.wallet.txns"]      = "Wallet Transactions",
-        ["char.industry.jobs"]    = "Industry Jobs",
-        ["char.orders.active"]    = "Active Orders",
-        ["char.orders.history"]   = "Order History",
-        ["char.assets"]           = "Assets",
-        ["char.blueprints"]       = "Blueprints",
-        ["char.contracts"]        = "Contracts",
-        ["char.attributes"]       = "Attributes",
-        ["char.clones"]           = "Clones",
-        ["char.implants"]         = "Implants",
-        ["char.fatigue"]          = "Jump Fatigue",
-        ["char.mining"]           = "Mining Ledger",
-        ["char.notifications"]    = "Notifications",
-        ["char.contacts"]         = "Contacts",
-        ["char.killmails"]        = "Kill Mails",
-        ["char.planets"]          = "Planetary Interaction",
-        ["char.agents_research"]  = "Agent Research",
-        ["char.loyalty"]          = "Loyalty Points",
-        ["char.medals"]           = "Medals",
-        ["char.standings"]        = "Standings",
-        ["char.titles"]           = "Titles",
-        ["char.roles"]            = "Roles",
-        ["char.fittings"]         = "Fittings",
-        ["char.mail"]             = "Eve Mail",
-        ["char.online"]           = "Online Status",
-        ["char.location"]         = "Location",
-        ["char.ship"]             = "Current Ship",
-        ["corp.wallet.balances"]  = "Wallet Balances",
-        ["corp.divisions"]        = "Divisions",
-        ["corp.wallet.journal"]   = "Wallet Journal",
-        ["corp.wallet.txns"]      = "Wallet Transactions",
-        ["corp.industry.jobs"]    = "Industry Jobs",
-        ["corp.orders.active"]    = "Active Orders",
-        ["corp.orders.history"]   = "Order History",
-        ["corp.assets"]           = "Assets",
-        ["corp.blueprints"]       = "Blueprints",
-        ["corp.contracts"]        = "Contracts",
-        ["corp.contacts"]         = "Contacts",
-        ["corp.killmails"]        = "Kill Mails",
-        ["corp.standings"]        = "Standings",
-        ["corp.structures"]       = "Structures",
-        ["corp.starbases"]        = "Starbases",
-        ["corp.facilities"]       = "Facilities",
-        ["corp.members"]          = "Members",
-        ["corp.membertracking"]   = "Member Tracking",
-        ["corp.roles"]            = "Roles",
-        ["corp.titles"]           = "Titles",
-        ["corp.medals"]           = "Medals",
-        ["corp.projects"]           = "Corp Projects",
-        ["corp.mining.extractions"] = "Mining Extractions",
-        ["corp.mining.observers"]   = "Mining Observers & Ledger",
-        ["market.refresh"]        = "Market Price Refresh",
-        ["build.costs"]           = "Build Cost Calculation",
-        ["contract.public"]       = "Public Contracts",
-        ["contract.items"]        = "Contract Items",
+        ["char.skills"]           = DataText.EndpointSkills,
+        ["char.skillqueue"]       = DataText.EndpointSkillQueue,
+        ["char.wallet.balance"]   = DataText.EndpointWalletBalance,
+        ["char.wallet.journal"]   = DataText.EndpointWalletJournal,
+        ["char.wallet.txns"]      = DataText.EndpointWalletTransactions,
+        ["char.industry.jobs"]    = DataText.EndpointIndustryJobs,
+        ["char.orders.active"]    = DataText.EndpointActiveOrders,
+        ["char.orders.history"]   = DataText.EndpointOrderHistory,
+        ["char.assets"]           = DataText.EndpointAssets,
+        ["char.blueprints"]       = DataText.EndpointBlueprints,
+        ["char.contracts"]        = DataText.EndpointContracts,
+        ["char.attributes"]       = DataText.EndpointAttributes,
+        ["char.clones"]           = DataText.EndpointClones,
+        ["char.implants"]         = DataText.EndpointImplants,
+        ["char.fatigue"]          = DataText.EndpointJumpFatigue,
+        ["char.mining"]           = DataText.EndpointMiningLedger,
+        ["char.notifications"]    = DataText.EndpointNotifications,
+        ["char.contacts"]         = DataText.EndpointContacts,
+        ["char.killmails"]        = DataText.EndpointKillMails,
+        ["char.planets"]          = DataText.EndpointPlanetaryInteraction,
+        ["char.agents_research"]  = DataText.EndpointAgentResearch,
+        ["char.loyalty"]          = DataText.EndpointLoyaltyPoints,
+        ["char.medals"]           = DataText.EndpointMedals,
+        ["char.standings"]        = DataText.EndpointStandings,
+        ["char.titles"]           = DataText.EndpointTitles,
+        ["char.roles"]            = DataText.EndpointRoles,
+        ["char.fittings"]         = DataText.EndpointFittings,
+        ["char.mail"]             = DataText.EndpointEveMail,
+        ["char.online"]           = DataText.EndpointOnlineStatus,
+        ["char.location"]         = DataText.EndpointLocation,
+        ["char.ship"]             = DataText.EndpointCurrentShip,
+        ["corp.wallet.balances"]  = DataText.EndpointWalletBalances,
+        ["corp.divisions"]        = DataText.EndpointDivisions,
+        ["corp.wallet.journal"]   = DataText.EndpointWalletJournal,
+        ["corp.wallet.txns"]      = DataText.EndpointWalletTransactions,
+        ["corp.industry.jobs"]    = DataText.EndpointIndustryJobs,
+        ["corp.orders.active"]    = DataText.EndpointActiveOrders,
+        ["corp.orders.history"]   = DataText.EndpointOrderHistory,
+        ["corp.assets"]           = DataText.EndpointAssets,
+        ["corp.blueprints"]       = DataText.EndpointBlueprints,
+        ["corp.contracts"]        = DataText.EndpointContracts,
+        ["corp.contacts"]         = DataText.EndpointContacts,
+        ["corp.killmails"]        = DataText.EndpointKillMails,
+        ["corp.standings"]        = DataText.EndpointStandings,
+        ["corp.structures"]       = DataText.EndpointStructures,
+        ["corp.starbases"]        = DataText.EndpointStarbases,
+        ["corp.facilities"]       = DataText.EndpointFacilities,
+        ["corp.members"]          = DataText.EndpointMembers,
+        ["corp.membertracking"]   = DataText.EndpointMemberTracking,
+        ["corp.roles"]            = DataText.EndpointRoles,
+        ["corp.titles"]           = DataText.EndpointTitles,
+        ["corp.medals"]           = DataText.EndpointMedals,
+        ["corp.projects"]           = DataText.EndpointCorpProjects,
+        ["corp.mining.extractions"] = DataText.EndpointMiningExtractions,
+        ["corp.mining.observers"]   = DataText.EndpointMiningObservers,
+        ["market.refresh"]        = DataText.EndpointMarketPriceRefresh,
+        ["build.costs"]           = DataText.EndpointBuildCostCalculation,
+        ["contract.public"]       = DataText.EndpointPublicContracts,
+        ["contract.items"]        = DataText.EndpointContractItems,
     };
 
     public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures)
@@ -368,14 +369,14 @@ public class EsiPollingService : ReactiveObject
         ? DateTimeOffset.UtcNow
         : _lastStructureSweepUtc + StructureSweepInterval;
 
-    private string _structureSweepSummary = "Not run yet this session";
+    private string _structureSweepSummary = DataText.StructureSweepNotRun;
     public string StructureSweepSummary
     {
         get => _structureSweepSummary;
         private set => this.RaiseAndSetIfChanged(ref _structureSweepSummary, value);
     }
 
-    private string _publicStructureSummary = "Not run yet";
+    private string _publicStructureSummary = DataText.NotRunYet;
     public string PublicStructureSummary
     {
         get => _publicStructureSummary;
@@ -3019,8 +3020,7 @@ public class EsiPollingService : ReactiveObject
             .ToList();
 
         PublicStructureSummary =
-            $"{ids.Count:N0} listed · {ids.Count(known.Contains):N0} already known · " +
-            $"{unknown.Count:N0} new to resolve";
+            string.Format(DataText.PublicStructuresSummary, ids.Count, ids.Count(known.Contains), unknown.Count);
 
         if (unknown.Count == 0) return;
 
@@ -3547,14 +3547,15 @@ public class EsiPollingService : ReactiveObject
             // visible somewhere, but neither is a fault and filing them as errors makes that log
             // useless for finding the things that are. Only mentioned when non-zero: a summary
             // that always ends "0 superseded · 0 linked" trains people to stop reading it.
-            var extra = "";
-            if (superseded > 0)   extra += $" · {superseded:N0} fitting(s) superseded by assets";
-            if (everefSeen > 0)   extra += $" · EVE Ref: {everefSeen:N0} known, {everefFilled:N0} filled";
-            if (linked > 0)       extra += $" · {linked:N0} linked park fitting(s) updated";
+            var parts = new List<string>
+            {
+                string.Format(DataText.StructureSweepCounts, structureIds.Count, synced, purged, total, resolved),
+            };
+            if (superseded > 0)   parts.Add(string.Format(DataText.StructureSweepSuperseded, superseded));
+            if (everefSeen > 0)   parts.Add(string.Format(DataText.StructureSweepEveRef, everefSeen, everefFilled));
+            if (linked > 0)       parts.Add(string.Format(DataText.StructureSweepLinked, linked));
 
-            StructureSweepSummary =
-                $"{structureIds.Count:N0} id(s) checked · {synced:N0} synced · " +
-                $"{purged:N0} purged · {total:N0} structures held, {resolved:N0} identified{extra}";
+            StructureSweepSummary = string.Join(" · ", parts);
 
             StructureSweepAt = DateTimeOffset.UtcNow;
 
@@ -3566,7 +3567,7 @@ public class EsiPollingService : ReactiveObject
         catch (Exception ex)
         {
             StatusText = "Polling: Structure name resolve failed";
-            StructureSweepSummary = $"Failed — {ex.Message}";
+            StructureSweepSummary = string.Format(DataText.StructureSweepFailed, ex.Message);
             _errorLogger.Log("EsiPollingService", "ForceResolveStructureNamesAsync", ex);
         }
         finally { StructureSweepRunning = false; }

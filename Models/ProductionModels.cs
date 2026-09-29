@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Models;
 
 public class ProductionQueueEntry
@@ -74,7 +76,7 @@ public class PlanJob
     public double RoleBonusPct   { get; set; }   // e.g. 1.0 for engineering complex
     public double CombinedFactor { get; set; }   // final multiplier = (1-me%)×(1-rig%)×(1-role%)
     public string ModifierDisplay =>
-        $"ME -{MeReductionPct:F0}%  Rig -{RigBonusPct:F2}%  Structure -{RoleBonusPct:F1}%  → ×{CombinedFactor:F4}";
+        string.Format(IndustryText.JobModifiers, MeReductionPct, RigBonusPct, RoleBonusPct, CombinedFactor);
 }
 
 public class PlanJobMaterial
@@ -87,7 +89,7 @@ public class PlanJobMaterial
     public bool    IsBought       { get; set; }
     public decimal UnitPrice      { get; set; }
     public decimal TotalCost      => IsBought ? TotalQty * UnitPrice : 0;
-    public string  Source         => IsBought ? "Buy" : "Build";
+    public string  Source         => IsBought ? IndustryText.SourceBuy : IndustryText.SourceBuild;
     // Full formula string for UI debugging, e.g. "ceil(2,631 × 0.8536) = 2,247"
     public string  FormulaDisplay { get; set; } = "";
 

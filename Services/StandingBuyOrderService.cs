@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -200,8 +201,8 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
         // The poller writes "corporation", not "corp" — getting this wrong silently
         // renders every corp order's owner as an unresolved id.
         string OwnerName(long id, string type) => type == "corporation"
-            ? corpNames.GetValueOrDefault(id, $"Corp {id}")
-            : charNames.GetValueOrDefault(id, $"#{id}");
+            ? corpNames.GetValueOrDefault(id, string.Format(MarketText.CorpNumbered, id))
+            : charNames.GetValueOrDefault(id, string.Format(MarketText.CharacterNumbered, id));
 
         var rows = new List<StandingBuyOrderRow>(standing.Count);
 
@@ -214,7 +215,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
             // is exactly what you need in order to place one.
             var rivalText = !tracked
                 ? "—"
-                : rivalBid is { } v ? $"{v:N2}" : "no other bids";
+                : rivalBid is { } v ? $"{v:N2}" : MarketText.NoOtherBids;
 
             if (!byKey.TryGetValue((sbo.TypeId, sbo.LocationId), out var matches) || matches.Count == 0)
             {
@@ -257,7 +258,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
             var bestPrice = matches.Max(m => m.Price);
             var priceText = matches.Count == 1
                 ? $"{bestPrice:N2}"
-                : $"{bestPrice:N2} (max of {matches.Count})";
+                : string.Format(MarketText.PriceMaxOf, bestPrice, matches.Count);
 
             // Count distinct owners, not orders — one owner can hold several orders for
             // the same item at the same station, and reporting that as "2 owners" would
@@ -279,9 +280,11 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
             var placedByHere = placers.Count == 1 ? placers[0] : 0;
 
             var owner = distinctOwners.Count == 1
-                ? OwnerName(distinctOwners[0].OwnerId, distinctOwners[0].OwnerType)
-                  + (matches.Count > 1 ? $" ({matches.Count} orders)" : "")
-                : $"{distinctOwners.Count} owners";
+                ? matches.Count > 1
+                    ? string.Format(MarketText.OwnerOrdersCount,
+                                    OwnerName(distinctOwners[0].OwnerId, distinctOwners[0].OwnerType), matches.Count)
+                    : OwnerName(distinctOwners[0].OwnerId, distinctOwners[0].OwnerType)
+                : string.Format(MarketText.OwnersCount, distinctOwners.Count);
 
             // Per-order breakdown, so an aggregated row can be unpacked without
             // leaving the grid.
@@ -289,10 +292,9 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                 ? ""
                 : string.Join("\n", matches
                     .OrderByDescending(m => m.Price)
-                    .Select(m =>
-                        $"{OwnerName(m.OwnerId, m.OwnerType)} — {m.Price:N2} ISK, "
-                      + $"{m.VolumeRemain:N0}/{m.VolumeTotal:N0}, "
-                      + $"expires {m.Issued.AddDays(m.Duration).ToLocalTime():yyyy-MM-dd}"));
+                    .Select(m => string.Format(MarketText.TipOwnerOrderLine,
+                        OwnerName(m.OwnerId, m.OwnerType), m.Price, m.VolumeRemain, m.VolumeTotal,
+                        m.Issued.AddDays(m.Duration).ToLocalTime())));
 
             // Expiry. Where several orders back one declaration, the earliest is what
             // matters — it is the one that lapses first and leaves a gap.
@@ -312,7 +314,7 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
                 : -1.0;
 
             var expiryText = FormatExpiry(expiresAt, now);
-            if (matches.Count > 1) expiryText += " (first)";
+            if (matches.Count > 1) expiryText = string.Format(MarketText.ExpiryFirst, expiryText);
 
             rows.Add(new StandingBuyOrderRow(
                 DbId                 : sbo.Id,
@@ -352,17 +354,15 @@ public class StandingBuyOrderService(IDbContextFactory<AppDbContext> dbFactory,
     }
 
     /// <summary>Absolute date plus how long is left, since "2026-08-14" alone doesn't
-    /// say whether that is urgent.</summary>
+    /// say whether that is urgent. The date leads: the grid sorts the column on this text.</summary>
     private static string FormatExpiry(DateTimeOffset expires, DateTimeOffset now)
     {
         var left = expires - now;
-        if (left <= TimeSpan.Zero) return $"{expires.ToLocalTime():yyyy-MM-dd}  (expired)";
+        if (left <= TimeSpan.Zero) return string.Format(MarketText.ExpiryExpired, expires.ToLocalTime());
 
-        var span = left.TotalDays >= 1
-            ? $"{(int)left.TotalDays}d"
-            : $"{(int)left.TotalHours}h";
-
-        return $"{expires.ToLocalTime():yyyy-MM-dd}  ({span} left)";
+        return left.TotalDays >= 1
+            ? string.Format(MarketText.ExpiryDaysLeft,  expires.ToLocalTime(), (int)left.TotalDays)
+            : string.Format(MarketText.ExpiryHoursLeft, expires.ToLocalTime(), (int)left.TotalHours);
     }
 
     /// <summary>Standing orders that are missing, nearly exhausted, nearly expired or

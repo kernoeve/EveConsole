@@ -4,6 +4,7 @@ using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -37,7 +38,7 @@ public sealed class ZkillboardPollingService(
     // In-memory only — see class remarks on why a gap here is the backfill's job, not this loop's.
     private readonly ConcurrentDictionary<(long OwnerId, string OwnerType), DateTimeOffset> _lastPolled = new();
 
-    private string _statusText = "zKillboard live poll: not started";
+    private string _statusText = DataText.ZkbPollNotStarted;
     public string StatusText
     {
         get => _statusText;
@@ -61,7 +62,7 @@ public sealed class ZkillboardPollingService(
 
         _cts     = null;
         _runTask = null;
-        StatusText = "zKillboard live poll: stopped";
+        StatusText = DataText.ZkbPollStopped;
     }
 
     private async Task RunAsync(CancellationToken ct)
@@ -77,15 +78,15 @@ public sealed class ZkillboardPollingService(
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (Exception ex)
                 {
-                    StatusText = $"zKillboard live poll: error — {Truncate(ex.Message)}";
+                    StatusText = string.Format(DataText.ZkbPollError, Truncate(ex.Message));
                     errorLogger.Log(nameof(ZkillboardPollingService), nameof(RunAsync), ex);
                 }
             }
             else
             {
                 StatusText = !settings.Enabled
-                    ? "zKillboard live poll: disabled"
-                    : "zKillboard live poll: idle (All-kills scope uses the firehose instead)";
+                    ? DataText.ZkbPollDisabled
+                    : DataText.ZkbPollIdle;
             }
 
             await Task.Delay(TimeSpan.FromSeconds(TickSeconds), ct);
@@ -108,7 +109,7 @@ public sealed class ZkillboardPollingService(
 
         if (owners.Count == 0)
         {
-            StatusText = "zKillboard live poll: no tracked characters/corps";
+            StatusText = DataText.ZkbPollNoOwners;
             return;
         }
 
@@ -136,10 +137,10 @@ public sealed class ZkillboardPollingService(
         }
 
         StatusText = addedTotal > 0
-            ? $"zKillboard live poll: +{addedTotal} new kill ref(s) across {owners.Count} owner(s)"
+            ? string.Format(DataText.ZkbPollAdded, addedTotal, owners.Count)
             : polledAny
-                ? $"zKillboard live poll: watching {owners.Count} owner(s)"
-                : $"zKillboard live poll: watching {owners.Count} owner(s) (next check pending)";
+                ? string.Format(DataText.ZkbPollWatching, owners.Count)
+                : string.Format(DataText.ZkbPollWatchingPending, owners.Count);
     }
 
     private static async Task<int> InsertNewRefsAsync(

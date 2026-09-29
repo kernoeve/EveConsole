@@ -5,6 +5,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -65,7 +66,7 @@ public sealed class AlarmService : ReactiveObject
 
     public AlarmConditionRegistry Registry => _registry;
 
-    private string _statusText = "Idle";
+    private string _statusText = DataText.StateIdle;
     public string StatusText
     {
         get => _statusText;
@@ -244,7 +245,7 @@ public sealed class AlarmService : ReactiveObject
 
         if (alarms.Count == 0)
         {
-            StatusText = "No alarms armed";
+            StatusText = DataText.AlarmsStatusNoneArmed;
             NextDueAt  = null;
             return;
         }
@@ -266,7 +267,7 @@ public sealed class AlarmService : ReactiveObject
 
         if (due.Count == 0)
         {
-            StatusText = $"{alarms.Count} armed · next check {Relative(NextDueAt, now)}";
+            StatusText = string.Format(DataText.AlarmsStatusNextCheck, alarms.Count, Relative(NextDueAt, now));
             return;
         }
 
@@ -298,8 +299,9 @@ public sealed class AlarmService : ReactiveObject
             Fired?.Invoke();
         }
 
-        StatusText = $"{alarms.Count} armed · checked {due.Count}" +
-                     (fired > 0 ? $" · fired {fired}" : "");
+        StatusText = fired > 0
+            ? string.Format(DataText.AlarmsStatusCheckedFired, alarms.Count, due.Count, fired)
+            : string.Format(DataText.AlarmsStatusChecked, alarms.Count, due.Count);
 
         if (now - _lastPrune > PruneInterval)
         {
@@ -605,13 +607,14 @@ public sealed class AlarmService : ReactiveObject
 #pragma warning restore EF1002
     }
 
+    /// <summary>When the next check is, for <see cref="DataText.AlarmsStatusNextCheck"/>: "now", "in 40s".</summary>
     private static string Relative(DateTimeOffset? at, DateTimeOffset now)
     {
         if (at is null) return "—";
         var d = at.Value - now;
-        if (d <= TimeSpan.Zero)     return "now";
-        if (d < TimeSpan.FromMinutes(1)) return $"in {d.TotalSeconds:F0}s";
-        if (d < TimeSpan.FromHours(1))   return $"in {d.TotalMinutes:F0}m";
-        return $"in {d.TotalHours:F0}h";
+        if (d <= TimeSpan.Zero)     return DataText.AlarmsNextCheckNow;
+        if (d < TimeSpan.FromMinutes(1)) return string.Format(DataText.AlarmsNextCheckInSeconds, d.TotalSeconds);
+        if (d < TimeSpan.FromHours(1))   return string.Format(DataText.AlarmsNextCheckInMinutes, d.TotalMinutes);
+        return string.Format(DataText.AlarmsNextCheckInHours, d.TotalHours);
     }
 }

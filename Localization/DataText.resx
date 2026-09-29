@@ -730,7 +730,7 @@
   </data>
   <data name="StateIdle" xml:space="preserve">
     <value>Idle</value>
-    <comment>Background Processes, State column: the process is at rest.</comment>
+    <comment>A background process is at rest: Background Processes (State column, Alarms tab) and the status bar after a process's name.</comment>
   </data>
   <data name="StateOff" xml:space="preserve">
     <value>Off</value>
@@ -1471,5 +1471,573 @@
   <data name="GameLogEntriesOther" xml:space="preserve">
     <value>{0:N0} entries</value>
     <comment>Game Log: status line. {0} is the number of lines shown.</comment>
+  </data>
+  <data name="ZkbFirehoseNotStarted" xml:space="preserve">
+    <value>zKillboard firehose: not started</value>
+    <comment>zKillboard live capture status (Settings → zKillboard, Background Processes → Killmails): the firehose has not started yet.</comment>
+  </data>
+  <data name="ZkbFirehoseStopped" xml:space="preserve">
+    <value>zKillboard firehose: stopped</value>
+    <comment>zKillboard live capture status: the firehose has been stopped.</comment>
+  </data>
+  <data name="ZkbFirehoseError" xml:space="preserve">
+    <value>zKillboard firehose: error — {0}</value>
+    <comment>zKillboard live capture status. {0} is the error message.</comment>
+  </data>
+  <data name="ZkbFirehoseDisabled" xml:space="preserve">
+    <value>zKillboard firehose: disabled</value>
+    <comment>zKillboard live capture status: the zKillboard import is switched off.</comment>
+  </data>
+  <data name="ZkbFirehoseIdle" xml:space="preserve">
+    <value>zKillboard firehose: idle (Mine+Corp scope uses the interval poll instead)</value>
+    <comment>zKillboard live capture status: the firehose is idle because the "Mine+Corp" scope is chosen, which uses the interval poll.</comment>
+  </data>
+  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
+    <value>zKillboard firehose: could not reach zKillboard, retrying</value>
+    <comment>zKillboard live capture status: zKillboard could not be reached; it will try again.</comment>
+  </data>
+  <data name="ZkbFirehoseSequence" xml:space="preserve">
+    <value>zKillboard firehose: sequence {0:N0} — {1:N0} imported this session</value>
+    <comment>zKillboard live capture status. {0} is the position in zKillboard's kill stream, {1} the number of kills imported since the app started.</comment>
+  </data>
+  <data name="ZkbFirehoseSkipped" xml:space="preserve">
+    <value>zKillboard firehose: skipped empty sequence {0:N0} (head {1:N0})</value>
+    <comment>zKillboard live capture status. {0} is the stream position that was skipped because it stayed empty, {1} the newest position zKillboard reports.</comment>
+  </data>
+  <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
+    <value>zKillboard firehose: caught up (sequence {0:N0})</value>
+    <comment>zKillboard live capture status: every kill so far is in. {0} is the position in zKillboard's kill stream.</comment>
+  </data>
+  <data name="ZkbFirehoseWaitingBackfill" xml:space="preserve">
+    <value>zKillboard firehose: waiting for daily backfill to settle</value>
+    <comment>zKillboard live capture status: waiting for the daily-dump backfill to finish first.</comment>
+  </data>
+  <data name="ZkbFirehoseResuming" xml:space="preserve">
+    <value>zKillboard firehose: resuming at {0:yyyy-MM-dd} (sequence {1:N0}); earlier days come from daily dumps</value>
+    <comment>zKillboard live capture status. {0} is the first day the stream resumes from, {1} the stream position; days before it come from zKillboard's daily dump files.</comment>
+  </data>
+  <data name="ZkbPollNotStarted" xml:space="preserve">
+    <value>zKillboard live poll: not started</value>
+    <comment>zKillboard live capture status (Settings → zKillboard, Background Processes → Killmails): the interval poll has not started yet.</comment>
+  </data>
+  <data name="ZkbPollStopped" xml:space="preserve">
+    <value>zKillboard live poll: stopped</value>
+    <comment>zKillboard live capture status: the interval poll has been stopped.</comment>
+  </data>
+  <data name="ZkbPollError" xml:space="preserve">
+    <value>zKillboard live poll: error — {0}</value>
+    <comment>zKillboard live capture status. {0} is the error message.</comment>
+  </data>
+  <data name="ZkbPollDisabled" xml:space="preserve">
+    <value>zKillboard live poll: disabled</value>
+    <comment>zKillboard live capture status: the zKillboard import is switched off.</comment>
+  </data>
+  <data name="ZkbPollIdle" xml:space="preserve">
+    <value>zKillboard live poll: idle (All-kills scope uses the firehose instead)</value>
+    <comment>zKillboard live capture status: the interval poll is idle because the "All kills" scope is chosen, which uses the firehose.</comment>
+  </data>
+  <data name="ZkbPollNoOwners" xml:space="preserve">
+    <value>zKillboard live poll: no tracked characters/corps</value>
+    <comment>zKillboard live capture status: there are no characters or corporations with a login to poll for.</comment>
+  </data>
+  <data name="ZkbPollAdded" xml:space="preserve">
+    <value>zKillboard live poll: +{0} new kill ref(s) across {1} owner(s)</value>
+    <comment>zKillboard live capture status. {0} is the number of new kill references found, {1} the number of characters and corporations polled.</comment>
+  </data>
+  <data name="ZkbPollWatching" xml:space="preserve">
+    <value>zKillboard live poll: watching {0} owner(s)</value>
+    <comment>zKillboard live capture status. {0} is the number of characters and corporations polled.</comment>
+  </data>
+  <data name="ZkbPollWatchingPending" xml:space="preserve">
+    <value>zKillboard live poll: watching {0} owner(s) (next check pending)</value>
+    <comment>zKillboard live capture status: none was due for a check this time. {0} is the number of characters and corporations polled.</comment>
+  </data>
+  <data name="ZkbBackfillNotStarted" xml:space="preserve">
+    <value>zKillboard backfill: not started</value>
+    <comment>zKillboard daily-dump backfill status (Settings → zKillboard, Background Processes → Killmails): not started yet.</comment>
+  </data>
+  <data name="ZkbBackfillStarting" xml:space="preserve">
+    <value>Starting…</value>
+    <comment>Settings → zKillboard, progress line: a backfill has just started.</comment>
+  </data>
+  <data name="ZkbBackfillDay" xml:space="preserve">
+    <value>Day {0:N0} of {1:N0} — {2:yyyy-MM-dd}</value>
+    <comment>Settings → zKillboard, progress line of a backfill. {0} is the day being imported, counting from 1, {1} the number of days, {2} the date.</comment>
+  </data>
+  <data name="ZkbBackfillCancelled" xml:space="preserve">
+    <value>zKillboard backfill: cancelled after {0:N0} day(s), {1:N0} kill(s)</value>
+    <comment>zKillboard backfill status: cancelled. {0} is the number of days done, {1} the number of kills imported.</comment>
+  </data>
+  <data name="ZkbBackfillImported" xml:space="preserve">
+    <value>zKillboard backfill: imported {0:N0} kill(s) across {1:N0} day(s)</value>
+    <comment>zKillboard backfill status: finished. {0} is the number of kills imported, {1} the number of days.</comment>
+  </data>
+  <data name="ZkbBackfillFailed" xml:space="preserve">
+    <value>zKillboard backfill: failed — {0}</value>
+    <comment>zKillboard backfill status. {0} is the error message.</comment>
+  </data>
+  <data name="ZkbGapFillDay" xml:space="preserve">
+    <value>Gap-fill {0:N0} of {1:N0} — {2:yyyy-MM-dd}</value>
+    <comment>Settings → zKillboard, progress line of the automatic catch-up that imports the zKillboard daily dumps of days the app was closed. {0} is the day being imported, counting from 1, {1} the number of days, {2} the date.</comment>
+  </data>
+  <data name="ZkbGapFillCancelled" xml:space="preserve">
+    <value>zKillboard gap-fill: cancelled, caught up through {0:yyyy-MM-dd}</value>
+    <comment>zKillboard catch-up status: cancelled. {0} is the last day fully imported.</comment>
+  </data>
+  <data name="ZkbGapFillDone" xml:space="preserve">
+    <value>zKillboard gap-fill: caught up through {0:yyyy-MM-dd}, {1:N0} kill(s)</value>
+    <comment>zKillboard catch-up status: finished. {0} is the last day fully imported, {1} the number of kills imported.</comment>
+  </data>
+  <data name="ZkbGapFillFailed" xml:space="preserve">
+    <value>zKillboard gap-fill: failed — {0}</value>
+    <comment>zKillboard catch-up status. {0} is the error message.</comment>
+  </data>
+  <data name="ZkbPostingNotStarted" xml:space="preserve">
+    <value>zKillboard posting: not started</value>
+    <comment>Status of posting kills to zKillboard (Settings → zKillboard, Background Processes → Killmails): not started yet.</comment>
+  </data>
+  <data name="ZkbCoverageChecking" xml:space="preserve">
+    <value>checking…</value>
+    <comment>How far back kills are known to be on zKillboard: still being worked out.</comment>
+  </data>
+  <data name="ZkbCoverageNoneYet" xml:space="preserve">
+    <value>none yet — no kills confirmed on zKillboard</value>
+    <comment>How far back kills are known to be on zKillboard: no kill is known to be there yet.</comment>
+  </data>
+  <data name="ZkbPostingOff" xml:space="preserve">
+    <value>zKillboard posting: off</value>
+    <comment>Status of posting kills to zKillboard: posting is switched off.</comment>
+  </data>
+  <data name="ZkbPostingDisabled" xml:space="preserve">
+    <value>zKillboard posting: disabled</value>
+    <comment>Status of posting kills to zKillboard: the whole zKillboard import is switched off.</comment>
+  </data>
+  <data name="ZkbPostingError" xml:space="preserve">
+    <value>zKillboard posting: error — {0}</value>
+    <comment>Status of posting kills to zKillboard. {0} is the error message.</comment>
+  </data>
+  <data name="ZkbPostingNoConfirmed" xml:space="preserve">
+    <value>zKillboard posting: no kills confirmed on zKillboard yet — run a backfill first</value>
+    <comment>Status of posting kills to zKillboard: nothing can be posted until at least one kill is known to be on zKillboard.</comment>
+  </data>
+  <data name="ZkbPostingNoFullDay" xml:space="preserve">
+    <value>zKillboard posting: no day fully imported from zKillboard yet</value>
+    <comment>Status of posting kills to zKillboard: nothing can be posted until one whole day has been imported from zKillboard.</comment>
+  </data>
+  <data name="ZkbPostingNothing" xml:space="preserve">
+    <value>zKillboard posting: nothing to submit (covered from {0})</value>
+    <comment>Status of posting kills to zKillboard: nothing is missing from zKillboard. {0} is the date from which kills are known to be there.</comment>
+  </data>
+  <data name="ZkbPostingHalted" xml:space="preserve">
+    <value>zKillboard posting: halted — zKillboard rejected this client as untrusted</value>
+    <comment>Status of posting kills to zKillboard: stopped because zKillboard refused this app's submissions.</comment>
+  </data>
+  <data name="NameCacheNotStarted" xml:space="preserve">
+    <value>Name cache: not started</value>
+    <comment>Background Processes, Name Cache tab: the name lookup has not started yet.</comment>
+  </data>
+  <data name="NameCacheError" xml:space="preserve">
+    <value>Name cache: error — {0}</value>
+    <comment>Background Processes, Name Cache tab. {0} is the error message.</comment>
+  </data>
+  <data name="NameCacheIdleResolved" xml:space="preserve">
+    <value>○ Idle — all known entities resolved</value>
+    <comment>Background Processes, Name Cache tab: state line at rest, every character, corporation and alliance id has a name.</comment>
+  </data>
+  <data name="NameCacheRunningCapped" xml:space="preserve">
+    <value>● Running — {0:N0} of {1:N0} this pass (more outstanding)</value>
+    <comment>Background Processes, Name Cache tab: state line while looking names up. {0} is the names found so far, {1} the ids this pass takes on; more are left for later passes.</comment>
+  </data>
+  <data name="NameCacheRunning" xml:space="preserve">
+    <value>● Running — {0:N0} of {1:N0} remaining names</value>
+    <comment>Background Processes, Name Cache tab: state line while looking names up. {0} is the names found so far, {1} the ids without a name.</comment>
+  </data>
+  <data name="NameCacheIdleAddedCapped" xml:space="preserve">
+    <value>○ Idle — added {0:N0} name(s) this pass, more outstanding</value>
+    <comment>Background Processes, Name Cache tab: state line after a pass that could not take every id. {0} is the number of names found.</comment>
+  </data>
+  <data name="NameCacheIdleAdded" xml:space="preserve">
+    <value>○ Idle — added {0:N0} name(s), all known entities resolved</value>
+    <comment>Background Processes, Name Cache tab: state line after a pass. {0} is the number of names found.</comment>
+  </data>
+  <data name="IntelStatusIdle" xml:space="preserve">
+    <value>Intel: idle</value>
+    <comment>Intel status (Settings → Chat Logs, Background Processes → Intel): nothing has been parsed since the app started.</comment>
+  </data>
+  <data name="IntelStatusParsingMore" xml:space="preserve">
+    <value>Intel: parsing {0} — {1:N0} sightings, {2:N0} messages to go</value>
+    <comment>Intel status while intel chat is being parsed. {0} is the day being read (yyyy-MM-dd), {1} the sightings found so far, {2} the chat messages still to read.</comment>
+  </data>
+  <data name="IntelStatusParsing" xml:space="preserve">
+    <value>Intel: parsing {0} — {1:N0} sightings</value>
+    <comment>Intel status while intel chat is being parsed. {0} is the day being read (yyyy-MM-dd), {1} the sightings found so far.</comment>
+  </data>
+  <data name="IntelStatusNothing" xml:space="preserve">
+    <value>Intel: nothing parsed yet</value>
+    <comment>Intel status: no sighting has been found in the intel channels yet.</comment>
+  </data>
+  <data name="IntelStatusUpToDate" xml:space="preserve">
+    <value>Intel: up to date — {0:N0} sightings, newest {1}</value>
+    <comment>Intel status at rest. {0} is the number of sightings stored, {1} the time of the newest (EVE time).</comment>
+  </data>
+  <data name="IntelStatusUnavailable" xml:space="preserve">
+    <value>Intel: status unavailable</value>
+    <comment>Intel status: the sightings could not be counted.</comment>
+  </data>
+  <data name="NotRunYet" xml:space="preserve">
+    <value>Not run yet</value>
+    <comment>Background Processes: a background task that has not run yet since the app started.</comment>
+  </data>
+  <data name="OrderFulfilmentFailed" xml:space="preserve">
+    <value>Last pass failed: {0}</value>
+    <comment>Background Processes, Order Fulfilment tab. {0} is the error message.</comment>
+  </data>
+  <data name="OrderFulfilmentNoPending" xml:space="preserve">
+    <value>No pending orders</value>
+    <comment>Background Processes, Order Fulfilment tab: the Order Tracker has no pending orders.</comment>
+  </data>
+  <data name="OrderFulfilmentLinked" xml:space="preserve">
+    <value>{0:N0} of {1:N0} pending order(s) have a source</value>
+    <comment>Background Processes, Order Fulfilment tab. {0} is the number of pending orders with a source (stock, a job or a contract) worked out, {1} all pending orders.</comment>
+  </data>
+  <data name="LpStoreStatusIdle" xml:space="preserve">
+    <value>LP store: idle</value>
+    <comment>Background Processes, LP Store tab: the LP store sweep has not run yet.</comment>
+  </data>
+  <data name="LpStoreStatusNoSde" xml:space="preserve">
+    <value>LP store: no NPC corporations in the SDE — import the SDE first</value>
+    <comment>Background Processes, LP Store tab: the SDE (the game's static data) has not been imported, so there are no NPC corporations to check.</comment>
+  </data>
+  <data name="LpStoreStatusProgress" xml:space="preserve">
+    <value>LP store: {0:N0}/{1:N0} corps, {2:N0} offers…</value>
+    <comment>Background Processes, LP Store tab, during a sweep. {0} is the NPC corporations checked so far, {1} all of them, {2} the offers found so far.</comment>
+  </data>
+  <data name="AlarmsStatusNoneArmed" xml:space="preserve">
+    <value>No alarms armed</value>
+    <comment>Background Processes, Alarms tab: no alarm is switched on.</comment>
+  </data>
+  <data name="EndpointSkills" xml:space="preserve">
+    <value>Skills</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's skills.</comment>
+  </data>
+  <data name="EndpointSkillQueue" xml:space="preserve">
+    <value>Skill Queue</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's skill queue.</comment>
+  </data>
+  <data name="EndpointWalletBalance" xml:space="preserve">
+    <value>Wallet Balance</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's wallet balance.</comment>
+  </data>
+  <data name="EndpointWalletJournal" xml:space="preserve">
+    <value>Wallet Journal</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's wallet journal.</comment>
+  </data>
+  <data name="EndpointWalletTransactions" xml:space="preserve">
+    <value>Wallet Transactions</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's market transactions.</comment>
+  </data>
+  <data name="EndpointIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's industry jobs.</comment>
+  </data>
+  <data name="EndpointActiveOrders" xml:space="preserve">
+    <value>Active Orders</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches open market orders.</comment>
+  </data>
+  <data name="EndpointOrderHistory" xml:space="preserve">
+    <value>Order History</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches closed and expired market orders.</comment>
+  </data>
+  <data name="EndpointAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's assets.</comment>
+  </data>
+  <data name="EndpointBlueprints" xml:space="preserve">
+    <value>Blueprints</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's blueprints.</comment>
+  </data>
+  <data name="EndpointContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's contracts.</comment>
+  </data>
+  <data name="EndpointAttributes" xml:space="preserve">
+    <value>Attributes</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's attributes.</comment>
+  </data>
+  <data name="EndpointClones" xml:space="preserve">
+    <value>Clones</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's clones.</comment>
+  </data>
+  <data name="EndpointImplants" xml:space="preserve">
+    <value>Implants</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's implants.</comment>
+  </data>
+  <data name="EndpointJumpFatigue" xml:space="preserve">
+    <value>Jump Fatigue</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's jump fatigue.</comment>
+  </data>
+  <data name="EndpointMiningLedger" xml:space="preserve">
+    <value>Mining Ledger</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's mining ledger.</comment>
+  </data>
+  <data name="EndpointNotifications" xml:space="preserve">
+    <value>Notifications</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's in-game notifications.</comment>
+  </data>
+  <data name="EndpointContacts" xml:space="preserve">
+    <value>Contacts</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's contacts.</comment>
+  </data>
+  <data name="EndpointKillMails" xml:space="preserve">
+    <value>Kill Mails</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's kill mails.</comment>
+  </data>
+  <data name="EndpointPlanetaryInteraction" xml:space="preserve">
+    <value>Planetary Interaction</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's planetary colonies.</comment>
+  </data>
+  <data name="EndpointAgentResearch" xml:space="preserve">
+    <value>Agent Research</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's research agents.</comment>
+  </data>
+  <data name="EndpointLoyaltyPoints" xml:space="preserve">
+    <value>Loyalty Points</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's loyalty points.</comment>
+  </data>
+  <data name="EndpointMedals" xml:space="preserve">
+    <value>Medals</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's medals.</comment>
+  </data>
+  <data name="EndpointStandings" xml:space="preserve">
+    <value>Standings</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's standings.</comment>
+  </data>
+  <data name="EndpointTitles" xml:space="preserve">
+    <value>Titles</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's titles.</comment>
+  </data>
+  <data name="EndpointRoles" xml:space="preserve">
+    <value>Roles</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's or corporation's roles.</comment>
+  </data>
+  <data name="EndpointFittings" xml:space="preserve">
+    <value>Fittings</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's saved ship fittings.</comment>
+  </data>
+  <data name="EndpointEveMail" xml:space="preserve">
+    <value>Eve Mail</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a character's in-game mail (EVE Mail).</comment>
+  </data>
+  <data name="EndpointOnlineStatus" xml:space="preserve">
+    <value>Online Status</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that checks whether a character is logged in.</comment>
+  </data>
+  <data name="EndpointLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches where a character is.</comment>
+  </data>
+  <data name="EndpointCurrentShip" xml:space="preserve">
+    <value>Current Ship</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches the ship a character is flying.</comment>
+  </data>
+  <data name="EndpointWalletBalances" xml:space="preserve">
+    <value>Wallet Balances</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's wallet division balances.</comment>
+  </data>
+  <data name="EndpointDivisions" xml:space="preserve">
+    <value>Divisions</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's hangar and wallet division names.</comment>
+  </data>
+  <data name="EndpointStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's Upwell structures.</comment>
+  </data>
+  <data name="EndpointStarbases" xml:space="preserve">
+    <value>Starbases</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's starbases (POSes).</comment>
+  </data>
+  <data name="EndpointFacilities" xml:space="preserve">
+    <value>Facilities</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's industry facilities.</comment>
+  </data>
+  <data name="EndpointMembers" xml:space="preserve">
+    <value>Members</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's member list.</comment>
+  </data>
+  <data name="EndpointMemberTracking" xml:space="preserve">
+    <value>Member Tracking</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's member tracking (last login, location, ship).</comment>
+  </data>
+  <data name="EndpointCorpProjects" xml:space="preserve">
+    <value>Corp Projects</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's projects.</comment>
+  </data>
+  <data name="EndpointMiningExtractions" xml:space="preserve">
+    <value>Mining Extractions</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's moon extractions.</comment>
+  </data>
+  <data name="EndpointMiningObservers" xml:space="preserve">
+    <value>Mining Observers &amp; Ledger</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches a corporation's mining observers and their ledgers.</comment>
+  </data>
+  <data name="EndpointMarketPriceRefresh" xml:space="preserve">
+    <value>Market Price Refresh</value>
+    <comment>ESI Call Schedule and Settings → Timers: the task that refreshes market prices.</comment>
+  </data>
+  <data name="EndpointBuildCostCalculation" xml:space="preserve">
+    <value>Build Cost Calculation</value>
+    <comment>ESI Call Schedule and Settings → Timers: the task that recalculates build costs.</comment>
+  </data>
+  <data name="EndpointPublicContracts" xml:space="preserve">
+    <value>Public Contracts</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that fetches public contracts.</comment>
+  </data>
+  <data name="EndpointContractItems" xml:space="preserve">
+    <value>Contract Items</value>
+    <comment>ESI Call Schedule and Settings → Timers: the task that fetches the items in contracts.</comment>
+  </data>
+  <data name="StructureSweepNotRun" xml:space="preserve">
+    <value>Not run yet this session</value>
+    <comment>Background Processes, Structures tab, result of the hourly sweep: it has not run since the app started.</comment>
+  </data>
+  <data name="PublicStructuresSummary" xml:space="preserve">
+    <value>{0:N0} listed · {1:N0} already known · {2:N0} new to resolve</value>
+    <comment>Background Processes, Structures tab, result of the daily walk of the public structure list. {0} is the structures listed, {1} those already known, {2} those still to look up.</comment>
+  </data>
+  <data name="StructureSweepFailed" xml:space="preserve">
+    <value>Failed — {0}</value>
+    <comment>Background Processes, Structures tab, result of the hourly sweep. {0} is the error message.</comment>
+  </data>
+  <data name="CallOk" xml:space="preserve">
+    <value>OK</value>
+    <comment>ESI Activity Log, Result column: the call succeeded.</comment>
+  </data>
+  <data name="StructureSweepCounts" xml:space="preserve">
+    <value>{0:N0} id(s) checked · {1:N0} synced · {2:N0} purged · {3:N0} structures held, {4:N0} identified</value>
+    <comment>Background Processes, Structures tab, result of the hourly sweep. {0} is the structure ids checked, {1} the structures copied to the Structure Browser, {2} the rows removed as not being structures, {3} the structures stored, {4} those whose type is known.</comment>
+  </data>
+  <data name="StructureSweepSuperseded" xml:space="preserve">
+    <value>{0:N0} fitting(s) superseded by assets</value>
+    <comment>Background Processes, Structures tab, added after " · " to the result of the hourly sweep. {0} is the number of hand-entered structure fittings replaced by what the assets show.</comment>
+  </data>
+  <data name="StructureSweepEveRef" xml:space="preserve">
+    <value>EVE Ref: {0:N0} known, {1:N0} filled</value>
+    <comment>Background Processes, Structures tab, added after " · " to the result of the hourly sweep. EVE Ref is a website's name. {0} is the structures its list knows, {1} those it filled in.</comment>
+  </data>
+  <data name="StructureSweepLinked" xml:space="preserve">
+    <value>{0:N0} linked park fitting(s) updated</value>
+    <comment>Background Processes, Structures tab, added after " · " to the result of the hourly sweep. {0} is the number of Indy Parks structures whose fitting was updated from the real structure they are linked to.</comment>
+  </data>
+  <data name="ZkbPostingSubmitted" xml:space="preserve">
+    <value>zKillboard posting: {0:N0} submitted, {1:N0} already on zKillboard</value>
+    <comment>Status of posting kills to zKillboard (Settings → zKillboard, Background Processes → Killmails), after a pass. {0} is the kills submitted, {1} those zKillboard already had.</comment>
+  </data>
+  <data name="ZkbPostingSubmittedRejected" xml:space="preserve">
+    <value>zKillboard posting: {0:N0} submitted, {1:N0} already on zKillboard, {2:N0} rejected</value>
+    <comment>Status of posting kills to zKillboard, after a pass. {0} is the kills submitted, {1} those zKillboard already had, {2} those it refused.</comment>
+  </data>
+  <data name="LpStoreStatusDone" xml:space="preserve">
+    <value>LP store: {0:N0} stores, {1:N0} offers, {2:N0} without a store — {3:t}</value>
+    <comment>Background Processes, LP Store tab, after a sweep. {0} is the NPC corporations with an LP store, {1} the offers found, {2} the corporations without a store, {3} the time the sweep finished.</comment>
+  </data>
+  <data name="LpStoreStatusDoneFailed" xml:space="preserve">
+    <value>LP store: {0:N0} stores, {1:N0} offers, {2:N0} without a store, {3:N0} failed — {4:t}</value>
+    <comment>Background Processes, LP Store tab, after a sweep. {0} is the NPC corporations with an LP store, {1} the offers found, {2} the corporations without a store, {3} those that could not be checked, {4} the time the sweep finished.</comment>
+  </data>
+  <data name="AlarmsStatusNextCheck" xml:space="preserve">
+    <value>{0} armed · next check {1}</value>
+    <comment>Background Processes, Alarms tab. {0} is the number of alarms switched on, {1} when the next check is: one of the four entries below ("now", "in 40s"…).</comment>
+  </data>
+  <data name="AlarmsNextCheckNow" xml:space="preserve">
+    <value>now</value>
+    <comment>Background Processes, Alarms tab, the {1} in "next check {1}": the next check is due now.</comment>
+  </data>
+  <data name="AlarmsNextCheckInSeconds" xml:space="preserve">
+    <value>in {0:F0}s</value>
+    <comment>Background Processes, Alarms tab, the {1} in "next check {1}". {0} is a number of seconds; "s" abbreviates seconds.</comment>
+  </data>
+  <data name="AlarmsNextCheckInMinutes" xml:space="preserve">
+    <value>in {0:F0}m</value>
+    <comment>Background Processes, Alarms tab, the {1} in "next check {1}". {0} is a number of minutes; "m" abbreviates minutes.</comment>
+  </data>
+  <data name="AlarmsNextCheckInHours" xml:space="preserve">
+    <value>in {0:F0}h</value>
+    <comment>Background Processes, Alarms tab, the {1} in "next check {1}". {0} is a number of hours; "h" abbreviates hours.</comment>
+  </data>
+  <data name="AlarmsStatusChecked" xml:space="preserve">
+    <value>{0} armed · checked {1}</value>
+    <comment>Background Processes, Alarms tab, after a check. {0} is the number of alarms switched on, {1} the number checked just now.</comment>
+  </data>
+  <data name="AlarmsStatusCheckedFired" xml:space="preserve">
+    <value>{0} armed · checked {1} · fired {2}</value>
+    <comment>Background Processes, Alarms tab, after a check. {0} is the number of alarms switched on, {1} the number checked just now, {2} the number that went off.</comment>
+  </data>
+  <data name="BarEsiActiveQueued" xml:space="preserve">
+    <value>{0:N0} active, {1:N0} queued</value>
+    <comment>Status bar, after "ESI Calls:". {0} is the number of calls under way, {1} the number waiting for a free connection.</comment>
+  </data>
+  <data name="BarProcessing" xml:space="preserve">
+    <value>processing</value>
+    <comment>Status bar, after "Price History:": the sweep is running and has not counted its items yet.</comment>
+  </data>
+  <data name="BarProcessingItemsOne" xml:space="preserve">
+    <value>processing {0:N0} item</value>
+    <comment>Status bar, after "Price History:". {0} is the number of items still to refresh (this form: one).</comment>
+  </data>
+  <data name="BarProcessingItemsOther" xml:space="preserve">
+    <value>processing {0:N0} items</value>
+    <comment>Status bar, after "Price History:". {0} is the number of items still to refresh.</comment>
+  </data>
+  <data name="BarStarting" xml:space="preserve">
+    <value>starting</value>
+    <comment>Status bar, after "Contract Items:" or "LP Store:": a sweep has just started and does not know its size yet.</comment>
+  </data>
+  <data name="BarContractsProgressOne" xml:space="preserve">
+    <value>{1:N0} of {0:N0} contract</value>
+    <comment>Status bar, after "Contract Items:". {1} is the contracts whose items are pulled so far, {0} all the contracts in this pass (this form: one).</comment>
+  </data>
+  <data name="BarContractsProgressOther" xml:space="preserve">
+    <value>{1:N0} of {0:N0} contracts</value>
+    <comment>Status bar, after "Contract Items:". {1} is the contracts whose items are pulled so far, {0} all the contracts in this pass.</comment>
+  </data>
+  <data name="BarCorporationsProgressOne" xml:space="preserve">
+    <value>{1:N0} of {0:N0} corporation</value>
+    <comment>Status bar, after "LP Store:". {1} is the NPC corporations checked so far, {0} all of them (this form: one).</comment>
+  </data>
+  <data name="BarCorporationsProgressOther" xml:space="preserve">
+    <value>{1:N0} of {0:N0} corporations</value>
+    <comment>Status bar, after "LP Store:". {1} is the NPC corporations checked so far, {0} all of them.</comment>
+  </data>
+  <data name="BarFetching" xml:space="preserve">
+    <value>fetching</value>
+    <comment>Status bar after "Killmails:", and Background Processes → Killmails: kill mail details are being fetched from ESI, count not known yet.</comment>
+  </data>
+  <data name="BarFetchingProgress" xml:space="preserve">
+    <value>fetching {0:N0} of {1:N0}</value>
+    <comment>Status bar after "Killmails:", and Background Processes → Killmails. {0} is the kill mail details fetched so far, {1} the number this pass fetches.</comment>
+  </data>
+  <data name="BarFetchingProgressMore" xml:space="preserve">
+    <value>fetching {0:N0} of {1:N0}, {2:N0} more to go</value>
+    <comment>Status bar after "Killmails:", and Background Processes → Killmails. {0} is the kill mail details fetched so far, {1} the number this pass fetches, {2} how many more wait for later passes.</comment>
+  </data>
+  <data name="KillmailsWithoutDetailsOne" xml:space="preserve">
+    <value>{0:N0} kill mail without details yet — the next poll fetches up to 200</value>
+    <comment>Background Processes, Killmails tab, ESI kill mail details row. {0} is the number of kill mails whose details are not fetched yet (this form: one).</comment>
+  </data>
+  <data name="KillmailsWithoutDetailsOther" xml:space="preserve">
+    <value>{0:N0} kill mails without details yet — the next poll fetches up to 200</value>
+    <comment>Background Processes, Killmails tab, ESI kill mail details row. {0} is the number of kill mails whose details are not fetched yet.</comment>
+  </data>
+  <data name="KillmailsAllDetailed" xml:space="preserve">
+    <value>every kill mail the app knows has its details</value>
+    <comment>Background Processes, Killmails tab, ESI kill mail details row: nothing is left to fetch.</comment>
+  </data>
+  <data name="BarBackfill" xml:space="preserve">
+    <value>backfill</value>
+    <comment>Status bar, after "Killmails:": a zKillboard daily-dump backfill is running (a noun), count not known yet.</comment>
+  </data>
+  <data name="BarBackfillProgress" xml:space="preserve">
+    <value>backfill {0:N0} of {1:N0}</value>
+    <comment>Status bar, after "Killmails:": a zKillboard daily-dump backfill (a noun). {0} is the days imported so far, {1} the days to import.</comment>
   </data>
 </root>

@@ -188,4 +188,28 @@
     <value>{0:N0} rows</value>
     <comment>A grid the agent made, in its own tab: how many rows it has. {0} is the number.</comment>
   </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>no tool calls</value>
+    <comment>Line above an agent reply, and AI Usage: the reply called no tools, so it looked nothing up.</comment>
+  </data>
+  <data name="ToolCallsOne" xml:space="preserve">
+    <value>{0} tool call: {1}</value>
+    <comment>Line above an agent reply, and AI Usage. {0} is the number of tool calls (this form: one), {1} the tools' names, which stay as they are ("query_database ×2, show_table").</comment>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>{0} tool calls: {1}</value>
+    <comment>Line above an agent reply, and AI Usage. {0} is the number of tool calls, {1} the tools' names, which stay as they are ("query_database ×2, show_table").</comment>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>alarm</value>
+    <comment>Line above an agent message, where its tool calls would be: the message comes from an alarm.</comment>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>voice change</value>
+    <comment>Line above an agent message, where its tool calls would be: the message announces that another voice is speaking.</comment>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>model change</value>
+    <comment>Line above an agent message, where its tool calls would be: the message announces that another AI model is answering.</comment>
+  </data>
 </root>

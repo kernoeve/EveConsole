@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -50,7 +51,7 @@ public sealed class ZkillboardFirehoseService(
     // crash mid-stream re-processes at most one killmail (harmless — additive/skip-if-exists).
     private long? _cursor;
 
-    private string _statusText = "zKillboard firehose: not started";
+    private string _statusText = DataText.ZkbFirehoseNotStarted;
     public string StatusText
     {
         get => _statusText;
@@ -81,7 +82,7 @@ public sealed class ZkillboardFirehoseService(
 
         _cts     = null;
         _runTask = null;
-        StatusText = "zKillboard firehose: stopped";
+        StatusText = DataText.ZkbFirehoseStopped;
     }
 
     private async Task RunAsync(CancellationToken ct)
@@ -98,7 +99,7 @@ public sealed class ZkillboardFirehoseService(
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (Exception ex)
                 {
-                    StatusText = $"zKillboard firehose: error — {Truncate(ex.Message)}";
+                    StatusText = string.Format(DataText.ZkbFirehoseError, Truncate(ex.Message));
                     errorLogger.Log(nameof(ZkillboardFirehoseService), nameof(RunAsync), ex);
                 }
             }
@@ -106,8 +107,8 @@ public sealed class ZkillboardFirehoseService(
             {
                 _cursor = null; // re-seed from "now" next time All scope is activated
                 StatusText = !settings.Enabled
-                    ? "zKillboard firehose: disabled"
-                    : "zKillboard firehose: idle (Mine+Corp scope uses the interval poll instead)";
+                    ? DataText.ZkbFirehoseDisabled
+                    : DataText.ZkbFirehoseIdle;
             }
 
             await Task.Delay(TimeSpan.FromSeconds(IdleTickSecs), ct);
@@ -121,7 +122,7 @@ public sealed class ZkillboardFirehoseService(
             _cursor = await SeedCursorAsync(ct);
             if (_cursor is null)
             {
-                StatusText = "zKillboard firehose: could not reach zKillboard, retrying";
+                StatusText = DataText.ZkbFirehoseUnreachable;
                 await Task.Delay(TimeSpan.FromSeconds(NoNewBackoffSecs), ct);
                 return;
             }
@@ -165,7 +166,7 @@ public sealed class ZkillboardFirehoseService(
         _cursor = start + take;
         settings.SaveR2Z2Position(start + take - 1);
         ImportedThisSession += take;
-        StatusText = $"zKillboard firehose: sequence {_cursor:N0} — {ImportedThisSession:N0} imported this session";
+        StatusText = string.Format(DataText.ZkbFirehoseSequence, _cursor, ImportedThisSession);
 
         // Only pace when the batch came back full — a short batch means we reached the
         // live edge, and HandleNothingAtCursorAsync's backoff covers that on the next pass.
@@ -191,14 +192,14 @@ public sealed class ZkillboardFirehoseService(
             {
                 _cursor = cursor + 1;
                 _consecutiveStalls = 0;
-                StatusText = $"zKillboard firehose: skipped empty sequence {cursor:N0} (head {head:N0})";
+                StatusText = string.Format(DataText.ZkbFirehoseSkipped, cursor, head);
                 errorLogger.Log(nameof(ZkillboardFirehoseService), nameof(HandleNothingAtCursorAsync),
                     new InvalidOperationException($"sequence {cursor} stayed empty while head reached {head}; skipping"));
                 return;
             }
         }
 
-        StatusText = $"zKillboard firehose: caught up (sequence {cursor:N0})";
+        StatusText = string.Format(DataText.ZkbFirehoseCaughtUp, cursor);
         await Task.Delay(TimeSpan.FromSeconds(NoNewBackoffSecs), ct);
     }
 
@@ -216,7 +217,7 @@ public sealed class ZkillboardFirehoseService(
     {
         // LastFullDay is only trustworthy once the startup gap-fill has run; seeding
         // against a stale value would replay days it is about to import in seconds.
-        StatusText = "zKillboard firehose: waiting for daily backfill to settle";
+        StatusText = DataText.ZkbFirehoseWaitingBackfill;
         await backfill.InitialGapFillCompleted.WaitAsync(ct);
 
         var resume = settings.R2Z2LastSequence > 0 ? settings.R2Z2LastSequence + 1 : (long?)null;
@@ -230,7 +231,7 @@ public sealed class ZkillboardFirehoseService(
 
             if (seek is not null && (resume is null || seek.Value > resume.Value))
             {
-                StatusText = $"zKillboard firehose: resuming at {firstUncovered:yyyy-MM-dd} (sequence {seek:N0}); earlier days come from daily dumps";
+                StatusText = string.Format(DataText.ZkbFirehoseResuming, firstUncovered, seek);
                 return seek;
             }
         }

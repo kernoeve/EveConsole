@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services;
 
 /// <summary>
@@ -5,6 +7,9 @@ namespace EveConsole.Services;
 /// and the clients watching it print the same thing. The worker publishes these lines on its
 /// activity board once a second (see <see cref="WorkerActivityService"/>), and a client that is
 /// not the worker shows them as they arrive rather than reading its own idle services.
+///
+/// <para>⚠️ Published as finished text, so a client that is not the worker shows these lines in the
+/// worker's interface language rather than its own. Accepted for now.</para>
 /// </summary>
 public static class BackgroundStatus
 {
@@ -12,35 +17,38 @@ public static class BackgroundStatus
     /// which is what colours the label.</summary>
     public sealed record Line(string Text, bool Running);
 
-    public static readonly Line Idle = new("Idle", false);
+    public static readonly Line Idle = new(DataText.StateIdle, false);
 
     /// <summary>"3 active, 12 queued": calls holding an HTTP slot, and calls waiting for one.</summary>
     public static Line EsiCalls(int active, int queued) =>
-        active + queued == 0 ? Idle : new($"{active:N0} active, {queued:N0} queued", true);
+        active + queued == 0 ? Idle : new(string.Format(DataText.BarEsiActiveQueued, active, queued), true);
 
     /// <summary>"processing 1,234 items": the types still to refresh across every region.</summary>
     public static Line PriceHistory(bool sweeping, int queued) =>
-        !sweeping ? Idle : new(queued > 0 ? $"processing {queued:N0} items" : "processing", true);
+        !sweeping ? Idle : new(queued > 0
+            ? Plurals.Format(DataText.ResourceManager, nameof(DataText.BarProcessingItemsOther), queued)
+            : DataText.BarProcessing, true);
 
     /// <summary>"120 of 340 contracts": item pulls done of the pass under way.</summary>
     public static Line ContractItems(bool sweeping, int done, int total) =>
-        !sweeping ? Idle : new(total > 0 ? $"{done:N0} of {total:N0} contracts" : "starting", true);
+        !sweeping ? Idle : new(total > 0
+            ? Plurals.Format(DataText.ResourceManager, nameof(DataText.BarContractsProgressOther), total, done)
+            : DataText.BarStarting, true);
 
     /// <summary>"12 of 300 corporations": the sweep's progress through the NPC corporations.</summary>
     public static Line LpStore(bool sweeping, int done, int total) =>
-        !sweeping ? Idle : new(total > 0 ? $"{done:N0} of {total:N0} corporations" : "starting", true);
+        !sweeping ? Idle : new(total > 0
+            ? Plurals.Format(DataText.ResourceManager, nameof(DataText.BarCorporationsProgressOther), total, done)
+            : DataText.BarStarting, true);
 
     /// <summary>The ESI detail fetch on its own, for its row in the Killmails tab: what it is doing,
     /// or how much is left to do.</summary>
     public static Line KillmailFetch(bool fetching, int done, int total, int backlog)
     {
-        if (fetching)
-        {
-            var toGo = backlog > total ? $", {backlog - total:N0} more to go" : "";
-            return new(total > 0 ? $"fetching {done:N0} of {total:N0}{toGo}" : "fetching", true);
-        }
-        return new(backlog > 0 ? $"{backlog:N0} kill mails without details yet — the next poll fetches up to 200"
-                               : "every kill mail the app knows has its details", false);
+        if (fetching) return Fetching(done, total, backlog);
+        return new(backlog > 0
+            ? Plurals.Format(DataText.ResourceManager, nameof(DataText.KillmailsWithoutDetailsOther), backlog)
+            : DataText.KillmailsAllDetailed, false);
     }
 
     /// <summary>The ESI detail fetch first, since it is the slow one: "fetching 37 of 200, 4,812 to go";
@@ -48,15 +56,19 @@ public static class BackgroundStatus
     public static Line Killmails(bool fetching, int done, int total, int backlog,
                                  bool backfilling, int backfillDone, int backfillTotal)
     {
-        if (fetching)
-        {
-            var toGo = backlog > total ? $", {backlog - total:N0} more to go" : "";
-            return new(total > 0 ? $"fetching {done:N0} of {total:N0}{toGo}" : "fetching", true);
-        }
+        if (fetching) return Fetching(done, total, backlog);
         if (backfilling)
-            return new(backfillTotal > 0 ? $"backfill {backfillDone:N0} of {backfillTotal:N0}" : "backfill", true);
+            return new(backfillTotal > 0
+                ? string.Format(DataText.BarBackfillProgress, backfillDone, backfillTotal)
+                : DataText.BarBackfill, true);
         return Idle;
     }
+
+    /// <summary>The detail fetch under way, for both lines above.</summary>
+    private static Line Fetching(int done, int total, int backlog) =>
+        new(total <= 0      ? DataText.BarFetching
+          : backlog > total ? string.Format(DataText.BarFetchingProgressMore, done, total, backlog - total)
+          :                   string.Format(DataText.BarFetchingProgress, done, total), true);
 }
 
 /// <summary>

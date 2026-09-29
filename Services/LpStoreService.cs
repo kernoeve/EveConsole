@@ -3,6 +3,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -42,7 +43,7 @@ public class LpStoreService : ReactiveObject
     /// </summary>
     private static readonly TimeSpan NoStoreRecheck = TimeSpan.FromDays(30);
 
-    private string _statusText = "LP store: idle";
+    private string _statusText = DataText.LpStoreStatusIdle;
     public string StatusText
     {
         get => _statusText;
@@ -153,7 +154,7 @@ public class LpStoreService : ReactiveObject
         if (corpNames.Count == 0)
         {
             // No SDE import yet — nothing to enumerate. Say so rather than reporting success.
-            StatusText = "LP store: no NPC corporations in the SDE — import the SDE first";
+            StatusText = DataText.LpStoreStatusNoSde;
             return;
         }
 
@@ -191,7 +192,7 @@ public class LpStoreService : ReactiveObject
             { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
             if (ct.IsCancellationRequested) break;
 
-            using (var handle = _log.StartCall(corpNames.GetValueOrDefault(corpId, $"Corp {corpId}"),
+            using (var handle = _log.StartCall(corpNames.GetValueOrDefault(corpId, string.Format(MarketText.CorpNumbered, corpId)),
                                                "lpstore.offers"))
             {
                 var r = await _esi.ExecutePublicAllPagesAsync<EsiLpStoreOffer>(
@@ -229,15 +230,15 @@ public class LpStoreService : ReactiveObject
             checkedCount++;
             _corpsDone = checkedCount;
             if ((checkedCount & 15) == 0)
-                StatusText = $"LP store: {checkedCount:N0}/{targets.Count:N0} corps, {offers:N0} offers…";
+                StatusText = string.Format(DataText.LpStoreStatusProgress, checkedCount, targets.Count, offers);
 
             try { await Task.Delay(CallDelayMs, ct); }
             catch (OperationCanceledException) { break; }
         }
 
-        StatusText = $"LP store: {stores:N0} stores, {offers:N0} offers, {empty:N0} without a store"
-                   + (failed > 0 ? $", {failed:N0} failed" : "")
-                   + $" — {DateTimeOffset.Now:t}";
+        StatusText = failed > 0
+            ? string.Format(DataText.LpStoreStatusDoneFailed, stores, offers, empty, failed, DateTimeOffset.Now)
+            : string.Format(DataText.LpStoreStatusDone, stores, offers, empty, DateTimeOffset.Now);
     }
 
     /// <summary>

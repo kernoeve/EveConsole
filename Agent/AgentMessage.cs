@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EveConsole.Localization;
 
 namespace EveConsole.Agent;
 
@@ -64,7 +65,21 @@ public sealed record AgentMessage
     /// and what it called.</summary>
     [JsonIgnore]
     public string MetaText => string.Join("  ·  ",
-        new[] { TimeText, AnsweredBy, ToolsUsed }.Where(s => !string.IsNullOrEmpty(s)));
+        new[] { TimeText, AnsweredBy, ToolsUsedLabel(ToolsUsed) }.Where(s => !string.IsNullOrEmpty(s)));
+
+    /// <summary>
+    /// <see cref="ToolsUsed"/> as the line above the bubble shows it. The app's own lines carry a
+    /// marker there rather than a summary — "alarm", "voice change", "model change" — which stays
+    /// in English in the saved history, because the agent panel compares it; only here is it put
+    /// into words. Anything else is shown as it was saved.
+    /// </summary>
+    private static string? ToolsUsedLabel(string? toolsUsed) => toolsUsed switch
+    {
+        "alarm"        => AgentText.MetaAlarm,
+        "voice change" => AgentText.MetaVoiceChange,
+        "model change" => AgentText.MetaModelChange,
+        _              => toolsUsed,
+    };
 
     /// <summary>
     /// The tool the capsuleer had on screen when they wrote this — the Tool Reference's name for

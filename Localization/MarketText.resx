@@ -1368,4 +1368,44 @@
     <value>Unknown ({0})</value>
     <comment>A market location whose name is not known. {0} is its id.</comment>
   </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>#{0}</value>
+    <comment>A character whose name is unknown, shown by its number. {0} is the character's id.</comment>
+  </data>
+  <data name="NoOtherBids" xml:space="preserve">
+    <value>no other bids</value>
+    <comment>Standing Buy Orders, Station best bid column: nobody else has a buy order for this item at this station.</comment>
+  </data>
+  <data name="PriceMaxOf" xml:space="preserve">
+    <value>{0:N2} (max of {1})</value>
+    <comment>Standing Buy Orders, Our bid column, when several of our buy orders back one row. {0} is the highest of their prices (ISK), {1} the number of orders.</comment>
+  </data>
+  <data name="OwnersCount" xml:space="preserve">
+    <value>{0} owners</value>
+    <comment>Standing Buy Orders, Held by column, when the orders behind one row belong to several characters or corporations. {0} is how many (always two or more).</comment>
+  </data>
+  <data name="TipOwnerOrderLine" xml:space="preserve">
+    <value>{0} — {1:N2} ISK, {2:N0}/{3:N0}, expires {4:yyyy-MM-dd}</value>
+    <comment>Standing Buy Orders, tooltip on Held by: one line per order. {0} is the character or corporation holding it, {1} its price (ISK), {2} the units still wanted, {3} the units ordered, {4} the day it expires.</comment>
+  </data>
+  <data name="OwnerOrdersCount" xml:space="preserve">
+    <value>{0} ({1} orders)</value>
+    <comment>Standing Buy Orders, Held by column, when one character or corporation holds several orders behind one row. {0} is its name, {1} the number of orders (always two or more).</comment>
+  </data>
+  <data name="ExpiryExpired" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  (expired)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column: the order has expired. {0} is the day it expired. Keep the date first: the column sorts on this text.</comment>
+  </data>
+  <data name="ExpiryDaysLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  ({1}d left)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column. {0} is the day the order expires, {1} the whole days left; "d" abbreviates days. Keep the date first: the column sorts on this text.</comment>
+  </data>
+  <data name="ExpiryHoursLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  ({1}h left)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column, under a day left. {0} is the day the order expires, {1} the whole hours left; "h" abbreviates hours. Keep the date first: the column sorts on this text.</comment>
+  </data>
+  <data name="ExpiryFirst" xml:space="preserve">
+    <value>{0} (first)</value>
+    <comment>Standing Buy Orders and the Overview, Expires column, when several orders back one row: {0} is the expiry of the one that lapses first, as in the entries above. Keep {0} first: the column sorts on this text.</comment>
+  </data>
 </root>

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Localization;
 
 namespace EveConsole.Agent;
 
@@ -13,6 +14,9 @@ namespace EveConsole.Agent;
 /// <para>The point of it is the zero. A reply that names ships, ISK and stations after calling
 /// nothing did not read the database, however plausible it sounds — and a model that has drifted
 /// into answering from memory is indistinguishable from one that looked, except here.</para>
+///
+/// <para>In the interface language. The chat history keeps the words a reply was saved with, so
+/// replies from before a language change keep the old language under them.</para>
 /// </summary>
 public static class ToolUseSummary
 {
@@ -22,8 +26,8 @@ public static class ToolUseSummary
             .Select(c => c.Value > 1 ? $"{c.Key} ×{c.Value}" : c.Key)
             .ToList();
         var total = counts.Sum(c => c.Value);
-        if (total == 0) return "no tool calls";
-        return $"{total} tool call{(total == 1 ? "" : "s")}: {string.Join(", ", parts)}";
+        if (total == 0) return AgentText.ToolCallsNone;
+        return Plurals.Format(AgentText.ResourceManager, nameof(AgentText.ToolCallsOther), total, string.Join(", ", parts));
     }
 
     /// <summary>From the telemetry's own record, <c>{"query_database":2,"show_table":1}</c>.</summary>

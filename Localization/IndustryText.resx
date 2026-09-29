@@ -1300,4 +1300,148 @@
     <value>Corp</value>
     <comment>Industry Jobs detail panel, Owner Type: the job belongs to a corporation (short form).</comment>
   </data>
+  <data name="RigNoteNoRigs" xml:space="preserve">
+    <value>{0} has no industry rigs fitted</value>
+    <comment>Industry Jobs, Note column: the job's facility has no rigs fitted, so the job gets no rig bonus. {0} is the Indy Parks structure's name.</comment>
+  </data>
+  <data name="RigNoteNotRiggedFor" xml:space="preserve">
+    <value>{0} is not rigged for {1}</value>
+    <comment>Industry Jobs, Note column: none of the facility's rigs bonuses this job. {0} is the Indy Parks structure's name, {1} the kind of job from the list of entries below, in lower case ("small ships").</comment>
+  </data>
+  <data name="RigCatSmallShips" xml:space="preserve">
+    <value>small ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatMediumShips" xml:space="preserve">
+    <value>medium ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatLargeShips" xml:space="preserve">
+    <value>large ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatAdvSmallShips" xml:space="preserve">
+    <value>advanced small ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II small ships), in lower case.</comment>
+  </data>
+  <data name="RigCatAdvMediumShips" xml:space="preserve">
+    <value>advanced medium ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II medium ships), in lower case.</comment>
+  </data>
+  <data name="RigCatAdvLargeShips" xml:space="preserve">
+    <value>advanced large ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II large ships), in lower case.</comment>
+  </data>
+  <data name="RigCatCapitalShips" xml:space="preserve">
+    <value>capital ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatDronesFighters" xml:space="preserve">
+    <value>drones and fighters</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatEquipment" xml:space="preserve">
+    <value>equipment</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (modules and other equipment), in lower case.</comment>
+  </data>
+  <data name="RigCatAmmunition" xml:space="preserve">
+    <value>ammunition</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (ammunition and charges), in lower case.</comment>
+  </data>
+  <data name="RigCatCapitalComponents" xml:space="preserve">
+    <value>capital components</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatAdvComponents" xml:space="preserve">
+    <value>advanced components</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II components), in lower case.</comment>
+  </data>
+  <data name="RigCatStructuresFuel" xml:space="preserve">
+    <value>structures and fuel</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (structures, their components and fuel blocks), in lower case.</comment>
+  </data>
+  <data name="RigCatGasReactions" xml:space="preserve">
+    <value>gas reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a reaction category (gas phase reactions), in lower case.</comment>
+  </data>
+  <data name="RigCatMoonReactions" xml:space="preserve">
+    <value>moon reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a reaction category (reactions of moon materials), in lower case.</comment>
+  </data>
+  <data name="RigCatCompositeReactions" xml:space="preserve">
+    <value>composite reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a reaction category, in lower case.</comment>
+  </data>
+  <data name="RigCatReactions" xml:space="preserve">
+    <value>reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": reactions of any kind, in lower case.</comment>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>TypeId {0}</value>
+    <comment>Production Calculator warning: an item whose name is unknown. {0} is its type id.</comment>
+  </data>
+  <data name="FormulaRecalc" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} runs) → {3:N0}</value>
+    <comment>Production Calculator, Jobs tab, formula column: how a material's quantity was worked out after the job gained runs. {0} is the quantity per run, {1} the efficiency factor, {2} the runs, {3} the result. Keep "ceil" (round up) as it is.</comment>
+  </data>
+  <data name="BpcPriceNeverSeen" xml:space="preserve">
+    <value>{0} — never seen on contract; counted as 0 ISK</value>
+    <comment>Production Calculator, blueprint price warning. {0} is the blueprint copy's name; it has never been seen on a contract, so it is counted as costing nothing.</comment>
+  </data>
+  <data name="FormulaBpc" xml:space="preserve">
+    <value>1 BPC per run @ ME{0} contract price</value>
+    <comment>Production Calculator, Jobs tab, formula column of a blueprint copy line: one copy is bought per run, at its contract price. {0} is the blueprint's material efficiency level (ME).</comment>
+  </data>
+  <data name="SourceIntermediate" xml:space="preserve">
+    <value>Intermediate</value>
+    <comment>Production Calculator, Leftovers tab, Source column: left over from an intermediate, a part the plan builds for a later job.</comment>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>Final Product</value>
+    <comment>Production Calculator, Leftovers tab, Source column: left over from a final product, made beyond the quantity asked for.</comment>
+  </data>
+  <data name="SourceBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan buys it (a verb, as against "Build").</comment>
+  </data>
+  <data name="SourceBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan builds it in a job of its own (a verb, as against "Buy").</comment>
+  </data>
+  <data name="JobModifiers" xml:space="preserve">
+    <value>ME -{0:F0}%  Rig -{1:F2}%  Structure -{2:F1}%  → ×{3:F4}</value>
+    <comment>Production Calculator, Jobs tab: what reduces a job's materials. {0} is the blueprint's material efficiency (ME) in percent, {1} the rig bonus, {2} the structure's own bonus, {3} the factor the three make together.</comment>
+  </data>
+  <data name="FormulaMaterial" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} runs) = ceil({3:N2} × {2:N0}) → {4:N0}</value>
+    <comment>Production Calculator, Jobs tab, formula column: how a material's quantity was worked out. {0} is the quantity per run from the blueprint, {1} the efficiency factor, {2} the runs (twice), {3} the quantity per run after the factor, {4} the result. Keep "ceil" (round up) as it is.</comment>
+  </data>
+  <data name="BpcTypeName" xml:space="preserve">
+    <value>{0} (BPC)</value>
+    <comment>Production Calculator, Jobs tab: a job's blueprint copy, bought as a material. {0} is the item's name; BPC means blueprint copy.</comment>
+  </data>
+  <data name="BpcPriceStale" xml:space="preserve">
+    <value>{0} — {1:N0} ISK per run, from a contract that ended {2:yyyy-MM-dd}; none listed since</value>
+    <comment>Production Calculator, blueprint price warning. {0} is the blueprint copy's name, {1} the price used, {2} the day the last contract offering one ended.</comment>
+  </data>
+  <data name="BpcPriceStaleUndated" xml:space="preserve">
+    <value>{0} — {1:N0} ISK per run, from a contract that ended some time ago; none listed since</value>
+    <comment>Production Calculator, blueprint price warning. {0} is the blueprint copy's name, {1} the price used; when the last contract offering one ended is not known.</comment>
+  </data>
+  <data name="WarnUnrecognizedPlannedIn" xml:space="preserve">
+    <value>{0} (unrecognized type — update ItemCategoryKey; planned in {1} with no rig bonus)</value>
+    <comment>Production Calculator warning: the app does not know which production category an item belongs to. {0} is the item, {1} the park's catch-all structure it was planned in. ItemCategoryKey is a name in the program's code; keep it as it is.</comment>
+  </data>
+  <data name="WarnUnrecognizedUnplanned" xml:space="preserve">
+    <value>{0} (unrecognized type — update ItemCategoryKey; planned with no structure and no bonuses — set a catch-all facility on this park)</value>
+    <comment>Production Calculator warning: the app does not know which production category an item belongs to, and the park has no catch-all structure. {0} is the item. ItemCategoryKey is a name in the program's code; keep it as it is.</comment>
+  </data>
+  <data name="WarnUnassignedPlannedIn" xml:space="preserve">
+    <value>{0} (category '{1}' not assigned in this park; planned in {2} with no rig bonus)</value>
+    <comment>Production Calculator warning: no structure in the Indy Park is assigned the item's production category. {0} is the item, {1} the category's internal key (such as small_ships), {2} the park's catch-all structure it was planned in.</comment>
+  </data>
+  <data name="WarnUnassignedUnplanned" xml:space="preserve">
+    <value>{0} (category '{1}' not assigned in this park; planned with no structure and no bonuses — set a catch-all facility on this park)</value>
+    <comment>Production Calculator warning: no structure in the Indy Park is assigned the item's production category, and the park has no catch-all structure. {0} is the item, {1} the category's internal key (such as small_ships).</comment>
+  </data>
 </root>
