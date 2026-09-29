@@ -115,6 +115,16 @@ public class ServiceModuleVm(StructureVm owner, int typeId, string name) : React
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
 }
 
+// ── Facility search hit ───────────────────────────────────────────────────────
+
+/// <summary>One hit in a structure's facility search, as the list shows it. The pick is what a
+/// link stores — the id and ESI's English; an NPC station is listed in the interface language, and
+/// a player structure as its owner named it.</summary>
+public sealed record FacilityResultVm(SdeStationResult Pick)
+{
+    public string DisplayName => SdeNames.Location(Pick.StationId, Pick.Name);
+}
+
 // ── Structure VM ──────────────────────────────────────────────────────────────
 
 public class StructureVm : ReactiveObject
@@ -126,7 +136,27 @@ public class StructureVm : ReactiveObject
     public string DisplayName
     {
         get => _displayName;
-        set => this.RaiseAndSetIfChanged(ref _displayName, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _displayName, value);
+            this.RaisePropertyChanged(nameof(NameText));
+        }
+    }
+
+    /// <summary>
+    /// The name box's text. A structure linked to an NPC station is named after the station, in
+    /// ESI's English, and shows that name in the interface language; any other name is shown as it
+    /// was typed or linked.
+    ///
+    /// <para>⚠️ Written back only while the name is editable — the box is locked while linked —
+    /// so <see cref="DisplayName"/> stays the English the park saves, exports and is matched by.</para>
+    /// </summary>
+    public string NameText
+    {
+        get => RealStructureId is { } id && DisplayName == RealStructureName
+            ? SdeNames.Location(id, DisplayName)
+            : DisplayName;
+        set { if (NameEditable) DisplayName = value; }
     }
 
     private string _structureTypeKey;
@@ -344,7 +374,7 @@ public class StructureVm : ReactiveObject
 
     public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName)
         ? StructureTypeLabel?.Label ?? _structureTypeKey
-        : DisplayName;
+        : NameText;
 
     // ── Link to a real in-game facility ──────────────────────────────────────
     // Set by hand: the user says which actual structure this park entry describes.
@@ -366,6 +396,7 @@ public class StructureVm : ReactiveObject
             this.RaisePropertyChanged(nameof(SecurityLockTip));
             this.RaisePropertyChanged(nameof(NameEditable));
             this.RaisePropertyChanged(nameof(NameLockTip));
+            this.RaisePropertyChanged(nameof(NameText));
             this.RaisePropertyChanged(nameof(FittingSourceText));
         }
     }
@@ -374,12 +405,14 @@ public class StructureVm : ReactiveObject
     public string RealStructureName
     {
         get => _realStructureName;
-        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); }
+        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); this.RaisePropertyChanged(nameof(NameText)); }
     }
 
-    public string FacilityLinkText => RealStructureId is null
+    /// <summary>The linked facility's name as the card shows it: an NPC station's in the interface
+    /// language, a player structure's as its owner named it. RealStructureName stays English.</summary>
+    public string FacilityLinkText => RealStructureId is not { } id
         ? IndustryText.FacilityNotLinked
-        : RealStructureName;
+        : SdeNames.Location(id, RealStructureName);
 
     /// <summary>
     /// The linked facility, opened where it lives: an NPC station in the entity browser, a player
@@ -403,7 +436,7 @@ public class StructureVm : ReactiveObject
     }
 
     /// <summary>Search results while picking; not persisted.</summary>
-    public ObservableCollection<SdeStationResult> FacilityResults { get; } = [];
+    public ObservableCollection<FacilityResultVm> FacilityResults { get; } = [];
 
     private string _facilitySearch = "";
     public string FacilitySearch
@@ -1486,7 +1519,7 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     /// <summary>Which structure the visible search results belong to. The results list
-    /// renders SdeStationResult rows, so the pick alone can't say what it links to.</summary>
+    /// renders search hits, so the pick alone can't say what it links to.</summary>
     private StructureVm? _facilitySearchTarget;
 
     /// <summary>Search real stations and structures for the facility link. Reuses the
@@ -1505,7 +1538,10 @@ public class IndyParksViewModel : ReactiveObject
 
         try
         {
-            foreach (var r in await _corpActivity.SearchSdeStationsAsync(text))
+            // In the order of the names shown; the pick carries the English the link stores.
+            foreach (var r in (await _corpActivity.SearchSdeStationsAsync(text))
+                         .Select(r => new FacilityResultVm(r))
+                         .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture))
                 vm.FacilityResults.Add(r);
         }
         catch (Exception ex) { _errorLogger?.Log(nameof(IndyParksViewModel), "SearchFacility", ex); }

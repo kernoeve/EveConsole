@@ -1123,7 +1123,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     private static List<int> ShownMatches(SdeNameKind kind, string term) =>
         [.. SdeNames.Find(kind, term).Select(id => (int)id)];
 
-    /// <summary>A name with nothing to translate — a player structure, an NPC station, "Pod".</summary>
+    /// <summary>A name with nothing to translate — a player structure, "Pod".</summary>
     private static AlarmNameSuggestion AsIs(string name) => new(name, name);
 
     /// <summary>Exact match, then names starting with the term, then the rest; short before long.
@@ -1152,8 +1152,9 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// <summary>
     /// Places an undock can be from: regions and systems from the SDE, NPC stations from the
     /// SDE, player structures from every table that names one. Lower-cased on both sides
-    /// because a server's LIKE is case-sensitive and SQLite's is not. Regions and systems are
-    /// also found and listed in the interface language; the one picked goes in as English.
+    /// because a server's LIKE is case-sensitive and SQLite's is not. Regions, systems and NPC
+    /// stations are also found and listed in the interface language; the one picked goes in as
+    /// English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchPlaceNamesAsync(string? text, CancellationToken ct)
     {
@@ -1164,8 +1165,9 @@ public sealed class AlarmsViewModel : ReactiveObject
         return await Task.Run(async () =>
         {
             await SdeNames.EnsureLoadedAsync(ct);
-            var regionIds = ShownMatches(SdeNameKind.Region, term);
-            var systemIds = ShownMatches(SdeNameKind.SolarSystem, term);
+            var regionIds  = ShownMatches(SdeNameKind.Region, term);
+            var systemIds  = ShownMatches(SdeNameKind.SolarSystem, term);
+            var stationIds = ShownMatches(SdeNameKind.Station, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
             var hits = new List<AlarmNameSuggestion>();
             hits.AddRange((await db.SdeRegions.AsNoTracking()
@@ -1183,7 +1185,9 @@ public sealed class AlarmsViewModel : ReactiveObject
             hits.AddRange((await db.EsiCorpStructures.AsNoTracking()
                 .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
             hits.AddRange((await db.SdeStations.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+                    .Where(s => s.Name.ToLower().Contains(lower) || stationIds.Contains(s.StationId))
+                    .Select(s => new { s.StationId, s.Name }).Take(50).ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.Station(s.StationId, s.Name))));
             return Rank(hits, term);
         }, ct);
     }

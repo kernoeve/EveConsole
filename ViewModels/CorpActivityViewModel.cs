@@ -325,8 +325,8 @@ public sealed class StandingProjectRowVm
         Action<long> onEdit,
         Action<long> onDelete)
     {
-        // The row as this screen reads it: the item, the system and an ADM rule's region or
-        // constellation in the interface language. A delivery's station keeps ESI's English.
+        // The row as this screen reads it: the item, the system, an ADM rule's region or
+        // constellation and a delivery's NPC station in the interface language.
         // ⚠️ Only the words: the row itself is what the scheduled posts print, and ItemTypeName
         // below stays English because the Item Browser is opened with it.
         var shown = row with
@@ -337,10 +337,13 @@ public sealed class StandingProjectRowVm
                           : row.ExpandedSystemId is int named && row.DestDisplay.Length == 0
                               ? SdeNames.SolarSystem(named, row.TargetDisplay)
                           : row.TargetDisplay,
-            // The system an ADM rule picked.
+            // The system an ADM rule picked, or where a delivery goes: an NPC station, or a
+            // player structure, which is its owner's name and which Location leaves be.
             DestDisplay   = row.ItemTypeId is null && row.ExpandedSystemId is int picked && row.DestDisplay.Length > 0
                               ? SdeNames.SolarSystem(picked, row.DestDisplay)
-                              : row.DestDisplay,
+                          : row.StationId is long station && row.DestDisplay.Length > 0
+                              ? SdeNames.Location(station, row.DestDisplay)
+                          : row.DestDisplay,
         };
 
         DbId            = row.DbId;
@@ -2778,15 +2781,17 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 : id > 1_000_000_000_000L ? string.Format(CorpText.FallbackStructureName, id)
                 : id.ToString();
 
+            // The office's station in the interface language; a structure, or an office no map
+            // resolved, reads as it came.
             string ResolveOfficeId(long officeId)
             {
                 var targetId = officeToLocation.TryGetValue(officeId, out var locId) ? locId : officeId;
-                return Resolve(targetId);
+                return SdeNames.Location(targetId, Resolve(targetId));
             }
 
-            // An id's name as the panel shows it: an SDE entity's in the interface language, told
-            // apart by the key that holds the id. Players, their corporations and alliances,
-            // stations and structures read as they were resolved.
+            // An id's name as the panel shows it: an SDE entity's or an NPC station's in the
+            // interface language, told apart by the key that holds the id. Players, their
+            // corporations and alliances, and structures read as they were resolved.
             string Shown(string key, long id) => key switch
             {
                 "type_id"          => SdeNames.Type(id, Resolve(id)),
@@ -2797,6 +2802,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 "faction_id"       => SdeNames.Faction(id, Resolve(id)),
                 "corporation_id"   => SdeNames.NpcCorporation(id, Resolve(id)),
                 "character_id"     => SdeNames.Agent(id, Resolve(id)),
+                "station_id"       => SdeNames.Station(id, Resolve(id)),
                 _                  => Resolve(id),
             };
 
@@ -2818,7 +2824,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 var parts = arr.EnumerateArray().Select(el =>
                 {
-                    if (el.TryGetProperty("station_id",   out var s)) return Resolve(s.GetInt64());
+                    if (el.TryGetProperty("station_id",   out var s)) return Shown("station_id", s.GetInt64());
                     if (el.TryGetProperty("structure_id",  out var r)) return Resolve(r.GetInt64());
                     return null;
                 }).Where(s => s is not null);

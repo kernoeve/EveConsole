@@ -241,12 +241,12 @@ public static class StandingProjectReport
 
     /// <summary>How a definition reads in the picker: one line per definition, unexpanded.</summary>
     public static string Describe(Models.CorpStandingProject p) =>
-        DescribeWith(p, p.ItemTypeName, p.SolarSystemName, p.ScopeEntityName);
+        DescribeWith(p, p.ItemTypeName, p.SolarSystemName, p.ScopeEntityName, p.StationName);
 
     /// <summary>
     /// <see cref="Describe(Models.CorpStandingProject)"/> as a screen shows it: the item, the
-    /// system, and a rule's region or constellation in the interface language. A delivery's
-    /// station keeps ESI's English, and an alliance belongs to players and has no other name.
+    /// system, a rule's region or constellation, and a delivery's NPC station in the interface
+    /// language. A player structure and an alliance belong to players and have no other name.
     /// ⚠️ For showing only — a picker keeps the definition by its id.
     /// </summary>
     public static string DescribeShown(Models.CorpStandingProject p) =>
@@ -260,12 +260,16 @@ public static class StandingProjectReport
                       "constellation_adm" => SdeNames.Constellation(scope, p.ScopeEntityName),
                       _                   => p.ScopeEntityName,
                   }
-                : p.ScopeEntityName);
+                : p.ScopeEntityName,
+            p.StationId is long station && p.StationName.Length > 0
+                ? SdeNames.Location(station, p.StationName)
+                : p.StationName);
 
     /// <summary>The one line, with the names it is given.</summary>
-    private static string DescribeWith(Models.CorpStandingProject p, string item, string system, string scope) =>
+    private static string DescribeWith(Models.CorpStandingProject p, string item, string system, string scope,
+                                       string station) =>
         p.ProjectType == DeliverItem
-            ? $"{item}{(p.StationName.Length > 0 ? " → " + p.StationName : "")}"
+            ? $"{item}{(station.Length > 0 ? " → " + station : "")}"
             : p.ScopeType switch
             {
                 // ⚠️ Named by its RULE, not by the systems it currently picks. That set changes

@@ -60,6 +60,16 @@ public class JobTreeNode : ReactiveObject
     public List<JobTreeNode> Children        { get; set; } = [];
     public ReactiveCommand<int, Unit>? NavigateCommand { get; set; }
 
+    /// <summary>
+    /// The job's facility as the Jobs tab shows it. A park entry linked to an NPC station is named
+    /// after the station, in ESI's English, and reads here in the interface language; any other name
+    /// is the park's own. ⚠️ Job.StructureName stays English: the Worklist reads the plan.
+    /// </summary>
+    public string StructureDisplayName =>
+        Job.StationId is { } id && Job.StructureName == Job.StationName
+            ? SdeNames.Location(id, Job.StructureName)
+            : Job.StructureName;
+
     private bool _showMaterials;
     public bool ShowMaterials
     {

@@ -105,7 +105,9 @@ public class SysStructureVm : IconRowVm
         Id          = r.StructureId;
         IsNpc       = r.IsNpc;
         TypeId      = r.TypeId;
-        Name        = r.Name;   // English: player-named, and NPC station names are not translated yet
+        // An NPC station in the interface language; a player structure is its owner's name. The
+        // service's row keeps the English, which it places stations by.
+        Name        = r.IsNpc ? SdeNames.Station(r.StructureId, r.Name) : r.Name;
         TypeName    = SdeNames.Type(r.TypeId, r.TypeName);
         // An NPC station's owner is an NPC corporation; a player corporation simply has no
         // other name, and comes back as it is.
@@ -152,9 +154,10 @@ public class SysStructureVm : IconRowVm
 /// <summary>One line of the celestial tree, indented by depth.</summary>
 public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
 {
-    // English: planets, moons, belts, gates and stations are not translated yet, and structures
-    // are player-named. Their types are.
-    public string    Name      { get; } = n.Name;
+    // An NPC station docked at a celestial in the interface language — the service's node keeps the
+    // English, which it places stations by. Planets, moons, belts and gates are not translated yet,
+    // and structures are player-named. Their types are.
+    public string    Name      { get; } = n.IsNpc ? SdeNames.Station(n.LocationId, n.Name) : n.Name;
     public string    TypeName  { get; } = SdeNames.Type(n.TypeId, n.TypeName);
     public string    Kind      { get; } = n.Kind;
     public string    Owner     { get; } = n.Owner;
@@ -228,7 +231,7 @@ public class AgentVm
 
     public AgentVm(SystemViewService.AgentRow a)
     {
-        Location    = a.Location;   // English: NPC station names are not translated yet
+        Location    = SdeNames.Station(a.StationId, a.Location);
         Name        = SdeNames.Agent(a.AgentId, a.Name);
         Corporation = SdeNames.NpcCorporation(a.CorporationId, a.Corporation);
         Division    = SdeNames.Get(SdeNameKind.NpcCorporationDivision, a.DivisionId, a.Division);
@@ -834,14 +837,16 @@ public class SystemPageViewModel : ReactiveObject
             BuildIndexGraph(indexHist);
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
             Fill(PlayerStructures, structures.Where(s => !s.IsNpc).Select(s => new SysStructureVm(s)));
-            Fill(NpcStations,      structures.Where(s =>  s.IsNpc).Select(s => new SysStructureVm(s)));
+            // In the order of the names shown; the service sorts by the English.
+            Fill(NpcStations,      structures.Where(s =>  s.IsNpc).Select(s => new SysStructureVm(s))
+                                             .OrderBy(s => s.Name, StringComparer.CurrentCulture));
             this.RaisePropertyChanged(nameof(HasPlayerStructures));
             this.RaisePropertyChanged(nameof(HasNpcStations));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
             // In the order of the names shown; the service sorts by the English.
             Fill(Gates, gates.Select(g => new GateVm(g)).OrderBy(g => g.Name, StringComparer.CurrentCulture));
             Fill(Agents, agents
-                .OrderBy(a => a.Location, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(a => SdeNames.Station(a.StationId, a.Location), StringComparer.CurrentCulture)
                 .ThenBy(a => a.Level)
                 .ThenBy(a => SdeNames.Agent(a.AgentId, a.Name), StringComparer.CurrentCulture)
                 .Select(a => new AgentVm(a)));

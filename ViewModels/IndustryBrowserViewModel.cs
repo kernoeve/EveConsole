@@ -435,6 +435,8 @@ public class IndustryBrowserViewModel : ReactiveObject
             ShowSdeName(dict, "Blueprint",    ColBlueprintTypeId, SdeNames.Type);
             ShowSdeName(dict, "Solar System", ColSolarSystemId,   SdeNames.SolarSystem);
             ShowSdeName(dict, "Region",       ColRegionId,        SdeNames.Region);
+            // An NPC station's name; a player structure's is its owner's, which Location leaves be.
+            ShowSdeName(dict, "Facility",     ColFacilityId,      SdeNames.Location);
 
             rows.Add(new GridRow(dict));
         }

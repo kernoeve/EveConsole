@@ -642,10 +642,10 @@
                               <Button Classes="link" Click="OnOpenJobStation"
                                       IsVisible="{Binding Job.HasStationLink}"
                                       ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheStructureBrowser}">
-                                <TextBlock Text="{Binding Job.StructureName}" Classes="linktext"
+                                <TextBlock Text="{Binding StructureDisplayName}" Classes="linktext"
                                            FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
                               </Button>
-                              <TextBlock Text="{Binding Job.StructureName}"
+                              <TextBlock Text="{Binding StructureDisplayName}"
                                          IsVisible="{Binding Job.ShowStationPlain}"
                                          FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
                               <TextBlock Text="@" IsVisible="{Binding Job.ShowAtSeparator}"

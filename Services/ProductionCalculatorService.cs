@@ -735,6 +735,8 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     QuantityPerRun = bpProd.Quantity,
                     Runs           = runs,
                     IsFinalProduct = isFinal,
+                    // English, as the park stores it: the Worklist reads the plan. The Jobs tab
+                    // words it through JobTreeNode.StructureDisplayName.
                     StructureName  = structure?.DisplayName ?? "",
                     SystemName     = structure?.SystemName  ?? "",
                     // Only set when the park structure has been linked to a real facility.

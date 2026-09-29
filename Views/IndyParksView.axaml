@@ -190,9 +190,11 @@
 
                       <!-- Row 0: Name + Type + Default + Remove button.
                            A linked facility names itself and decides its own hull, so both lock
-                           with the link, as the system and security class below do. -->
+                           with the link, as the system and security class below do. NameText is
+                           a linked NPC station's name in the interface language; the English is
+                           what the park saves. -->
                       <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 0 0 10">
-                        <TextBox Grid.Column="0" Text="{Binding DisplayName}"
+                        <TextBox Grid.Column="0" Text="{Binding NameText}"
                                  IsEnabled="{Binding NameEditable}"
                                  ToolTip.ShowOnDisabled="True"
                                  ToolTip.Tip="{Binding NameLockTip}"
@@ -332,13 +334,13 @@
                           <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding FacilityResults}">
                               <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="services:SdeStationResult">
+                                <DataTemplate x:DataType="vm:FacilityResultVm">
                                   <Button x:CompileBindings="False"
                                           Command="{Binding $parent[UserControl].DataContext.LinkFacilityCommand}"
-                                          CommandParameter="{Binding}"
+                                          CommandParameter="{Binding Pick}"
                                           HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                                           Background="Transparent" BorderThickness="0" Padding="8 3">
-                                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding DisplayName}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                                   </Button>
                                 </DataTemplate>
                               </ItemsControl.ItemTemplate>
