@@ -271,4 +271,299 @@
   <data name="Apply" xml:space="preserve">
     <value>应用</value>
   </data>
+  <data name="BriefCharToCorp" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="BriefBy" xml:space="preserve">
+    <value>由 {0}</value>
+  </data>
+  <data name="BriefCharLeftCorp" xml:space="preserve">
+    <value>{0} 离开了 {1}</value>
+  </data>
+  <data name="BriefBillAt" xml:space="preserve">
+    <value>{1} 的{0}</value>
+  </data>
+  <data name="BriefBillFor" xml:space="preserve">
+    <value>{1} 的{0}</value>
+  </data>
+  <data name="BriefAmountDue" xml:space="preserve">
+    <value>{0} · {1} 截止</value>
+  </data>
+  <data name="BriefStandingFor" xml:space="preserve">
+    <value>{0} 对 {2} 的声望 {1}</value>
+  </data>
+  <data name="BriefReady" xml:space="preserve">
+    <value>就绪时间：{0}</value>
+  </data>
+  <data name="BriefFractures" xml:space="preserve">
+    <value>自动引爆时间：{0}</value>
+  </data>
+  <data name="BriefOfOre" xml:space="preserve">
+    <value>{0} 矿石</value>
+  </data>
+  <data name="BriefByAttacker" xml:space="preserve">
+    <value>攻击者：{0} {1}</value>
+  </data>
+  <data name="BriefShieldArmorHull" xml:space="preserve">
+    <value>护盾 {0} · 装甲 {1} · 结构 {2}</value>
+  </data>
+  <data name="BriefReinforcedUntil" xml:space="preserve">
+    <value>增强结束时间：{0}</value>
+  </data>
+  <data name="BriefQuantityLeft" xml:space="preserve">
+    <value>剩余 {0}</value>
+  </data>
+  <data name="BriefTimeLeft" xml:space="preserve">
+    <value>剩余 {0}</value>
+  </data>
+  <data name="BriefMovedTo" xml:space="preserve">
+    <value>移至 {0}</value>
+  </data>
+  <data name="BriefDeliveredFor" xml:space="preserve">
+    <value>{0} 交付给 {1}</value>
+  </data>
+  <data name="BriefDaysLeftOther" xml:space="preserve">
+    <value>剩余 {0} 天</value>
+  </data>
+  <data name="BriefStructuresByOther" xml:space="preserve">
+    <value>{0} 个建筑，由 {1} 购买</value>
+  </data>
+  <data name="BriefTransferredTo" xml:space="preserve">
+    <value>转让给 {0}</value>
+  </data>
+  <data name="BriefStructureIn" xml:space="preserve">
+    <value>{1} 的{0}</value>
+  </data>
+  <data name="BriefTowerAt" xml:space="preserve">
+    <value>{1} 的{0}</value>
+  </data>
+  <data name="BriefKillRightOn" xml:space="preserve">
+    <value>针对 {0}</value>
+  </data>
+  <data name="BriefVersus" xml:space="preserve">
+    <value>{0} 对 {1}</value>
+  </data>
+  <data name="BriefFightingStarts" xml:space="preserve">
+    <value>开战时间：{0}</value>
+  </data>
+  <data name="BriefEnds" xml:space="preserve">
+    <value>结束时间：{0}</value>
+  </data>
+  <data name="BriefJoins" xml:space="preserve">
+    <value>{0} 加入 {1}</value>
+  </data>
+  <data name="BriefAgainst" xml:space="preserve">
+    <value>对抗 {0}</value>
+  </data>
+  <data name="BriefNewCapital" xml:space="preserve">
+    <value>新首都：{0}</value>
+  </data>
+  <data name="NewsLess" xml:space="preserve">
+    <value>▲ 收起</value>
+  </data>
+  <data name="NewsMore" xml:space="preserve">
+    <value>▼ 展开</value>
+  </data>
+  <data name="PeriodLast24Hours" xml:space="preserve">
+    <value>最近 24 小时</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>最近 7 天</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>最近 30 天</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>最近 90 天</value>
+  </data>
+  <data name="StepQueryingScope" xml:space="preserve">
+    <value>正在查询范围</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>未找到角色。</value>
+  </data>
+  <data name="StepMarketTransactions" xml:space="preserve">
+    <value>正在加载市场交易</value>
+  </data>
+  <data name="StepMarketOrders" xml:space="preserve">
+    <value>正在加载市场订单</value>
+  </data>
+  <data name="StepContracts" xml:space="preserve">
+    <value>正在加载合同</value>
+  </data>
+  <data name="StepIndustryJobs" xml:space="preserve">
+    <value>正在加载工业任务</value>
+  </data>
+  <data name="StepKillsLosses" xml:space="preserve">
+    <value>正在统计击毁与损失</value>
+  </data>
+  <data name="StepPersonalKillmails" xml:space="preserve">
+    <value>个人击毁报告</value>
+  </data>
+  <data name="StepStandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="StepWorklist" xml:space="preserve">
+    <value>工作清单</value>
+  </data>
+  <data name="StepStandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="StepOrders" xml:space="preserve">
+    <value>订单</value>
+  </data>
+  <data name="StepJournal" xml:space="preserve">
+    <value>正在加载钱包日志数据</value>
+  </data>
+  <data name="StepCharts" xml:space="preserve">
+    <value>正在生成图表</value>
+  </data>
+  <data name="StepAlerts" xml:space="preserve">
+    <value>正在评估提醒</value>
+  </data>
+  <data name="StepNews" xml:space="preserve">
+    <value>正在加载新闻</value>
+  </data>
+  <data name="StepNotifications" xml:space="preserve">
+    <value>正在加载通知</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>加载用时 {0:N0} ms——{1} 个角色 / 军团，时间范围：{2}</value>
+  </data>
+  <data name="CharacterIdNumbered" xml:space="preserve">
+    <value>ID {0}</value>
+  </data>
+  <data name="AlertSkillQueueEmpty" xml:space="preserve">
+    <value>{0}：技能队列为空。</value>
+  </data>
+  <data name="AlertSkillQueuePaused" xml:space="preserve">
+    <value>{0}：技能队列已暂停。</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} 小时 {1} 分</value>
+  </data>
+  <data name="AlertSkillQueueEnds" xml:space="preserve">
+    <value>{0}：技能队列将在 {1} 后结束（已进入 {2} 天的提醒阈值）。</value>
+  </data>
+  <data name="AlertAssetSafetyDeadline" xml:space="preserve">
+    <value>{0}：物品已于 {1} 移入资产安全——请在 {2:M月d日 HH:mm} 之前选择目的地（剩余 {3} 天），否则将由游戏自动选择。</value>
+  </data>
+  <data name="AlertAssetSafety" xml:space="preserve">
+    <value>{0}：物品已于 {1} 移入资产安全。</value>
+  </data>
+  <data name="StatusPanelsFailed" xml:space="preserve">
+    <value>{0} 加载失败，请查看“错误日志”</value>
+  </data>
+  <data name="AlertInactiveProjectsOther" xml:space="preserve">
+    <value>有 {0} 个长期项目当前未激活。</value>
+  </data>
+  <data name="AlertStandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单：{0}。</value>
+  </data>
+  <data name="SboMissingOther" xml:space="preserve">
+    <value>{0} 个缺失</value>
+  </data>
+  <data name="SboOutbidOther" xml:space="preserve">
+    <value>{0} 个被超价</value>
+  </data>
+  <data name="SboNearlyBoughtOutOther" xml:space="preserve">
+    <value>{0} 个即将买满</value>
+  </data>
+  <data name="SboCloseToExpiryOther" xml:space="preserve">
+    <value>{0} 个即将到期</value>
+  </data>
+  <data name="AlertUnriggedJobsOther" xml:space="preserve">
+    <value>{0} 个进行中的任务所在设施没有相应的改装件。</value>
+  </data>
+  <data name="AlertJobsReadyOther" xml:space="preserve">
+    <value>你有 {0} 个工业任务可以交付。</value>
+  </data>
+  <data name="AlertContractsToYouOther" xml:space="preserve">
+    <value>有 {0} 个指派给你的未完成合同。</value>
+  </data>
+  <data name="AlertContractsExpiringOther" xml:space="preserve">
+    <value>{0} 个合同即将过期。</value>
+  </data>
+  <data name="TokensStatusStart" xml:space="preserve">
+    <value>添加一个角色即可开始。</value>
+  </data>
+  <data name="TokensLoaded" xml:space="preserve">
+    <value>已加载 {0} 个角色、{1} 个军团。</value>
+  </data>
+  <data name="TokensStartupError" xml:space="preserve">
+    <value>启动加载出错：{0}</value>
+  </data>
+  <data name="TokensOpeningLogin" xml:space="preserve">
+    <value>正在打开浏览器进行角色登录…</value>
+  </data>
+  <data name="TokensLoginCancelled" xml:space="preserve">
+    <value>登录已取消。</value>
+  </data>
+  <data name="TokensOpeningUpdate" xml:space="preserve">
+    <value>正在打开浏览器以更新“{0}”…</value>
+  </data>
+  <data name="TokensUpdateCancelled" xml:space="preserve">
+    <value>更新已取消。</value>
+  </data>
+  <data name="TokensOpeningCorpLogin" xml:space="preserve">
+    <value>正在打开浏览器——请使用拥有董事 / 会计职权的角色登录…</value>
+  </data>
+  <data name="TokensLoadingSkills" xml:space="preserve">
+    <value>正在加载 {0} 的技能…</value>
+  </data>
+  <data name="TokensUnknownSkill" xml:space="preserve">
+    <value>未知技能（{0}）</value>
+  </data>
+  <data name="TokensExpired" xml:space="preserve">
+    <value>令牌已过期——请重新授权</value>
+  </data>
+  <data name="TokensNotAuthenticated" xml:space="preserve">
+    <value>未认证</value>
+  </data>
+  <data name="TokensAllScopes" xml:space="preserve">
+    <value>已包含全部权限范围</value>
+  </data>
+  <data name="TokensNoScopesStored" xml:space="preserve">
+    <value>未存储权限范围</value>
+  </data>
+  <data name="TokensCharacterRemoved" xml:space="preserve">
+    <value>已移除角色“{0}”。</value>
+  </data>
+  <data name="TokensCorpRemoved" xml:space="preserve">
+    <value>已移除军团“{0}”。</value>
+  </data>
+  <data name="TokensCharacterAdded" xml:space="preserve">
+    <value>已添加角色“{0}”。</value>
+  </data>
+  <data name="TokensCharacterUpdated" xml:space="preserve">
+    <value>已更新角色“{0}”。</value>
+  </data>
+  <data name="TokensCorpAdded" xml:space="preserve">
+    <value>已添加军团 [{0}] {1}（通过 {2} 授权）。</value>
+  </data>
+  <data name="TokensCorpUpdated" xml:space="preserve">
+    <value>已更新军团 [{0}] {1}（通过 {2} 授权）。</value>
+  </data>
+  <data name="TokensScopeShortfall" xml:space="preserve">
+    <value>EVE 未授予所请求的 {0} 个权限范围：{1}。请重新添加该角色，并在 EVE 的授权确认页面上同意授予这些权限。</value>
+  </data>
+  <data name="TokensConfirmReplaceCharacter" xml:space="preserve">
+    <value>你以“{0}”的身份完成了认证，但选中要更新的是“{1}”。
+
+要用“{0}”替换“{1}”吗？</value>
+  </data>
+  <data name="TokensConfirmReplaceCorp" xml:space="preserve">
+    <value>完成认证的角色属于“{0}”，但选中要更新的是“{1}”。
+
+要用“{0}”替换“{1}”吗？</value>
+  </data>
+  <data name="TokensScopesMissingOther" xml:space="preserve">
+    <value>{0} 个权限范围未授予</value>
+  </data>
+  <data name="TokensScopesGrantedOther" xml:space="preserve">
+    <value>已授予 {1} / {0} 个权限范围</value>
+  </data>
 </root>

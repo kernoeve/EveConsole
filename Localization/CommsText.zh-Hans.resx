@@ -923,4 +923,22 @@
   <data name="SenderCharacter" xml:space="preserve">
     <value>角色</value>
   </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0}前</value>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
 </root>

@@ -316,4 +316,183 @@
   <data name="GetStarted" xml:space="preserve">
     <value>开始使用</value>
   </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>未找到文件</value>
+  </data>
+  <data name="TipDbUnreadable" xml:space="preserve">
+    <value>{0}——无法读取详细信息：{1}</value>
+  </data>
+  <data name="TipWorkerChecking" xml:space="preserve">
+    <value>正在检查是哪个客户端在执行后台工作…</value>
+  </data>
+  <data name="WorkerThisClient" xml:space="preserve">
+    <value>此客户端</value>
+  </data>
+  <data name="WorkerHeadlineMine" xml:space="preserve">
+    <value>后台进程在此客户端中运行。</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="WorkerHeadlineStale" xml:space="preserve">
+    <value>当前没有客户端在执行后台工作——这是最后一个执行过的客户端。</value>
+  </data>
+  <data name="WorkerHeadlineOther" xml:space="preserve">
+    <value>后台进程在另一个客户端中运行。</value>
+  </data>
+  <data name="AgoSeconds" xml:space="preserve">
+    <value>{0} 秒前</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0} 分钟前</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0} 小时前</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>警报——无待命</value>
+  </data>
+  <data name="OnlineOfTotal" xml:space="preserve">
+    <value>{0} / {1} 在线</value>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>位置未知</value>
+  </data>
+  <data name="StructureInSystem" xml:space="preserve">
+    <value>{0} 中的某个建筑</value>
+  </data>
+  <data name="ShipUnknown" xml:space="preserve">
+    <value>舰船未知</value>
+  </data>
+  <data name="TipEveTimeLink" xml:space="preserve">
+    <value>EVE 时间（UTC）——点击打开 {0}</value>
+  </data>
+  <data name="ThemeFallback" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="TipTheme" xml:space="preserve">
+    <value>主题：{0}——点击更改</value>
+  </data>
+  <data name="TipUiScale" xml:space="preserve">
+    <value>界面缩放：{0}——点击更改</value>
+  </data>
+  <data name="ServerOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="TipServerStatus" xml:space="preserve">
+    <value>Tranquility（宁静）服务器状态</value>
+  </data>
+  <data name="TipTranquilityOffline" xml:space="preserve">
+    <value>Tranquility（宁静）已离线——ESI 轮询已暂停，直到服务器恢复</value>
+  </data>
+  <data name="BuildCostsNotYet" xml:space="preserve">
+    <value>制造成本：尚未计算</value>
+  </data>
+  <data name="TipDbPostgres" xml:space="preserve">
+    <value>{0} 上的 PostgreSQL
+数据库：{1}
+大小：{2}</value>
+  </data>
+  <data name="TipDbSqlite" xml:space="preserve">
+    <value>SQLite
+{0}
+大小：{1}</value>
+  </data>
+  <data name="TipWorkerSqlite" xml:space="preserve">
+    <value>{0}
+
+主机：{1}
+PID：{2}
+版本：{3}
+
+SQLite 同一时间只允许一个客户端，因此没有可以移交的对象。</value>
+  </data>
+  <data name="TipWorkerUnclaimed" xml:space="preserve">
+    <value>没有客户端接管后台工作。
+
+ESI 轮询、制造成本计算和备份均未运行。</value>
+  </data>
+  <data name="TipWorkerDetails" xml:space="preserve">
+    <value>{0}
+
+主机：{1}
+PID：{2}
+版本：{3}
+接管时间：{4:yyyy-MM-dd HH:mm}
+上次心跳：{5}</value>
+  </data>
+  <data name="WorkerHostHeadless" xml:space="preserve">
+    <value>{0}（无界面）</value>
+  </data>
+  <data name="AlarmsArmedOther" xml:space="preserve">
+    <value>警报——{0} 个待命</value>
+  </data>
+  <data name="AlarmsMutedNote" xml:space="preserve">
+    <value>已在此客户端静音：这里不会播放声音、弹出对话框或通知 AI 助手。提醒仍会照常记录。
+
+右键单击可取消静音。</value>
+  </data>
+  <data name="AlarmsMuteHint" xml:space="preserve">
+    <value>右键单击可将此客户端静音。</value>
+  </data>
+  <data name="TipTranquilityOnline" xml:space="preserve">
+    <value>Tranquility（宁静）在线</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOther" xml:space="preserve">
+    <value>Tranquility（宁静）在线——{0:N0} 名玩家</value>
+  </data>
+  <data name="UpdateVersionUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="UpdateBadgeDevBuild" xml:space="preserve">
+    <value>开发版</value>
+  </data>
+  <data name="UpdateLatestNotInstalled" xml:space="preserve">
+    <value>不适用——非安装版本</value>
+  </data>
+  <data name="UpdateStatusChecking" xml:space="preserve">
+    <value>正在检查更新…</value>
+  </data>
+  <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <value>已是最新版本。</value>
+  </data>
+  <data name="UpdateStatusAvailable" xml:space="preserve">
+    <value>有可用更新。</value>
+  </data>
+  <data name="UpdateStatusDownloading" xml:space="preserve">
+    <value>正在下载更新…</value>
+  </data>
+  <data name="UpdateStatusRestarting" xml:space="preserve">
+    <value>正在重启以应用更新…</value>
+  </data>
+  <data name="UpdateBadgeAvailable" xml:space="preserve">
+    <value>{0} 可用</value>
+  </data>
+  <data name="UpdateDownloadingVersion" xml:space="preserve">
+    <value>正在下载 {0}…</value>
+  </data>
+  <data name="UpdateDownloadingVersionPercent" xml:space="preserve">
+    <value>正在下载 {0}… {1}%</value>
+  </data>
+  <data name="UpdateInstallingVersion" xml:space="preserve">
+    <value>正在安装 {0} 并重启…</value>
+  </data>
+  <data name="UpdateFailedGetRelease" xml:space="preserve">
+    <value>更新失败：{0}。请从发布页面获取 {1}。</value>
+  </data>
+  <data name="RecoveryCouldNotRead" xml:space="preserve">
+    <value>EVE Console 无法读取位于 {0} 的数据库。目前尚未更改或删除任何内容。</value>
+  </data>
+  <data name="RecoveryDamagedFileNote" xml:space="preserve">
+    <value>无论选择哪一项，损坏的文件都只会被重命名而不会被删除——它仍留在原文件夹中，文件名后会加上“.damaged-”和日期——因此以后仍可检查或恢复。</value>
+  </data>
+  <data name="RecoveryQuarantineFailed" xml:space="preserve">
+    <value>无法将损坏的文件移开：{0}</value>
+  </data>
+  <data name="RecoveryRestoreFailed" xml:space="preserve">
+    <value>恢复失败：{0}</value>
+  </data>
 </root>

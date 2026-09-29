@@ -160,4 +160,112 @@
   <data name="PriceTypeSplit" xml:space="preserve">
     <value>中间价</value>
   </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0} 天 {1} 小时 {2} 分</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} 小时 {1} 分</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} 分 {1} 秒</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>声音</value>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>TTS 直接朗读（绕过 AI 助手）</value>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>通知 AI 助手</value>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>对话框</value>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>没有结果</value>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>第 {0:N0} / {1:N0} 页  ·  {2:N0} 行</value>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— 无园区 —</value>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>请先选择一张蓝图。</value>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>输入 {0} 以确认：</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>名称为必填项。</value>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>正在加载市场分组…</value>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>选择一个市场分组以添加其中的物品。</value>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>个</value>
+  </data>
+  <data name="FitBadgeCorp" xml:space="preserve">
+    <value>团</value>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>正在从 ESI 获取装配…</value>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>正在生成列表…</value>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>未找到装配。请确认角色拥有 esi-fittings.read_fittings.v1 权限范围。</value>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>类型 ID {0}</value>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>{1} 种舰船类型，共 {0} 个装配</value>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>高槽</value>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>中槽</value>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>低槽</value>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>改装件</value>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>子系统</value>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>无人机</value>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>舰载机</value>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>货舱</value>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>舰队机库</value>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
 </root>
