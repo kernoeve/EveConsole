@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -317,7 +318,9 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     /// </summary>
     /// <summary>State tables kept at one snapshot per day beyond the current day. These back
     /// the daily-cadence datasets, which dominate storage — see MapDataset.DailyCadence.</summary>
-    /// <summary>Who holds a system and how well defended it is, for the sovereignty overlay.</summary>
+    /// <summary>Who holds a system and how well defended it is, for the sovereignty overlay.
+    /// <see cref="Holder"/> is empty for a system nobody holds: the overlay names that in the
+    /// interface's own words, so there is no text here to compare against.</summary>
     public sealed record SovOverlayEntry(long? AllianceId, string Holder, double? Adm);
 
     /// <summary>
@@ -361,8 +364,8 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
             {
                 var s = kv.Value;
                 var holder = s.AllianceId is { } a
-                    ? names.GetValueOrDefault(a, $"Alliance {a}")
-                    : s.FactionId is { } f ? factions.GetValueOrDefault(f, $"Faction {f}") : "Unclaimed";
+                    ? names.GetValueOrDefault(a, string.Format(MapText.AllianceNumbered, a))
+                    : s.FactionId is { } f ? factions.GetValueOrDefault(f, string.Format(MapText.FactionNumbered, f)) : "";
 
                 // TryGetValue, not GetValueOrDefault: the latter yields 0.0 for a system with
                 // no sovereignty structure, which is a real ADM value and would print "0.0"

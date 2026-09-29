@@ -414,6 +414,61 @@ public class AssetBrowserViewModel : ReactiveObject
         });
     }
 
+    // ── Markers: what Base writes where it has no name of its own to give ────────
+    //
+    // ⚠️ Values, not text to show. The query writes them the same in every language, so its
+    // sorting, its grouping (By Location groups on the location's name) and the filters behave the
+    // same whatever the interface language. They become labels only where rows are read —
+    // FormatValue for these grids, ItemAssetRowVm for the Item Browser's Assets tab — and in
+    // English each label reads exactly as its marker does.
+
+    internal const string UnknownStationMarker     = "<Unknown Station>";
+    internal const string UnknownSystemMarker      = "<Unknown System>";
+    internal const string UnknownStructureMarker   = "<Unknown Structure>";
+    internal const string UnresolvedLocationMarker = "<Unresolved - Please Refresh>";
+
+    /// <summary>The Flag of a row in a running industry job — the blueprint, or the product not
+    /// delivered yet — rather than in a hangar.</summary>
+    internal const string IndustryJobFlag = "Industry Job";
+
+    /// <summary>A corporation hangar division the corporation has not named: this, then the
+    /// division's number (1–7), as one step of the Container path.</summary>
+    private const string UnnamedDivisionMarker = "Division ";
+
+    /// <summary>⚠️ How Base joins the steps of the Container path, as its SQL writes it.</summary>
+    private const string ContainerSeparator = " > ";
+
+    /// <summary>A Location Name as shown: a marker as its label, a real name as it is.</summary>
+    internal static string LocationLabel(string value) => value switch
+    {
+        UnknownStationMarker     => AssetsText.LocUnknownStation,
+        UnknownSystemMarker      => AssetsText.LocUnknownSystem,
+        UnknownStructureMarker   => AssetsText.LocUnknownStructure,
+        UnresolvedLocationMarker => AssetsText.LocUnresolved,
+        _                        => value,
+    };
+
+    /// <summary>A Flag as shown: the job marker as its label, the game's own flags as they are.</summary>
+    internal static string FlagLabel(string value) =>
+        value == IndustryJobFlag ? AssetsText.FlagIndustryJob : value;
+
+    /// <summary>A Container path as shown: each unnamed division in it as its label, every other
+    /// step as the query gave it.</summary>
+    internal static string ContainerLabel(string value)
+    {
+        if (!value.Contains(UnnamedDivisionMarker, StringComparison.Ordinal)) return value;
+
+        var steps = value.Split(ContainerSeparator);
+        for (var i = 0; i < steps.Length; i++)
+            if (steps[i].StartsWith(UnnamedDivisionMarker, StringComparison.Ordinal)
+                && int.TryParse(steps[i].AsSpan(UnnamedDivisionMarker.Length),
+                                System.Globalization.NumberStyles.None,
+                                System.Globalization.CultureInfo.InvariantCulture, out var division)
+                && division is >= 1 and <= 7)
+                steps[i] = string.Format(AssetsText.DivisionNumbered, division);
+        return string.Join(ContainerSeparator, steps);
+    }
+
     // ── SQL ───────────────────────────────────────────────────────────────────
 
     // Three-level CTE — shared by both the detail view and the aggregation queries:
@@ -424,7 +479,7 @@ public class AssetBrowserViewModel : ReactiveObject
     //
     // ⚠️ Internal because the Item Browser's Assets tab reads the same Base filtered to one type,
     // so the two tools cannot disagree about where something is or what it is worth.
-    internal static readonly string QueryPrefix = """
+    internal static readonly string QueryPrefix = $$"""
         WITH
         ContainerHops AS (
             SELECT
@@ -474,8 +529,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- (which also sits under the office, but is not a hangar) does not. Falls back to
                 -- the number when the corp has not named the division, or when we hold no
                 -- divisions for that corp at all -- "Division 6" still beats showing nothing.
+                -- That fallback is a marker (UnnamedDivisionMarker): the label is put in as rows are read.
                 CASE WHEN h.DivFlag LIKE 'CorpSAG_'
-                     THEN COALESCE(NULLIF(cd."Name", ''), 'Division ' || SUBSTR(h.DivFlag, 8))
+                     THEN COALESCE(NULLIF(cd."Name", ''), '{{UnnamedDivisionMarker}}' || SUBSTR(h.DivFlag, 8))
                      ELSE NULL
                 END AS DivName
             FROM ContainerHops h
@@ -549,11 +605,12 @@ public class AssetBrowserViewModel : ReactiveObject
                 a."OwnerType"       AS "Owner Type",
                 COALESCE(ch."Name", co."Name", CAST(a."OwnerId" AS TEXT))  AS "Owner Name",
                 a."LocationId"      AS "Location Id",
+                -- The fallbacks are markers, turned into labels as rows are read (see the markers above).
                 CASE a."RootLocationType"
-                    WHEN 'station'      THEN COALESCE(st."Name",            '<Unknown Station>')
-                    WHEN 'solar_system' THEN COALESCE(sys."Name",           '<Unknown System>')
-                    WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '<Unknown Structure>')
-                    ELSE                     '<Unresolved - Please Refresh>'
+                    WHEN 'station'      THEN COALESCE(st."Name",            '{{UnknownStationMarker}}')
+                    WHEN 'solar_system' THEN COALESCE(sys."Name",           '{{UnknownSystemMarker}}')
+                    WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '{{UnknownStructureMarker}}')
+                    ELSE                     '{{UnresolvedLocationMarker}}'
                 END AS "Location Name",
                 -- The division slots in immediately after the outermost name, which is the office
                 -- whenever there is a division at all. Concatenating NULL yields NULL in SQLite,
@@ -693,7 +750,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf."FacilityId"                                                      AS "Location Id",
                 jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
-                'Industry Job'                                                     AS "Flag",
+                '{{IndustryJobFlag}}'                                              AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
@@ -738,7 +795,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf."FacilityId"                                                      AS "Location Id",
                 jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
-                'Industry Job'                                                     AS "Flag",
+                '{{IndustryJobFlag}}'                                              AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
@@ -877,6 +934,15 @@ public class AssetBrowserViewModel : ReactiveObject
 
     private static string FormatValue(string column, object value)
     {
+        // The query's markers, shown as labels in the interface language (see the markers above).
+        if (value is string text)
+            switch (column)
+            {
+                case "Location Name": return LocationLabel(text);
+                case "Container":     return ContainerLabel(text);
+                case "Flag":          return FlagLabel(text);
+            }
+
         // ⚠️ Build Cost is read straight from the build-cost table, where it is a decimal — TEXT on
         // SQLite, numeric on PostgreSQL — not the double the computed columns beside it are. It
         // missed the branch below and was shown raw, without the commas every other ISK column

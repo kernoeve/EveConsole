@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -118,7 +119,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
                 stationNames.GetValueOrDefault(b.LocationId)
                     ?? structureNames.GetValueOrDefault(b.LocationId)
                     ?? sourceNames.GetValueOrDefault(b.LocationId)
-                    ?? $"Structure {b.LocationId}",
+                    ?? string.Format(AssetsText.FallbackStructureName, b.LocationId),
                 b.SystemId, b.ConfigId, b.Orders))
             .OrderByDescending(s => s.Orders).ThenBy(s => s.Name)
             .ToList();
@@ -232,7 +233,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         }
 
         var items = order.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, quantities[id], Volume(t), "", "", IsBlueprint(t.GroupId)); }).ToList();
-        items.AddRange(unknown.Select(u => new ValuedItem(0, u.Name, u.Quantity, 0, "", "not an item name")));
+        items.AddRange(unknown.Select(u => new ValuedItem(0, u.Name, u.Quantity, 0, "", AssetsText.ProblemNotAnItem)));
         return (items, unparsed);
     }
 
@@ -255,7 +256,7 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         {
             if (item.TypeId == 0 || !materials.TryGetValue(item.TypeId, out var mats))
             {
-                leftovers.Add(item with { Section = "Left over", Problem = item.TypeId == 0 ? item.Problem : "cannot be reprocessed" });
+                leftovers.Add(item with { Section = AssetsText.SectionLeftOver, Problem = item.TypeId == 0 ? item.Problem : AssetsText.ProblemCannotReprocess });
                 continue;
             }
             var type    = _byId![item.TypeId];
@@ -272,10 +273,10 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
                     output[m.MaterialTypeId] += units;
                 }
             if (short_ > 0)
-                leftovers.Add(item with { Quantity = short_, Section = "Left over", Problem = $"{short_:N0} short of a batch of {portion:N0}" });
+                leftovers.Add(item with { Quantity = short_, Section = AssetsText.SectionLeftOver, Problem = string.Format(AssetsText.ProblemShortOfBatch, short_, portion) });
         }
 
-        var result = outputOrder.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, output[id], Volume(t), "Output", "", IsBlueprint(t.GroupId)); }).ToList();
+        var result = outputOrder.Select(id => { var t = _byId![id]; return new ValuedItem(id, t.Name, output[id], Volume(t), AssetsText.SectionOutput, "", IsBlueprint(t.GroupId)); }).ToList();
         result.AddRange(leftovers);
         return result;
     }

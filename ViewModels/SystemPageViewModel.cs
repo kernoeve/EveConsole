@@ -42,13 +42,18 @@ public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
     public string TypeName { get; } = r.TypeName;
     public string Owner    { get; } = r.Owner;
     public string Adm      { get; } = r.Adm is { } a ? $"{a:F1}" : "—";
-    public string State    { get; } = r.State;
+    public string State    { get; } = r.State switch
+    {
+        SystemViewService.SovStructureState.Vulnerable   => MapText.SovStateVulnerable,
+        SystemViewService.SovStructureState.Invulnerable => MapText.SovStateInvulnerable,
+        _                                                => MapText.SovStateUnknown,
+    };
     public string Window   { get; } = r.Window;
     public string StateColor { get; } = r.State switch
     {
-        "Vulnerable"   => "#e06a4a",
-        "Invulnerable" => "#5fbf7a",
-        _              => "#8a8a9a",
+        SystemViewService.SovStructureState.Vulnerable   => "#e06a4a",
+        SystemViewService.SovStructureState.Invulnerable => "#5fbf7a",
+        _                                                => "#8a8a9a",
     };
 
     protected override string? IconUrl => $"https://images.evetech.net/types/{r.TypeId}/icon?size=32";
@@ -178,9 +183,14 @@ public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
     public string    Power     { get; } = n.Power > 0 ? n.Power.ToString("N0") : "";
     public string    Workforce { get; } = n.Workforce > 0 ? n.Workforce.ToString("N0") : "";
     /// <summary>Reagent yield per hour, named by planet type — Lava gives Magmatic Gas, Ice
-    /// gives Sublimated Ice. Blank on every other planet, which carries none.</summary>
-    public string    Reagent   { get; } = n.ReagentPerHour > 0 ? $"{n.ReagentPerHour:N0}/h {n.Reagent}" : "";
-    public string    ReagentColor { get; } = n.Reagent == "Sublimated Ice" ? "#7fc8e8" : "#e08a4a";
+    /// gives Superionic Ice. Blank on every other planet, which carries none.</summary>
+    public string    Reagent   { get; } = n.ReagentPerHour <= 0 ? "" : n.Reagent switch
+    {
+        SystemViewService.PlanetReagent.MagmaticGas   => string.Format(MapText.ReagentMagmaticGasPerHour, n.ReagentPerHour),
+        SystemViewService.PlanetReagent.SuperionicIce => string.Format(MapText.ReagentSuperionicIcePerHour, n.ReagentPerHour),
+        _                                             => "",
+    };
+    public string    ReagentColor { get; } = n.Reagent == SystemViewService.PlanetReagent.SuperionicIce ? "#7fc8e8" : "#e08a4a";
     public Avalonia.Thickness Indent { get; } = new(n.Depth * 22, 0, 0, 0);
     public bool      IsHeading { get; } = n.Kind is "Star" or "Planet" or "Stargate";
 
@@ -241,15 +251,18 @@ public class AgentVm
 public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
 {
     public string When    { get; } = e.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
-    public string Kind    { get; } = e.Kind;
+    public string Kind    { get; } = e.Kind switch
+    {
+        SystemViewService.SystemEventKind.SovereigntyGained => MapText.SovEventGained,
+        SystemViewService.SystemEventKind.SovereigntyLost   => MapText.SovEventLost,
+        _                                                   => e.Kind.ToString(),
+    };
     public string Summary { get; } = e.Summary;
     public string KindColor { get; } = e.Kind switch
     {
-        "Sovereignty gained" => "#5fbf7a",
-        "Sovereignty lost"   => "#e0574a",
-        "ADM increased"      => "#7fb8d8",
-        "ADM decreased"      => "#e0913c",
-        _                    => "#8a8a9a",
+        SystemViewService.SystemEventKind.SovereigntyGained => "#5fbf7a",
+        SystemViewService.SystemEventKind.SovereigntyLost   => "#e0574a",
+        _                                                   => "#8a8a9a",
     };
 
     protected override string? IconUrl =>
@@ -769,7 +782,7 @@ public class SystemPageViewModel : ReactiveObject
             if (header.Power > 0)                bits.Add(string.Format(MapText.ProductionPower, header.Power));
             if (header.Workforce > 0)            bits.Add(string.Format(MapText.ProductionWorkforce, header.Workforce));
             if (header.MagmaticGasPerHour > 0)   bits.Add(string.Format(MapText.ProductionMagmaticGas, header.MagmaticGasPerHour));
-            if (header.SublimatedIcePerHour > 0) bits.Add(string.Format(MapText.ProductionSublimatedIce, header.SublimatedIcePerHour));
+            if (header.SuperionicIcePerHour > 0) bits.Add(string.Format(MapText.ProductionSuperionicIce, header.SuperionicIcePerHour));
             Production    = string.Join("  ·  ", bits);
             HasProduction = bits.Count > 0;
             Holder = string.IsNullOrEmpty(header.AllianceName)
@@ -796,7 +809,8 @@ public class SystemPageViewModel : ReactiveObject
 
             Fill(SovStructures, sovStructs.Select(s => new SovStructureVm(s)));
             Fill(Events,     events.Select(e => new SystemEventVm(e)));
-            Fill(SovChanges, events.Where(e => e.Kind.StartsWith("Sovereignty"))
+            Fill(SovChanges, events.Where(e => e.Kind is SystemViewService.SystemEventKind.SovereigntyGained
+                                                     or SystemViewService.SystemEventKind.SovereigntyLost)
                                    .Select(e => new SystemEventVm(e)));
             Fill(Celestials, tree.Select(n => new CelestialNodeVm(n)));
             BuildGraphs(history);

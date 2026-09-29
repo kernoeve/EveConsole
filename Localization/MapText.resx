@@ -910,11 +910,11 @@
   </data>
   <data name="CorporationNumbered" xml:space="preserve">
     <value>Corporation {0}</value>
-    <comment>Tooltip on a corporation logo whose name is not known yet. {0} is its ID.</comment>
+    <comment>A corporation whose name is not known yet — a logo's tooltip, the sovereignty holder in the system page's header. {0} is its ID.</comment>
   </data>
   <data name="AllianceNumbered" xml:space="preserve">
     <value>Alliance {0}</value>
-    <comment>An alliance whose name is not known yet — a logo's tooltip, a Structure Browser cell. {0} is its ID.</comment>
+    <comment>An alliance whose name is not known yet — a logo's tooltip, a Structure Browser cell, a sovereignty holder on the system page and the map's sovereignty overlay. {0} is its ID.</comment>
   </data>
   <data name="IntelNoVisual" xml:space="preserve">
     <value>NV</value>
@@ -944,9 +944,9 @@
     <value>{0:N0}/h magmatic gas</value>
     <comment>System page header, production: magmatic gas per hour (/h). {0} is the amount.</comment>
   </data>
-  <data name="ProductionSublimatedIce" xml:space="preserve">
-    <value>{0:N0}/h sublimated ice</value>
-    <comment>System page header, production: sublimated ice per hour (/h). {0} is the amount.</comment>
+  <data name="ProductionSuperionicIce" xml:space="preserve">
+    <value>{0:N0}/h superionic ice</value>
+    <comment>System page header, production: superionic ice per hour (/h), the reagent ice planets yield. {0} is the amount.</comment>
   </data>
   <data name="SovUnclaimed" xml:space="preserve">
     <value>Unclaimed</value>
@@ -1672,7 +1672,7 @@ Owned by {3}</value>
   </data>
   <data name="FactionNumbered" xml:space="preserve">
     <value>Faction {0}</value>
-    <comment>Map legend: a faction whose name is not known. {0} is its ID.</comment>
+    <comment>A faction whose name is not known — the map legend, and the sovereignty overlay's captions and tooltips. {0} is its ID.</comment>
   </data>
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>Not FW space</value>
@@ -1925,5 +1925,145 @@ Owned by {3}</value>
   <data name="LegendIncursionsActive" xml:space="preserve">
     <value>{0} active</value>
     <comment>Map legend, incursion overlay. {0} is how many incursions are running.</comment>
+  </data>
+  <data name="SecBandHigh" xml:space="preserve">
+    <value>High sec</value>
+    <comment>Security band of a system whose security rounds to 0.5 or above (high security space). Starts the security tooltip (SecurityTip) shown on the Map, Assets, Market and other screens.</comment>
+  </data>
+  <data name="SecBandLow" xml:space="preserve">
+    <value>Low sec</value>
+    <comment>Security band of a system whose security rounds to 0.1–0.4 (low security space). Starts the security tooltip (SecurityTip).</comment>
+  </data>
+  <data name="SecBandNull" xml:space="preserve">
+    <value>Null sec</value>
+    <comment>Security band of a system at 0.0 or below (null security space). Starts the security tooltip (SecurityTip).</comment>
+  </data>
+  <data name="SecurityTip" xml:space="preserve">
+    <value>{0} · true security {1}</value>
+    <comment>Tooltip on a system's security status, on the Map, Assets, Market and other screens. {0} is the band (SecBandHigh, SecBandLow or SecBandNull), {1} the system's true security, e.g. 0.4502.</comment>
+  </data>
+  <data name="GoToRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Map, GO TO box: the small line under a suggestion that is a region (a system's line shows its security and region instead).</comment>
+  </data>
+  <data name="AlternativeDetail" xml:space="preserve">
+    <value>{0} · in {1:N2} ly · out {2:N2} ly</value>
+    <comment>Jump Planner, the list of systems that could replace a midpoint: the small line under each system. {0} is its region, {1} the jump to it from the stop before, {2} the jump on to the next stop, both in light years (ly).</comment>
+  </data>
+  <data name="FuelIsotopes" xml:space="preserve">
+    <value>Isotopes</value>
+    <comment>Jump Planner: the fuel's name in the route totals when the hull's isotope type is not known.</comment>
+  </data>
+  <data name="BadgeNpcStation" xml:space="preserve">
+    <value>NPC station</value>
+    <comment>Jump Planner map tooltip, in the line of things a system offers, separated by · (beside Keepstar and Fortizar, which are structure names): the system has an NPC station.</comment>
+  </data>
+  <data name="BadgePlayerStructuresOne" xml:space="preserve">
+    <value>{0} player structure</value>
+    <comment>Jump Planner map tooltip, in the line of things a system offers, separated by ·: how many player structures the system has (when none is a Keepstar or Fortizar). {0} is the number (one).</comment>
+  </data>
+  <data name="BadgePlayerStructuresOther" xml:space="preserve">
+    <value>{0} player structures</value>
+    <comment>Jump Planner map tooltip, in the line of things a system offers, separated by ·: how many player structures the system has (when none is a Keepstar or Fortizar). {0} is the number.</comment>
+  </data>
+  <data name="BadgeMoreStructures" xml:space="preserve">
+    <value>+{0} more</value>
+    <comment>Jump Planner map tooltip, after Keepstar or Fortizar in the line of things a system offers: how many other player structures the system has. {0} is the number.</comment>
+  </data>
+  <data name="RouteStartHighSec" xml:space="preserve">
+    <value>The starting system cannot be reached by jump drive — high security space is closed to capitals.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
+  </data>
+  <data name="RouteDestinationHighSec" xml:space="preserve">
+    <value>The destination cannot be reached by jump drive — high security space is closed to capitals.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
+  </data>
+  <data name="RouteSameSystem" xml:space="preserve">
+    <value>The start and the destination are the same system.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): why the hop cannot be planned.</comment>
+  </data>
+  <data name="RouteNoneKeepstar" xml:space="preserve">
+    <value>No route within {0:N2} ly per jump using only known Keepstar systems. Widening the midpoints, or resolving more structures, would be needed.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem), when the route may stop only in Keepstar systems (Keepstar is a structure name). {0} is the jump range in light years (ly).</comment>
+  </data>
+  <data name="RouteNoneStations" xml:space="preserve">
+    <value>No route within {0:N2} ly per jump using only station systems.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem), when the route may stop only in systems with an NPC station or a player structure. {0} is the jump range in light years (ly).</comment>
+  </data>
+  <data name="RouteNone" xml:space="preserve">
+    <value>No route within {0:N2} ly per jump. A longer-ranged hull or more Jump Drive Calibration would be needed.</value>
+    <comment>Jump Planner status line, after "system to system: " (StatusLegProblem): no route at this range. {0} is the jump range in light years (ly); Jump Drive Calibration is a skill's name.</comment>
+  </data>
+  <data name="IndexShortManufacturing" xml:space="preserve">
+    <value>Mfg</value>
+    <comment>System page header, industry indices: short name for the manufacturing cost index, before its value ("Mfg 4.52%"). Keep it as short as the game's own abbreviations.</comment>
+  </data>
+  <data name="IndexShortTimeEfficiency" xml:space="preserve">
+    <value>TE</value>
+    <comment>System page header, industry indices: short name for the time efficiency research cost index, before its value. EVE's abbreviation (TE).</comment>
+  </data>
+  <data name="IndexShortMaterialEfficiency" xml:space="preserve">
+    <value>ME</value>
+    <comment>System page header, industry indices: short name for the material efficiency research cost index, before its value. EVE's abbreviation (ME).</comment>
+  </data>
+  <data name="IndexShortCopying" xml:space="preserve">
+    <value>Copy</value>
+    <comment>System page header, industry indices: short name for the blueprint copying cost index (a noun), before its value. Very short.</comment>
+  </data>
+  <data name="IndexShortInvention" xml:space="preserve">
+    <value>Inv</value>
+    <comment>System page header, industry indices: short name for the invention cost index, before its value. Very short.</comment>
+  </data>
+  <data name="IndexShortReaction" xml:space="preserve">
+    <value>Rxn</value>
+    <comment>System page header, industry indices: short name for the reactions cost index, before its value. Very short.</comment>
+  </data>
+  <data name="SovWindow" xml:space="preserve">
+    <value>{0:yyyy-MM-dd HH:mm} → {1:HH:mm} ({2:F0}h)</value>
+    <comment>System page, sovereignty structures, Vulnerability window column. {0} is when the window opens (date and time), {1} when it closes (time), {2} how many hours (h) it lasts.</comment>
+  </data>
+  <data name="SovStructureFallbackType" xml:space="preserve">
+    <value>Sovereignty structure</value>
+    <comment>System page, sovereignty structures, Type column: a structure whose type is not known.</comment>
+  </data>
+  <data name="SovHolderNoOne" xml:space="preserve">
+    <value>no one</value>
+    <comment>System page, sovereignty changes: who held the system before it was first claimed, or after it was lost, as in "no one → an alliance". Lower case.</comment>
+  </data>
+  <data name="FallbackStationType" xml:space="preserve">
+    <value>Station</value>
+    <comment>System page, structure lists, Type column: an NPC station whose type is not known.</comment>
+  </data>
+  <data name="FallbackUnknownType" xml:space="preserve">
+    <value>Unknown type</value>
+    <comment>System page, structure lists, Type column: a player structure whose type is not known.</comment>
+  </data>
+  <data name="SovStateVulnerable" xml:space="preserve">
+    <value>Vulnerable</value>
+    <comment>System page, sovereignty structures, State column: the structure is inside its vulnerability window and can be attacked now.</comment>
+  </data>
+  <data name="SovStateInvulnerable" xml:space="preserve">
+    <value>Invulnerable</value>
+    <comment>System page, sovereignty structures, State column: the structure is outside its vulnerability window and cannot be attacked now.</comment>
+  </data>
+  <data name="SovStateUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>System page, sovereignty structures, State column: no vulnerability window is known for the structure.</comment>
+  </data>
+  <data name="SovEventGained" xml:space="preserve">
+    <value>Sovereignty gained</value>
+    <comment>System page, sovereignty changes and the Events tab: the kind of event — an alliance took sovereignty of the system.</comment>
+  </data>
+  <data name="SovEventLost" xml:space="preserve">
+    <value>Sovereignty lost</value>
+    <comment>System page, sovereignty changes and the Events tab: the kind of event — the holder lost sovereignty and nobody holds the system.</comment>
+  </data>
+  <data name="ReagentMagmaticGasPerHour" xml:space="preserve">
+    <value>{0:N0}/h Magmatic Gas</value>
+    <comment>System page, Celestials tab, Reagent column: what a lava planet yields per hour (/h). {0} is the amount; Magmatic Gas is the game's item name.</comment>
+  </data>
+  <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
+    <value>{0:N0}/h Superionic Ice</value>
+    <comment>System page, Celestials tab, Reagent column: what an ice planet yields per hour (/h). {0} is the amount; Superionic Ice is the game's item name.</comment>
   </data>
 </root>

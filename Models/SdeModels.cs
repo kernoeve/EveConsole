@@ -283,11 +283,11 @@ public class SdeCorpDivision
 /// planetResources.yaml — the Equinox planetary production figures, per planet.
 ///
 /// The reagent is not named in the file; it is decided by the planet's type, and only two types
-/// carry one at all: Lava planets yield Magmatic Gas, Ice planets yield Sublimated Ice. Verified
-/// across every reagent-bearing planet in the SDE — exactly 2,337 Lava and 1,125 Ice, nothing
-/// else.
+/// carry one at all: Lava planets yield Magmatic Gas (type 81143), Ice planets yield Superionic
+/// Ice (type 81144). Verified across every reagent-bearing planet in the SDE — exactly 2,337 Lava
+/// and 1,125 Ice, nothing else.
 ///
-/// ⚠️ Sublimated Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
+/// ⚠️ Superionic Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
 /// mining anomaly and must not be used to infer one: 54% of known-space systems hold an ice
 /// planet, far more than actually have ice belts.
 /// </summary>

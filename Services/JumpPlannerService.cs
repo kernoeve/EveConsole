@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -59,7 +60,7 @@ public sealed record JumpAlternative(
     int Id, string Name, string Region, double Security,
     double InLy, double OutLy, double MapX, double MapY)
 {
-    public string Detail => $"{Region} · in {InLy:N2} ly · out {OutLy:N2} ly";
+    public string Detail => string.Format(MapText.AlternativeDetail, Region, InLy, OutLy);
     public override string ToString() => Name;
 }
 
@@ -172,7 +173,7 @@ public sealed class JumpPlannerService
             var fuelType  = (int)a.GetValueOrDefault(AttrFuelTypeId);
 
             result.Add(new JumpShip(s.TypeId, s.Name, range, fuelPerLy, fuelType,
-                fuelNames.GetValueOrDefault(fuelType, "Isotopes")));
+                fuelNames.GetValueOrDefault(fuelType, MapText.FuelIsotopes)));
         }
 
         return result.OrderByDescending(s => s.BaseRangeLy).ThenBy(s => s.Name).ToList();
@@ -296,11 +297,12 @@ public sealed class JumpPlannerService
                 var parts = new List<string>(4);
                 if (Keepstar)         parts.Add("Keepstar");
                 if (Fortizar)         parts.Add("Fortizar");
-                if (NpcStation)       parts.Add("NPC station");
+                if (NpcStation)       parts.Add(MapText.BadgeNpcStation);
                 if (PlayerStructures > 0 && !Keepstar && !Fortizar)
-                    parts.Add($"{PlayerStructures} player structure{(PlayerStructures == 1 ? "" : "s")}");
+                    parts.Add(Plurals.Format(MapText.ResourceManager,
+                                             nameof(MapText.BadgePlayerStructuresOther), PlayerStructures));
                 else if (PlayerStructures > 1)
-                    parts.Add($"+{PlayerStructures - 1} more");
+                    parts.Add(string.Format(MapText.BadgeMoreStructures, PlayerStructures - 1));
                 return string.Join(" · ", parts);
             }
         }
@@ -664,11 +666,11 @@ public sealed class JumpPlannerService
         var byId    = nodes.ToDictionary(n => n.Id);
 
         if (!byId.TryGetValue(fromSystemId, out var start))
-            return Empty(range, ship, "The starting system cannot be reached by jump drive — high security space is closed to capitals.");
+            return Empty(range, ship, MapText.RouteStartHighSec);
         if (!byId.TryGetValue(toSystemId, out var goal))
-            return Empty(range, ship, "The destination cannot be reached by jump drive — high security space is closed to capitals.");
+            return Empty(range, ship, MapText.RouteDestinationHighSec);
         if (fromSystemId == toSystemId)
-            return Empty(range, ship, "The start and the destination are the same system.");
+            return Empty(range, ship, MapText.RouteSameSystem);
 
         // Distance travelled so far, and where each system was reached from.
         var bestJumps   = new Dictionary<int, int> { [start.Id] = 0 };
@@ -727,13 +729,11 @@ public sealed class JumpPlannerService
             return Empty(range, ship, midpoints switch
             {
                 JumpMidpoints.KeepstarSystems =>
-                    $"No route within {range:N2} ly per jump using only known Keepstar systems. " +
-                    "Widening the midpoints, or resolving more structures, would be needed.",
+                    string.Format(MapText.RouteNoneKeepstar, range),
                 JumpMidpoints.StationSystems =>
-                    $"No route within {range:N2} ly per jump using only station systems.",
+                    string.Format(MapText.RouteNoneStations, range),
                 _ =>
-                    $"No route within {range:N2} ly per jump. A longer-ranged hull or more " +
-                    "Jump Drive Calibration would be needed.",
+                    string.Format(MapText.RouteNone, range),
             });
 
         // Walk the chain back to the start.

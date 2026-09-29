@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -23,12 +24,12 @@ public class SystemViewService(
     /// </summary>
     private static readonly (string Activity, string Short)[] IndexOrder =
     [
-        ("manufacturing",                   "Mfg"),
-        ("researching_time_efficiency",     "TE"),
-        ("researching_material_efficiency", "ME"),
-        ("copying",                         "Copy"),
-        ("invention",                       "Inv"),
-        ("reaction",                        "Rxn"),
+        ("manufacturing",                   MapText.IndexShortManufacturing),
+        ("researching_time_efficiency",     MapText.IndexShortTimeEfficiency),
+        ("researching_material_efficiency", MapText.IndexShortMaterialEfficiency),
+        ("copying",                         MapText.IndexShortCopying),
+        ("invention",                       MapText.IndexShortInvention),
+        ("reaction",                        MapText.IndexShortReaction),
     ];
 
     public sealed record SystemHeader(
@@ -56,7 +57,7 @@ public class SystemViewService(
         double? Adm,
         IReadOnlyList<IndexReading> Industry,
         int    MagmaticGasPerHour,
-        int    SublimatedIcePerHour,
+        int    SuperionicIcePerHour,
         int    Jumps1h,
         int    Jumps24h,
         int    ShipKills1h,
@@ -153,8 +154,8 @@ public class SystemViewService(
             celestials.GetValueOrDefault(0), celestials.GetValueOrDefault(1),
             celestials.GetValueOrDefault(3), celestials.GetValueOrDefault(2),
             sov?.AllianceId, sov?.CorporationId,
-            sov?.AllianceId is { } a ? names.GetValueOrDefault(a, $"Alliance {a}") : "",
-            sov?.CorporationId is { } c ? names.GetValueOrDefault(c, $"Corporation {c}") : "",
+            sov?.AllianceId is { } a ? names.GetValueOrDefault(a, string.Format(MapText.AllianceNumbered, a)) : "",
+            sov?.CorporationId is { } c ? names.GetValueOrDefault(c, string.Format(MapText.CorporationNumbered, c)) : "",
             pirates.GetValueOrDefault(s.RegionId)?.Name ?? "",
             pirates.GetValueOrDefault(s.RegionId)?.FactionId ?? 0,
             res.Sum(r => r.Power), res.Sum(r => r.Workforce),
@@ -281,6 +282,10 @@ public class SystemViewService(
 
     // ── Overview: sovereignty structures ─────────────────────────────────────
 
+    /// <summary>Whether a sovereignty structure can be attacked now. A state, not words: the
+    /// page names it and colours it.</summary>
+    public enum SovStructureState { Unknown, Vulnerable, Invulnerable }
+
     public sealed record SovStructureRow(
         long            StructureId,
         int             TypeId,
@@ -292,17 +297,17 @@ public class SystemViewService(
         DateTimeOffset? VulnerableEnd)
     {
         /// <summary>A structure is invulnerable outside its window; inside it, it can be taken.</summary>
-        public string State =>
-            VulnerableStart is null || VulnerableEnd is null ? "Unknown"
+        public SovStructureState State =>
+            VulnerableStart is null || VulnerableEnd is null ? SovStructureState.Unknown
             : DateTimeOffset.UtcNow >= VulnerableStart && DateTimeOffset.UtcNow < VulnerableEnd
-                ? "Vulnerable"
-                : "Invulnerable";
+                ? SovStructureState.Vulnerable
+                : SovStructureState.Invulnerable;
 
         public string Window =>
             VulnerableStart is null || VulnerableEnd is null
                 ? ""
-                : $"{VulnerableStart:yyyy-MM-dd HH:mm} → {VulnerableEnd:HH:mm} " +
-                  $"({(VulnerableEnd - VulnerableStart).Value.TotalHours:F0}h)";
+                : string.Format(MapText.SovWindow, VulnerableStart, VulnerableEnd,
+                                (VulnerableEnd - VulnerableStart).Value.TotalHours);
     }
 
     public async Task<List<SovStructureRow>> GetSovStructuresAsync(
@@ -331,16 +336,20 @@ public class SystemViewService(
 
         return rows.Select(r => new SovStructureRow(
             r.StructureId, r.StructureTypeId,
-            types.GetValueOrDefault(r.StructureTypeId, "Sovereignty structure"),
+            types.GetValueOrDefault(r.StructureTypeId, MapText.SovStructureFallbackType),
             r.AllianceId,
-            r.AllianceId is { } a ? names.GetValueOrDefault(a, $"Alliance {a}") : "",
+            r.AllianceId is { } a ? names.GetValueOrDefault(a, string.Format(MapText.AllianceNumbered, a)) : "",
             r.Adm, r.VulnerableStart, r.VulnerableEnd)).ToList();
     }
 
     // ── Events (also feeds the Overview's sovereignty changes) ───────────────
 
+    /// <summary>What happened to a system. A kind, not words: the page names it, colours it, and
+    /// picks the sovereignty changes out of the events by it.</summary>
+    public enum SystemEventKind { SovereigntyGained, SovereigntyLost }
+
     public sealed record SystemEvent(
-        DateTimeOffset When, string Kind, string Summary, long? AllianceId);
+        DateTimeOffset When, SystemEventKind Kind, string Summary, long? AllianceId);
 
     /// <summary>
     /// Derives a system's history by diffing consecutive snapshots for a change of holder.
@@ -373,7 +382,7 @@ public class SystemViewService(
             .ToDictionaryAsync(n => n.EntityId, n => n.Name, ct);
 
         string Named(long? id) =>
-            id is { } v && v > 0 ? names.GetValueOrDefault(v, $"Alliance {v}") : "no one";
+            id is { } v && v > 0 ? names.GetValueOrDefault(v, string.Format(MapText.AllianceNumbered, v)) : MapText.SovHolderNoOne;
 
         for (var i = 1; i < sov.Count; i++)
         {
@@ -383,7 +392,7 @@ public class SystemViewService(
 
             events.Add(new SystemEvent(
                 MapStatsService.ParseBucket(cur.Bucket),
-                cur.AllianceId is null ? "Sovereignty lost" : "Sovereignty gained",
+                cur.AllianceId is null ? SystemEventKind.SovereigntyLost : SystemEventKind.SovereigntyGained,
                 $"{Named(prev.AllianceId)} → {Named(cur.AllianceId)}",
                 cur.AllianceId));
         }
@@ -679,13 +688,20 @@ public class SystemViewService(
 
     public sealed record CelestialRow(long ItemId, int TypeId, string Name, string TypeName, int Kind);
 
+    /// <summary>The Equinox reagent a planet yields, decided by the planet's type alone. A value,
+    /// not words: the page names it and colours it.</summary>
+    public enum PlanetReagent { None, MagmaticGas, SuperionicIce }
+
     /// <summary>
     /// One line of the celestial tree. Depth drives the indent: 0 for things orbiting the star,
     /// 1 for moons and belts of a planet, and one deeper again for anything docked at them.
+    ///
+    /// <para><see cref="Kind"/> is a key — Star, Stargate, Planet, Belt, Moon, Station, Structure —
+    /// that the page styles rows by. It is never shown, so it stays English.</para>
     /// </summary>
     public sealed record CelestialNode(
         int Depth, string Kind, string Name, string TypeName, int TypeId, string Owner,
-        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, string Reagent = "",
+        int Power = 0, int Workforce = 0, int ReagentPerHour = 0, PlanetReagent Reagent = PlanetReagent.None,
         // Set only on the docked rows — a planet or a stargate has no owner to link to.
         long LocationId = 0, bool IsNpc = false,
         string Corporation = "", string Alliance = "",
@@ -784,17 +800,17 @@ public class SystemViewService(
                      .OrderBy(c => Radius(c.X, c.Y, c.Z)))
         {
             resources.TryGetValue(planet.ItemId, out var res);
-            var reagent = res is null || res.ReagentPerCycle == 0 ? ""
-                : planet.TypeId == 2015 ? "Magmatic Gas"
-                : planet.TypeId == 12   ? "Sublimated Ice"
-                : "";
+            var reagent = res is null || res.ReagentPerCycle == 0 ? PlanetReagent.None
+                : planet.TypeId == 2015 ? PlanetReagent.MagmaticGas
+                : planet.TypeId == 12   ? PlanetReagent.SuperionicIce
+                : PlanetReagent.None;
             var perHour = res is null || res.ReagentCycleTime <= 0 ? 0
                 : (int)Math.Round(res.ReagentPerCycle * 3600.0 / res.ReagentCycleTime);
 
             nodes.Add(new CelestialNode(
                 0, "Planet", planet.Name, planet.TypeName, planet.TypeId, "",
                 res?.Power ?? 0, res?.Workforce ?? 0,
-                string.IsNullOrEmpty(reagent) ? 0 : perHour, reagent));
+                reagent == PlanetReagent.None ? 0 : perHour, reagent));
 
             AddStructures(planet.ItemId, 1);
 
@@ -927,13 +943,13 @@ public class SystemViewService(
 
         return stations.Select(s => new StructureRow(
                 s.StationId, s.StationTypeId ?? 0, s.Name,
-                types.GetValueOrDefault(s.StationTypeId ?? 0, "Station"),
+                types.GetValueOrDefault(s.StationTypeId ?? 0, MapText.FallbackStationType),
                 OwnerOf(s.CorporationId ?? 0), "", StationLocation(s.Name), true,
                 CorporationId: s.CorporationId ?? 0))
             .Concat(player.Select(s => new StructureRow(
                 s.StructureId, s.TypeId,
-                string.IsNullOrEmpty(s.Name) ? $"Structure {s.StructureId}" : s.Name,
-                types.GetValueOrDefault(s.TypeId, "Unknown type"),
+                string.IsNullOrEmpty(s.Name) ? string.Format(MapText.StructureNumbered, s.StructureId) : s.Name,
+                types.GetValueOrDefault(s.TypeId, MapText.FallbackUnknownType),
                 OwnerOf(s.OwnerId), OwnerOf(s.AllianceId),
                 celestialNames.GetValueOrDefault(s.NearestCelestialId, s.NearestCelestial),
                 false,

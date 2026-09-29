@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -258,7 +259,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .ToListAsync(ct);
 
         return regions
-            .Select(r => new PlaceMatch(r.Name, "Region", r.RegionId, 0))
+            .Select(r => new PlaceMatch(r.Name, MapText.GoToRegion, r.RegionId, 0))
             .Concat(systems.Select(s => new PlaceMatch(
                 s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {s.Region}", s.RegionId, s.SolarSystemId)))
             .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase))

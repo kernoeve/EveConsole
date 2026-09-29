@@ -542,7 +542,7 @@
   </data>
   <data name="ColVolume" xml:space="preserve">
     <value>Volume</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Column header in the Item Browser's price history grid: how many units were traded that day (trade volume, not the space an item takes — that is ColItemVolume).</comment>
   </data>
   <data name="ColAvgPrice" xml:space="preserve">
     <value>Avg Price</value>
@@ -1131,7 +1131,7 @@ away: Edit list brings it back.</value>
   </data>
   <data name="FallbackTypeName" xml:space="preserve">
     <value>Type {0}</value>
-    <comment>Shown in place of an item's name when it is not known. {0} is the item's type id.</comment>
+    <comment>Shown in place of an item's name when it is not known — also written into an exported Inventory Levels collection. {0} is the item's type id.</comment>
   </data>
   <data name="DefaultCollectionOption" xml:space="preserve">
     <value>— Default —</value>
@@ -1656,5 +1656,61 @@ away: Edit list brings it back.</value>
   <data name="ErrSelectRegion" xml:space="preserve">
     <value>Select a region or choose {0}.</value>
     <comment>Inventory Levels group dialog: the scope is a region but none is chosen. {0} is the name of the Everywhere scope option.</comment>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Item Valuation, station picker: a structure whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="ProblemNotAnItem" xml:space="preserve">
+    <value>not an item name</value>
+    <comment>Item Valuation, a small note under a pasted name: it is not an item the game data knows.</comment>
+  </data>
+  <data name="SectionLeftOver" xml:space="preserve">
+    <value>Left over</value>
+    <comment>Item Valuation, valuing the reprocessed output: a small label under an item that stays as it is — it cannot be reprocessed, or is the part of a stack too small for a batch.</comment>
+  </data>
+  <data name="ProblemCannotReprocess" xml:space="preserve">
+    <value>cannot be reprocessed</value>
+    <comment>Item Valuation, valuing the reprocessed output: a small note under an item that has no materials to reprocess into.</comment>
+  </data>
+  <data name="ProblemShortOfBatch" xml:space="preserve">
+    <value>{0:N0} short of a batch of {1:N0}</value>
+    <comment>Item Valuation, valuing the reprocessed output: a small note under the part of a stack too small to reprocess. {0} is how many units are left over, {1} how many units make one batch.</comment>
+  </data>
+  <data name="SectionOutput" xml:space="preserve">
+    <value>Output</value>
+    <comment>Item Valuation, valuing the reprocessed output: a small label under a material that reprocessing produced (a noun: the output).</comment>
+  </data>
+  <data name="ImportedCollectionName" xml:space="preserve">
+    <value>Imported collection</value>
+    <comment>Inventory Levels: the name an imported collection gets when its file names none. Saved as the collection's name; the user can rename it.</comment>
+  </data>
+  <data name="LocUnknownStation" xml:space="preserve">
+    <value>&lt;Unknown Station&gt;</value>
+    <comment>Asset Browser and the Item Browser's Assets tab, Location column: an NPC station whose name is not known. The angle brackets show it is not a real name.</comment>
+  </data>
+  <data name="LocUnknownSystem" xml:space="preserve">
+    <value>&lt;Unknown System&gt;</value>
+    <comment>Asset Browser and the Item Browser's Assets tab, Location column: a solar system whose name is not known. The angle brackets show it is not a real name.</comment>
+  </data>
+  <data name="LocUnknownStructure" xml:space="preserve">
+    <value>&lt;Unknown Structure&gt;</value>
+    <comment>Asset Browser and the Item Browser's Assets tab, Location column: a player structure whose name cannot be read (no character can dock there). The angle brackets show it is not a real name.</comment>
+  </data>
+  <data name="LocUnresolved" xml:space="preserve">
+    <value>&lt;Unresolved - Please Refresh&gt;</value>
+    <comment>Asset Browser and the Item Browser's Assets tab, Location column: where the item is has not been worked out yet; refreshing the assets fixes it. The angle brackets show it is not a real name.</comment>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>Division {0}</value>
+    <comment>Asset Browser and the Item Browser's Assets tab, Container column: a corporation hangar division the corporation has not named, as one step of the container path. {0} is its number (1–7).</comment>
+  </data>
+  <data name="FlagIndustryJob" xml:space="preserve">
+    <value>Industry Job</value>
+    <comment>Asset Browser and the Item Browser's Assets tab, Flag column: the item is in a running industry job (the blueprint, or the product not delivered yet) rather than in a hangar. The other flags are the game's own words.</comment>
+  </data>
+  <data name="ColItemVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Column header in Item Valuation's two tables: the space the row's items take, in m³ (not a trade volume — that is ColVolume).</comment>
   </data>
 </root>

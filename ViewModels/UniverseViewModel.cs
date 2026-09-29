@@ -924,10 +924,6 @@ public class UniverseViewModel : ReactiveObject
     private static string ShortHolder(string name) =>
         name.Length <= HolderCaptionChars ? name : name[..(HolderCaptionChars - 1)] + "…";
 
-    /// <summary>The holder <see cref="MapStatsService"/> gives a system nobody holds. A value to
-    /// compare, not text to show: the service writes it in English whatever the language.</summary>
-    private const string ServiceUnclaimed = "Unclaimed";
-
     /// <summary>
     /// Colours each system by who holds it, and names the holder in the caption. ADM is a
     /// separate overlay: it answers a different question, and showing it here meant the
@@ -963,8 +959,9 @@ public class UniverseViewModel : ReactiveObject
 
             if (!sov.TryGetValue(n.Id, out var s) || s.AllianceId is null)
             {
-                // A faction holding the space names it; nobody holding it reads as unclaimed.
-                var holder = s is not null && s.Holder != ServiceUnclaimed ? s.Holder : null;
+                // A faction holding the space names it; nobody holding it reads as unclaimed —
+                // the service leaves the holder empty then, rather than writing a word to match.
+                var holder = s is not null && s.Holder.Length > 0 ? s.Holder : null;
                 styles[n.Id] = new MapNodeStyle(
                     unclaimed,
                     Caption: holder,

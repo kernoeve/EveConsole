@@ -1067,7 +1067,7 @@ public class SdeImportService
         await SaveBatchesAsync(db, db.SdeCelestials, celestials, "Celestials", celestials.Count, p, 0.85, 0.87, ct);
 
         // Equinox planetary production. The reagent is unnamed here — it is decided by the
-        // planet's type, Lava yielding Magmatic Gas and Ice yielding Sublimated Ice.
+        // planet's type, Lava yielding Magmatic Gas and Ice yielding Superionic Ice.
         Report(p, "Universe", "Parsing planetResources.yaml…", 0.868);
         var resEntry = zip.GetEntry($"{fsdRoot}planetResources.yaml");
         if (resEntry != null)
