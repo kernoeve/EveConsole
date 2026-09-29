@@ -404,6 +404,16 @@ public class WebStoreSyncService(
 
     // ── The request ───────────────────────────────────────────────────────────
 
+    /// <summary>The themes the site's picker offers, named in the store's language: its buyers
+    /// read them.</summary>
+    private static List<ThemeOptionDto> ThemeOptions(Store store, IEnumerable<string> offered)
+    {
+        using var language = LanguageScope.Use(store.Language);
+        return offered.Select(WebThemes.ChoiceOf)
+            .Select(t => new ThemeOptionDto { Key = t.Key, Name = t.Name, Base = t.Parent, Tokens = WebThemes.Resolve(t.Key) })
+            .ToList();
+    }
+
     private async Task<(SyncRequest Request, Dictionary<int, string> Hashes)> BuildRequestAsync(
         AppDbContext db, Store store, CancellationToken ct)
     {
@@ -431,9 +441,7 @@ public class WebStoreSyncService(
                 [choice.Parent] = WebThemes.Resolve(choice.Key),
                 [choice.Parent == "dark" ? "light" : "dark"] = WebThemes.Resolve(choice.Pair),
             },
-            Themes = offered.Select(WebThemes.ChoiceOf)
-                .Select(t => new ThemeOptionDto { Key = t.Key, Name = t.Name, Base = t.Parent, Tokens = WebThemes.Resolve(t.Key) })
-                .ToList(),
+            Themes = ThemeOptions(store, offered),
         };
 
         // ── Order rows: this store's, with a buyer id, whatever doorway placed them. Orders

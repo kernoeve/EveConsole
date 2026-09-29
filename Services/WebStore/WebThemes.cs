@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Xml.Linq;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.WebStore;
 
@@ -19,18 +21,24 @@ namespace EveConsole.Services.WebStore;
 public static class WebThemes
 {
     /// <summary>One theme the store can wear, in the order a picker should list them.</summary>
-    public sealed record Choice(string Key, string Name, string Parent, string Pair);
+    /// <param name="NameKey">Its name's entry in <see cref="ShellText"/>, the app's own theme
+    /// menu's: the owner reads it in the app's language, a store's buyers in the store's.</param>
+    public sealed record Choice(string Key, string NameKey, string Parent, string Pair)
+    {
+        /// <summary>The name in the language in force: the app's, or a store's inside its scope.</summary>
+        public string Name => ShellText.ResourceManager.GetString(NameKey, CultureInfo.CurrentUICulture) ?? Key;
+    }
 
     public static IReadOnlyList<Choice> All { get; } =
     [
-        new("dark",        "Dark",          "dark",  "light"),
-        new("light",       "Light",         "light", "dark"),
-        new("blue-dark",   "Blue (dark)",   "dark",  "blue-light"),
-        new("blue-light",  "Blue (light)",  "light", "blue-dark"),
-        new("pink-dark",   "Pink (dark)",   "dark",  "pink-light"),
-        new("pink-light",  "Pink (light)",  "light", "pink-dark"),
-        new("beige-dark",  "Beige (dark)",  "dark",  "beige-light"),
-        new("beige-light", "Beige (light)", "light", "beige-dark"),
+        new("dark",        nameof(ShellText.ThemeDark),       "dark",  "light"),
+        new("light",       nameof(ShellText.ThemeLight),      "light", "dark"),
+        new("blue-dark",   nameof(ShellText.ThemeBlueDark),   "dark",  "blue-light"),
+        new("blue-light",  nameof(ShellText.ThemeBlueLight),  "light", "blue-dark"),
+        new("pink-dark",   nameof(ShellText.ThemePinkDark),   "dark",  "pink-light"),
+        new("pink-light",  nameof(ShellText.ThemePinkLight),  "light", "pink-dark"),
+        new("beige-dark",  nameof(ShellText.ThemeBeigeDark),  "dark",  "beige-light"),
+        new("beige-light", nameof(ShellText.ThemeBeigeLight), "light", "beige-dark"),
     ];
 
     public const string DefaultKey = "dark";
