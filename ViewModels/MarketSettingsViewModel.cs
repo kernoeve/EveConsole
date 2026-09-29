@@ -7,6 +7,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -39,17 +40,43 @@ public class MarketPricingConfigVm : ReactiveObject
 {
     public int Id { get; init; }
 
+    /// <summary>
+    /// The price-source methods: the key the database keeps (MarketMethod), and the name shown.
+    /// ⚠️ Chosen and compared by key — the shown name is translated, the stored one is not.
+    /// </summary>
+    public static IReadOnlyList<Choice<string>> MethodChoices { get; } =
+    [
+        new(MarketMethod.EsiRegion,       SettingsText.MethodRegion),
+        new(MarketMethod.PlayerStructure, SettingsText.MethodPlayerStructure),
+        new(MarketMethod.Fuzzwork,        MarketMethod.Fuzzwork),
+    ];
+
     private string _method = MarketMethod.EsiRegion;
-    public string Method
+
+    /// <summary>The method's key, as the database keeps it.</summary>
+    public string MethodKey
     {
         get => _method;
         set
         {
             this.RaiseAndSetIfChanged(ref _method, value);
+            this.RaisePropertyChanged(nameof(Method));
             this.RaisePropertyChanged(nameof(IsFuzzwork));
             this.RaisePropertyChanged(nameof(IsEsiRegion));
             this.RaisePropertyChanged(nameof(IsPlayerStructure));
             this.RaisePropertyChanged(nameof(MethodBadge));
+        }
+    }
+
+    /// <summary>The method as the lists show it; a key none of them knows shows as itself.</summary>
+    public Choice<string> Method
+    {
+        get => MethodChoices.FirstOrDefault(o => o.Value == _method) ?? new(_method, _method);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            MethodKey = value.Value;
         }
     }
 
@@ -112,7 +139,7 @@ public class MarketPricingConfigVm : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isEnabled, value);
     }
 
-    private string _lastRefreshedText = "Never";
+    private string _lastRefreshedText = SettingsText.Never;
     public string LastRefreshedText
     {
         get => _lastRefreshedText;
@@ -173,8 +200,8 @@ public class MarketSettingsViewModel : ReactiveObject
 
     // Fuzzwork is intentionally omitted — too much of the app (per-order views, station filters,
     // structure markets) needs raw orders, which the Fuzzwork method does not provide.
-    public IReadOnlyList<string>              Methods    { get; }
-        = [MarketMethod.EsiRegion, MarketMethod.PlayerStructure];
+    public IReadOnlyList<Choice<string>>      Methods    { get; }
+        = [.. MarketPricingConfigVm.MethodChoices.Where(c => c.Value != MarketMethod.Fuzzwork)];
     public IReadOnlyList<string>              PriceTypes { get; }
         = [MarketPriceType.Midpoint, MarketPriceType.Buy, MarketPriceType.Sell];
 
@@ -475,21 +502,21 @@ public class MarketSettingsViewModel : ReactiveObject
                     "PurchaseThresholdPct"         = excluded."PurchaseThresholdPct"
                 """);
 
-            DefaultsStatus = "Saved.";
+            DefaultsStatus = SettingsText.Saved;
         }
-        catch (Exception ex) { DefaultsStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { DefaultsStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     private async Task RecalculateBuildCostsAsync()
     {
         if (_buildCostSvc == null) return;
-        BuildCostStatus = "Recalculating…";
+        BuildCostStatus = SettingsText.MarketRecalculating;
         try
         {
             await _buildCostSvc.RunAfterMarketRefreshAsync();
             BuildCostStatus = _buildCostSvc.StatusText;
         }
-        catch (Exception ex) { BuildCostStatus = $"Error: {ex.Message[..Math.Min(60, ex.Message.Length)]}"; }
+        catch (Exception ex) { BuildCostStatus = string.Format(CommonText.ErrorWithMessage, ex.Message[..Math.Min(60, ex.Message.Length)]); }
     }
 
     private void RebuildCharacterOptions(IEnumerable<Character> characters)
@@ -517,13 +544,13 @@ public class MarketSettingsViewModel : ReactiveObject
         var vm = new MarketPricingConfigVm
         {
             Id                   = c.Id,
-            Method               = c.Method,
+            MethodKey            = c.Method,
             LocationIdText       = c.LocationId.ToString(),
             PriceType            = c.PriceType,
             AuthCharId           = c.AuthCharId,
             IsEnabled            = c.IsEnabled,
             LastRefreshedText    = c.LastRefreshed.HasValue
-                ? c.LastRefreshed.Value.UtcDateTime.ToString("g") : "Never",
+                ? c.LastRefreshed.Value.UtcDateTime.ToString("g") : SettingsText.Never,
             LastStatus           = c.LastStatus,
             StationFilter        = c.StationFilter,
             UsePercentileFilter  = c.UsePercentileFilter,
@@ -551,14 +578,14 @@ public class MarketSettingsViewModel : ReactiveObject
             .OrderBy(id => id)
             .ToListAsync();
 
-        StationFilterOptions.Add(new StationFilterOption { LocationId = null, Name = "(All stations)" });
+        StationFilterOptions.Add(new StationFilterOption { LocationId = null, Name = SettingsText.MarketAllStations });
 
         var namedOptions = new List<StationFilterOption>();
         foreach (var locId in locationIds)
         {
             var station = await _db.SdeStations.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.StationId == (int)locId);
-            namedOptions.Add(new StationFilterOption { LocationId = locId, Name = station?.Name ?? $"Location {locId}" });
+            namedOptions.Add(new StationFilterOption { LocationId = locId, Name = station?.Name ?? string.Format(SettingsText.MarketLocationFallback, locId) });
         }
         foreach (var opt in namedOptions.OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase))
             StationFilterOptions.Add(opt);
@@ -573,7 +600,7 @@ public class MarketSettingsViewModel : ReactiveObject
         var config = new MarketPricingConfig
         {
             Method       = MarketMethod.EsiRegion,
-            LocationName = "New Market",
+            LocationName = SettingsText.MarketNewSourceName,
             LocationId   = 60003760,
             PriceType    = MarketPriceType.Midpoint,
             IsEnabled    = true,
@@ -586,7 +613,7 @@ public class MarketSettingsViewModel : ReactiveObject
         var vm = ToVm(config);
         Configs.Add(vm);
         Selected = vm;
-        Status = "New source added — fill in details and click Save.";
+        Status = SettingsText.MarketSourceAdded;
     }
 
     private async Task SaveAsync()
@@ -596,7 +623,7 @@ public class MarketSettingsViewModel : ReactiveObject
         var config = await _db.MarketPricingConfigs.FindAsync(Selected.Id);
         if (config is null) return;
 
-        config.Method               = Selected.Method;
+        config.Method               = Selected.MethodKey;
         config.LocationName         = Selected.LocationName;
         config.LocationId           = long.TryParse(Selected.LocationIdText, out var lid) ? lid : 0;
         config.PriceType            = Selected.PriceType;
@@ -607,7 +634,7 @@ public class MarketSettingsViewModel : ReactiveObject
         config.PercentilePercent    = Selected.PercentilePercent;
 
         await _db.SaveChangesAsync();
-        Status = $"Saved \"{config.LocationName}\".";
+        Status = string.Format(SettingsText.MarketSourceSaved, config.LocationName);
     }
 
     private async Task RemoveAsync()
@@ -627,21 +654,21 @@ public class MarketSettingsViewModel : ReactiveObject
         var removed = Selected;
         Configs.Remove(removed);
         Selected = Configs.FirstOrDefault();
-        Status = "Source removed.";
+        Status = SettingsText.MarketSourceRemoved;
     }
 
     private async Task RefreshAllAsync()
     {
         IsBusy = true;
-        Status = "Refreshing all sources…";
+        Status = SettingsText.MarketRefreshingAll;
         try
         {
             await SaveAsync();
             await Task.Run(async () => await _svc.RefreshAllAsync());
             await LoadAsync();
-            Status = "All sources refreshed.";
+            Status = SettingsText.MarketRefreshedAll;
         }
-        catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(CommonText.ErrorWithMessage, ex.Message); }
         finally { IsBusy = false; }
     }
 
@@ -649,7 +676,7 @@ public class MarketSettingsViewModel : ReactiveObject
     {
         if (Selected is null) return;
         IsBusy = true;
-        Status = $"Refreshing {Selected.LocationName}…";
+        Status = string.Format(SettingsText.MarketRefreshing, Selected.LocationName);
         try
         {
             await SaveAsync();
@@ -659,7 +686,7 @@ public class MarketSettingsViewModel : ReactiveObject
                 .FirstOrDefaultAsync(c => c.Id == Selected.Id);
             if (updated is not null)
             {
-                Selected.LastRefreshedText      = updated.LastRefreshed?.UtcDateTime.ToString("g") ?? "Never";
+                Selected.LastRefreshedText      = updated.LastRefreshed?.UtcDateTime.ToString("g") ?? SettingsText.Never;
                 Selected.LastStatus             = updated.LastStatus;
                 Selected.UsePercentileFilter    = updated.UsePercentileFilter;
                 Selected.PercentilePercent      = updated.PercentilePercent;
@@ -667,10 +694,10 @@ public class MarketSettingsViewModel : ReactiveObject
             await LoadStationFilterOptionsAsync(Selected);
 
             Status = Selected.LastStatus.StartsWith("OK")
-                ? $"Refresh complete — {Selected.LastRefreshedText} — {Selected.LastStatus}"
-                : $"Refresh failed: {Selected.LastStatus}";
+                ? string.Format(SettingsText.MarketRefreshComplete, Selected.LastRefreshedText, Selected.LastStatus)
+                : string.Format(SettingsText.MarketRefreshFailed, Selected.LastStatus);
         }
-        catch (Exception ex) { Status = $"Error: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(CommonText.ErrorWithMessage, ex.Message); }
         finally { IsBusy = false; }
     }
 
@@ -682,12 +709,12 @@ public class MarketSettingsViewModel : ReactiveObject
         if (Selected.IsEsiRegion) return;
         if (!long.TryParse(Selected.LocationIdText, out var id) || id <= 0)
         {
-            Selected.ResolvedLocationName = "Invalid ID";
+            Selected.ResolvedLocationName = SettingsText.MarketInvalidId;
             return;
         }
 
         Selected.IsResolvingLocation  = true;
-        Selected.ResolvedLocationName = "Resolving…";
+        Selected.ResolvedLocationName = SettingsText.MarketResolving;
         try
         {
             if (id >= 1_000_000_000_000L)
@@ -695,11 +722,11 @@ public class MarketSettingsViewModel : ReactiveObject
                 // Player-owned structure — GET /universe/structures/{id}/ (auth required)
                 if (!Selected.AuthCharId.HasValue)
                 {
-                    Selected.ResolvedLocationName = "Select an Auth Character to look up structures";
+                    Selected.ResolvedLocationName = SettingsText.MarketSelectAuthChar;
                     return;
                 }
                 var detailResult = await _esiClient.GetStructureAsync(Selected.AuthCharId.Value, id);
-                var resolvedName = detailResult.Data?.Name ?? "Structure not found (check auth)";
+                var resolvedName = detailResult.Data?.Name ?? SettingsText.MarketStructureNotFound;
                 Selected.ResolvedLocationName = resolvedName;
             }
             else
@@ -715,11 +742,11 @@ public class MarketSettingsViewModel : ReactiveObject
                 {
                     // Fall back to ESI /universe/stations/{id}/ for stations not in SDE
                     var detail = await _esiClient.GetStationAsync(id);
-                    Selected.ResolvedLocationName = detail?.Name ?? "Station not found";
+                    Selected.ResolvedLocationName = detail?.Name ?? SettingsText.MarketStationNotFound;
                 }
             }
         }
-        catch (Exception ex) { Selected.ResolvedLocationName = $"Error: {ex.Message}"; }
+        catch (Exception ex) { Selected.ResolvedLocationName = string.Format(CommonText.ErrorWithMessage, ex.Message); }
         finally { Selected.IsResolvingLocation = false; }
     }
 
@@ -730,11 +757,11 @@ public class MarketSettingsViewModel : ReactiveObject
         long? charId = Selected?.AuthCharId ?? CharacterOptions.FirstOrDefault()?.CharId;
         if (!charId.HasValue)
         {
-            SearchStatus = "Add an auth character to search";
+            SearchStatus = SettingsText.MarketSearchNeedsChar;
             return;
         }
 
-        SearchStatus = "Searching…";
+        SearchStatus = SettingsText.MarketSearching;
         LocationResults.Clear();
         try
         {
@@ -749,7 +776,7 @@ public class MarketSettingsViewModel : ReactiveObject
                     .Where(s => ids.Contains(s.StationId))
                     .OrderBy(s => s.Name)
                     .ToListAsync();
-                found.AddRange(stations.Select(s => new LocationResult(s.StationId, s.Name, "Station")));
+                found.AddRange(stations.Select(s => new LocationResult(s.StationId, s.Name, SettingsText.MarketResultStation)));
             }
 
             // Resolve structure IDs via ESI — fetch up to 100, parallelized with a cap of 10 concurrent.
@@ -764,8 +791,8 @@ public class MarketSettingsViewModel : ReactiveObject
                     {
                         var detailResult = await _esiClient.GetStructureAsync(charId.Value, sid);
                         return detailResult.Data is not null
-                            ? new LocationResult(sid, detailResult.Data.Name, "Structure")
-                            : new LocationResult(sid, $"Structure {sid}", "Structure");
+                            ? new LocationResult(sid, detailResult.Data.Name, SettingsText.MarketResultStructure)
+                            : new LocationResult(sid, string.Format(SettingsText.MarketStructureFallback, sid), SettingsText.MarketResultStructure);
                     }
                     finally { sem.Release(); }
                 });
@@ -776,9 +803,9 @@ public class MarketSettingsViewModel : ReactiveObject
             foreach (var r in found)
                 LocationResults.Add(r);
 
-            SearchStatus = found.Count == 0 ? "No results found" : $"{found.Count} result(s)";
+            SearchStatus = found.Count == 0 ? SettingsText.MarketNoResults : string.Format(SettingsText.MarketResultCount, found.Count);
         }
-        catch (Exception ex) { SearchStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { SearchStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     private void UseSelectedLocation()
@@ -790,6 +817,6 @@ public class MarketSettingsViewModel : ReactiveObject
         SelectedLocationResult        = null;
         LocationResults.Clear();
         LocationSearch = "";
-        SearchStatus   = "Location applied — click Save to persist.";
+        SearchStatus   = SettingsText.MarketLocationApplied;
     }
 }

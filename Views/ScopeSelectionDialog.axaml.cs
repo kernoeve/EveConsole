@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -9,8 +10,8 @@ public partial class ScopeSelectionDialog : Window
     {
         InitializeComponent();
         DialogTitle.Text = authContext == "corporation"
-            ? "Add Corporation — Select Scopes"
-            : "Add Character — Select Scopes";
+            ? SettingsText.ScopesTitleCorporation
+            : SettingsText.ScopesTitleCharacter;
     }
 
     private void OnContinue(object? sender, RoutedEventArgs e) => Close(true);

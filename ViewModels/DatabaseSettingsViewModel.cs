@@ -5,6 +5,7 @@ using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -64,13 +65,10 @@ public class DatabaseSettingsViewModel : ReactiveObject
     // user editing a file that nothing is reading and wondering why nothing changes.
     public string ConfigSourceText =>
         AppConfig.ProfileName is { } profile
-            ? $"Running under the \"{profile}\" profile: settings, database and caches are in "
-              + $"{AppConfig.AppDataDir}, and the ordinary installation's are untouched."
+            ? string.Format(SettingsText.DbConfigProfile, profile, AppConfig.AppDataDir)
         : AppConfig.UsingPortableConfig
-            ? $"Settings are being read from {AppConfig.PortableConfigPath} (beside the program), "
-              + "not from app data."
-            : "Settings are stored in app data. Place a config.json beside the program to give "
-              + "this installation its own.";
+            ? string.Format(SettingsText.DbConfigPortable, AppConfig.PortableConfigPath)
+            : SettingsText.DbConfigAppData;
 
     // ── PostgreSQL connection ─────────────────────────────────────────────────
 
@@ -181,12 +179,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     /// <summary>The paragraph above the copy button, a different offer in each case.</summary>
     public string CopyOfferText => DestinationIsEmpty
-        ? "The server database is empty. Everything in the SQLite database can be copied into it "
-          + "now. The SQLite file is only read, never changed, so this can be repeated if "
-          + "something goes wrong."
-        : $"The server database already holds {DestinationTables:N0} table(s). They can be erased "
-          + "and replaced with the contents of the SQLite database. The SQLite file is still only "
-          + "read and is not changed — but everything currently on the server is destroyed.";
+        ? SettingsText.DbCopyOfferEmpty
+        : string.Format(SettingsText.DbCopyOfferErase, DestinationTables);
 
     private double _copyPercent;
     /// <summary>
@@ -264,16 +258,27 @@ public class DatabaseSettingsViewModel : ReactiveObject
         }
     }
 
-    public ObservableCollection<string> BackupIntervals { get; } = ["Hourly", "Daily", "Weekly", "Monthly"];
+    /// <summary>How often to back up: the key the backup service keeps, and the word shown for it.</summary>
+    public IReadOnlyList<Choice<string>> BackupIntervals { get; } =
+    [
+        new("hourly",  SettingsText.BackupHourly),
+        new("daily",   SettingsText.BackupDaily),
+        new("weekly",  SettingsText.BackupWeekly),
+        new("monthly", SettingsText.BackupMonthly),
+    ];
 
-    private string _selectedInterval = "Daily";
-    public string SelectedInterval
+    private string _selectedInterval = "daily";
+    public Choice<string> SelectedInterval
     {
-        get => _selectedInterval;
+        // An unknown key backs up daily (DatabaseBackupService.IsBackupDue), so it shows as Daily.
+        get => BackupIntervals.FirstOrDefault(o => o.Value == _selectedInterval) ?? BackupIntervals[1];
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedInterval, value);
-            _ = _prefs.SetAsync(DatabaseBackupService.KeyInterval, value.ToLowerInvariant());
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedInterval = value.Value;
+            this.RaisePropertyChanged();
+            _ = _prefs.SetAsync(DatabaseBackupService.KeyInterval, value.Value);
         }
     }
 
@@ -290,7 +295,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     // ── Last backup info ──────────────────────────────────────────────────────
 
-    private string _lastBackupText = "Never";
+    private string _lastBackupText = SettingsText.Never;
     public string LastBackupText
     {
         get => _lastBackupText;
@@ -338,7 +343,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
         // Load persisted settings
         _backupEnabled    = backupSvc.BackupEnabled;
-        _selectedInterval = CapitalizeFirst(backupSvc.Interval);
+        _selectedInterval = backupSvc.Interval.ToLowerInvariant();
         _backupsToKeep    = backupSvc.KeepCount;
 
         // Startup-time database work reports itself here rather than in the error log: it succeeded
@@ -367,14 +372,14 @@ public class DatabaseSettingsViewModel : ReactiveObject
     /// </summary>
     public async Task TestPostgresAsync()
     {
-        TestResultText = "Connecting…";
+        TestResultText = SettingsText.DbTestConnecting;
         TestSucceeded  = false;
         CanOfferCopy   = false;
 
         if (string.IsNullOrWhiteSpace(Pg.Host) || string.IsNullOrWhiteSpace(Pg.Database)
             || string.IsNullOrWhiteSpace(Pg.Username))
         {
-            TestResultText = "Host, database and username are all required.";
+            TestResultText = SettingsText.DbTestFieldsRequired;
             return;
         }
 
@@ -402,8 +407,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
             if (!string.Equals(hasPublic, "True", StringComparison.OrdinalIgnoreCase))
             {
                 TestResultText =
-                    $"Connected to PostgreSQL {version}, but the database has no \"public\" schema, "
-                    + "so there is nowhere to create tables. Run: CREATE SCHEMA public;";
+                    string.Format(SettingsText.DbTestNoPublicSchema, version);
                 return;
             }
 
@@ -416,9 +420,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
             if (!string.Equals(canCreate, "True", StringComparison.OrdinalIgnoreCase))
             {
                 TestResultText =
-                    $"Connected to PostgreSQL {version}, but {Pg.Username} cannot create tables in "
-                    + "schema public. The simplest fix is to make this user the database's owner: "
-                    + $"ALTER DATABASE \"{Pg.Database}\" OWNER TO \"{Pg.Username}\";";
+                    string.Format(SettingsText.DbTestCannotCreate, version, Pg.Username, Pg.Database, Pg.Username);
                 return;
             }
 
@@ -432,22 +434,18 @@ public class DatabaseSettingsViewModel : ReactiveObject
             if (tables == 0)
             {
                 TestResultText = CanOfferCopy
-                    ? $"Connected to PostgreSQL {version}. The database is empty, so the data "
-                      + "already here can be copied into it."
-                    : $"Connected to PostgreSQL {version}. The database is empty and will be "
-                      + "built on the next start.";
+                    ? string.Format(SettingsText.DbTestEmptyCanCopy, version)
+                    : string.Format(SettingsText.DbTestEmptyBuiltOnStart, version);
             }
             else
             {
                 TestResultText =
-                    $"Connected to PostgreSQL {version}. The database already holds {tables:N0} "
-                    + "table(s), so it will be used as it is — nothing is copied into it "
-                    + "unless you erase it first.";
+                    string.Format(SettingsText.DbTestHasTables, version, tables);
             }
         }
         catch (Exception ex)
         {
-            TestResultText = $"Could not connect: {ex.Message}";
+            TestResultText = string.Format(SettingsText.DbTestFailed, ex.Message);
         }
     }
 
@@ -467,12 +465,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (ShowConfirmDialog is not null)
         {
             var ok = await ShowConfirmDialog(
-                "Save and restart",
-                $"Use {target} from now on?\n\n"
-                + "EVE Console restarts immediately, because the database is opened once at "
-                + "startup and nothing reopens it.\n\n"
-                + "This copies and deletes nothing. It changes only which database the "
-                + "application opens, and can be changed back the same way.");
+                SettingsText.DbSaveRestartTitle,
+                string.Format(SettingsText.DbSaveRestartConfirm, target));
             if (!ok) return;
         }
 
@@ -502,16 +496,10 @@ public class DatabaseSettingsViewModel : ReactiveObject
             if (ShowConfirmDialog is not null)
             {
                 var ok = await ShowConfirmDialog(
-                    "Background service",
-                    "The background service is installed and cannot run against SQLite.\n\n"
-                  + (windowsService
-                        ? "It will be stopped, and set not to start with Windows, before the change "
-                        + "is saved. Windows will ask for administrator approval.\n\n"
-                        : "It will be stopped, and set not to start at login, before the change is "
-                        + "saved. The unit is kept, so switching back to PostgreSQL only needs it "
-                        + "started again.\n\n")
-                  + "Leaving it running would keep it working against the PostgreSQL database you "
-                  + "are moving away from.\n\nContinue?");
+                    SettingsText.DbServiceTitle,
+                    windowsService
+                        ? SettingsText.DbServiceStopWindows
+                        : SettingsText.DbServiceStopLinux);
                 if (!ok) return;
             }
 
@@ -525,8 +513,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 // would leave a worker running against one database and this client opening
                 // another, which is the exact state this check exists to prevent.
                 StatusText = stopError == "Cancelled."
-                    ? "Cancelled — nothing was changed."
-                    : $"Could not stop the background service — {stopError}. Nothing was changed.";
+                    ? SettingsText.DbSaveCancelled
+                    : string.Format(SettingsText.DbServiceStopFailed, stopError);
                 return;
             }
         }
@@ -541,7 +529,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         {
             // ⚠️ After the config is written, not before. The elevated step reads the connection
             // back through AppConfig, so it has to be the new one by then.
-            StatusText = "Updating the background service…";
+            StatusText = SettingsText.DbServiceUpdating;
 
             var syncError = WindowsServiceControl.Repoint();
             if (syncError is not null)
@@ -549,8 +537,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 // The settings are saved — that was the user's instruction and it stands. What is
                 // refused is the restart, because a client on the new database beside a service on
                 // the old one is worth stopping to look at.
-                StatusText = $"Saved, but the background service still points at the old database — {syncError}. "
-                           + "Not restarting. Update it from the Polling tab, then restart.";
+                StatusText = string.Format(SettingsText.DbServiceRepointFailed, syncError);
                 this.RaisePropertyChanged(nameof(EngineChanged));
                 this.RaisePropertyChanged(nameof(CanSaveDbChoice));
                 return;
@@ -559,7 +546,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
         this.RaisePropertyChanged(nameof(EngineChanged));
         this.RaisePropertyChanged(nameof(CanSaveDbChoice));
-        StatusText = $"Set to {target}. Restarting…";
+        StatusText = string.Format(SettingsText.DbSetRestarting, target);
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
@@ -589,32 +576,22 @@ public class DatabaseSettingsViewModel : ReactiveObject
             if (ShowTypedConfirmDialog is null) return;
 
             var erase = await ShowTypedConfirmDialog(
-                "Erase the server database and copy",
-                $"This PERMANENTLY DESTROYS everything in the database \"{Pg.Database}\" on "
-                + $"{Pg.Host}.\n\n"
-                + $"All {DestinationTables:N0} table(s) in schema \"public\", and every row in "
-                + "them, are dropped. This CANNOT be undone. Nothing but a backup taken "
-                + "beforehand will bring the data back, and EVE Console does not take one for "
-                + "you.\n\n"
-                + $"The data here — {AppConfig.GetDbPath()} — is then copied in. That "
-                + "SQLite file is only read and is not changed.\n\n"
-                + "Be certain this is the right database before you continue.",
+                SettingsText.DbEraseTitle,
+                string.Format(SettingsText.DbEraseConfirm, Pg.Database, Pg.Host, DestinationTables, AppConfig.GetDbPath()),
                 "ERASE");
             if (!erase) return;
         }
         else if (ShowConfirmDialog is not null)
         {
             var ok = await ShowConfirmDialog(
-                "Copy data to PostgreSQL",
-                $"Copy everything from {AppConfig.GetDbPath()} into {Pg.Database} on {Pg.Host}?\n\n"
-                + "The SQLite database is only read and is not changed. A large database takes a "
-                + "while, and the app should not be used until it finishes.");
+                SettingsText.DbCopyTitle,
+                string.Format(SettingsText.DbCopyConfirm, AppConfig.GetDbPath(), Pg.Database, Pg.Host));
             if (!ok) return;
         }
 
         IsCopying     = true;
         _copyCts      = new CancellationTokenSource();
-        CopyStatusText = "Preparing the destination…";
+        CopyStatusText = SettingsText.DbCopyPreparing;
 
         CopyPercent   = 0;
         CopyTableText = "";
@@ -631,9 +608,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
             CopyPercent    = p.RowsExpected == 0
                            ? 0
                            : Math.Min(100.0, 100.0 * p.RowsTotal / p.RowsExpected);
-            CopyTableText  = $"{p.RowsTotal:N0} of {p.RowsExpected:N0} rows";
-            CopyStatusText = $"table {p.TableIndex:N0} of {p.TableCount:N0} — {p.Table}: "
-                           + $"{p.RowsInTable:N0} row(s)";
+            CopyTableText  = string.Format(SettingsText.DbCopyRows, p.RowsTotal, p.RowsExpected);
+            CopyStatusText = string.Format(SettingsText.DbCopyTable, p.TableIndex, p.TableCount, p.Table, p.RowsInTable);
             _copiedSoFar   = p.RowsTotal;
         });
 
@@ -668,10 +644,10 @@ public class DatabaseSettingsViewModel : ReactiveObject
                 // already have to be kept in step.
                 if (wipeFirst)
                 {
-                    status.Report("Erasing the destination database…");
+                    status.Report(SettingsText.DbCopyErasing);
                     var wiped = await PostgresWipeService.WipeAsync(pgConn, _copyCts.Token);
                     status.Report(
-                        $"Erased {wiped.Tables:N0} table(s). Building the schema…");
+                        string.Format(SettingsText.DbCopyErased, wiped.Tables));
                 }
 
                 using (var dst = OpenPg())
@@ -686,21 +662,18 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
             CopyPercent    = 100;
             CopyTableText  = "";
-            CopyStatusText = $"Copied {rows:N0} row(s). The SQLite database is unchanged. "
-                           + "Save the setting and restart to use PostgreSQL.";
+            CopyStatusText = string.Format(SettingsText.DbCopyDone, rows);
             CanOfferCopy   = false;
         }
         catch (OperationCanceledException)
         {
             // The partial copy is left where it is rather than tidied away: it is a state the
             // user can look at, and testing the connection again now offers to erase it.
-            CopyStatusText = $"Copy cancelled after {_copiedSoFar:N0} row(s). The server database "
-                           + "holds a partial copy — test the connection again to erase it "
-                           + "and start over.";
+            CopyStatusText = string.Format(SettingsText.DbCopyCancelled, _copiedSoFar);
         }
         catch (Exception ex)
         {
-            CopyStatusText = $"Copy failed: {ex.Message}";
+            CopyStatusText = string.Format(SettingsText.DbCopyFailed, ex.Message);
         }
         finally
         {
@@ -732,11 +705,8 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (ShowConfirmDialog is not null)
         {
             var ok = await ShowConfirmDialog(
-                "Stop the copy",
-                $"Stop copying? {_copiedSoFar:N0} row(s) have been copied so far and none of it "
-                + "is kept: a partial copy cannot be resumed, so starting again means erasing the "
-                + "server database and copying everything from the beginning.\n\n"
-                + "The copy is still running while this question is open.");
+                SettingsText.DbStopCopyTitle,
+                string.Format(SettingsText.DbStopCopyConfirm, _copiedSoFar));
             if (!ok) return;
         }
 
@@ -784,23 +754,20 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (ShowOpenFileDialog is null) return;
 
-        var file = await ShowOpenFileDialog("Choose a PostgreSQL dump to restore");
+        var file = await ShowOpenFileDialog(SettingsText.DbRestorePick);
         if (string.IsNullOrWhiteSpace(file)) return;
 
         if (ShowTypedConfirmDialog is not null)
         {
             var ok = await ShowTypedConfirmDialog(
-                $"Replace {Pg.Database} with this backup?",
-                $"Everything now in {Pg.Database} on {Pg.Host} will be dropped and replaced by "
-                + $"{Path.GetFileName(file)}.\n\n"
-                + "This cannot be undone, and anything polled since that backup was taken is "
-                + "lost. EVE Console will restart to do it.",
+                string.Format(SettingsText.DbRestoreTitle, Pg.Database),
+                string.Format(SettingsText.DbRestoreConfirm, Pg.Database, Pg.Host, Path.GetFileName(file)),
                 Pg.Database);
             if (!ok) return;
         }
 
         AppConfig.SetRestorePending(file);
-        StatusText = $"Restore scheduled: {Path.GetFileName(file)}. Restarting…";
+        StatusText = string.Format(SettingsText.DbRestoreScheduled, Path.GetFileName(file));
         RequestRestart?.Invoke();
     }
 
@@ -812,16 +779,16 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
     public async Task CheckPgDumpAsync()
     {
-        PgDumpStatusText = "Looking for pg_dump…";
+        PgDumpStatusText = SettingsText.DbPgDumpLooking;
         var cs = AppConfig.GetPostgresConnection();
         if (string.IsNullOrWhiteSpace(cs))
         {
-            PgDumpStatusText = "No PostgreSQL connection is configured yet.";
+            PgDumpStatusText = SettingsText.DbPgDumpNoConnection;
             return;
         }
 
         try   { PgDumpStatusText = (await PgDumpService.ProbeAsync(cs)).Message; }
-        catch (Exception ex) { PgDumpStatusText = $"Could not check pg_dump: {ex.Message}"; }
+        catch (Exception ex) { PgDumpStatusText = string.Format(SettingsText.DbPgDumpCheckFailed, ex.Message); }
     }
 
     // ── Commands ──────────────────────────────────────────────────────────────
@@ -842,26 +809,26 @@ public class DatabaseSettingsViewModel : ReactiveObject
 
         if (_backupRunning)
         {
-            StatusText = "A backup is already running — it continues even with Settings closed.";
+            StatusText = SettingsText.DbBackupRunning;
             return;
         }
 
         _backupRunning = true;
         IsBusy = true;
-        StatusText = "Backing up…";
+        StatusText = SettingsText.DbBackingUp;
         try
         {
             var result = await _backupSvc.BackupNowAsync(DbPath);
             RefreshLastBackupText();
             StatusText = result is not null
-                ? $"Backup saved: {Path.GetFileName(result)}"
+                ? string.Format(SettingsText.DbBackupSaved, Path.GetFileName(result))
                 : DbEngine.IsPostgres
-                    ? "Backup failed — no PostgreSQL connection is configured."
-                    : "Backup failed — DB file not found.";
+                    ? SettingsText.DbBackupNoConnection
+                    : SettingsText.DbBackupNoFile;
         }
         catch (Exception ex)
         {
-            StatusText = $"Backup error: {ex.Message}";
+            StatusText = string.Format(SettingsText.DbBackupError, ex.Message);
         }
         finally { IsBusy = false; _backupRunning = false; }
     }
@@ -880,7 +847,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (ShowSaveFileDialog is null || ShowConfirmDialog is null) return;
 
-        var newPath = await ShowSaveFileDialog("Move or Rename Database…", Path.GetFileName(DbPath));
+        var newPath = await ShowSaveFileDialog(SettingsText.DbMovePick, Path.GetFileName(DbPath));
         if (newPath is null) return;
 
         if (string.Equals(newPath, DbPath, StringComparison.OrdinalIgnoreCase)) return;
@@ -890,20 +857,18 @@ public class DatabaseSettingsViewModel : ReactiveObject
             StringComparison.OrdinalIgnoreCase);
 
         var confirmed = await ShowConfirmDialog(
-            sameFolder ? "Rename Database" : "Move Database",
+            sameFolder ? SettingsText.DbRenameTitle : SettingsText.DbMoveTitle,
             string.Join("\n\n",
-                $"{(sameFolder ? "Rename" : "Move")} the database to:\n{newPath}",
-                "EVE Console will restart and do this before it finishes starting, because it has " +
-                "to happen while nothing is using the database.",
-                "Within the same drive this is immediate whatever the size. Moving to a different " +
-                "drive copies the file first and removes the original once that has succeeded, " +
-                "which may take a while on a large database.",
-                "Nothing is left at the old location."));
+                sameFolder ? string.Format(SettingsText.DbRenameTo, newPath)
+                           : string.Format(SettingsText.DbMoveTo, newPath),
+                SettingsText.DbMoveRestarts,
+                SettingsText.DbMoveSpeed,
+                SettingsText.DbMoveNothingLeft));
         if (!confirmed) return;
 
         AppConfig.SetPendingRelocation(newPath);
-        StatusText = sameFolder ? "Restarting to rename the database…"
-                                : "Restarting to move the database…";
+        StatusText = sameFolder ? SettingsText.DbRestartingRename
+                                : SettingsText.DbRestartingMove;
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
@@ -912,18 +877,18 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (ShowOpenFileDialog is null || ShowConfirmDialog is null) return;
 
-        var newPath = await ShowOpenFileDialog("Select Existing Database…");
+        var newPath = await ShowOpenFileDialog(SettingsText.DbPointPick);
         if (newPath is null) return;
 
         if (string.Equals(newPath, DbPath, StringComparison.OrdinalIgnoreCase)) return;
 
         var confirmed = await ShowConfirmDialog(
-            "Switch Database",
-            $"Point EVE Console to the existing database at:\n{newPath}\n\nThe application will restart.");
+            SettingsText.DbSwitchTitle,
+            string.Format(SettingsText.DbSwitchConfirm, newPath));
         if (!confirmed) return;
 
         AppConfig.SetDbPath(newPath);
-        StatusText = "Done. Restarting…";
+        StatusText = SettingsText.DbDoneRestarting;
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
@@ -936,21 +901,21 @@ public class DatabaseSettingsViewModel : ReactiveObject
     {
         if (ShowConfirmDialog is null || IsBusy) return;
 
-        var sizeText = File.Exists(DbPath) ? FormatBytes(new FileInfo(DbPath).Length) : "unknown size";
+        var sizeText = File.Exists(DbPath) ? FormatBytes(new FileInfo(DbPath).Length) : SettingsText.DbUnknownSize;
 
         // ⚠️ One line per paragraph. The dialog wraps to its own width, so hard breaks inside a
         // paragraph wrap twice and come out ragged.
         var message = string.Join("\n\n",
-            "Deleting data does not make the database file smaller. SQLite keeps the freed pages and reuses them later, so the file stays at its largest size. Shrinking rebuilds it and returns that space to your drive.",
-            $"The database is currently {sizeText}.",
-            "EVE Console will restart and shrink the database before it finishes starting, because the rebuild needs the database entirely to itself. This may take a while on a large database, and the app is unavailable until it finishes.",
-            "A backup copy is taken first and removed once the shrink succeeds.");
+            SettingsText.DbShrinkWhy,
+            string.Format(SettingsText.DbShrinkSize, sizeText),
+            SettingsText.DbShrinkRestarts,
+            SettingsText.DbShrinkBackup);
 
-        var confirmed = await ShowConfirmDialog("Shrink Database", message);
+        var confirmed = await ShowConfirmDialog(SettingsText.DbShrinkTitle, message);
         if (!confirmed) return;
 
         AppConfig.SetShrinkPending(true);
-        StatusText = "Restarting to shrink the database…";
+        StatusText = SettingsText.DbRestartingShrink;
         await Task.Delay(800);
         RequestRestart?.Invoke();
     }
@@ -973,7 +938,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
     }
     public bool CanAnalyse => !IsAnalysing;
 
-    private string _sizeStatusText = "Not measured yet.";
+    private string _sizeStatusText = SettingsText.DbSizeNotMeasured;
     public string SizeStatusText
     {
         get => _sizeStatusText;
@@ -1024,20 +989,15 @@ public class DatabaseSettingsViewModel : ReactiveObject
             // are still in use, so the figure reads as "reclaimable space" while being a floor far
             // below it. Only a VACUUM can answer the question people would ask of it.
             SizeSummaryText = DbEngine.IsPostgres
-                ? $"Database {FormatBytes(report.FileBytes)} across {report.Tables.Count:N0} tables. "
-                  + "Sizes are exact, including index and TOAST storage. Row counts are the "
-                  + "server's own estimates, so a table written heavily since its last analyze "
-                  + "reads low."
-                : $"File {FormatBytes(report.FileBytes)} across {report.Tables.Count:N0} tables. "
-                  + "Shares are of the space in use. Figures are measured and scaled to the file "
-                  + "— good for comparing tables, not exact byte counts.";
-            SizeStatusText = $"Loaded {DateTime.Now:HH:mm:ss}.";
+                ? string.Format(SettingsText.DbSizeSummaryPostgres, FormatBytes(report.FileBytes), report.Tables.Count)
+                : string.Format(SettingsText.DbSizeSummarySqlite, FormatBytes(report.FileBytes), report.Tables.Count);
+            SizeStatusText = string.Format(SettingsText.DbSizeLoaded, DateTime.Now);
 
             this.RaisePropertyChanged(nameof(HasTableSizes));
         }
         catch (Exception ex)
         {
-            SizeStatusText = $"Could not measure: {ex.Message}";
+            SizeStatusText = string.Format(SettingsText.DbSizeFailed, ex.Message);
         }
         finally { IsAnalysing = false; }
     }
@@ -1056,12 +1016,12 @@ public class DatabaseSettingsViewModel : ReactiveObject
             }
             else
             {
-                DbFileSizeText = "File not found";
+                DbFileSizeText = SettingsText.DbFileNotFound;
             }
         }
         catch
         {
-            DbFileSizeText = "Unknown";
+            DbFileSizeText = SettingsText.DbSizeUnknown;
         }
     }
 
@@ -1070,7 +1030,7 @@ public class DatabaseSettingsViewModel : ReactiveObject
         var last = _backupSvc.LastBackupUtc;
         if (last is null)
         {
-            LastBackupText = "Never";
+            LastBackupText = SettingsText.Never;
             return;
         }
         var local    = last.Value.ToLocalTime();
@@ -1085,9 +1045,6 @@ public class DatabaseSettingsViewModel : ReactiveObject
         if (bytes >= 1_024)         return $"{bytes / 1_024.0:F1} KB";
         return $"{bytes} B";
     }
-
-    private static string CapitalizeFirst(string s)
-        => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     public void Dispose() { }
 }
@@ -1108,11 +1065,11 @@ public sealed class TableSizeVm(TableSizeRow row, long usedBytes)
 
     /// <summary>Says outright when a figure came from a sample, so nobody reads four significant
     /// figures into a number that was extrapolated from 20,000 rows.</summary>
-    public string Method { get; } = row.Estimated ? "sampled" : "counted";
+    public string Method { get; } = row.Estimated ? SettingsText.DbSizeSampled : SettingsText.DbSizeCounted;
 
     public string Tooltip { get; } = row.IndexCount == 0
-        ? $"{row.Rows:N0} row(s), no indexes."
-        : $"{row.Rows:N0} row(s), {row.IndexCount} index(es) costing {Format(row.IndexBytes)}.";
+        ? string.Format(SettingsText.DbTableTipNoIndexes, row.Rows)
+        : string.Format(SettingsText.DbTableTipIndexes, row.Rows, row.IndexCount, Format(row.IndexBytes));
 
     private static string Format(long bytes)
     {

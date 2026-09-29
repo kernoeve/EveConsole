@@ -1,5 +1,6 @@
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -14,16 +15,17 @@ public class RetentionSectionVm : ReactiveObject
 {
     private readonly RetentionRule _rule;
     private readonly Func<int, Task<int>> _purge;
-    private readonly string _noun;
+    private readonly string _removedText;
     private readonly bool _loading;
 
-    /// <param name="noun">Plural, lower case — used in "Removed 1,234 killmails older than…".</param>
-    public RetentionSectionVm(RetentionRule rule, Func<int, Task<int>> purge, string noun)
+    /// <param name="removedText">What a purge that removed something says, as a whole sentence:
+    /// "Removed {0:N0} killmails older than {1:N0} days. …" — {0} the rows removed, {1} the days.</param>
+    public RetentionSectionVm(RetentionRule rule, Func<int, Task<int>> purge, string removedText)
     {
-        _loading = true;
-        _rule    = rule;
-        _purge   = purge;
-        _noun    = noun;
+        _loading     = true;
+        _rule        = rule;
+        _purge       = purge;
+        _removedText = removedText;
 
         _enabled = rule.Enabled;
         _days    = rule.Days;
@@ -70,8 +72,8 @@ public class RetentionSectionVm : ReactiveObject
 
     private void RefreshLastRun()
         => LastRunText = _rule.LastRunUtc is { } t
-            ? $"Last purged {t.ToLocalTime():yyyy-MM-dd HH:mm}"
-            : "Has not run yet.";
+            ? string.Format(SettingsText.RetentionLastPurged, t.ToLocalTime())
+            : SettingsText.RetentionNotRunYet;
 
     private string _status = "";
     public string Status
@@ -101,7 +103,7 @@ public class RetentionSectionVm : ReactiveObject
     {
         if (IsPurging) return;
         IsPurging = true;
-        Status = "Purging…";
+        Status = SettingsText.RetentionPurging;
         try
         {
             var removed = await _purge(Days);
@@ -112,13 +114,12 @@ public class RetentionSectionVm : ReactiveObject
             RefreshLastRun();
 
             Status = removed == 0
-                ? $"Nothing older than {Days:N0} days."
-                : $"Removed {removed:N0} {_noun} older than {Days:N0} days. The file will not " +
-                  "get smaller until it is compacted — see Database → Shrink Database.";
+                ? string.Format(SettingsText.RetentionNothingOlder, Days)
+                : string.Format(_removedText, removed, Days);
         }
         catch (Exception ex)
         {
-            Status = $"Purge failed: {ex.Message}";
+            Status = string.Format(SettingsText.RetentionPurgeFailed, ex.Message);
         }
         finally { IsPurging = false; }
     }
@@ -138,22 +139,28 @@ public class DataRetentionSettingsViewModel : ReactiveObject
     public DataRetentionSettingsViewModel(DataRetentionService retention)
     {
         ErrorLog = new RetentionSectionVm(
-            retention.ErrorLog, d => retention.PurgeErrorLogAsync(d), "entries");
+            retention.ErrorLog, d => retention.PurgeErrorLogAsync(d),
+            SettingsText.RetentionRemovedErrorLog);
 
         Killmails = new RetentionSectionVm(
-            retention.Killmails, d => retention.PurgeKillmailsAsync(d), "killmails");
+            retention.Killmails, d => retention.PurgeKillmailsAsync(d),
+            SettingsText.RetentionRemovedKillmails);
 
         PriceHistory = new RetentionSectionVm(
-            retention.PriceHistory, d => retention.PurgePriceHistoryAsync(d), "rows");
+            retention.PriceHistory, d => retention.PurgePriceHistoryAsync(d),
+            SettingsText.RetentionRemovedPriceHistory);
 
         GameLog = new RetentionSectionVm(
-            retention.GameLog, d => retention.PurgeGameLogAsync(d), "events");
+            retention.GameLog, d => retention.PurgeGameLogAsync(d),
+            SettingsText.RetentionRemovedGameLog);
 
         ChatMessages = new RetentionSectionVm(
-            retention.ChatMessages, d => retention.PurgeChatMessagesAsync(d), "messages");
+            retention.ChatMessages, d => retention.PurgeChatMessagesAsync(d),
+            SettingsText.RetentionRemovedChat);
 
         AgentTelemetry = new RetentionSectionVm(
-            retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d), "turns");
+            retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d),
+            SettingsText.RetentionRemovedAgent);
     }
 
     public RetentionSectionVm ErrorLog       { get; }

@@ -1878,4 +1878,1437 @@
     <value>The model runs on: {0}</value>
     <comment>Formatted text ({0} is filled in) in SettingsWindow.</comment>
   </data>
+  <data name="DbConfigProfile" xml:space="preserve">
+    <value>Running under the "{0}" profile: settings, database and caches are in {1}, and the ordinary installation's are untouched.</value>
+    <comment>Database tab: where settings are read from. {0} is the profile name, {1} a folder path.</comment>
+  </data>
+  <data name="DbConfigPortable" xml:space="preserve">
+    <value>Settings are being read from {0} (beside the program), not from app data.</value>
+    <comment>Database tab: where settings are read from. {0} is the path of config.json beside the program.</comment>
+  </data>
+  <data name="DbConfigAppData" xml:space="preserve">
+    <value>Settings are stored in app data. Place a config.json beside the program to give this installation its own.</value>
+    <comment>Database tab: where settings are read from. config.json is a file name; keep it.</comment>
+  </data>
+  <data name="DbCopyOfferEmpty" xml:space="preserve">
+    <value>The server database is empty. Everything in the SQLite database can be copied into it now. The SQLite file is only read, never changed, so this can be repeated if something goes wrong.</value>
+    <comment>Database tab, above the copy button, when the PostgreSQL database is empty.</comment>
+  </data>
+  <data name="DbCopyOfferErase" xml:space="preserve">
+    <value>The server database already holds {0:N0} table(s). They can be erased and replaced with the contents of the SQLite database. The SQLite file is still only read and is not changed — but everything currently on the server is destroyed.</value>
+    <comment>Database tab, above the erase-and-copy button. {0} is the number of tables already on the server.</comment>
+  </data>
+  <data name="BackupHourly" xml:space="preserve">
+    <value>Hourly</value>
+    <comment>Backup interval choice.</comment>
+  </data>
+  <data name="BackupDaily" xml:space="preserve">
+    <value>Daily</value>
+    <comment>Backup interval choice.</comment>
+  </data>
+  <data name="BackupWeekly" xml:space="preserve">
+    <value>Weekly</value>
+    <comment>Backup interval choice.</comment>
+  </data>
+  <data name="BackupMonthly" xml:space="preserve">
+    <value>Monthly</value>
+    <comment>Backup interval choice.</comment>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+    <comment>Last backup / last refresh: it has never happened.</comment>
+  </data>
+  <data name="DbTestConnecting" xml:space="preserve">
+    <value>Connecting…</value>
+    <comment>PostgreSQL connection test: status while connecting.</comment>
+  </data>
+  <data name="DbTestFieldsRequired" xml:space="preserve">
+    <value>Host, database and username are all required.</value>
+    <comment>PostgreSQL connection test: shown when a box is empty.</comment>
+  </data>
+  <data name="DbTestNoPublicSchema" xml:space="preserve">
+    <value>Connected to PostgreSQL {0}, but the database has no "public" schema, so there is nowhere to create tables. Run: CREATE SCHEMA public;</value>
+    <comment>PostgreSQL connection test. {0} is the server version. Keep the SQL (CREATE SCHEMA public;) as it is.</comment>
+  </data>
+  <data name="DbTestCannotCreate" xml:space="preserve">
+    <value>Connected to PostgreSQL {0}, but {1} cannot create tables in schema public. The simplest fix is to make this user the database's owner: ALTER DATABASE "{2}" OWNER TO "{3}";</value>
+    <comment>PostgreSQL connection test. {0} is the server version, {1} the user name, {2} the database name, {3} the user name again. Keep the SQL (ALTER DATABASE … OWNER TO …;) as it is.</comment>
+  </data>
+  <data name="DbTestEmptyCanCopy" xml:space="preserve">
+    <value>Connected to PostgreSQL {0}. The database is empty, so the data already here can be copied into it.</value>
+    <comment>PostgreSQL connection test succeeded. {0} is the server version.</comment>
+  </data>
+  <data name="DbTestEmptyBuiltOnStart" xml:space="preserve">
+    <value>Connected to PostgreSQL {0}. The database is empty and will be built on the next start.</value>
+    <comment>PostgreSQL connection test succeeded. {0} is the server version.</comment>
+  </data>
+  <data name="DbTestHasTables" xml:space="preserve">
+    <value>Connected to PostgreSQL {0}. The database already holds {1:N0} table(s), so it will be used as it is — nothing is copied into it unless you erase it first.</value>
+    <comment>PostgreSQL connection test succeeded. {0} is the server version, {1} the number of tables already there.</comment>
+  </data>
+  <data name="DbTestFailed" xml:space="preserve">
+    <value>Could not connect: {0}</value>
+    <comment>PostgreSQL connection test failed. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbSaveRestartTitle" xml:space="preserve">
+    <value>Save and restart</value>
+    <comment>Confirmation title: save the database choice and restart.</comment>
+  </data>
+  <data name="DbSaveRestartConfirm" xml:space="preserve">
+    <value>Use {0} from now on?
+
+EVE Console restarts immediately, because the database is opened once at startup and nothing reopens it.
+
+This copies and deletes nothing. It changes only which database the application opens, and can be changed back the same way.</value>
+    <comment>Confirmation before switching the database engine. {0} is SQLite or PostgreSQL.</comment>
+  </data>
+  <data name="DbServiceTitle" xml:space="preserve">
+    <value>Background service</value>
+    <comment>Confirmation title: the background service has to be stopped first.</comment>
+  </data>
+  <data name="DbServiceStopWindows" xml:space="preserve">
+    <value>The background service is installed and cannot run against SQLite.
+
+It will be stopped, and set not to start with Windows, before the change is saved. Windows will ask for administrator approval.
+
+Leaving it running would keep it working against the PostgreSQL database you are moving away from.
+
+Continue?</value>
+    <comment>Confirmation before switching to SQLite while the Windows background service is installed.</comment>
+  </data>
+  <data name="DbServiceStopLinux" xml:space="preserve">
+    <value>The background service is installed and cannot run against SQLite.
+
+It will be stopped, and set not to start at login, before the change is saved. The unit is kept, so switching back to PostgreSQL only needs it started again.
+
+Leaving it running would keep it working against the PostgreSQL database you are moving away from.
+
+Continue?</value>
+    <comment>Confirmation before switching to SQLite while the Linux (systemd) background service is installed.</comment>
+  </data>
+  <data name="DbSaveCancelled" xml:space="preserve">
+    <value>Cancelled — nothing was changed.</value>
+    <comment>Status after the Windows approval prompt was cancelled.</comment>
+  </data>
+  <data name="DbServiceStopFailed" xml:space="preserve">
+    <value>Could not stop the background service — {0}. Nothing was changed.</value>
+    <comment>Status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbServiceUpdating" xml:space="preserve">
+    <value>Updating the background service…</value>
+    <comment>Status while the background service is pointed at the new database.</comment>
+  </data>
+  <data name="DbServiceRepointFailed" xml:space="preserve">
+    <value>Saved, but the background service still points at the old database — {0}. Not restarting. Update it from the Polling tab, then restart.</value>
+    <comment>Status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbSetRestarting" xml:space="preserve">
+    <value>Set to {0}. Restarting…</value>
+    <comment>Status before restarting. {0} is SQLite or PostgreSQL.</comment>
+  </data>
+  <data name="DbEraseTitle" xml:space="preserve">
+    <value>Erase the server database and copy</value>
+    <comment>Typed confirmation title: erase the PostgreSQL database and copy the SQLite data into it.</comment>
+  </data>
+  <data name="DbEraseConfirm" xml:space="preserve">
+    <value>This PERMANENTLY DESTROYS everything in the database "{0}" on {1}.
+
+All {2:N0} table(s) in schema "public", and every row in them, are dropped. This CANNOT be undone. Nothing but a backup taken beforehand will bring the data back, and EVE Console does not take one for you.
+
+The data here — {3} — is then copied in. That SQLite file is only read and is not changed.
+
+Be certain this is the right database before you continue.</value>
+    <comment>Typed confirmation. {0} is the database name, {1} the server host, {2} the number of tables, {3} the SQLite file path.</comment>
+  </data>
+  <data name="DbCopyTitle" xml:space="preserve">
+    <value>Copy data to PostgreSQL</value>
+    <comment>Confirmation title.</comment>
+  </data>
+  <data name="DbCopyConfirm" xml:space="preserve">
+    <value>Copy everything from {0} into {1} on {2}?
+
+The SQLite database is only read and is not changed. A large database takes a while, and the app should not be used until it finishes.</value>
+    <comment>Confirmation. {0} is the SQLite file path, {1} the database name, {2} the server host.</comment>
+  </data>
+  <data name="DbCopyPreparing" xml:space="preserve">
+    <value>Preparing the destination…</value>
+    <comment>Copy status line.</comment>
+  </data>
+  <data name="DbCopyRows" xml:space="preserve">
+    <value>{0:N0} of {1:N0} rows</value>
+    <comment>Beside the copy progress bar. {0} is the rows copied, {1} the rows in all.</comment>
+  </data>
+  <data name="DbCopyTable" xml:space="preserve">
+    <value>table {0:N0} of {1:N0} — {2}: {3:N0} row(s)</value>
+    <comment>Copy status line. {0} is the table number, {1} the number of tables, {2} the table name, {3} its row count.</comment>
+  </data>
+  <data name="DbCopyErasing" xml:space="preserve">
+    <value>Erasing the destination database…</value>
+    <comment>Copy status line.</comment>
+  </data>
+  <data name="DbCopyErased" xml:space="preserve">
+    <value>Erased {0:N0} table(s). Building the schema…</value>
+    <comment>Copy status line. {0} is the number of tables dropped.</comment>
+  </data>
+  <data name="DbCopyDone" xml:space="preserve">
+    <value>Copied {0:N0} row(s). The SQLite database is unchanged. Save the setting and restart to use PostgreSQL.</value>
+    <comment>Copy status line when finished. {0} is the number of rows copied.</comment>
+  </data>
+  <data name="DbCopyCancelled" xml:space="preserve">
+    <value>Copy cancelled after {0:N0} row(s). The server database holds a partial copy — test the connection again to erase it and start over.</value>
+    <comment>Copy status line. {0} is the number of rows copied before it was cancelled.</comment>
+  </data>
+  <data name="DbCopyFailed" xml:space="preserve">
+    <value>Copy failed: {0}</value>
+    <comment>Copy status line. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbStopCopyTitle" xml:space="preserve">
+    <value>Stop the copy</value>
+    <comment>Confirmation title.</comment>
+  </data>
+  <data name="DbStopCopyConfirm" xml:space="preserve">
+    <value>Stop copying? {0:N0} row(s) have been copied so far and none of it is kept: a partial copy cannot be resumed, so starting again means erasing the server database and copying everything from the beginning.
+
+The copy is still running while this question is open.</value>
+    <comment>Confirmation. {0} is the number of rows copied so far.</comment>
+  </data>
+  <data name="DbRestorePick" xml:space="preserve">
+    <value>Choose a PostgreSQL dump to restore</value>
+    <comment>File picker title.</comment>
+  </data>
+  <data name="DbRestoreTitle" xml:space="preserve">
+    <value>Replace {0} with this backup?</value>
+    <comment>Typed confirmation title. {0} is the database name.</comment>
+  </data>
+  <data name="DbRestoreConfirm" xml:space="preserve">
+    <value>Everything now in {0} on {1} will be dropped and replaced by {2}.
+
+This cannot be undone, and anything polled since that backup was taken is lost. EVE Console will restart to do it.</value>
+    <comment>Typed confirmation. {0} is the database name, {1} the server host, {2} the backup file name.</comment>
+  </data>
+  <data name="DbRestoreScheduled" xml:space="preserve">
+    <value>Restore scheduled: {0}. Restarting…</value>
+    <comment>Status before restarting. {0} is the backup file name.</comment>
+  </data>
+  <data name="DbPgDumpLooking" xml:space="preserve">
+    <value>Looking for pg_dump…</value>
+    <comment>Status. pg_dump is a program name; keep it.</comment>
+  </data>
+  <data name="DbPgDumpNoConnection" xml:space="preserve">
+    <value>No PostgreSQL connection is configured yet.</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="DbPgDumpCheckFailed" xml:space="preserve">
+    <value>Could not check pg_dump: {0}</value>
+    <comment>Status. pg_dump is a program name. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbBackupRunning" xml:space="preserve">
+    <value>A backup is already running — it continues even with Settings closed.</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="DbBackingUp" xml:space="preserve">
+    <value>Backing up…</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="DbBackupSaved" xml:space="preserve">
+    <value>Backup saved: {0}</value>
+    <comment>Status. {0} is the backup file name.</comment>
+  </data>
+  <data name="DbBackupNoConnection" xml:space="preserve">
+    <value>Backup failed — no PostgreSQL connection is configured.</value>
+    <comment>Status.</comment>
+  </data>
+  <data name="DbBackupNoFile" xml:space="preserve">
+    <value>Backup failed — DB file not found.</value>
+    <comment>Status. DB is short for database.</comment>
+  </data>
+  <data name="DbBackupError" xml:space="preserve">
+    <value>Backup error: {0}</value>
+    <comment>Status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbMovePick" xml:space="preserve">
+    <value>Move or Rename Database…</value>
+    <comment>File picker title: where to move the database, or its new name.</comment>
+  </data>
+  <data name="DbRenameTitle" xml:space="preserve">
+    <value>Rename Database</value>
+    <comment>Confirmation title.</comment>
+  </data>
+  <data name="DbMoveTitle" xml:space="preserve">
+    <value>Move Database</value>
+    <comment>Confirmation title.</comment>
+  </data>
+  <data name="DbRenameTo" xml:space="preserve">
+    <value>Rename the database to:
+{0}</value>
+    <comment>Confirmation, first paragraph. {0} is the new path, on a line of its own.</comment>
+  </data>
+  <data name="DbMoveTo" xml:space="preserve">
+    <value>Move the database to:
+{0}</value>
+    <comment>Confirmation, first paragraph. {0} is the new path, on a line of its own.</comment>
+  </data>
+  <data name="DbMoveRestarts" xml:space="preserve">
+    <value>EVE Console will restart and do this before it finishes starting, because it has to happen while nothing is using the database.</value>
+    <comment>Confirmation of a move or rename, second paragraph.</comment>
+  </data>
+  <data name="DbMoveSpeed" xml:space="preserve">
+    <value>Within the same drive this is immediate whatever the size. Moving to a different drive copies the file first and removes the original once that has succeeded, which may take a while on a large database.</value>
+    <comment>Confirmation of a move or rename, third paragraph.</comment>
+  </data>
+  <data name="DbMoveNothingLeft" xml:space="preserve">
+    <value>Nothing is left at the old location.</value>
+    <comment>Confirmation of a move or rename, last paragraph.</comment>
+  </data>
+  <data name="DbRestartingRename" xml:space="preserve">
+    <value>Restarting to rename the database…</value>
+    <comment>Status before restarting.</comment>
+  </data>
+  <data name="DbRestartingMove" xml:space="preserve">
+    <value>Restarting to move the database…</value>
+    <comment>Status before restarting.</comment>
+  </data>
+  <data name="DbPointPick" xml:space="preserve">
+    <value>Select Existing Database…</value>
+    <comment>File picker title.</comment>
+  </data>
+  <data name="DbSwitchTitle" xml:space="preserve">
+    <value>Switch Database</value>
+    <comment>Confirmation title.</comment>
+  </data>
+  <data name="DbSwitchConfirm" xml:space="preserve">
+    <value>Point EVE Console to the existing database at:
+{0}
+
+The application will restart.</value>
+    <comment>Confirmation. {0} is the database file path, on a line of its own.</comment>
+  </data>
+  <data name="DbDoneRestarting" xml:space="preserve">
+    <value>Done. Restarting…</value>
+    <comment>Status before restarting.</comment>
+  </data>
+  <data name="DbUnknownSize" xml:space="preserve">
+    <value>unknown size</value>
+    <comment>Fills {0} in DbShrinkSize ("The database is currently {0}.") when the file size cannot be read.</comment>
+  </data>
+  <data name="DbShrinkWhy" xml:space="preserve">
+    <value>Deleting data does not make the database file smaller. SQLite keeps the freed pages and reuses them later, so the file stays at its largest size. Shrinking rebuilds it and returns that space to your drive.</value>
+    <comment>Shrink confirmation, first paragraph.</comment>
+  </data>
+  <data name="DbShrinkSize" xml:space="preserve">
+    <value>The database is currently {0}.</value>
+    <comment>Shrink confirmation, second paragraph. {0} is the file size, e.g. 3.2 GB, or DbUnknownSize.</comment>
+  </data>
+  <data name="DbShrinkRestarts" xml:space="preserve">
+    <value>EVE Console will restart and shrink the database before it finishes starting, because the rebuild needs the database entirely to itself. This may take a while on a large database, and the app is unavailable until it finishes.</value>
+    <comment>Shrink confirmation, third paragraph.</comment>
+  </data>
+  <data name="DbShrinkBackup" xml:space="preserve">
+    <value>A backup copy is taken first and removed once the shrink succeeds.</value>
+    <comment>Shrink confirmation, last paragraph.</comment>
+  </data>
+  <data name="DbShrinkTitle" xml:space="preserve">
+    <value>Shrink Database</value>
+    <comment>Confirmation title.</comment>
+  </data>
+  <data name="DbRestartingShrink" xml:space="preserve">
+    <value>Restarting to shrink the database…</value>
+    <comment>Status before restarting.</comment>
+  </data>
+  <data name="DbSizeNotMeasured" xml:space="preserve">
+    <value>Not measured yet.</value>
+    <comment>Storage breakdown status before it is loaded.</comment>
+  </data>
+  <data name="DbSizeSummaryPostgres" xml:space="preserve">
+    <value>Database {0} across {1:N0} tables. Sizes are exact, including index and TOAST storage. Row counts are the server's own estimates, so a table written heavily since its last analyze reads low.</value>
+    <comment>Storage breakdown summary. {0} is the database size, e.g. 3.2 GB, {1} the number of tables. TOAST is PostgreSQL's own term; keep it.</comment>
+  </data>
+  <data name="DbSizeSummarySqlite" xml:space="preserve">
+    <value>File {0} across {1:N0} tables. Shares are of the space in use. Figures are measured and scaled to the file — good for comparing tables, not exact byte counts.</value>
+    <comment>Storage breakdown summary. {0} is the file size, e.g. 3.2 GB, {1} the number of tables.</comment>
+  </data>
+  <data name="DbSizeLoaded" xml:space="preserve">
+    <value>Loaded {0:HH:mm:ss}.</value>
+    <comment>Storage breakdown status. {0} is the time it was loaded.</comment>
+  </data>
+  <data name="DbSizeFailed" xml:space="preserve">
+    <value>Could not measure: {0}</value>
+    <comment>Storage breakdown status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>File not found</value>
+    <comment>Size of the SQLite file, when there is no file.</comment>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>Size of the SQLite file, when it cannot be read.</comment>
+  </data>
+  <data name="DbSizeSampled" xml:space="preserve">
+    <value>sampled</value>
+    <comment>Storage breakdown, Method column: the figures were sampled.</comment>
+  </data>
+  <data name="DbSizeCounted" xml:space="preserve">
+    <value>counted</value>
+    <comment>Storage breakdown, Method column: the figures were counted exactly.</comment>
+  </data>
+  <data name="DbTableTipNoIndexes" xml:space="preserve">
+    <value>{0:N0} row(s), no indexes.</value>
+    <comment>Storage breakdown tooltip. {0} is the row count.</comment>
+  </data>
+  <data name="DbTableTipIndexes" xml:space="preserve">
+    <value>{0:N0} row(s), {1} index(es) costing {2}.</value>
+    <comment>Storage breakdown tooltip. {0} is the row count, {1} the number of indexes, {2} their size, e.g. 12.3 MB.</comment>
+  </data>
+  <data name="SvcTitleSystemd" xml:space="preserve">
+    <value>Background Service (systemd)</value>
+    <comment>Polling tab, section title on Linux. systemd is a program name; keep it.</comment>
+  </data>
+  <data name="SvcTitleWindows" xml:space="preserve">
+    <value>Background Service (Windows)</value>
+    <comment>Polling tab, section title on Windows.</comment>
+  </data>
+  <data name="SvcIntroSystemd" xml:space="preserve">
+    <value>Runs the background processing — ESI polling, pricing, contracts, alarms, the scheduler and backups — without EVE Console being open. Exactly one client does this work: if this app is open and already doing it, the unit waits and takes over when you close it.</value>
+    <comment>Polling tab, background service section on Linux. The unit is the systemd unit.</comment>
+  </data>
+  <data name="SvcIntroWindows" xml:space="preserve">
+    <value>Runs the background processing — ESI polling, pricing, contracts, alarms, the scheduler and backups — without EVE Console being open, starting automatically with Windows. Exactly one client does this work: if this app is open and already doing it, the service waits and takes over when you close it.</value>
+    <comment>Polling tab, background service section on Windows.</comment>
+  </data>
+  <data name="SvcInstallNoteSystemd" xml:space="preserve">
+    <value>Installed as a systemd user unit in ~/.config/systemd/user, so no root access and no password prompt. It runs as you, inside your login session, which is how it reaches your keyring for the saved database password — and why it starts when you log in rather than when the machine boots. For a machine that boots unattended, see the system unit in the project's packaging directory.</value>
+    <comment>Polling tab, background service on Linux. Keep the folder path ~/.config/systemd/user as it is.</comment>
+  </data>
+  <data name="SvcInstallNoteWindows" xml:space="preserve">
+    <value>Installing and removing ask for administrator approval once; starting and stopping afterwards do not. The service runs as LocalSystem, so a copy of the database connection is written to C:\ProgramData\EveConsole for it to read — that copy can be decrypted by anything running on this computer, unlike the one saved for your account. Removing the service deletes it.</value>
+    <comment>Polling tab, background service on Windows. LocalSystem is a Windows account name; keep it and the folder path.</comment>
+  </data>
+  <data name="SvcUpdateNoteSystemd" xml:space="preserve">
+    <value>Updating rewrites the unit to run this copy and restarts it.</value>
+    <comment>Polling tab, background service on Linux.</comment>
+  </data>
+  <data name="SvcUpdateNoteWindows" xml:space="preserve">
+    <value>Updating rewrites both what it runs and what it connects to, then restarts it. Changing the database here cannot do that on its own — writing the service's copy needs administrator approval.</value>
+    <comment>Polling tab, background service on Windows.</comment>
+  </data>
+  <data name="SvcInstallUnit" xml:space="preserve">
+    <value>Install unit</value>
+    <comment>Button (Linux): install the systemd unit.</comment>
+  </data>
+  <data name="SvcInstallService" xml:space="preserve">
+    <value>Install service</value>
+    <comment>Button (Windows): install the Windows service.</comment>
+  </data>
+  <data name="SvcRemoveUnit" xml:space="preserve">
+    <value>Remove unit</value>
+    <comment>Button (Linux): remove the systemd unit.</comment>
+  </data>
+  <data name="SvcRemoveService" xml:space="preserve">
+    <value>Remove service</value>
+    <comment>Button (Windows): remove the Windows service.</comment>
+  </data>
+  <data name="SvcUpdateUnit" xml:space="preserve">
+    <value>Update unit</value>
+    <comment>Button (Linux): update the systemd unit.</comment>
+  </data>
+  <data name="SvcUpdateService" xml:space="preserve">
+    <value>Update service</value>
+    <comment>Button (Windows): update the Windows service.</comment>
+  </data>
+  <data name="SvcRunsLabel" xml:space="preserve">
+    <value>Runs:</value>
+    <comment>Label before the program the Windows service runs.</comment>
+  </data>
+  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
+    <value>Show a notification-area icon, starting with Windows</value>
+    <comment>Checkbox (Windows): the notification-area icon starts with Windows.</comment>
+  </data>
+  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
+    <value>Show a notification-area icon, starting with your desktop session</value>
+    <comment>Checkbox (Linux): the notification-area icon starts with the desktop session.</comment>
+  </data>
+  <data name="SvcDatabaseNoteOk" xml:space="preserve">
+    <value>Requires PostgreSQL, which this client is using — the worker and every client share the one server.</value>
+    <comment>Polling tab, background service: this client is on PostgreSQL.</comment>
+  </data>
+  <data name="SvcDatabaseNoteSqlite" xml:space="preserve">
+    <value>Unavailable: this client is on SQLite. The database file is held by one process at a time, so a worker would stop this application starting at all. Switch to PostgreSQL on the Database tab first.</value>
+    <comment>Polling tab, background service: this client is on SQLite.</comment>
+  </data>
+  <data name="SvcUpdateReasonBoth" xml:space="preserve">
+    <value>This service is connected to a different database than this client, and it runs a different copy of EVE Console. It is doing background work somewhere you are not looking.</value>
+    <comment>Why the background service needs updating.</comment>
+  </data>
+  <data name="SvcUpdateReasonDatabase" xml:space="preserve">
+    <value>This service is connected to a different database than this client. Your database settings changed after it was installed; it is still working against the old one.</value>
+    <comment>Why the background service needs updating.</comment>
+  </data>
+  <data name="SvcUpdateReasonUnitCopy" xml:space="preserve">
+    <value>This unit starts a different copy of EVE Console, not the one you are using now — the file was moved, renamed, or replaced by a newer download. If that copy is an older version it will still run, and every client will then fail its version check against the database.</value>
+    <comment>Why the background service needs updating (Linux systemd unit).</comment>
+  </data>
+  <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
+    <value>This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.</value>
+    <comment>Why the background service needs updating (Windows service).</comment>
+  </data>
+  <data name="SvcTrayStartFailed" xml:space="preserve">
+    <value>Registered for next logon, but could not start it now — {0}</value>
+    <comment>Notification-area icon status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcTrayRunningWindows" xml:space="preserve">
+    <value>Running, and will start with Windows.</value>
+    <comment>Notification-area icon status.</comment>
+  </data>
+  <data name="SvcTrayRunningLinux" xml:space="preserve">
+    <value>Running, and will start with your desktop session.</value>
+    <comment>Notification-area icon status.</comment>
+  </data>
+  <data name="SvcTrayOffWindows" xml:space="preserve">
+    <value>Will not start with Windows. Any icon already showing stays until you choose Exit on it, or log off.</value>
+    <comment>Notification-area icon status. Exit is the icon's menu item.</comment>
+  </data>
+  <data name="SvcTrayOffLinux" xml:space="preserve">
+    <value>Will not start with your desktop session. Any icon already showing stays until you choose Exit on it, or log off.</value>
+    <comment>Notification-area icon status. Exit is the icon's menu item.</comment>
+  </data>
+  <data name="SvcTrayChangeFailed" xml:space="preserve">
+    <value>Could not change it — {0}</value>
+    <comment>Notification-area icon status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcChangingStartup" xml:space="preserve">
+    <value>Changing startup…</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcChangingStartupApprove" xml:space="preserve">
+    <value>Changing startup — approve the Windows prompt…</value>
+    <comment>Background service status, while Windows asks for approval.</comment>
+  </data>
+  <data name="SvcChangeStartupFailed" xml:space="preserve">
+    <value>Could not change startup — {0}</value>
+    <comment>Background service status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcRepointing" xml:space="preserve">
+    <value>Repointing…</value>
+    <comment>Background service status: pointing it at this copy of the app.</comment>
+  </data>
+  <data name="SvcRepointingApprove" xml:space="preserve">
+    <value>Repointing — approve the Windows prompt…</value>
+    <comment>Background service status, while Windows asks for approval.</comment>
+  </data>
+  <data name="SvcRepointFailed" xml:space="preserve">
+    <value>Repoint failed — {0}</value>
+    <comment>Background service status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcUnknownPath" xml:space="preserve">
+    <value>unknown</value>
+    <comment>Shown instead of the program the background service runs, when it cannot be read.</comment>
+  </data>
+  <data name="SvcNotInstalled" xml:space="preserve">
+    <value>Not installed</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcRunning" xml:space="preserve">
+    <value>Running</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcStoppedUntilLogin" xml:space="preserve">
+    <value>Installed, stopped — will start at your next login</value>
+    <comment>Background service status (Linux).</comment>
+  </data>
+  <data name="SvcStopped" xml:space="preserve">
+    <value>Installed, stopped</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcNotConfigured" xml:space="preserve">
+    <value>not configured</value>
+    <comment>Shown instead of the database the background service connects to.</comment>
+  </data>
+  <data name="SvcStoppedUntilBoot" xml:space="preserve">
+    <value>Installed, stopped — will start again at the next boot</value>
+    <comment>Background service status (Windows).</comment>
+  </data>
+  <data name="SvcStarting" xml:space="preserve">
+    <value>Starting…</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcStopping" xml:space="preserve">
+    <value>Stopping…</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcNotInstalledSqlite" xml:space="preserve">
+    <value>Not installed — a background service cannot run against SQLite.</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcInstalling" xml:space="preserve">
+    <value>Installing…</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcInstallingApprove" xml:space="preserve">
+    <value>Installing — approve the Windows prompt…</value>
+    <comment>Background service status, while Windows asks for approval.</comment>
+  </data>
+  <data name="SvcInstallFailed" xml:space="preserve">
+    <value>Install failed — {0}</value>
+    <comment>Background service status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcRemoving" xml:space="preserve">
+    <value>Removing…</value>
+    <comment>Background service status.</comment>
+  </data>
+  <data name="SvcRemovingApprove" xml:space="preserve">
+    <value>Removing — approve the Windows prompt…</value>
+    <comment>Background service status, while Windows asks for approval.</comment>
+  </data>
+  <data name="SvcRemoveFailed" xml:space="preserve">
+    <value>Remove failed — {0}</value>
+    <comment>Background service status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcStartFailed" xml:space="preserve">
+    <value>Start failed — {0}</value>
+    <comment>Background service status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcStopFailed" xml:space="preserve">
+    <value>Stop failed — {0}</value>
+    <comment>Background service status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SvcAccessDenied" xml:space="preserve">
+    <value>Windows refused — this account was not granted permission to start or stop it. Remove and re-add the service.</value>
+    <comment>Background service status when Windows refused to start or stop it.</comment>
+  </data>
+  <data name="StructureCharNone" xml:space="preserve">
+    <value>(none — try all)</value>
+    <comment>First entry in the structure-name character list: no character chosen, every one is tried.</comment>
+  </data>
+  <data name="ListAskingVoices" xml:space="preserve">
+    <value>Asking for the list of voices…</value>
+    <comment>Agent tab, under a voice list: status while the service is asked for its voices.</comment>
+  </data>
+  <data name="ListAskingModels" xml:space="preserve">
+    <value>Asking for the list of models…</value>
+    <comment>Agent tab, under a model list: status while the service is asked for its models.</comment>
+  </data>
+  <data name="ListNoAnswer" xml:space="preserve">
+    <value>no answer within 15 seconds.</value>
+    <comment>Fills {0} in ListFailedModels / ListFailedVoices when the service did not answer in time.</comment>
+  </data>
+  <data name="ListFailedVoices" xml:space="preserve">
+    <value>Could not get the list of voices — {0} {1}</value>
+    <comment>Agent tab, under a voice list. {0} is the reason (ListNoAnswer, or the service's own words in English), {1} what to do instead, e.g. "Type the voice ID instead." — may be empty.</comment>
+  </data>
+  <data name="ListFailedModels" xml:space="preserve">
+    <value>Could not get the list of models — {0} {1}</value>
+    <comment>Agent tab, under a model list. {0} is the reason (ListNoAnswer, or the service's own words in English), {1} what to do instead, e.g. "Type the model's name instead." — may be empty.</comment>
+  </data>
+  <data name="TypeModelNameInstead" xml:space="preserve">
+    <value>Type the model's name instead.</value>
+    <comment>Agent tab: what to do when a service's list of models cannot be had.</comment>
+  </data>
+  <data name="ModelLabelFree" xml:space="preserve">
+    <value>{0}  (free)</value>
+    <comment>Agent tab, a model in the role lists. {0} is the model's name; free: it costs nothing to use. Two spaces before the bracket.</comment>
+  </data>
+  <data name="ModelLabelPaid" xml:space="preserve">
+    <value>{0}  (paid)</value>
+    <comment>Agent tab, a model in the role lists. {0} is the model's name; paid: the service charges for it. Two spaces before the bracket.</comment>
+  </data>
+  <data name="ModelServiceLocal" xml:space="preserve">
+    <value>Local server — Ollama, LM Studio… (free)</value>
+    <comment>Agent tab, service choice for a model. Ollama and LM Studio are program names.</comment>
+  </data>
+  <data name="ModelServiceClaude" xml:space="preserve">
+    <value>Claude — Anthropic (paid)</value>
+    <comment>Agent tab, service choice for a model. Claude and Anthropic are names.</comment>
+  </data>
+  <data name="ModelServiceOpenAi" xml:space="preserve">
+    <value>OpenAI (paid)</value>
+    <comment>Agent tab, service choice for a model. OpenAI is a name.</comment>
+  </data>
+  <data name="ModelHintServerNames" xml:space="preserve">
+    <value>as the server names it</value>
+    <comment>Agent tab, hint in the model box: type the model's name as the server calls it.</comment>
+  </data>
+  <data name="ModelHintServiceNames" xml:space="preserve">
+    <value>as the service names it</value>
+    <comment>Agent tab, hint in the model box: type the model's name as the service calls it.</comment>
+  </data>
+  <data name="ModelHelpLocal" xml:space="preserve">
+    <value>The server must offer OpenAI's /v1/chat/completions, as Ollama, LM Studio and most local runners do.</value>
+    <comment>Agent tab, under the model box for a local server. Keep /v1/chat/completions as it is.</comment>
+  </data>
+  <data name="ModelNeedClaudeKey" xml:space="preserve">
+    <value>Enter the Claude key above to choose from Anthropic's models.</value>
+    <comment>Agent tab, under the model list when there is no Claude key yet.</comment>
+  </data>
+  <data name="ModelNeedOpenAiKey" xml:space="preserve">
+    <value>Enter the OpenAI key above to choose from OpenAI's models.</value>
+    <comment>Agent tab, under the model list when there is no OpenAI key yet.</comment>
+  </data>
+  <data name="ModelNeedServerAddress" xml:space="preserve">
+    <value>Enter the server's address to choose from its models.</value>
+    <comment>Agent tab, under the model list when there is no server address yet.</comment>
+  </data>
+  <data name="ModelListFoundClaude" xml:space="preserve">
+    <value>{0} models your key can use, newest first.</value>
+    <comment>Agent tab, under the model list. {0} is the number of models.</comment>
+  </data>
+  <data name="ModelListFoundOpenAi" xml:space="preserve">
+    <value>{0} models for conversation, newest first.</value>
+    <comment>Agent tab, under the model list. {0} is the number of models.</comment>
+  </data>
+  <data name="ModelListFoundLocal" xml:space="preserve">
+    <value>{0} models on the server.</value>
+    <comment>Agent tab, under the model list. {0} is the number of models.</comment>
+  </data>
+  <data name="ModelListEmptyLocal" xml:space="preserve">
+    <value>The server lists no models: pull one first, as "ollama pull" does.</value>
+    <comment>Agent tab, under the model list. "ollama pull" is a command; keep it.</comment>
+  </data>
+  <data name="ModelListEmpty" xml:space="preserve">
+    <value>The service lists no models for this key.</value>
+    <comment>Agent tab, under the model list.</comment>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Testing…</value>
+    <comment>Status while a model or a voice is being tested.</comment>
+  </data>
+  <data name="VoiceListFoundOpenAiModels" xml:space="preserve">
+    <value>{0} speech models your key can use, newest first.</value>
+    <comment>Agent tab, voice: under OpenAI's speech-model list. {0} is the number of models.</comment>
+  </data>
+  <data name="VoiceListEmptyOpenAiModels" xml:space="preserve">
+    <value>OpenAI lists no speech models for this key.</value>
+    <comment>Agent tab, voice: under OpenAI's speech-model list.</comment>
+  </data>
+  <data name="VoiceListOpenAiVoices" xml:space="preserve">
+    <value>The voices OpenAI documents for this model — it publishes no list to ask for.</value>
+    <comment>Agent tab, voice: under OpenAI's voice list.</comment>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyVoices" xml:space="preserve">
+    <value>Enter the ElevenLabs key above to choose from its voices.</value>
+    <comment>Agent tab, voice: under the ElevenLabs voice list when there is no key yet.</comment>
+  </data>
+  <data name="VoiceListFoundElevenLabsVoices" xml:space="preserve">
+    <value>{0} voices in your account.</value>
+    <comment>Agent tab, voice: under the ElevenLabs voice list. {0} is the number of voices.</comment>
+  </data>
+  <data name="VoiceListEmptyElevenLabsVoices" xml:space="preserve">
+    <value>Your account has no voices yet: add one from ElevenLabs' Voice Library.</value>
+    <comment>Agent tab, voice: under the ElevenLabs voice list. Voice Library is the name of ElevenLabs' page.</comment>
+  </data>
+  <data name="TypeVoiceIdInstead" xml:space="preserve">
+    <value>Type the voice ID instead.</value>
+    <comment>Agent tab, voice: what to do when ElevenLabs' list of voices cannot be had.</comment>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyModels" xml:space="preserve">
+    <value>Enter the ElevenLabs key above to choose from its models.</value>
+    <comment>Agent tab, voice: under the ElevenLabs model list when there is no key yet.</comment>
+  </data>
+  <data name="VoiceListFoundElevenLabsModels" xml:space="preserve">
+    <value>{0} models that can speak.</value>
+    <comment>Agent tab, voice: under the ElevenLabs model list. {0} is the number of models.</comment>
+  </data>
+  <data name="VoiceListEmptyElevenLabsModels" xml:space="preserve">
+    <value>ElevenLabs lists no speech models for this key.</value>
+    <comment>Agent tab, voice: under the ElevenLabs model list.</comment>
+  </data>
+  <data name="TypeModelIdInstead" xml:space="preserve">
+    <value>Type the model's ID instead.</value>
+    <comment>Agent tab, voice: what to do when ElevenLabs' list of models cannot be had.</comment>
+  </data>
+  <data name="VoiceNameHint" xml:space="preserve">
+    <value>{0} (the agent's name)</value>
+    <comment>Agent tab, hint in a voice's name box. {0} is the agent's name, which a voice without a name of its own goes by.</comment>
+  </data>
+  <data name="VoiceEngineKokoro" xml:space="preserve">
+    <value>Kokoro (on this PC, free)</value>
+    <comment>Agent tab, engine choice for a voice. Kokoro is a name.</comment>
+  </data>
+  <data name="VoiceEngineLocalServer" xml:space="preserve">
+    <value>Local server — Chatterbox, Orpheus, Kokoro-FastAPI… (free)</value>
+    <comment>Agent tab, engine choice for a voice. Chatterbox, Orpheus and Kokoro-FastAPI are program names.</comment>
+  </data>
+  <data name="VoiceEnginePiper" xml:space="preserve">
+    <value>Piper (on this PC, free)</value>
+    <comment>Agent tab, engine choice for a voice. Piper is a name.</comment>
+  </data>
+  <data name="VoiceEngineElevenLabs" xml:space="preserve">
+    <value>ElevenLabs (paid)</value>
+    <comment>Agent tab, engine choice for a voice. ElevenLabs is a name.</comment>
+  </data>
+  <data name="VoiceDownloading" xml:space="preserve">
+    <value>Downloading voice '{0}'…</value>
+    <comment>Agent tab, Piper voice download. {0} is the voice's name, e.g. en_US-libritts_r-medium.</comment>
+  </data>
+  <data name="VoiceModelReady" xml:space="preserve">
+    <value>Voice model ready.</value>
+    <comment>Agent tab, Piper voice download finished.</comment>
+  </data>
+  <data name="DownloadFailed" xml:space="preserve">
+    <value>Download failed: {0}</value>
+    <comment>Agent tab, a download failed. {0} is the reason, in English.</comment>
+  </data>
+  <data name="VoiceNeedOpenAiKey" xml:space="preserve">
+    <value>Enter the OpenAI key above to choose from OpenAI's speech models.</value>
+    <comment>Agent tab, voice: under OpenAI's speech-model list when there is no OpenAI key yet.</comment>
+  </data>
+  <data name="AgentHelpUserName" xml:space="preserve">
+    <value>What {0} calls you. Default: {1}. Set it to your main and they will use it.</value>
+    <comment>Agent tab, Personalisation. {0} is the agent's name, {1} the default name for you.</comment>
+  </data>
+  <data name="AgentHelpUserGuidance" xml:space="preserve">
+    <value>Given to {0} with every message, and declared to override their standard guidance — what your words mean, who people are, how you want them to behave. One instruction per line. You can also just tell them: "when I say home, I mean Jita 4-4" — they record it here themselves.</value>
+    <comment>Agent tab, Personalisation. {0} is the agent's name. The quoted instruction is an example; Jita 4-4 is a station name.</comment>
+  </data>
+  <data name="AgentHelpAgentName" xml:space="preserve">
+    <value>The name shown in the panel header and used when the agent refers to itself. Default: {0}.</value>
+    <comment>Agent tab, Personalisation. {0} is the default agent name.</comment>
+  </data>
+  <data name="AgentHeaderTitle" xml:space="preserve">
+    <value>{0} Agent</value>
+    <comment>Agent tab, section title. {0} is the agent's name.</comment>
+  </data>
+  <data name="AgentEnableCheckbox" xml:space="preserve">
+    <value>Enable {0} AI companion</value>
+    <comment>Agent tab, checkbox. {0} is the agent's name.</comment>
+  </data>
+  <data name="AgentHelpEnable" xml:space="preserve">
+    <value>When enabled, the {0} panel is available from the title bar. Requires a model set up below — with its key, or its server's address.</value>
+    <comment>Agent tab. {0} is the agent's name.</comment>
+  </data>
+  <data name="AgentHelpHistory" xml:space="preserve">
+    <value>History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {0} panel.</value>
+    <comment>Agent tab. {0} is the agent's name; ⌫ is the symbol on the button.</comment>
+  </data>
+  <data name="AgentHelpSummarization" xml:space="preserve">
+    <value>When the estimated conversation length crosses this value, {0} will silently compact older messages into a summary in the background — typically while you are reading their last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).</value>
+    <comment>Agent tab. {0} is the agent's name. Sonnet is a Claude model name.</comment>
+  </data>
+  <data name="AgentHelpTtsVolume" xml:space="preserve">
+    <value>Volume and mute are available directly in the {0} panel while it is open.</value>
+    <comment>Agent tab, Voice. {0} is the agent's name.</comment>
+  </data>
+  <data name="AgentHelpMic" xml:space="preserve">
+    <value>When configured, a mic button appears in the {0} panel. Hold it to record, release to transcribe.</value>
+    <comment>Agent tab, Speech Input. {0} is the agent's name.</comment>
+  </data>
+  <data name="AgentHelpPtt" xml:space="preserve">
+    <value>Hold this key to record — works even when the game has focus. F13-F20 are rarely captured by games and recommended as PTT keys. The mic button in the {0} panel always works regardless of this setting.</value>
+    <comment>Agent tab, Speech Input. {0} is the agent's name. F13-F20 are key names; PTT is push-to-talk.</comment>
+  </data>
+  <data name="VerbosityConcise" xml:space="preserve">
+    <value>Concise</value>
+    <comment>Response verbosity choice. ConciseShortDirectAnswersNote, under the list, names the three choices; keep them the same.</comment>
+  </data>
+  <data name="VerbosityBalanced" xml:space="preserve">
+    <value>Balanced</value>
+    <comment>Response verbosity choice. ConciseShortDirectAnswersNote, under the list, names the three choices; keep them the same.</comment>
+  </data>
+  <data name="VerbosityDetailed" xml:space="preserve">
+    <value>Detailed</value>
+    <comment>Response verbosity choice. ConciseShortDirectAnswersNote, under the list, names the three choices; keep them the same.</comment>
+  </data>
+  <data name="RoleNone" xml:space="preserve">
+    <value>None — the role simply fails</value>
+    <comment>Agent tab, Roles: the fallback list's first entry, no fallback model.</comment>
+  </data>
+  <data name="RoleSameAsConversation" xml:space="preserve">
+    <value>Same as the conversation</value>
+    <comment>Agent tab, Roles: use the conversation's model for this role too.</comment>
+  </data>
+  <data name="RoleFirstModel" xml:space="preserve">
+    <value>the first model</value>
+    <comment>Fills {0} in RoleSummaryOne / RoleSummarySplit when no model is chosen yet.</comment>
+  </data>
+  <data name="RoleSummaryOne" xml:space="preserve">
+    <value>{0} does everything: the conversation, the app's tools and every question about your data, with the whole prompt.</value>
+    <comment>Agent tab, under Roles. {0} is a model's name.</comment>
+  </data>
+  <data name="RoleSummarySplit" xml:space="preserve">
+    <value>{0} talks with you and works the app, with a prompt about half the size and no access to your data. Before each message it is asked, in one word, whether the message needs your data; if it does, {1} answers it instead, with the database and ESI. If a data question slips through, the conversation model hands it over itself. Start a message with /data or /chat to send it one way or the other regardless.</value>
+    <comment>Agent tab, under Roles. {0} is the conversation's model, {1} the data model. /data and /chat are commands; keep them.</comment>
+  </data>
+  <data name="AgentTestChooseModel" xml:space="preserve">
+    <value>Choose a model first.</value>
+    <comment>Result of Test This Model.</comment>
+  </data>
+  <data name="AgentTestNeedClaudeKey" xml:space="preserve">
+    <value>It needs the Claude key, above.</value>
+    <comment>Result of Test This Model.</comment>
+  </data>
+  <data name="AgentTestNeedOpenAiKey" xml:space="preserve">
+    <value>It needs the OpenAI key, above.</value>
+    <comment>Result of Test This Model.</comment>
+  </data>
+  <data name="AgentTestNeedAddress" xml:space="preserve">
+    <value>It needs the server's address.</value>
+    <comment>Result of Test This Model.</comment>
+  </data>
+  <data name="AgentTestNoAnswer" xml:space="preserve">
+    <value>It answered with nothing.</value>
+    <comment>Result of Test This Model.</comment>
+  </data>
+  <data name="AgentTestAnswered" xml:space="preserve">
+    <value>Answered in {0:0.0} s: "{1}"</value>
+    <comment>Result of Test This Model. {0} is the seconds it took (s = seconds), {1} the model's own answer.</comment>
+  </data>
+  <data name="AgentTestTimedOut" xml:space="preserve">
+    <value>No answer within 90 seconds.</value>
+    <comment>Result of Test This Model.</comment>
+  </data>
+  <data name="CacheTtl5Minutes" xml:space="preserve">
+    <value>5 minutes (default)</value>
+    <comment>Claude prompt-cache lifetime choice.</comment>
+  </data>
+  <data name="CacheTtl1Hour" xml:space="preserve">
+    <value>1 hour</value>
+    <comment>Claude prompt-cache lifetime choice.</comment>
+  </data>
+  <data name="SpeechInputNone" xml:space="preserve">
+    <value>None</value>
+    <comment>Speech input provider choice: none.</comment>
+  </data>
+  <data name="SpeechInputOpenAiWhisper" xml:space="preserve">
+    <value>OpenAiWhisper</value>
+    <comment>Speech input provider choice: OpenAI's Whisper service. Shown as written; may be written naturally.</comment>
+  </data>
+  <data name="SpeechInputLocalWhisper" xml:space="preserve">
+    <value>LocalWhisper</value>
+    <comment>Speech input provider choice: Whisper on this PC. Shown as written; may be written naturally.</comment>
+  </data>
+  <data name="TranscriptionNeedOpenAiKey" xml:space="preserve">
+    <value>Enter the OpenAI key above to choose from OpenAI's transcription models.</value>
+    <comment>Agent tab, Speech Input: under the transcription model list when there is no OpenAI key yet.</comment>
+  </data>
+  <data name="MicSystemDefault" xml:space="preserve">
+    <value>System default</value>
+    <comment>Microphone list, first entry: whatever the system's default input is.</comment>
+  </data>
+  <data name="TranscriptionListFound" xml:space="preserve">
+    <value>{0} transcription models your key can use, newest first.</value>
+    <comment>Agent tab, Speech Input: under the transcription model list. {0} is the number of models.</comment>
+  </data>
+  <data name="TranscriptionListEmpty" xml:space="preserve">
+    <value>OpenAI lists no transcription models for this key.</value>
+    <comment>Agent tab, Speech Input: under the transcription model list.</comment>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Saved.</value>
+    <comment>Status after saving settings.</comment>
+  </data>
+  <data name="AgentSpeechUnavailable" xml:space="preserve">
+    <value>Speech is not available.</value>
+    <comment>Result of Test This Voice.</comment>
+  </data>
+  <data name="VoiceTestSentence" xml:space="preserve">
+    <value>{0} voice test. Your AI companion is ready, Capsuleer.</value>
+    <comment>Spoken aloud by the voice being tested. {0} is the voice's name. Capsuleer is EVE's word for a player.</comment>
+  </data>
+  <data name="KokoroDownloading" xml:space="preserve">
+    <value>Downloading/loading model (~320 MB on first run)…</value>
+    <comment>Agent tab, Voice: Kokoro model status.</comment>
+  </data>
+  <data name="KokoroReady" xml:space="preserve">
+    <value>Kokoro model ready.</value>
+    <comment>Agent tab, Voice: Kokoro model status.</comment>
+  </data>
+  <data name="KokoroLoadFailed" xml:space="preserve">
+    <value>Load failed: {0}</value>
+    <comment>Agent tab, Voice: Kokoro model status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="WhisperDownloading" xml:space="preserve">
+    <value>Downloading {0}…</value>
+    <comment>Agent tab, Speech Input: model download. {0} is the model's name, e.g. tiny.</comment>
+  </data>
+  <data name="WhisperDownloaded" xml:space="preserve">
+    <value>Downloaded {0:F1} MB…</value>
+    <comment>Agent tab, Speech Input: model download progress. {0} is the megabytes so far.</comment>
+  </data>
+  <data name="WhisperModelReady" xml:space="preserve">
+    <value>Model '{0}' ready.</value>
+    <comment>Agent tab, Speech Input: model download finished. {0} is the model's name.</comment>
+  </data>
+  <data name="MethodRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Market tab, price-source method: every public order in one region, from ESI. EsiRegionFetchesAllNote describes it.</comment>
+  </data>
+  <data name="MethodPlayerStructure" xml:space="preserve">
+    <value>Player Structure</value>
+    <comment>Market tab, price-source method: the orders in one player-owned structure. PlayerStructureFetchesAllNote describes it.</comment>
+  </data>
+  <data name="MarketRecalculating" xml:space="preserve">
+    <value>Recalculating…</value>
+    <comment>Market tab, Build Costs status.</comment>
+  </data>
+  <data name="MarketAllStations" xml:space="preserve">
+    <value>(All stations)</value>
+    <comment>Market tab, station filter: the first entry, no filter.</comment>
+  </data>
+  <data name="MarketLocationFallback" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>Market tab, station filter: a location with no known name. {0} is its ID.</comment>
+  </data>
+  <data name="MarketNewSourceName" xml:space="preserve">
+    <value>New Market</value>
+    <comment>Market tab: the name a new price source starts with, until it is renamed.</comment>
+  </data>
+  <data name="MarketSourceAdded" xml:space="preserve">
+    <value>New source added — fill in details and click Save.</value>
+    <comment>Market tab status. Save is the button.</comment>
+  </data>
+  <data name="MarketSourceSaved" xml:space="preserve">
+    <value>Saved "{0}".</value>
+    <comment>Market tab status. {0} is the price source's name.</comment>
+  </data>
+  <data name="MarketSourceRemoved" xml:space="preserve">
+    <value>Source removed.</value>
+    <comment>Market tab status.</comment>
+  </data>
+  <data name="MarketRefreshingAll" xml:space="preserve">
+    <value>Refreshing all sources…</value>
+    <comment>Market tab status.</comment>
+  </data>
+  <data name="MarketRefreshedAll" xml:space="preserve">
+    <value>All sources refreshed.</value>
+    <comment>Market tab status.</comment>
+  </data>
+  <data name="MarketRefreshing" xml:space="preserve">
+    <value>Refreshing {0}…</value>
+    <comment>Market tab status. {0} is the price source's name.</comment>
+  </data>
+  <data name="MarketRefreshComplete" xml:space="preserve">
+    <value>Refresh complete — {0} — {1}</value>
+    <comment>Market tab status. {0} is when it was refreshed, {1} the source's own status line, in English.</comment>
+  </data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>Refresh failed: {0}</value>
+    <comment>Market tab status. {0} is the source's own status line, in English.</comment>
+  </data>
+  <data name="MarketInvalidId" xml:space="preserve">
+    <value>Invalid ID</value>
+    <comment>Market tab, beside the location ID.</comment>
+  </data>
+  <data name="MarketResolving" xml:space="preserve">
+    <value>Resolving…</value>
+    <comment>Market tab, beside the location ID, while its name is looked up.</comment>
+  </data>
+  <data name="MarketSelectAuthChar" xml:space="preserve">
+    <value>Select an Auth Character to look up structures</value>
+    <comment>Market tab, beside the location ID. Auth Character is the label of the list above.</comment>
+  </data>
+  <data name="MarketStructureNotFound" xml:space="preserve">
+    <value>Structure not found (check auth)</value>
+    <comment>Market tab, beside the location ID.</comment>
+  </data>
+  <data name="MarketStationNotFound" xml:space="preserve">
+    <value>Station not found</value>
+    <comment>Market tab, beside the location ID.</comment>
+  </data>
+  <data name="MarketSearchNeedsChar" xml:space="preserve">
+    <value>Add an auth character to search</value>
+    <comment>Market tab, location search status.</comment>
+  </data>
+  <data name="MarketSearching" xml:space="preserve">
+    <value>Searching…</value>
+    <comment>Market tab, location search status.</comment>
+  </data>
+  <data name="MarketResultStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Market tab, location search results, kind column (short): an NPC station.</comment>
+  </data>
+  <data name="MarketResultStructure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Market tab, location search results, kind column (short): a player-owned structure.</comment>
+  </data>
+  <data name="MarketStructureFallback" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Market tab, location search results: a structure whose name could not be read. {0} is its ID.</comment>
+  </data>
+  <data name="MarketNoResults" xml:space="preserve">
+    <value>No results found</value>
+    <comment>Market tab, location search status.</comment>
+  </data>
+  <data name="MarketResultCount" xml:space="preserve">
+    <value>{0} result(s)</value>
+    <comment>Market tab, location search status. {0} is the number of results.</comment>
+  </data>
+  <data name="MarketLocationApplied" xml:space="preserve">
+    <value>Location applied — click Save to persist.</value>
+    <comment>Market tab status. Save is the button.</comment>
+  </data>
+  <data name="SdeNotLoaded" xml:space="preserve">
+    <value>SDE not loaded</value>
+    <comment>SDE status before anything has been imported. SDE is CCP's Static Data Export; keep the name.</comment>
+  </data>
+  <data name="SdeChecking" xml:space="preserve">
+    <value>checking…</value>
+    <comment>Latest SDE build / Hoboleaks revision, while it is being checked.</comment>
+  </data>
+  <data name="SdeNotImportedShort" xml:space="preserve">
+    <value>SDE not imported</value>
+    <comment>Title bar, when no SDE has been imported yet. Keep SDE as it is.</comment>
+  </data>
+  <data name="SdeHoboNotImported" xml:space="preserve">
+    <value>Not imported</value>
+    <comment>Hoboleaks status before anything has been imported.</comment>
+  </data>
+  <data name="SdeCheckError" xml:space="preserve">
+    <value>error: {0}</value>
+    <comment>Latest SDE build / Hoboleaks revision, when the check failed. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SdeUnavailable" xml:space="preserve">
+    <value>unavailable</value>
+    <comment>Latest SDE build / Hoboleaks revision, when it could not be had.</comment>
+  </data>
+  <data name="SdeHoboRevision" xml:space="preserve">
+    <value>revision {0:N0}</value>
+    <comment>Latest Hoboleaks revision. {0} is the revision number.</comment>
+  </data>
+  <data name="SdeNotImported" xml:space="preserve">
+    <value>not imported</value>
+    <comment>Loaded SDE build / Hoboleaks data, when none has been imported.</comment>
+  </data>
+  <data name="SdeHoboImported" xml:space="preserve">
+    <value>revision {0:N0}, imported {1:yyyy-MM-dd HH:mm}</value>
+    <comment>Loaded Hoboleaks data. {0} is the revision number, {1} when it was imported.</comment>
+  </data>
+  <data name="SdeHoboImportedNoRevision" xml:space="preserve">
+    <value>last imported {0:yyyy-MM-dd HH:mm} (revision not recorded)</value>
+    <comment>Loaded Hoboleaks data, imported before revisions were recorded. {0} is when it was imported.</comment>
+  </data>
+  <data name="SdeStarting" xml:space="preserve">
+    <value>Starting…</value>
+    <comment>SDE / Hoboleaks import status: the import is starting.</comment>
+  </data>
+  <data name="SdeImportComplete" xml:space="preserve">
+    <value>SDE import complete.</value>
+    <comment>SDE import status.</comment>
+  </data>
+  <data name="SdeImportCompleteWarnings" xml:space="preserve">
+    <value>SDE import complete — {0} table(s) worth a look, see Errors.</value>
+    <comment>SDE import status. {0} is the number of tables; Errors is the name of the error log view.</comment>
+  </data>
+  <data name="SdeUpdateRequired" xml:space="preserve">
+    <value>⚠ Update required — {0}</value>
+    <comment>SDE / Hoboleaks import status: this version of the app cannot read the new data. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SdeImportRolledBack" xml:space="preserve">
+    <value>⚠ Import rolled back — {0}</value>
+    <comment>SDE / Hoboleaks import status: a table was lost, so nothing was changed. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SdeImportError" xml:space="preserve">
+    <value>Error: {0} — your previous SDE data has been kept.</value>
+    <comment>SDE import status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="HoboImportComplete" xml:space="preserve">
+    <value>Hoboleaks import complete.</value>
+    <comment>Hoboleaks import status. Hoboleaks is a site name.</comment>
+  </data>
+  <data name="HoboImportCompleteWarnings" xml:space="preserve">
+    <value>Hoboleaks import complete — {0} table(s) worth a look, see Errors.</value>
+    <comment>Hoboleaks import status. {0} is the number of tables; Errors is the name of the error log view.</comment>
+  </data>
+  <data name="HoboImportError" xml:space="preserve">
+    <value>Error: {0} — your previous Hoboleaks data has been kept.</value>
+    <comment>Hoboleaks import status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="SdeBuild" xml:space="preserve">
+    <value>build {0}  ({1:yyyy-MM-dd})</value>
+    <comment>An SDE build. {0} is its number, {1} its release date. Two spaces before the bracket.</comment>
+  </data>
+  <data name="SlackConnectedTo" xml:space="preserve">
+    <value>Connected to {0}.</value>
+    <comment>Slack tab status. {0} is the Slack workspace's name.</comment>
+  </data>
+  <data name="SlackWaitingForBrowser" xml:space="preserve">
+    <value>Waiting for Slack authorization in your browser… (Cancel if you closed it)</value>
+    <comment>Slack tab status while the browser is open. Cancel is the button.</comment>
+  </data>
+  <data name="SlackConnectedAs" xml:space="preserve">
+    <value>Connected — posting as {0} in {1}.</value>
+    <comment>Slack tab status. {0} is the Slack user, {1} the workspace.</comment>
+  </data>
+  <data name="SlackFailed" xml:space="preserve">
+    <value>Failed: {0}</value>
+    <comment>Slack tab status. {0} is Slack's own error, in English.</comment>
+  </data>
+  <data name="SlackConnectionCancelled" xml:space="preserve">
+    <value>Connection cancelled.</value>
+    <comment>Slack tab status.</comment>
+  </data>
+  <data name="SlackDisconnected" xml:space="preserve">
+    <value>Disconnected.</value>
+    <comment>Slack tab status.</comment>
+  </data>
+  <data name="SlackCheckingToken" xml:space="preserve">
+    <value>Checking token…</value>
+    <comment>Slack tab status.</comment>
+  </data>
+  <data name="SlackTokenCleared" xml:space="preserve">
+    <value>Token cleared.</value>
+    <comment>Slack tab status.</comment>
+  </data>
+  <data name="SlackWebhookNeedsNameUrl" xml:space="preserve">
+    <value>A webhook needs a name and an https:// URL.</value>
+    <comment>Slack tab, Webhooks. Keep https:// as it is.</comment>
+  </data>
+  <data name="SlackWebhookAdded" xml:space="preserve">
+    <value>Added "{0}".</value>
+    <comment>Slack tab, Webhooks. {0} is the webhook's name.</comment>
+  </data>
+  <data name="SlackAreaCorpTop10" xml:space="preserve">
+    <value>Corp Top 10</value>
+    <comment>Slack tab, Webhooks: a part of the app that posts, listed in SlackWebhookInUse.</comment>
+  </data>
+  <data name="SlackAreaMonthlySummary" xml:space="preserve">
+    <value>Monthly Summary</value>
+    <comment>Slack tab, Webhooks: a part of the app that posts, listed in SlackWebhookInUse.</comment>
+  </data>
+  <data name="SlackWebhookInUse" xml:space="preserve">
+    <value>"{0}" is still set for {1}. Point those somewhere else first.</value>
+    <comment>Slack tab, Webhooks. {0} is the webhook's name, {1} a list of the parts of the app still posting through it.</comment>
+  </data>
+  <data name="SlackWebhookRemoved" xml:space="preserve">
+    <value>Removed "{0}".</value>
+    <comment>Slack tab, Webhooks. {0} is the webhook's name.</comment>
+  </data>
+  <data name="SlackWebhookLabel" xml:space="preserve">
+    <value>Webhook: {0}</value>
+    <comment>Slack channel pickers: a webhook, beside the channels. {0} is the webhook's name.</comment>
+  </data>
+  <data name="SlackEnterTokenFirst" xml:space="preserve">
+    <value>Enter a token first.</value>
+    <comment>Slack tab status.</comment>
+  </data>
+  <data name="SlackChannelsFailed" xml:space="preserve">
+    <value>Could not load channels: {0}</value>
+    <comment>Slack tab status. {0} is Slack's own error, in English.</comment>
+  </data>
+  <data name="SlackChannelsAvailable" xml:space="preserve">
+    <value>{0:N0} channel(s) available.</value>
+    <comment>Slack tab status. {0} is the number of channels.</comment>
+  </data>
+  <data name="ChatIntelParsed" xml:space="preserve">
+    <value>Parsed {0:N0} sighting(s) from stored history.</value>
+    <comment>Chat Logs tab, intel status. {0} is the number of sightings.</comment>
+  </data>
+  <data name="ChatIntelFailed" xml:space="preserve">
+    <value>Intel parsing failed — {0}</value>
+    <comment>Chat Logs tab, intel status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="ChatIntelHelp" xml:space="preserve">
+    <value>Messages in the ticked channels are parsed into sightings: the system, how many were reported, and any pilots named. "clr" retires whatever was standing in that system. Sightings drive the Intel overlays on the Universe map.</value>
+    <comment>Chat Logs tab, intel help. clr is what pilots type in intel channels for "clear"; keep it.</comment>
+  </data>
+  <data name="ChatNoChannelsSelected" xml:space="preserve">
+    <value>No channels selected — nothing will be stored.</value>
+    <comment>Chat Logs tab, under the channel list.</comment>
+  </data>
+  <data name="ChatChannelsSelected" xml:space="preserve">
+    <value>{0:N0} of {1:N0} channel(s) selected.</value>
+    <comment>Chat Logs tab, under the channel list. {0} is the number ticked, {1} the number listed.</comment>
+  </data>
+  <data name="ChatImportAllFiles" xml:space="preserve">
+    <value>All {0:N0} file(s) for the selected channels will be processed.</value>
+    <comment>Chat Logs tab, past chat import. {0} is the number of files.</comment>
+  </data>
+  <data name="ChatImportFilesSince" xml:space="preserve">
+    <value>{0:N0} file(s) from the last {1:N0} day(s) will be processed.</value>
+    <comment>Chat Logs tab, past chat import. {0} is the number of files, {1} the number of days.</comment>
+  </data>
+  <data name="LogsCountFailed" xml:space="preserve">
+    <value>Could not count files — {0}</value>
+    <comment>Game/Chat Logs tab, past import. {0} is the reason, in English.</comment>
+  </data>
+  <data name="ChatFolderNotFound" xml:space="preserve">
+    <value>Could not find a local EVE chat log folder.</value>
+    <comment>Chat Logs tab, Detect button result.</comment>
+  </data>
+  <data name="ChatNoFolder" xml:space="preserve">
+    <value>No chat log folder found — add one below.</value>
+    <comment>Chat Logs tab, the folders being read.</comment>
+  </data>
+  <data name="LogsFolderUnreachable" xml:space="preserve">
+    <value>✗ unreachable — {0}</value>
+    <comment>Game/Chat Logs tab, a folder that cannot be reached. {0} is the folder's path.</comment>
+  </data>
+  <data name="GameLogImportAllFiles" xml:space="preserve">
+    <value>All {0:N0} log file(s) will be processed.</value>
+    <comment>Game Logs tab, past log import. {0} is the number of files.</comment>
+  </data>
+  <data name="GameLogImportFilesSince" xml:space="preserve">
+    <value>{0:N0} log file(s) modified in the last {1:N0} day(s) will be processed.</value>
+    <comment>Game Logs tab, past log import. {0} is the number of files, {1} the number of days.</comment>
+  </data>
+  <data name="GameLogNoFolder" xml:space="preserve">
+    <value>No game log folder found — add one below.</value>
+    <comment>Game Logs tab, the folders being read.</comment>
+  </data>
+  <data name="GameLogFolderNotFound" xml:space="preserve">
+    <value>Could not find a local EVE game log folder.</value>
+    <comment>Game Logs tab, Detect button result.</comment>
+  </data>
+  <data name="TimerMinimum" xml:space="preserve">
+    <value>(min: {0} {1})</value>
+    <comment>Polling tab, beside an interval: the smallest allowed. "min:" is short for minimum. {0} is the number, {1} its unit symbol (s or min).</comment>
+  </data>
+  <data name="TimerForceStarted" xml:space="preserve">
+    <value>started</value>
+    <comment>Polling tab, beside Force Now: the job was started now.</comment>
+  </data>
+  <data name="TimerForceDue" xml:space="preserve">
+    <value>due on the next cycle</value>
+    <comment>Polling tab, beside Force Now: it runs on the next polling cycle.</comment>
+  </data>
+  <data name="TimerMarketRefresh" xml:space="preserve">
+    <value>Market Price Refresh</value>
+    <comment>Polling tab, Other: a background job.</comment>
+  </data>
+  <data name="TimerPriceHistoryCheck" xml:space="preserve">
+    <value>Price History Check</value>
+    <comment>Polling tab, Other: a background job.</comment>
+  </data>
+  <data name="TimerPublicContracts" xml:space="preserve">
+    <value>Public Contracts (all regions)</value>
+    <comment>Polling tab, Other: a background job.</comment>
+  </data>
+  <data name="TimerContractItems" xml:space="preserve">
+    <value>Contract Items Pull</value>
+    <comment>Polling tab, Other: a background job.</comment>
+  </data>
+  <data name="TimerLpStoreOffers" xml:space="preserve">
+    <value>LP Store Offers (all NPC corps)</value>
+    <comment>Polling tab, Other: a background job. LP is loyalty points, NPC non-player.</comment>
+  </data>
+  <data name="TimerContractPricing" xml:space="preserve">
+    <value>Contract Pricing Rebuild</value>
+    <comment>Polling tab, Other: a background job.</comment>
+  </data>
+  <data name="MapStatsBackfilling" xml:space="preserve">
+    <value>Backfilling from the EVE Ref archive…</value>
+    <comment>Map Data tab status. EVE Ref is a site name.</comment>
+  </data>
+  <data name="MapStatsHistoryComplete" xml:space="preserve">
+    <value>History complete — keeping the current hour up to date</value>
+    <comment>Map Data tab status.</comment>
+  </data>
+  <data name="MapStatsWaiting" xml:space="preserve">
+    <value>Waiting to start</value>
+    <comment>Map Data tab status.</comment>
+  </data>
+  <data name="MapStatsNothingStored" xml:space="preserve">
+    <value>Nothing stored yet.</value>
+    <comment>Map Data tab, Coverage.</comment>
+  </data>
+  <data name="MapStatsCoverageRow" xml:space="preserve">
+    <value>{0,-24} {1,6:N0} buckets   {2,4:N0} days   {3} → {4}</value>
+    <comment>Map Data tab, one line of the Coverage table. {0} is the dataset's name, {1} the number of hourly buckets, {2} the number of days, {3} and {4} the first and last dates. The ,-24 ,6 ,4 after a number pad the columns; keep them.</comment>
+  </data>
+  <data name="Top10TypeCharacter" xml:space="preserve">
+    <value>character</value>
+    <comment>Corp Top 10 exclude list: a character. Lower case: shown in brackets after a name, and in the type list.</comment>
+  </data>
+  <data name="Top10TypeCorporation" xml:space="preserve">
+    <value>corporation</value>
+    <comment>Corp Top 10 exclude list: a corporation. Lower case: shown in brackets after a name, and in the type list.</comment>
+  </data>
+  <data name="Top10AddError" xml:space="preserve">
+    <value>Add error: {0}</value>
+    <comment>Corp Top 10 exclude list status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="Top10RemoveError" xml:space="preserve">
+    <value>Remove error: {0}</value>
+    <comment>Corp Top 10 exclude list status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="Top10SaveError" xml:space="preserve">
+    <value>Save error: {0}</value>
+    <comment>Corp Top 10 titles status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="Top10TitlesSaved" xml:space="preserve">
+    <value>Titles saved.</value>
+    <comment>Corp Top 10 titles status.</comment>
+  </data>
+  <data name="Top10PickName" xml:space="preserve">
+    <value>Pick a name from the list first.</value>
+    <comment>Corp Top 10 exclude list status.</comment>
+  </data>
+  <data name="Top10AlreadyExcluded" xml:space="preserve">
+    <value>{0} is already in the exclude list.</value>
+    <comment>Corp Top 10 exclude list status. {0} is a character or corporation name.</comment>
+  </data>
+  <data name="Top10Excluded" xml:space="preserve">
+    <value>Added {0} to exclude list.</value>
+    <comment>Corp Top 10 exclude list status. {0} is a character or corporation name.</comment>
+  </data>
+  <data name="Top10Unexcluded" xml:space="preserve">
+    <value>Removed {0} from exclude list.</value>
+    <comment>Corp Top 10 exclude list status. {0} is a character or corporation name.</comment>
+  </data>
+  <data name="RetentionLastPurged" xml:space="preserve">
+    <value>Last purged {0:yyyy-MM-dd HH:mm}</value>
+    <comment>Data Retention tab, one rule. {0} is when it last purged.</comment>
+  </data>
+  <data name="RetentionNotRunYet" xml:space="preserve">
+    <value>Has not run yet.</value>
+    <comment>Data Retention tab, one rule.</comment>
+  </data>
+  <data name="RetentionPurging" xml:space="preserve">
+    <value>Purging…</value>
+    <comment>Data Retention tab, status.</comment>
+  </data>
+  <data name="RetentionNothingOlder" xml:space="preserve">
+    <value>Nothing older than {0:N0} days.</value>
+    <comment>Data Retention tab, status. {0} is the number of days.</comment>
+  </data>
+  <data name="RetentionPurgeFailed" xml:space="preserve">
+    <value>Purge failed: {0}</value>
+    <comment>Data Retention tab, status. {0} is the reason, in English.</comment>
+  </data>
+  <data name="RetentionRemovedErrorLog" xml:space="preserve">
+    <value>Removed {0:N0} entries older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
+    <comment>Data Retention tab, Error Log status. {0} is the entries removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
+  </data>
+  <data name="RetentionRemovedKillmails" xml:space="preserve">
+    <value>Removed {0:N0} killmails older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
+    <comment>Data Retention tab, Kill Mails status. {0} is the killmails removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
+  </data>
+  <data name="RetentionRemovedPriceHistory" xml:space="preserve">
+    <value>Removed {0:N0} rows older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
+    <comment>Data Retention tab, Price History status. {0} is the rows removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
+  </data>
+  <data name="RetentionRemovedGameLog" xml:space="preserve">
+    <value>Removed {0:N0} events older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
+    <comment>Data Retention tab, Game Log status. {0} is the events removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
+  </data>
+  <data name="RetentionRemovedChat" xml:space="preserve">
+    <value>Removed {0:N0} messages older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
+    <comment>Data Retention tab, Chat Messages status. {0} is the messages removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
+  </data>
+  <data name="RetentionRemovedAgent" xml:space="preserve">
+    <value>Removed {0:N0} turns older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
+    <comment>Data Retention tab, Agent Activity status. {0} is the turns (agent exchanges) removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
+  </data>
+  <data name="ZkbNeverFull" xml:space="preserve">
+    <value>never</value>
+    <comment>Kill Mails tab: no day has been fully backfilled yet. Lower case: it fills {0} in "last full day: {0}".</comment>
+  </data>
+  <data name="ScopesTitleCorporation" xml:space="preserve">
+    <value>Add Corporation — Select Scopes</value>
+    <comment>Scope dialog title when adding a corporation. Scopes are ESI permissions.</comment>
+  </data>
+  <data name="ScopesTitleCharacter" xml:space="preserve">
+    <value>Add Character — Select Scopes</value>
+    <comment>Scope dialog title when adding a character. Scopes are ESI permissions.</comment>
+  </data>
+  <data name="ConfirmUpdateTitle" xml:space="preserve">
+    <value>Confirm Update</value>
+    <comment>Confirmation title (Characters tab, Update): the login was for a different character or corporation than the one selected; replace it?</comment>
+  </data>
+  <data name="FileTypeSqliteDatabase" xml:space="preserve">
+    <value>SQLite Database</value>
+    <comment>File picker: the kind of file, in the file-type list. SQLite is a name.</comment>
+  </data>
+  <data name="DbRestartFailed" xml:space="preserve">
+    <value>Could not restart ({0}). Close EVE Console and open it again to finish.</value>
+    <comment>Database tab status. {0} is the reason, in English.</comment>
+  </data>
 </root>

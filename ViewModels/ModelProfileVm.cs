@@ -6,6 +6,7 @@ using EveConsole.Agent;
 using EveConsole.Agent.Providers;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -53,7 +54,7 @@ public sealed class ModelProfileVm : ModelChoice
         _think    = p.Think;
         TestModelCommand   = ReactiveCommand.CreateFromTask(TestAsync);
         ModelList = new ServiceListChoice(() => _model, id => Model = id, ListSource, ListFound, ListEmpty,
-                                          "models", "Type the model's name instead.", Listed);
+                                          ServiceListChoice.Holds.Models, SettingsText.TypeModelNameInstead, Listed);
         _relist.Throttle(TimeSpan.FromMilliseconds(700))
                .ObserveOnUi("model list")
                .Subscribe(settled => { if (ReferenceEquals(_owner.SelectedModel, this)) _ = ModelList.LoadAsync(); });
@@ -70,7 +71,9 @@ public sealed class ModelProfileVm : ModelChoice
     };
 
     /// <summary>What the lists show: its name or what it is, and whether it costs money to use.</summary>
-    public override string Label => $"{ToProfile().Label}  ({(_provider == AgentProviderType.Local ? "free" : "paid")})";
+    public override string Label => _provider == AgentProviderType.Local
+        ? string.Format(SettingsText.ModelLabelFree, ToProfile().Label)
+        : string.Format(SettingsText.ModelLabelPaid, ToProfile().Label);
 
     /// <summary>Something the lists show was edited. (Not "Changed": that is ReactiveObject's own
     /// observable, and a method of that name hid it.)</summary>
@@ -102,9 +105,9 @@ public sealed class ModelProfileVm : ModelChoice
     /// <summary>The free one first.</summary>
     public static IReadOnlyList<ServiceOption> Services { get; } =
     [
-        new(AgentProviderType.Local,  "Local server — Ollama, LM Studio… (free)"),
-        new(AgentProviderType.Claude, "Claude — Anthropic (paid)"),
-        new(AgentProviderType.OpenAI, "OpenAI (paid)"),
+        new(AgentProviderType.Local,  SettingsText.ModelServiceLocal),
+        new(AgentProviderType.Claude, SettingsText.ModelServiceClaude),
+        new(AgentProviderType.OpenAI, SettingsText.ModelServiceOpenAi),
     ];
 
     public IReadOnlyList<ServiceOption> ServiceOptions => Services;
@@ -157,10 +160,10 @@ public sealed class ModelProfileVm : ModelChoice
     }
 
     /// <summary>For typing a name, when the service's list cannot be had.</summary>
-    public string ModelWatermark => _provider == AgentProviderType.Local ? "as the server names it" : "as the service names it";
+    public string ModelWatermark => _provider == AgentProviderType.Local ? SettingsText.ModelHintServerNames : SettingsText.ModelHintServiceNames;
 
     public string ModelHelp => _provider == AgentProviderType.Local
-        ? "The server must offer OpenAI's /v1/chat/completions, as Ollama, LM Studio and most local runners do."
+        ? SettingsText.ModelHelpLocal
         : "";
 
     private string _endpoint;
@@ -205,9 +208,9 @@ public sealed class ModelProfileVm : ModelChoice
         var question = $"{_provider}|{endpoint}|{key.Length}:{key.GetHashCode()}";   // not the key itself
         return _provider switch
         {
-            AgentProviderType.Claude when key.Length == 0      => ServiceListChoice.Source.Unavailable("Enter the Claude key above to choose from Anthropic's models.", question),
-            AgentProviderType.OpenAI when key.Length == 0      => ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's models.", question),
-            AgentProviderType.Local  when endpoint.Length == 0 => ServiceListChoice.Source.Unavailable("Enter the server's address to choose from its models.", question),
+            AgentProviderType.Claude when key.Length == 0      => ServiceListChoice.Source.Unavailable(SettingsText.ModelNeedClaudeKey, question),
+            AgentProviderType.OpenAI when key.Length == 0      => ServiceListChoice.Source.Unavailable(SettingsText.ModelNeedOpenAiKey, question),
+            AgentProviderType.Local  when endpoint.Length == 0 => ServiceListChoice.Source.Unavailable(SettingsText.ModelNeedServerAddress, question),
             AgentProviderType.Claude => new(null, question, ct => ClaudeProvider.ListModelsAsync(key, ct)),
             AgentProviderType.OpenAI => new(null, question, ct => OpenAiCompatibleProvider.ListOpenAiModelsAsync(key, ct)),
             _                        => new(null, question, ct => OpenAiCompatibleProvider.ListLocalModelsAsync(endpoint, ct)),
@@ -223,14 +226,14 @@ public sealed class ModelProfileVm : ModelChoice
 
     private string ListFound(int n) => _provider switch
     {
-        AgentProviderType.Claude => $"{n} models your key can use, newest first.",
-        AgentProviderType.OpenAI => $"{n} models for conversation, newest first.",
-        _                        => $"{n} models on the server.",
+        AgentProviderType.Claude => string.Format(SettingsText.ModelListFoundClaude, n),
+        AgentProviderType.OpenAI => string.Format(SettingsText.ModelListFoundOpenAi, n),
+        _                        => string.Format(SettingsText.ModelListFoundLocal, n),
     };
 
     private string ListEmpty() => _provider == AgentProviderType.Local
-        ? "The server lists no models: pull one first, as \"ollama pull\" does."
-        : "The service lists no models for this key.";
+        ? SettingsText.ModelListEmptyLocal
+        : SettingsText.ModelListEmpty;
 
     private bool _think;
     /// <summary>A local reasoning model may think before it answers — slower, never shown.</summary>
@@ -264,7 +267,7 @@ public sealed class ModelProfileVm : ModelChoice
     {
         TestOk     = false;
         TestFailed = false;
-        TestStatus = "Testing…";
+        TestStatus = SettingsText.Testing;
         (bool Ok, string Message) result;
         try   { result = await _owner.TestModelAsync(this); }
         catch (Exception ex) { result = (false, ex.GetBaseException().Message); }

@@ -6,6 +6,7 @@ using EveConsole.Agent;
 using EveConsole.Agent.Providers;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -47,21 +48,21 @@ public sealed class VoiceProfileVm : ReactiveObject
         DownloadPiperVoiceCommand = ReactiveCommand.Create(DownloadPiperVoice);
 
         OpenAiModelList = new ServiceListChoice(() => _openAiModel, id => OpenAiModel = id, OpenAiModelSource,
-            n => $"{n} speech models your key can use, newest first.", () => "OpenAI lists no speech models for this key.",
-            "models", "Type the model's name instead.", listed => _owner.AddListedRates(ListedRates.OpenAiSpeech, listed));
+            n => string.Format(SettingsText.VoiceListFoundOpenAiModels, n), () => SettingsText.VoiceListEmptyOpenAiModels,
+            ServiceListChoice.Holds.Models, SettingsText.TypeModelNameInstead, listed => _owner.AddListedRates(ListedRates.OpenAiSpeech, listed));
         OpenAiVoiceList = new ServiceListChoice(() => _openAiVoice, id => OpenAiVoice = id, OpenAiVoiceSource,
-            _ => "The voices OpenAI documents for this model — it publishes no list to ask for.", () => "",
-            "voices", "");
+            _ => SettingsText.VoiceListOpenAiVoices, () => "",
+            ServiceListChoice.Holds.Voices, "");
         ElevenLabsVoiceList = new ServiceListChoice(() => _elevenLabsVoiceId, id => ElevenLabsVoiceId = id,
-            () => ElevenLabsSource("voices", ElevenLabsTtsService.ListVoicesAsync),
-            n => $"{n} voices in your account.", () => "Your account has no voices yet: add one from ElevenLabs' Voice Library.",
-            "voices", "Type the voice ID instead.",
+            () => ElevenLabsSource("voices", SettingsText.VoiceNeedElevenLabsKeyVoices, ElevenLabsTtsService.ListVoicesAsync),
+            n => string.Format(SettingsText.VoiceListFoundElevenLabsVoices, n), () => SettingsText.VoiceListEmptyElevenLabsVoices,
+            ServiceListChoice.Holds.Voices, SettingsText.TypeVoiceIdInstead,
             // A voice kept from before names were: its name, now the list has it.
             listed => { if (_elevenLabsVoiceName.Length == 0 && VoiceNameFor(_elevenLabsVoiceId) is { Length: > 0 } name) { _elevenLabsVoiceName = name; this.RaisePropertyChanged(nameof(Label)); } });
         ElevenLabsModelList = new ServiceListChoice(() => _elevenLabsModel, id => ElevenLabsModel = id,
-            () => ElevenLabsSource("models", ElevenLabsTtsService.ListModelsAsync),
-            n => $"{n} models that can speak.", () => "ElevenLabs lists no speech models for this key.",
-            "models", "Type the model's ID instead.", listed => _owner.AddListedRates(ListedRates.ElevenLabs, listed));
+            () => ElevenLabsSource("models", SettingsText.VoiceNeedElevenLabsKeyModels, ElevenLabsTtsService.ListModelsAsync),
+            n => string.Format(SettingsText.VoiceListFoundElevenLabsModels, n), () => SettingsText.VoiceListEmptyElevenLabsModels,
+            ServiceListChoice.Holds.Models, SettingsText.TypeModelIdInstead, listed => _owner.AddListedRates(ListedRates.ElevenLabs, listed));
 
         _relist.Throttle(TimeSpan.FromMilliseconds(700))
                .ObserveOnUi("voice lists")
@@ -119,7 +120,7 @@ public sealed class VoiceProfileVm : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _name, value); RefreshLabel(); }
     }
 
-    public string NameWatermark => $"{_owner.DefaultName} (the agent's name)";
+    public string NameWatermark => string.Format(SettingsText.VoiceNameHint, _owner.DefaultName);
 
     // ── Engine ────────────────────────────────────────────────────────────────
 
@@ -132,11 +133,11 @@ public sealed class VoiceProfileVm : ReactiveObject
     /// <summary>The engines offered, the free ones first.</summary>
     public static IReadOnlyList<EngineOption> Engines { get; } =
     [
-        new(TtsProvider.Kokoro,      "Kokoro (on this PC, free)"),
-        new(TtsProvider.LocalServer, "Local server — Chatterbox, Orpheus, Kokoro-FastAPI… (free)"),
-        new(TtsProvider.Piper,       "Piper (on this PC, free)"),
-        new(TtsProvider.OpenAi,      "OpenAI (paid)"),
-        new(TtsProvider.ElevenLabs,  "ElevenLabs (paid)"),
+        new(TtsProvider.Kokoro,      SettingsText.VoiceEngineKokoro),
+        new(TtsProvider.LocalServer, SettingsText.VoiceEngineLocalServer),
+        new(TtsProvider.Piper,       SettingsText.VoiceEnginePiper),
+        new(TtsProvider.OpenAi,      SettingsText.ModelServiceOpenAi),
+        new(TtsProvider.ElevenLabs,  SettingsText.VoiceEngineElevenLabs),
     ];
 
     public IReadOnlyList<EngineOption> EngineOptions => Engines;
@@ -194,7 +195,7 @@ public sealed class VoiceProfileVm : ReactiveObject
     {
         TestSpoke  = false;
         TestFailed = false;
-        TestStatus = "Testing…";
+        TestStatus = SettingsText.Testing;
         VoiceTestResult result;
         try   { result = await _owner.TestVoiceAsync(this); }
         catch (Exception ex) { result = new VoiceTestResult(false, ex.GetBaseException().Message); }
@@ -267,7 +268,7 @@ public sealed class VoiceProfileVm : ReactiveObject
     {
         if (IsDownloadingPiper || _tts is null) return;
         IsDownloadingPiper  = true;
-        PiperDownloadStatus = $"Downloading voice '{_piperVoiceKey}'…";
+        PiperDownloadStatus = string.Format(SettingsText.VoiceDownloading, _piperVoiceKey);
         var key = _piperVoiceKey;
 
         _ = Task.Run(async () =>
@@ -277,9 +278,9 @@ public sealed class VoiceProfileVm : ReactiveObject
                 _tts.Piper.Configure(key);
                 await _tts.Piper.DownloadVoiceAsync(new Progress<string>(msg => PiperDownloadStatus = msg), CancellationToken.None);
                 this.RaisePropertyChanged(nameof(IsPiperVoiceDownloaded));
-                PiperDownloadStatus = "Voice model ready.";
+                PiperDownloadStatus = SettingsText.VoiceModelReady;
             }
-            catch (Exception ex) { PiperDownloadStatus = $"Download failed: {ex.Message}"; }
+            catch (Exception ex) { PiperDownloadStatus = string.Format(SettingsText.DownloadFailed, ex.Message); }
             finally { IsDownloadingPiper = false; }
         });
     }
@@ -317,7 +318,7 @@ public sealed class VoiceProfileVm : ReactiveObject
     {
         var key = _owner.OpenAiApiKey.Trim();
         return key.Length == 0
-            ? ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's speech models.", "none")
+            ? ServiceListChoice.Source.Unavailable(SettingsText.VoiceNeedOpenAiKey, "none")
             : new(null, Question("openai-tts", key), ct => OpenAiCompatibleProvider.ListOpenAiSpeechModelsAsync(key, ct));
     }
 
@@ -358,11 +359,14 @@ public sealed class VoiceProfileVm : ReactiveObject
     /// <summary>ElevenLabs' models that can speak, in its own order.</summary>
     public ServiceListChoice ElevenLabsModelList { get; }
 
-    private ServiceListChoice.Source ElevenLabsSource(string what, Func<string, CancellationToken, Task<IReadOnlyList<ModelListing>>> list)
+    /// <param name="what">Which list, for telling one question from another: "voices", "models".</param>
+    /// <param name="cannot">What the list says while there is no key to ask with.</param>
+    private ServiceListChoice.Source ElevenLabsSource(string what, string cannot,
+                                                      Func<string, CancellationToken, Task<IReadOnlyList<ModelListing>>> list)
     {
         var key = _owner.ElevenLabsApiKey.Trim();
         return key.Length == 0
-            ? ServiceListChoice.Source.Unavailable($"Enter the ElevenLabs key above to choose from its {what}.", "none")
+            ? ServiceListChoice.Source.Unavailable(cannot, "none")
             : new(null, Question("elevenlabs-" + what, key), ct => list(key, ct));
     }
 

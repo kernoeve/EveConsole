@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -45,7 +46,7 @@ public partial class SettingsWindow : Window
 
         var confirmHandler = vm.CharacterVm.ConfirmReplaceInteraction.RegisterHandler(async ctx =>
         {
-            var dialog = new ConfirmDialog(ctx.Input) { Title = "Confirm Update" };
+            var dialog = new ConfirmDialog(ctx.Input) { Title = SettingsText.ConfirmUpdateTitle };
             var result = await dialog.ShowDialog<bool>(this);
             ctx.SetOutput(result);
         });
@@ -163,7 +164,7 @@ public partial class SettingsWindow : Window
                 SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeChoices        =
                 [
-                    new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
+                    new FilePickerFileType(SettingsText.FileTypeSqliteDatabase) { Patterns = ["*.db"] }
                 ]
             });
             return file?.TryGetLocalPath();
@@ -179,7 +180,7 @@ public partial class SettingsWindow : Window
                 SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeFilter =
                 [
-                    new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
+                    new FilePickerFileType(SettingsText.FileTypeSqliteDatabase) { Patterns = ["*.db"] }
                 ]
             });
             return files.Count > 0 ? files[0].TryGetLocalPath() : null;
@@ -209,7 +210,7 @@ public partial class SettingsWindow : Window
             // now a failed start stays up and says so. The work is recorded either way and runs at
             // the next start.
             if (AppLauncher.Restart() is { } error)
-                dbVm.StatusText = $"Could not restart ({error}). Close EVE Console and open it again to finish.";
+                dbVm.StatusText = string.Format(SettingsText.DbRestartFailed, error);
         };
     }
 }

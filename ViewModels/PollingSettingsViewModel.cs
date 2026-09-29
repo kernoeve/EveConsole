@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -42,12 +43,12 @@ public class PollingSettingsViewModel : ReactiveObject
     // worse than one that says nothing.
 
     public string ServiceSectionTitle => ServiceIsSystemd
-        ? "Background Service (systemd)"
-        : "Background Service (Windows)";
+        ? SettingsText.SvcTitleSystemd
+        : SettingsText.SvcTitleWindows;
 
     public string ServiceIntro => ServiceIsSystemd
-        ? "Runs the background processing — ESI polling, pricing, contracts, alarms, the scheduler and backups — without EVE Console being open. Exactly one client does this work: if this app is open and already doing it, the unit waits and takes over when you close it."
-        : "Runs the background processing — ESI polling, pricing, contracts, alarms, the scheduler and backups — without EVE Console being open, starting automatically with Windows. Exactly one client does this work: if this app is open and already doing it, the service waits and takes over when you close it.";
+        ? SettingsText.SvcIntroSystemd
+        : SettingsText.SvcIntroWindows;
 
     /// <summary>
     /// ⚠️ Said plainly, because it is the one thing about the Linux unit somebody could get wrong
@@ -56,23 +57,23 @@ public class PollingSettingsViewModel : ReactiveObject
     /// of that is that it starts when you log in, not when the machine boots.
     /// </summary>
     public string ServiceInstallNote => ServiceIsSystemd
-        ? "Installed as a systemd user unit in ~/.config/systemd/user, so no root access and no password prompt. It runs as you, inside your login session, which is how it reaches your keyring for the saved database password — and why it starts when you log in rather than when the machine boots. For a machine that boots unattended, see the system unit in the project's packaging directory."
-        : "Installing and removing ask for administrator approval once; starting and stopping afterwards do not. The service runs as LocalSystem, so a copy of the database connection is written to C:\\ProgramData\\EveConsole for it to read — that copy can be decrypted by anything running on this computer, unlike the one saved for your account. Removing the service deletes it.";
+        ? SettingsText.SvcInstallNoteSystemd
+        : SettingsText.SvcInstallNoteWindows;
 
     public string ServiceUpdateNote => ServiceIsSystemd
-        ? "Updating rewrites the unit to run this copy and restarts it."
-        : "Updating rewrites both what it runs and what it connects to, then restarts it. Changing the database here cannot do that on its own — writing the service's copy needs administrator approval.";
+        ? SettingsText.SvcUpdateNoteSystemd
+        : SettingsText.SvcUpdateNoteWindows;
 
-    public string ServiceInstallButtonText => ServiceIsSystemd ? "Install unit"   : "Install service";
-    public string ServiceRemoveButtonText  => ServiceIsSystemd ? "Remove unit"    : "Remove service";
-    public string ServiceRepointButtonText => ServiceIsSystemd ? "Update unit"    : "Update service";
+    public string ServiceInstallButtonText => ServiceIsSystemd ? SettingsText.SvcInstallUnit   : SettingsText.SvcInstallService;
+    public string ServiceRemoveButtonText  => ServiceIsSystemd ? SettingsText.SvcRemoveUnit    : SettingsText.SvcRemoveService;
+    public string ServiceRepointButtonText => ServiceIsSystemd ? SettingsText.SvcUpdateUnit    : SettingsText.SvcUpdateService;
 
     /// <summary>"Runs:" needs no explaining on Windows; on Linux it is the line that matters most.</summary>
-    public string ServiceRunsLabel => ServiceIsSystemd ? "ExecStart:" : "Runs:";
+    public string ServiceRunsLabel => ServiceIsSystemd ? "ExecStart:" : SettingsText.SvcRunsLabel;
 
     public string TrayCheckboxText => OperatingSystem.IsWindows()
-        ? "Show a notification-area icon, starting with Windows"
-        : "Show a notification-area icon, starting with your desktop session";
+        ? SettingsText.SvcTrayCheckboxWindows
+        : SettingsText.SvcTrayCheckboxLinux;
 
     private bool _serviceInstalled;
     public bool ServiceInstalled
@@ -106,8 +107,8 @@ public class PollingSettingsViewModel : ReactiveObject
     public bool ServiceStrandedOnSqlite => _serviceInstalled && !DbEngine.IsPostgres;
 
     public string ServiceDatabaseNote => DbEngine.IsPostgres
-        ? "Requires PostgreSQL, which this client is using — the worker and every client share the one server."
-        : "Unavailable: this client is on SQLite. The database file is held by one process at a time, so a worker would stop this application starting at all. Switch to PostgreSQL on the Database tab first.";
+        ? SettingsText.SvcDatabaseNoteOk
+        : SettingsText.SvcDatabaseNoteSqlite;
 
     private bool _serviceRunning;
     public bool ServiceRunning
@@ -188,12 +189,12 @@ public class PollingSettingsViewModel : ReactiveObject
     /// </summary>
     public string ServiceUpdateReason =>
         _serviceOtherDatabase && _serviceOtherCopy
-            ? "This service is connected to a different database than this client, and it runs a different copy of EVE Console. It is doing background work somewhere you are not looking."
+            ? SettingsText.SvcUpdateReasonBoth
       : _serviceOtherDatabase
-            ? "This service is connected to a different database than this client. Your database settings changed after it was installed; it is still working against the old one."
+            ? SettingsText.SvcUpdateReasonDatabase
       : ServiceIsSystemd
-            ? "This unit starts a different copy of EVE Console, not the one you are using now — the file was moved, renamed, or replaced by a newer download. If that copy is an older version it will still run, and every client will then fail its version check against the database."
-      :       "This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.";
+            ? SettingsText.SvcUpdateReasonUnitCopy
+      :       SettingsText.SvcUpdateReasonServiceCopy;
 
     // ── The notification-area icon ────────────────────────────────────────────
 
@@ -220,16 +221,19 @@ public class PollingSettingsViewModel : ReactiveObject
                 TrayIconController.SetStartsAtLogon(value);
 
                 // Ticking a box should do something today, not next time they log in.
-                var session = OperatingSystem.IsWindows() ? "Windows" : "your desktop session";
+                var windows = OperatingSystem.IsWindows();
 
                 TrayStatus = value
                     ? TrayIconController.LaunchNow() is { } error
-                        ? $"Registered for next logon, but could not start it now — {error}"
-                        : $"Running, and will start with {session}."
-                    : $"Will not start with {session}. Any icon already showing stays until you choose "
-                    + "Exit on it, or log off.";
+                        ? string.Format(SettingsText.SvcTrayStartFailed, error)
+                        : windows
+                            ? SettingsText.SvcTrayRunningWindows
+                            : SettingsText.SvcTrayRunningLinux
+                    : windows
+                        ? SettingsText.SvcTrayOffWindows
+                        : SettingsText.SvcTrayOffLinux;
             }
-            catch (Exception ex) { TrayStatus = $"Could not change it — {ex.Message.Split('\n')[0]}"; }
+            catch (Exception ex) { TrayStatus = string.Format(SettingsText.SvcTrayChangeFailed, ex.Message.Split('\n')[0]); }
         }
     }
 
@@ -267,12 +271,12 @@ public class PollingSettingsViewModel : ReactiveObject
 
         if (OperatingSystem.IsLinux())
         {
-            ServiceStatus = "Changing startup…";
+            ServiceStatus = SettingsText.SvcChangingStartup;
             error = await SystemdSetStartsAtLoginAsync(automatic);
         }
         else if (OperatingSystem.IsWindows())
         {
-            ServiceStatus = "Changing startup — approve the Windows prompt…";
+            ServiceStatus = SettingsText.SvcChangingStartupApprove;
             error = await WindowsSetStartsWithWindowsAsync(automatic);
         }
         else { ServiceBusy = false; return; }
@@ -281,7 +285,7 @@ public class PollingSettingsViewModel : ReactiveObject
         RefreshServiceState();
 
         if (error is not null && error != "Cancelled.")
-            ServiceStatus = $"Could not change startup — {error}";
+            ServiceStatus = string.Format(SettingsText.SvcChangeStartupFailed, error);
     }
 
     /// <summary>Points the existing service at this copy and restarts it.</summary>
@@ -293,12 +297,12 @@ public class PollingSettingsViewModel : ReactiveObject
 
         if (OperatingSystem.IsLinux())
         {
-            ServiceStatus = "Repointing…";
+            ServiceStatus = SettingsText.SvcRepointing;
             error = await Task.Run(SystemdServiceControl.Repoint);
         }
         else if (OperatingSystem.IsWindows())
         {
-            ServiceStatus = "Repointing — approve the Windows prompt…";
+            ServiceStatus = SettingsText.SvcRepointingApprove;
             error = await Task.Run(WindowsServiceControl.Repoint);
         }
         else { ServiceBusy = false; return; }
@@ -307,7 +311,7 @@ public class PollingSettingsViewModel : ReactiveObject
         RefreshServiceState();
 
         if (error is not null && error != "Cancelled.")
-            ServiceStatus = $"Repoint failed — {error}";
+            ServiceStatus = string.Format(SettingsText.SvcRepointFailed, error);
     }
 
     /// <summary>
@@ -343,7 +347,7 @@ public class PollingSettingsViewModel : ReactiveObject
         // filename leaves it pointing at the OLD file — which still exists and still starts, so the
         // worker quietly comes up on the previous version and every client then fails its version
         // check against a database nobody has knowingly touched.
-        ServiceExePath     = installed ? SystemdServiceControl.InstalledExePath() ?? "unknown" : "";
+        ServiceExePath     = installed ? SystemdServiceControl.InstalledExePath() ?? SettingsText.SvcUnknownPath : "";
         ServiceIsThisCopy  = installed && SystemdServiceControl.PointsAtThisCopy();
         ServiceOtherCopy   = installed && !ServiceIsThisCopy;
         ServiceNeedsUpdate = ServiceOtherCopy;
@@ -352,10 +356,10 @@ public class PollingSettingsViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(StartsWithWindows));
         this.RaisePropertyChanged(nameof(ServiceUpdateReason));
 
-        ServiceStatus = !installed         ? "Not installed"
-                      : ServiceRunning      ? "Running"
-                      : _startsWithWindows  ? "Installed, stopped — will start at your next login"
-                      :                       "Installed, stopped";
+        ServiceStatus = !installed         ? SettingsText.SvcNotInstalled
+                      : ServiceRunning      ? SettingsText.SvcRunning
+                      : _startsWithWindows  ? SettingsText.SvcStoppedUntilLogin
+                      :                       SettingsText.SvcStopped;
     }
 
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
@@ -374,7 +378,7 @@ public class PollingSettingsViewModel : ReactiveObject
         // and the release copy would otherwise report the background work as its own. It is not:
         // different executable, and — since the machine config is one file per computer — quite
         // possibly a different database.
-        ServiceExePath      = status is null ? "" : WindowsServiceControl.InstalledExePath() ?? "unknown";
+        ServiceExePath      = status is null ? "" : WindowsServiceControl.InstalledExePath() ?? SettingsText.SvcUnknownPath;
         ServiceIsThisCopy   = status is not null && WindowsServiceControl.PointsAtThisCopy();
         ServiceOtherCopy    = status is not null && !ServiceIsThisCopy;
 
@@ -389,22 +393,22 @@ public class PollingSettingsViewModel : ReactiveObject
         _startsWithWindows  = status is not null && WindowsServiceControl.StartsWithWindows() == true;
         this.RaisePropertyChanged(nameof(StartsWithWindows));
 
-        ServiceDatabase       = status is null ? "" : MachineConfig.DescribeConnection() ?? "not configured";
+        ServiceDatabase       = status is null ? "" : MachineConfig.DescribeConnection() ?? SettingsText.SvcNotConfigured;
         ServiceOtherDatabase  = status is not null && !MachineConfig.MatchesConnection(AppConfig.GetPostgresConnection());
         ServiceNeedsUpdate    = ServiceOtherCopy || ServiceOtherDatabase;
         this.RaisePropertyChanged(nameof(ServiceUpdateReason));
         ServiceStatus    = status switch
         {
-            null                                                  => "Not installed",
-            System.ServiceProcess.ServiceControllerStatus.Running      => "Running",
+            null                                                  => SettingsText.SvcNotInstalled,
+            System.ServiceProcess.ServiceControllerStatus.Running      => SettingsText.SvcRunning,
             // ⚠️ Stopped is not the same as staying stopped. A service left on automatic start is
             // back the next time the machine boots, and somebody who pressed Stop to make it go
             // away has been told it did.
             System.ServiceProcess.ServiceControllerStatus.Stopped      =>
-                _startsWithWindows ? "Installed, stopped — will start again at the next boot"
-                                   : "Installed, stopped",
-            System.ServiceProcess.ServiceControllerStatus.StartPending => "Starting…",
-            System.ServiceProcess.ServiceControllerStatus.StopPending  => "Stopping…",
+                _startsWithWindows ? SettingsText.SvcStoppedUntilBoot
+                                   : SettingsText.SvcStopped,
+            System.ServiceProcess.ServiceControllerStatus.StartPending => SettingsText.SvcStarting,
+            System.ServiceProcess.ServiceControllerStatus.StopPending  => SettingsText.SvcStopping,
             _                                                     => status.ToString()!,
         };
     }
@@ -425,12 +429,12 @@ public class PollingSettingsViewModel : ReactiveObject
         // while a settings window can be open across a database change.
         if (!ServiceAvailable)
         {
-            ServiceStatus = "Not installed — a background service cannot run against SQLite.";
+            ServiceStatus = SettingsText.SvcNotInstalledSqlite;
             return;
         }
 
         ServiceBusy   = true;
-        ServiceStatus = ServiceIsSystemd ? "Installing…" : "Installing — approve the Windows prompt…";
+        ServiceStatus = ServiceIsSystemd ? SettingsText.SvcInstalling : SettingsText.SvcInstallingApprove;
 
         string? error;
 
@@ -450,13 +454,13 @@ public class PollingSettingsViewModel : ReactiveObject
         RefreshServiceState();
 
         if (error is not null)
-            ServiceStatus = error == "Cancelled." ? "Not installed" : $"Install failed — {error}";
+            ServiceStatus = error == "Cancelled." ? SettingsText.SvcNotInstalled : string.Format(SettingsText.SvcInstallFailed, error);
     }
 
     public async Task UninstallServiceAsync()
     {
         ServiceBusy   = true;
-        ServiceStatus = ServiceIsSystemd ? "Removing…" : "Removing — approve the Windows prompt…";
+        ServiceStatus = ServiceIsSystemd ? SettingsText.SvcRemoving : SettingsText.SvcRemovingApprove;
 
         string? error;
 
@@ -468,13 +472,13 @@ public class PollingSettingsViewModel : ReactiveObject
         RefreshServiceState();
 
         if (error is not null && error != "Cancelled.")
-            ServiceStatus = $"Remove failed — {error}";
+            ServiceStatus = string.Format(SettingsText.SvcRemoveFailed, error);
     }
 
     public async Task SetServiceRunningAsync(bool run)
     {
         ServiceBusy   = true;
-        ServiceStatus = run ? "Starting…" : "Stopping…";
+        ServiceStatus = run ? SettingsText.SvcStarting : SettingsText.SvcStopping;
 
         if (OperatingSystem.IsLinux())
         {
@@ -487,7 +491,9 @@ public class PollingSettingsViewModel : ReactiveObject
             // says nothing about why; the reason is always one command away and never in front of
             // the person who needs it.
             if (systemdError is not null)
-                ServiceStatus = $"{(run ? "Start" : "Stop")} failed — {systemdError}\n\n{SystemdServiceControl.RecentLog()}";
+                ServiceStatus = (run ? string.Format(SettingsText.SvcStartFailed, systemdError)
+                                     : string.Format(SettingsText.SvcStopFailed, systemdError))
+                              + "\n\n" + SystemdServiceControl.RecentLog();
 
             return;
         }
@@ -504,8 +510,9 @@ public class PollingSettingsViewModel : ReactiveObject
         // generic failure somebody would read as a broken service.
         if (error is not null)
             ServiceStatus = error.Contains("denied", StringComparison.OrdinalIgnoreCase)
-                ? "Windows refused — this account was not granted permission to start or stop it. Remove and re-add the service."
-                : $"{(run ? "Start" : "Stop")} failed — {error}";
+                ? SettingsText.SvcAccessDenied
+                : run ? string.Format(SettingsText.SvcStartFailed, error)
+                      : string.Format(SettingsText.SvcStopFailed, error);
     }
 
     // ── Doing the work, one method per platform ───────────────────────────────
@@ -571,7 +578,7 @@ public class PollingSettingsViewModel : ReactiveObject
         try
         {
             StructureNameChars.Clear();
-            StructureNameChars.Add(new CharacterOption(0, "(none — try all)"));
+            StructureNameChars.Add(new CharacterOption(0, SettingsText.StructureCharNone));
             foreach (var ch in characters)
                 StructureNameChars.Add(new CharacterOption(ch.Id, ch.Name));
 

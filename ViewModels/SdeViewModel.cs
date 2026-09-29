@@ -4,6 +4,7 @@ using EveConsole.Data;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -39,11 +40,11 @@ public class SdeViewModel : ReactiveObject
     }
 
     // ── SDE state ─────────────────────────────────────────────────────────
-    private string _statusText      = "SDE not loaded";
+    private string _statusText      = SettingsText.SdeNotLoaded;
     private double _fraction        = 0;
     private bool   _isBusy          = false;
     private string _loadedBuild     = "—";
-    private string _latestBuild     = "checking…";
+    private string _latestBuild     = SettingsText.SdeChecking;
     private bool   _updateAvailable = false;
     private CancellationTokenSource? _cts;
 
@@ -54,7 +55,7 @@ public class SdeViewModel : ReactiveObject
     public string LatestBuild     { get => _latestBuild;     private set => this.RaiseAndSetIfChanged(ref _latestBuild,     value); }
     public bool   UpdateAvailable { get => _updateAvailable; private set => this.RaiseAndSetIfChanged(ref _updateAvailable, value); }
 
-    private string _hoboLatest = "checking…";
+    private string _hoboLatest = SettingsText.SdeChecking;
     private bool   _hoboUpdateAvailable;
     private long   _loadedHoboRevision;
 
@@ -69,7 +70,7 @@ public class SdeViewModel : ReactiveObject
     /// </summary>
     private int _loadedBuildNumber;
     public string SdeShortText =>
-        _loadedBuildNumber > 0 ? $"SDE {_loadedBuildNumber}" : "SDE not imported";
+        _loadedBuildNumber > 0 ? $"SDE {_loadedBuildNumber}" : SettingsText.SdeNotImportedShort;
 
     /// <summary>
     /// Whether the comparison against CCP's feed actually completed.
@@ -85,7 +86,7 @@ public class SdeViewModel : ReactiveObject
     public bool SdeUpToDate => _sdeChecked && !UpdateAvailable && _loadedBuildNumber > 0;
 
     // ── Hoboleaks state ───────────────────────────────────────────────────
-    private string _hoboStatusText  = "Not imported";
+    private string _hoboStatusText  = SettingsText.SdeHoboNotImported;
     private double _hoboFraction    = 0;
     private bool   _hoboIsBusy      = false;
     private string _hoboImportedAt  = "—";
@@ -112,14 +113,14 @@ public class SdeViewModel : ReactiveObject
         RefreshSdeCommand.ThrownExceptions.Subscribe(ex =>
         {
             IsBusy     = false;
-            StatusText = $"Error: {RootMessage(ex)}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, RootMessage(ex));
         });
 
         RefreshHoboCommand = ReactiveCommand.CreateFromTask(RunHoboImportAsync, canRunHobo);
         RefreshHoboCommand.ThrownExceptions.Subscribe(ex =>
         {
             HoboIsBusy     = false;
-            HoboStatusText = $"Error: {RootMessage(ex)}";
+            HoboStatusText = string.Format(CommonText.ErrorWithMessage, RootMessage(ex));
         });
 
         _ = InitializeAsync();
@@ -151,7 +152,7 @@ public class SdeViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            LatestBuild = $"error: {ex.Message}";
+            LatestBuild = string.Format(SettingsText.SdeCheckError, ex.Message);
         }
     }
 
@@ -160,7 +161,7 @@ public class SdeViewModel : ReactiveObject
         try
         {
             var latest = await _sde.GetLatestBuildInfoAsync();
-            if (latest is null) { LatestBuild = "unavailable"; return; }
+            if (latest is null) { LatestBuild = SettingsText.SdeUnavailable; return; }
 
             LatestBuild = FormatBuild(latest.BuildNumber, latest.ReleaseDate);
 
@@ -176,7 +177,7 @@ public class SdeViewModel : ReactiveObject
             // ⚠️ Leaves _sdeChecked alone. A re-check that could not reach the feed must not undo a
             // comparison that already succeeded, and must not let the bar claim "up to date" about
             // something nobody managed to look at.
-            LatestBuild = $"error: {ex.Message.Split('\n')[0]}";
+            LatestBuild = string.Format(SettingsText.SdeCheckError, ex.Message.Split('\n')[0]);
         }
     }
 
@@ -194,9 +195,9 @@ public class SdeViewModel : ReactiveObject
         try
         {
             var meta = await _hobo.GetLatestMetaAsync();
-            if (meta is null || meta.Revision == 0) { HoboLatest = "unavailable"; return; }
+            if (meta is null || meta.Revision == 0) { HoboLatest = SettingsText.SdeUnavailable; return; }
 
-            HoboLatest = $"revision {meta.Revision:N0}";
+            HoboLatest = string.Format(SettingsText.SdeHoboRevision, meta.Revision);
 
             var stored = await ReadAsync(db => db.HoboBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1));
             HoboUpdateAvailable = stored is null
@@ -206,7 +207,7 @@ public class SdeViewModel : ReactiveObject
         {
             // Leaves HoboUpdateAvailable alone: a re-check that could not reach the manifest must
             // not undo a comparison that already succeeded.
-            HoboLatest = $"error: {ex.Message.Split('\n')[0]}";
+            HoboLatest = string.Format(SettingsText.SdeCheckError, ex.Message.Split('\n')[0]);
         }
     }
 
@@ -214,7 +215,7 @@ public class SdeViewModel : ReactiveObject
     {
         var info = await ReadAsync(db => db.SdeBuildInfos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1));
         LoadedBuild = info is null
-            ? "not imported"
+            ? SettingsText.SdeNotImported
             : FormatBuild(info.BuildNumber, info.ReleaseDate);
 
         _loadedBuildNumber = info?.BuildNumber ?? 0;
@@ -228,10 +229,10 @@ public class SdeViewModel : ReactiveObject
         // ⚠️ Revision 0 means "imported before the app recorded one", not "revision zero". Saying
         // that is better than printing a number nobody wrote.
         HoboImportedAt = info is null
-            ? "not imported"
+            ? SettingsText.SdeNotImported
             : info.Revision > 0
-                ? $"revision {info.Revision:N0}, imported {info.ImportedAt.ToLocalTime():yyyy-MM-dd HH:mm}"
-                : $"last imported {info.ImportedAt.ToLocalTime():yyyy-MM-dd HH:mm} (revision not recorded)";
+                ? string.Format(SettingsText.SdeHoboImported, info.Revision, info.ImportedAt.ToLocalTime())
+                : string.Format(SettingsText.SdeHoboImportedNoRevision, info.ImportedAt.ToLocalTime());
 
         _loadedHoboRevision = info?.Revision ?? 0;
         HoboStatusText = HoboImportedAt;
@@ -275,7 +276,7 @@ public class SdeViewModel : ReactiveObject
         _cts    = new CancellationTokenSource();
         IsBusy  = true;
         Fraction = 0;
-        StatusText = "Starting…";
+        StatusText = SettingsText.SdeStarting;
 
         var progress = new Progress<SdeImportProgress>(rep =>
         {
@@ -290,8 +291,8 @@ public class SdeViewModel : ReactiveObject
             // A clean import says so. One that landed but looks odd says that instead, because
             // "complete" over a table that came back empty is how a silent failure stays silent.
             StatusText      = warnings.Count == 0
-                ? "SDE import complete."
-                : $"SDE import complete — {warnings.Count} table(s) worth a look, see Errors.";
+                ? SettingsText.SdeImportComplete
+                : string.Format(SettingsText.SdeImportCompleteWarnings, warnings.Count);
             Fraction        = 1;
             UpdateAvailable = false;
             await LoadStoredBuildAsync();
@@ -300,21 +301,21 @@ public class SdeViewModel : ReactiveObject
         {
             // SDE format changed in a way this version of EVE Console can't handle.
             // Existing data is intact — just surface the message and leave the progress bar where it is.
-            StatusText = $"⚠ Update required — {ex.Message}";
+            StatusText = string.Format(SettingsText.SdeUpdateRequired, ex.Message);
             Fraction   = 0;
         }
         catch (ImportVerificationException ex)
         {
             // The archive read cleanly but lost a table, so the import was rolled back. Same
             // shape of outcome as above: nothing was changed, and saying so is the point.
-            StatusText = $"⚠ Import rolled back — {ex.Message}";
+            StatusText = string.Format(SettingsText.SdeImportRolledBack, ex.Message);
             Fraction   = 0;
         }
         catch (Exception ex)
         {
             // The import is one transaction, so whatever went wrong, the previous SDE is still
             // there. Before that was true this message left people guessing.
-            StatusText = $"Error: {RootMessage(ex)} — your previous SDE data has been kept.";
+            StatusText = string.Format(SettingsText.SdeImportError, RootMessage(ex));
             Fraction   = 0;
         }
         finally
@@ -332,7 +333,7 @@ public class SdeViewModel : ReactiveObject
         _hoboCts      = new CancellationTokenSource();
         HoboIsBusy    = true;
         HoboFraction  = 0;
-        HoboStatusText = "Starting…";
+        HoboStatusText = SettingsText.SdeStarting;
 
         var progress = new Progress<HoboImportProgress>(rep =>
         {
@@ -345,8 +346,8 @@ public class SdeViewModel : ReactiveObject
             var warnings = await Task.Run(async () => await _hobo.ImportAsync(progress, _hoboCts.Token), _hoboCts.Token);
 
             HoboStatusText = warnings.Count == 0
-                ? "Hoboleaks import complete."
-                : $"Hoboleaks import complete — {warnings.Count} table(s) worth a look, see Errors.";
+                ? SettingsText.HoboImportComplete
+                : string.Format(SettingsText.HoboImportCompleteWarnings, warnings.Count);
             HoboFraction   = 1;
             await LoadHoboInfoAsync();
             await CheckHoboLatestAsync();
@@ -354,18 +355,18 @@ public class SdeViewModel : ReactiveObject
         catch (HoboCompatibilityException ex)
         {
             // A file this version reads is no longer published. Nothing was cleared.
-            HoboStatusText = $"⚠ Update required — {ex.Message}";
+            HoboStatusText = string.Format(SettingsText.SdeUpdateRequired, ex.Message);
         }
         catch (ImportVerificationException ex)
         {
             // Read cleanly but lost a table, so it was rolled back.
-            HoboStatusText = $"⚠ Import rolled back — {ex.Message}";
+            HoboStatusText = string.Format(SettingsText.SdeImportRolledBack, ex.Message);
         }
         catch (Exception ex)
         {
             // The import is undoable as one unit, so whatever went wrong the previous data is
             // still there.
-            HoboStatusText = $"Error: {RootMessage(ex)} — your previous Hoboleaks data has been kept.";
+            HoboStatusText = string.Format(SettingsText.HoboImportError, RootMessage(ex));
         }
         finally
         {
@@ -376,7 +377,7 @@ public class SdeViewModel : ReactiveObject
     }
 
     private static string FormatBuild(int build, DateTimeOffset date)
-        => $"build {build}  ({date.ToLocalTime():yyyy-MM-dd})";
+        => string.Format(SettingsText.SdeBuild, build, date.ToLocalTime());
 
     private static string RootMessage(Exception ex)
     {

@@ -3,6 +3,7 @@ using System.Reactive;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -11,7 +12,15 @@ public sealed class CorpTop10ExcludeRowVm : ReactiveObject
     public long   EntityId   { get; }
     public string EntityType { get; }
     public string EntityName { get; }
-    public string Display    => $"{EntityName}  ({EntityType})";
+    public string Display    => $"{EntityName}  ({TypeLabel(EntityType)})";
+
+    /// <summary>The word shown for a stored entity type; the type itself is never translated.</summary>
+    public static string TypeLabel(string entityType) => entityType switch
+    {
+        "character"   => SettingsText.Top10TypeCharacter,
+        "corporation" => SettingsText.Top10TypeCorporation,
+        _             => entityType,
+    };
 
     public CorpTop10ExcludeRowVm(CorpTop10Exclude e)
     {
@@ -96,15 +105,29 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
             var needle = (text ?? "").Trim();
             if (needle.Length < 2) return [];
 
-            var hits = await _svc.SearchAsync(needle, EntityType, ct);
+            var hits = await _svc.SearchAsync(needle, _entityType, ct);
             return hits.Select(h => new CorpTop10ExcludeRowVm(h)).ToList();
         };
 
+    /// <summary>What can be excluded: the type the exclusions are stored and searched under, and
+    /// the word shown for it.</summary>
+    public IReadOnlyList<Choice<string>> EntityTypes { get; } =
+    [
+        new("character",   CorpTop10ExcludeRowVm.TypeLabel("character")),
+        new("corporation", CorpTop10ExcludeRowVm.TypeLabel("corporation")),
+    ];
+
     private string _entityType = "character";
-    public string EntityType
+    public Choice<string> EntityType
     {
-        get => _entityType;
-        set => this.RaiseAndSetIfChanged(ref _entityType, value);
+        get => EntityTypes.FirstOrDefault(o => o.Value == _entityType) ?? EntityTypes[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _entityType = value.Value;
+            this.RaisePropertyChanged();
+        }
     }
 
     private string _statusText = "";
@@ -113,8 +136,6 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         get => _statusText;
         set => this.RaiseAndSetIfChanged(ref _statusText, value);
     }
-
-    public IReadOnlyList<string> EntityTypes { get; } = ["character", "corporation"];
 
     public ReactiveCommand<Unit, Unit>                 AddCommand       { get; }
     public ReactiveCommand<CorpTop10ExcludeRowVm, Unit> RemoveCommand    { get; }
@@ -129,9 +150,9 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         RemoveCommand     = ReactiveCommand.CreateFromTask<CorpTop10ExcludeRowVm>(RemoveAsync);
         SaveTitlesCommand = ReactiveCommand.CreateFromTask(SaveTitlesAsync);
 
-        AddCommand       .ThrownExceptions.Subscribe(ex => StatusText = $"Add error: {ex.Message}");
-        RemoveCommand    .ThrownExceptions.Subscribe(ex => StatusText = $"Remove error: {ex.Message}");
-        SaveTitlesCommand.ThrownExceptions.Subscribe(ex => StatusText = $"Save error: {ex.Message}");
+        AddCommand       .ThrownExceptions.Subscribe(ex => StatusText = string.Format(SettingsText.Top10AddError, ex.Message));
+        RemoveCommand    .ThrownExceptions.Subscribe(ex => StatusText = string.Format(SettingsText.Top10RemoveError, ex.Message));
+        SaveTitlesCommand.ThrownExceptions.Subscribe(ex => StatusText = string.Format(SettingsText.Top10SaveError, ex.Message));
     }
 
     public void Load()
@@ -161,7 +182,7 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
             await _titles.SetOverrideAsync(t.Group, t.Key, t.Title);
 
         await _titles.SetHeaderPrefixAsync(HeaderPrefix);
-        StatusText = "Titles saved.";
+        StatusText = SettingsText.Top10TitlesSaved;
     }
 
     /// <summary>Adds whatever the box is sitting on. ⚠️ The SELECTED row, never the typed
@@ -169,7 +190,7 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
     /// wrong id hides the wrong entity silently.</summary>
     private async Task AddSelectedAsync(CancellationToken ct = default)
     {
-        if (SearchMatch is not { } row) { StatusText = "Pick a name from the list first."; return; }
+        if (SearchMatch is not { } row) { StatusText = SettingsText.Top10PickName; return; }
 
         await AddAsync(row, ct);
         SearchMatch = null;
@@ -181,7 +202,7 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         // Don't add duplicates
         if (Excludes.Any(e => e.EntityId == row.EntityId && e.EntityType == row.EntityType))
         {
-            StatusText = $"{row.EntityName} is already in the exclude list.";
+            StatusText = string.Format(SettingsText.Top10AlreadyExcluded, row.EntityName);
             return;
         }
         await _svc.AddAsync(row.EntityId, row.EntityType, row.EntityName, ct);
@@ -191,7 +212,7 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         var sorted = Excludes.OrderBy(e => e.EntityName).ToList();
         Excludes.Clear();
         foreach (var e in sorted) Excludes.Add(e);
-        StatusText = $"Added {row.EntityName} to exclude list.";
+        StatusText = string.Format(SettingsText.Top10Excluded, row.EntityName);
     }
 
     private async Task RemoveAsync(CorpTop10ExcludeRowVm row, CancellationToken ct = default)
@@ -199,6 +220,6 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
         await _svc.RemoveAsync(row.EntityId, row.EntityType, ct);
         var match = Excludes.FirstOrDefault(e => e.EntityId == row.EntityId && e.EntityType == row.EntityType);
         if (match is not null) Excludes.Remove(match);
-        StatusText = $"Removed {row.EntityName} from exclude list.";
+        StatusText = string.Format(SettingsText.Top10Unexcluded, row.EntityName);
     }
 }

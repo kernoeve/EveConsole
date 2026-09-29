@@ -2,6 +2,7 @@
 using System.Reactive;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -31,7 +32,7 @@ public class TimerRowVm : ReactiveObject
     /// </summary>
     public string Unit    { get; }
     public int    Min     { get; }
-    public string MinText => $"(min: {Min} {Unit})";
+    public string MinText => string.Format(SettingsText.TimerMinimum, Min, Unit);
 
     private int UnitSeconds => Unit == "s" ? 1 : 60;
 
@@ -71,12 +72,12 @@ public class TimerRowVm : ReactiveObject
     {
         if (_force is not null && _force.TryForce(Key))
         {
-            ForceStatus = "started";
+            ForceStatus = SettingsText.TimerForceStarted;
             return;
         }
 
         _polling.ResetCallTime(Key);
-        ForceStatus = "due on the next cycle";
+        ForceStatus = SettingsText.TimerForceDue;
     }
 
     public async Task SaveAsync() =>
@@ -108,29 +109,29 @@ public class TimerSettingsViewModel : ReactiveObject
             CorpRows.Add(new TimerRowVm(ep, timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("market.refresh", "Market Price Refresh", 600, 3600),
+            new EndpointInfo("market.refresh", SettingsText.TimerMarketRefresh, 600, 3600),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("market.history", "Price History Check", 120, 600),
+            new EndpointInfo("market.history", SettingsText.TimerPriceHistoryCheck, 120, 600),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("contract.public", "Public Contracts (all regions)", 900, 3600),
+            new EndpointInfo("contract.public", SettingsText.TimerPublicContracts, 900, 3600),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("contract.items", "Contract Items Pull", 120, 600),
+            new EndpointInfo("contract.items", SettingsText.TimerContractItems, 120, 600),
             timerSettings, pollingService, force));
 
         // One public call per NPC corporation. Catalogues only change on patch boundaries,
         // so a day between sweeps is already generous.
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("lpstore.offers", "LP Store Offers (all NPC corps)", 3600, 86400),
+            new EndpointInfo("lpstore.offers", SettingsText.TimerLpStoreOffers, 3600, 86400),
             timerSettings, pollingService, force));
 
         OtherRows.Add(new TimerRowVm(
-            new EndpointInfo("contract.pricing", "Contract Pricing Rebuild", 300, 1800),
+            new EndpointInfo("contract.pricing", SettingsText.TimerContractPricing, 300, 1800),
             timerSettings, pollingService, force));
 
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAllAsync);
@@ -145,7 +146,7 @@ public class TimerSettingsViewModel : ReactiveObject
         foreach (var row in OtherRows)
             await row.SaveAsync();
 
-        SaveStatus = "Saved.";
+        SaveStatus = SettingsText.Saved;
         await Task.Delay(2000);
         SaveStatus = "";
     }
