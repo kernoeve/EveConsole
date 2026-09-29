@@ -2016,7 +2016,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     {
         var widths = new int[columns];
         for (var i = 0; i < columns; i++)
-            widths[i] = rows.Count == 0 ? 0 : rows.Max(r => r[i].Length);
+            widths[i] = rows.Count == 0 ? 0 : rows.Max(r => MonoColumns.Width(r[i]));
         return widths;
     }
 
@@ -2029,7 +2029,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
         var sb = new System.Text.StringBuilder();
         for (var i = 0; i <= last; i++)
-            sb.Append(i == last ? cells[i] : cells[i].PadRight(widths[i] + 2));
+            sb.Append(i == last ? cells[i] : MonoColumns.PadRight(cells[i], widths[i] + 2));
         return sb.ToString();
     }
 

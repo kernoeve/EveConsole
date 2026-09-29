@@ -399,7 +399,7 @@ public class ScheduledBlockRenderer(
         foreach (var l in lists)
             foreach (var c in l.Cells)
                 for (var i = 0; i < c.Length; i++)
-                    widths[i] = Math.Max(widths[i], c[i].Length);
+                    widths[i] = Math.Max(widths[i], MonoColumns.Width(c[i]));
 
         var sb = new StringBuilder();
 
@@ -416,9 +416,9 @@ public class ScheduledBlockRenderer(
                 {
                     // Numbers read right-aligned, the name reads left. The last cell is not padded,
                     // so there is no trailing whitespace inside the fence.
-                    if (i == c.Length - 1)      line.Append(c[i].PadLeft(widths[i]));
-                    else if (i == 1)            line.Append(c[i].PadRight(widths[i] + 2));
-                    else                        line.Append(c[i].PadLeft(widths[i])).Append("  ");
+                    if (i == c.Length - 1)      line.Append(MonoColumns.PadLeft(c[i], widths[i]));
+                    else if (i == 1)            line.Append(MonoColumns.PadRight(c[i], widths[i] + 2));
+                    else                        line.Append(MonoColumns.PadLeft(c[i], widths[i])).Append("  ");
                 }
                 sb.AppendLine(line.ToString());
             }

@@ -46,26 +46,10 @@ public class GameLogRowVm(GameLogEvent e)
         _ => string.Join("  ", new[] { e.Weapon, e.Quality }.Where(s => !string.IsNullOrWhiteSpace(s))!),
     };
 
-    /// <summary>The label padded to a column in the monospace detail pane. ⚠️ Not {label,-16}:
-    /// that counts characters, and a Chinese, Japanese or Korean character takes two columns, so
-    /// translated labels would push their values out of line.</summary>
-    private static string PadToColumns(string label, int columns)
-    {
-        var width = 0;
-        foreach (var c in label) width += IsWide(c) ? 2 : 1;
-        return label + new string(' ', Math.Max(1, columns - width));
-    }
-
-    // The East Asian wide ranges these labels can hold: CJK ideographs and punctuation, kana,
-    // Hangul, and full-width forms.
-    private static bool IsWide(char c) =>
-        c is >= 'ᄀ' and <= 'ᅟ'
-          or >= '⺀' and <= '꓏'
-          or >= '가' and <= '힣'
-          or >= '豈' and <= '﫿'
-          or >= '︰' and <= '﹏'
-          or >= '＀' and <= '｠'
-          or >= '￠' and <= '￦';
+    /// <summary>The label padded to a column in the monospace detail pane, with at least one
+    /// space after it. ⚠️ Not {label,-16}: see <see cref="MonoColumns"/>.</summary>
+    private static string PadToColumns(string label, int columns) =>
+        label + new string(' ', Math.Max(1, columns - MonoColumns.Width(label)));
 
     private static string BuildDetail(GameLogEvent e)
     {

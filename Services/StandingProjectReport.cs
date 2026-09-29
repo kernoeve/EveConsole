@@ -140,11 +140,11 @@ public static class StandingProjectReport
         // regardless, a hidden "Remaining" header would pad a column of three-digit numbers to
         // nine characters and the block would look wrong for a heading nobody asked for.
         if (showHeaders)
-            for (var i = 0; i < columns; i++) widths[i] = headers[i].Length;
+            for (var i = 0; i < columns; i++) widths[i] = MonoColumns.Width(headers[i]);
 
         foreach (var c in cells)
             for (var i = 0; i < columns; i++)
-                widths[i] = Math.Max(widths[i], c[i].Length);
+                widths[i] = Math.Max(widths[i], MonoColumns.Width(c[i]));
 
         var sb = new StringBuilder();
 
@@ -206,8 +206,8 @@ public static class StandingProjectReport
         var line = new StringBuilder();
         for (var i = 0; i <= last; i++)
         {
-            var cell = right[i] ? cells[i].PadLeft(widths[i]) : cells[i];
-            line.Append(i == last ? cell : cell.PadRight(widths[i] + 2));
+            var cell = right[i] ? MonoColumns.PadLeft(cells[i], widths[i]) : cells[i];
+            line.Append(i == last ? cell : MonoColumns.PadRight(cell, widths[i] + 2));
         }
 
         return line.ToString();
