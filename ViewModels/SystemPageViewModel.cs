@@ -749,13 +749,15 @@ public class SystemPageViewModel : ReactiveObject
         var intel      = await _svc.GetIntelAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
-        // formatting and icons match the rest of the app rather than being reinvented here.
-        var killPage = await _kills.GetListAsync(0, 50, systemFilter: header.Name);
+        // formatting and icons match the rest of the app rather than being reinvented here. By
+        // the system's id: the tool's text filter would also bring in every system and region
+        // whose name contains this one.
+        var killPage = await _kills.GetListAsync(0, 50, solarSystemId: header.SystemId);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            // The header keeps the English (the kill list above filters on it, and the
-            // constellation link finds its constellation by it); these are what the page shows.
+            // The header keeps the English (the constellation link finds its constellation by
+            // it); these are what the page shows.
             _header = header;
             Name          = SdeNames.SolarSystem(header.SystemId, header.Name);
             Region        = SdeNames.Region(header.RegionId, header.Region);

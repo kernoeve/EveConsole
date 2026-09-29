@@ -107,13 +107,16 @@ public class KillmailBrowserService(
     /// <param name="matchShownNames">The Killmail tool's own filter boxes: the ship, system and
     /// region filters also find what was typed in the interface language, and the corporation
     /// filter an NPC corporation by the name the rows show it under — as well as the English,
-    /// which capsuleers paste from killboards. Off for a caller that passes an English name of
-    /// its own, such as the system page.</param>
+    /// which capsuleers paste from killboards. Off for a caller that passes a name of its own.</param>
+    /// <param name="solarSystemId">One system's kills, by its id — the system page's. Not
+    /// <paramref name="systemFilter"/>, which is a text search over system AND region names and so
+    /// also finds every system and region whose name contains the one asked for.</param>
     public async Task<KillmailListPage> GetListAsync(
         int offset, int limit,
         DateOnly? fromDate = null, DateOnly? thruDate = null,
         string? characterFilter = null, string? corporationFilter = null,
         string? shipFilter = null, string? systemFilter = null,
+        int solarSystemId = 0,
         EntityKind? entityKind = null, long entityId = 0,
         bool matchShownNames = false,
         CancellationToken ct = default)
@@ -177,6 +180,8 @@ public class KillmailBrowserService(
                            + OrShown("ss.\"RegionId\"",     SdeNameKind.Region,      place);
             conditions.Add($"""(ss."Name" LIKE {sysArg} OR sr."Name" LIKE {regionArg}{systemAlso})""");
         }
+        if (solarSystemId > 0)
+            conditions.Add($"""d."SolarSystemId" = {P(solarSystemId)}""");
         if (characterIds is { Count: > 0 })
         {
             // Ids resolved above (our own tracked characters, or an ESI search result) —
