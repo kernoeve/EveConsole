@@ -482,6 +482,10 @@ public class ItemBrowserViewModel : ReactiveObject
     }
 
     // Switches the Item Browser to a named detail tab. Returns a status message.
+    // ⚠️ The indices are the tabs' order in ItemBrowserView.axaml's ItemDetailTabs, hidden ones
+    // included. Assets (5) and LP Store (6) were added before Market Orders without this moving
+    // on, and the agent's "market_orders" opened Assets.
+    private const int PriceHistoryTab = 8;
     public string ShowDetailTab(string tabKey)
     {
         var key = tabKey.Trim().ToLowerInvariant().Replace(" ", "_");
@@ -492,15 +496,19 @@ public class ItemBrowserViewModel : ReactiveObject
             "requirements"                   => 2,
             "required_for"                   => 3,
             "industry"                       => 4,
-            "market_orders" or "market" or "orders" => 5,
-            "price_history" or "history" or "price" => 6,
-            "derived_history" or "derived" => 7,
+            "assets"                         => 5,
+            "lp_store" or "lp"               => 6,
+            "market_orders" or "market" or "orders" => 7,
+            "price_history" or "history" or "price" => PriceHistoryTab,
+            "derived_history" or "derived" => 9,
             _ => null,
         };
         if (idx is null) return $"Unknown Item Browser tab '{tabKey}'.";
         if (idx == 3 && SelectedItem?.IsSkill != true)
             return "The Required For tab is only available when the loaded item is a skill.";
-        if (idx == 6 && !HasPriceHistoryRegions)
+        if (idx == 6 && !HasLpOffers)
+            return "The LP Store tab only shows for an item some loyalty store offers.";
+        if (idx == PriceHistoryTab && !HasPriceHistoryRegions)
             return "The Price History tab has no regions configured (add one in Settings > Price History).";
         SelectedDetailTabIndex = idx.Value;
         return $"Showing the {key.Replace('_', ' ')} tab.";

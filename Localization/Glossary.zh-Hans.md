@@ -131,3 +131,22 @@ welcome — this list is where they belong, so every screen picks them up.
 | add / remove / delete / edit | 添加 / 移除 / 删除 / 编辑 | |
 | export / import / filter / search / clear | 导出 / 导入 / 筛选 / 搜索 / 清除 | |
 | apply / OK / close / copy | 应用 / 确定 / 关闭 / 复制 | |
+| task (a Worklist row) | 工作项 | Distinct from job (任务). |
+| hull (hit-point layer, beside shield and armour) | 结构 | 护盾 / 装甲 / 结构, as the game shows them; 船体 stays for a ship's hull. |
+| CONCORD | 统合部 | |
+| starbase / control tower | 星堡 / 控制塔 | |
+| reinforced / reinforcement | 增强 | "Reinforced until" → 增强结束时间 |
+| anchoring / unanchoring | 锚定 / 解除锚定 | |
+| high power / low power (Upwell) | 高功率 / 低功率 | |
+| moon extraction / fracture / moon drill | 月矿提取 / 引爆 / 卫星钻机 | |
+| war: aggressor / defender / ally | 进攻方 / 防守方 / 盟友 | mutual war 互相宣战; war eligible 可被宣战 |
+| kill right | 击杀权 | |
+| bounty / insurance payout | 赏金 / 保险赔付 | |
+| bill / broker fee / office rental | 账单 / 中介费 / 办公室租金 | |
+| price types Buy / Sell / Split | 买价 / 卖价 / 中间价 | Split is the midpoint of the best buy and sell. |
+| master wallet / wallet division | 主钱包 / 部门 | |
+| transaction tax | 交易税 | The journal type; sales tax is 销售税. |
+| contract statuses | 未完成 / 进行中 / 已完成 / 已拒绝 / 已失败 / 已删除 / 已撤销 / 已过期 | outstanding / in progress / finished / rejected / failed / deleted / reversed / expired |
+| Active (contract filter) | 有效 | Not 进行中, which is In Progress in the same list. |
+| loan (contract type) | 租借 | |
+| public / private (availability) | 公开 / 私人 | |

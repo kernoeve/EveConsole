@@ -1080,7 +1080,8 @@
             </TabItem>
 
             <!-- Price History tab -->
-            <TabItem Header="{x:Static loc:AssetsText.TabPriceHistory}"
+            <TabItem x:Name="PriceHistoryTab"
+                     Header="{x:Static loc:AssetsText.TabPriceHistory}"
                      IsVisible="{Binding HasPriceHistoryRegions}">
               <Grid RowDefinitions="Auto,8,*" Margin="16 12">
 
