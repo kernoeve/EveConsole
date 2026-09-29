@@ -1327,7 +1327,832 @@
   <data name="TasksOther" xml:space="preserve">
     <value>{0:N0} 个工作项</value>
   </data>
+  <data name="SourceSkillQueues" xml:space="preserve">
+    <value>技能队列</value>
+  </data>
+  <data name="SkillQueueEmpty" xml:space="preserve">
+    <value>技能队列为空</value>
+  </data>
+  <data name="SkillQueueEmptyDetail" xml:space="preserve">
+    <value>没有技能在训练。每一分钟都是白白损失的技能点。</value>
+  </data>
+  <data name="SkillQueuePaused" xml:space="preserve">
+    <value>技能队列已暂停</value>
+  </data>
+  <data name="SkillQueuePausedDetail" xml:space="preserve">
+    <value>队列中有技能，但没有一个在训练。</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="SkillQueueEndsIn" xml:space="preserve">
+    <value>技能队列将在 {0} 后结束</value>
+  </data>
+  <data name="SkillQueueEndsDetail" xml:space="preserve">
+    <value>队列将于 {0:M月d日 HH:mm} 训练完毕，已进入 {1} 天的提醒阈值。</value>
+  </data>
+  <data name="SourceStandingProjects" xml:space="preserve">
+    <value>长期项目</value>
+  </data>
+  <data name="BlockedNoCharacterForCorp" xml:space="preserve">
+    <value>此军团没有指定维护者</value>
+  </data>
+  <data name="ProjectNotActive" xml:space="preserve">
+    <value>没有与此定义匹配的进行中项目。</value>
+  </data>
+  <data name="ProjectCheckAdm" xml:space="preserve">
+    <value>检查 ADM 数据——{0}：{1}</value>
+  </data>
+  <data name="ProjectCheckAdmDetail" xml:space="preserve">
+    <value>无法读取主权数据，因此无法将任何星系与阈值进行比较。这是数据获取失败，而不是范围为空。</value>
+  </data>
+  <data name="ProjectCheckScope" xml:space="preserve">
+    <value>检查范围——{0}：{1}</value>
+  </data>
+  <data name="ProjectCheckScopeDetail" xml:space="preserve">
+    <value>该范围展开后不包含任何星系，因此无法为它创建任何项目。</value>
+  </data>
+  <data name="ProjectNothingToRaise" xml:space="preserve">
+    <value>{0}——{1}：无需创建项目</value>
+  </data>
+  <data name="ProjectNothingToRaiseDetail" xml:space="preserve">
+    <value>范围内的每个星系都达到或高于阈值，因此该规则今天没有选中任何星系。一旦有 ADM 下降，它会自动重新出现。</value>
+  </data>
+  <data name="ProjectDeliverTo" xml:space="preserve">
+    <value>{0}——{1} 至 {2}</value>
+  </data>
+  <data name="ProjectDeliverToAnyOffice" xml:space="preserve">
+    <value>{0}——{1} 至任一军团办公室</value>
+  </data>
+  <data name="ProjectNotActiveByRule" xml:space="preserve">
+    <value>没有与此定义匹配的进行中项目。此星系是按 ADM 规则入选的，一旦 ADM 回升，它会自动从清单上消失。</value>
+  </data>
+  <data name="ProjectNotActiveNamed" xml:space="preserve">
+    <value>没有与此定义匹配的进行中项目。此星系由定义本身直接指定。</value>
+  </data>
+  <data name="SourceStandingBuyOrders" xml:space="preserve">
+    <value>长期收购订单</value>
+  </data>
+  <data name="BlockedNoCharacterAtLocation" xml:space="preserve">
+    <value>此地点没有指定角色</value>
+  </data>
+  <data name="TitleRaiseBid" xml:space="preserve">
+    <value>{0}——提价</value>
+  </data>
+  <data name="TitlePlaceOrder" xml:space="preserve">
+    <value>{0}——下单</value>
+  </data>
+  <data name="TitleTopUpOrder" xml:space="preserve">
+    <value>{0}——补量</value>
+  </data>
+  <data name="TitleReplaceOrder" xml:space="preserve">
+    <value>{0}——重新下单</value>
+  </data>
+  <data name="StandingOutbidBy" xml:space="preserve">
+    <value>被超价 {0:N2} ISK——最高竞争出价 {1}。你的出价：{2}。</value>
+  </data>
+  <data name="StandingOutbid" xml:space="preserve">
+    <value>被超价——最高竞争出价 {0}。你的出价：{1}。</value>
+  </data>
+  <data name="StandingNoOrderAt" xml:space="preserve">
+    <value>在 {0} 没有找到订单。</value>
+  </data>
+  <data name="CompetingBidsUnknown" xml:space="preserve">
+    <value>竞争出价未知——此地点不是已配置的市场来源。</value>
+  </data>
+  <data name="StandingRunningLow" xml:space="preserve">
+    <value>剩余 {0}（为原始数量的 {1}）。</value>
+  </data>
+  <data name="StandingExpires" xml:space="preserve">
+    <value>将于 {0} 到期。</value>
+  </data>
+  <data name="OutbidDetail" xml:space="preserve">
+    <value>在 {0}：出价 {1:N2} ISK，被 {2:N2} 超过——落后 {3:N2}（{4:N1}%）。仍有 {5:N0} 个单位挂在买单上却什么也买不到，而还有工作需要它们。</value>
+  </data>
+  <data name="WhyShort" xml:space="preserve">
+    <value>{2} 需 {1:N0}，缺 {0:N0}</value>
+  </data>
+  <data name="WhyShortOwnedElsewhere" xml:space="preserve">
+    <value>{2} 需 {1:N0}，缺 {0:N0}（已拥有，但不在任务所在地）</value>
+  </data>
+  <data name="SharedTripRestarts" xml:space="preserve">
+    <value>{0} 运至 {1}：一趟运送 {2:N0} 个（{3:N0} m³），可让 {4:N0} 个任务重新开始</value>
+  </data>
+  <data name="SharedTripRestartsBehind" xml:space="preserve">
+    <value>{0} 运至 {1}：一趟运送 {2:N0} 个（{3:N0} m³），可让 {4:N0} 个任务及排在它们后面的 {5:N0} 个工作项重新开始</value>
+  </data>
+  <data name="SharedTripWanted" xml:space="preserve">
+    <value>{0} 运至 {1}：一趟运送 {2:N0} 个（{3:N0} m³），有 {4:N0} 个任务需要，但单靠这一趟，没有一个能重新开始</value>
+  </data>
+  <data name="SharedTripOthersShort" xml:space="preserve">
+    <value>另有 {0:N0} 个任务也需要它，但还缺其他东西</value>
+  </data>
+  <data name="SharedTripRaised" xml:space="preserve">
+    <value>已生成运送。</value>
+  </data>
+  <data name="SharedTripNothingMoving" xml:space="preserve">
+    <value>无人运送。</value>
+  </data>
+  <data name="WaitStartsOnArrival" xml:space="preserve">
+    <value>送达即开始</value>
+  </data>
+  <data name="WaitWants" xml:space="preserve">
+    <value>需要 {0:N0}</value>
+  </data>
+  <data name="WaitQueuedBehind" xml:space="preserve">
+    <value>排在另一个任务之后</value>
+  </data>
+  <data name="WaitAlsoShortOther" xml:space="preserve">
+    <value>还缺 {0:N0} 种物品</value>
+  </data>
+  <data name="WaitTipPlanned" xml:space="preserve">
+    <value>这趟运送所服务的一项制造。规划器正是为它安排了这一趟，但它尚未拆分为独立的工作项。</value>
+  </data>
+  <data name="WaitTipStarts" xml:space="preserve">
+    <value>这趟运送载有该任务所缺的全部物品，因此货物一到它就会开始。</value>
+  </data>
+  <data name="WaitTipQueued" xml:space="preserve">
+    <value>该任务需要此货物清单上的物品，但更早的任务已占用了这部分库存——这批货轮不到它。</value>
+  </data>
+  <data name="WaitTipStillShort" xml:space="preserve">
+    <value>仍缺少 {0}。</value>
+  </data>
+  <data name="WaitTipStillShortMore" xml:space="preserve">
+    <value>仍缺少 {0}，另有 {1:N0} 种。</value>
+  </data>
+  <data name="WaitTipAlsoBehind" xml:space="preserve">
+    <value>对于此货物清单上的某些物品，它还排在另一个任务之后。</value>
+  </data>
+  <data name="MergedDetailPooled" xml:space="preserve">
+    <value>共 {0:N0}——各来源合计需要 {1:N0}，减去已有、已挂买单或可精炼/解压得到的 {2:N0}（只计一次）。{3}</value>
+  </data>
+  <data name="MergedDetail" xml:space="preserve">
+    <value>共 {0:N0}。{1}</value>
+  </data>
+  <data name="HaulRestartsJobs" xml:space="preserve">
+    <value>送达后可让 {0:N0} 个停下的任务重新开始：{1}。</value>
+  </data>
+  <data name="HaulRestartsJobsMore" xml:space="preserve">
+    <value>送达后可让 {0:N0} 个停下的任务重新开始：{1}，另有 {2:N0} 个。</value>
+  </data>
+  <data name="HaulOthersWantPart" xml:space="preserve">
+    <value>另有 {0:N0} 个任务需要这批货中的部分物品，但仅靠这一趟无法开始。</value>
+  </data>
+  <data name="HaulPlannedWantIt" xml:space="preserve">
+    <value>货物清单上另有 {0:N0} 种物品为已规划的工作所需，这些工作本身还没有停下的任务。</value>
+  </data>
+  <data name="BuyReleasesJobs" xml:space="preserve">
+    <value>可让 {0:N0} 个停下的任务开始：{1}。</value>
+  </data>
+  <data name="BuyReleasesJobsMore" xml:space="preserve">
+    <value>可让 {0:N0} 个停下的任务开始：{1}，另有 {2:N0} 个。</value>
+  </data>
+  <data name="BuyOthersWantIt" xml:space="preserve">
+    <value>另有 {0:N0} 个任务需要它，但还缺其他东西。</value>
+  </data>
+  <data name="TitleTagBpoBpc" xml:space="preserve">
+    <value>BPO/BPC</value>
+  </data>
+  <data name="StockOfTarget" xml:space="preserve">
+    <value>库存 {0:N0} / {1:N0}（{2:0.#}%）</value>
+  </data>
+  <data name="FillingTo" xml:space="preserve">
+    <value>补充至 {0:0.#}%（{1:N0}）。</value>
+  </data>
+  <data name="SourceInventoryLevels" xml:space="preserve">
+    <value>库存水平</value>
+  </data>
+  <data name="SourceMaterialPurchases" xml:space="preserve">
+    <value>材料采购</value>
+  </data>
+  <data name="BlockedNoMarketAltAt" xml:space="preserve">
+    <value>{0} 没有指定市场小号</value>
+  </data>
   <data name="BlockedNoBuyLocation" xml:space="preserve">
     <value>“市场”标签页上未设置购买地点</value>
+  </data>
+  <data name="WantedByPlannedBuilds" xml:space="preserve">
+    <value>已规划的制造</value>
+  </data>
+  <data name="NameRuns" xml:space="preserve">
+    <value>{0}（{1:N0} 流程）</value>
+  </data>
+  <data name="BlueprintWithId" xml:space="preserve">
+    <value>蓝图 {0}</value>
+  </data>
+  <data name="PrintRunsToStock" xml:space="preserve">
+    <value>备库 {0:N0}</value>
+  </data>
+  <data name="PrintTitle" xml:space="preserve">
+    <value>{0}——BPO/BPC × {1:N0} 流程</value>
+  </data>
+  <data name="OnOrderHere" xml:space="preserve">
+    <value>本地已挂买单 {0:N0}</value>
+  </data>
+  <data name="OnOrderElsewhere" xml:space="preserve">
+    <value>他处已挂买单 {0:N0}</value>
+  </data>
+  <data name="OnOrder" xml:space="preserve">
+    <value>已挂买单 {0:N0}</value>
+  </data>
+  <data name="InProduction" xml:space="preserve">
+    <value>生产中 {0:N0}</value>
+  </data>
+  <data name="HeldAndOnOrder" xml:space="preserve">
+    <value>{0:N0} {1} 及已挂买单的 {2:N0}</value>
+  </data>
+  <data name="RecoverableFrom" xml:space="preserve">
+    <value>可由 {1} 精炼或解压得到 {0:N0}</value>
+  </data>
+  <data name="RecoverableFromMore" xml:space="preserve">
+    <value>可由 {1} 及另外 {2} 种来源精炼或解压得到 {0:N0}</value>
+  </data>
+  <data name="ShortBy" xml:space="preserve">
+    <value>短缺 {0:N0}。</value>
+  </data>
+  <data name="ShortByTail" xml:space="preserve">
+    <value>短缺 {0:N0}。</value>
+  </data>
+  <data name="BelowThreshold" xml:space="preserve">
+    <value>低于 {0:0.#}%</value>
+  </data>
+  <data name="PurchaseNeedOnHand" xml:space="preserve">
+    <value>{0}：需要 {1:N0}；现有 {2:N0}</value>
+  </data>
+  <data name="PurchaseNeedOnHandIn" xml:space="preserve">
+    <value>{0}：需要 {1:N0}；在 {3} 现有 {2:N0}</value>
+  </data>
+  <data name="PurchaseNeedOnHandTaken" xml:space="preserve">
+    <value>{0}：需要 {1:N0}；现有 {2:N0}，其中 {3:N0} 已被上次资产轮询之后开始的任务用掉</value>
+  </data>
+  <data name="PurchaseNeedOnHandInTaken" xml:space="preserve">
+    <value>{0}：需要 {1:N0}；在 {3} 现有 {2:N0}，其中 {4:N0} 已被上次资产轮询之后开始的任务用掉</value>
+  </data>
+  <data name="WantedForOne" xml:space="preserve">
+    <value>用于 {0}</value>
+  </data>
+  <data name="WantedForTwo" xml:space="preserve">
+    <value>用于 {0} 和 {1}</value>
+  </data>
+  <data name="WantedForTwoMore" xml:space="preserve">
+    <value>用于 {0}、{1} 及另外 {2} 项</value>
+  </data>
+  <data name="PrintContractPrice" xml:space="preserve">
+    <value>合同上曾出现每流程 {0:N0} ISK 起的拷贝。</value>
+  </data>
+  <data name="PrintRunsFor" xml:space="preserve">
+    <value>{1} 需 {0:N0}</value>
+  </data>
+  <data name="PrintRunsForQueued" xml:space="preserve">
+    <value>排队中的制造需 {0:N0}</value>
+  </data>
+  <data name="PrintOriginalOwned" xml:space="preserve">
+    <value>已有原件</value>
+  </data>
+  <data name="PrintCopiesOwned" xml:space="preserve">
+    <value>已有 {0:N0}</value>
+  </data>
+  <data name="PrintNoneOwned" xml:space="preserve">
+    <value>一张都没有</value>
+  </data>
+  <data name="PrintShortRuns" xml:space="preserve">
+    <value>短缺 {0:N0} 流程。</value>
+  </data>
+  <data name="SourceIndustryJobs" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="JobDetailBuild" xml:space="preserve">
+    <value>{0} 需制造 {1:N0}。</value>
+  </data>
+  <data name="BlockedNoSkilledCharacter" xml:space="preserve">
+    <value>没有已启用的角色具备此任务所需的技能</value>
+  </data>
+  <data name="BlockedNoCharacterRunsActivity" xml:space="preserve">
+    <value>没有已启用的角色执行此类活动</value>
+  </data>
+  <data name="BlockedSiteNotLinked" xml:space="preserve">
+    <value>{0} 未关联到真实建筑，因此无法检查材料</value>
+  </data>
+  <data name="BlockedNoLinkedStructure" xml:space="preserve">
+    <value>此任务没有已关联的建筑，因此无法检查材料</value>
+  </data>
+  <data name="WaitingAllSlotsBusy" xml:space="preserve">
+    <value>所有能执行此任务的角色都没有空闲栏位</value>
+  </data>
+  <data name="JobTitleRunsMaking" xml:space="preserve">
+    <value>{0}——{1:N0} 流程 → {2:N0}</value>
+  </data>
+  <data name="JobTitleRuns" xml:space="preserve">
+    <value>{0}——{1:N0} 流程</value>
+  </data>
+  <data name="BlockedNoBlueprintOwned" xml:space="preserve">
+    <value>未拥有蓝图——需要先获取一张</value>
+  </data>
+  <data name="BlockedBlueprintBusy" xml:space="preserve">
+    <value>蓝图正被运行中的任务占用（{0}）</value>
+  </data>
+  <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
+    <value>{0} 没有空闲的蓝图（{1}）</value>
+  </data>
+  <data name="JobDetailShort" xml:space="preserve">
+    <value>{0} 短缺 {1:N0}。</value>
+  </data>
+  <data name="BlockedPlannerSilent" xml:space="preserve">
+    <value>规划器没有为此生成工作项，也没有说明原因——请报告此问题</value>
+  </data>
+  <data name="BlockedNothingMakesIt" xml:space="preserve">
+    <value>SDE 中没有能制造它的蓝图，因此只能购买</value>
+  </data>
+  <data name="JobTitleNeeded" xml:space="preserve">
+    <value>{0}——需要 {1:N0}</value>
+  </data>
+  <data name="JobDetailShortOf" xml:space="preserve">
+    <value>{0} 短缺 {1:N0}（第 {2} 个任务，共 {3} 个）。</value>
+  </data>
+  <data name="PrintAt" xml:space="preserve">
+    <value>在 {1} 使用 {0}。</value>
+  </data>
+  <data name="JobCutToMaterials" xml:space="preserve">
+    <value>已削减到现有材料所能支持的量——另外 {0:N0} 流程在单独一行。</value>
+  </data>
+  <data name="JobRestWaiting" xml:space="preserve">
+    <value>此任务的剩余部分，正在等待材料。</value>
+  </data>
+  <data name="JobRunsNoFreePrint" xml:space="preserve">
+    <value>另有 {0:N0} 流程没有空闲的蓝图——已单独列出。</value>
+  </data>
+  <data name="JobCapGameLimit" xml:space="preserve">
+    <value>受 EVE 单个任务 30 天上限的限制。</value>
+  </data>
+  <data name="JobCapCopyRuns" xml:space="preserve">
+    <value>受拷贝剩余流程数的限制。</value>
+  </data>
+  <data name="JobCapJobLength" xml:space="preserve">
+    <value>受 {0:0.#} 天任务时长上限的限制。</value>
+  </data>
+  <data name="JobSizedFullyResearched" xml:space="preserve">
+    <value>流程数按完全研究的蓝图（TE{0}）规划——目前一张都没有。</value>
+  </data>
+  <data name="JobSizedAgainst" xml:space="preserve">
+    <value>流程数按 {0} 规划。</value>
+  </data>
+  <data name="JobNeedsBlueprintAt" xml:space="preserve">
+    <value>需要在 {0} 有一张蓝图。</value>
+  </data>
+  <data name="BlockedMaterialsNotAt" xml:space="preserve">
+    <value>材料不在 {0}：{1}</value>
+  </data>
+  <data name="BlockedNotOwned" xml:space="preserve">
+    <value>未拥有：{0}</value>
+  </data>
+  <data name="BlockedNotOwnedIn" xml:space="preserve">
+    <value>{0} 内未拥有：{1}</value>
+  </data>
+  <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
+    <value>未拥有：{0}；在别处：{1}</value>
+  </data>
+  <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
+    <value>{0} 内未拥有：{1}；在别处：{2}</value>
+  </data>
+  <data name="NamesAndMore" xml:space="preserve">
+    <value>{0}，另有 {1} 种</value>
+  </data>
+  <data name="ReasonPendingOrders" xml:space="preserve">
+    <value>{0} 个待处理订单，共需 {1:N0}。</value>
+  </data>
+  <data name="ReasonForParent" xml:space="preserve">
+    <value>{1} 需要 {0:N0}。</value>
+  </data>
+  <data name="ReasonsAndMore" xml:space="preserve">
+    <value>另有 {0} 项。</value>
+  </data>
+  <data name="ReasonKeepingConsuming" xml:space="preserve">
+    <value>需保持 {0:N0} 并消耗 {1:N0}，现有 {2:N0}。</value>
+  </data>
+  <data name="PrintDescribeBpo" xml:space="preserve">
+    <value>BPO ME{0}/TE{1}</value>
+  </data>
+  <data name="PrintDescribeBpc" xml:space="preserve">
+    <value>BPC ME{0}/TE{1}，剩余 {2:N0} 流程</value>
+  </data>
+  <data name="JobLengthMinutes" xml:space="preserve">
+    <value>{0:0} 分钟</value>
+  </data>
+  <data name="JobLengthHours" xml:space="preserve">
+    <value>{0:0.#} 小时</value>
+  </data>
+  <data name="JobLengthDays" xml:space="preserve">
+    <value>{0:0.#} 天</value>
+  </data>
+  <data name="HeadDownstream" xml:space="preserve">
+    <value>[下游有 {0:N0} 种物品在等待此项]</value>
+  </data>
+  <data name="SourceInvention" xml:space="preserve">
+    <value>发明与拷贝</value>
+  </data>
+  <data name="InventionHead" xml:space="preserve">
+    <value>{0}：T2 生产短缺 {1:N0} 流程。</value>
+  </data>
+  <data name="WaitingScienceSlotsBusy" xml:space="preserve">
+    <value>所有执行科研的角色都没有空闲栏位</value>
+  </data>
+  <data name="BlockedNotAt" xml:space="preserve">
+    <value>{0} 处不足：{1}</value>
+  </data>
+  <data name="InventionTitle" xml:space="preserve">
+    <value>{0}——发明 {1:N0} 流程</value>
+  </data>
+  <data name="InventionNoCopyDetail" xml:space="preserve">
+    <value>{0} 每流程成功率 {1:P1} → 需要 {2:N0} 张 {3} 流程的蓝图拷贝。</value>
+  </data>
+  <data name="BlockedNoCopyToInvent" xml:space="preserve">
+    <value>{1} 没有可用于发明的 {0} 拷贝</value>
+  </data>
+  <data name="CopyTitleNoOriginal" xml:space="preserve">
+    <value>{0}——没有可供拷贝的原件</value>
+  </data>
+  <data name="CopyNeedsRunsDetail" xml:space="preserve">
+    <value>{0} 发明需要 {1:N0} 流程的拷贝，现有 {2:N0} 流程。</value>
+  </data>
+  <data name="BlockedNoBpoToCopy" xml:space="preserve">
+    <value>所有角色都没有蓝图原件——需要购入一张，或直接购买拷贝</value>
+  </data>
+  <data name="CopyTitle" xml:space="preserve">
+    <value>{0}——拷贝 {1:N0} × {2:N0} 流程</value>
+  </data>
+  <data name="BlockedOriginalNotAt" xml:space="preserve">
+    <value>原件不在 {0}——需要先把它运过去</value>
+  </data>
+  <data name="NoDecryptor" xml:space="preserve">
+    <value>无解码器</value>
+  </data>
+  <data name="NameHaveOfWant" xml:space="preserve">
+    <value>{0}（{1:N0} / {2:N0}）</value>
+  </data>
+  <data name="InventionCutToDatacores" xml:space="preserve">
+    <value>已削减到现有数据核心所能支持的量——另外 {0:N0} 次尝试在单独一行。</value>
+  </data>
+  <data name="InventionRestWaiting" xml:space="preserve">
+    <value>此批次的剩余部分，正在等待数据核心。</value>
+  </data>
+  <data name="JobIndexOf" xml:space="preserve">
+    <value>（第 {0} 个任务，共 {1} 个）</value>
+  </data>
+  <data name="JobCapSourceCopyRuns" xml:space="preserve">
+    <value>受来源拷贝剩余流程数的限制。</value>
+  </data>
+  <data name="InventionAttemptsNoCopy" xml:space="preserve">
+    <value>另有 {0:N0} 次尝试需要来源拷贝——但没有空闲的。</value>
+  </data>
+  <data name="InventionOdds" xml:space="preserve">
+    <value>每流程成功率 {0:P1}（基础 {1:P0}，{2}）→ 经 {7:N0} 次尝试得到 {3:N0} 张 {4} 流程、ME{5}/TE{6} 的蓝图拷贝。</value>
+  </data>
+  <data name="CopyFeedsDetail" xml:space="preserve">
+    <value>{0} 可供 {1:N0} 次发明尝试使用；已有 {2:N0} 流程的拷贝。</value>
+  </data>
+  <data name="SourceRefining" xml:space="preserve">
+    <value>精炼</value>
+  </data>
+  <data name="RefineTitleOne" xml:space="preserve">
+    <value>精炼 {0}——{1:N0} 个单位</value>
+  </data>
+  <data name="RefineTitleMany" xml:space="preserve">
+    <value>精炼 {0} 种矿石——{1:N0} 个单位</value>
+  </data>
+  <data name="DecompressTitleOne" xml:space="preserve">
+    <value>解压 {0}——{1:N0} 个单位</value>
+  </data>
+  <data name="DecompressTitleMany" xml:space="preserve">
+    <value>解压 {0} 种压缩气云——{1:N0} 个单位</value>
+  </data>
+  <data name="RefineDetail" xml:space="preserve">
+    <value>在 {0}：可整批精炼 {1:N0} 个单位——{2}。不足一整批的部分留在原处。</value>
+  </data>
+  <data name="RefineDetailMore" xml:space="preserve">
+    <value>在 {0}：可整批精炼 {1:N0} 个单位——{2}，另有 {3} 种。不足一整批的部分留在原处。</value>
+  </data>
+  <data name="DecompressDetail" xml:space="preserve">
+    <value>在 {0}：待解压 {1:N0} 个单位——{2}。</value>
+  </data>
+  <data name="DecompressDetailMore" xml:space="preserve">
+    <value>在 {0}：待解压 {1:N0} 个单位——{2}，另有 {3} 种。</value>
+  </data>
+  <data name="SourceAssetSafety" xml:space="preserve">
+    <value>资产安全</value>
+  </data>
+  <data name="StationWithIdLower" xml:space="preserve">
+    <value>空间站 {0}</value>
+  </data>
+  <data name="UnnamedStructureWithId" xml:space="preserve">
+    <value>未命名建筑 {0}</value>
+  </data>
+  <data name="CharacterWithId" xml:space="preserve">
+    <value>角色 {0}</value>
+  </data>
+  <data name="SafetyChooseDestinationOther" xml:space="preserve">
+    <value>为 {0:N0} 个资产安全包裹选择目的地</value>
+  </data>
+  <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
+    <value>1 个包裹中有 {0:N0} 种物品</value>
+  </data>
+  <data name="SafetyTypesAcrossWraps" xml:space="preserve">
+    <value>{1:N0} 个包裹中共有 {0:N0} 种物品</value>
+  </data>
+  <data name="SafetyDetail" xml:space="preserve">
+    <value>{0}。{1}。若置之不理，将在 {3} 天 {4} 小时后（{5:M月d日 HH:mm}）以较高的费用自动送往 {2}。</value>
+  </data>
+  <data name="SourceLogistics" xml:space="preserve">
+    <value>物流</value>
+  </data>
+  <data name="HaulTitleItems" xml:space="preserve">
+    <value>{0} 种物品</value>
+  </data>
+  <data name="HaulWhyUnblocking" xml:space="preserve">
+    <value>有任务在等待这批货。</value>
+  </data>
+  <data name="HaulWhyRestock" xml:space="preserve">
+    <value>把空间站的库存补充到设定水平。</value>
+  </data>
+  <data name="HaulWhyRefine" xml:space="preserve">
+    <value>用于精炼或解压。</value>
+  </data>
+  <data name="HaulWhySurplus" xml:space="preserve">
+    <value>把富余库存运往其分组的存放地点。</value>
+  </data>
+  <data name="PlaceInSpace" xml:space="preserve">
+    <value>{0}（太空中）</value>
+  </data>
+  <data name="DriverBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="DriverBlueprintFor" xml:space="preserve">
+    <value>制造用蓝图</value>
+  </data>
+  <data name="DriverInvention" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="DriverCopiesForInvention" xml:space="preserve">
+    <value>发明用拷贝</value>
+  </data>
+  <data name="DriverStationLevel" xml:space="preserve">
+    <value>空间站水平</value>
+  </data>
+  <data name="HaulAdviceIdleNowhere" xml:space="preserve">
+    <value>因缺少 {0:N0} 种已拥有的物品而停下。需要运送 {1:N0} m³，但范围内一处也取不到。清单上没有任何运送会把它们运到这里，因此这种情况不会自行改变。</value>
+  </data>
+  <data name="HaulAdviceIdleOnePlace" xml:space="preserve">
+    <value>因缺少 {0:N0} 种已拥有的物品而停下。需要运送 {1:N0} m³，全部来自同一个地点。清单上没有任何运送会把它们运到这里，因此这种情况不会自行改变。</value>
+  </data>
+  <data name="HaulAdviceIdlePlaces" xml:space="preserve">
+    <value>因缺少 {0:N0} 种已拥有的物品而停下。需要从 {2:N0} 个地点运送 {1:N0} m³。清单上没有任何运送会把它们运到这里，因此这种情况不会自行改变。</value>
+  </data>
+  <data name="HaulAdviceSeveralStops" xml:space="preserve">
+    <value>因缺少 {0:N0} 种物品而停下，共 {1:N0} m³，分布在 {2:N0} 个地点，已生成 {3:N0} 趟运送。取货点不止一个，因此要等最后一批送达后才能开始。</value>
+  </data>
+  <data name="HaulAdviceRaised" xml:space="preserve">
+    <value>已停下，但已生成 {0:N0} 趟运送，要把这 {1:N0} m³ 运到这里。无需做任何决定——材料一到就会开始。</value>
+  </data>
+  <data name="HaulAdviceBehind" xml:space="preserve">
+    <value>另有 {0:N0} 个工作项排在它后面停下。</value>
+  </data>
+  <data name="HaulNeedNowhere" xml:space="preserve">
+    <value>需 {1:N0}，缺 {0:N0}，{2:N0} m³——范围内无处可取</value>
+  </data>
+  <data name="HaulNeedFrom" xml:space="preserve">
+    <value>需 {1:N0}，缺 {0:N0}，{2:N0} m³——取自 {3}</value>
+  </data>
+  <data name="HaulNeedFromMore" xml:space="preserve">
+    <value>需 {1:N0}，缺 {0:N0}，{2:N0} m³——取自 {3} 及另外 {4:N0} 处</value>
+  </data>
+  <data name="StopsOther" xml:space="preserve">
+    <value>{0:N0} 个停靠点</value>
+  </data>
+  <data name="WhyOnListFrom" xml:space="preserve">
+    <value>已在清单上，取自 {0}</value>
+  </data>
+  <data name="WhyOnList" xml:space="preserve">
+    <value>已在清单上</value>
+  </data>
+  <data name="WhyReadyToInstall" xml:space="preserve">
+    <value>可以安装</value>
+  </data>
+  <data name="RunsInstalled" xml:space="preserve">
+    <value>已安装 {0:N0} 流程</value>
+  </data>
+  <data name="JobLands" xml:space="preserve">
+    <value>{0:M月d日 HH:mm} 完成</value>
+  </data>
+  <data name="AdviceStopped" xml:space="preserve">
+    <value>{0:N0} 个工作项已停下</value>
+  </data>
+  <data name="AdviceStoppedChain" xml:space="preserve">
+    <value>{0:N0} 个工作项已停下，其中 {1:N0} 个直接缺少它</value>
+  </data>
+  <data name="AdviceNothingMade" xml:space="preserve">
+    <value>最近 {0} 天一个都没有生产，这正是它被耗尽的原因。</value>
+  </data>
+  <data name="AdviceMakingRunning" xml:space="preserve">
+    <value>有 {0:N0} 个生产它的任务正在运行。</value>
+  </data>
+  <data name="AdviceMakingReady" xml:space="preserve">
+    <value>有 {0:N0} 个生产它的工作项可以开始——开始它们就能解决问题。</value>
+  </data>
+  <data name="AdviceMakingWaiting" xml:space="preserve">
+    <value>有 {0:N0} 个生产它的工作项正在等待空闲栏位。</value>
+  </data>
+  <data name="AdviceMakingBlocked" xml:space="preserve">
+    <value>没有任何东西在补充它：生产它的 {0:N0} 个工作项也全部受阻。</value>
+  </data>
+  <data name="AdviceMakingNone" xml:space="preserve">
+    <value>清单上根本没有任何工作在生产它。</value>
+  </data>
+  <data name="AdviceOnOrder" xml:space="preserve">
+    <value>{0}，且这里无法生产它——但市场上已针对 {2:N0} 的缺口出价收购 {1:N0} 个。无需再生成工作项；买单成交后，这些任务就会开始。</value>
+  </data>
+  <data name="AdviceBuyNow" xml:space="preserve">
+    <value>{0}，且这里无法生产它。</value>
+  </data>
+  <data name="AdviceBuyNowOnOrder" xml:space="preserve">
+    <value>针对 {1:N0} 的缺口已挂买单 {0:N0} 个，所以需要的是提高出价，而不是再挂新单。</value>
+  </data>
+  <data name="AdviceBuyNowLevel" xml:space="preserve">
+    <value>每天消耗 {0:N1}，库存水平为 {1:N0}。只有购买才能让这些工作项开始。</value>
+  </data>
+  <data name="AdviceBuyNowNoLevel" xml:space="preserve">
+    <value>每天消耗 {0:N1}，却没有设置库存水平来储备它。只有购买才能让这些工作项开始。</value>
+  </data>
+  <data name="AdviceBufferSpent" xml:space="preserve">
+    <value>{0}，剩余 {1:N0}。需求达到其 {3} 天平均值的 {2:N1} 倍，{4:N0} 的库存水平足以覆盖 {5:N0} 天的正常消耗，却扛不住这一波。更高的库存水平可以吸收下一波需求；如果这样的高峰是常态，长久之计是增加它的产量，因为补充速度跟不上消耗速度时，再高的库存水平也撑不住。</value>
+  </data>
+  <data name="AdviceLevelTooLow" xml:space="preserve">
+    <value>{0}。清单上的工作需要 {1:N0}，现有 {2:N0}——{3:N0} 的库存水平已经达到，所以这不是缓冲耗尽，而是缓冲只按 {4:N0} 天的正常消耗设定，而眼前的工作所需比现存总量多出 {5:N0}。提高库存水平或增加产量，才能补上这个缺口。</value>
+  </data>
+  <data name="AdviceLevelTooLowWave" xml:space="preserve">
+    <value>{0}。清单上的工作需要 {1:N0}，现有 {2:N0}——{3:N0} 的库存水平已经达到，所以这不是缓冲耗尽，而是缓冲只按 {4:N0} 天的正常消耗设定，而眼前的工作所需比现存总量多出 {5:N0}，同时需求达到其 {7} 天平均值的 {6:N1} 倍。提高库存水平或增加产量，才能补上这个缺口。</value>
+  </data>
+  <data name="AdviceNoBuffer" xml:space="preserve">
+    <value>{0}，而且根本没有为它设置库存水平，尽管它每天消耗 {1:N1}。这种设置本身就没有任何缓冲：每一个单位都必须恰好在需要时制造或购买。相对清单所需短缺 {2:N0}。</value>
+  </data>
+  <data name="AdviceNotTheShelf" xml:space="preserve">
+    <value>{0}，但现有 {1:N0}，而工作只需要 {2:N0}——让它们停下的不是这种材料。这些任务还缺别的东西，或者在等待栏位、蓝图，或存放在其他空间站的库存。</value>
+  </data>
+  <data name="AdviceBlocked" xml:space="preserve">
+    <value>{0}，剩余 {1:N0}，库存水平为 {2:N0}——按每天 {4:N1} 计约可覆盖 {3:N0} 天，但已经耗尽。要么库存水平相对它的消耗速度太低，要么补充不够及时。</value>
+  </data>
+  <data name="AdviceBuy" xml:space="preserve">
+    <value>一个都没有，这里也无法生产，而每天消耗 {0:N1}。目前还没有工作项停下。</value>
+  </data>
+  <data name="AdviceMakingTooFew" xml:space="preserve">
+    <value>每天消耗 {0:N1}，每天产出 {1:N1}，且需求平稳。需要的是提高产量，而不是加大缓冲。</value>
+  </data>
+  <data name="AdviceMakingTooFewEmpty" xml:space="preserve">
+    <value>每天消耗 {0:N1}，每天产出 {1:N1}，且需求平稳。按此速度约 {2:N0} 天后耗尽。需要的是提高产量，而不是加大缓冲。</value>
+  </data>
+  <data name="AdviceWave" xml:space="preserve">
+    <value>当前消耗强度是平时的 {0:N1} 倍——正有一波集中制造经过。剩余 {1:N0}，按当前消耗速度约可用 {2:N0} 天。目前还没有工作项停下；值得关注，暂不必采取行动。</value>
+  </data>
+  <data name="AdviceNoLevelSet" xml:space="preserve">
+    <value>每天消耗 {0:N1}，却没有任何设置要求保留库存，因此需求上升时毫无缓冲。</value>
+  </data>
+  <data name="AdviceBufferThin" xml:space="preserve">
+    <value>按每天 {2:N1} 计，{0:N0} 的库存水平只够 {1:N0} 天。补充时间比这更长的物品，都会在到货前造成阻塞。</value>
+  </data>
+  <data name="AdviceHolding" xml:space="preserve">
+    <value>按每天消耗 {1:N1} 计可覆盖 {0:N0} 天，补充速度为每天 {2:N1}。</value>
+  </data>
+  <data name="RemedyEffect" xml:space="preserve">
+    <value>积压可在 {0:N0} 天内清完（原需 {1:N0} 天）</value>
+  </data>
+  <data name="RemedyTrain" xml:space="preserve">
+    <value>训练已在执行此类任务的角色</value>
+  </data>
+  <data name="RemedyTrainNone" xml:space="preserve">
+    <value>此栏位池中的所有角色都已达到技能上限。</value>
+  </data>
+  <data name="RemedyTrainDetail" xml:space="preserve">
+    <value>{0} 个角色未达到 {1} 个栏位的上限：{2}</value>
+  </data>
+  <data name="RemedyEnable" xml:space="preserve">
+    <value>启用当前在此栏位池中被关闭的角色</value>
+  </data>
+  <data name="RemedyEnableNone" xml:space="preserve">
+    <value>所有已配置的角色都已在此栏位池中启用。</value>
+  </data>
+  <data name="RemedyEnableDetail" xml:space="preserve">
+    <value>{0} 个角色被关闭，目前共有 {1:N0} 个栏位——关闭通常是有原因的，所以请把它当作规模参考，而不是行动计划。{2}</value>
+  </data>
+  <data name="RemedyAccount" xml:space="preserve">
+    <value>增加 {0} 个角色（一个账号），并训练到上限</value>
+  </data>
+  <data name="RemedyAccountDetail" xml:space="preserve">
+    <value>{0} × {1} 个栏位，对比目前运行中的 {2:N0} 个。训练需要时间——这是它能换来的上限。</value>
+  </data>
+  <data name="ContentionScale" xml:space="preserve">
+    <value>统计了 {0:N0} 张蓝图在 {1} 天内的情况：{2:N0} 张从未出现所有原件同时被占用，中位数为 {3:N0}%，最繁忙的十分之一从 {4:N0}% 起——标记正是以此为界。</value>
+  </data>
+  <data name="PrintAdviceBlockingBpo" xml:space="preserve">
+    <value>最近 {1} 天中，所有蓝图原件同时被占用的时间占 {0:N0}%，目前有 {2:N0} 个任务无法开始。再买一张蓝图原件，上限将从每天 {3:N2} 提高到每天 {4:N2}。</value>
+  </data>
+  <data name="PrintAdviceBlockingFormula" xml:space="preserve">
+    <value>最近 {1} 天中，所有配方同时被占用的时间占 {0:N0}%，目前有 {2:N0} 个任务无法开始。再买一张配方，上限将从每天 {3:N2} 提高到每天 {4:N2}。</value>
+  </data>
+  <data name="PrintAdviceSteadyBpo" xml:space="preserve">
+    <value>最近 {1} 天中，所有蓝图原件同时被占用的时间占 {0:N0}%，且有 {2:N0} 个任务在排队——想再开一个任务，就得等某张原件空出来。再买一张蓝图原件，上限将提高到每天 {3:N2}。</value>
+  </data>
+  <data name="PrintAdviceSteadyFormula" xml:space="preserve">
+    <value>最近 {1} 天中，所有配方同时被占用的时间占 {0:N0}%，且有 {2:N0} 个任务在排队——想再开一个任务，就得等某张配方空出来。再买一张配方，上限将提高到每天 {3:N2}。</value>
+  </data>
+  <data name="PrintAdviceContendedBpo" xml:space="preserve">
+    <value>最近 {1} 天中，所有蓝图原件同时被占用的时间占 {0:N0}%，但目前没有针对它排队的任务。值得关注，但还不值得为此购买。</value>
+  </data>
+  <data name="PrintAdviceContendedFormula" xml:space="preserve">
+    <value>最近 {1} 天中，所有配方同时被占用的时间占 {0:N0}%，但目前没有针对它排队的任务。值得关注，但还不值得为此购买。</value>
+  </data>
+  <data name="PrintAdviceBlockedBpo" xml:space="preserve">
+    <value>{0:N0} 个任务无法开始，但现有的蓝图原件很少同时全部被占用（{1:N0}%）。在再买一张蓝图原件之前，先查清真正缺的是什么——问题看起来不在蓝图上。</value>
+  </data>
+  <data name="PrintAdviceBlockedFormula" xml:space="preserve">
+    <value>{0:N0} 个任务无法开始，但现有的配方很少同时全部被占用（{1:N0}%）。在再买一张配方之前，先查清真正缺的是什么——问题看起来不在配方上。</value>
+  </data>
+  <data name="PrintAdviceSurgeBpo" xml:space="preserve">
+    <value>目前有 {0:N0} 个任务需要它，但最近 {1} 天里，每张蓝图原件几乎一直空闲。这是一次性需求，而不是长期需求——蓝图拷贝可能比原件更合适。</value>
+  </data>
+  <data name="PrintAdviceSurgeFormula" xml:space="preserve">
+    <value>目前有 {0:N0} 个任务需要它，但最近 {1} 天里，每张配方几乎一直空闲。这是一次性需求，而不是长期需求——让这些任务排队即可，不必再买一张配方。</value>
+  </data>
+  <data name="PrintAdviceMinorBpo" xml:space="preserve">
+    <value>最近 {1} 天中，所有蓝图原件同时被占用的时间占 {0:N0}%——确实存在，但不在这里最繁忙的前十分之一，而且没有针对它排队的任务。再买一张蓝图原件，上限会提高到每天 {2:N2}。</value>
+  </data>
+  <data name="PrintAdviceMinorFormula" xml:space="preserve">
+    <value>最近 {1} 天中，所有配方同时被占用的时间占 {0:N0}%——确实存在，但不在这里最繁忙的前十分之一，而且没有针对它排队的任务。再买一张配方，上限会提高到每天 {2:N2}。</value>
+  </data>
+  <data name="PrintAdviceBuildingBpo" xml:space="preserve">
+    <value>{0:N0} 个任务在排队；在统计时间段内，所有蓝图原件同时被占用的时间占 {1:N0}%。再买一张蓝图原件，上限会提高到每天 {2:N2}。</value>
+  </data>
+  <data name="PrintAdviceBuildingFormula" xml:space="preserve">
+    <value>{0:N0} 个任务在排队；在统计时间段内，所有配方同时被占用的时间占 {1:N0}%。再买一张配方，上限会提高到每天 {2:N2}。</value>
+  </data>
+  <data name="SummarySlotRemedy" xml:space="preserve">
+    <value>{0}——+{1:N0} 个栏位（{2:N0}%）</value>
+  </data>
+  <data name="SummaryBuyPrint" xml:space="preserve">
+    <value>{0}——已有 {1:N0} 张，再买 1 张（产出 +{2:N0}%）</value>
+  </data>
+  <data name="SummaryPlaceBuyOrders" xml:space="preserve">
+    <value>挂出 {0:N0} 个买单</value>
+  </data>
+  <data name="SummarySetLevel" xml:space="preserve">
+    <value>{0}——将库存水平设为 {1}</value>
+  </data>
+  <data name="SummaryRaiseLevel" xml:space="preserve">
+    <value>{0}——将库存水平从 {1:N0} 提高到 {2}</value>
+  </data>
+  <data name="SummaryChangeLevels" xml:space="preserve">
+    <value>调整 {0:N0} 个库存水平</value>
+  </data>
+  <data name="SummaryLevelsSized" xml:space="preserve">
+    <value>按当前消耗速度，以 {0} 天的用量设定。</value>
+  </data>
+  <data name="SummaryHaulAt" xml:space="preserve">
+    <value>{0}（位于 {1}）——{2:N0} m³</value>
+  </data>
+  <data name="SummaryRaiseHauls" xml:space="preserve">
+    <value>生成 {0:N0} 趟运送</value>
+  </data>
+  <data name="SummaryHaulsIdle" xml:space="preserve">
+    <value>{0:N0} 个任务在等待已拥有的材料，却没有任何运送在进行。</value>
+  </data>
+  <data name="SummaryAddManufacturingSlots" xml:space="preserve">
+    <value>增加制造栏位</value>
+  </data>
+  <data name="SummaryAddReactionSlots" xml:space="preserve">
+    <value>增加反应栏位</value>
+  </data>
+  <data name="SummaryAddScienceSlots" xml:space="preserve">
+    <value>增加科研栏位</value>
+  </data>
+  <data name="SummarySlotsWaiting" xml:space="preserve">
+    <value>{0:N0} 个任务在等待栏位。</value>
+  </data>
+  <data name="SummarySlotsWaitingBehind" xml:space="preserve">
+    <value>{0:N0} 个任务在等待栏位，另有 {1:N0} 个工作项排在它们后面停下。</value>
+  </data>
+  <data name="SummaryBuyBlueprints" xml:space="preserve">
+    <value>购买 {0:N0} 张蓝图</value>
+  </data>
+  <data name="SummaryBuyFormulas" xml:space="preserve">
+    <value>购买 {0:N0} 张配方</value>
+  </data>
+  <data name="SummaryBuyUnblocks" xml:space="preserve">
+    <value>{0}——可解除 {1:N0} 个工作项的阻塞</value>
+  </data>
+  <data name="SummaryTripRestarts" xml:space="preserve">
+    <value>{0} 运至 {1}——{2:N0} 个（{3:N0} m³），可让 {4:N0} 个任务重新开始</value>
+  </data>
+  <data name="SummaryTripWanted" xml:space="preserve">
+    <value>{0} 运至 {1}——{2:N0} 个（{3:N0} m³），{4:N0} 个任务需要，但单靠它没有一个能重新开始</value>
+  </data>
+  <data name="SummaryWorstShown" xml:space="preserve">
+    <value>仅显示最严重的 {0} 项；其余见对应标签页。</value>
   </data>
 </root>

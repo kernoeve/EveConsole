@@ -2781,7 +2781,7 @@
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every blueprint original was in a job at once.</comment>
   </data>
   <data name="PrintAdviceBlockedFormula" xml:space="preserve">
-    <value>{0:N0} job(s) cannot start, though the formulas on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another formula — this looks like something other than the blueprint.</value>
+    <value>{0:N0} job(s) cannot start, though the formulas on hand have rarely all been busy at once ({1:N0}%). Check what is really missing before buying another formula — this looks like something other than the formula.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that cannot start, {1} the share of the time every reaction formula was in a job at once.</comment>
   </data>
   <data name="PrintAdviceSurgeBpo" xml:space="preserve">
@@ -2789,7 +2789,7 @@
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that want the blueprint, {1} the days measured. BPC is EVE's blueprint copy.</comment>
   </data>
   <data name="PrintAdviceSurgeFormula" xml:space="preserve">
-    <value>{0:N0} job(s) want it now, but every formula was free for almost all of the last {1} days. A one-off rather than a standing need — a BPC may serve better than an original.</value>
+    <value>{0:N0} job(s) want it now, but every formula was free for almost all of the last {1} days. A one-off rather than a standing need — let the runs queue rather than buying another formula.</value>
     <comment>Suggestion on the BPO / Formula tab. {0} is the jobs that want the formula, {1} the days measured. BPC is EVE's blueprint copy.</comment>
   </data>
   <data name="PrintAdviceMinorBpo" xml:space="preserve">
