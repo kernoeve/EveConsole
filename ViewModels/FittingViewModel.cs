@@ -1009,7 +1009,12 @@ public class FitTabViewModel : ReactiveObject
             IsFighter = _data is not null && _data.TryType(typeId, out var t) && t.CategoryId == DogmaData.CategoryFighter,
         };
         row.RemoveCommand = ReactiveCommand.Create(() => { Drones.Remove(row); ScheduleRecalc(); });
-        row.WhenAnyValue(r => r.Count, r => r.Active).Skip(1).Subscribe(_ => ScheduleRecalc());
+        row.WhenAnyValue(r => r.Count, r => r.Active).Skip(1).Subscribe(_ =>
+        {
+            if (_trimmingDrones) return;
+            _droneEdited = row;
+            ScheduleRecalc();
+        });
         Drones.Add(row);
         _ = Task.Run(async () => { var b = await TypeIcons.GetAsync(typeId); Dispatcher.UIThread.Post(() => row.Icon = b); });
     }
@@ -1465,6 +1470,7 @@ public class FitTabViewModel : ReactiveObject
             }, ct);
             if (ct.IsCancellationRequested) return;
             _lastEngine = engine;
+            if (TrimLaunchedDrones(engine)) { await RecalculateAsync(ct); return; }
             Stats = snap;
             for (var i = 0; i < _modules.Count; i++)
                 _modules[i].Detail = snap.ModuleDetail.GetValueOrDefault(i, "");
@@ -1477,6 +1483,50 @@ public class FitTabViewModel : ReactiveObject
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { Status = $"Calculation failed: {ex.Message}"; }
+    }
+
+    private bool _trimmingDrones;
+    /// <summary>The drone stack last changed by hand — the one to cut back when there is too much out.</summary>
+    private FittingDroneRowVm? _droneEdited;
+
+    /// <summary>
+    /// Keeps the launched drones within what the pilot can control (their skills) and what the
+    /// hull's bandwidth carries. A stack just raised by hand gives way first; otherwise the stacks
+    /// fill in order, as when a fit is loaded — EFT and in-game fittings do not say which drones
+    /// are out, only what is in the bay. Returns whether anything changed.
+    ///
+    /// <para>Fighters have limits of their own (tubes and fighter slots) and are left alone here.</para>
+    /// </summary>
+    private bool TrimLaunchedDrones(DogmaEngine e)
+    {
+        var rows = Drones.Where(d => !d.IsFighter).ToList();
+        if (rows.Count == 0) return false;
+        if (_droneEdited is { } edited && rows.Remove(edited)) rows.Add(edited);
+        _droneEdited = null;
+
+        var roomCount = (int)Math.Round(e.Value(e.Character, "maxActiveDrones"));
+        var roomBw    = new FitStats(e).DroneBandwidth;
+        double BandwidthOf(int typeId) =>
+            e.Drones.FirstOrDefault(d => d.Type.Id == typeId) is { } d ? e.Value(d, "droneBandwidthUsed")
+            : _data!.Attribute("droneBandwidthUsed")?.Id is { } a ? _data.Type(typeId).Attr(a) ?? 0 : 0;
+
+        var changed = false;
+        _trimmingDrones = true;
+        try
+        {
+            foreach (var row in rows)
+            {
+                var each    = BandwidthOf(row.TypeId);
+                var allowed = Math.Min(row.Active, Math.Max(0, roomCount));
+                if (each > 0) allowed = Math.Min(allowed, Math.Max(0, (int)Math.Floor(roomBw / each + 1e-9)));
+                if (allowed != row.Active) { row.Active = allowed; changed = true; }
+                roomCount -= allowed;
+                roomBw    -= allowed * each;
+            }
+        }
+        finally { _trimmingDrones = false; }
+        if (changed) Status = "Launched drones cut back to what the pilot can control and the hull's bandwidth carries.";
+        return changed;
     }
 
     private static FitSnapshot Snapshot(DogmaEngine e, DamageProfile profile)

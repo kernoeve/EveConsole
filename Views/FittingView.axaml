@@ -82,6 +82,10 @@
       <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BadBrush}" />
     </Style>
+    <!-- Numbers are typed; spinner arrows only crowd the boxes. -->
+    <Style Selector="NumericUpDown">
+      <Setter Property="ShowButtonSpinner" Value="False" />
+    </Style>
     <Style Selector="Button.remove">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />
