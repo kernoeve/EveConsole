@@ -116,8 +116,8 @@ public sealed record StationNeed(
 /// <para>The other generators end at "this job cannot start, its inputs are elsewhere". That is a
 /// diagnosis, not work. This turns it into the trip that fixes it.</para>
 ///
-/// <para><b>One task per pair of stations.</b> A hauler flying from Jita to ZD1-Z2 carries
-/// everything ZD1-Z2 needs from Jita, so the task lists items rather than being one task each —
+/// <para><b>One task per pair of stations.</b> A hauler flying from Jita to a staging system carries
+/// everything that system needs from Jita, so the task lists items rather than being one task each —
 /// twenty rows for one round trip would be twenty times the reading for the same flying. Volume
 /// is deliberately ignored: how many trips it takes is the hauler's problem, and splitting by
 /// capacity would guess at ships and rigs the tool knows nothing about.</para>

@@ -102,7 +102,7 @@ public sealed record MonthlyActivityRow(
 // ⚠️ These override ToString to the bare name. They are handed straight to AutoCompleteBox,
 // which has no ItemTemplate on these pickers and so renders whatever ToString gives it — and,
 // worse, writes that same string into the text box when an item is picked. A record generates
-// a ToString like "SdeSystemResult { SystemId = 30004384, Name = 4DTQ-K }", which is exactly
+// a ToString like "SdeSystemResult { SystemId = 30000142, Name = Jita }", which is exactly
 // what the Indy Parks system dropdown was showing. EntityMatch carries the same override for
 // the same reason.
 public sealed record SdeTypeResult(int TypeId, string Name) { public override string ToString() => Name; }

@@ -221,7 +221,7 @@ public class SystemViewService(
     /// Which pirate faction rats each region, derived from our own killmails: NPC attackers
     /// carry a faction id, so the dominant pirate faction among a region's NPC kills is its
     /// local pirates. Verified against 17 regions with known lore — Genesis and Domain give
-    /// Blood Raiders, Tenerifis and Curse the Angel Cartel, Catch and Stain Sansha, and so on.
+    /// Blood Raiders, Curse the Angel Cartel, Catch and Stain Sansha, and so on.
     ///
     /// Cached for the session: it scans several million attacker rows, and the answer does not
     /// change on any timescale that matters.

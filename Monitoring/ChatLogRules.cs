@@ -20,7 +20,7 @@ namespace EveConsole.Monitoring;
 ///         ---------------------------------------------------------------
 ///
 /// Messages:  [ 2026.07.27 20:01:33 ] Sender Name > message text
-/// System:    [ 2026.07.27 20:01:33 ] EVE System > Channel changed to Local : ZD1-Z2
+/// System:    [ 2026.07.27 20:01:33 ] EVE System > Channel changed to Local : Jita
 ///
 /// Channel ID is "local" for Local, or "player_&lt;guid&gt;" for player-made channels.
 ///
@@ -47,7 +47,7 @@ public static class ChatLogRules
     private static readonly Regex ChannelNameRx = new(@"^\s*Channel Name:\s*(?<v>.+?)\s*$", Opts);
     private static readonly Regex ListenerRx    = new(@"^\s*Listener:\s*(?<v>.+?)\s*$",     Opts);
 
-    /// <summary>"Channel changed to Local : ZD1-Z2" — the only system message that
+    /// <summary>"Channel changed to Local : Jita" — the only system message that
     /// carries usable state, giving the character's current solar system.</summary>
     private static readonly Regex ChannelChangedRx = new(
         @"^Channel\s+changed\s+to\s+.+?\s*:\s*(?<system>.+?)\s*$", Opts);

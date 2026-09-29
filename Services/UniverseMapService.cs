@@ -359,8 +359,8 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>⚠️ By hull, and there is no attribute for it. An earlier version read the hull's
     /// <c>rigSize</c> on the reasoning that the three Upwell sizes are the docking classes. They
     /// are not: rigSize governs which RIGS fit, and a Sotiyo is size 4 while taking neither
-    /// capitals nor supers. That version told the map RH0-EG could dock titans when all it holds
-    /// is a Sotiyo.</para>
+    /// capitals nor supers. That version told the map a system could dock titans when all it
+    /// holds is a Sotiyo.</para>
     ///
     /// <para>Only a Keepstar takes supers and titans; only a Fortizar and an NPC station take
     /// capitals; every other dockable hull is subcapital. Matching on the name covers the faction
@@ -800,7 +800,7 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     ///
     /// This is the accurate source for ship and pod kills, and CCP's system_kills counter is
     /// not. That endpoint is documented as "the last hour ending at Last-Modified", but it
-    /// demonstrably re-reports the same kills across consecutive hourly snapshots — C-FD0D on
+    /// demonstrably re-reports the same kills across consecutive hourly snapshots — one system on
     /// 2026-08-03 had one burst of 14 ship kills inside hour 15, reported as 12 at 15:44 and a
     /// further 15 at 16:44, summing to 31 for a day zKillboard and our own killmails both put
     /// at 18. Any multi-hour total built from those snapshots is therefore inflated, roughly
