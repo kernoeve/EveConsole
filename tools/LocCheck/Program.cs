@@ -84,6 +84,7 @@ static SortedSet<string>? Placeholders(string s)
 var neutralFiles = Directory.GetFiles(dir, "*Text.resx").OrderBy(f => f).ToList();
 var coverage = new SortedDictionary<string, (int Done, int Total)>(StringComparer.Ordinal);
 var totalStrings = 0;
+var everyEnglish = new Dictionary<string, string>(StringComparer.Ordinal);   // "ShellText.Key" → English
 
 foreach (var neutralFile in neutralFiles)
 {
@@ -93,6 +94,7 @@ foreach (var neutralFile in neutralFiles)
 
     foreach (var (key, (value, _)) in english)
     {
+        everyEnglish[$"{baseName}.{key}"] = value;
         // The build makes each key a property name.
         if (!Regex.IsMatch(key, @"^[A-Za-z_][A-Za-z0-9_]*$"))
             errors.Add($"{baseName}.resx: \"{key}\" is not a valid property name");
@@ -140,8 +142,11 @@ foreach (var neutralFile in neutralFiles)
     }
 }
 
+// Every string.Format / Plurals.Format of an entry gets the values its English needs.
+var formatUses = FormatUses.Check(root, everyEnglish, errors);
+
 // ── Report ──────────────────────────────────────────────────────────────────────────────
-Console.WriteLine($"Interface text: {totalStrings} strings in {neutralFiles.Count} file(s).");
+Console.WriteLine($"Interface text: {totalStrings} strings in {neutralFiles.Count} file(s); {formatUses} formatted use(s) checked.");
 foreach (var (code, (done, total)) in coverage)
     Console.WriteLine($"  {code,-8} {done,5} of {total} translated ({100.0 * done / Math.Max(1, total):0}%)");
 
