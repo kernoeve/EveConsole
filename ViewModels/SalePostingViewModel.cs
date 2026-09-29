@@ -1227,6 +1227,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     public string SlackChannelText =>
         _slack?.ChannelName(SlackService.AreaSalePosting) is { Length: > 0 } n ? $"#{n}" : "";
 
+    /// <summary>Where a post went, for the status line, named as the Corp Activity tool names it: a
+    /// webhook has no channel name to show, and an empty one read "Posted to  — 14:05".</summary>
+    private string SlackDestination =>
+        _slack?.UsesWebhook(SlackService.AreaSalePosting) == true ? CorpText.SlackDestinationWebhook
+        : SlackChannelText is { Length: > 0 } channel ? channel
+        : CorpText.SlackDestinationSlack;
+
     private string _slackStatus = "";
     public string SlackStatus { get => _slackStatus; private set => this.RaiseAndSetIfChanged(ref _slackStatus, value); }
 
@@ -1299,7 +1306,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
             if (posted == 0) { SlackStatus = SalesText.SlackAllEmpty; return; }
             await _slack.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
-            SlackStatus = string.Format(SalesText.SlackPosted, SlackChannelText, DateTimeOffset.Now);
+            SlackStatus = string.Format(SalesText.SlackPosted, SlackDestination, DateTimeOffset.Now);
         }
         finally { IsPostingToSlack = false; }
     }

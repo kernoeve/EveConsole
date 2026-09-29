@@ -1561,7 +1561,7 @@ Click to open contract {0} in the Contracts tool.</value>
   </data>
   <data name="SlackPosted" xml:space="preserve">
     <value>Posted to {0} — {1:t}</value>
-    <comment>Slack status. {0} is the channel, {1} the time.</comment>
+    <comment>Slack status. {0} is where: "#channel", or "Slack (webhook)", or "Slack". {1} is the time.</comment>
   </data>
   <data name="SelectSectionFirst" xml:space="preserve">
     <value>Select a section (or an item in one) first.</value>
