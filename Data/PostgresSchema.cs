@@ -647,6 +647,10 @@ public static class PostgresSchema
         """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitPeriodCount" INTEGER NOT NULL DEFAULT 1
         """,
+        // The language the shop speaks to buyers; empty for the app's own.
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "Language" TEXT NOT NULL DEFAULT ''
+        """,
 
 
 

@@ -622,10 +622,10 @@ public enum SdeNameKind
 ///
 /// <para>⚠️ A side table, and the English stays where it was. Every Name and DisplayName column
 /// keeps the English, because everything that MATCHES on a name reads those — the agent, parsers,
-/// saved alarm configs, search, outgoing mail and Slack. These rows are for display, read through
-/// <c>EveConsole.Localization.SdeNames</c>, which falls back to the English column; and for one
-/// kind of matching, a list pasted from a client in another language, which names its items in
-/// that language (<c>AppraisalService</c>).</para>
+/// saved alarm configs, search. These rows are for people to read, on a screen or in a post or
+/// mail, through <c>EveConsole.Localization.SdeNames</c>, which falls back to the English column;
+/// and for text people write back in their game client's language — a pasted list, an alarm's
+/// names, a store order — looked up to the English it stands for.</para>
 ///
 /// <para>All seven other languages are stored whatever language anybody's interface is in: several
 /// clients can share one PostgreSQL database, each in its own language, so the choice is made when

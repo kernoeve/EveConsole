@@ -679,6 +679,15 @@
   <data name="PriceList" xml:space="preserve">
     <value>価格表</value>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>アプリと同じ（{0}）</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>購入者が読むもの：ストアのメールと、ウェブサイト上のアイテム名です。「アプリと同じ」は、ストアを運営しているコンピューターのインターフェース言語に従います。</value>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>在庫ありの注文に予定日を設定する</value>
   </data>

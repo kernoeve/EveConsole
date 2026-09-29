@@ -226,8 +226,8 @@
                 <StackPanel Spacing="10">
                   <TextBlock Text="{x:Static loc:SalesText.Store}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
     
-                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
-    
+                  <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto">
+
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SalesText.Name}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <!-- LostFocus, not the default per-keystroke: every change writes to the
@@ -266,6 +266,18 @@
                                  MaxWidth="420" HorizontalAlignment="Left" Foreground="{DynamicResource TextFaintBrush}"
                                  Classes.warn="{Binding PostingSplits}"
                                  IsVisible="{Binding PostingSizeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <!-- The language the shop writes to buyers in, both doorways: a seller may play
+                         in one language and sell in another, or run one price list as two shops. -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{x:Static loc:SalesText.StoreLanguage}" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
+                      <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                SelectedItem="{Binding StoreLanguage}" FontSize="11" MinWidth="220"
+                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                      <TextBlock Text="{x:Static loc:SalesText.StoreLanguageNote}"
+                                 FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                     </StackPanel>
                   </Grid>
     

@@ -679,6 +679,15 @@
   <data name="PriceList" xml:space="preserve">
     <value>Liste de prix</value>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>Langue</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>Comme l'application ({0})</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>Ce que lisent les acheteurs : les courriers de la boutique et les noms des objets sur son site web. « Comme l'application » suit la langue de l'interface de l'ordinateur qui fait tourner la boutique.</value>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>Donner une date prévue aux commandes en stock</value>
   </data>

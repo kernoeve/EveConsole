@@ -234,6 +234,14 @@ public class StoresViewModel : ReactiveObject
         new("Anyone", SalesText.PolicyAnyone),
     ];
 
+    // The language the shop writes to buyers in, saved as its code. Empty is "the app's own": the
+    // interface language of the client that serves the shop, which is shown beside it.
+    public IReadOnlyList<Choice<string>> LanguageOptions { get; } =
+    [
+        new("", string.Format(SalesText.StoreLanguageSameAsApp, Languages.Active.NativeName)),
+        .. Languages.All.Select(l => new Choice<string>(l.Code, l.NativeName)),
+    ];
+
     public sealed record LimitOption(string Key, string Label)
     {
         public override string ToString() => Label;
@@ -370,6 +378,30 @@ public class StoresViewModel : ReactiveObject
             if (value is null) return;
             _ = SaveAsync(s => s.PostingId = value.Id);
         }
+    }
+
+    private string _storeLanguage = "";
+    public Choice<string> StoreLanguage
+    {
+        get => LanguageOptions.FirstOrDefault(o => o.Value == _storeLanguage) ?? LanguageOptions[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            var language = value.Value;
+            if (language == _storeLanguage) return;
+            _storeLanguage = language;
+            this.RaisePropertyChanged();
+            _ = SaveLanguageAsync(language);
+        }
+    }
+
+    // The web site hears at once, and the price list is measured again: the same list weighs two
+    // to three times as much in Cyrillic, or in Chinese, Japanese and Korean.
+    private async Task SaveLanguageAsync(string language)
+    {
+        await SaveAsync(s => s.Language = language, nudge: true);
+        await MeasurePostingAsync();
     }
 
     private string _senderPolicy = "List";
@@ -1656,6 +1688,7 @@ public class StoresViewModel : ReactiveObject
                     StoreCharacter = CharacterOptions.FirstOrDefault(c => c.Id == store.CharacterId);
                     StorePosting   = PostingOptions.FirstOrDefault(p => p.Id == store.PostingId);
                     _senderPolicy  = store.SenderPolicy; this.RaisePropertyChanged(nameof(SenderPolicy));
+                    _storeLanguage = store.Language;     this.RaisePropertyChanged(nameof(StoreLanguage));
                     StoreEnabled     = store.Enabled;
                     AutoEstimate     = store.AutoEstimateInStock;
                     AutoEstimateDays = store.AutoEstimateDays;

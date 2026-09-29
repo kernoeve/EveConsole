@@ -4,17 +4,18 @@ using System.Text.Json;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Localization;
 
 /// <summary>
 /// SDE names — items, groups, places, NPC corporations and the rest — in the interface language,
-/// for showing on a screen.
+/// for showing on a screen, and in any language through <see cref="InLanguageAsync"/>.
 ///
-/// <para>⚠️ DISPLAY ONLY. The Name and DisplayName columns stay English, and everything that
-/// matches on a name goes on reading them: the agent, parsers, saved alarm configs, search,
-/// outgoing mail and Slack. Translate at the last step, where a name becomes text on a screen, and
-/// never compare, store, send or search on what comes back from here.</para>
+/// <para>⚠️ FOR PEOPLE TO READ. The Name and DisplayName columns stay English, and everything that
+/// matches on a name goes on reading them: the agent, parsers, saved alarm configs, search.
+/// Translate at the last step, where a name becomes text a person reads — on a screen, or in a
+/// post or mail — and never compare, store or search on what comes back from here.</para>
 ///
 /// <para>The language is chosen when READING. The import stores all seven languages the SDE
 /// carries besides English (<see cref="SdeName"/>), because several clients can share one
@@ -248,6 +249,36 @@ public static class SdeNames
     {
         var two = culture.TwoLetterISOLanguageName;
         return OtherLanguages.Contains(two) ? two : null;
+    }
+
+    // ── Another language ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Names of these ids in <paramref name="language"/>, an interface code ("de", "zh-Hans"), or
+    /// in the interface language when it is null or empty: for text written for someone reading
+    /// another language than the screen's — a shop that sells in English while its owner plays in
+    /// Russian. Holds only the names that differ from the English: look each id up, and fall back
+    /// to the English column. Empty in English.
+    ///
+    /// <para>The interface language is answered from memory. Another costs one query, for these
+    /// ids only: loading its whole snapshot would push out the interface language's.</para>
+    /// </summary>
+    public static async Task<IReadOnlyDictionary<long, string>> InLanguageAsync(
+        AppDbContext db, string? language, SdeNameKind kind, IEnumerable<long> ids, CancellationToken ct = default)
+    {
+        var code = string.IsNullOrEmpty(language) ? Language : CodeFor(CultureInfo.GetCultureInfo(language));
+        var wanted = ids.Distinct().ToList();
+        if (code is null || wanted.Count == 0) return Empty;
+
+        if (code == Language)
+        {
+            await EnsureLoadedAsync(ct).ConfigureAwait(false);
+            var map = Map(kind);
+            return wanted.Where(map.ContainsKey).ToDictionary(id => id, id => map[id]);
+        }
+        return await db.SdeNames.AsNoTracking()
+            .Where(n => n.Kind == kind && n.Lang == code && wanted.Contains(n.Id))
+            .ToDictionaryAsync(n => n.Id, n => n.Name, ct).ConfigureAwait(false);
     }
 
     // ── Refreshing ──────────────────────────────────────────────────────────────

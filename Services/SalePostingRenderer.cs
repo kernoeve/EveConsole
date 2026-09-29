@@ -27,8 +27,14 @@ internal sealed record PostingItemView(
     int? InBuildOverride,
     int? ReservedOverride,
     double? SalePrice,
-    DateTimeOffset? EarliestJobEnd)
+    DateTimeOffset? EarliestJobEnd,
+    string? ShownName = null)
 {
+    /// <summary>The item's name in the language the post is written in, which a line prints
+    /// unless the owner gave the item a name of their own. <see cref="TypeName"/> stays English,
+    /// for matching what buyers write back.</summary>
+    public string Shown => ShownName ?? TypeName;
+
     public long EffectiveInStock  => InStockOverride  ?? InStock;
     public long EffectiveInBuild  => InBuildOverride  ?? InBuild;
     public long EffectiveReserved => ReservedOverride ?? Reserved;
@@ -177,7 +183,7 @@ internal static class SalePostingRenderer
         // practice — and wrapping it would make the clickable region include a token that is not
         // part of the item's name. The override is linked, though: it is still this type, just
         // called something the seller prefers.
-        var shown = string.IsNullOrWhiteSpace(it.NameOverride) ? it.TypeName : it.NameOverride;
+        var shown = string.IsNullOrWhiteSpace(it.NameOverride) ? it.Shown : it.NameOverride;
         var name  = Pfx(it.NamePrefix) + fmt.ItemLink(it.TypeId, shown);
 
         // Just the numbers for the enabled columns, e.g. (9,2,0).

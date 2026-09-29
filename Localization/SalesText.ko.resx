@@ -679,6 +679,15 @@
   <data name="PriceList" xml:space="preserve">
     <value>가격표</value>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>언어</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>앱과 동일 ({0})</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>구매자가 읽는 내용: 상점의 메일과 웹사이트의 아이템 이름입니다. "앱과 동일"은 상점을 운영하는 컴퓨터의 인터페이스 언어를 따릅니다.</value>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>재고가 있는 주문에 예상 날짜 지정</value>
   </data>

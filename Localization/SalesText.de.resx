@@ -679,6 +679,15 @@
   <data name="PriceList" xml:space="preserve">
     <value>Preisliste</value>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>Wie die App ({0})</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>Was Käufer lesen: die Mails des Shops und die Gegenstandsnamen auf seiner Website. „Wie die App“ folgt der Oberflächensprache des Computers, der den Shop bedient.</value>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>Bestellungen aus dem Bestand ein voraussichtliches Datum geben</value>
   </data>

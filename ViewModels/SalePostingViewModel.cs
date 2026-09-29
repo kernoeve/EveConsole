@@ -858,7 +858,7 @@ public class SalePostingItemRow : ReactiveObject
         TypeId, TypeName, _nameOverride, _namePrefix, _color,
         _inStock, _inBuild, _reserved,
         _inStockOverride, _inBuildOverride, _reservedOverride,
-        _salePrice, _earliestJobEnd);
+        _salePrice, _earliestJobEnd, DisplayName);
 
     public void ApplyCalc(SalePostingCalc c, string basis, bool showCompletion)
     {
@@ -1155,12 +1155,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         }
     }
 
-    // ⚠️ By the English TypeName, not the name the grid shows: the posting is rendered in this
-    // order, and SalePostingService.BuildViewAsync mails it in the same one.
+    // ⚠️ By the name the posting prints, in the interface language: the posting is rendered in
+    // this order, and SalePostingService.BuildViewAsync writes it for a store in the same one when
+    // the store speaks the same language.
     private void SortPostingItems(SalePostingRow pr)
     {
         foreach (var s in pr.Sections)
-            s.AllItems = s.AllItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
+            s.AllItems = s.AllItems.OrderBy(i => i.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
     private void RebuildGridRows()

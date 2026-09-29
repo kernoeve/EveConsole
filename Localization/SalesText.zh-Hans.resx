@@ -679,6 +679,15 @@
   <data name="PriceList" xml:space="preserve">
     <value>价目表</value>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>与应用相同（{0}）</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>买家读到的内容：商店的邮件，以及网站上的物品名称。“与应用相同”即跟随运行此商店的电脑的界面语言。</value>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>为现货订单设定预计日期</value>
   </data>

@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using EveConsole.Api;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -440,10 +441,14 @@ public class WebStoreSyncService(
             .Where(o => o.BuyerId != 0 && o.StoreId == store.Id)
             .ToListAsync(ct);
 
+        // The names in the store's language, as its price list has them. ⚠️ A change of language
+        // changes every order's hash, so the orders are all sent again once.
         var typeIds = orders.Select(o => o.TypeId).Distinct().ToList();
         var names = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        foreach (var (id, name) in await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Type, typeIds.Select(t => (long)t), ct))
+            names[(int)id] = name;
         // The group too, so the site can count a per-group limit over orders whose item has
         // since left the price list.
         var groups = await (
@@ -452,6 +457,11 @@ public class WebStoreSyncService(
                 where typeIds.Contains(t.TypeId)
                 select new { t.TypeId, t.GroupId, GroupName = g.Name })
             .ToDictionaryAsync(x => x.TypeId, x => (x.GroupId, x.GroupName), ct);
+        var groupNames = await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Group,
+            groups.Values.Select(g => (long)g.GroupId), ct);
+        foreach (var typeId in groups.Keys.ToList())
+            if (groupNames.TryGetValue(groups[typeId].GroupId, out var groupName))
+                groups[typeId] = (groups[typeId].GroupId, groupName);
 
         var current = new Dictionary<int, (OrderDto Dto, string Hash)>();
         foreach (var o in orders)
@@ -502,6 +512,8 @@ public class WebStoreSyncService(
             Store = new StoreInfoDto
             {
                 Name          = store.Name,
+                // The language it speaks to buyers, as the code the site will word itself in.
+                Language      = StoreLanguageCode(store),
                 Blurb         = store.WebBlurb,
                 CharacterName = store.CharacterName,
                 Pickup        = "",   // nothing is guessed from the posting: the owner's blurb says where and how
@@ -564,6 +576,11 @@ public class WebStoreSyncService(
     private static string HashOf(OrderDto dto) =>
         Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(dto, WebStoreProtocol.Json)))
                .ToLowerInvariant();
+
+    /// <summary>The store's language as a code: its own, or the interface language of this client,
+    /// which is the one serving it, for a store that speaks the app's.</summary>
+    private static string StoreLanguageCode(Store store) =>
+        string.IsNullOrEmpty(store.Language) ? Languages.Active.Code : store.Language;
 
     // ── The call ──────────────────────────────────────────────────────────────
 

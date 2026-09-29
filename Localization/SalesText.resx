@@ -904,6 +904,18 @@
     <value>Price list</value>
     <comment>Text in StoresView.</comment>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>Language</value>
+    <comment>Stores, General tab: label of the drop-down that picks the language the store writes to its buyers in.</comment>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>Same as the app ({0})</value>
+    <comment>Stores, General tab, Language drop-down: the first choice, which follows the app's interface language. {0} is that language's own name, e.g. Deutsch.</comment>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>What buyers read: the store's mail, and the item names on its web site. "Same as the app" follows the interface language of the computer that serves the store.</value>
+    <comment>Stores, General tab, beside the Language drop-down. "Same as the app" is the drop-down's first choice (StoreLanguageSameAsApp).</comment>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>Give in-stock orders an expected date</value>
     <comment>Button or option in StoresView.</comment>

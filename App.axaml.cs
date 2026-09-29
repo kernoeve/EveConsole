@@ -993,6 +993,7 @@ public class App : Application
                         "CharacterId"   INTEGER NOT NULL DEFAULT 0,
                         "CharacterName" TEXT    NOT NULL DEFAULT '',
                         "PostingId"     INTEGER NOT NULL DEFAULT 0,
+                        "Language"      TEXT    NOT NULL DEFAULT '',
                         -- ⚠️ Both default to the closed position. A shop that served everyone the
                         -- moment it was created would start answering strangers before its owner had
                         -- decided that was wanted, and a mail cannot be unsent.
@@ -1089,6 +1090,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCustomHostname" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // The language the shop speaks to buyers; empty for the app's own.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Language" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
 
                 db.Database.ExecuteSqlRaw("""

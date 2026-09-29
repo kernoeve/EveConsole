@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using EveConsole.Api;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Services.WebStore;
 using EveConsole.ViewModels;
@@ -255,7 +256,7 @@ public class StoreMailService(
             .ToList();
         if (changed.Count == 0) return 0;
 
-        var names = await TypeNamesAsync(db, changed.Select(o => o.TypeId).Distinct().ToList(), ct);
+        var names = await TypeNamesAsync(db, store, changed.Select(o => o.TypeId).Distinct().ToList(), ct);
 
         var sent = 0;
         foreach (var group in changed.GroupBy(o => (o.OrderRef, o.BuyerId, o.Buyer))
@@ -732,7 +733,9 @@ public class StoreMailService(
     /// <returns>Null when the store has no posting, or the posting renders to nothing.</returns>
     public async Task<PriceListSize?> MeasurePriceListAsync(Store store, CancellationToken ct = default)
     {
-        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct);
+        // In the store's language: the same list weighs two to three times as much in Cyrillic, or
+        // in Chinese, Japanese and Korean.
+        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, language: store.Language);
         if (blocks.Count == 0) return null;
 
         var body = PriceListBlocks(blocks);
@@ -767,7 +770,7 @@ public class StoreMailService(
             blocked = await PurchaseLimit.BlockedAsync(db, store, log.PartyId, typeIds, ct);
         }
 
-        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, blocked);
+        var blocks = await postings.RenderAsync(store.PostingId, "EVE Mail", ct, blocked, store.Language);
         if (blocks.Count == 0)
         {
             log.Outcome = "error";
@@ -791,7 +794,7 @@ public class StoreMailService(
 
     private async Task OrderAsync(AppDbContext db, Store store, StoreMail log, CancellationToken ct)
     {
-        var view = await postings.BuildViewAsync(store.PostingId, ct);
+        var view = await postings.BuildViewAsync(store.PostingId, ct, store.Language);
         if (view is null)
         {
             log.Outcome = "error";
@@ -802,15 +805,26 @@ public class StoreMailService(
         // The catalogue is the posting: what it quotes is what can be bought. Indexed both ways —
         // by type id for a dragged link, which is exact, and by name for anyone who types. A name
         // override is included because that is what the buyer was shown, so that is what they
-        // will write back.
+        // will write back; so is the name in the store's language, the one the list printed.
         var byName   = new Dictionary<string, PostingItemView>(StringComparer.OrdinalIgnoreCase);
         var byTypeId = new Dictionary<int, PostingItemView>();
         foreach (var item in view.Sections.SelectMany(s => s.Items))
         {
             byTypeId[item.TypeId] = item;
             byName[item.TypeName] = item;
+            byName.TryAdd(item.Shown, item);
             if (!string.IsNullOrWhiteSpace(item.NameOverride)) byName[item.NameOverride!] = item;
         }
+
+        // And in every language the game client speaks: a buyer may type a name as their own
+        // client shows it, whatever language the store writes in. After the rest, so an English
+        // or chosen name another language happens to share keeps its item.
+        var ids = byTypeId.Keys.Select(id => (long)id).ToList();
+        foreach (var n in await db.SdeNames.AsNoTracking()
+                     .Where(n => n.Kind == SdeNameKind.Type && ids.Contains(n.Id))
+                     .Select(n => new { n.Id, n.Name })
+                     .ToListAsync(ct))
+            if (byTypeId.TryGetValue((int)n.Id, out var item)) byName.TryAdd(n.Name, item);
 
         var parsed = ParseOrder(log.Body, byName, byTypeId);
 
@@ -1033,7 +1047,7 @@ public class StoreMailService(
             return;
         }
 
-        var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
+        var names = await TypeNamesAsync(db, store, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
         var titled  = orders.Count > 0 && log.OrderRef.Length > 0
             ? $"Order {log.OrderRef}"
@@ -1245,7 +1259,7 @@ public class StoreMailService(
             db.ChangeTracker.Clear();
         }
 
-        var names = await TypeNamesAsync(db, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
+        var names = await TypeNamesAsync(db, store, orders.Select(o => o.TypeId).Distinct().ToList(), ct);
 
         var word = refs.Count == 1 ? "Order" : "Orders";
         var list = string.Join(", ", refs);
@@ -1564,11 +1578,19 @@ public class StoreMailService(
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>Item names for a mail to a buyer: in the store's language, falling back to the
+    /// English for a name the SDE gives only in English.</summary>
     private static async Task<Dictionary<int, string>> TypeNamesAsync(
-        AppDbContext db, List<int> typeIds, CancellationToken ct) =>
-        await db.SdeTypes.AsNoTracking()
+        AppDbContext db, Store store, List<int> typeIds, CancellationToken ct)
+    {
+        var names = await db.SdeTypes.AsNoTracking()
             .Where(t => typeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        foreach (var (id, name) in await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Type,
+                     typeIds.Select(t => (long)t), ct))
+            names[(int)id] = name;
+        return names;
+    }
 
     // ── Parsing ───────────────────────────────────────────────────────────────
 
@@ -1671,12 +1693,17 @@ public class StoreMailService(
         """<a\s+href\s*=\s*"?showinfo:(\d+)(?://(\d+))?"?[^>]*>(.*?)</a>""",
         RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
+    /// <summary>A count: plain digits, or thousands grouped the way the buyer's client writes them —
+    /// "1,000", "1.000", "1 000" with a space or the no-break space French and Russian use, "1'000".
+    /// ⚠️ Only in threes, so "2.5" is never read as 25.</summary>
+    private const string Count = @"(\d{1,3}(?:[,.'’   ]\d{3})+|\d+)";
+
     /// <summary>Quantity forms — the count always after the item, never before it.</summary>
-    private static readonly Regex QtyTrailing = new(@"^\s*(.+?)\s*[x*×]\s*(\d[\d,]*)\s*$",   RegexOptions.Compiled);
-    private static readonly Regex QtyBare     = new(@"^\s*(.+?)\s+(\d[\d,]*)\s*$",           RegexOptions.Compiled);
+    private static readonly Regex QtyTrailing = new($@"^\s*(.+?)\s*[x*×]\s*{Count}\s*$",   RegexOptions.Compiled);
+    private static readonly Regex QtyBare     = new($@"^\s*(.+?)\s+{Count}\s*$",           RegexOptions.Compiled);
 
     /// <summary>Just a count, with or without an x — what is left beside a dragged item link.</summary>
-    private static readonly Regex CountOnly   = new(@"^\s*[x*×]?\s*(\d[\d,]*)\s*[x*×]?\s*$", RegexOptions.Compiled);
+    private static readonly Regex CountOnly   = new($@"^\s*[x*×]?\s*{Count}\s*[x*×]?\s*$", RegexOptions.Compiled);
 
     /// <summary>What one mail asked to buy.</summary>
     internal sealed record ParsedOrder(
@@ -1858,8 +1885,10 @@ public class StoreMailService(
 
     private static string Clean(string s) => s.Trim().Trim('-', ':', '.', ',', ';').Trim();
 
+    // The digits of a Count: its separators are only ever grouping.
     private static long Qty(string s) =>
-        long.TryParse(s.Replace(",", "").Replace(" ", ""), out var n) ? n : 0;
+        long.TryParse(string.Concat(s.Where(char.IsAsciiDigit)), System.Globalization.NumberStyles.None,
+                      System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
 
     /// <summary>
     /// Greetings, sign-offs and thanks — the human parts of a mail, which are not failed order
@@ -1928,7 +1957,7 @@ public class StoreMailService(
     private const string Ind = "   ";
 
     private static string Link(PostingItemView item) =>
-        $"<a href=\"showinfo:{item.TypeId}\">{Esc(item.NameOverride is { Length: > 0 } n ? n : item.TypeName)}</a>";
+        $"<a href=\"showinfo:{item.TypeId}\">{Esc(item.NameOverride is { Length: > 0 } n ? n : item.Shown)}</a>";
 
     /// <summary>⚠️ Whole ISK, because every figure reaching a mail has been through
     /// <see cref="MarketFmt.RoundToDisplay"/> — at billions the decimals are always ".00", and

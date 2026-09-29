@@ -679,6 +679,15 @@
   <data name="PriceList" xml:space="preserve">
     <value>Прайс-лист</value>
   </data>
+  <data name="StoreLanguage" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="StoreLanguageSameAsApp" xml:space="preserve">
+    <value>Как в приложении ({0})</value>
+  </data>
+  <data name="StoreLanguageNote" xml:space="preserve">
+    <value>Что читают покупатели: почта магазина и названия предметов на его сайте. «Как в приложении» — язык интерфейса компьютера, который обслуживает магазин.</value>
+  </data>
   <data name="GiveInStockOrders" xml:space="preserve">
     <value>Назначать заказам из наличия ожидаемую дату</value>
   </data>

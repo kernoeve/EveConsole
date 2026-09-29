@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -542,7 +544,10 @@ public class SalePostingService(
     /// items by type name — because a buyer comparing a mailed list against the one posted in
     /// chat should not have to wonder whether they are looking at the same thing.</para>
     /// </summary>
-    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default)
+    /// <param name="language">The language the list is written in, an interface code ("de",
+    /// "zh-Hans"): item names come in it, and items sort by them. Null or empty for the interface
+    /// language — a store that speaks the app's own.</param>
+    internal async Task<PostingView?> BuildViewAsync(int postingId, CancellationToken ct = default, string? language = null)
     {
         await using var db = dbFactory.CreateDbContext();
 
@@ -552,7 +557,7 @@ public class SalePostingService(
         var sections = await db.SalePostingSections
             .Where(s => s.PostingId == postingId).OrderBy(s => s.Name).ToListAsync(ct);
 
-        var views = new List<PostingSectionView>();
+        var built = new List<(SalePostingSection Section, List<PostingItemView> Rows)>();
 
         foreach (var section in sections)
         {
@@ -560,8 +565,7 @@ public class SalePostingService(
                 .Where(i => i.SectionId == section.Id).ToListAsync(ct);
             if (items.Count == 0)
             {
-                views.Add(new PostingSectionView(
-                    section.Name, section.Prefix, section.HeaderColor, section.RowColor, []));
+                built.Add((section, []));
                 continue;
             }
 
@@ -570,7 +574,7 @@ public class SalePostingService(
                 EffectiveFor(posting, section),
                 items.Select(i => i.TypeId).Distinct().ToList(), ct);
 
-            var rows = items
+            built.Add((section, items
                 .Select(i =>
                 {
                     calc.TryGetValue(i.TypeId, out var c);
@@ -582,12 +586,23 @@ public class SalePostingService(
                         i.InStockOverride, i.InBuildOverride, i.ReservedOverride,
                         c?.SalePrice, c?.EarliestJobEnd);
                 })
-                .OrderBy(r => r.TypeName, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            views.Add(new PostingSectionView(
-                section.Name, section.Prefix, section.HeaderColor, section.RowColor, rows));
+                .ToList()));
         }
+
+        // Every item's name in the list's language, in one read, and the items in that
+        // language's order: the order a list posted in chat has, when it is in the same language.
+        var names = await SdeNames.InLanguageAsync(db, language, SdeNameKind.Type,
+            built.SelectMany(b => b.Rows).Select(r => (long)r.TypeId), ct);
+        var order = StringComparer.Create(
+            string.IsNullOrEmpty(language) ? CultureInfo.CurrentCulture : CultureInfo.GetCultureInfo(language), ignoreCase: true);
+
+        var views = built
+            .Select(b => new PostingSectionView(
+                b.Section.Name, b.Section.Prefix, b.Section.HeaderColor, b.Section.RowColor,
+                b.Rows.Select(r => names.TryGetValue(r.TypeId, out var shown) ? r with { ShownName = shown } : r)
+                      .OrderBy(r => r.Shown, order)
+                      .ToList()))
+            .ToList();
 
         return new PostingView(
             posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
@@ -604,10 +619,12 @@ public class SalePostingService(
     /// </summary>
     /// <param name="blocked">For a list rendered for one reader: the items they may not order any
     /// more under the store's purchase limit, which the Detail block dims and says.</param>
+    /// <param name="language">The language it is written in, as for <see cref="BuildViewAsync"/>.</param>
     internal async Task<List<RenderedPost>> RenderAsync(
-        int postingId, string formatName, CancellationToken ct = default, IReadOnlySet<int>? blocked = null)
+        int postingId, string formatName, CancellationToken ct = default, IReadOnlySet<int>? blocked = null,
+        string? language = null)
     {
-        var view = await BuildViewAsync(postingId, ct);
+        var view = await BuildViewAsync(postingId, ct, language);
         if (view is null) return [];
 
         var fmt   = OutputFormat.ByName(formatName);

@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,8 @@ public sealed class StoreCatalogueBuilder(
     {
         if (store.PostingId == 0) return null;
 
-        var view = await postings.BuildViewAsync(store.PostingId, ct);
+        // In the store's language: the items' names and order, and their groups' names.
+        var view = await postings.BuildViewAsync(store.PostingId, ct, store.Language);
         if (view is null) return null;
 
         var typeIds = view.Sections.SelectMany(s => s.Items).Select(i => i.TypeId).Distinct().ToList();
@@ -40,6 +42,8 @@ public sealed class StoreCatalogueBuilder(
                 where typeIds.Contains(t.TypeId)
                 select new { t.TypeId, t.GroupId, Group = g.Name })
             .ToDictionaryAsync(x => x.TypeId, x => (x.GroupId, x.Group), ct);
+        var groupNames = await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Group,
+            groups.Values.Select(g => (long)g.GroupId), ct);
 
 
         var dto = new CatalogueDto
@@ -64,9 +68,10 @@ public sealed class StoreCatalogueBuilder(
                     TypeId    = i.TypeId,
                     // ⚠️ No prefix. The posting's prefixes ("•", "★") belong to the mail and
                     // Slack renderings; on the site the item's name is its name.
-                    Name      = string.IsNullOrWhiteSpace(i.NameOverride) ? i.TypeName : i.NameOverride!.Trim(),
+                    Name      = string.IsNullOrWhiteSpace(i.NameOverride) ? i.Shown : i.NameOverride!.Trim(),
                     TypeName  = i.TypeName,
-                    GroupName = groups.TryGetValue(i.TypeId, out var grp) ? grp.Group : "",
+                    GroupName = groups.TryGetValue(i.TypeId, out var grp)
+                        ? groupNames.GetValueOrDefault(grp.GroupId, grp.Group) : "",
                     GroupId   = grp.GroupId,
 
                     // ⚠️ Rounded as the price list rounds it, so the number the site quotes is the
